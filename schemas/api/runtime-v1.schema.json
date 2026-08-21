@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vllm-apple.local/schemas/api/runtime-v1.schema.json",
+  "title": "vLLM-Apple runtime snapshot v1",
+  "type": "object",
+  "required": [
+    "api_version",
+    "schema_version",
+    "runtime_version",
+    "state",
+    "control_ready",
+    "inference_ready",
+    "profile",
+    "scheduler"
+  ],
+  "properties": {
+    "api_version": { "const": "v1" },
+    "schema_version": { "const": 1 },
+    "runtime_version": { "type": "string" },
+    "minimum_client_version": { "type": "string" },
+    "state": {
+      "enum": [
+        "stopped",
+        "starting",
+        "profiling",
+        "loading_model",
+        "ready",
+        "degraded",
+        "failed",
+        "stopping"
+      ]
+    },
+    "control_ready": { "type": "boolean" },
+    "inference_ready": { "type": "boolean" },
+    "profile": { "type": "object" },
+    "scheduler": {
+      "type": "object",
+      "required": [
+        "capacity_bytes",
+        "reserved_bytes",
+        "available_bytes",
+        "active_reservations"
+      ]
+    }
+  },
+  "additionalProperties": true
+}
+
