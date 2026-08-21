@@ -95,6 +95,7 @@ MLX / Metal / Unified Memory
 - `[Done]` OpenAI形式のmodels/chat endpoint foundation
 - `[Done]` request bodyの4MiB hard limit
 - `[Done]` bounded request threads、listen backlog、socket timeout
+- `[Done]` active、peak、completed、rejected requestのbounded server metrics
 - `[Done]` inference未接続時の構造化503 response
 - `[Done]` vLLM-Metal managed process adapter
 - `[Done]` backend environmentとPython/vLLM/vLLM-Metal version診断
@@ -185,7 +186,7 @@ MLX / Metal / Unified Memory
 - `[Done]` authenticated HTTP event stream test
 - `[Done]` private UDS lifecycle integration test
 - `[Done]` UDS path length境界test
-- `[Done]` Python 27 test passing
+- `[Done]` Python 31 test passing
 - `[Done]` Swift bounded log buffer test
 - `[Done]` Swift → Python UDS authentication integration test
 - `[Done]` Swift managed daemon crash/restart/reconnect integration test
@@ -193,8 +194,10 @@ MLX / Metal / Unified Memory
 - `[Done]` Swift resource resolver permission/path/fallback test
 - `[Done]` SwiftUI Mac sample build passing
 - `[Next]` JSON Schemaによる実response validation
-- `[Next]` concurrent request load test
-- `[Next]` long-running memory stability test
+- `[Done]` concurrent request saturation、503 early rejection、slot recovery test
+- `[Done]` bounded latency/error metricsによるmemory soak runner
+- `[Done]` RSS growth thresholdとmachine-readable exit status
+- `[Next]` 実modelで30分以上のlong-running memory stability test
 - `[Next]` daemon crash/restart integration test
 - `[Later]` real-model correctness regression suite
 

@@ -17,6 +17,7 @@ dev = ["pytest>=8", "ruff>=0.6"]
 [project.scripts]
 vllm-apple = "vllm_apple.cli:main"
 vllm-appled = "vllm_apple.daemon:main"
+vllm-apple-soak = "vllm_apple.soak:main"
 
 [tool.setuptools.packages.find]
 include = ["vllm_apple*"]
@@ -24,4 +25,3 @@ include = ["vllm_apple*"]
 [tool.ruff]
 line-length = 100
 target-version = "py310"
-

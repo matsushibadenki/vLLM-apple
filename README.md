@@ -11,6 +11,7 @@ Apple Silicon向けの、メモリ安定性を重視したAI runtime control pla
 - OS reserve、workspace、緊急headroomを推論用budgetから除外
 - request bodyを4MiBへ制限
 - server threadを既定32本へ制限し、過負荷時は503で早期拒否
+- load計測値は固定bucketと上限付きerror分類で保持し、計測自体のmemory増加を抑制
 - profileは一時fileへ書き、`fsync`後にatomic replace
 
 Macアプリ用Swift Packageは `sdk/swift` にあります。SwiftUIやAppKitへ依存せず、
@@ -59,6 +60,21 @@ cd samples/VLLMAppleChat
 swift run
 VLLM_APPLE_DAEMON_PATH=/path/to/vllm-appled swift run
 ```
+
+## 同時負荷とメモリ安定性の検証
+
+`vllm-apple-soak`は、履歴sampleを無制限に保持せず、固定12 latency bucketと最大17 error keyで
+throughput、failure、RSS増加量をJSON出力します。既定ではloopback以外への接続を拒否します。
+
+```bash
+python3 -m vllm_apple.soak --duration 300 --warmup 5 --concurrency 8
+python3 -m vllm_apple.soak --mode chat --model your-model \
+  --duration 1800 --concurrency 4 --pid 12345 --max-rss-growth-mib 256 \
+  --session-token-file /path/to/session.token
+```
+
+request failureまたはRSS上限超過ではexit code 1、設定・接続準備のerrorではexit code 2を返します。
+実modelの長時間判定では、model load後のdaemon PIDを`--pid`へ指定してください。
 
 ## 開発時の確認
 

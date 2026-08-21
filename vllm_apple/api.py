@@ -48,6 +48,36 @@ class _BoundedRuntimeServerMixin:
         self.authenticator = SessionAuthenticator(session_token)
         self._request_slots = threading.BoundedSemaphore(max_concurrent_requests)
         self._socket_timeout = socket_timeout
+        self._request_metrics_lock = threading.Lock()
+        self._active_requests = 0
+        self._peak_active_requests = 0
+        self._completed_requests = 0
+        self._rejected_requests = 0
+
+    def request_metrics(self) -> dict[str, int]:
+        with self._request_metrics_lock:
+            return {
+                "active_requests": self._active_requests,
+                "peak_active_requests": self._peak_active_requests,
+                "completed_requests": self._completed_requests,
+                "rejected_requests": self._rejected_requests,
+            }
+
+    def _record_request_admitted(self) -> None:
+        with self._request_metrics_lock:
+            self._active_requests += 1
+            self._peak_active_requests = max(
+                self._peak_active_requests, self._active_requests
+            )
+
+    def _release_request_slot(self, *, completed: bool) -> None:
+        with self._request_metrics_lock:
+            self._active_requests -= 1
+            if self._active_requests < 0:
+                raise RuntimeError("request slot accounting underflow")
+            if completed:
+                self._completed_requests += 1
+        self._request_slots.release()
 
     def get_request(self) -> tuple[socket.socket, Any]:
         request, address = super().get_request()
@@ -56,6 +86,8 @@ class _BoundedRuntimeServerMixin:
 
     def process_request(self, request: socket.socket, client_address: Any) -> None:
         if not self._request_slots.acquire(blocking=False):
+            with self._request_metrics_lock:
+                self._rejected_requests += 1
             payload = b'{"error":{"code":"server_busy","message":"runtime is busy"}}'
             response = (
                 b"HTTP/1.1 503 Service Unavailable\r\n"
@@ -69,10 +101,11 @@ class _BoundedRuntimeServerMixin:
             finally:
                 self.shutdown_request(request)
             return
+        self._record_request_admitted()
         try:
             super().process_request(request, client_address)
         except BaseException:
-            self._request_slots.release()
+            self._release_request_slot(completed=False)
             raise
 
     def process_request_thread(
@@ -81,7 +114,7 @@ class _BoundedRuntimeServerMixin:
         try:
             super().process_request_thread(request, client_address)
         finally:
-            self._request_slots.release()
+            self._release_request_slot(completed=True)
 
 
 class RuntimeHTTPServer(_BoundedRuntimeServerMixin, ThreadingHTTPServer):
