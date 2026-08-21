@@ -1799,9 +1799,11 @@ vLLM-Metal互換pluginとして成立させる。
 [Done] automatic context calculation
 [Done] runtime profile
 [Done] basic scheduler and hard memory admission limit
-[Next] OpenAI API inference backend connection
+[Done] OpenAI API inference backend process connection and proxy
 [Done] versioned local control API
 [Done] daemon lifecycle and readiness foundation
+[Done] vLLM-Metal environment doctor and managed process lifecycle
+[Done] low-buffer SSE streaming proxy
 [Done] Swift Package integration SDK foundation
 [Next] Unix Domain Socket transport
 [Next] runtime event streaming

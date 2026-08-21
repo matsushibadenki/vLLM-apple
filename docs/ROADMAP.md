@@ -16,7 +16,7 @@
 
 Phase 1のcontrol plane、メモリ安全性基盤、Macアプリ向けSwift SDK foundationまで実装済み。
 
-現在の最優先目標は、vLLM-Metalを実推論backendとして接続し、Macアプリから安全にmodelを起動・streaming利用できる最小end-to-end経路を完成させることである。
+現在の最優先目標は、model metadataから安全なcontextを自動決定し、Macアプリからmodel loadの進捗と失敗理由を監視できる最小end-to-end経路を完成させることである。
 
 ```text
 Swift / CLI
@@ -51,7 +51,14 @@ MLX / Metal / Unified Memory
 - `[Done]` SAFE、BALANCED、AGGRESSIVE tierの生成
 - `[Done]` token block単位への安全な切り下げ
 - `[Done]` model max contextの適用
-- `[Next]` Hugging Face / MLX model metadataからKV bytes/tokenを自動算出
+- `[Done]` local / Hugging Face cache model path resolution
+- `[Done]` standard Transformer / GQA metadataからKV bytes/tokenを自動算出
+- `[Done]` weight shardの重複を避けたmemory size集計
+- `[Done]` model metadataからmodel max contextを検出
+- `[Done]` inspect不能時の4096 token保守的fallback
+- `[Done]` managed backendへのbalanced context自動適用
+- `[Next]` MLA、state-space、hybrid model固有のstate memory計算
+- `[Next]` 未cache Hugging Face model metadataの取得
 - `[Next]` model load前後でのcontext再評価
 - `[Later]` workload履歴とthermal状態を用いた動的context調整
 
@@ -88,8 +95,16 @@ MLX / Metal / Unified Memory
 - `[Done]` request bodyの4MiB hard limit
 - `[Done]` bounded request threads、listen backlog、socket timeout
 - `[Done]` inference未接続時の構造化503 response
-- `[Next]` vLLM-Metal inference backend接続
-- `[Next]` chat completionのtoken streaming
+- `[Done]` vLLM-Metal managed process adapter
+- `[Done]` backend environmentとPython/vLLM/vLLM-Metal version診断
+- `[Done]` loopback-only inference backend起動
+- `[Done]` backend readiness、exit、timeout監視
+- `[Done]` bounded stdout/stderr log capture
+- `[Done]` OpenAI models/chat proxy
+- `[Done]` 4KiB単位でflushするSSE token streaming proxy
+- `[Done]` client切断時のupstream stream解放
+- `[Done]` backend terminate、timeout後killによるshutdown
+- `[Next]` 実modelを用いたvLLM-Metal互換性検証
 - `[Next]` graceful request drainを伴うshutdown
 - `[Next]` Unix Domain Socket transport
 - `[Next]` session tokenとsocket permission検証
@@ -101,10 +116,11 @@ MLX / Metal / Unified Memory
 - `[Done]` `vllm-apple context`
 - `[Done]` `vllm-apple profile`
 - `[Done]` `vllm-apple serve`
-- `[Next]` `vllm-apple serve <model>`
+- `[Done]` `vllm-apple serve <model>` command path
+- `[Done]` managed backend port、startup timeout、max model context options
+- `[Done]` `doctor` command
 - `[Next]` automatic model inspectionとrecommended configuration表示
 - `[Next]` structured startup progress
-- `[Next]` `doctor` command
 - `[Later]` daemon install、start、stop、status command
 
 ### Swift SDK and Mac app integration
@@ -136,7 +152,12 @@ MLX / Metal / Unified Memory
 - `[Done]` atomic profile persistence test
 - `[Done]` localhost API integration test
 - `[Done]` Swift model decoding test
-- `[Done]` Python 10 test passing
+- `[Done]` backend commandとsecurity validation test
+- `[Done]` OpenAI non-streaming proxy integration test
+- `[Done]` SSE streaming proxy integration test
+- `[Done]` managed backend process readiness/shutdown test
+- `[Done]` model metadataとKV memory計算test
+- `[Done]` Python 18 test passing
 - `[Done]` Swift 2 test passing
 - `[Next]` JSON Schemaによる実response validation
 - `[Next]` concurrent request load test
@@ -148,7 +169,7 @@ MLX / Metal / Unified Memory
 
 Phase 1を完了とする条件：
 
-- `[Next]` `vllm-apple serve <model>` だけで対応modelを起動できる
+- `[Next]` `vllm-apple serve <model>` だけで実際の対応modelを起動できることを検証する
 - `[Next]` OpenAI互換のnon-streaming/streaming chatが実modelで成功する
 - `[Next]` Swift sample appからdaemon起動、model load、streaming chat、shutdownが成功する
 - `[Next]` modelに応じた安全なcontextが自動設定される
@@ -249,6 +270,8 @@ Phase 1を完了とする条件：
 - `[Done]` schedulerのhard memory ceiling
 - `[Done]` profile書き込みのatomicity
 - `[Done]` bounded HTTP concurrency
+- `[Done]` backend processのreadiness、exit、timeout監視
+- `[Done]` bounded backend log buffer
 - `[Next]` structured error taxonomyとrecoverability
 - `[Next]` daemon crash diagnostics
 - `[Later]` fault injection suite
@@ -265,6 +288,7 @@ Phase 1を完了とする条件：
 ### Observability
 
 - `[Done]` runtime state、memory、scheduler snapshot
+- `[Done]` backend failureのruntime state反映
 - `[Next]` request IDとstructured logging
 - `[Next]` tokens/sec、TTFT、TPOT
 - `[Next]` Unified MemoryとKV usage
@@ -285,9 +309,9 @@ Phase 1を完了とする条件：
 
 直近の実装順序：
 
-1. `[Next]` vLLM-Metal process adapterとversion compatibility check
-2. `[Next]` model metadata inspectionとautomatic context設定
-3. `[Next]` OpenAI chat proxyおよびstreaming
+1. `[Done]` vLLM-Metal process adapterとversion compatibility check
+2. `[Done]` OpenAI chat proxyおよびstreaming
+3. `[Done]` standard Transformer model metadata inspectionとautomatic context設定
 4. `[Next]` UDS、session authentication、bounded event stream
 5. `[Next]` Swift ManagedRuntimeのcrash recoveryとlog capture
 6. `[Next]` 最小SwiftUI Mac chat sample

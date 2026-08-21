@@ -34,6 +34,8 @@ class APITests(unittest.TestCase):
         hardware = self.get_json("/v1/hardware")
         self.assertEqual(hardware["api_version"], "v1")
         self.assertIn("total_bytes", hardware["hardware"]["memory"])
+        runtime = self.get_json("/v1/runtime")
+        self.assertIsNone(runtime["last_error"])
 
     def test_openai_models_shape(self) -> None:
         self.assertEqual(self.get_json("/v1/models"), {"object": "list", "data": []})
@@ -54,4 +56,3 @@ class APITests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-

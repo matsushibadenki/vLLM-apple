@@ -2,7 +2,8 @@ from __future__ import annotations
 
 import threading
 from dataclasses import dataclass
-from typing import Any, Protocol
+from contextlib import AbstractContextManager
+from typing import Any, BinaryIO, Protocol
 
 from .profile import build_profile
 from .scheduler import BasicScheduler
@@ -21,6 +22,10 @@ class InferenceEngine(Protocol):
 
     def chat_completions(self, request: dict[str, Any]) -> dict[str, Any]: ...
 
+    def open_chat_stream(
+        self, request: dict[str, Any]
+    ) -> AbstractContextManager[BinaryIO]: ...
+
 
 class UnavailableInferenceEngine:
     @property
@@ -33,6 +38,11 @@ class UnavailableInferenceEngine:
     def chat_completions(self, request: dict[str, Any]) -> dict[str, Any]:
         raise InferenceUnavailableError("no inference backend is loaded")
 
+    def open_chat_stream(
+        self, request: dict[str, Any]
+    ) -> AbstractContextManager[BinaryIO]:
+        raise InferenceUnavailableError("no inference backend is loaded")
+
 
 @dataclass(frozen=True, slots=True)
 class ServiceSnapshot:
@@ -41,6 +51,7 @@ class ServiceSnapshot:
     inference_ready: bool
     profile: RuntimeProfile
     scheduler: dict[str, int]
+    last_error: str | None
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -49,14 +60,20 @@ class ServiceSnapshot:
             "inference_ready": self.inference_ready,
             "profile": self.profile.to_dict(),
             "scheduler": self.scheduler,
+            "last_error": self.last_error,
         }
 
 
 class RuntimeService:
-    def __init__(self, engine: InferenceEngine | None = None) -> None:
+    def __init__(
+        self,
+        engine: InferenceEngine | None = None,
+        profile: RuntimeProfile | None = None,
+    ) -> None:
         self._lock = threading.RLock()
         self._state = RuntimeState.STARTING
-        self.profile = build_profile()
+        self._last_error: str | None = None
+        self.profile = profile or build_profile()
         memory = self.profile.hardware.memory
         # Scheduler reservations cover transient work only. Retain the larger of
         # 1 GiB or 8% as an unreservable emergency margin.
@@ -74,6 +91,13 @@ class RuntimeService:
     def set_state(self, state: RuntimeState) -> None:
         with self._lock:
             self._state = state
+            if state != RuntimeState.FAILED:
+                self._last_error = None
+
+    def set_failure(self, message: str) -> None:
+        with self._lock:
+            self._last_error = message
+            self._state = RuntimeState.FAILED
 
     def snapshot(self) -> ServiceSnapshot:
         with self._lock:
@@ -83,5 +107,5 @@ class RuntimeService:
                 inference_ready=self.engine.ready,
                 profile=self.profile,
                 scheduler=self.scheduler.memory.snapshot(),
+                last_error=self._last_error,
             )
-

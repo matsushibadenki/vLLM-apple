@@ -9,6 +9,7 @@ from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from typing import Any
 
+from .backend import BackendHTTPError
 from .service import InferenceUnavailableError, RuntimeService
 from .version import API_VERSION, MINIMUM_CLIENT_VERSION, SCHEMA_VERSION, __version__
 
@@ -165,7 +166,12 @@ class RuntimeRequestHandler(BaseHTTPRequestHandler):
                 self._control_payload({"profiles": [snapshot.profile.to_dict()]}),
             )
         elif path == "/v1/models":
-            self._send(HTTPStatus.OK, {"object": "list", "data": self.server.service.engine.models()})
+            try:
+                models = self.server.service.engine.models()
+            except BackendHTTPError as error:
+                self._backend_error(error)
+                return
+            self._send(HTTPStatus.OK, {"object": "list", "data": models})
         else:
             self._error(HTTPStatus.NOT_FOUND, "not_found", "endpoint not found")
 
@@ -178,11 +184,7 @@ class RuntimeRequestHandler(BaseHTTPRequestHandler):
         if request is None:
             return
         if request.get("stream") is True:
-            self._error(
-                HTTPStatus.NOT_IMPLEMENTED,
-                "streaming_not_available",
-                "streaming requires an inference backend",
-            )
+            self._stream_chat(request)
             return
         started = time.monotonic()
         try:
@@ -190,11 +192,52 @@ class RuntimeRequestHandler(BaseHTTPRequestHandler):
         except InferenceUnavailableError as error:
             self._error(HTTPStatus.SERVICE_UNAVAILABLE, "backend_unavailable", str(error))
             return
+        except BackendHTTPError as error:
+            self._backend_error(error)
+            return
         response.setdefault("id", f"chatcmpl-{uuid.uuid4().hex}")
         response.setdefault("object", "chat.completion")
         response.setdefault("created", int(time.time()))
         response.setdefault("runtime_ms", round((time.monotonic() - started) * 1000, 3))
         self._send(HTTPStatus.OK, response)
+
+    def _backend_error(self, error: BackendHTTPError) -> None:
+        try:
+            status = HTTPStatus(error.status)
+        except ValueError:
+            status = HTTPStatus.BAD_GATEWAY
+        self._error(status, error.code or "backend_error", str(error))
+
+    def _stream_chat(self, request: dict[str, Any]) -> None:
+        try:
+            upstream_context = self.server.service.engine.open_chat_stream(request)
+        except InferenceUnavailableError as error:
+            self._error(HTTPStatus.SERVICE_UNAVAILABLE, "backend_unavailable", str(error))
+            return
+        except BackendHTTPError as error:
+            self._backend_error(error)
+            return
+
+        self.send_response(HTTPStatus.OK.value)
+        self.send_header("Content-Type", "text/event-stream; charset=utf-8")
+        self.send_header("Cache-Control", "no-cache")
+        self.send_header("X-Accel-Buffering", "no")
+        self.send_header("Connection", "close")
+        self.end_headers()
+        self.close_connection = True
+        try:
+            with upstream_context as upstream:
+                read = getattr(upstream, "read1", upstream.read)
+                while True:
+                    chunk = read(4096)
+                    if not chunk:
+                        break
+                    self.wfile.write(chunk)
+                    self.wfile.flush()
+        except (BrokenPipeError, ConnectionResetError, TimeoutError):
+            # Client cancellation must promptly close the upstream response and
+            # release the bounded request slot without turning into a daemon error.
+            return
 
 
 def create_server(

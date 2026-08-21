@@ -2,7 +2,9 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 
+from .compat import inspect_backend
 from .context import recommend_context
 from .daemon import serve
 from .hardware import detect_hardware
@@ -20,6 +22,9 @@ def build_parser() -> argparse.ArgumentParser:
 
     commands.add_parser("hardware", help="detect Apple hardware and memory")
 
+    doctor = commands.add_parser("doctor", help="inspect the vLLM-Metal environment")
+    doctor.add_argument("--backend-executable")
+
     profile = commands.add_parser("profile", help="build a runtime profile")
     profile.add_argument("--save", action="store_true")
     profile.add_argument("--output")
@@ -32,9 +37,15 @@ def build_parser() -> argparse.ArgumentParser:
     context.add_argument("--model-max-context", type=int)
 
     server = commands.add_parser("serve", help="run the local control daemon")
+    server.add_argument("model", nargs="?", help="model ID or local model path")
     server.add_argument("--host", default="127.0.0.1")
     server.add_argument("--port", type=int, default=8000)
     server.add_argument("--max-concurrent-requests", type=int, default=32)
+    server.add_argument("--backend-executable")
+    server.add_argument("--backend-port", type=int, default=8001)
+    server.add_argument("--backend-startup-timeout", type=float, default=600.0)
+    server.add_argument("--max-model-len", type=int)
+    server.add_argument("--skip-backend-check", action="store_true")
     return parser
 
 
@@ -43,6 +54,10 @@ def main(argv: list[str] | None = None) -> int:
     if arguments.command == "hardware":
         _json(detect_hardware().to_dict())
         return 0
+    if arguments.command == "doctor":
+        report = inspect_backend(arguments.backend_executable)
+        _json(report.to_dict())
+        return 0 if report.compatible else 1
     if arguments.command == "profile":
         profile = build_profile()
         if arguments.save:
@@ -67,6 +82,20 @@ def main(argv: list[str] | None = None) -> int:
         _json(recommend_context(hardware.memory, spec).to_dict())
         return 0
     if arguments.command == "serve":
-        serve(arguments.host, arguments.port, arguments.max_concurrent_requests)
+        try:
+            serve(
+                host=arguments.host,
+                port=arguments.port,
+                max_concurrent_requests=arguments.max_concurrent_requests,
+                model=arguments.model,
+                backend_executable=arguments.backend_executable,
+                backend_port=arguments.backend_port,
+                backend_startup_timeout=arguments.backend_startup_timeout,
+                max_model_len=arguments.max_model_len,
+                require_compatible_backend=not arguments.skip_backend_check,
+            )
+        except (RuntimeError, ValueError) as error:
+            print(f"vllm-apple: {error}", file=sys.stderr)
+            return 2
         return 0
     return 2
