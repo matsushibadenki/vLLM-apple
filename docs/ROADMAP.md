@@ -14,7 +14,8 @@
 
 ## 現在地
 
-Phase 1のcontrol plane、メモリ安全性基盤、Macアプリ向けSwift SDK foundationまで実装済み。
+Phase 1のcontrol plane、メモリ安全性基盤、Macアプリ向けSwift SDK foundation、
+3言語対応の最小macOS SwiftUI chat sampleまで実装済み。
 
 現在の最優先目標は、model metadataから安全なcontextを自動決定し、Macアプリからmodel loadの進捗と失敗理由を監視できる最小end-to-end経路を完成させることである。
 
@@ -143,13 +144,25 @@ MLX / Metal / Unified Memory
 - `[Done]` Swift HTTP clientのBearer session認証
 - `[Done]` Swift runtime event decodingと再購読interface
 - `[Done]` ManagedRuntimeのtoken file連携
-- `[Next]` daemon stdout/stderrのbounded log capture
-- `[Next]` readiness timeout、crash recovery、restart policyの統合test
-- `[Next]` app bundle / Application Support resource resolver
-- `[Next]` Unix Domain Socket対応transport
+- `[Done]` POSIX Unix Domain Socket HTTP/SSE client
+- `[Done]` UDS request/response sizeとheader size limit
+- `[Done]` stream cancellation時のsocket shutdown
+- `[Done]` daemon stdout/stderrの400 entry bounded log capture
+- `[Done]` log message単位の8KiB limit
+- `[Done]` readiness timeoutとprocess exit監視
+- `[Done]` failure時のみの上限付きrestart policy
+- `[Done]` SIGTERM grace periodとSIGKILL fallback
+- `[Done]` crash recovery後のUDS再接続
+- `[Done]` app bundle / Application Support resource resolver
+- `[Done]` private Application Support directoryとsession token生成
+- `[Done]` Darwin UDS path長を回避する短いsocket resource配置
+- `[Done]` Unix Domain Socket対応transport
 - `[Done]` runtime state/failure event stream foundation
-- `[Next]` 英語、日本語、簡体字中国語のlocalization catalog
-- `[Next]` 最小SwiftUI Mac chat sample
+- `[Done]` 英語、日本語、簡体字中国語のlocalization catalog
+- `[Done]` 最小SwiftUI Mac chat sample
+- `[Done]` sample transcript 200件、prompt 32Ki文字、response 128Ki文字の上限
+- `[Done]` sampleのbounded conversation contextとstream cancellation
+- `[Next]` Xcode app targetへのdaemon bundle組み込みsample
 - `[Later]` Objective-C adapter
 - `[Later]` notarizationとApp Sandbox統合sample
 
@@ -171,8 +184,14 @@ MLX / Metal / Unified Memory
 - `[Done]` bounded EventBusとgap recovery test
 - `[Done]` authenticated HTTP event stream test
 - `[Done]` private UDS lifecycle integration test
-- `[Done]` Python 26 test passing
-- `[Done]` Swift 3 test passing
+- `[Done]` UDS path length境界test
+- `[Done]` Python 27 test passing
+- `[Done]` Swift bounded log buffer test
+- `[Done]` Swift → Python UDS authentication integration test
+- `[Done]` Swift managed daemon crash/restart/reconnect integration test
+- `[Done]` Swift 8 test passing
+- `[Done]` Swift resource resolver permission/path/fallback test
+- `[Done]` SwiftUI Mac sample build passing
 - `[Next]` JSON Schemaによる実response validation
 - `[Next]` concurrent request load test
 - `[Next]` long-running memory stability test
@@ -329,7 +348,7 @@ Phase 1を完了とする条件：
 2. `[Done]` OpenAI chat proxyおよびstreaming
 3. `[Done]` standard Transformer model metadata inspectionとautomatic context設定
 4. `[Done]` UDS、session authentication、bounded event stream
-5. `[Next]` Swift UDS transport、ManagedRuntimeのcrash recoveryとlog capture
+5. `[Done]` Swift UDS transport、ManagedRuntimeのcrash recoveryとlog capture
 6. `[Next]` 最小SwiftUI Mac chat sample
 7. `[Next]` concurrent load、memory pressure、long-running stability test
 

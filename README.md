@@ -42,9 +42,28 @@ Macアプリとのlocal接続用にUnix Domain Socketを作成できます。ses
 露出させないよう、`--session-token-file`の利用を推奨します。token fileとsocketは0600で作成され、
 runtime state/failure eventは `/v1/events` からSSEで購読できます。
 
+`VLLMAppleKit`の`UnixSocketRuntimeClient`はPOSIX UDS上でhealth、profile、chat、SSEを
+利用できます。`ManagedRuntime`へsocket pathとtoken fileを渡すとUDS clientを自動選択し、
+bounded stdout/stderr log、readiness監視、failure時だけの上限付きrestart policyを提供します。
+
+`RuntimeResourceResolver`はapp bundle内の`vllm-appled`を検出し、Application Support配下の
+profile/log/tokenと、Darwinのpath長制限を満たす`/tmp`配下のUDSを解決します。directoryは0700、
+session tokenは0600で作成されます。
+
+英語、日本語、簡体字中国語に対応した最小macOS SwiftUI chat sampleは
+`samples/VLLMAppleChat`にあります。bundleにdaemonがない場合は`127.0.0.1:8000`へ接続します。
+開発中のdaemon executableを明示する場合は環境変数を使用できます。
+
+```bash
+cd samples/VLLMAppleChat
+swift run
+VLLM_APPLE_DAEMON_PATH=/path/to/vllm-appled swift run
+```
+
 ## 開発時の確認
 
 ```bash
 python3 -m unittest discover -v
 cd sdk/swift && swift test
+cd ../../samples/VLLMAppleChat && swift build
 ```

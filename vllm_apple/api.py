@@ -117,6 +117,8 @@ class RuntimeUnixHTTPServer(
         session_token: str | None = None,
     ):
         self.socket_path = socket_path
+        if len(os.fsencode(socket_path)) >= 104:
+            raise ValueError("Unix Domain Socket path must be shorter than 104 bytes on macOS")
         path_stat = None
         try:
             path_stat = os.lstat(socket_path)

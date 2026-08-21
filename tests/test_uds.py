@@ -11,6 +11,12 @@ from vllm_apple.service import RuntimeService
 
 
 class UnixDomainSocketTests(unittest.TestCase):
+    def test_overlong_socket_path_is_rejected_before_bind(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / ("s" * 120)
+            with self.assertRaisesRegex(ValueError, "shorter than 104 bytes"):
+                create_unix_server(str(path), RuntimeService())
+
     def test_private_socket_serves_authenticated_control_api_and_is_removed(self) -> None:
         token = "t" * 32
         with tempfile.TemporaryDirectory() as directory:
