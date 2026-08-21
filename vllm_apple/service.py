@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from contextlib import AbstractContextManager
 from typing import Any, BinaryIO, Protocol
 
+from .events import EventBus
 from .profile import build_profile
 from .scheduler import BasicScheduler
 from .types import GIB, RuntimeProfile, RuntimeState
@@ -52,6 +53,7 @@ class ServiceSnapshot:
     profile: RuntimeProfile
     scheduler: dict[str, int]
     last_error: str | None
+    events: dict[str, int]
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -61,6 +63,7 @@ class ServiceSnapshot:
             "profile": self.profile.to_dict(),
             "scheduler": self.scheduler,
             "last_error": self.last_error,
+            "events": self.events,
         }
 
 
@@ -69,10 +72,12 @@ class RuntimeService:
         self,
         engine: InferenceEngine | None = None,
         profile: RuntimeProfile | None = None,
+        event_bus: EventBus | None = None,
     ) -> None:
         self._lock = threading.RLock()
         self._state = RuntimeState.STARTING
         self._last_error: str | None = None
+        self.events = event_bus or EventBus()
         self.profile = profile or build_profile()
         memory = self.profile.hardware.memory
         # Scheduler reservations cover transient work only. Retain the larger of
@@ -82,6 +87,10 @@ class RuntimeService:
         self.scheduler = BasicScheduler(self.profile.hardware, scheduler_capacity)
         self.engine = engine or UnavailableInferenceEngine()
         self._state = RuntimeState.READY if self.engine.ready else RuntimeState.DEGRADED
+        self.events.publish(
+            "runtime.state",
+            {"state": self._state.value, "inference_ready": self.engine.ready},
+        )
 
     @property
     def state(self) -> RuntimeState:
@@ -93,11 +102,16 @@ class RuntimeService:
             self._state = state
             if state != RuntimeState.FAILED:
                 self._last_error = None
+        self.events.publish(
+            "runtime.state",
+            {"state": state.value, "inference_ready": self.engine.ready},
+        )
 
     def set_failure(self, message: str) -> None:
         with self._lock:
             self._last_error = message
             self._state = RuntimeState.FAILED
+        self.events.publish("runtime.failure", {"state": RuntimeState.FAILED.value, "message": message})
 
     def snapshot(self) -> ServiceSnapshot:
         with self._lock:
@@ -108,4 +122,5 @@ class RuntimeService:
                 profile=self.profile,
                 scheduler=self.scheduler.memory.snapshot(),
                 last_error=self._last_error,
+                events=self.events.snapshot(),
             )

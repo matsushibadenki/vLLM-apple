@@ -6,6 +6,7 @@ public protocol VLLMAppleRuntimeClient: Sendable {
     func health() async throws -> HealthStatus
     func chat(_ request: ChatRequest) async throws -> ChatResponse
     func streamChat(_ request: ChatRequest) -> AsyncThrowingStream<ChatEvent, Error>
+    func runtimeEvents(afterEventID: String?) -> AsyncThrowingStream<RuntimeEvent, Error>
 }
 
 public enum RuntimeClientError: Error, Sendable, Equatable {
@@ -47,12 +48,14 @@ public final class HTTPRuntimeClient: VLLMAppleRuntimeClient, @unchecked Sendabl
     private let session: URLSession
     private let decoder: JSONDecoder
     private let encoder: JSONEncoder
+    private let sessionToken: String?
 
-    public init(baseURL: URL, session: URLSession = .shared) {
+    public init(baseURL: URL, session: URLSession = .shared, sessionToken: String? = nil) {
         self.baseURL = baseURL
         self.session = session
         self.decoder = JSONDecoder()
         self.encoder = JSONEncoder()
+        self.sessionToken = sessionToken
         self.decoder.keyDecodingStrategy = .convertFromSnakeCase
         self.encoder.keyEncodingStrategy = .convertToSnakeCase
     }
@@ -86,7 +89,7 @@ public final class HTTPRuntimeClient: VLLMAppleRuntimeClient, @unchecked Sendabl
                 do {
                     var streamingRequest = request
                     streamingRequest.stream = true
-                    var urlRequest = URLRequest(url: url(for: "v1/chat/completions"))
+                    var urlRequest = authorizedRequest(url: url(for: "v1/chat/completions"))
                     urlRequest.httpMethod = "POST"
                     urlRequest.httpBody = try encoder.encode(streamingRequest)
                     urlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -113,6 +116,37 @@ public final class HTTPRuntimeClient: VLLMAppleRuntimeClient, @unchecked Sendabl
         }
     }
 
+    public func runtimeEvents(
+        afterEventID: String? = nil
+    ) -> AsyncThrowingStream<RuntimeEvent, Error> {
+        AsyncThrowingStream { continuation in
+            let task = Task {
+                do {
+                    var request = authorizedRequest(url: url(for: "v1/events"))
+                    request.timeoutInterval = 24 * 60 * 60
+                    if let afterEventID {
+                        request.setValue(afterEventID, forHTTPHeaderField: "Last-Event-ID")
+                    }
+                    let (bytes, response) = try await session.bytes(for: request)
+                    try validate(response: response)
+                    for try await line in bytes.lines {
+                        try Task.checkCancellation()
+                        guard line.hasPrefix("data:") else { continue }
+                        let value = line.dropFirst(5).trimmingCharacters(in: .whitespaces)
+                        guard let data = value.data(using: .utf8) else { continue }
+                        let event = try decoder.decode(RuntimeEvent.self, from: data)
+                        try validate(schemaVersion: event.schemaVersion)
+                        continuation.yield(event)
+                    }
+                    continuation.finish()
+                } catch {
+                    continuation.finish(throwing: error)
+                }
+            }
+            continuation.onTermination = { _ in task.cancel() }
+        }
+    }
+
     private func get<T: Decodable>(_ path: String, as type: T.Type) async throws -> T {
         try await send(path, method: "GET", body: nil, as: type)
     }
@@ -123,7 +157,7 @@ public final class HTTPRuntimeClient: VLLMAppleRuntimeClient, @unchecked Sendabl
         body: Data?,
         as type: T.Type
     ) async throws -> T {
-        var request = URLRequest(url: url(for: path))
+        var request = authorizedRequest(url: url(for: path))
         request.httpMethod = method
         request.httpBody = body
         request.timeoutInterval = 30
@@ -141,6 +175,14 @@ public final class HTTPRuntimeClient: VLLMAppleRuntimeClient, @unchecked Sendabl
 
     private func url(for path: String) -> URL {
         baseURL.appending(path: path)
+    }
+
+    private func authorizedRequest(url: URL) -> URLRequest {
+        var request = URLRequest(url: url)
+        if let sessionToken {
+            request.setValue("Bearer \(sessionToken)", forHTTPHeaderField: "Authorization")
+        }
+        return request
     }
 
     private func validate(schemaVersion: Int) throws {
@@ -172,4 +214,3 @@ public final class HTTPRuntimeClient: VLLMAppleRuntimeClient, @unchecked Sendabl
         }
     }
 }
-

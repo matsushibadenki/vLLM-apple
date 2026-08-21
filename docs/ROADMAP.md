@@ -106,8 +106,14 @@ MLX / Metal / Unified Memory
 - `[Done]` backend terminate、timeout後killによるshutdown
 - `[Next]` 実modelを用いたvLLM-Metal互換性検証
 - `[Next]` graceful request drainを伴うshutdown
-- `[Next]` Unix Domain Socket transport
-- `[Next]` session tokenとsocket permission検証
+- `[Done]` Unix Domain Socket HTTP transport
+- `[Done]` UDS pathのowner/type検証と0600 permission
+- `[Done]` constant-time Bearer session token認証
+- `[Done]` atomic 0600 session token file
+- `[Done]` 256 eventのbounded runtime event ring
+- `[Done]` 最大8 clientのbounded event subscription
+- `[Done]` 遅延subscriberへの`stream.gap`通知
+- `[Done]` `Last-Event-ID`対応SSE runtime event stream
 - `[Later]` remote modeのTLSとauthentication
 
 ### CLI
@@ -119,6 +125,7 @@ MLX / Metal / Unified Memory
 - `[Done]` `vllm-apple serve <model>` command path
 - `[Done]` managed backend port、startup timeout、max model context options
 - `[Done]` `doctor` command
+- `[Done]` UDS、session token、session token file options
 - `[Next]` automatic model inspectionとrecommended configuration表示
 - `[Next]` structured startup progress
 - `[Later]` daemon install、start、stop、status command
@@ -133,11 +140,14 @@ MLX / Metal / Unified Memory
 - `[Done]` schema compatibility check
 - `[Done]` localizable error message key
 - `[Done]` Managed Local daemon launcher foundation
+- `[Done]` Swift HTTP clientのBearer session認証
+- `[Done]` Swift runtime event decodingと再購読interface
+- `[Done]` ManagedRuntimeのtoken file連携
 - `[Next]` daemon stdout/stderrのbounded log capture
 - `[Next]` readiness timeout、crash recovery、restart policyの統合test
 - `[Next]` app bundle / Application Support resource resolver
 - `[Next]` Unix Domain Socket対応transport
-- `[Next]` runtime progress event stream
+- `[Done]` runtime state/failure event stream foundation
 - `[Next]` 英語、日本語、簡体字中国語のlocalization catalog
 - `[Next]` 最小SwiftUI Mac chat sample
 - `[Later]` Objective-C adapter
@@ -157,8 +167,12 @@ MLX / Metal / Unified Memory
 - `[Done]` SSE streaming proxy integration test
 - `[Done]` managed backend process readiness/shutdown test
 - `[Done]` model metadataとKV memory計算test
-- `[Done]` Python 18 test passing
-- `[Done]` Swift 2 test passing
+- `[Done]` session authenticationとprivate token file test
+- `[Done]` bounded EventBusとgap recovery test
+- `[Done]` authenticated HTTP event stream test
+- `[Done]` private UDS lifecycle integration test
+- `[Done]` Python 26 test passing
+- `[Done]` Swift 3 test passing
 - `[Next]` JSON Schemaによる実response validation
 - `[Next]` concurrent request load test
 - `[Next]` long-running memory stability test
@@ -272,6 +286,7 @@ Phase 1を完了とする条件：
 - `[Done]` bounded HTTP concurrency
 - `[Done]` backend processのreadiness、exit、timeout監視
 - `[Done]` bounded backend log buffer
+- `[Done]` bounded event historyとsubscriber ceiling
 - `[Next]` structured error taxonomyとrecoverability
 - `[Next]` daemon crash diagnostics
 - `[Later]` fault injection suite
@@ -281,7 +296,7 @@ Phase 1を完了とする条件：
 - `[Done]` localhost-only default
 - `[Done]` request size limit
 - `[Done]` profile fileのprivate permission
-- `[Next]` UDS permissionとsession authentication
+- `[Done]` UDS permissionとsession authentication
 - `[Next]` model file hash validation
 - `[Later]` remote TLS、API key、client identity
 
@@ -289,6 +304,7 @@ Phase 1を完了とする条件：
 
 - `[Done]` runtime state、memory、scheduler snapshot
 - `[Done]` backend failureのruntime state反映
+- `[Done]` reconnect可能なruntime state/failure SSE event
 - `[Next]` request IDとstructured logging
 - `[Next]` tokens/sec、TTFT、TPOT
 - `[Next]` Unified MemoryとKV usage
@@ -312,8 +328,8 @@ Phase 1を完了とする条件：
 1. `[Done]` vLLM-Metal process adapterとversion compatibility check
 2. `[Done]` OpenAI chat proxyおよびstreaming
 3. `[Done]` standard Transformer model metadata inspectionとautomatic context設定
-4. `[Next]` UDS、session authentication、bounded event stream
-5. `[Next]` Swift ManagedRuntimeのcrash recoveryとlog capture
+4. `[Done]` UDS、session authentication、bounded event stream
+5. `[Next]` Swift UDS transport、ManagedRuntimeのcrash recoveryとlog capture
 6. `[Next]` 最小SwiftUI Mac chat sample
 7. `[Next]` concurrent load、memory pressure、long-running stability test
 

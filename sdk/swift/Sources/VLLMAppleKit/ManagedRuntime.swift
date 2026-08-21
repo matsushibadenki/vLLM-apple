@@ -5,6 +5,7 @@ public enum ManagedRuntimeError: Error, Sendable, Equatable {
     case daemonNotExecutable
     case readinessTimedOut
     case daemonExited(Int32)
+    case invalidSessionTokenFile
 
     public var messageKey: String {
         switch self {
@@ -12,6 +13,7 @@ public enum ManagedRuntimeError: Error, Sendable, Equatable {
         case .daemonNotExecutable: "runtime.error.daemon_not_executable"
         case .readinessTimedOut: "runtime.error.readiness_timed_out"
         case .daemonExited: "runtime.error.daemon_exited"
+        case .invalidSessionTokenFile: "runtime.error.invalid_session_token_file"
         }
     }
 }
@@ -21,13 +23,33 @@ public actor ManagedRuntime {
     private let executableURL: URL
     private let host: String
     private let port: UInt16
+    private let sessionTokenFileURL: URL?
     private var process: Process?
 
-    public init(executableURL: URL, host: String = "127.0.0.1", port: UInt16 = 8000) {
+    public init(
+        executableURL: URL,
+        host: String = "127.0.0.1",
+        port: UInt16 = 8000,
+        sessionTokenFileURL: URL? = nil
+    ) throws {
         self.executableURL = executableURL
         self.host = host
         self.port = port
-        self.client = HTTPRuntimeClient(baseURL: URL(string: "http://\(host):\(port)")!)
+        self.sessionTokenFileURL = sessionTokenFileURL
+        let token: String?
+        if let sessionTokenFileURL {
+            guard let value = try? String(contentsOf: sessionTokenFileURL, encoding: .utf8)
+                .trimmingCharacters(in: .whitespacesAndNewlines), value.count >= 32 else {
+                throw ManagedRuntimeError.invalidSessionTokenFile
+            }
+            token = value
+        } else {
+            token = nil
+        }
+        self.client = HTTPRuntimeClient(
+            baseURL: URL(string: "http://\(host):\(port)")!,
+            sessionToken: token
+        )
     }
 
     public func start(timeout: Duration = .seconds(30)) async throws {
@@ -37,7 +59,11 @@ public actor ManagedRuntime {
         }
         let process = Process()
         process.executableURL = executableURL
-        process.arguments = ["--host", host, "--port", String(port)]
+        var arguments = ["--host", host, "--port", String(port)]
+        if let sessionTokenFileURL {
+            arguments.append(contentsOf: ["--session-token-file", sessionTokenFileURL.path])
+        }
+        process.arguments = arguments
         process.standardOutput = FileHandle.nullDevice
         process.standardError = FileHandle.nullDevice
         try process.run()
@@ -72,4 +98,3 @@ public actor ManagedRuntime {
         process?.isRunning == true
     }
 }
-

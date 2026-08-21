@@ -11,7 +11,9 @@
     "control_ready",
     "inference_ready",
     "profile",
-    "scheduler"
+    "scheduler",
+    "events",
+    "last_error"
   ],
   "properties": {
     "api_version": { "const": "v1" },
@@ -32,6 +34,7 @@
     },
     "control_ready": { "type": "boolean" },
     "inference_ready": { "type": "boolean" },
+    "last_error": { "type": ["string", "null"] },
     "profile": { "type": "object" },
     "scheduler": {
       "type": "object",
@@ -41,8 +44,17 @@
         "available_bytes",
         "active_reservations"
       ]
+    },
+    "events": {
+      "type": "object",
+      "required": [
+        "capacity",
+        "retained_events",
+        "latest_sequence",
+        "active_subscribers",
+        "max_subscribers"
+      ]
     }
   },
   "additionalProperties": true
 }
-

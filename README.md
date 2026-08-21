@@ -22,6 +22,8 @@ python3 -m vllm_apple doctor
 python3 -m vllm_apple context --model-memory-gb 8 --kv-bytes-per-token 524288
 python3 -m vllm_apple serve
 python3 -m vllm_apple serve mlx-community/your-model --max-model-len 8192
+python3 -m vllm_apple serve --socket-path /tmp/vllm-apple.sock \
+  --session-token-file /tmp/vllm-apple.token
 ```
 
 サーバーは明示指定しない限り `127.0.0.1` のみにbindします。推論backendが未設定の
@@ -35,6 +37,10 @@ OpenAI APIをcontrol daemon経由でproxyします。SSEはresponse全体を保�
 local directoryまたはHugging Face cacheにmodelがある場合は、weight shardと`config.json`から
 標準Transformer/GQAのKV memoryを計算し、BALANCED contextを自動適用します。安全にinspection
 できないmodelは、`--max-model-len`が指定されていなければ4096 tokenへ制限します。
+
+Macアプリとのlocal接続用にUnix Domain Socketを作成できます。session tokenをcommand lineへ
+露出させないよう、`--session-token-file`の利用を推奨します。token fileとsocketは0600で作成され、
+runtime state/failure eventは `/v1/events` からSSEで購読できます。
 
 ## 開発時の確認
 

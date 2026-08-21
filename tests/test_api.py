@@ -54,5 +54,51 @@ class APITests(unittest.TestCase):
         self.assertEqual(payload["error"]["code"], "backend_unavailable")
 
 
+class AuthenticatedAPITests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.token = "s" * 32
+        cls.service = RuntimeService()
+        cls.server = create_server("127.0.0.1", 0, cls.service, session_token=cls.token)
+        cls.thread = threading.Thread(target=cls.server.serve_forever, daemon=True)
+        cls.thread.start()
+        cls.base_url = f"http://127.0.0.1:{cls.server.server_port}"
+
+    @classmethod
+    def tearDownClass(cls) -> None:
+        cls.server.shutdown()
+        cls.server.server_close()
+        cls.thread.join(timeout=2)
+
+    def test_missing_token_is_rejected_and_valid_token_is_accepted(self) -> None:
+        with self.assertRaises(urllib.error.HTTPError) as raised:
+            urllib.request.urlopen(self.base_url + "/health", timeout=2)
+        self.assertEqual(raised.exception.code, 401)
+        request = urllib.request.Request(
+            self.base_url + "/health",
+            headers={"Authorization": f"Bearer {self.token}"},
+        )
+        with urllib.request.urlopen(request, timeout=2) as response:
+            self.assertTrue(json.load(response)["control_ready"])
+
+    def test_authenticated_runtime_event_stream(self) -> None:
+        request = urllib.request.Request(
+            self.base_url + "/v1/events",
+            headers={"Authorization": f"Bearer {self.token}"},
+        )
+        response = urllib.request.urlopen(request, timeout=2)
+        try:
+            identifier = response.readline().decode()
+            event_type = response.readline().decode()
+            data = response.readline().decode()
+            self.assertTrue(identifier.startswith("id: "))
+            self.assertEqual(event_type.strip(), "event: runtime.state")
+            payload = json.loads(data.removeprefix("data: "))
+            self.assertEqual(payload["type"], "runtime.state")
+        finally:
+            response.close()
+            self.service.events.publish("test.release", {})
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -1804,6 +1804,8 @@ vLLM-Metal互換pluginとして成立させる。
 [Done] daemon lifecycle and readiness foundation
 [Done] vLLM-Metal environment doctor and managed process lifecycle
 [Done] low-buffer SSE streaming proxy
+[Done] Unix Domain Socket server and session authentication
+[Done] bounded runtime event stream
 [Done] Swift Package integration SDK foundation
 [Next] Unix Domain Socket transport
 [Next] runtime event streaming

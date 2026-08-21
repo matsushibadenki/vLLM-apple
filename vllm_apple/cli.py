@@ -46,6 +46,9 @@ def build_parser() -> argparse.ArgumentParser:
     server.add_argument("--backend-startup-timeout", type=float, default=600.0)
     server.add_argument("--max-model-len", type=int)
     server.add_argument("--skip-backend-check", action="store_true")
+    server.add_argument("--socket-path")
+    server.add_argument("--session-token")
+    server.add_argument("--session-token-file")
     return parser
 
 
@@ -93,6 +96,9 @@ def main(argv: list[str] | None = None) -> int:
                 backend_startup_timeout=arguments.backend_startup_timeout,
                 max_model_len=arguments.max_model_len,
                 require_compatible_backend=not arguments.skip_backend_check,
+                socket_path=arguments.socket_path,
+                session_token=arguments.session_token,
+                session_token_file=arguments.session_token_file,
             )
         except (RuntimeError, ValueError) as error:
             print(f"vllm-apple: {error}", file=sys.stderr)

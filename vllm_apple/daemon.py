@@ -3,8 +3,10 @@ from __future__ import annotations
 import argparse
 import signal
 import threading
+from pathlib import Path
 
-from .api import create_server
+from .api import create_server, create_unix_server
+from .auth import load_or_create_token_file
 from .backend import BackendProcess, OpenAIProxyEngine, make_backend_config
 from .compat import inspect_backend
 from .context import recommend_context
@@ -26,6 +28,9 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--backend-startup-timeout", type=float, default=600.0)
     parser.add_argument("--max-model-len", type=int)
     parser.add_argument("--skip-backend-check", action="store_true")
+    parser.add_argument("--socket-path")
+    parser.add_argument("--session-token")
+    parser.add_argument("--session-token-file")
     return parser
 
 
@@ -39,9 +44,16 @@ def serve(
     backend_startup_timeout: float = 600.0,
     max_model_len: int | None = None,
     require_compatible_backend: bool = True,
+    socket_path: str | None = None,
+    session_token: str | None = None,
+    session_token_file: str | None = None,
 ) -> None:
     if model is not None and port == backend_port and host in {"127.0.0.1", "localhost", "::1"}:
         raise ValueError("control and inference backend ports must differ")
+    if session_token is not None and session_token_file is not None:
+        raise ValueError("session_token and session_token_file are mutually exclusive")
+    if session_token_file is not None:
+        session_token = load_or_create_token_file(Path(session_token_file))
 
     backend: BackendProcess | None = None
     launch_thread: threading.Thread | None = None
@@ -76,7 +88,31 @@ def serve(
         service.set_state(RuntimeState.LOADING_MODEL)
     else:
         service = RuntimeService()
-    server = create_server(host, port, service, max_concurrent_requests=max_concurrent_requests)
+    server = create_server(
+        host,
+        port,
+        service,
+        max_concurrent_requests=max_concurrent_requests,
+        session_token=session_token,
+    )
+    unix_server = None
+    unix_thread = None
+    if socket_path is not None:
+        socket_parent = Path(socket_path).expanduser().parent
+        socket_parent.mkdir(parents=True, exist_ok=True, mode=0o700)
+        unix_server = create_unix_server(
+            str(Path(socket_path).expanduser()),
+            service,
+            max_concurrent_requests=max_concurrent_requests,
+            session_token=session_token,
+        )
+        unix_thread = threading.Thread(
+            target=unix_server.serve_forever,
+            kwargs={"poll_interval": 0.25},
+            daemon=True,
+            name="vllm-apple-uds-server",
+        )
+        unix_thread.start()
 
     if backend is not None:
         def launch_backend() -> None:
@@ -97,6 +133,8 @@ def serve(
     def stop(_signum: int, _frame: object) -> None:
         service.set_state(RuntimeState.STOPPING)
         threading.Thread(target=server.shutdown, daemon=True).start()
+        if unix_server is not None:
+            threading.Thread(target=unix_server.shutdown, daemon=True).start()
 
     signal.signal(signal.SIGINT, stop)
     signal.signal(signal.SIGTERM, stop)
@@ -104,6 +142,11 @@ def serve(
         server.serve_forever(poll_interval=0.25)
     finally:
         server.server_close()
+        if unix_server is not None:
+            unix_server.shutdown()
+            unix_server.server_close()
+        if unix_thread is not None:
+            unix_thread.join(timeout=2.0)
         if backend is not None:
             backend.stop()
         if launch_thread is not None:
@@ -123,6 +166,9 @@ def main(argv: list[str] | None = None) -> int:
         backend_startup_timeout=arguments.backend_startup_timeout,
         max_model_len=arguments.max_model_len,
         require_compatible_backend=not arguments.skip_backend_check,
+        socket_path=arguments.socket_path,
+        session_token=arguments.session_token,
+        session_token_file=arguments.session_token_file,
     )
     return 0
 
