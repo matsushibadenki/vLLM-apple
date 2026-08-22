@@ -1,15 +1,17 @@
-import json
 import io
+import json
 import tempfile
 import unittest
-from contextlib import redirect_stderr
+from contextlib import redirect_stderr, redirect_stdout
 from pathlib import Path
 
 from tests.schema_validator import validate_instance
 from vllm_apple.model import InspectedModel
 from vllm_apple.optimizer import (
     ArtifactManifest,
+    AdapterRegistry,
     CalibrationManifest,
+    MLXOptimizationAdapter,
     OptimizationObjective,
     OptimizationPerformanceProfile,
     OptimizerErrorCode,
@@ -79,7 +81,7 @@ class OptimizerFoundationTests(unittest.TestCase):
             self.assertEqual(payload["candidates"][0]["target_weight_bits"], 4)
             self.assertFalse(payload["candidates"][0]["executable"])
             self.assertIn(
-                "backend_adapter_not_implemented",
+                "adapter_execution_not_implemented",
                 payload["candidates"][0]["blocking_reasons"],
             )
             validate_instance(payload, schema("optimization-plan-v1.schema.json"))
@@ -199,6 +201,70 @@ class OptimizerFoundationTests(unittest.TestCase):
                     "read_bytes_per_second": 1,
                     "write_bytes_per_second": 1,
                 }
+            )
+
+    def test_mlx_adapter_capabilities_are_versioned_and_schema_valid(self) -> None:
+        with tempfile.TemporaryDirectory(dir="/tmp") as directory:
+            source = Path(directory)
+            (source / "weights.safetensors").write_bytes(b"weights")
+            model = InspectedModel(
+                "model",
+                source,
+                {"torch_dtype": "bfloat16"},
+                ModelMemorySpec("model", 7, 1),
+                2,
+            )
+            adapter = MLXOptimizationAdapter(lambda package: f"test-{package}-1")
+            report = AdapterRegistry((adapter,)).detect(model)
+            payload = report.to_dict()
+            capability = payload["adapters"][0]
+            self.assertTrue(capability["available"])
+            self.assertTrue(capability["compatible"])
+            self.assertFalse(capability["executable"])
+            self.assertIn("adapter_execution_not_implemented", capability["issues"])
+            validate_instance(payload, schema("adapter-capabilities-v1.schema.json"))
+
+    def test_adapter_registry_rejects_duplicate_identifiers(self) -> None:
+        adapter = MLXOptimizationAdapter(lambda _: None)
+        with self.assertRaises(ValueError):
+            AdapterRegistry((adapter, adapter))
+
+    def test_adapter_detection_rejects_gguf_for_mlx_without_loading_weights(self) -> None:
+        with tempfile.TemporaryDirectory(dir="/tmp") as directory:
+            source = Path(directory)
+            (source / "weights.gguf").write_bytes(b"weights")
+            model = InspectedModel(
+                "model",
+                source,
+                {"torch_dtype": "float16"},
+                ModelMemorySpec("model", 7, 1),
+                2,
+            )
+            capability = AdapterRegistry(
+                (MLXOptimizationAdapter(lambda _: "test-1"),)
+            ).detect(model).adapters[0]
+            self.assertFalse(capability.compatible)
+            self.assertIn("source_format_unsupported:gguf", capability.issues)
+
+    def test_capabilities_cli_emits_schema_valid_report(self) -> None:
+        with tempfile.TemporaryDirectory(dir="/tmp") as directory:
+            source = Path(directory)
+            config = {
+                "num_hidden_layers": 2,
+                "num_attention_heads": 2,
+                "num_key_value_heads": 1,
+                "hidden_size": 8,
+                "torch_dtype": "float16",
+            }
+            (source / "config.json").write_text(json.dumps(config), encoding="utf-8")
+            (source / "weights.safetensors").write_bytes(b"weights")
+            stdout = io.StringIO()
+            with redirect_stdout(stdout):
+                exit_code = optimizer_main(["capabilities", str(source)])
+            self.assertEqual(exit_code, 0)
+            validate_instance(
+                json.loads(stdout.getvalue()),
+                schema("adapter-capabilities-v1.schema.json"),
             )
 
 

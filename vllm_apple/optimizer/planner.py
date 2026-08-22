@@ -85,7 +85,7 @@ def _candidate(
     # Until streaming adapters report measured working sets, assume source weights
     # may be resident with an additional conversion workspace.
     peak_memory = weights_bytes + max(512 * MIB, math.ceil(output_bytes * 0.15))
-    reasons = ["backend_adapter_not_implemented"]
+    reasons = ["adapter_execution_not_implemented"]
     if required_disk > budget.maximum_disk_bytes:
         reasons.append("disk_budget_exceeded")
     if peak_memory > budget.maximum_memory_bytes:

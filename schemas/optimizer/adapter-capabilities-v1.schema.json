@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vllm-apple.local/schemas/optimizer/adapter-capabilities-v1.schema.json",
+  "title": "vLLM-Apple optimizer adapter capabilities v1",
+  "type": "object",
+  "required": ["schema_version", "model", "adapters"],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "model": {
+      "type": "object",
+      "required": ["model_id", "source_format", "source_dtype"],
+      "properties": {
+        "model_id": { "type": "string", "minLength": 1 },
+        "source_format": { "type": "string", "minLength": 1 },
+        "source_dtype": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": false
+    },
+    "adapters": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["adapter_id", "adapter_api_version", "implementation_version", "available", "compatible", "executable", "operations", "source_formats", "output_formats", "weight_bits", "dependency_versions", "issues"],
+        "properties": {
+          "adapter_id": { "type": "string", "minLength": 1 },
+          "adapter_api_version": { "const": 1 },
+          "implementation_version": { "type": ["string", "null"] },
+          "available": { "type": "boolean" },
+          "compatible": { "type": "boolean" },
+          "executable": { "type": "boolean" },
+          "operations": { "type": "array", "items": { "type": "string" } },
+          "source_formats": { "type": "array", "items": { "type": "string" } },
+          "output_formats": { "type": "array", "items": { "type": "string" } },
+          "weight_bits": { "type": "array", "items": { "type": "integer" } },
+          "dependency_versions": { "type": "object", "additionalProperties": { "type": ["string", "null"] } },
+          "issues": { "type": "array", "items": { "type": "string" } }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

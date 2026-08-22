@@ -9,6 +9,7 @@ from pathlib import Path
 from ..hardware import detect_hardware
 from ..model import ModelInspectionError, inspect_model
 from ..types import GIB
+from .adapters import builtin_adapter_registry
 from .errors import OptimizerErrorCode, OptimizerFailure, Recoverability
 from .planner import build_dry_run_plan
 from .profiler import OptimizationPerformanceProfile, profile_optimizer_io
@@ -36,6 +37,11 @@ def build_parser() -> argparse.ArgumentParser:
     profile.add_argument("model")
     profile.add_argument("--workspace", type=Path, required=True)
     profile.add_argument("--sample-mib", type=int, default=64)
+    capabilities = commands.add_parser(
+        "capabilities",
+        help="detect versioned optimization adapter capabilities without importing them",
+    )
+    capabilities.add_argument("model")
     return parser
 
 
@@ -43,6 +49,10 @@ def main(argv: list[str] | None = None) -> int:
     arguments = build_parser().parse_args(argv)
     try:
         model = inspect_model(arguments.model)
+        if arguments.command == "capabilities":
+            report = builtin_adapter_registry().detect(model)
+            print(json.dumps(report.to_dict(), ensure_ascii=False, indent=2, sort_keys=True))
+            return 0
         hardware = detect_hardware()
         if arguments.command == "profile":
             profile = profile_optimizer_io(

@@ -93,7 +93,13 @@ peak memoryを見積もります。original modelと重なるpath、既存artifa
 各64 MiBに制限され、一時fileは`fsync`後に削除されます。`plan`自体がbenchmarkを暗黙実行する
 ことはありません。
 
+O1のadapter capability検出は外部packageをimport・実行せず、package metadataとmodelの
+format/dtypeだけを確認します。隔離変換workerが未実装の間は、依存関係が揃っていても
+`executable: false`です。
+
 ```bash
+python3 -m vllm_apple.optimizer.cli capabilities /path/to/model
+
 python3 -m vllm_apple.optimizer.cli profile /path/to/model \
   --workspace /path/to/temporary-workspace \
   --sample-mib 64 > optimizer-profile.json

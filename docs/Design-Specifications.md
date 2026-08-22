@@ -1883,6 +1883,9 @@ samples/VLLMAppleOptimizer/      Mac companion app
 - profilerは明示実行とし、read/write sample量へhard upper boundを設ける。plan作成時に暗黙実行しない
 - profiler実測値はhardware fingerprintが一致する場合だけ所要時間推定へ利用する
 - failureはstable error code、localizable message key、recoverabilityを持つversioned JSONとする
+- adapter interfaceとcapability reportはversion管理し、registry数にhard upper boundを設ける
+- capability detectionは外部adapterをimport・実行せず、package metadataとmodel metadataだけを読む
+- 隔離workerとatomic promotionが利用可能になるまでadapterをexecutableとして公開しない
 - cancel、checkpoint、resumeをstage境界で保証する
 - calibration dataを既定でlocal外へ送信しない
 
