@@ -22,6 +22,13 @@ from .types import (
     ResourceBudget,
     SourceModel,
 )
+from .worker import (
+    ArtifactTransaction,
+    ArtifactValidationError,
+    CancellationToken,
+    IsolatedConversionWorker,
+    WorkerResult,
+)
 
 __all__ = [
     "ADAPTER_API_VERSION",
@@ -29,7 +36,11 @@ __all__ = [
     "AdapterCapabilityReport",
     "AdapterRegistry",
     "ArtifactManifest",
+    "ArtifactTransaction",
+    "ArtifactValidationError",
     "CalibrationManifest",
+    "CancellationToken",
+    "IsolatedConversionWorker",
     "MLXOptimizationAdapter",
     "OptimizationAdapter",
     "OptimizationCandidate",
@@ -46,6 +57,7 @@ __all__ = [
     "Recoverability",
     "ResourceBudget",
     "SourceModel",
+    "WorkerResult",
     "build_dry_run_plan",
     "builtin_adapter_registry",
     "profile_optimizer_io",

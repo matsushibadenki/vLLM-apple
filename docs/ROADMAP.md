@@ -18,7 +18,7 @@ Phase 1のcontrol plane、メモリ安全性基盤、Macアプリ向けSwift SDK
 3言語対応の最小macOS SwiftUI chat sampleまで実装済み。
 
 現在の最優先目標は、実modelを使ったend-to-end経路と長時間安定性を完成させつつ、
-Model Optimization Compilerの隔離変換workerとatomic artifact lifecycleを追加することである。
+Model Optimization Compilerのpersistent checkpoint manifestとresume境界を追加することである。
 
 ```text
 Swift / CLI
@@ -188,7 +188,7 @@ MLX / Metal / Unified Memory
 - `[Done]` authenticated HTTP event stream test
 - `[Done]` private UDS lifecycle integration test
 - `[Done]` UDS path length境界test
-- `[Done]` Python 49 test passing
+- `[Done]` Python 55 test passing
 - `[Done]` Swift bounded log buffer test
 - `[Done]` Swift → Python UDS authentication integration test
 - `[Done]` Swift managed daemon crash/restart/reconnect integration test
@@ -243,7 +243,7 @@ VLLMAppleKit / Control API
 - `[Done]` optimizer state/event schemaとbounded progress event
 - `[Done]` structured optimizer error/recoverability taxonomyとCLI JSON error
 - `[Done]` plan、manifest、path traversal、disk/memory境界値test
-- `[Done]` optimizer plan、profile、event、artifact、error、adapter capability JSON Schema v1
+- `[Done]` optimizer plan、profile、event、artifact、error、adapter capability、worker result Schema v1
 - `[Done]` `vllm-apple-optimize plan` CLI entry point
 
 ### O1 — Representation optimization
@@ -254,8 +254,11 @@ VLLMAppleKit / Control API
 - `[Later]` FP16/BF16 → INT8/INT4 quantization candidate generation
 - `[Later]` MLX、将来のGGUF等へのversioned exporter adapter
 - `[Later]` KV cache precision、context、batch configuration search
-- `[Next]` isolated conversion worker、stage checkpoint、cancelと一時fileのatomic promotion
-- `[Later]` resume可能なcheckpoint manifest
+- `[Done]` isolated subprocess worker、bounded pipe drain、process-group cancel
+- `[Done]` private sibling workspaceと失敗・cancel時のcleanup
+- `[Done]` regular file、file/byte/depth上限のstreaming検証、`fsync`、atomic promotion
+- `[Done]` versioned terminal worker resultとbounded stage event
+- `[Next]` persistent checkpoint manifestとstage境界からのresume
 - `[Later]` output hash、size、peak RSS、latencyをartifact manifestへ記録
 
 ### O2 — Calibration and evaluation
@@ -433,8 +436,9 @@ VLLMAppleKit / Control API
 9. `[Done]` OptimizationPlan / ArtifactManifest schemaとsafe dry-run planner
 10. `[Done]` optimizer duration profilerとstructured error taxonomy
 11. `[Done]` representation optimization backend adapterとcapability detection
-12. `[Next]` isolated conversion workerとatomic artifact lifecycle
-13. `[Later]` executable MLX exporterとMac companion app
+12. `[Done]` isolated conversion workerとatomic artifact lifecycle
+13. `[Next]` persistent checkpoint manifestとresume protocol
+14. `[Later]` executable MLX exporterとMac companion app
 
 この順序により、まず推論runtimeの実model安定性を確立し、その境界を壊さずにoptimizerを
 別processとして追加する。構造pruningはquantization、calibration、評価gateの後に着手する。

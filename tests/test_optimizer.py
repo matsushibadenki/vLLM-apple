@@ -1,6 +1,10 @@
 import io
 import json
+import os
+import sys
 import tempfile
+import threading
+import time
 import unittest
 from contextlib import redirect_stderr, redirect_stdout
 from pathlib import Path
@@ -9,8 +13,12 @@ from tests.schema_validator import validate_instance
 from vllm_apple.model import InspectedModel
 from vllm_apple.optimizer import (
     ArtifactManifest,
+    ArtifactTransaction,
+    ArtifactValidationError,
     AdapterRegistry,
     CalibrationManifest,
+    CancellationToken,
+    IsolatedConversionWorker,
     MLXOptimizationAdapter,
     OptimizationObjective,
     OptimizationPerformanceProfile,
@@ -266,6 +274,141 @@ class OptimizerFoundationTests(unittest.TestCase):
                 json.loads(stdout.getvalue()),
                 schema("adapter-capabilities-v1.schema.json"),
             )
+
+    def test_artifact_transaction_atomically_promotes_private_directory(self) -> None:
+        with tempfile.TemporaryDirectory(dir="/tmp") as directory:
+            root = Path(directory)
+            source = root / "source"
+            output = root / "artifact"
+            source.mkdir()
+            with ArtifactTransaction(
+                source,
+                output,
+                maximum_output_bytes=1024,
+            ) as transaction:
+                self.assertEqual(transaction.workspace.stat().st_mode & 0o777, 0o700)
+                (transaction.workspace / "weights.bin").write_bytes(b"weights")
+                file_count, output_bytes = transaction.promote()
+            self.assertEqual((file_count, output_bytes), (1, 7))
+            self.assertEqual((output / "weights.bin").read_bytes(), b"weights")
+            self.assertFalse(any(root.glob(".artifact.work-*")))
+
+    def test_artifact_transaction_rejects_symlink_and_cleans_workspace(self) -> None:
+        with tempfile.TemporaryDirectory(dir="/tmp") as directory:
+            root = Path(directory)
+            source = root / "source"
+            output = root / "artifact"
+            source.mkdir()
+            with self.assertRaises(ArtifactValidationError):
+                with ArtifactTransaction(
+                    source,
+                    output,
+                    maximum_output_bytes=1024,
+                ) as transaction:
+                    os.symlink(source, transaction.workspace / "unsafe")
+                    transaction.promote()
+            self.assertFalse(output.exists())
+            self.assertFalse(any(root.glob(".artifact.work-*")))
+
+    def test_artifact_transaction_never_replaces_output_that_appears(self) -> None:
+        with tempfile.TemporaryDirectory(dir="/tmp") as directory:
+            root = Path(directory)
+            source = root / "source"
+            output = root / "artifact"
+            source.mkdir()
+            with self.assertRaises(OptimizationPathError):
+                with ArtifactTransaction(
+                    source,
+                    output,
+                    maximum_output_bytes=1024,
+                ) as transaction:
+                    (transaction.workspace / "weights.bin").write_bytes(b"new")
+                    output.mkdir()
+                    (output / "existing").write_bytes(b"keep")
+                    transaction.promote()
+            self.assertEqual((output / "existing").read_bytes(), b"keep")
+            self.assertFalse((output / "weights.bin").exists())
+
+    def test_isolated_worker_bounds_logs_and_publishes_validated_artifact(self) -> None:
+        with tempfile.TemporaryDirectory(dir="/tmp") as directory:
+            root = Path(directory)
+            source = root / "source"
+            output = root / "artifact"
+            source.mkdir()
+            worker = IsolatedConversionWorker(log_tail_bytes=1024)
+            script = (
+                "from pathlib import Path;"
+                "Path('weights.bin').write_bytes(b'weights');"
+                "print('x' * 100000)"
+            )
+            result = worker.run(
+                plan_id="plan-worker",
+                source=source,
+                output=output,
+                command=(sys.executable, "-c", script),
+                maximum_output_bytes=1024,
+                timeout_seconds=5,
+            )
+            self.assertEqual(result.state, OptimizerState.COMPLETED)
+            self.assertLessEqual(len(result.stdout_tail.encode()), 1024)
+            self.assertEqual((output / "weights.bin").read_bytes(), b"weights")
+            validate_instance(result.to_dict(), schema("worker-result-v1.schema.json"))
+
+    def test_running_worker_can_be_cancelled_without_publishing(self) -> None:
+        with tempfile.TemporaryDirectory(dir="/tmp") as directory:
+            root = Path(directory)
+            source = root / "source"
+            output = root / "artifact"
+            source.mkdir()
+            token = CancellationToken()
+            worker = IsolatedConversionWorker(poll_interval=0.01, terminate_grace_seconds=0.2)
+            results = []
+
+            def run_worker() -> None:
+                results.append(
+                    worker.run(
+                        plan_id="plan-cancel",
+                        source=source,
+                        output=output,
+                        command=(sys.executable, "-c", "import time;time.sleep(30)"),
+                        maximum_output_bytes=1024,
+                        cancellation=token,
+                    )
+                )
+
+            thread = threading.Thread(target=run_worker)
+            thread.start()
+            deadline = time.monotonic() + 2
+            while time.monotonic() < deadline:
+                if any(event.state == OptimizerState.RUNNING for event in worker.events.snapshot()):
+                    break
+                time.sleep(0.01)
+            token.cancel()
+            thread.join(timeout=3)
+            self.assertFalse(thread.is_alive())
+            self.assertEqual(results[0].state, OptimizerState.CANCELLED)
+            self.assertFalse(output.exists())
+            self.assertFalse(any(root.glob(".artifact.work-*")))
+
+    def test_failed_worker_cleans_workspace_without_publishing(self) -> None:
+        with tempfile.TemporaryDirectory(dir="/tmp") as directory:
+            root = Path(directory)
+            source = root / "source"
+            output = root / "artifact"
+            source.mkdir()
+            result = IsolatedConversionWorker().run(
+                plan_id="plan-failed",
+                source=source,
+                output=output,
+                command=(sys.executable, "-c", "raise SystemExit(7)"),
+                maximum_output_bytes=1024,
+                timeout_seconds=5,
+            )
+            self.assertEqual(result.state, OptimizerState.FAILED)
+            self.assertEqual(result.exit_code, 7)
+            self.assertFalse(output.exists())
+            self.assertFalse(any(root.glob(".artifact.work-*")))
+            validate_instance(result.to_dict(), schema("worker-result-v1.schema.json"))
 
 
 if __name__ == "__main__":

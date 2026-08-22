@@ -6,7 +6,7 @@
   "required": ["schema_version", "code", "message_key", "recoverability", "detail"],
   "properties": {
     "schema_version": { "const": 1 },
-    "code": { "enum": ["invalid_model", "invalid_plan", "unsafe_path", "insufficient_memory", "insufficient_disk", "profiler_failed", "adapter_unavailable", "worker_crashed", "cancelled"] },
+    "code": { "enum": ["invalid_model", "invalid_plan", "unsafe_path", "insufficient_memory", "insufficient_disk", "profiler_failed", "adapter_unavailable", "worker_crashed", "worker_timeout", "artifact_validation_failed", "cancelled"] },
     "message_key": { "type": "string", "minLength": 1 },
     "recoverability": { "enum": ["retryable", "user_action_required", "not_retryable"] },
     "detail": { "type": "string" }

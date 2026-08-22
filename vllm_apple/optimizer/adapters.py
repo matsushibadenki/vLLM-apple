@@ -122,8 +122,8 @@ class MLXOptimizationAdapter:
             issues.append(f"source_format_unsupported:{source_format}")
         if source_dtype not in self._source_dtypes:
             issues.append(f"source_dtype_unsupported:{source_dtype}")
-        # Execution is intentionally disabled until the isolated O1 worker and
-        # atomic artifact promotion are implemented.
+        # Execution remains disabled until a concrete exporter implementation
+        # is connected to the isolated worker.
         issues.append("adapter_execution_not_implemented")
         return AdapterCapability(
             adapter_id=self.adapter_id,

@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vllm-apple.local/schemas/optimizer/worker-result-v1.schema.json",
+  "title": "vLLM-Apple optimizer worker result v1",
+  "type": "object",
+  "required": ["schema_version", "plan_id", "state", "exit_code", "output_path", "output_bytes", "file_count", "stdout_tail", "stderr_tail", "error_code"],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "plan_id": { "type": "string", "minLength": 1 },
+    "state": { "enum": ["completed", "failed", "cancelled"] },
+    "exit_code": { "type": ["integer", "null"] },
+    "output_path": { "type": ["string", "null"] },
+    "output_bytes": { "type": "integer", "minimum": 0 },
+    "file_count": { "type": "integer", "minimum": 0 },
+    "stdout_tail": { "type": "string" },
+    "stderr_tail": { "type": "string" },
+    "error_code": { "enum": ["worker_crashed", "worker_timeout", "artifact_validation_failed", "cancelled", null] }
+  },
+  "additionalProperties": false
+}

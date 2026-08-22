@@ -1885,7 +1885,10 @@ samples/VLLMAppleOptimizer/      Mac companion app
 - failureはstable error code、localizable message key、recoverabilityを持つversioned JSONとする
 - adapter interfaceとcapability reportはversion管理し、registry数にhard upper boundを設ける
 - capability detectionは外部adapterをimport・実行せず、package metadataとmodel metadataだけを読む
-- 隔離workerとatomic promotionが利用可能になるまでadapterをexecutableとして公開しない
+- concrete exporterが隔離workerへ接続されるまでadapterをexecutableとして公開しない
+- workerのstdout/stderrは常時drainし、保持量へhard upper boundを設ける
+- artifact treeは全pathをRAMへ保持せず走査し、symlink、special file、上限超過を拒否する
+- cancelとtimeoutはworker process group全体へ適用し、不完全workspaceを公開しない
 - cancel、checkpoint、resumeをstage境界で保証する
 - calibration dataを既定でlocal外へ送信しない
 

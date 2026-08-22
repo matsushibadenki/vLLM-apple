@@ -15,6 +15,8 @@ class OptimizerErrorCode(str, Enum):
     PROFILER_FAILED = "profiler_failed"
     ADAPTER_UNAVAILABLE = "adapter_unavailable"
     WORKER_CRASHED = "worker_crashed"
+    WORKER_TIMEOUT = "worker_timeout"
+    ARTIFACT_VALIDATION_FAILED = "artifact_validation_failed"
     CANCELLED = "cancelled"
 
 

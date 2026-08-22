@@ -94,8 +94,13 @@ peak memoryを見積もります。original modelと重なるpath、既存artifa
 ことはありません。
 
 O1のadapter capability検出は外部packageをimport・実行せず、package metadataとmodelの
-format/dtypeだけを確認します。隔離変換workerが未実装の間は、依存関係が揃っていても
+format/dtypeだけを確認します。実exporterがworkerへ接続されるまでは、依存関係が揃っていても
 `executable: false`です。
+
+変換workerの基盤は別process、最大64 KiBのbounded stdout/stderr、process-group cancel、
+private sibling workspaceを提供します。成功時だけregular file、file数、byte数、directory深度を
+streaming検証し、全fileとdirectoryを`fsync`してからartifact directoryをatomic renameします。
+失敗またはcancel時はoutputを公開しません。実model exporterはまだ未接続です。
 
 ```bash
 python3 -m vllm_apple.optimizer.cli capabilities /path/to/model
