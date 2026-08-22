@@ -1258,6 +1258,10 @@ OpenAI互換APIを維持する。
 
 等を追加する。
 
+versioned control APIとruntime eventはJSON Schemaをrepositoryへcommitし、実際のHTTP/SSE responseを
+integration testで検証する。schema validatorが未対応のkeywordを黙って無視することは禁止し、
+schema追加時はvalidatorまたは標準validatorへの明示的な対応を必須とする。
+
 ---
 
 # 39. Native Streaming API
@@ -1728,6 +1732,11 @@ token / media stream
 recoverable and fatal error
 ```
 
+daemonの強制終了でUnix Domain Socket entryが残った場合は、再起動時にownerとfile typeを検証し、
+現在user所有のsocketだけを安全に置換する。session tokenはprivate fileから再利用し、通常終了では
+socketを削除する。強制終了、再起動、認証復旧、通常終了後cleanupは実process integration testで
+継続的に検証する。
+
 event deliveryが遅いUIにruntime全体をblockさせないよう、buffering、coalescing、backpressure policyをevent種別ごとに定義する。
 
 ### 48.1.8 Integration Testing
@@ -1809,9 +1818,9 @@ vLLM-Metal互換pluginとして成立させる。
 [Done] Swift Unix Domain Socket transport
 [Done] bounded Swift daemon logs and crash restart policy
 [Done] Swift Package integration SDK foundation
-[Next] Unix Domain Socket transport
-[Next] runtime event streaming
-[Next] minimal SwiftUI sample app
+[Done] Unix Domain Socket transport
+[Done] runtime event streaming
+[Done] minimal SwiftUI sample app
 ```
 
 ---
@@ -1829,6 +1838,83 @@ automatic batch
 adaptive KV
 memory pressure monitoring
 ```
+
+---
+
+## Parallel Track O — Model Optimization Compiler
+
+状態：`[Next]` foundation、`[Later]` model変換と構造最適化
+
+本trackは推論runtimeを変更する機能ではなく、open-weight modelからMacと用途に適した
+新しいimmutable artifactを生成するcompanion systemとする。大量の一時memory、長時間処理、
+失敗時の不完全fileを推論daemonから隔離するため、optimizerは必ず別processで実行する。
+
+```text
+Open Weight (read-only)
+        ↓
+OptimizationPlan + CalibrationManifest
+        ↓
+vllm-apple-optimize worker
+        ↓
+quantization / analysis / pruning / low-rank / repair
+        ↓
+evaluation and quality gate
+        ↓
+Immutable Optimized Artifact
+```
+
+予定directory：
+
+```text
+vllm_apple/optimizer/             planner、worker、adapter、evaluation
+schemas/optimizer/               plan、event、artifact manifest
+sdk/swift/.../Optimization*.swift
+samples/VLLMAppleOptimizer/      Mac companion app
+```
+
+### O.1 安全境界
+
+- original model directoryはread-onlyとして扱い、上書きを拒否する
+- outputは一時directoryで生成し、検証、`fsync`、atomic promotion後に公開する
+- source hash、license、tool/backend version、全transform、seedをmanifestへ記録する
+- 実行前に必要disk、peak memory、workspaceを見積もり、hard admission limitを適用する
+- optimizer crashは`vllm-appled`と実行中の推論へ影響させない
+- activationとlogはbounded memoryまたはdisk streamingとし、全量をRAMに保持しない
+- cancel、checkpoint、resumeをstage境界で保証する
+- calibration dataを既定でlocal外へ送信しない
+
+### O.2 最適化段階
+
+実装順序は次とする。
+
+```text
+O0  contracts、manifest、dry-run resource planner
+O1  quantization、backend export、KV/context/batch search
+O2  calibration、activation statistics、evaluation gate
+O3  pruning、low-rank、clustering、structural analysis
+O4  optional LoRA/SFT repair、artifact comparison、Mac UI
+```
+
+構造変更は最もriskが高いため、representation最適化と評価基盤より先に実装しない。
+
+### O.3 品質gate
+
+用途を限定した最適化であっても、観測していない能力の維持を保証してはならない。
+artifact reportには、評価したdomain、language、context長と未評価領域を明示する。
+
+最低限、英語、日本語、简体中文に加え、利用者が選択したcode、math、science、long-context等を
+baselineと比較する。quality budgetを超えたcandidateは公開artifactへ昇格させない。
+
+```text
+quality(candidate, domain) >= baseline(domain) - allowed_regression(domain)
+```
+
+### O.4 Mac companion app
+
+UIは推論chat sampleと分離し、model選択、用途、quality/speed/memory優先度、resource見積もり、
+進捗、pause/resume/cancel、original/optimized比較、provenanceとlicense reportを提供する。
+英語、日本語、简体中文へ対応する。Swift SDKはoptimizer workerのprocess実装へ依存せず、
+versioned plan/event/artifact modelとtransport interfaceだけを公開する。
 
 ---
 

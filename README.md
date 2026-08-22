@@ -43,6 +43,13 @@ Macアプリとのlocal接続用にUnix Domain Socketを作成できます。ses
 露出させないよう、`--session-token-file`の利用を推奨します。token fileとsocketは0600で作成され、
 runtime state/failure eventは `/v1/events` からSSEで購読できます。
 
+daemonが強制終了してUDS entryが残った場合、次回起動はownerとsocket typeを検証したうえで
+stale entryを置換します。session token fileは再利用し、通常のSIGTERM shutdownではUDSを削除します。
+
+health、runtime snapshot、runtime eventのv1 schemaは`schemas/`に固定し、live HTTP/SSE responseを
+dependency-free validatorで検証します。validatorが未対応のschema keywordを検出した場合もtestを
+失敗させるため、schema制約が黙って無視されることはありません。
+
 `VLLMAppleKit`の`UnixSocketRuntimeClient`はPOSIX UDS上でhealth、profile、chat、SSEを
 利用できます。`ManagedRuntime`へsocket pathとtoken fileを渡すとUDS clientを自動選択し、
 bounded stdout/stderr log、readiness監視、failure時だけの上限付きrestart policyを提供します。
@@ -75,6 +82,23 @@ python3 -m vllm_apple.soak --mode chat --model your-model \
 
 request failureまたはRSS上限超過ではexit code 1、設定・接続準備のerrorではexit code 2を返します。
 実modelの長時間判定では、model load後のdaemon PIDを`--pid`へ指定してください。
+
+## Model Optimization Compiler dry-run
+
+O0の`vllm-apple-optimize plan`はmodelを変更せず、INT8/INT4候補のoutput size、required disk、
+peak memoryを見積もります。original modelと重なるpath、既存artifact path、resource budget超過を
+検出します。変換adapterはO1で実装するため、現在のcandidateは`executable: false`です。
+
+```bash
+python3 -m vllm_apple.optimizer.cli plan /path/to/model \
+  --output /path/to/immutable-artifact \
+  --objective memory \
+  --max-memory-gb 16 \
+  --max-disk-gb 40 \
+  --license apache-2.0
+```
+
+durationはhardware profilerの実測値がない限り推測せず`null`とし、warningへ理由を記録します。
 
 ## 開発時の確認
 

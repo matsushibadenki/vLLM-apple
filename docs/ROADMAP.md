@@ -1,6 +1,6 @@
 # vLLM-Apple Runtime Roadmap
 
-最終更新：2026-08-21
+最終更新：2026-08-22
 
 本ロードマップは、[Design-Specifications.md](Design-Specifications.md)を実装可能な単位へ分解し、現在のコードベースに対する進捗を示す。
 
@@ -17,7 +17,8 @@
 Phase 1のcontrol plane、メモリ安全性基盤、Macアプリ向けSwift SDK foundation、
 3言語対応の最小macOS SwiftUI chat sampleまで実装済み。
 
-現在の最優先目標は、model metadataから安全なcontextを自動決定し、Macアプリからmodel loadの進捗と失敗理由を監視できる最小end-to-end経路を完成させることである。
+現在の最優先目標は、実modelを使ったend-to-end経路と長時間安定性を完成させ、
+Model Optimization Compilerへ実測durationとstructured failure modelを追加することである。
 
 ```text
 Swift / CLI
@@ -170,6 +171,7 @@ MLX / Metal / Unified Memory
 ### Schema and testing
 
 - `[Done]` runtime snapshot JSON Schema v1
+- `[Done]` health response JSON Schema v1
 - `[Done]` runtime event JSON Schema v1
 - `[Done]` context境界値test
 - `[Done]` scheduler memory limit test
@@ -186,19 +188,21 @@ MLX / Metal / Unified Memory
 - `[Done]` authenticated HTTP event stream test
 - `[Done]` private UDS lifecycle integration test
 - `[Done]` UDS path length境界test
-- `[Done]` Python 31 test passing
+- `[Done]` Python 41 test passing
 - `[Done]` Swift bounded log buffer test
 - `[Done]` Swift → Python UDS authentication integration test
 - `[Done]` Swift managed daemon crash/restart/reconnect integration test
 - `[Done]` Swift 8 test passing
 - `[Done]` Swift resource resolver permission/path/fallback test
 - `[Done]` SwiftUI Mac sample build passing
-- `[Next]` JSON Schemaによる実response validation
+- `[Done]` JSON Schemaによるlive health/runtime/SSE event response validation
+- `[Done]` 未対応schema keywordを拒否するdependency-free schema validator
 - `[Done]` concurrent request saturation、503 early rejection、slot recovery test
 - `[Done]` bounded latency/error metricsによるmemory soak runner
 - `[Done]` RSS growth thresholdとmachine-readable exit status
 - `[Next]` 実modelで30分以上のlong-running memory stability test
-- `[Next]` daemon crash/restart integration test
+- `[Done]` daemon SIGKILL後のstale UDS replacementとtoken/auth recovery test
+- `[Done]` daemon relaunch後のSIGTERM cleanupと残留process確認
 - `[Later]` real-model correctness regression suite
 
 ## Phase 1 Completion Criteria
@@ -212,6 +216,73 @@ Phase 1を完了とする条件：
 - `[Next]` memory pressure時に新規workloadを抑制し、daemonが異常終了しない
 - `[Next]` backend errorが構造化され、Swift側で復旧可能性を判定できる
 - `[Next]` Python、Swift、end-to-end testが継続的に成功する
+
+## Model Optimization Compiler — Companion Track
+
+推論の安定性を守るため、model変換処理を`vllm-appled`へ直接載せない。共有coreを利用する
+`vllm-apple-optimize` workerを別processとして実行し、Mac UIは別app targetとして提供する。
+original modelは常にread-onlyとし、生成物はimmutable artifactとして保存する。
+
+```text
+VLLMAppleKit / Control API
+        ├── vllm-appled             stable inference
+        └── vllm-apple-optimize     isolated optimization worker
+                    ↓
+           immutable model artifact
+```
+
+### O0 — Contracts and safe dry-run planner
+
+- `[Done]` `OptimizationPlan`、objective、quality budget、resource budget model
+- `[Done]` calibration dataset manifestとdataset fingerprint schema
+- `[Done]` source hash、license、transform履歴を持つartifact manifest schema
+- `[Done]` hardware/model metadataから候補を返す副作用なしdry-run planner
+- `[Done]` required disk、peak memory、output sizeの保守的事前見積もり
+- `[Next]` hardware profiler実測値によるestimated duration
+- `[Done]` original model pathへのwriteを拒否するpath safety policy
+- `[Done]` optimizer state/event schemaとbounded progress event
+- `[Next]` structured optimizer error/recoverability taxonomy
+- `[Done]` plan、manifest、path traversal、disk/memory境界値test
+- `[Done]` `vllm-apple-optimize plan` CLI entry point
+
+### O1 — Representation optimization
+
+- `[Later]` backend adapter interfaceとcapability detection
+- `[Later]` FP16/BF16 → INT8/INT4 quantization candidate generation
+- `[Later]` MLX、将来のGGUF等へのversioned exporter adapter
+- `[Later]` KV cache precision、context、batch configuration search
+- `[Later]` stage checkpoint、cancel、resumeと一時fileのatomic promotion
+- `[Later]` output hash、size、peak RSS、latencyをartifact manifestへ記録
+
+### O2 — Calibration and evaluation
+
+- `[Later]` local-only calibration runnerとPIIを外部送信しないprivacy boundary
+- `[Later]` activation全量を保持しないonline statistics / disk streaming capture
+- `[Later]` layer、head、neuron importance report
+- `[Later]` 英語、日本語、简体中文のcalibration/evaluation manifest
+- `[Later]` code、math、long-context等を用途ごとに選択するevaluation suite
+- `[Later]` perplexity、task score、latency、RSS、artifact sizeのbaseline比較
+- `[Later]` 未評価能力とquality regressionを明示するrelease gate
+
+### O3 — Weight and structural optimization
+
+- `[Later]` outlier-aware quantization、weight clustering、low-rank approximation
+- `[Later]` structured / unstructured pruning experiment adapter
+- `[Later]` attention head、MLP、layer functional similarity analysis
+- `[Later]` layer bypass、head merge、layer merge candidate generation
+- `[Later]` quality budget超過時のcandidate自動reject
+- `[Later]` optional LoRA/SFT repair adapterとrepair前後の再評価
+
+### O4 — Mac companion app
+
+- `[Later]` `VLLMAppleOptimizer` Mac app target
+- `[Later]` model、用途、品質／速度／memory優先度の設定UI
+- `[Later]` disk/memory見積もりと明示的な実行confirmation
+- `[Later]` progress、pause、resume、cancel、failure recovery UI
+- `[Later]` original / optimized responseとbenchmark比較
+- `[Later]` artifact、provenance、license、未評価能力report
+- `[Later]` 英語、日本語、简体中文localization
+- `[Later]` App Sandbox、notarization、大容量file access sample
 
 ## Phase 2 — Apple Runtime Planner
 
@@ -352,7 +423,12 @@ Phase 1を完了とする条件：
 3. `[Done]` standard Transformer model metadata inspectionとautomatic context設定
 4. `[Done]` UDS、session authentication、bounded event stream
 5. `[Done]` Swift UDS transport、ManagedRuntimeのcrash recoveryとlog capture
-6. `[Next]` 最小SwiftUI Mac chat sample
-7. `[Next]` concurrent load、memory pressure、long-running stability test
+6. `[Done]` 最小SwiftUI Mac chat sample
+7. `[Done]` concurrent load、bounded soak runner、daemon crash/relaunch test
+8. `[Next]` 実modelのend-to-endと30分以上のmemory stability test
+9. `[Done]` OptimizationPlan / ArtifactManifest schemaとsafe dry-run planner
+10. `[Next]` optimizer duration profilerとstructured error taxonomy
+11. `[Later]` representation optimization workerとMac companion app
 
-この順序により、実modelを使ったend-to-end経路を早期に完成させ、その後にMacアプリ配布品質と長時間安定性を高める。
+この順序により、まず推論runtimeの実model安定性を確立し、その境界を壊さずにoptimizerを
+別processとして追加する。構造pruningはquantization、calibration、評価gateの後に着手する。

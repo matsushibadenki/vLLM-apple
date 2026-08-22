@@ -18,6 +18,7 @@ dev = ["pytest>=8", "ruff>=0.6"]
 vllm-apple = "vllm_apple.cli:main"
 vllm-appled = "vllm_apple.daemon:main"
 vllm-apple-soak = "vllm_apple.soak:main"
+vllm-apple-optimize = "vllm_apple.optimizer.cli:main"
 
 [tool.setuptools.packages.find]
 include = ["vllm_apple*"]

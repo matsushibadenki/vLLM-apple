@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vllm-apple.local/schemas/optimizer/optimizer-event-v1.schema.json",
+  "title": "vLLM-Apple optimizer event v1",
+  "type": "object",
+  "required": ["schema_version", "event_id", "timestamp", "plan_id", "stage", "state", "progress", "message_key", "error_code"],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "event_id": { "type": "string", "minLength": 1 },
+    "timestamp": { "type": "string", "format": "date-time" },
+    "plan_id": { "type": "string", "minLength": 1 },
+    "stage": { "type": "string", "minLength": 1 },
+    "state": { "enum": ["planning", "ready", "running", "paused", "completed", "failed", "cancelled"] },
+    "progress": { "type": "number", "minimum": 0, "maximum": 1 },
+    "message_key": { "type": "string", "minLength": 1 },
+    "error_code": { "type": ["string", "null"] }
+  },
+  "additionalProperties": false
+}

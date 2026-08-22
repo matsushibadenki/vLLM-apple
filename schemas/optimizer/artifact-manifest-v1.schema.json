@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vllm-apple.local/schemas/optimizer/artifact-manifest-v1.schema.json",
+  "title": "vLLM-Apple immutable optimization artifact manifest v1",
+  "type": "object",
+  "required": ["schema_version", "artifact_id", "created_at", "plan_id", "source_hash", "output_hash", "output_bytes", "transforms", "tool_versions", "calibration_fingerprint", "evaluation", "license"],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "artifact_id": { "type": "string", "minLength": 1 },
+    "created_at": { "type": "string", "format": "date-time" },
+    "plan_id": { "type": "string", "minLength": 1 },
+    "source_hash": { "type": "string", "minLength": 16 },
+    "output_hash": { "type": "string", "minLength": 16 },
+    "output_bytes": { "type": "integer", "minimum": 1 },
+    "transforms": { "type": "array", "items": { "type": "object" } },
+    "tool_versions": { "type": "object" },
+    "calibration_fingerprint": { "type": ["string", "null"] },
+    "evaluation": { "type": "object" },
+    "license": { "type": ["string", "null"] }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vllm-apple.local/schemas/api/health-v1.schema.json",
+  "title": "vLLM-Apple health response v1",
+  "type": "object",
+  "required": [
+    "api_version",
+    "schema_version",
+    "runtime_version",
+    "minimum_client_version",
+    "status",
+    "control_ready",
+    "inference_ready"
+  ],
+  "properties": {
+    "api_version": { "const": "v1" },
+    "schema_version": { "const": 1 },
+    "runtime_version": { "type": "string", "minLength": 1 },
+    "minimum_client_version": { "type": "string", "minLength": 1 },
+    "status": {
+      "enum": [
+        "stopped",
+        "starting",
+        "profiling",
+        "loading_model",
+        "ready",
+        "degraded",
+        "failed",
+        "stopping"
+      ]
+    },
+    "control_ready": { "type": "boolean" },
+    "inference_ready": { "type": "boolean" }
+  },
+  "additionalProperties": false
+}

@@ -7,6 +7,7 @@
     "api_version",
     "schema_version",
     "runtime_version",
+    "minimum_client_version",
     "state",
     "control_ready",
     "inference_ready",
@@ -18,8 +19,8 @@
   "properties": {
     "api_version": { "const": "v1" },
     "schema_version": { "const": 1 },
-    "runtime_version": { "type": "string" },
-    "minimum_client_version": { "type": "string" },
+    "runtime_version": { "type": "string", "minLength": 1 },
+    "minimum_client_version": { "type": "string", "minLength": 1 },
     "state": {
       "enum": [
         "stopped",
@@ -35,7 +36,28 @@
     "control_ready": { "type": "boolean" },
     "inference_ready": { "type": "boolean" },
     "last_error": { "type": ["string", "null"] },
-    "profile": { "type": "object" },
+    "profile": {
+      "type": "object",
+      "required": [
+        "profile_version",
+        "runtime_version",
+        "created_at",
+        "hardware",
+        "context",
+        "capabilities",
+        "metadata"
+      ],
+      "properties": {
+        "profile_version": { "type": "integer", "minimum": 1 },
+        "runtime_version": { "type": "string", "minLength": 1 },
+        "created_at": { "type": "string", "format": "date-time" },
+        "hardware": { "type": "object" },
+        "context": { "type": ["object", "null"] },
+        "capabilities": { "type": "array", "items": { "type": "string" } },
+        "metadata": { "type": "object" }
+      },
+      "additionalProperties": false
+    },
     "scheduler": {
       "type": "object",
       "required": [
@@ -43,7 +65,14 @@
         "reserved_bytes",
         "available_bytes",
         "active_reservations"
-      ]
+      ],
+      "properties": {
+        "capacity_bytes": { "type": "integer", "minimum": 0 },
+        "reserved_bytes": { "type": "integer", "minimum": 0 },
+        "available_bytes": { "type": "integer", "minimum": 0 },
+        "active_reservations": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": false
     },
     "events": {
       "type": "object",
@@ -53,8 +82,16 @@
         "latest_sequence",
         "active_subscribers",
         "max_subscribers"
-      ]
+      ],
+      "properties": {
+        "capacity": { "type": "integer", "minimum": 1 },
+        "retained_events": { "type": "integer", "minimum": 0 },
+        "latest_sequence": { "type": "integer", "minimum": 0 },
+        "active_subscribers": { "type": "integer", "minimum": 0 },
+        "max_subscribers": { "type": "integer", "minimum": 1 }
+      },
+      "additionalProperties": false
     }
   },
-  "additionalProperties": true
+  "additionalProperties": false
 }

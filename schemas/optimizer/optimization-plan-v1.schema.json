@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vllm-apple.local/schemas/optimizer/optimization-plan-v1.schema.json",
+  "title": "vLLM-Apple optimization dry-run plan v1",
+  "type": "object",
+  "required": ["schema_version", "plan_id", "created_at", "objective", "source", "output_path", "hardware_fingerprint", "quality_budget", "resource_budget", "calibration", "candidates", "warnings", "dry_run"],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "plan_id": { "type": "string", "minLength": 1 },
+    "created_at": { "type": "string", "format": "date-time" },
+    "objective": { "enum": ["balanced", "memory", "speed", "quality"] },
+    "source": { "type": "object" },
+    "output_path": { "type": "string", "minLength": 1 },
+    "hardware_fingerprint": { "type": "string", "minLength": 16 },
+    "quality_budget": { "type": "object" },
+    "resource_budget": { "type": "object" },
+    "calibration": { "type": ["object", "null"] },
+    "candidates": { "type": "array", "items": { "type": "object" } },
+    "warnings": { "type": "array", "items": { "type": "string" } },
+    "dry_run": { "const": true }
+  },
+  "additionalProperties": false
+}
