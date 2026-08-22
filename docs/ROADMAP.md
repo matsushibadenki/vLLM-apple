@@ -17,8 +17,8 @@
 Phase 1のcontrol plane、メモリ安全性基盤、Macアプリ向けSwift SDK foundation、
 3言語対応の最小macOS SwiftUI chat sampleまで実装済み。
 
-現在の最優先目標は、実modelを使ったend-to-end経路と長時間安定性を完成させ、
-Model Optimization Compilerへ実測durationとstructured failure modelを追加することである。
+現在の最優先目標は、実modelを使ったend-to-end経路と長時間安定性を完成させつつ、
+Model Optimization Compilerのbackend adapter境界とcapability detectionを追加することである。
 
 ```text
 Swift / CLI
@@ -188,7 +188,7 @@ MLX / Metal / Unified Memory
 - `[Done]` authenticated HTTP event stream test
 - `[Done]` private UDS lifecycle integration test
 - `[Done]` UDS path length境界test
-- `[Done]` Python 41 test passing
+- `[Done]` Python 45 test passing
 - `[Done]` Swift bounded log buffer test
 - `[Done]` Swift → Python UDS authentication integration test
 - `[Done]` Swift managed daemon crash/restart/reconnect integration test
@@ -238,16 +238,17 @@ VLLMAppleKit / Control API
 - `[Done]` source hash、license、transform履歴を持つartifact manifest schema
 - `[Done]` hardware/model metadataから候補を返す副作用なしdry-run planner
 - `[Done]` required disk、peak memory、output sizeの保守的事前見積もり
-- `[Next]` hardware profiler実測値によるestimated duration
+- `[Done]` 明示実行・bounded I/O profiler実測値によるestimated duration
 - `[Done]` original model pathへのwriteを拒否するpath safety policy
 - `[Done]` optimizer state/event schemaとbounded progress event
-- `[Next]` structured optimizer error/recoverability taxonomy
+- `[Done]` structured optimizer error/recoverability taxonomyとCLI JSON error
 - `[Done]` plan、manifest、path traversal、disk/memory境界値test
+- `[Done]` optimizer plan、profile、event、artifact、error JSON Schema v1
 - `[Done]` `vllm-apple-optimize plan` CLI entry point
 
 ### O1 — Representation optimization
 
-- `[Later]` backend adapter interfaceとcapability detection
+- `[Next]` backend adapter interfaceとcapability detection
 - `[Later]` FP16/BF16 → INT8/INT4 quantization candidate generation
 - `[Later]` MLX、将来のGGUF等へのversioned exporter adapter
 - `[Later]` KV cache precision、context、batch configuration search
@@ -427,8 +428,9 @@ VLLMAppleKit / Control API
 7. `[Done]` concurrent load、bounded soak runner、daemon crash/relaunch test
 8. `[Next]` 実modelのend-to-endと30分以上のmemory stability test
 9. `[Done]` OptimizationPlan / ArtifactManifest schemaとsafe dry-run planner
-10. `[Next]` optimizer duration profilerとstructured error taxonomy
-11. `[Later]` representation optimization workerとMac companion app
+10. `[Done]` optimizer duration profilerとstructured error taxonomy
+11. `[Next]` representation optimization backend adapterとcapability detection
+12. `[Later]` isolated conversion workerとMac companion app
 
 この順序により、まず推論runtimeの実model安定性を確立し、その境界を壊さずにoptimizerを
 別processとして追加する。構造pruningはquantization、calibration、評価gateの後に着手する。

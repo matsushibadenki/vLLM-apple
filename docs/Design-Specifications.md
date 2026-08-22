@@ -1880,6 +1880,9 @@ samples/VLLMAppleOptimizer/      Mac companion app
 - 実行前に必要disk、peak memory、workspaceを見積もり、hard admission limitを適用する
 - optimizer crashは`vllm-appled`と実行中の推論へ影響させない
 - activationとlogはbounded memoryまたはdisk streamingとし、全量をRAMに保持しない
+- profilerは明示実行とし、read/write sample量へhard upper boundを設ける。plan作成時に暗黙実行しない
+- profiler実測値はhardware fingerprintが一致する場合だけ所要時間推定へ利用する
+- failureはstable error code、localizable message key、recoverabilityを持つversioned JSONとする
 - cancel、checkpoint、resumeをstage境界で保証する
 - calibration dataを既定でlocal外へ送信しない
 

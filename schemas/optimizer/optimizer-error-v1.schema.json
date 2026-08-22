@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vllm-apple.local/schemas/optimizer/optimizer-error-v1.schema.json",
+  "title": "vLLM-Apple structured optimizer failure v1",
+  "type": "object",
+  "required": ["schema_version", "code", "message_key", "recoverability", "detail"],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "code": { "enum": ["invalid_model", "invalid_plan", "unsafe_path", "insufficient_memory", "insufficient_disk", "profiler_failed", "adapter_unavailable", "worker_crashed", "cancelled"] },
+    "message_key": { "type": "string", "minLength": 1 },
+    "recoverability": { "enum": ["retryable", "user_action_required", "not_retryable"] },
+    "detail": { "type": "string" }
+  },
+  "additionalProperties": false
+}

@@ -89,16 +89,27 @@ O0の`vllm-apple-optimize plan`はmodelを変更せず、INT8/INT4候補のoutpu
 peak memoryを見積もります。original modelと重なるpath、既存artifact path、resource budget超過を
 検出します。変換adapterはO1で実装するため、現在のcandidateは`executable: false`です。
 
+所要時間を見積もる場合のみ、明示的にbounded I/O profileを取得します。読み書きsampleは既定で
+各64 MiBに制限され、一時fileは`fsync`後に削除されます。`plan`自体がbenchmarkを暗黙実行する
+ことはありません。
+
 ```bash
+python3 -m vllm_apple.optimizer.cli profile /path/to/model \
+  --workspace /path/to/temporary-workspace \
+  --sample-mib 64 > optimizer-profile.json
+
 python3 -m vllm_apple.optimizer.cli plan /path/to/model \
   --output /path/to/immutable-artifact \
   --objective memory \
   --max-memory-gb 16 \
   --max-disk-gb 40 \
+  --max-duration-seconds 3600 \
+  --performance-profile optimizer-profile.json \
   --license apache-2.0
 ```
 
-durationはhardware profilerの実測値がない限り推測せず`null`とし、warningへ理由を記録します。
+durationは同一hardwareのprofile実測値がない限り推測せず`null`とし、warningへ理由を記録します。
+CLI failureは`code`、localizableな`message_key`、`recoverability`を持つJSONとしてstderrへ返します。
 
 ## 開発時の確認
 

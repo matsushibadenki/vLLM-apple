@@ -1,6 +1,8 @@
 import json
+import io
 import tempfile
 import unittest
+from contextlib import redirect_stderr
 from pathlib import Path
 
 from tests.schema_validator import validate_instance
@@ -9,14 +11,20 @@ from vllm_apple.optimizer import (
     ArtifactManifest,
     CalibrationManifest,
     OptimizationObjective,
+    OptimizationPerformanceProfile,
+    OptimizerErrorCode,
     OptimizationPathError,
+    OptimizerFailure,
     OptimizerEventBus,
     OptimizerState,
     QualityBudget,
+    Recoverability,
     ResourceBudget,
     build_dry_run_plan,
+    profile_optimizer_io,
     validate_immutable_output_path,
 )
+from vllm_apple.optimizer.cli import main as optimizer_main
 from vllm_apple.types import GIB, HardwareInfo, MemoryInfo, ModelMemorySpec
 
 
@@ -135,6 +143,63 @@ class OptimizerFoundationTests(unittest.TestCase):
             license="test",
         )
         validate_instance(manifest.to_dict(), schema("artifact-manifest-v1.schema.json"))
+
+    def test_bounded_io_profile_enables_duration_estimate(self) -> None:
+        with tempfile.TemporaryDirectory(dir="/tmp") as directory:
+            source = Path(directory) / "source"
+            workspace = Path(directory) / "workspace"
+            source.mkdir()
+            workspace.mkdir()
+            (source / "weights.safetensors").write_bytes(bytes(1024 * 1024))
+            profile = profile_optimizer_io(source, workspace, hardware(), 1024 * 1024)
+            validate_instance(profile.to_dict(), schema("performance-profile-v1.schema.json"))
+            model = InspectedModel(
+                "model", source, {}, ModelMemorySpec("model", GIB, 1), 2
+            )
+            plan = build_dry_run_plan(
+                model,
+                hardware(),
+                Path(directory) / "artifact",
+                OptimizationObjective.BALANCED,
+                ResourceBudget(4 * GIB, 4 * GIB, 1),
+                performance_profile=profile,
+            )
+            self.assertIsNotNone(plan.candidates[0].estimated_duration_seconds)
+            self.assertFalse(any(workspace.iterdir()))
+
+    def test_structured_optimizer_failure_matches_schema(self) -> None:
+        failure = OptimizerFailure(
+            OptimizerErrorCode.INSUFFICIENT_DISK,
+            "optimizer.error.insufficient_disk",
+            Recoverability.USER_ACTION_REQUIRED,
+            "free space is below the plan budget",
+        )
+        validate_instance(failure.to_dict(), schema("optimizer-error-v1.schema.json"))
+
+    def test_cli_emits_structured_error(self) -> None:
+        stderr = io.StringIO()
+        with redirect_stderr(stderr):
+            exit_code = optimizer_main(
+                ["plan", "/model/does-not-exist", "--output", "/tmp/artifact"]
+            )
+        payload = json.loads(stderr.getvalue())
+        self.assertEqual(exit_code, 2)
+        self.assertEqual(payload["error"]["code"], "invalid_model")
+        validate_instance(payload["error"], schema("optimizer-error-v1.schema.json"))
+
+    def test_performance_profile_rejects_untyped_input(self) -> None:
+        with self.assertRaises(ValueError):
+            OptimizationPerformanceProfile.from_dict(
+                {
+                    "schema_version": 1,
+                    "profile_id": "profile",
+                    "measured_at": "2026-08-22T00:00:00+00:00",
+                    "hardware_fingerprint": "a" * 64,
+                    "sample_bytes": True,
+                    "read_bytes_per_second": 1,
+                    "write_bytes_per_second": 1,
+                }
+            )
 
 
 if __name__ == "__main__":

@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vllm-apple.local/schemas/optimizer/performance-profile-v1.schema.json",
+  "title": "vLLM-Apple optimizer performance profile v1",
+  "type": "object",
+  "required": ["schema_version", "profile_id", "measured_at", "hardware_fingerprint", "sample_bytes", "read_bytes_per_second", "write_bytes_per_second"],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "profile_id": { "type": "string", "minLength": 16 },
+    "measured_at": { "type": "string", "format": "date-time" },
+    "hardware_fingerprint": { "type": "string", "minLength": 16 },
+    "sample_bytes": { "type": "integer", "minimum": 1 },
+    "read_bytes_per_second": { "type": "integer", "minimum": 1 },
+    "write_bytes_per_second": { "type": "integer", "minimum": 1 }
+  },
+  "additionalProperties": false
+}
