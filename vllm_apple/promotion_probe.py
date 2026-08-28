@@ -27,6 +27,7 @@ class PromotionProbeConfig:
     timeout_seconds: float = 120.0
     seed: int = 1729
     maximum_output_tokens: int = 16
+    supports_seeded_sampling: bool = True
 
     def __post_init__(self) -> None:
         parsed = urllib.parse.urlparse(self.base_url)
@@ -83,7 +84,8 @@ def run_serving_promotion_probe(
     }
     greedy_a = send({**common, "temperature": 0}, False)
     greedy_b = send({**common, "temperature": 0}, False)
-    sampled_request = {**common, "temperature": 0.7, "top_p": 0.9}
+    temperature = 0.7 if config.supports_seeded_sampling else 0
+    sampled_request = {**common, "temperature": temperature, "top_p": 0.9}
     sampled_a = send(sampled_request, False)
     sampled_b = send(sampled_request, False)
     sampled_stream = send(sampled_request, True)
@@ -97,7 +99,10 @@ def run_serving_promotion_probe(
         "schema_version": PROMOTION_PROBE_SCHEMA_VERSION,
         "model": config.model,
         "seed": config.seed,
-        "temperature": 0.7,
+        "temperature": temperature,
+        "determinism_mode": (
+            "seeded_sampling" if config.supports_seeded_sampling else "greedy_only"
+        ),
         "digests": {
             "greedy": greedy_a.digest,
             "sampled": sampled_a.digest,
@@ -169,7 +174,10 @@ def _read_stream(response: object) -> PromotionResponse:
             break
         try:
             payload = json.loads(data)
-            content = payload["choices"][0].get("delta", {}).get("content")
+            choices = payload.get("choices")
+            if choices == [] and isinstance(payload.get("usage"), dict):
+                continue
+            content = choices[0].get("delta", {}).get("content")
         except (KeyError, IndexError, TypeError, json.JSONDecodeError) as error:
             raise PromotionProbeError("invalid_stream_response", "invalid SSE chunk") from error
         if content is not None:

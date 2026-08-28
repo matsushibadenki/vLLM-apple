@@ -34,6 +34,7 @@ class QualificationConfig:
     require_30_minute_window: bool = True
     vllm_version: str | None = None
     allow_context_reduction: bool = False
+    backend_kind: str = "vllm_metal"
 
     def __post_init__(self) -> None:
         if not self.model.strip():
@@ -51,6 +52,8 @@ class QualificationConfig:
             raise ValueError("concurrency must be between 1 and 256")
         if self.max_rss_growth_bytes < 0:
             raise ValueError("RSS growth limit cannot be negative")
+        if self.backend_kind not in {"vllm_metal", "mlx_lm"}:
+            raise ValueError("unsupported qualification backend")
         if self.require_30_minute_window and self.duration_seconds < 1800:
             raise ValueError("real-model certification requires at least 1800 seconds")
 
@@ -67,6 +70,7 @@ def qualify_model(
             port=config.port,
             max_model_len=config.max_model_len,
             startup_timeout=config.startup_timeout_seconds,
+            backend_kind=config.backend_kind,
         )
     )
     load_started = time.monotonic()
@@ -75,6 +79,7 @@ def qualify_model(
     promotion: dict[str, object] | None = None
     shutdown_clean = False
     context = _pending_context_report(config)
+    api_model = "default_model" if config.backend_kind == "mlx_lm" else config.model
     try:
         backend.start()
         load_seconds = time.monotonic() - load_started
@@ -86,8 +91,9 @@ def qualify_model(
             promotion = run_serving_promotion_probe(
                 PromotionProbeConfig(
                     base_url=backend.base_url,
-                    model=config.model,
+                    model=api_model,
                     timeout_seconds=config.request_timeout_seconds,
+                    supports_seeded_sampling=config.backend_kind != "mlx_lm",
                 )
             )
             if not promotion["passed"]:
@@ -100,7 +106,7 @@ def qualify_model(
                     concurrency=config.concurrency,
                     request_timeout_seconds=config.request_timeout_seconds,
                     mode="chat-mixed",
-                    model=config.model,
+                    model=api_model,
                     target_pid=pid,
                     max_rss_growth_bytes=config.max_rss_growth_bytes,
                     require_30_minute_window=config.require_30_minute_window,
@@ -112,7 +118,7 @@ def qualify_model(
     return {
         "schema_version": 1,
         "model": config.model,
-        "backend": "vllm_metal",
+        "backend": config.backend_kind,
         "load_seconds": round(load_seconds, 3),
         "shutdown_clean": shutdown_clean,
         "promotion_probe": promotion,

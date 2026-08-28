@@ -1,4 +1,5 @@
 import json
+import io
 import unittest
 from pathlib import Path
 
@@ -8,9 +9,39 @@ from vllm_apple.promotion_probe import (
     PromotionResponse,
     run_serving_promotion_probe,
 )
+from vllm_apple.promotion_probe import _read_stream
 
 
 class PromotionProbeTests(unittest.TestCase):
+    def test_stream_reader_ignores_bounded_usage_only_chunk(self) -> None:
+        response = io.BytesIO(
+            b'data: {"choices":[{"delta":{"content":"ok"}}]}\n\n'
+            b'data: {"choices":[],"usage":{"completion_tokens":1}}\n\n'
+            b'data: [DONE]\n\n'
+        )
+        parsed = _read_stream(response)
+        self.assertEqual(parsed.text, "ok")
+        self.assertTrue(parsed.stream_completed)
+
+    def test_greedy_only_backend_still_checks_repeat_and_stream_equivalence(self) -> None:
+        calls = []
+
+        def transport(request, stream):
+            calls.append((request, stream))
+            return PromotionResponse("stable", stream)
+
+        report = run_serving_promotion_probe(
+            PromotionProbeConfig(
+                "http://127.0.0.1:8001",
+                "model",
+                supports_seeded_sampling=False,
+            ),
+            transport=transport,
+        )
+        self.assertTrue(report["passed"])
+        self.assertEqual(report["determinism_mode"], "greedy_only")
+        self.assertTrue(all(call[0]["temperature"] == 0 for call in calls))
+
     def test_greedy_sampled_and_streaming_gate_passes(self) -> None:
         calls = []
 

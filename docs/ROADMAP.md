@@ -679,6 +679,9 @@ vLLM-Metal対応とは見なさない。
 - `[Done]` manual/self-hosted Apple Silicon実device qualification workflow
 - `[Done]` Metal platform、memory pressure、GPU coreのqualification preflight
 - `[Done]` qualification reportのSwift typed decodeを必須化するworkflow gate
+- `[Done]` MLX LM OpenAI server adapterとgreedy repeat/stream equivalence qualification gate
+- `[Done]` Gemma 2 2B IT MLX 4-bit実機qualification smoke（20秒、193/193成功、9.61 req/s、RSS増加0、clean shutdown）
+- `[Next]` Gemma 2 2B IT MLX 4-bitの30分memory stability qualification
 - `[Next]` 専用runner上でvLLM 0.28.x昇格workflowを実行
 - `[Later]` Ruff ruleの段階的拡張と既存style debt解消
 - `[Later]` signed daemon artifact

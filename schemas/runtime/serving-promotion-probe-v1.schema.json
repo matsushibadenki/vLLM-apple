@@ -10,6 +10,7 @@
     "model": {"type": "string", "minLength": 1, "maxLength": 512},
     "seed": {"type": "integer", "minimum": 0, "maximum": 2147483647},
     "temperature": {"type": "number", "minimum": 0},
+    "determinism_mode": {"enum": ["seeded_sampling", "greedy_only"]},
     "digests": {
       "type": "object",
       "additionalProperties": false,

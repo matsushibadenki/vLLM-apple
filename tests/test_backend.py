@@ -94,6 +94,29 @@ class FakeVLLMHandler(BaseHTTPRequestHandler):
 
 
 class BackendConfigTests(unittest.TestCase):
+    def test_mlx_server_command_uses_its_native_cli_contract(self) -> None:
+        config = BackendConfig(
+            model="/models/gemma",
+            executable=Path("/tmp/mlx_lm.server"),
+            port=8123,
+            max_model_len=8192,
+            backend_kind="mlx_lm",
+        )
+        self.assertEqual(
+            config.command(),
+            [
+                "/tmp/mlx_lm.server",
+                "--model",
+                "/models/gemma",
+                "--host",
+                "127.0.0.1",
+                "--port",
+                "8123",
+                "--log-level",
+                "WARNING",
+            ],
+        )
+
     def test_command_is_explicit_and_managed_options_cannot_be_overridden(self) -> None:
         config = BackendConfig(
             model="mlx-community/test",

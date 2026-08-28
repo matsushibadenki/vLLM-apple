@@ -34,6 +34,34 @@ class FakeBackend:
 
 
 class QualificationTests(unittest.TestCase):
+    def test_mlx_backend_uses_native_process_contract_and_report_identity(self) -> None:
+        captured = []
+
+        def factory(config):
+            captured.append(config)
+            return FakeBackend(config)
+
+        with patch(
+            "vllm_apple.qualification.run_serving_promotion_probe",
+            return_value={"passed": True},
+        ), patch(
+            "vllm_apple.qualification.run_soak", return_value={"passed": True}
+        ):
+            report = qualify_model(
+                QualificationConfig(
+                    model="local-model",
+                    executable=Path("/tmp/mlx_lm.server"),
+                    backend_kind="mlx_lm",
+                    duration_seconds=1,
+                    warmup_seconds=0,
+                    require_30_minute_window=False,
+                ),
+                process_factory=factory,
+            )
+        self.assertEqual(captured[0].backend_kind, "mlx_lm")
+        self.assertEqual(report["backend"], "mlx_lm")
+        self.assertTrue(report["passed"])
+
     def test_default_report_path_is_bounded_and_model_safe(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

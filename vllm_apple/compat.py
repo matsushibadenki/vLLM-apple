@@ -30,6 +30,45 @@ class BackendCompatibility:
         return result
 
 
+@dataclass(frozen=True, slots=True)
+class MLXBackendCompatibility:
+    executable: str | None
+    mlx_lm_version: str | None
+    compatible: bool
+    issues: tuple[str, ...]
+
+
+def inspect_mlx_lm_backend(executable: str | Path) -> MLXBackendCompatibility:
+    path = Path(executable).expanduser()
+    if not path.is_file() or not os.access(path, os.X_OK):
+        return MLXBackendCompatibility(None, None, False, ("mlx_lm_server_not_executable",))
+    python = path.parent / "python"
+    if not python.is_file():
+        python = Path(sys.executable)
+    try:
+        result = subprocess.run(
+            [
+                str(python),
+                "-c",
+                "import importlib.metadata as m;print(m.version('mlx-lm'))",
+            ],
+            capture_output=True,
+            check=True,
+            text=True,
+            timeout=5.0,
+        )
+        version = result.stdout.strip()
+    except (OSError, subprocess.SubprocessError):
+        return MLXBackendCompatibility(
+            str(path.resolve()), None, False, ("mlx_lm_version_unavailable",)
+        )
+    parsed = _release_tuple(version)
+    issues = () if parsed is not None and (0, 26, 0) <= parsed < (0, 27, 0) else (
+        "mlx_lm_version_outside_verified_matrix",
+    )
+    return MLXBackendCompatibility(str(path.resolve()), version, not issues, issues)
+
+
 def resolve_vllm_executable(explicit: str | None = None) -> Path | None:
     candidate = explicit or os.environ.get("VLLM_APPLE_VLLM_EXECUTABLE")
     if candidate:

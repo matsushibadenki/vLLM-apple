@@ -79,6 +79,7 @@ class BackendConfig:
     startup_timeout: float = 600.0
     extra_arguments: tuple[str, ...] = ()
     enable_kernel_tuning_middleware: bool = False
+    backend_kind: str = "vllm_metal"
 
     def __post_init__(self) -> None:
         if not self.model.strip():
@@ -91,6 +92,8 @@ class BackendConfig:
             raise BackendConfigurationError("max_model_len must be positive")
         if self.startup_timeout <= 0:
             raise BackendConfigurationError("startup_timeout must be positive")
+        if self.backend_kind not in {"vllm_metal", "mlx_lm"}:
+            raise BackendConfigurationError("unsupported managed backend kind")
         reserved = {
             "--host",
             "--port",
@@ -102,6 +105,19 @@ class BackendConfig:
             raise BackendConfigurationError("extra_arguments cannot override managed options")
 
     def command(self) -> list[str]:
+        if self.backend_kind == "mlx_lm":
+            return [
+                str(self.executable),
+                "--model",
+                self.model,
+                "--host",
+                self.host,
+                "--port",
+                str(self.port),
+                "--log-level",
+                "WARNING",
+                *self.extra_arguments,
+            ]
         command = [
             str(self.executable),
             "serve",

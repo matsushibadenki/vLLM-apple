@@ -5,7 +5,7 @@ import json
 import sys
 from pathlib import Path
 
-from .compat import inspect_backend
+from .compat import inspect_backend, inspect_mlx_lm_backend
 from .context import recommend_context
 from .daemon import serve
 from .execution_profile import detect_apple_chip_profile, save_chip_profile
@@ -175,10 +175,13 @@ def build_parser() -> argparse.ArgumentParser:
     long_context.add_argument("--allow-remote", action="store_true")
 
     qualify = commands.add_parser(
-        "qualify-model", help="launch and stability-test a real vLLM-Metal model"
+        "qualify-model", help="launch and stability-test a local model backend"
     )
     qualify.add_argument("model")
     qualify.add_argument("--backend-executable", required=True, type=Path)
+    qualify.add_argument(
+        "--backend-kind", choices=("vllm_metal", "mlx_lm"), default="vllm_metal"
+    )
     qualify.add_argument("--backend-port", type=int, default=8001)
     qualify.add_argument("--max-model-len", type=int)
     qualify.add_argument("--startup-timeout", type=float, default=600)
@@ -484,9 +487,18 @@ def main(argv: list[str] | None = None) -> int:
         try:
             if arguments.max_rss_growth_mib < 0:
                 raise ValueError("RSS growth limit cannot be negative")
-            compatibility = inspect_backend(str(arguments.backend_executable))
-            if not compatibility.compatible:
-                raise ValueError("incompatible backend: " + ", ".join(compatibility.issues))
+            vllm_version = None
+            if arguments.backend_kind == "vllm_metal":
+                compatibility = inspect_backend(str(arguments.backend_executable))
+                if not compatibility.compatible:
+                    raise ValueError("incompatible backend: " + ", ".join(compatibility.issues))
+                vllm_version = compatibility.vllm_version
+            else:
+                mlx_compatibility = inspect_mlx_lm_backend(arguments.backend_executable)
+                if not mlx_compatibility.compatible:
+                    raise ValueError(
+                        "incompatible backend: " + ", ".join(mlx_compatibility.issues)
+                    )
             result = qualify_model(
                 QualificationConfig(
                     model=arguments.model,
@@ -500,8 +512,9 @@ def main(argv: list[str] | None = None) -> int:
                     request_timeout_seconds=arguments.request_timeout,
                     max_rss_growth_bytes=int(arguments.max_rss_growth_mib * 1024 * 1024),
                     require_30_minute_window=not arguments.allow_short_run,
-                    vllm_version=compatibility.vllm_version,
+                    vllm_version=vllm_version,
                     allow_context_reduction=arguments.allow_context_reduction,
+                    backend_kind=arguments.backend_kind,
                 )
             )
             save_qualification_report(
