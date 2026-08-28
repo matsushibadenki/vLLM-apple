@@ -74,6 +74,9 @@ ceiling; the running backend is never mutated in place. Requests above the effec
 ceiling fail as `backend_context_capacity_exceeded`. Pending, sufficient, and reduced
 states expose the configured/effective token counts, inspected weights footprint,
 measurement source, and a constant-space reevaluation counter.
+Each changed capacity publishes one `runtime.context_reevaluation` SSE event;
+identical polling samples are coalesced. The Swift SDK exposes a typed event view,
+and the Mac sample displays a localized warning when the effective limit is reduced.
 
 The same in-backend middleware exposes a loopback-only JSON memory snapshot
 using MLX `get_active_memory`, `get_cache_memory`, and `get_peak_memory`.

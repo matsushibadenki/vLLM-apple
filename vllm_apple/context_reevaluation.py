@@ -41,16 +41,17 @@ class ContextCapacityReevaluator:
         self._reevaluations = 0
         self._lock = threading.Lock()
 
-    def update(self, capacity_bytes: int, *, source: str) -> None:
+    def update(self, capacity_bytes: int, *, source: str) -> bool:
         if capacity_bytes < 0 or not source:
             raise ValueError("invalid backend KV capacity")
         with self._lock:
             if self._capacity == capacity_bytes and self._source == source:
-                return
+                return False
             self._capacity = capacity_bytes
             self._capacity_tokens = capacity_bytes // self._kv_bytes_per_token
             self._source = source
             self._reevaluations += 1
+            return True
 
     def snapshot(self) -> ContextReevaluationSnapshot:
         with self._lock:

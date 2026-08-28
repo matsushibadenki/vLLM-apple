@@ -44,6 +44,24 @@ class ContextCapacityReevaluatorTests(unittest.TestCase):
         self.assertEqual(snapshot["status"], "reduced")
         self.assertEqual(snapshot["effective_context_tokens"], 2_000)
 
+    def test_runtime_publishes_one_event_per_capacity_change(self) -> None:
+        service = RuntimeService(
+            model_memory_spec=ModelMemorySpec("model", 1_000, 100),
+            configured_context_tokens=4096,
+        )
+        service.record_kv_cache_memory(10, 200_000, source="vllm")
+        sequence = service.events.snapshot()["latest_sequence"]
+        service.record_kv_cache_memory(20, 200_000, source="vllm")
+        self.assertEqual(service.events.snapshot()["latest_sequence"], sequence)
+        subscription = service.events.subscribe(after_sequence=sequence - 1, heartbeat=0.01)
+        try:
+            event = next(subscription)
+            self.assertEqual(event.type, "runtime.context_reevaluation")
+            self.assertEqual(event.payload["status"], "reduced")
+            self.assertEqual(event.payload["effective_context_tokens"], 2_000)
+        finally:
+            subscription.close()
+
 
 if __name__ == "__main__":
     unittest.main()

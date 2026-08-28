@@ -134,6 +134,20 @@ public struct MemoryBudget: Codable, Sendable, Equatable {
     public let components: MemoryBudgetComponents
 }
 
+public enum ContextReevaluationStatus: String, Codable, Sendable {
+    case disabled
+    case pending
+    case sufficient
+    case reduced
+}
+
+public struct RuntimeContextReevaluation: Sendable, Equatable {
+    public let status: ContextReevaluationStatus
+    public let configuredContextTokens: Int
+    public let effectiveContextTokens: Int
+    public let capacityContextTokens: Int?
+}
+
 public struct HealthStatus: Codable, Sendable, Equatable {
     public let status: RuntimeState
     public let controlReady: Bool
@@ -258,6 +272,27 @@ public extension RuntimeEvent {
             messageKey: messageKey,
             recoverability: recoverability,
             detailFingerprint: detailFingerprint
+        )
+    }
+
+    var contextReevaluation: RuntimeContextReevaluation? {
+        guard type == "runtime.context_reevaluation",
+              case .string(let statusValue)? = payload["status"],
+              let status = ContextReevaluationStatus(rawValue: statusValue),
+              case .number(let configured)? = payload["configured_context_tokens"],
+              case .number(let effective)? = payload["effective_context_tokens"]
+        else { return nil }
+        let capacity: Int?
+        if case .number(let value)? = payload["capacity_context_tokens"] {
+            capacity = Int(value)
+        } else {
+            capacity = nil
+        }
+        return RuntimeContextReevaluation(
+            status: status,
+            configuredContextTokens: Int(configured),
+            effectiveContextTokens: Int(effective),
+            capacityContextTokens: capacity
         )
     }
 }

@@ -68,6 +68,25 @@ struct ContentView: View {
                 .accessibilityElement(children: .combine)
             }
 
+            if let warning = model.contextWarning {
+                VStack(alignment: .leading, spacing: DesignTokens.compact) {
+                    Label("context.warning.title", systemImage: "memorychip")
+                        .font(.callout.weight(.semibold))
+                        .foregroundStyle(DesignTokens.warning)
+                    Text(
+                        String(
+                            format: localized("context.warning.body"),
+                            Int64(warning.configuredContextTokens),
+                            Int64(warning.effectiveContextTokens)
+                        )
+                    )
+                    .font(.caption)
+                    .foregroundStyle(DesignTokens.secondaryInk)
+                    .fixedSize(horizontal: false, vertical: true)
+                }
+                .accessibilityElement(children: .combine)
+            }
+
             Spacer(minLength: DesignTokens.standard)
 
             VStack(spacing: DesignTokens.compact) {

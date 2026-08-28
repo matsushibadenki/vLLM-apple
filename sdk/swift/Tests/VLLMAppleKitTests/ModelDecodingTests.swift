@@ -93,3 +93,24 @@ import Testing
     #expect(budget.overlapEnvelopeBytes == 700)
     #expect(budget.components.metalHeap.accounting == .overlapEnvelope)
 }
+
+@Test func contextReevaluationEventExposesReducedLimit() throws {
+    let data = Data("""
+    {
+      "schema_version": 1,
+      "event_id": "44",
+      "type": "runtime.context_reevaluation",
+      "timestamp": "2026-08-28T00:00:00Z",
+      "payload": {
+        "status": "reduced",
+        "configured_context_tokens": 4096,
+        "effective_context_tokens": 2048,
+        "capacity_context_tokens": 2048
+      }
+    }
+    """.utf8)
+    let event = try JSONDecoder().decode(RuntimeEvent.self, from: data)
+    #expect(event.contextReevaluation?.status == .reduced)
+    #expect(event.contextReevaluation?.configuredContextTokens == 4096)
+    #expect(event.contextReevaluation?.effectiveContextTokens == 2048)
+}

@@ -51,6 +51,7 @@ final class AppModel: ObservableObject {
     @Published private(set) var errorKey: String?
     @Published private(set) var detail = ""
     @Published private(set) var transportLabel = "HTTP · 127.0.0.1:8000"
+    @Published private(set) var contextWarning: RuntimeContextReevaluation?
 
     private let resolver: RuntimeResourceResolver
     private var client: (any VLLMAppleRuntimeClient)?
@@ -74,6 +75,7 @@ final class AppModel: ObservableObject {
         phase = .connecting
         errorKey = nil
         detail = ""
+        contextWarning = nil
 
         do {
             let resources = try resolver.resolve()
@@ -193,6 +195,7 @@ final class AppModel: ObservableObject {
         client = nil
         if clearStatus {
             phase = .disconnected
+            contextWarning = nil
         }
     }
 
@@ -242,6 +245,9 @@ final class AppModel: ObservableObject {
                     if case .string(let value) = event.payload["state"],
                        let state = RuntimeState(rawValue: value) {
                         self.apply(state)
+                    }
+                    if let reevaluation = event.contextReevaluation {
+                        self.contextWarning = reevaluation.status == .reduced ? reevaluation : nil
                     }
                 }
             } catch is CancellationError {

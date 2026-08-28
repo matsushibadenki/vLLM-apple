@@ -79,7 +79,8 @@ Graph / Memory Planner + Global Scheduler
 - `[Done]` model manifestからweights実測値を自動投入し、budget overcommitをadmissionへ接続
 - `[Done]` KV ratioのみのbackendでcapacity bytesを取得するversion-gated adapter（vLLM 0.24–0.28、単一cache config、2 TiB hard limit）
 - `[Done]` backend load後の実KV capacityとinspected weights footprintによるcontext再評価（起動設定非変更、admission上限のみ縮小）
-- `[Next]` context再評価結果のSSE通知とMac app警告表示
+- `[Done]` context再評価結果のcoalesced SSE通知とMac app警告表示（英語、日本語、简体中文）
+- `[Next]` 実model qualificationへcontext reduced判定とreport保存を統合
 - `[Later]` thermal stateとpower modeの検出
 
 ### Automatic context calculation

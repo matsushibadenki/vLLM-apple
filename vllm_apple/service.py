@@ -337,8 +337,11 @@ class RuntimeService:
         self, used_bytes: int, capacity_bytes: int, *, source: str
     ) -> None:
         self.memory_telemetry.update_kv_cache(used_bytes, capacity_bytes, source=source)
-        if self.context_reevaluator is not None:
-            self.context_reevaluator.update(capacity_bytes, source=source)
+        if self.context_reevaluator is not None and self.context_reevaluator.update(
+            capacity_bytes, source=source
+        ):
+            snapshot = self.context_reevaluator.snapshot()
+            self.events.publish("runtime.context_reevaluation", snapshot.to_dict())
 
     def record_kv_cache_ratio(self, usage_ratio: float, *, source: str) -> None:
         self.memory_telemetry.update_kv_ratio(usage_ratio, source=source)
