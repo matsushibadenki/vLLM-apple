@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import re
@@ -18,6 +19,7 @@ from typing import Any, BinaryIO, Iterable
 from .compat import resolve_vllm_executable
 from .kernel_context import KERNEL_TUNING_ACCEPTED_HEADER, InferenceKernelContext
 from .observability import REQUEST_ID_HEADER, current_request_id
+from .token_count_cache import TokenCountCache
 
 MAX_UPSTREAM_RESPONSE_BYTES = 16 * 1024 * 1024
 MAX_BACKEND_HELP_BYTES = 1024 * 1024
@@ -251,7 +253,12 @@ class BackendProcess:
 class OpenAIProxyEngine:
     """Low-buffer OpenAI API proxy for a local vLLM-Metal process."""
 
-    def __init__(self, base_url: str, process: BackendProcess | None = None) -> None:
+    def __init__(
+        self,
+        base_url: str,
+        process: BackendProcess | None = None,
+        token_count_cache: TokenCountCache | None = None,
+    ) -> None:
         self.base_url = base_url.rstrip("/")
         self.process = process
         self._tuning_ack_lock = threading.Lock()
@@ -261,6 +268,7 @@ class OpenAIProxyEngine:
         self._tokenizer_lock = threading.Lock()
         self._tokenizer_measured = 0
         self._tokenizer_failures = 0
+        self._token_count_cache = token_count_cache or TokenCountCache()
 
     def tuning_ack_snapshot(self) -> dict[str, int]:
         with self._tuning_ack_lock:
@@ -271,10 +279,17 @@ class OpenAIProxyEngine:
             }
 
     def tokenizer_snapshot(self) -> dict[str, int]:
+        cache = self._token_count_cache.snapshot()
         with self._tokenizer_lock:
             return {
                 "measured": self._tokenizer_measured,
                 "failures": self._tokenizer_failures,
+                "cache_capacity": cache.capacity,
+                "cache_entries": cache.entries,
+                "cache_hits": cache.hits,
+                "cache_misses": cache.misses,
+                "cache_evictions": cache.evictions,
+                "cache_expirations": cache.expirations,
             }
 
     def estimate_prompt_tokens(self, request: dict[str, Any]) -> int | None:
@@ -292,6 +307,10 @@ class OpenAIProxyEngine:
         if "messages" not in payload:
             return None
         body = json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
+        fingerprint = hashlib.sha256(body).hexdigest()
+        cached = self._token_count_cache.get(fingerprint)
+        if cached is not None:
+            return cached
         try:
             with urllib.request.urlopen(self._request("/tokenize", body), timeout=5.0) as response:
                 scanned = bytearray()
@@ -305,6 +324,7 @@ class OpenAIProxyEngine:
                         count = int(match.group(1))
                         with self._tokenizer_lock:
                             self._tokenizer_measured += 1
+                        self._token_count_cache.put(fingerprint, count)
                         return count
         except (OSError, urllib.error.URLError, ValueError):
             pass

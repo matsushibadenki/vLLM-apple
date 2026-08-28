@@ -52,6 +52,52 @@ class TokenEstimationTests(unittest.TestCase):
         self.assertNotIn("temperature", sent)
         self.assertEqual(sent["messages"], request["messages"])
 
+    def test_backend_reuses_count_for_identical_canonical_request(self) -> None:
+        calls = 0
+
+        def open_request(_request, timeout):
+            nonlocal calls
+            self.assertEqual(timeout, 5.0)
+            calls += 1
+            return ChunkedResponse(b'{"count":17,"tokens":[1,2,3]}')
+
+        engine = OpenAIProxyEngine("http://127.0.0.1:1")
+        request = {
+            "model": "model",
+            "messages": [{"role": "user", "content": "private prompt"}],
+            "temperature": 0.1,
+        }
+        with patch("urllib.request.urlopen", side_effect=open_request):
+            self.assertEqual(engine.estimate_prompt_tokens(request), 17)
+            request["temperature"] = 0.9
+            self.assertEqual(engine.estimate_prompt_tokens(request), 17)
+
+        self.assertEqual(calls, 1)
+        snapshot = engine.tokenizer_snapshot()
+        self.assertEqual(snapshot["measured"], 1)
+        self.assertEqual(snapshot["cache_entries"], 1)
+        self.assertEqual(snapshot["cache_hits"], 1)
+        self.assertEqual(snapshot["cache_misses"], 1)
+
+    def test_backend_does_not_reuse_count_for_different_tools(self) -> None:
+        calls = 0
+
+        def open_request(_request, timeout):
+            nonlocal calls
+            self.assertEqual(timeout, 5.0)
+            calls += 1
+            return ChunkedResponse(b'{"count":9}')
+
+        engine = OpenAIProxyEngine("http://127.0.0.1:1")
+        base = {"model": "model", "messages": [{"role": "user", "content": "hello"}]}
+        with patch("urllib.request.urlopen", side_effect=open_request):
+            self.assertEqual(engine.estimate_prompt_tokens({**base, "tools": []}), 9)
+            self.assertEqual(
+                engine.estimate_prompt_tokens({**base, "tools": [{"type": "function"}]}),
+                9,
+            )
+        self.assertEqual(calls, 2)
+
     def test_service_combines_measured_prompt_and_output_context(self) -> None:
         class Engine:
             ready = True
@@ -60,7 +106,16 @@ class TokenEstimationTests(unittest.TestCase):
                 return 3_000
 
             def tokenizer_snapshot(self):
-                return {"measured": 1, "failures": 0}
+                return {
+                    "measured": 1,
+                    "failures": 0,
+                    "cache_capacity": 256,
+                    "cache_entries": 1,
+                    "cache_hits": 2,
+                    "cache_misses": 1,
+                    "cache_evictions": 0,
+                    "cache_expirations": 0,
+                }
 
         service = RuntimeService(engine=Engine())  # type: ignore[arg-type]
         service.apply_memory_pressure(MemoryPressure.CRITICAL)
@@ -74,6 +129,8 @@ class TokenEstimationTests(unittest.TestCase):
         snapshot = service.token_estimation_snapshot()
         self.assertEqual(snapshot["source"], "backend_tokenizer")
         self.assertEqual(snapshot["last_prompt_tokens"], 3_000)
+        self.assertEqual(snapshot["cache_capacity"], 256)
+        self.assertEqual(snapshot["cache_hits"], 2)
 
     def test_missing_tokenizer_falls_back_to_completion_only(self) -> None:
         service = RuntimeService()

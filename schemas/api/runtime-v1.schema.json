@@ -238,13 +238,19 @@
     },
     "token_estimation": {
       "type": "object",
-      "required": ["source", "measured", "failures", "fallbacks", "last_prompt_tokens"],
+      "required": ["source", "measured", "failures", "fallbacks", "last_prompt_tokens", "cache_capacity", "cache_entries", "cache_hits", "cache_misses", "cache_evictions", "cache_expirations"],
       "properties": {
         "source": { "enum": ["backend_tokenizer", "fallback"] },
         "measured": { "type": "integer", "minimum": 0 },
         "failures": { "type": "integer", "minimum": 0 },
         "fallbacks": { "type": "integer", "minimum": 0 },
-        "last_prompt_tokens": { "type": ["integer", "null"], "minimum": 0 }
+        "last_prompt_tokens": { "type": ["integer", "null"], "minimum": 0 },
+        "cache_capacity": { "type": "integer", "minimum": 0 },
+        "cache_entries": { "type": "integer", "minimum": 0 },
+        "cache_hits": { "type": "integer", "minimum": 0 },
+        "cache_misses": { "type": "integer", "minimum": 0 },
+        "cache_evictions": { "type": "integer", "minimum": 0 },
+        "cache_expirations": { "type": "integer", "minimum": 0 }
       },
       "additionalProperties": false
     },

@@ -73,7 +73,8 @@ Graph / Memory Planner + Global Scheduler
 - `[Done]` pressure、RSS、IOGPUを使った新規workload admission抑制（Unified Memory viewはmax、既存work非cancel、interactive escape hatch）
 - `[Done]` pressure回復後の段階的batch/context ramp-up（0/5/15/30秒、transient memoryも12.5/25/50/100%で解除）
 - `[Done]` tokenizer実測prompt tokensをadmission context見積もりへ接続（vLLM `/tokenize`、64 KiB count scan、token ID非保持、fallback counter）
-- `[Next]` tokenize latency cacheと同一prompt fingerprintのbounded再利用
+- `[Done]` tokenize latency cacheと同一prompt fingerprintのbounded再利用（SHA-256 keyのみ、256件LRU、5分TTL）
+- `[Next]` 同時到着した同一tokenize要求を1回へ集約するbounded single-flight
 - `[Later]` weights、KV、prefix、scratch、Metal heap、Core ML bufferの統合budget ledger
 - `[Later]` thermal stateとpower modeの検出
 

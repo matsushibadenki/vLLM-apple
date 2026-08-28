@@ -108,3 +108,10 @@ Only tokenizer-related fields are forwarded. Sampling parameters and generated
 content are excluded. A timeout, unsupported chat tokenization, malformed
 response, or missing backend falls back to the completion-only lower bound and
 increments bounded counters in `token_estimation` rather than failing inference.
+
+Successful counts are reused through a process-local cache with a hard limit of
+256 entries, a five-minute TTL, and LRU eviction. The cache retains only a SHA-256
+fingerprint of the canonical tokenizer request and its integer count; prompt text,
+tool definitions, and token IDs are not retained. Runtime telemetry exposes cache
+capacity, current entries, hits, misses, evictions, and expirations without exposing
+request-derived keys.

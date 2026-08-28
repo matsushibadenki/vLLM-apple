@@ -208,6 +208,12 @@ class RuntimeService:
                 "failures": int(backend.get("failures", 0)),
                 "fallbacks": self._tokenizer_fallbacks,
                 "last_prompt_tokens": self._last_prompt_tokens,
+                "cache_capacity": int(backend.get("cache_capacity", 0)),
+                "cache_entries": int(backend.get("cache_entries", 0)),
+                "cache_hits": int(backend.get("cache_hits", 0)),
+                "cache_misses": int(backend.get("cache_misses", 0)),
+                "cache_evictions": int(backend.get("cache_evictions", 0)),
+                "cache_expirations": int(backend.get("cache_expirations", 0)),
             }
 
     def chat_schedule_request(self, request: dict[str, Any]) -> ScheduleRequest:
