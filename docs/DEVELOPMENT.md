@@ -39,6 +39,8 @@ self-hosted, macOS, ARM64, vllm-metal
 runnerにはnative arm64 Python、確認対象のvLLM-Metal environment、ローカルmodelを事前配置する。
 workflowは1800〜21600秒の範囲だけを許可し、Apple Silicon、GPU core取得、memory pressure、version
 matrix、実際のMetal platform選択をpreflightで確認してからsampling/streaming probeとsoakを行う。
+認定後は`VLLMAppleQualificationCheck`が同じreportをSwift SDKのbounded readerで読み戻す。
+この検証が失敗した場合、Macアプリで履歴表示できない成果物としてworkflowを失敗させる。
 
 PRやpushからは起動せず、同時に複数の実modelを走らせない。report directoryは0700、reportは必要な
 場合だけ明示的な`upload-report`入力で14日間保存する。reportには生成本文を含めないが、model識別子を

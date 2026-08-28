@@ -114,3 +114,38 @@ import Testing
     #expect(event.contextReevaluation?.configuredContextTokens == 4096)
     #expect(event.contextReevaluation?.effectiveContextTokens == 2048)
 }
+
+@Test func decodesQualificationReportWithTypedContextResult() throws {
+    let data = Data("""
+    {
+      "schema_version": 1,
+      "model": "Qwen/example",
+      "backend": "vllm_metal",
+      "load_seconds": 3.25,
+      "shutdown_clean": true,
+      "promotion_probe": {"passed": true},
+      "soak": {"passed": true, "requests": 24},
+      "context_reevaluation": {
+        "enabled": true,
+        "status": "reduced",
+        "configured_context_tokens": 4096,
+        "effective_context_tokens": 2048,
+        "capacity_context_tokens": 2048,
+        "kv_capacity_bytes": 1048576,
+        "kv_bytes_per_token": 512,
+        "weights_bytes": 4096,
+        "source": "vllm-prometheus-cache-config-v1",
+        "reevaluations": 1,
+        "passed": false
+      },
+      "passed": false
+    }
+    """.utf8)
+    let decoder = JSONDecoder()
+    decoder.keyDecodingStrategy = .convertFromSnakeCase
+    let report = try decoder.decode(QualificationReport.self, from: data)
+    #expect(report.model == "Qwen/example")
+    #expect(report.contextReevaluation.status == .reduced)
+    #expect(report.contextReevaluation.effectiveContextTokens == 2048)
+    #expect(!report.passed)
+}

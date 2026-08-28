@@ -52,14 +52,19 @@ final class AppModel: ObservableObject {
     @Published private(set) var detail = ""
     @Published private(set) var transportLabel = "HTTP · 127.0.0.1:8000"
     @Published private(set) var contextWarning: RuntimeContextReevaluation?
+    @Published private(set) var qualificationReports: [QualificationReportRecord]
 
     private let resolver: RuntimeResourceResolver
+    private let qualificationStore: QualificationReportStore
     private var client: (any VLLMAppleRuntimeClient)?
     private var managedRuntime: ManagedRuntime?
     private var eventTask: Task<Void, Never>?
     private var streamTask: Task<Void, Never>?
 
-    init(environment: [String: String] = ProcessInfo.processInfo.environment) {
+    init(
+        environment: [String: String] = ProcessInfo.processInfo.environment,
+        qualificationStore: QualificationReportStore = QualificationReportStore()
+    ) {
         let daemonURL = environment["VLLM_APPLE_DAEMON_PATH"].map {
             URL(fileURLWithPath: $0)
         }
@@ -67,6 +72,8 @@ final class AppModel: ObservableObject {
             applicationIdentifier: "dev.vllm-apple.chat",
             daemonExecutableURL: daemonURL
         )
+        self.qualificationStore = qualificationStore
+        qualificationReports = qualificationStore.load()
     }
 
     func connect() async {
@@ -76,6 +83,7 @@ final class AppModel: ObservableObject {
         errorKey = nil
         detail = ""
         contextWarning = nil
+        qualificationReports = qualificationStore.load()
 
         do {
             let resources = try resolver.resolve()

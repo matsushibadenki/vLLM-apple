@@ -19,7 +19,12 @@ from .metal_tuning import save_metal_tuning_report, tune_metal_shape_profile
 from .model import inspect_model
 from .phase_probe import PhaseProbeConfig, PhaseProbeError, run_phase_probe
 from .profile import build_profile, save_profile
-from .qualification import QualificationConfig, qualify_model
+from .qualification import (
+    QualificationConfig,
+    default_qualification_report_path,
+    qualify_model,
+    save_qualification_report,
+)
 from .qualification_preflight import run_qualification_preflight
 from .runtime_probe import discover_runtime_versions
 from .shape_benchmark import (
@@ -166,6 +171,8 @@ def build_parser() -> argparse.ArgumentParser:
     qualify.add_argument("--request-timeout", type=float, default=300)
     qualify.add_argument("--max-rss-growth-mib", type=float, default=256)
     qualify.add_argument("--allow-short-run", action="store_true")
+    qualify.add_argument("--allow-context-reduction", action="store_true")
+    qualify.add_argument("--output", type=Path)
 
     qualification_preflight = commands.add_parser(
         "qualification-preflight",
@@ -454,7 +461,13 @@ def main(argv: list[str] | None = None) -> int:
                     request_timeout_seconds=arguments.request_timeout,
                     max_rss_growth_bytes=int(arguments.max_rss_growth_mib * 1024 * 1024),
                     require_30_minute_window=not arguments.allow_short_run,
+                    vllm_version=compatibility.vllm_version,
+                    allow_context_reduction=arguments.allow_context_reduction,
                 )
+            )
+            save_qualification_report(
+                result,
+                arguments.output or default_qualification_report_path(arguments.model),
             )
         except (OSError, ValueError, RuntimeError) as error:
             _json({"passed": False, "error_code": "qualification_failed", "detail": str(error)})

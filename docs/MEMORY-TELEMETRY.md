@@ -78,6 +78,12 @@ Each changed capacity publishes one `runtime.context_reevaluation` SSE event;
 identical polling samples are coalesced. The Swift SDK exposes a typed event view,
 and the Mac sample displays a localized warning when the effective limit is reduced.
 
+Real-model qualification performs the same check after backend readiness and stores
+the result in `context_reevaluation`. A reduced context fails certification unless
+`--allow-context-reduction` is explicit. `--output` writes the complete versioned
+report with mode `0600`, `fsync`, and atomic replacement. Unsupported or unavailable
+capacity telemetry is reported as `unavailable` without inventing a value.
+
 The same in-backend middleware exposes a loopback-only JSON memory snapshot
 using MLX `get_active_memory`, `get_cache_memory`, and `get_peak_memory`.
 Allocator current bytes are active plus cache bytes. These framework counters

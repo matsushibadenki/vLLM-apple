@@ -148,6 +148,38 @@ public struct RuntimeContextReevaluation: Sendable, Equatable {
     public let capacityContextTokens: Int?
 }
 
+public enum QualificationContextStatus: String, Codable, Sendable {
+    case unavailable
+    case sufficient
+    case reduced
+}
+
+public struct QualificationContextReevaluation: Codable, Sendable, Equatable {
+    public let enabled: Bool
+    public let status: QualificationContextStatus
+    public let configuredContextTokens: Int?
+    public let effectiveContextTokens: Int?
+    public let capacityContextTokens: Int?
+    public let kvCapacityBytes: Int64?
+    public let kvBytesPerToken: Int64?
+    public let weightsBytes: Int64?
+    public let source: String?
+    public let reevaluations: Int
+    public let passed: Bool
+}
+
+public struct QualificationReport: Codable, Sendable, Equatable {
+    public let schemaVersion: Int
+    public let model: String
+    public let backend: String
+    public let loadSeconds: Double
+    public let shutdownClean: Bool
+    public let promotionProbe: [String: JSONValue]?
+    public let soak: [String: JSONValue]?
+    public let contextReevaluation: QualificationContextReevaluation
+    public let passed: Bool
+}
+
 public struct HealthStatus: Codable, Sendable, Equatable {
     public let status: RuntimeState
     public let controlReady: Bool

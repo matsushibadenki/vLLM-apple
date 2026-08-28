@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vllm-apple.local/schemas/runtime/qualification-report-v1.schema.json",
+  "title": "Real-model qualification report v1",
+  "type": "object",
+  "required": ["schema_version", "model", "backend", "load_seconds", "shutdown_clean", "promotion_probe", "soak", "context_reevaluation", "passed"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "model": {"type": "string", "minLength": 1},
+    "backend": {"const": "vllm_metal"},
+    "load_seconds": {"type": "number", "minimum": 0},
+    "shutdown_clean": {"type": "boolean"},
+    "promotion_probe": {"type": ["object", "null"]},
+    "soak": {"type": ["object", "null"]},
+    "context_reevaluation": {
+      "type": "object",
+      "required": ["enabled", "status", "configured_context_tokens", "effective_context_tokens", "capacity_context_tokens", "kv_capacity_bytes", "kv_bytes_per_token", "weights_bytes", "source", "reevaluations", "passed"],
+      "properties": {
+        "enabled": {"type": "boolean"},
+        "status": {"enum": ["unavailable", "sufficient", "reduced"]},
+        "configured_context_tokens": {"type": ["integer", "null"], "minimum": 1},
+        "effective_context_tokens": {"type": ["integer", "null"], "minimum": 0},
+        "capacity_context_tokens": {"type": ["integer", "null"], "minimum": 0},
+        "kv_capacity_bytes": {"type": ["integer", "null"], "minimum": 0},
+        "kv_bytes_per_token": {"type": ["integer", "null"], "minimum": 1},
+        "weights_bytes": {"type": ["integer", "null"], "minimum": 0},
+        "source": {"type": ["string", "null"]},
+        "reevaluations": {"type": "integer", "minimum": 0},
+        "passed": {"type": "boolean"}
+      },
+      "additionalProperties": false
+    },
+    "passed": {"type": "boolean"}
+  },
+  "additionalProperties": false
+}

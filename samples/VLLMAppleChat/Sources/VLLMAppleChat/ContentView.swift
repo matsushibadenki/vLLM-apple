@@ -87,6 +87,30 @@ struct ContentView: View {
                 .accessibilityElement(children: .combine)
             }
 
+            if !model.qualificationReports.isEmpty {
+                VStack(alignment: .leading, spacing: DesignTokens.compact) {
+                    sectionLabel("sidebar.qualification")
+                    ForEach(model.qualificationReports.prefix(3)) { record in
+                        HStack(alignment: .firstTextBaseline, spacing: DesignTokens.compact) {
+                            Image(systemName: record.report.passed ? "checkmark.seal.fill" : "xmark.seal.fill")
+                                .foregroundStyle(record.report.passed ? DesignTokens.success : DesignTokens.danger)
+                                .accessibilityHidden(true)
+                            VStack(alignment: .leading, spacing: DesignTokens.micro) {
+                                Text(record.report.model)
+                                    .font(.caption.weight(.medium))
+                                    .lineLimit(1)
+                                    .truncationMode(.middle)
+                                Text(record.report.passed ? "qualification.passed" : "qualification.failed")
+                                    .font(.caption2)
+                                    .foregroundStyle(DesignTokens.secondaryInk)
+                            }
+                        }
+                        .help(record.fileURL.path)
+                        .accessibilityElement(children: .combine)
+                    }
+                }
+            }
+
             Spacer(minLength: DesignTokens.standard)
 
             VStack(spacing: DesignTokens.compact) {

@@ -80,7 +80,10 @@ Graph / Memory Planner + Global Scheduler
 - `[Done]` KV ratioのみのbackendでcapacity bytesを取得するversion-gated adapter（vLLM 0.24–0.28、単一cache config、2 TiB hard limit）
 - `[Done]` backend load後の実KV capacityとinspected weights footprintによるcontext再評価（起動設定非変更、admission上限のみ縮小）
 - `[Done]` context再評価結果のcoalesced SSE通知とMac app警告表示（英語、日本語、简体中文）
-- `[Next]` 実model qualificationへcontext reduced判定とreport保存を統合
+- `[Done]` 実model qualificationへcontext reduced判定とprivate/atomic report保存を統合
+- `[Done]` qualification reportのSwift typed decodeとMac app履歴表示（bounded、破損・oversize・symlink fail-soft）
+- `[Done]` self-hosted qualification成果物をMac SDKのbounded readerで再検証するCI gate
+- `[Next]` self-hosted Apple Silicon runnerで実model 30分qualification workflowを実行
 - `[Later]` thermal stateとpower modeの検出
 
 ### Automatic context calculation
@@ -674,6 +677,7 @@ vLLM-Metal対応とは見なさない。
 - `[Done]` Python 3.10/3.12/3.13とSwift/macOS CI
 - `[Done]` manual/self-hosted Apple Silicon実device qualification workflow
 - `[Done]` Metal platform、memory pressure、GPU coreのqualification preflight
+- `[Done]` qualification reportのSwift typed decodeを必須化するworkflow gate
 - `[Next]` 専用runner上でvLLM 0.28.x昇格workflowを実行
 - `[Later]` Ruff ruleの段階的拡張と既存style debt解消
 - `[Later]` signed daemon artifact

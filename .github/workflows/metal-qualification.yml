@@ -79,6 +79,10 @@ jobs:
           fi
           python3 -m vllm_apple "${arguments[@]}" \
             > qualification-results/qualification.json
+      - name: Verify report with the Mac SDK decoder
+        run: |
+          swift run --package-path sdk/swift \
+            VLLMAppleQualificationCheck qualification-results
       - name: Restrict report permissions
         if: always()
         run: chmod -R go-rwx qualification-results
