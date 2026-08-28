@@ -16,6 +16,7 @@ from typing import Any, BinaryIO, Iterable
 
 from .compat import resolve_vllm_executable
 from .kernel_context import KERNEL_TUNING_ACCEPTED_HEADER, InferenceKernelContext
+from .observability import REQUEST_ID_HEADER, current_request_id
 
 MAX_UPSTREAM_RESPONSE_BYTES = 16 * 1024 * 1024
 MAX_BACKEND_HELP_BYTES = 1024 * 1024
@@ -27,7 +28,9 @@ class BackendConfigurationError(ValueError):
 
 
 class BackendStartupError(RuntimeError):
-    pass
+    def __init__(self, message: str, *, code: str = "backend_startup_failed") -> None:
+        super().__init__(message)
+        self.code = code
 
 
 def supports_kernel_tuning_middleware(executable: Path, timeout: float = 10.0) -> bool:
@@ -201,14 +204,20 @@ class BackendProcess:
                 exit_code = process.poll() if process else -1
             if exit_code is not None:
                 logs = "\n".join(self.recent_logs()[-20:])
-                raise BackendStartupError(f"backend exited with {exit_code}\n{logs}")
+                raise BackendStartupError(
+                    f"backend exited with {exit_code}\n{logs}",
+                    code="backend_exited",
+                )
             if self._probe_ready():
                 with self._lock:
                     self._ready = True
                 return
             time.sleep(0.1)
         self.stop()
-        raise BackendStartupError("backend readiness timed out")
+        raise BackendStartupError(
+            "backend readiness timed out",
+            code="backend_readiness_timeout",
+        )
 
     def _probe_ready(self) -> bool:
         for path in ("/health", "/v1/models"):
@@ -288,6 +297,9 @@ class OpenAIProxyEngine:
         headers: dict[str, str] | None = None,
     ) -> urllib.request.Request:
         request_headers = dict(headers or {})
+        request_id = current_request_id()
+        if request_id is not None:
+            request_headers.setdefault(REQUEST_ID_HEADER, request_id)
         if body is not None:
             request_headers["Content-Type"] = "application/json"
         return urllib.request.Request(

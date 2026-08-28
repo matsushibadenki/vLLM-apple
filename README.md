@@ -435,6 +435,10 @@ prompt形式、token budget、実入力token数が異なるreportは比較され
 ## 開発時の確認
 
 再現可能な開発環境とCIの詳細は[DEVELOPMENT.md](docs/DEVELOPMENT.md)を参照してください。
+runtime errorのrecoverabilityとprivate crash diagnosticは
+[RUNTIME-FAILURES.md](docs/RUNTIME-FAILURES.md)を参照してください。
+Unified Memory、allocator、KV cacheのsource-aware metricsは
+[MEMORY-TELEMETRY.md](docs/MEMORY-TELEMETRY.md)を参照してください。
 
 ```bash
 make bootstrap

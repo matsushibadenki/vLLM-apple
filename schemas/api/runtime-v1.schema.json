@@ -16,8 +16,11 @@
     "events",
     "semantic_cache",
     "elastic_memory",
+    "memory_telemetry",
+    "memory_admission",
     "execution_plan",
-    "last_error"
+    "last_error",
+    "failure"
   ],
   "properties": {
     "api_version": { "const": "v1" },
@@ -39,6 +42,18 @@
     "control_ready": { "type": "boolean" },
     "inference_ready": { "type": "boolean" },
     "last_error": { "type": ["string", "null"] },
+    "failure": {
+      "type": ["object", "null"],
+      "required": ["schema_version", "code", "message_key", "recoverability", "detail_fingerprint"],
+      "properties": {
+        "schema_version": {"const": 1},
+        "code": {"enum": ["backend_startup_failed", "backend_exited", "backend_readiness_timeout", "backend_incompatible", "memory_capacity_exceeded", "execution_plan_rejected", "internal_error"]},
+        "message_key": {"type": "string", "minLength": 1, "maxLength": 128},
+        "recoverability": {"enum": ["retryable", "user_action_required", "fatal"]},
+        "detail_fingerprint": {"type": "string", "minLength": 24, "maxLength": 24}
+      },
+      "additionalProperties": false
+    },
     "profile": {
       "type": "object",
       "required": [
@@ -154,6 +169,69 @@
         "adjustments": { "type": "integer", "minimum": 0 },
         "deferred_adjustments": { "type": "integer", "minimum": 0 },
         "last_evicted_entries": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": false
+    },
+    "memory_telemetry": {
+      "type": "object",
+      "required": [
+        "unified_total_bytes", "unified_available_bytes",
+        "control_resident_bytes", "control_resident_peak_bytes",
+        "backend_resident_bytes", "backend_resident_peak_bytes",
+        "allocator_current_bytes", "allocator_peak_bytes",
+        "allocator_resident_peak_delta_bytes", "kv_used_bytes",
+        "kv_capacity_bytes", "kv_usage_ratio", "iogpu_bytes",
+        "iogpu_peak_bytes", "pressure", "pressure_notifications",
+        "os_source", "allocator_source",
+        "kv_source", "iogpu_source"
+      ],
+      "properties": {
+        "unified_total_bytes": { "type": "integer", "minimum": 1 },
+        "unified_available_bytes": { "type": "integer", "minimum": 0 },
+        "control_resident_bytes": { "type": "integer", "minimum": 0 },
+        "control_resident_peak_bytes": { "type": "integer", "minimum": 0 },
+        "backend_resident_bytes": { "type": ["integer", "null"], "minimum": 0 },
+        "backend_resident_peak_bytes": { "type": ["integer", "null"], "minimum": 0 },
+        "allocator_current_bytes": { "type": ["integer", "null"], "minimum": 0 },
+        "allocator_peak_bytes": { "type": ["integer", "null"], "minimum": 0 },
+        "allocator_resident_peak_delta_bytes": { "type": ["integer", "null"] },
+        "kv_used_bytes": { "type": ["integer", "null"], "minimum": 0 },
+        "kv_capacity_bytes": { "type": ["integer", "null"], "minimum": 0 },
+        "kv_usage_ratio": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
+        "iogpu_bytes": { "type": ["integer", "null"], "minimum": 0 },
+        "iogpu_peak_bytes": { "type": ["integer", "null"], "minimum": 0 },
+        "pressure": { "enum": ["normal", "warning", "critical", "unknown"] },
+        "pressure_notifications": { "type": "integer", "minimum": 0 },
+        "os_source": { "type": "string", "minLength": 1 },
+        "allocator_source": { "type": ["string", "null"] },
+        "kv_source": { "type": ["string", "null"] },
+        "iogpu_source": { "type": ["string", "null"] }
+      },
+      "additionalProperties": false
+    },
+    "memory_admission": {
+      "type": "object",
+      "required": [
+        "effective_pressure", "admitted", "rejected", "last_rejection_reason",
+        "recovery_stage", "recovery_max_batch_size",
+        "recovery_max_context_tokens", "recovery_memory_fraction"
+      ],
+      "properties": {
+        "effective_pressure": { "enum": ["normal", "warning", "critical", "unknown"] },
+        "admitted": { "type": "integer", "minimum": 0 },
+        "rejected": { "type": "integer", "minimum": 0 },
+        "last_rejection_reason": {
+          "type": ["string", "null"],
+          "enum": [
+            "critical_memory_pressure", "warning_memory_pressure_background",
+            "insufficient_unified_memory", "recovery_batch_limited",
+            "recovery_context_limited", "recovery_memory_limited", null
+          ]
+        },
+        "recovery_stage": { "type": ["integer", "null"], "minimum": 0, "maximum": 2 },
+        "recovery_max_batch_size": { "type": ["integer", "null"], "minimum": 1 },
+        "recovery_max_context_tokens": { "type": ["integer", "null"], "minimum": 1 },
+        "recovery_memory_fraction": { "type": ["number", "null"], "minimum": 0, "maximum": 1 }
       },
       "additionalProperties": false
     },

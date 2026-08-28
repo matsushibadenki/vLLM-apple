@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vllm-apple.local/schemas/runtime/runtime-failure-v1.schema.json",
+  "title": "Runtime failure v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "code", "message_key", "recoverability", "detail_fingerprint"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "code": {"enum": ["backend_startup_failed", "backend_exited", "backend_readiness_timeout", "backend_incompatible", "memory_capacity_exceeded", "execution_plan_rejected", "internal_error"]},
+    "message_key": {"type": "string", "minLength": 1, "maxLength": 128},
+    "recoverability": {"enum": ["retryable", "user_action_required", "fatal"]},
+    "detail_fingerprint": {"type": "string", "minLength": 24, "maxLength": 24}
+  }
+}

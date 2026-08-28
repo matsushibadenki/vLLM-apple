@@ -66,8 +66,13 @@ Graph / Memory Planner + Global Scheduler
 - `[Done]` memory pressureの基礎判定
 - `[Done]` 検出APIが利用できない場合の保守的fallback
 - `[Next]` GPU core数とSoC名の検出精度向上
-- `[Next]` macOS memory pressure notificationの継続監視
-- `[Next]` framework allocator値とOS resident/IOGPU観測を分離する二層memory telemetry
+- `[Done]` framework allocator値とOS resident観測を分離するsource-aware二層memory telemetry（unknownはnull、latest値+monotonic peakのみを保持）
+- `[Done]` vLLM Prometheus adapterからの非同期自動sample投入（1秒poll、1 MiB/20,000行/4 KiB行上限、last-good保持）
+- `[Done]` IOGPU統計とMLX allocator adapterからの自動sample投入（backend内active/cache/peak、bounded ioreg、取得不能時null）
+- `[Done]` native macOS memory pressure notificationをtelemetryとelastic controllerへ接続（重複coalesce、scheduler safe point、登録失敗時fallback）
+- `[Done]` pressure、RSS、IOGPUを使った新規workload admission抑制（Unified Memory viewはmax、既存work非cancel、interactive escape hatch）
+- `[Done]` pressure回復後の段階的batch/context ramp-up（0/5/15/30秒、transient memoryも12.5/25/50/100%で解除）
+- `[Next]` tokenizer実測prompt tokensをadmission context見積もりへ接続
 - `[Later]` weights、KV、prefix、scratch、Metal heap、Core ML bufferの統合budget ledger
 - `[Later]` thermal stateとpower modeの検出
 
@@ -131,7 +136,7 @@ Metal向けに独立実装する。外部engineへのruntime依存は追加し�
 - `[Done]` scheduler safe pointでのsemantic cache elastic memory再配分
 - `[Done]` Normal/Warning/Criticalによる1x/1/2x/1/8x budgetとNormal復元
 - `[Done]` active reservation中のbudget変更保留とpending適用event/metrics
-- `[Next]` macOS memory pressure notificationからelastic controllerへの自動接続
+- `[Done]` macOS memory pressure notificationからelastic controllerへの自動接続
 - `[Later]` KV/expert/workspaceを含む統合elastic memory再配分
 - `[Later]` prefill/decode別のCPU・Metal・Unified Memory bandwidth profile
 - `[Later]` MoE `(layer, expert)` working-set LRUとMetal residency adapter
@@ -271,7 +276,7 @@ Phase 1を完了とする条件：
 - `[Next]` Swift sample appからdaemon起動、model load、streaming chat、shutdownが成功する
 - `[Next]` modelに応じた安全なcontextが自動設定される
 - `[Next]` memory pressure時に新規workloadを抑制し、daemonが異常終了しない
-- `[Next]` backend errorが構造化され、Swift側で復旧可能性を判定できる
+- `[Done]` backend errorが構造化され、Swift側で復旧可能性を判定できる
 - `[Next]` Python、Swift、end-to-end testが継続的に成功する
 
 ## Model Optimization Compiler — Companion Track
@@ -620,8 +625,9 @@ vLLM-Metal対応とは見なさない。
 - `[Done]` backend processのreadiness、exit、timeout監視
 - `[Done]` bounded backend log buffer
 - `[Done]` bounded event historyとsubscriber ceiling
-- `[Next]` structured error taxonomyとrecoverability
-- `[Next]` daemon crash diagnostics
+- `[Done]` structured runtime error taxonomyとrecoverability
+- `[Done]` raw detailを公開しないfailure fingerprintとSwift typed decode
+- `[Done]` private/atomic daemon crash diagnosticsとbounded log digest
 - `[Later]` fault injection suite
 
 ### Security
@@ -638,10 +644,10 @@ vLLM-Metal対応とは見なさない。
 - `[Done]` runtime state、memory、scheduler snapshot
 - `[Done]` backend failureのruntime state反映
 - `[Done]` reconnect可能なruntime state/failure SSE event
-- `[Next]` request IDとstructured logging
+- `[Done]` request IDとstructured logging（HTTP/UDS応答、backend proxy、SSE、request-scoped eventを相関し、本文非保持・256件上限のメモリ内JSON recordを実装）
 - `[Done]` tokens/sec、TTFT、TPOTのbounded phase profile
-- `[Next]` Unified MemoryとKV usage
-- `[Next]` allocator内peakとOS resident peakの差分metric
+- `[Done]` Unified MemoryとKV usage（OS/framework/KVを分離し、source付きused/capacity/ratioをruntime snapshotへ公開）
+- `[Done]` allocator内peakとOS backend resident peakのsigned差分metric
 - `[Later]` operator別backend選択、fallback、quarantine telemetry
 - `[Later]` GPU/CPU utilization、bandwidth、thermal、power
 - `[Later]` Vision、Audio、Video固有metrics

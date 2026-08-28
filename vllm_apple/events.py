@@ -7,6 +7,7 @@ from datetime import datetime, timezone
 from typing import Any, Iterator
 
 from .version import SCHEMA_VERSION
+from .observability import current_request_id
 
 
 class SubscriptionLimitError(RuntimeError):
@@ -77,6 +78,10 @@ class EventBus:
     def publish(self, event_type: str, payload: dict[str, Any]) -> RuntimeEvent:
         if not event_type:
             raise ValueError("event_type cannot be empty")
+        event_payload = dict(payload)
+        request_id = current_request_id()
+        if request_id is not None:
+            event_payload.setdefault("request_id", request_id)
         with self._condition:
             self._sequence += 1
             event = RuntimeEvent(
@@ -84,7 +89,7 @@ class EventBus:
                 event_id=str(self._sequence),
                 type=event_type,
                 timestamp=datetime.now(timezone.utc).isoformat(),
-                payload=dict(payload),
+                payload=event_payload,
             )
             self._events.append(event)
             self._condition.notify_all()

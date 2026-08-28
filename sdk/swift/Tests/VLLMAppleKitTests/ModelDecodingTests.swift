@@ -41,3 +41,28 @@ import Testing
     #expect(event.eventID == "42")
     #expect(event.payload["state"] == .string("ready"))
 }
+
+@Test func runtimeFailureEventExposesRecoverability() throws {
+    let data = Data("""
+    {
+      "schema_version": 1,
+      "event_id": "43",
+      "type": "runtime.failure",
+      "timestamp": "2026-08-28T00:00:00Z",
+      "payload": {
+        "state": "failed",
+        "failure": {
+          "schema_version": 1,
+          "code": "backend_readiness_timeout",
+          "message_key": "runtime.error.backend_readiness_timeout",
+          "recoverability": "retryable",
+          "detail_fingerprint": "0123456789abcdef01234567"
+        }
+      }
+    }
+    """.utf8)
+    let event = try JSONDecoder().decode(RuntimeEvent.self, from: data)
+    #expect(event.runtimeFailure?.code == "backend_readiness_timeout")
+    #expect(event.runtimeFailure?.recoverability == .retryable)
+    #expect(event.runtimeFailure?.messageKey == "runtime.error.backend_readiness_timeout")
+}

@@ -29,9 +29,14 @@ class ScheduleRequest:
     priority: Priority = Priority.NORMAL
     batch_size: int = 1
     phase: WorkloadPhase | None = None
+    estimated_context_tokens: int = 0
 
     def __post_init__(self) -> None:
-        if self.estimated_memory_bytes < 0 or self.batch_size <= 0:
+        if (
+            self.estimated_memory_bytes < 0
+            or self.batch_size <= 0
+            or self.estimated_context_tokens < 0
+        ):
             raise ValueError("invalid schedule request")
 
 

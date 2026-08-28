@@ -87,6 +87,8 @@ class LiveResponseSchemaTests(unittest.TestCase):
             scheduler["reserved_bytes"] + scheduler["available_bytes"],
             scheduler["capacity_bytes"],
         )
+        memory = payload["memory_telemetry"]
+        self.assertLessEqual(memory["unified_available_bytes"], memory["unified_total_bytes"])
 
     def test_live_sse_event_matches_v1_schema(self) -> None:
         response = urllib.request.urlopen(self.base_url + "/v1/events", timeout=2)

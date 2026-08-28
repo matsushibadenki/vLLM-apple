@@ -16,8 +16,11 @@ from .kernel_context import InferenceKernelContext, PagedAttentionKernelSelectio
 from .kernel_profile import PagedAttentionShape
 from .metal_probe import MetalThreadConfiguration
 from .metal_tuning import MetalTuningReport
+from .memory_telemetry import UnifiedMemoryTelemetry
+from .memory_admission import MemoryPressureAdmissionError, MemoryPressureAdmissionGate
 from .operator_dispatch import OperatorDispatcher
 from .profile import build_profile
+from .runtime_errors import RuntimeFailure, classify_runtime_failure
 from .scheduler import BasicScheduler, PlanApplicationDecision, Reservation, ScheduleRequest
 from .semantic_cache import SemanticAnchor, SemanticAnchorKind
 from .semantic_state import (
@@ -66,10 +69,13 @@ class ServiceSnapshot:
     profile: RuntimeProfile
     scheduler: dict[str, int]
     last_error: str | None
+    failure: dict[str, object] | None
     events: dict[str, int]
     semantic_cache: dict[str, int | bool]
     elastic_memory: dict[str, int | bool | str | None]
     execution_plan: dict[str, str | int | bool | None]
+    memory_telemetry: dict[str, int | float | str | None]
+    memory_admission: dict[str, int | float | str | None]
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -79,10 +85,13 @@ class ServiceSnapshot:
             "profile": self.profile.to_dict(),
             "scheduler": self.scheduler,
             "last_error": self.last_error,
+            "failure": self.failure,
             "events": self.events,
             "semantic_cache": self.semantic_cache,
             "elastic_memory": self.elastic_memory,
             "execution_plan": self.execution_plan,
+            "memory_telemetry": self.memory_telemetry,
+            "memory_admission": self.memory_admission,
         }
 
 
@@ -93,16 +102,27 @@ class RuntimeService:
         profile: RuntimeProfile | None = None,
         event_bus: EventBus | None = None,
         semantic_state: SemanticStateCoordinator | None = None,
+        memory_telemetry: UnifiedMemoryTelemetry | None = None,
     ) -> None:
         self._lock = threading.RLock()
         self._state = RuntimeState.STARTING
         self._last_error: str | None = None
+        self._failure: RuntimeFailure | None = None
         self._pending_operator_dispatcher: OperatorDispatcher | None = None
         self._active_metal_tuning: MetalTuningReport | None = None
         self._pending_metal_tuning: MetalTuningReport | None = None
         self.events = event_bus or EventBus()
         self.profile = profile or build_profile()
         memory = self.profile.hardware.memory
+        self.memory_telemetry = memory_telemetry or UnifiedMemoryTelemetry(
+            memory.total_bytes, memory.available_bytes, memory.source, memory.pressure
+        )
+        self.memory_telemetry.update_os(
+            available_bytes=memory.available_bytes,
+            control_resident_bytes=memory.process_resident_bytes,
+        )
+        self.memory_admission = MemoryPressureAdmissionGate()
+        self.memory_admission.refresh(self.memory_telemetry.snapshot())
         # Scheduler reservations cover transient work only. Retain the larger of
         # 1 GiB or 8% as an unreservable emergency margin.
         emergency_margin = max(GIB, int(memory.total_bytes * 0.08))
@@ -129,18 +149,23 @@ class RuntimeService:
             self._state = state
             if state != RuntimeState.FAILED:
                 self._last_error = None
+                self._failure = None
         self.events.publish(
             "runtime.state",
             {"state": state.value, "inference_ready": self.engine.ready},
         )
 
-    def set_failure(self, message: str) -> None:
+    def set_failure(self, error: BaseException | str | RuntimeFailure) -> RuntimeFailure:
+        failure = error if isinstance(error, RuntimeFailure) else classify_runtime_failure(error)
         with self._lock:
-            self._last_error = message
+            self._last_error = failure.message_key
+            self._failure = failure
             self._state = RuntimeState.FAILED
         self.events.publish(
-            "runtime.failure", {"state": RuntimeState.FAILED.value, "message": message}
+            "runtime.failure",
+            {"state": RuntimeState.FAILED.value, "failure": failure.to_dict()},
         )
+        return failure
 
     def snapshot(self) -> ServiceSnapshot:
         with self._lock:
@@ -151,6 +176,7 @@ class RuntimeService:
                 profile=self.profile,
                 scheduler=self.scheduler.memory.snapshot(),
                 last_error=self._last_error,
+                failure=self._failure.to_dict() if self._failure is not None else None,
                 events=self.events.snapshot(),
                 semantic_cache=(
                     self.semantic_state.snapshot()
@@ -163,9 +189,56 @@ class RuntimeService:
                     else disabled_elastic_memory_snapshot()
                 ),
                 execution_plan=self.scheduler.execution_plan_snapshot(),
+                memory_telemetry=self.memory_telemetry.snapshot().to_dict(),
+                memory_admission=self.memory_admission.snapshot().to_dict(),
             )
 
+    def record_framework_memory(
+        self, current_bytes: int, *, source: str, peak_bytes: int | None = None
+    ) -> None:
+        self.memory_telemetry.update_allocator(current_bytes, source=source, peak_bytes=peak_bytes)
+
+    def record_kv_cache_memory(
+        self, used_bytes: int, capacity_bytes: int, *, source: str
+    ) -> None:
+        self.memory_telemetry.update_kv_cache(used_bytes, capacity_bytes, source=source)
+
+    def record_kv_cache_ratio(self, usage_ratio: float, *, source: str) -> None:
+        self.memory_telemetry.update_kv_ratio(usage_ratio, source=source)
+
+    def record_backend_resident_memory(self, resident_bytes: int, *, source: str) -> None:
+        self.memory_telemetry.update_backend_resident(resident_bytes, source=source)
+        self.memory_admission.refresh(self.memory_telemetry.snapshot())
+
+    def record_iogpu_memory(self, current_bytes: int, *, source: str) -> None:
+        self.memory_telemetry.update_iogpu(current_bytes, source=source)
+        self.memory_admission.refresh(self.memory_telemetry.snapshot())
+
+    def record_os_memory(
+        self,
+        *,
+        available_bytes: int,
+        control_resident_bytes: int,
+        backend_resident_bytes: int | None = None,
+        source: str | None = None,
+    ) -> None:
+        self.memory_telemetry.update_os(
+            available_bytes=available_bytes,
+            control_resident_bytes=control_resident_bytes,
+            backend_resident_bytes=backend_resident_bytes,
+            source=source,
+        )
+        self.memory_admission.refresh(self.memory_telemetry.snapshot())
+
     def admit_schedule(self, request: ScheduleRequest) -> Reservation:
+        try:
+            self.memory_admission.admit(request, self.memory_telemetry.snapshot())
+        except MemoryPressureAdmissionError as error:
+            self.events.publish(
+                "memory.admission",
+                {"status": "rejected", "reason": str(error)},
+            )
+            raise
         reservation = self.scheduler.admit(request)
         with self._lock:
             tuning_id = (
@@ -350,7 +423,13 @@ class RuntimeService:
         return self.semantic_state.resize(capacity_entries, capacity_bytes)
 
     def apply_memory_pressure(self, pressure: MemoryPressure) -> ElasticMemoryDecision | None:
+        self.memory_telemetry.update_pressure(pressure)
+        self.memory_admission.refresh(self.memory_telemetry.snapshot())
         if self.elastic_memory is None:
+            self.events.publish(
+                "memory.pressure",
+                {"pressure": pressure.value, "elastic_memory_enabled": False},
+            )
             return None
         applied, result = self.scheduler.at_safe_point(
             lambda: self.elastic_memory.request(pressure, safe_to_apply=True)

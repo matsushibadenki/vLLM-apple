@@ -14,6 +14,7 @@ from .backend import (
     make_backend_config,
     supports_kernel_tuning_middleware,
 )
+from .backend_memory import IOGPUMemoryAdapter, MemoryMetricsMonitor, VLLMMemoryMetricsAdapter
 from .compat import inspect_backend
 from .context import recommend_context
 from .execution import AppleChipProfile
@@ -26,6 +27,7 @@ from .metal_tuning import (
     discover_metal_tuning_report,
     load_metal_tuning_report,
 )
+from .memory_pressure import MemoryPressureMonitor
 from .model import (
     DEFAULT_UNINSPECTED_CONTEXT,
     InspectedModel,
@@ -38,6 +40,7 @@ from .runtime_probe import (
     RuntimeProbeCoordinator,
     discover_runtime_versions,
 )
+from .runtime_errors import classify_runtime_failure, persist_crash_diagnostic
 from .service import RuntimeService
 from .types import RuntimeState
 
@@ -143,6 +146,7 @@ def serve(
 
     backend: BackendProcess | None = None
     launch_thread: threading.Thread | None = None
+    memory_monitor: MemoryMetricsMonitor | None = None
     if model is not None:
         hardware = detect_hardware()
         recommendation = None
@@ -181,7 +185,11 @@ def serve(
             raise RuntimeError(f"incompatible vLLM-Metal environment: {issues}")
         backend = BackendProcess(config)
         profile = build_profile(hardware, recommendation)
-        service = RuntimeService(OpenAIProxyEngine(backend.base_url, backend), profile=profile)
+        proxy_engine = OpenAIProxyEngine(backend.base_url, backend)
+        service = RuntimeService(proxy_engine, profile=profile)
+        memory_monitor = MemoryMetricsMonitor(
+            VLLMMemoryMetricsAdapter(backend.base_url), service, iogpu_adapter=IOGPUMemoryAdapter()
+        )
         service.set_state(RuntimeState.LOADING_MODEL)
         chip = None
         versions = None
@@ -241,6 +249,17 @@ def serve(
                 )
     else:
         service = RuntimeService()
+    pressure_monitor: MemoryPressureMonitor | None = None
+    try:
+        pressure_monitor = MemoryPressureMonitor(service.apply_memory_pressure)
+        pressure_monitor.start()
+    except (OSError, RuntimeError, ValueError):
+        pressure_monitor = None
+        service.events.publish(
+            "memory.pressure_monitor", {"status": "unavailable", "fallback": "vm_stat"}
+        )
+    else:
+        service.events.publish("memory.pressure_monitor", {"status": "active"})
     server = create_server(
         host,
         port,
@@ -273,9 +292,32 @@ def serve(
             try:
                 backend.start()
             except Exception as error:
-                service.set_failure(str(error))
+                failure = classify_runtime_failure(error)
+                service.set_failure(failure)
+                try:
+                    diagnostic = persist_crash_diagnostic(
+                        failure,
+                        backend.recent_logs(),
+                    )
+                except (OSError, ValueError):
+                    service.events.publish(
+                        "runtime.crash_diagnostic",
+                        {"status": "failed", "code": failure.code.value},
+                    )
+                else:
+                    service.events.publish(
+                        "runtime.crash_diagnostic",
+                        {
+                            "status": "persisted",
+                            "code": failure.code.value,
+                            "diagnostic_id": diagnostic.stem,
+                        },
+                    )
             else:
-                service.set_state(RuntimeState.READY)
+                if service.state == RuntimeState.LOADING_MODEL:
+                    service.set_state(RuntimeState.READY)
+                    assert memory_monitor is not None
+                    memory_monitor.start()
 
         launch_thread = threading.Thread(
             target=launch_backend,
@@ -298,6 +340,8 @@ def serve(
     try:
         server.serve_forever(poll_interval=0.25)
     finally:
+        if pressure_monitor is not None:
+            pressure_monitor.stop()
         server.server_close()
         drain_deadline = time.monotonic() + shutdown_grace_period
         server.wait_for_drain(max(0.0, drain_deadline - time.monotonic()))
@@ -308,6 +352,8 @@ def serve(
         if unix_thread is not None:
             unix_thread.join(timeout=2.0)
         if backend is not None:
+            if memory_monitor is not None:
+                memory_monitor.stop()
             backend.stop()
         if launch_thread is not None:
             launch_thread.join(timeout=2.0)

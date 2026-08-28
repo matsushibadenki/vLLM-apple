@@ -6,6 +6,7 @@ import urllib.request
 
 from vllm_apple.api import create_server
 from vllm_apple.service import RuntimeService
+from vllm_apple.types import MemoryPressure
 
 
 class APITests(unittest.TestCase):
@@ -40,6 +41,19 @@ class APITests(unittest.TestCase):
     def test_openai_models_shape(self) -> None:
         self.assertEqual(self.get_json("/v1/models"), {"object": "list", "data": []})
 
+    def test_request_id_is_returned_and_log_contains_metadata_only(self) -> None:
+        request = urllib.request.Request(
+            self.base_url + "/health?ignored=secret",
+            headers={"X-Request-ID": "client-12345678"},
+        )
+        with urllib.request.urlopen(request, timeout=2) as response:
+            json.load(response)
+            self.assertEqual(response.headers["X-Request-ID"], "client-12345678")
+        record = self.server.request_log.records()[-1]
+        self.assertEqual(record.request_id, "client-12345678")
+        self.assertEqual(record.route, "/health")
+        self.assertNotIn("secret", json.dumps(record.to_dict()))
+
     def test_chat_reports_backend_unavailable(self) -> None:
         request = urllib.request.Request(
             self.base_url + "/v1/chat/completions",
@@ -52,6 +66,21 @@ class APITests(unittest.TestCase):
         self.assertEqual(raised.exception.code, 503)
         payload = json.load(raised.exception)
         self.assertEqual(payload["error"]["code"], "backend_unavailable")
+
+    def test_chat_is_rejected_before_backend_during_critical_pressure(self) -> None:
+        self.server.service.apply_memory_pressure(MemoryPressure.CRITICAL)
+        try:
+            request = urllib.request.Request(
+                self.base_url + "/v1/chat/completions",
+                data=json.dumps({"model": "none", "messages": []}).encode(),
+                headers={"Content-Type": "application/json"},
+                method="POST",
+            )
+            with self.assertRaises(urllib.error.HTTPError) as raised:
+                urllib.request.urlopen(request, timeout=2)
+            self.assertEqual(json.load(raised.exception)["error"]["code"], "memory_pressure")
+        finally:
+            self.server.service.apply_memory_pressure(MemoryPressure.NORMAL)
 
 
 class AuthenticatedAPITests(unittest.TestCase):

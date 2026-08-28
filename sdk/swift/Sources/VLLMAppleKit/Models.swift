@@ -18,6 +18,27 @@ public enum MemoryPressure: String, Codable, Sendable {
     case unknown
 }
 
+public enum RuntimeRecoverability: String, Codable, Sendable {
+    case retryable
+    case userActionRequired = "user_action_required"
+    case fatal
+}
+
+public struct RuntimeFailure: Codable, Sendable, Equatable {
+    public let schemaVersion: Int
+    public let code: String
+    public let messageKey: String
+    public let recoverability: RuntimeRecoverability
+    public let detailFingerprint: String
+
+    enum CodingKeys: String, CodingKey {
+        case code, recoverability
+        case schemaVersion = "schema_version"
+        case messageKey = "message_key"
+        case detailFingerprint = "detail_fingerprint"
+    }
+}
+
 public struct MemoryInfo: Codable, Sendable, Equatable {
     public let totalBytes: Int64
     public let availableBytes: Int64
@@ -186,5 +207,26 @@ public struct RuntimeEvent: Codable, Sendable, Equatable {
         case schemaVersion = "schema_version"
         case eventID = "event_id"
         case type, timestamp, payload
+    }
+}
+
+public extension RuntimeEvent {
+    var runtimeFailure: RuntimeFailure? {
+        guard type == "runtime.failure",
+              case .object(let failure)? = payload["failure"],
+              case .number(let schemaVersion)? = failure["schema_version"],
+              case .string(let code)? = failure["code"],
+              case .string(let messageKey)? = failure["message_key"],
+              case .string(let recoverabilityValue)? = failure["recoverability"],
+              case .string(let detailFingerprint)? = failure["detail_fingerprint"],
+              let recoverability = RuntimeRecoverability(rawValue: recoverabilityValue)
+        else { return nil }
+        return RuntimeFailure(
+            schemaVersion: Int(schemaVersion),
+            code: code,
+            messageKey: messageKey,
+            recoverability: recoverability,
+            detailFingerprint: detailFingerprint
+        )
     }
 }

@@ -59,6 +59,13 @@ from .runtime_probe import (
     RuntimeProbeReport,
     discover_runtime_versions,
 )
+from .runtime_errors import (
+    RuntimeFailure,
+    RuntimeFailureCode,
+    RuntimeRecoverability,
+    classify_runtime_failure,
+    persist_crash_diagnostic,
+)
 from .semantic_cache import (
     SemanticAnchor,
     SemanticAnchorCache,
@@ -144,6 +151,9 @@ __all__ = [
     "PromotionProbeError",
     "PromotionResponse",
     "RuntimeEnvironmentVersions",
+    "RuntimeFailure",
+    "RuntimeFailureCode",
+    "RuntimeRecoverability",
     "RuntimeProbeCoordinator",
     "RuntimeProbeReport",
     "SemanticAnchor",
@@ -164,6 +174,7 @@ __all__ = [
     "VLLMMetalV2MeasurementAdapter",
     "__version__",
     "build_environment_fingerprint",
+    "classify_runtime_failure",
     "build_mlx_probe_registry",
     "build_model_kernel_shape_profile",
     "build_v2_tuning_profile",
@@ -182,6 +193,7 @@ __all__ = [
     "load_metal_tuning_report",
     "load_v2_tuning_profile",
     "parse_kernel_tuning_headers",
+    "persist_crash_diagnostic",
     "run_kernel_probe",
     "run_metal_shape_benchmark",
     "run_serving_promotion_probe",

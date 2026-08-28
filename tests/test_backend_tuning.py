@@ -2,6 +2,7 @@ import asyncio
 import json
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from tests.schema_validator import validate_instance
 from vllm_apple.backend_tuning import (
@@ -181,6 +182,28 @@ class BackendKernelTuningTests(unittest.TestCase):
         }
         asyncio.run(middleware(scope, lambda: None, send))
         self.assertEqual(response_messages[0]["headers"], [])
+
+    def test_middleware_exposes_backend_local_mlx_memory_snapshot(self) -> None:
+        response_messages = []
+
+        async def app(scope, receive, send):
+            self.fail("internal memory endpoint must not reach vLLM")
+
+        async def send(message):
+            response_messages.append(message)
+
+        middleware = VLLMAppleKernelTuningMiddleware(app)
+        scope = {"type": "http", "path": "/v1/vllm-apple/memory", "headers": []}
+        with patch(
+            "vllm_apple.vllm_middleware.mlx_memory_metrics",
+            return_value={"active_bytes": 10, "cache_bytes": 5, "peak_bytes": 12},
+        ):
+            asyncio.run(middleware(scope, lambda: None, send))
+        self.assertEqual(response_messages[0]["status"], 200)
+        self.assertEqual(
+            json.loads(response_messages[1]["body"]),
+            {"active_bytes": 10, "cache_bytes": 5, "peak_bytes": 12},
+        )
 
 
 if __name__ == "__main__":

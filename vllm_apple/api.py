@@ -16,6 +16,14 @@ from .auth import SessionAuthenticator
 from .backend import BackendHTTPError
 from .events import RuntimeEvent, SubscriptionLimitError
 from .execution import WorkloadPhase
+from .memory_admission import MemoryPressureAdmissionError
+from .observability import (
+    REQUEST_ID_HEADER,
+    RequestLogRecord,
+    StructuredRequestLog,
+    request_scope,
+    resolve_request_id,
+)
 from .scheduler import ScheduleRequest
 from .service import InferenceUnavailableError, RuntimeService
 from .version import API_VERSION, MINIMUM_CLIENT_VERSION, SCHEMA_VERSION, __version__
@@ -56,6 +64,7 @@ class _BoundedRuntimeServerMixin:
         self._peak_active_requests = 0
         self._completed_requests = 0
         self._rejected_requests = 0
+        self.request_log = StructuredRequestLog()
 
     def request_metrics(self) -> dict[str, int]:
         with self._request_metrics_lock:
@@ -111,6 +120,7 @@ class _BoundedRuntimeServerMixin:
                 self._active_requests += 1
                 self._peak_active_requests = max(self._peak_active_requests, self._active_requests)
         if rejection_code is not None:
+            request_id = resolve_request_id(None)
             message = (
                 "runtime is shutting down"
                 if rejection_code == "server_draining"
@@ -123,7 +133,8 @@ class _BoundedRuntimeServerMixin:
             response = (
                 b"HTTP/1.1 503 Service Unavailable\r\n"
                 b"Content-Type: application/json\r\n"
-                b"Connection: close\r\n"
+                + f"{REQUEST_ID_HEADER}: {request_id}\r\n".encode("ascii")
+                + b"Connection: close\r\n"
                 + f"Content-Length: {len(payload)}\r\n\r\n".encode("ascii")
                 + payload
             )
@@ -131,6 +142,9 @@ class _BoundedRuntimeServerMixin:
                 request.sendall(response)
             finally:
                 self.shutdown_request(request)
+            self.request_log.append(
+                RequestLogRecord(request_id, "UNKNOWN", "<admission>", 503, 0.0, False, rejection_code)
+            )
             return
         try:
             super().process_request(request, client_address)
@@ -208,15 +222,41 @@ class RuntimeRequestHandler(BaseHTTPRequestHandler):
     def log_message(self, format: str, *args: object) -> None:
         return
 
-    def _send(self, status: HTTPStatus, payload: dict[str, Any]) -> None:
+    def _request_id(self) -> str:
+        value = getattr(self, "_resolved_request_id", None)
+        if value is None:
+            value = resolve_request_id(self.headers.get(REQUEST_ID_HEADER))
+            self._resolved_request_id = value
+            self._request_started = time.monotonic()
+        return value
+
+    def _record_request(
+        self, status: int, *, streamed: bool = False, error_code: str | None = None
+    ) -> None:
+        if getattr(self, "_request_was_recorded", False):
+            return
+        self._request_was_recorded = True
+        route = self.path.split("?", 1)[0]
+        duration_ms = round((time.monotonic() - self._request_started) * 1000, 3)
+        self.server.request_log.append(
+            RequestLogRecord(
+                self._request_id(), self.command, route, status, duration_ms, streamed, error_code
+            )
+        )
+
+    def _send(
+        self, status: HTTPStatus, payload: dict[str, Any], *, error_code: str | None = None
+    ) -> None:
         encoded = json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
         self.send_response(status.value)
         self.send_header("Content-Type", "application/json; charset=utf-8")
         self.send_header("Content-Length", str(len(encoded)))
         self.send_header("Cache-Control", "no-store")
         self.send_header("X-Content-Type-Options", "nosniff")
+        self.send_header(REQUEST_ID_HEADER, self._request_id())
         self.end_headers()
         self.wfile.write(encoded)
+        self._record_request(status.value, error_code=error_code)
 
     def _control_payload(self, data: dict[str, Any]) -> dict[str, Any]:
         return {**_metadata(), **data}
@@ -230,8 +270,10 @@ class RuntimeRequestHandler(BaseHTTPRequestHandler):
         self.send_header("Content-Length", str(len(payload)))
         self.send_header("WWW-Authenticate", "Bearer")
         self.send_header("Cache-Control", "no-store")
+        self.send_header(REQUEST_ID_HEADER, self._request_id())
         self.end_headers()
         self.wfile.write(payload)
+        self._record_request(HTTPStatus.UNAUTHORIZED.value, error_code="unauthorized")
         return False
 
     def _error(self, status: HTTPStatus, code: str, message: str) -> None:
@@ -245,6 +287,7 @@ class RuntimeRequestHandler(BaseHTTPRequestHandler):
                     "code": code,
                 }
             },
+            error_code=code,
         )
 
     def _read_json(self) -> dict[str, Any] | None:
@@ -275,6 +318,10 @@ class RuntimeRequestHandler(BaseHTTPRequestHandler):
         return decoded
 
     def do_GET(self) -> None:
+        with request_scope(self._request_id()):
+            self._handle_get()
+
+    def _handle_get(self) -> None:
         if not self._authorize():
             return
         path = self.path.split("?", 1)[0]
@@ -318,6 +365,10 @@ class RuntimeRequestHandler(BaseHTTPRequestHandler):
             self._error(HTTPStatus.NOT_FOUND, "not_found", "endpoint not found")
 
     def do_POST(self) -> None:
+        with request_scope(self._request_id()):
+            self._handle_post()
+
+    def _handle_post(self) -> None:
         if not self._authorize():
             return
         path = self.path.split("?", 1)[0]
@@ -331,9 +382,13 @@ class RuntimeRequestHandler(BaseHTTPRequestHandler):
             self._stream_chat(request)
             return
         started = time.monotonic()
-        reservation = self.server.service.admit_schedule(
-            ScheduleRequest("paged_attention", 0, phase=WorkloadPhase.DECODE)
-        )
+        try:
+            reservation = self.server.service.admit_schedule(
+                self._schedule_request(request)
+            )
+        except MemoryPressureAdmissionError as error:
+            self._error(HTTPStatus.SERVICE_UNAVAILABLE, "memory_pressure", str(error))
+            return
         try:
             response = self.server.service.chat_completions(request, reservation)
         except InferenceUnavailableError as error:
@@ -357,10 +412,32 @@ class RuntimeRequestHandler(BaseHTTPRequestHandler):
             status = HTTPStatus.BAD_GATEWAY
         self._error(status, error.code or "backend_error", str(error))
 
-    def _stream_chat(self, request: dict[str, Any]) -> None:
-        reservation = self.server.service.admit_schedule(
-            ScheduleRequest("paged_attention", 0, phase=WorkloadPhase.DECODE)
+    @staticmethod
+    def _schedule_request(request: dict[str, Any]) -> ScheduleRequest:
+        raw_batch = request.get("n", 1)
+        batch_size = raw_batch if isinstance(raw_batch, int) and not isinstance(raw_batch, bool) and raw_batch > 0 else 1
+        raw_context = request.get("max_completion_tokens", request.get("max_tokens", 0))
+        context_tokens = (
+            raw_context
+            if isinstance(raw_context, int) and not isinstance(raw_context, bool) and raw_context > 0
+            else 0
         )
+        return ScheduleRequest(
+            "paged_attention",
+            0,
+            batch_size=batch_size,
+            phase=WorkloadPhase.DECODE,
+            estimated_context_tokens=context_tokens,
+        )
+
+    def _stream_chat(self, request: dict[str, Any]) -> None:
+        try:
+            reservation = self.server.service.admit_schedule(
+                self._schedule_request(request)
+            )
+        except MemoryPressureAdmissionError as error:
+            self._error(HTTPStatus.SERVICE_UNAVAILABLE, "memory_pressure", str(error))
+            return
         try:
             upstream_context = self.server.service.open_chat_stream(request, reservation)
         except InferenceUnavailableError as error:
@@ -380,6 +457,7 @@ class RuntimeRequestHandler(BaseHTTPRequestHandler):
         self.send_header("Cache-Control", "no-cache")
         self.send_header("X-Accel-Buffering", "no")
         self.send_header("Connection", "close")
+        self.send_header(REQUEST_ID_HEADER, self._request_id())
         self.end_headers()
         self.close_connection = True
         try:
@@ -397,6 +475,7 @@ class RuntimeRequestHandler(BaseHTTPRequestHandler):
             return
         finally:
             self.server.service.complete_schedule(reservation)
+            self._record_request(HTTPStatus.OK.value, streamed=True)
 
     def _write_event(self, event: RuntimeEvent | None) -> None:
         if event is None:
@@ -429,6 +508,7 @@ class RuntimeRequestHandler(BaseHTTPRequestHandler):
         self.send_header("Cache-Control", "no-cache")
         self.send_header("X-Accel-Buffering", "no")
         self.send_header("Connection", "close")
+        self.send_header(REQUEST_ID_HEADER, self._request_id())
         self.end_headers()
         self.close_connection = True
         try:
@@ -436,6 +516,9 @@ class RuntimeRequestHandler(BaseHTTPRequestHandler):
                 self._write_event(event)
         except (BrokenPipeError, ConnectionResetError, TimeoutError):
             subscription.close()
+        finally:
+            subscription.close()
+            self._record_request(HTTPStatus.OK.value, streamed=True)
 
 
 def create_server(
