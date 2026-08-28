@@ -39,6 +39,7 @@ from .model import (
     ModelInspectionError,
     inspect_model,
 )
+from .model_integrity import verify_model_integrity
 from .profile import build_profile
 from .runtime_probe import (
     RuntimeEnvironmentVersions,
@@ -60,6 +61,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--backend-port", type=int, default=8001)
     parser.add_argument("--backend-startup-timeout", type=float, default=600.0)
     parser.add_argument("--max-model-len", type=int)
+    parser.add_argument("--model-integrity-manifest", type=Path)
     parser.add_argument("--skip-backend-check", action="store_true")
     parser.add_argument("--socket-path")
     parser.add_argument("--session-token")
@@ -129,6 +131,7 @@ def serve(
     backend_port: int = 8001,
     backend_startup_timeout: float = 600.0,
     max_model_len: int | None = None,
+    model_integrity_manifest: Path | None = None,
     require_compatible_backend: bool = True,
     socket_path: str | None = None,
     session_token: str | None = None,
@@ -153,6 +156,8 @@ def serve(
     launch_thread: threading.Thread | None = None
     memory_monitor: MemoryMetricsMonitor | None = None
     if model is not None:
+        if model_integrity_manifest is not None:
+            verify_model_integrity(Path(model), model_integrity_manifest)
         hardware = detect_hardware()
         recommendation = None
         inspected: InspectedModel | None = None
@@ -426,6 +431,7 @@ def main(argv: list[str] | None = None) -> int:
         backend_port=arguments.backend_port,
         backend_startup_timeout=arguments.backend_startup_timeout,
         max_model_len=arguments.max_model_len,
+        model_integrity_manifest=arguments.model_integrity_manifest,
         require_compatible_backend=not arguments.skip_backend_check,
         socket_path=arguments.socket_path,
         session_token=arguments.session_token,

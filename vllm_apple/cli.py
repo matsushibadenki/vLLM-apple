@@ -17,6 +17,12 @@ from .long_context_backend import VLLMLongContextAdapter
 from .metal_probe import NativeMetalProbeAdapter
 from .metal_tuning import save_metal_tuning_report, tune_metal_shape_profile
 from .model import inspect_model
+from .model_integrity import (
+    ModelIntegrityError,
+    build_model_integrity_manifest,
+    save_model_integrity_manifest,
+    verify_model_integrity,
+)
 from .phase_probe import PhaseProbeConfig, PhaseProbeError, run_phase_probe
 from .profile import build_profile, save_profile
 from .qualification import (
@@ -51,6 +57,17 @@ def build_parser() -> argparse.ArgumentParser:
 
     doctor = commands.add_parser("doctor", help="inspect the vLLM-Metal environment")
     doctor.add_argument("--backend-executable")
+
+    integrity_create = commands.add_parser(
+        "model-integrity-create", help="create a streaming SHA-256 model manifest"
+    )
+    integrity_create.add_argument("model", type=Path)
+    integrity_create.add_argument("--output", required=True, type=Path)
+    integrity_verify = commands.add_parser(
+        "model-integrity-verify", help="verify a model against a trusted manifest"
+    )
+    integrity_verify.add_argument("model", type=Path)
+    integrity_verify.add_argument("--manifest", required=True, type=Path)
 
     profile = commands.add_parser("profile", help="build a runtime profile")
     profile.add_argument("--save", action="store_true")
@@ -196,6 +213,7 @@ def build_parser() -> argparse.ArgumentParser:
     server.add_argument("--backend-port", type=int, default=8001)
     server.add_argument("--backend-startup-timeout", type=float, default=600.0)
     server.add_argument("--max-model-len", type=int)
+    server.add_argument("--model-integrity-manifest", type=Path)
     server.add_argument("--skip-backend-check", action="store_true")
     server.add_argument("--socket-path")
     server.add_argument("--session-token")
@@ -217,6 +235,27 @@ def main(argv: list[str] | None = None) -> int:
         report = inspect_backend(arguments.backend_executable)
         _json(report.to_dict())
         return 0 if report.compatible else 1
+    if arguments.command == "model-integrity-create":
+        try:
+            model_root = arguments.model.expanduser().resolve(strict=True)
+            output = arguments.output.expanduser().resolve(strict=False)
+            if output.is_relative_to(model_root):
+                raise ModelIntegrityError("manifest must be stored outside the model tree")
+            manifest = build_model_integrity_manifest(model_root)
+            save_model_integrity_manifest(manifest, output)
+        except (OSError, ModelIntegrityError) as error:
+            _json({"passed": False, "error_code": "model_integrity_failed", "detail": str(error)})
+            return 2
+        _json({"passed": True, "root_sha256": manifest["root_sha256"]})
+        return 0
+    if arguments.command == "model-integrity-verify":
+        try:
+            manifest = verify_model_integrity(arguments.model, arguments.manifest)
+        except (OSError, ModelIntegrityError) as error:
+            _json({"passed": False, "error_code": "model_integrity_failed", "detail": str(error)})
+            return 1
+        _json({"passed": True, "root_sha256": manifest["root_sha256"]})
+        return 0
     if arguments.command == "profile":
         profile = build_profile()
         if arguments.save:
@@ -489,6 +528,7 @@ def main(argv: list[str] | None = None) -> int:
                 backend_port=arguments.backend_port,
                 backend_startup_timeout=arguments.backend_startup_timeout,
                 max_model_len=arguments.max_model_len,
+                model_integrity_manifest=arguments.model_integrity_manifest,
                 require_compatible_backend=not arguments.skip_backend_check,
                 socket_path=arguments.socket_path,
                 session_token=arguments.session_token,

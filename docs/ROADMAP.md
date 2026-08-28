@@ -648,7 +648,8 @@ vLLM-Metal対応とは見なさない。
 - `[Done]` request size limit
 - `[Done]` profile fileのprivate permission
 - `[Done]` UDS permissionとsession authentication
-- `[Next]` model file hash validation
+- `[Done]` model tree全regular fileのstreaming SHA-256 manifest生成・起動前検証（symlink/special file拒否、変更検出、bounded走査）
+- `[Next]` trusted manifestの署名と配布元identity検証
 - `[Later]` remote TLS、API key、client identity
 
 ### Observability
