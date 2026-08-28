@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vllm-apple.local/schemas/runtime/apple-execution-plan-v1.schema.json",
+  "title": "AppleExecutionPlan v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "plan_id", "model_id", "hardware_fingerprint", "context_tokens", "memory_ceiling_bytes", "estimated_peak_bytes", "prefill", "decode", "fallback_chain", "decision_reasons", "dry_run"],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "plan_id": { "type": "string", "minLength": 24, "maxLength": 24 },
+    "model_id": { "type": "string", "minLength": 1 },
+    "hardware_fingerprint": { "type": "string", "minLength": 1 },
+    "context_tokens": { "type": "integer", "minimum": 0 },
+    "memory_ceiling_bytes": { "type": "integer", "minimum": 0 },
+    "estimated_peak_bytes": { "type": "integer", "minimum": 0 },
+    "prefill": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["phase", "backend", "batch_size", "state_precision"],
+      "properties": {
+        "phase": { "const": "prefill" },
+        "backend": { "enum": ["vllm_metal", "native_mlx", "native_metal", "coreml_draft", "cpu"] },
+        "batch_size": { "type": "integer", "minimum": 1 },
+        "state_precision": { "type": "string", "minLength": 1 }
+      }
+    },
+    "decode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["phase", "backend", "batch_size", "state_precision"],
+      "properties": {
+        "phase": { "const": "decode" },
+        "backend": { "enum": ["vllm_metal", "native_mlx", "native_metal", "coreml_draft", "cpu"] },
+        "batch_size": { "type": "integer", "minimum": 1 },
+        "state_precision": { "type": "string", "minLength": 1 }
+      }
+    },
+    "fallback_chain": {
+      "type": "array",
+      "items": { "enum": ["vllm_metal", "native_mlx", "native_metal", "coreml_draft", "cpu"] }
+    },
+    "decision_reasons": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "dry_run": { "type": "boolean" }
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vllm-apple.local/schemas/optimizer/calibration-manifest-v1.schema.json",
+  "title": "vLLM-Apple calibration manifest v1",
+  "type": "object",
+  "required": ["schema_version", "dataset_id", "fingerprint", "sample_count", "languages", "domains", "local_only"],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "dataset_id": { "type": "string", "minLength": 1 },
+    "fingerprint": { "type": "string", "minLength": 16 },
+    "sample_count": { "type": "integer", "minimum": 1 },
+    "languages": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+    "domains": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+    "local_only": { "const": true }
+  },
+  "additionalProperties": false
+}

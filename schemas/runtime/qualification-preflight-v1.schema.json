@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vllm-apple.local/schemas/runtime/qualification-preflight-v1.schema.json",
+  "title": "Apple Silicon qualification preflight v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "eligible", "platform", "architecture", "soc", "gpu_core_count", "total_memory_bytes", "available_memory_bytes", "memory_pressure", "backend", "issues"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "eligible": {"type": "boolean"},
+    "platform": {"type": "string", "minLength": 1},
+    "architecture": {"type": "string", "minLength": 1},
+    "soc": {"type": "string", "minLength": 1},
+    "gpu_core_count": {"type": ["integer", "null"], "minimum": 1},
+    "total_memory_bytes": {"type": "integer", "minimum": 1},
+    "available_memory_bytes": {"type": "integer", "minimum": 0},
+    "memory_pressure": {"enum": ["normal", "warning", "critical"]},
+    "backend": {"type": "object"},
+    "issues": {"type": "array", "maxItems": 32, "items": {"type": "string", "minLength": 1}}
+  }
+}

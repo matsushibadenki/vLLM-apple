@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vllm-apple.local/schemas/runtime/execution-phase-profile-v1.schema.json",
+  "title": "Execution phase profile v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "profile_id", "hardware_fingerprint", "model_id", "backend", "sample_count", "prefill", "decode", "peak_memory_bytes", "storage"],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "profile_id": { "type": "string", "minLength": 24, "maxLength": 24 },
+    "hardware_fingerprint": { "type": "string", "minLength": 1 },
+    "model_id": { "type": "string", "minLength": 1 },
+    "backend": { "type": "string", "minLength": 1 },
+    "sample_count": { "type": "integer", "minimum": 0 },
+    "prefill": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["prompt_tokens", "ttft"],
+      "properties": {
+        "prompt_tokens": { "type": "integer", "minimum": 0 },
+        "ttft": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["mean_ms", "p50_upper_bound_ms", "p95_upper_bound_ms", "max_ms"],
+          "properties": {
+            "mean_ms": { "type": "number", "minimum": 0 },
+            "p50_upper_bound_ms": { "type": ["number", "string"] },
+            "p95_upper_bound_ms": { "type": ["number", "string"] },
+            "max_ms": { "type": "number", "minimum": 0 }
+          }
+        }
+      }
+    },
+    "decode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["output_tokens", "token_intervals", "duration_ms", "tpot", "tokens_per_second"],
+      "properties": {
+        "output_tokens": { "type": "integer", "minimum": 0 },
+        "token_intervals": { "type": "integer", "minimum": 0 },
+        "duration_ms": { "type": "number", "minimum": 0 },
+        "tpot": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["mean_ms", "p50_upper_bound_ms", "p95_upper_bound_ms", "max_ms"],
+          "properties": {
+            "mean_ms": { "type": "number", "minimum": 0 },
+            "p50_upper_bound_ms": { "type": ["number", "string"] },
+            "p95_upper_bound_ms": { "type": ["number", "string"] },
+            "max_ms": { "type": "number", "minimum": 0 }
+          }
+        },
+        "tokens_per_second": { "type": "number", "minimum": 0 }
+      }
+    },
+    "peak_memory_bytes": { "type": "integer", "minimum": 0 },
+    "storage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["latency_bucket_count", "raw_sample_count"],
+      "properties": {
+        "latency_bucket_count": { "type": "integer", "minimum": 1 },
+        "raw_sample_count": { "const": 0 }
+      }
+    }
+  }
+}

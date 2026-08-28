@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vllm-apple.local/schemas/runtime/backend-kernel-tuning-context-v1.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "tuning_id", "profile_id", "shape_fields", "thread_fields", "paged_attention"],
+  "properties": {
+    "version": { "type": "integer", "const": 1 },
+    "tuning_id": { "type": "string", "minLength": 24, "maxLength": 24 },
+    "profile_id": { "type": "string", "minLength": 24, "maxLength": 24 },
+    "shape_fields": {
+      "type": "array", "minItems": 8, "maxItems": 8,
+      "items": { "type": "string" }
+    },
+    "thread_fields": {
+      "type": "array", "minItems": 3, "maxItems": 3,
+      "items": { "type": "string" }
+    },
+    "paged_attention": {
+      "type": "array", "minItems": 1, "maxItems": 16,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["shape", "threads"],
+        "properties": {
+          "shape": {
+            "type": "array", "minItems": 8, "maxItems": 8,
+            "items": { "type": "integer", "minimum": 1 }
+          },
+          "threads": {
+            "type": "array", "minItems": 3, "maxItems": 3,
+            "items": { "type": "integer", "enum": [32, 64, 128, 256] }
+          }
+        }
+      }
+    }
+  }
+}

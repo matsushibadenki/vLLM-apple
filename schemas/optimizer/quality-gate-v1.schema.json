@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vllm-apple.local/schemas/optimizer/quality-gate-v1.schema.json",
+  "title": "vLLM-Apple quantization quality gate v1",
+  "type": "object",
+  "required": ["schema_version", "created_at", "dataset_fingerprint", "baseline_model_hash", "candidate_model_hash", "approved", "slices", "untested_capabilities"],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "created_at": { "type": "string", "format": "date-time" },
+    "dataset_fingerprint": { "type": "string", "minLength": 64, "maxLength": 64 },
+    "baseline_model_hash": { "type": "string", "minLength": 64, "maxLength": 64 },
+    "candidate_model_hash": { "type": "string", "minLength": 64, "maxLength": 64 },
+    "approved": { "type": "boolean" },
+    "slices": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 64,
+      "items": {
+        "type": "object",
+        "required": ["domain", "language", "baseline_perplexity", "candidate_perplexity", "relative_regression", "maximum_regression", "passed"],
+        "properties": {
+          "domain": { "type": "string", "minLength": 1 },
+          "language": { "type": "string", "minLength": 1 },
+          "baseline_perplexity": { "type": "number", "minimum": 1 },
+          "candidate_perplexity": { "type": "number", "minimum": 1 },
+          "relative_regression": { "type": "number", "minimum": -1 },
+          "maximum_regression": { "type": "number", "minimum": 0, "maximum": 1 },
+          "passed": { "type": "boolean" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "untested_capabilities": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 32,
+      "items": { "type": "string", "minLength": 1 }
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,92 @@
+name: Apple Silicon Metal qualification
+
+on:
+  workflow_dispatch:
+    inputs:
+      model:
+        description: Local model path or model ID available to the runner
+        required: true
+        type: string
+      backend-executable:
+        description: Absolute path to the vLLM executable in the vLLM-Metal environment
+        required: true
+        type: string
+      duration-seconds:
+        description: Qualification duration; production certification requires at least 1800
+        required: true
+        default: "1800"
+        type: string
+      max-model-len:
+        description: Optional maximum model context
+        required: false
+        type: string
+      upload-report:
+        description: Upload reports as workflow artifacts (reports contain the model identifier)
+        required: true
+        default: false
+        type: boolean
+
+concurrency:
+  group: apple-silicon-metal-qualification
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  qualify:
+    runs-on: [self-hosted, macOS, ARM64, vllm-metal]
+    timeout-minutes: 90
+    env:
+      QUALIFICATION_MODEL: ${{ inputs.model }}
+      QUALIFICATION_BACKEND: ${{ inputs['backend-executable'] }}
+      QUALIFICATION_DURATION: ${{ inputs['duration-seconds'] }}
+      QUALIFICATION_MAX_MODEL_LEN: ${{ inputs['max-model-len'] }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          clean: true
+          persist-credentials: false
+      - name: Validate bounded numeric inputs
+        run: |
+          python3 - <<'PY'
+          import os
+          duration = int(os.environ["QUALIFICATION_DURATION"])
+          if not 1800 <= duration <= 21600:
+              raise SystemExit("duration-seconds must be between 1800 and 21600")
+          value = os.environ.get("QUALIFICATION_MAX_MODEL_LEN", "")
+          if value and not 1 <= int(value) <= 1048576:
+              raise SystemExit("max-model-len must be between 1 and 1048576")
+          PY
+      - name: Install dependency-free control plane
+        run: python3 -m pip install -e .
+      - name: Create private report directory
+        run: install -d -m 700 qualification-results
+      - name: Verify Apple Silicon, memory pressure, versions, and Metal selection
+        run: |
+          python3 -m vllm_apple qualification-preflight \
+            --backend-executable "$QUALIFICATION_BACKEND" \
+            > qualification-results/preflight.json
+      - name: Run sampling, streaming, and 30-minute memory qualification
+        run: |
+          arguments=(
+            qualify-model "$QUALIFICATION_MODEL"
+            --backend-executable "$QUALIFICATION_BACKEND"
+            --duration "$QUALIFICATION_DURATION"
+          )
+          if [[ -n "$QUALIFICATION_MAX_MODEL_LEN" ]]; then
+            arguments+=(--max-model-len "$QUALIFICATION_MAX_MODEL_LEN")
+          fi
+          python3 -m vllm_apple "${arguments[@]}" \
+            > qualification-results/qualification.json
+      - name: Restrict report permissions
+        if: always()
+        run: chmod -R go-rwx qualification-results
+      - name: Upload qualification reports
+        if: ${{ always() && inputs['upload-report'] }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: apple-silicon-metal-qualification
+          path: qualification-results/*.json
+          if-no-files-found: error
+          retention-days: 14

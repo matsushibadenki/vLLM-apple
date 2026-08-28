@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vllm-apple.local/schemas/runtime/state-memory-spec-v1.schema.json",
+  "title": "StateMemorySpec v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["model_id", "architecture", "weights_bytes", "kv_bytes_per_token", "recurrent_state_bytes", "prefix_state_bytes", "attention_window_bytes_per_token", "attention_window_tokens", "expert_working_set_bytes", "scratch_workspace_bytes", "model_max_context"],
+  "properties": {
+    "model_id": { "type": "string", "minLength": 1 },
+    "architecture": { "type": "string", "minLength": 1 },
+    "weights_bytes": { "type": "integer", "minimum": 0 },
+    "kv_bytes_per_token": { "type": "integer", "minimum": 0 },
+    "recurrent_state_bytes": { "type": "integer", "minimum": 0 },
+    "prefix_state_bytes": { "type": "integer", "minimum": 0 },
+    "attention_window_bytes_per_token": { "type": "integer", "minimum": 0 },
+    "attention_window_tokens": { "type": ["integer", "null"], "minimum": 1 },
+    "expert_working_set_bytes": { "type": "integer", "minimum": 0 },
+    "scratch_workspace_bytes": { "type": "integer", "minimum": 0 },
+    "model_max_context": { "type": ["integer", "null"], "minimum": 1 }
+  }
+}

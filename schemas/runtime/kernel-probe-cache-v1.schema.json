@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vllm-apple.local/schemas/runtime/kernel-probe-cache-v1.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "probe_suite_version", "hardware_fingerprint",
+    "environment_fingerprint", "created_at_unix_seconds", "results"
+  ],
+  "properties": {
+    "schema_version": { "type": "integer", "const": 1 },
+    "probe_suite_version": { "type": "integer", "minimum": 1 },
+    "hardware_fingerprint": { "type": "string", "minLength": 1, "maxLength": 128 },
+    "environment_fingerprint": { "type": "string", "minLength": 1, "maxLength": 128 },
+    "created_at_unix_seconds": { "type": "integer", "minimum": 1 },
+    "results": {
+      "type": "array",
+      "maxItems": 512,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "schema_version", "probe_id", "hardware_fingerprint", "environment_fingerprint",
+          "backend", "operator", "samples_completed", "baseline_latency_nanoseconds",
+          "candidate_latency_nanoseconds", "slowdown_ratio", "passed", "quarantined", "reason"
+        ],
+        "properties": {
+          "schema_version": { "type": "integer", "const": 1 },
+          "probe_id": { "type": "string", "minLength": 24, "maxLength": 24 },
+          "hardware_fingerprint": { "type": "string", "minLength": 1, "maxLength": 128 },
+          "environment_fingerprint": { "type": "string", "minLength": 1, "maxLength": 128 },
+          "backend": {
+            "type": "string",
+            "enum": ["vllm_metal", "native_mlx", "native_metal", "coreml_draft", "cpu"]
+          },
+          "operator": { "type": "string", "minLength": 1, "maxLength": 128 },
+          "samples_completed": { "type": "integer", "minimum": 0, "maximum": 32 },
+          "baseline_latency_nanoseconds": { "type": ["integer", "null"], "minimum": 1 },
+          "candidate_latency_nanoseconds": { "type": ["integer", "null"], "minimum": 1 },
+          "slowdown_ratio": { "type": ["number", "null"], "minimum": 0 },
+          "passed": { "type": "boolean" },
+          "quarantined": { "type": "boolean" },
+          "reason": {
+            "type": "string",
+            "enum": ["passed", "correctness_mismatch", "performance_regression", "probe_error"]
+          }
+        }
+      }
+    }
+  }
+}

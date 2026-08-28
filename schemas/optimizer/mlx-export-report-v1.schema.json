@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vllm-apple.local/schemas/optimizer/mlx-export-report-v1.schema.json",
+  "title": "vLLM-Apple completed MLX export report v1",
+  "type": "object",
+  "required": ["schema_version", "worker_result", "artifact_manifest", "manifest_path"],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "worker_result": {
+      "type": "object",
+      "required": ["schema_version", "plan_id", "state", "exit_code", "output_path", "output_bytes", "file_count", "output_hash", "elapsed_milliseconds", "peak_child_rss_bytes", "stdout_tail", "stderr_tail", "error_code"],
+      "properties": {
+        "schema_version": { "const": 1 },
+        "plan_id": { "type": "string", "minLength": 1 },
+        "state": { "const": "completed" },
+        "exit_code": { "type": "integer" },
+        "output_path": { "type": "string", "minLength": 1 },
+        "output_bytes": { "type": "integer", "minimum": 1 },
+        "file_count": { "type": "integer", "minimum": 1 },
+        "output_hash": { "type": "string", "minLength": 64, "maxLength": 64 },
+        "elapsed_milliseconds": { "type": "integer", "minimum": 0 },
+        "peak_child_rss_bytes": { "type": "integer", "minimum": 0 },
+        "stdout_tail": { "type": "string" },
+        "stderr_tail": { "type": "string" },
+        "error_code": { "const": null }
+      },
+      "additionalProperties": false
+    },
+    "artifact_manifest": {
+      "type": "object",
+      "required": ["schema_version", "artifact_id", "created_at", "plan_id", "source_hash", "output_hash", "output_bytes", "elapsed_milliseconds", "peak_child_rss_bytes", "transforms", "tool_versions", "calibration_fingerprint", "evaluation", "license"],
+      "properties": {
+        "schema_version": { "const": 1 },
+        "artifact_id": { "type": "string", "minLength": 1 },
+        "created_at": { "type": "string", "format": "date-time" },
+        "plan_id": { "type": "string", "minLength": 1 },
+        "source_hash": { "type": "string", "minLength": 16 },
+        "output_hash": { "type": "string", "minLength": 64, "maxLength": 64 },
+        "output_bytes": { "type": "integer", "minimum": 1 },
+        "elapsed_milliseconds": { "type": "integer", "minimum": 0 },
+        "peak_child_rss_bytes": { "type": "integer", "minimum": 0 },
+        "transforms": { "type": "array", "minItems": 1, "items": { "type": "object" } },
+        "tool_versions": { "type": "object" },
+        "calibration_fingerprint": { "type": ["string", "null"] },
+        "evaluation": { "type": "object" },
+        "license": { "type": ["string", "null"] }
+      },
+      "additionalProperties": false
+    },
+    "manifest_path": { "type": "string", "minLength": 1 }
+  },
+  "additionalProperties": false
+}

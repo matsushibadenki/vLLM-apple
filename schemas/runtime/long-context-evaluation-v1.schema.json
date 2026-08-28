@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vllm-apple.local/schemas/runtime/long-context-evaluation-v1.schema.json",
+  "title": "Long-context evaluation v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "evaluation_id", "model_id", "hardware_fingerprint", "memory_ceiling_bytes", "minimum_retrieval_score", "token_tolerance_ratio", "passed", "stages", "storage"],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "evaluation_id": { "type": "string", "minLength": 24, "maxLength": 24 },
+    "model_id": { "type": "string", "minLength": 1 },
+    "hardware_fingerprint": { "type": "string", "minLength": 1 },
+    "memory_ceiling_bytes": { "type": "integer", "minimum": 1 },
+    "minimum_retrieval_score": { "type": "number", "minimum": 0, "maximum": 1 },
+    "token_tolerance_ratio": { "type": "number", "minimum": 0, "maximum": 0.25 },
+    "passed": { "type": "boolean" },
+    "stages": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 16,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["target_tokens", "actual_prompt_tokens", "status", "retrieval_score", "ttft_ms", "tpot_ms", "tokens_per_second", "load_peak_rss_bytes", "steady_state_rss_bytes", "state_bytes", "error_code"],
+        "properties": {
+          "target_tokens": { "type": "integer", "minimum": 1, "maximum": 1000000 },
+          "actual_prompt_tokens": { "type": ["integer", "null"], "minimum": 1 },
+          "status": { "enum": ["passed", "failed", "skipped"] },
+          "retrieval_score": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
+          "ttft_ms": { "type": ["number", "null"], "minimum": 0 },
+          "tpot_ms": { "type": ["number", "null"], "minimum": 0 },
+          "tokens_per_second": { "type": ["number", "null"], "minimum": 0 },
+          "load_peak_rss_bytes": { "type": ["integer", "null"], "minimum": 0 },
+          "steady_state_rss_bytes": { "type": ["integer", "null"], "minimum": 0 },
+          "state_bytes": { "type": ["integer", "null"], "minimum": 0 },
+          "error_code": { "type": ["string", "null"] }
+        }
+      }
+    },
+    "storage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["raw_prompt_count", "raw_output_count"],
+      "properties": {
+        "raw_prompt_count": { "const": 0 },
+        "raw_output_count": { "const": 0 }
+      }
+    }
+  }
+}

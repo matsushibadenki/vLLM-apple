@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vllm-apple.local/schemas/semantic-anchor-v1.schema.json",
+  "title": "vLLM-Apple semantic anchor v1",
+  "type": "object",
+  "required": ["schema_version", "session_fingerprint", "prefix_fingerprint", "token_position", "kind", "state_handle", "state_bytes"],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "session_fingerprint": { "type": "string", "minLength": 64, "maxLength": 64 },
+    "prefix_fingerprint": { "type": "string", "minLength": 64, "maxLength": 64 },
+    "token_position": { "type": "integer", "minimum": 1, "maximum": 1048576 },
+    "kind": { "type": "string", "enum": ["turn", "tool_call", "tool_result", "thinking"] },
+    "state_handle": { "type": "string", "minLength": 1, "maxLength": 512 },
+    "state_bytes": { "type": "integer", "minimum": 1, "maximum": 1099511627776 }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vllm-apple.local/schemas/runtime/vllm-metal-v2-measurement-result-v1.schema.json",
+  "title": "vLLM-Metal native v2 measurement result v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["abi_version", "passed", "latency_nanoseconds", "output_digest"],
+  "properties": {
+    "abi_version": {"const": 1},
+    "passed": {"type": "boolean"},
+    "latency_nanoseconds": {"type": "integer", "minimum": 1},
+    "output_digest": {"type": "string", "minLength": 64, "maxLength": 64}
+  }
+}

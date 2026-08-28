@@ -1,0 +1,176 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vllm-apple.local/schemas/api/runtime-v1.schema.json",
+  "title": "vLLM-Apple runtime snapshot v1",
+  "type": "object",
+  "required": [
+    "api_version",
+    "schema_version",
+    "runtime_version",
+    "minimum_client_version",
+    "state",
+    "control_ready",
+    "inference_ready",
+    "profile",
+    "scheduler",
+    "events",
+    "semantic_cache",
+    "elastic_memory",
+    "execution_plan",
+    "last_error"
+  ],
+  "properties": {
+    "api_version": { "const": "v1" },
+    "schema_version": { "const": 1 },
+    "runtime_version": { "type": "string", "minLength": 1 },
+    "minimum_client_version": { "type": "string", "minLength": 1 },
+    "state": {
+      "enum": [
+        "stopped",
+        "starting",
+        "profiling",
+        "loading_model",
+        "ready",
+        "degraded",
+        "failed",
+        "stopping"
+      ]
+    },
+    "control_ready": { "type": "boolean" },
+    "inference_ready": { "type": "boolean" },
+    "last_error": { "type": ["string", "null"] },
+    "profile": {
+      "type": "object",
+      "required": [
+        "profile_version",
+        "runtime_version",
+        "created_at",
+        "hardware",
+        "context",
+        "capabilities",
+        "metadata"
+      ],
+      "properties": {
+        "profile_version": { "type": "integer", "minimum": 1 },
+        "runtime_version": { "type": "string", "minLength": 1 },
+        "created_at": { "type": "string", "format": "date-time" },
+        "hardware": { "type": "object" },
+        "context": { "type": ["object", "null"] },
+        "capabilities": { "type": "array", "items": { "type": "string" } },
+        "metadata": { "type": "object" }
+      },
+      "additionalProperties": false
+    },
+    "scheduler": {
+      "type": "object",
+      "required": [
+        "capacity_bytes",
+        "reserved_bytes",
+        "available_bytes",
+        "active_reservations"
+      ],
+      "properties": {
+        "capacity_bytes": { "type": "integer", "minimum": 0 },
+        "reserved_bytes": { "type": "integer", "minimum": 0 },
+        "available_bytes": { "type": "integer", "minimum": 0 },
+        "active_reservations": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": false
+    },
+    "events": {
+      "type": "object",
+      "required": [
+        "capacity",
+        "retained_events",
+        "latest_sequence",
+        "active_subscribers",
+        "max_subscribers"
+      ],
+      "properties": {
+        "capacity": { "type": "integer", "minimum": 1 },
+        "retained_events": { "type": "integer", "minimum": 0 },
+        "latest_sequence": { "type": "integer", "minimum": 0 },
+        "active_subscribers": { "type": "integer", "minimum": 0 },
+        "max_subscribers": { "type": "integer", "minimum": 1 }
+      },
+      "additionalProperties": false
+    },
+    "semantic_cache": {
+      "type": "object",
+      "required": [
+        "enabled",
+        "capacity_entries",
+        "capacity_bytes",
+        "entry_count",
+        "resident_bytes",
+        "evictions",
+        "captures",
+        "hits",
+        "misses",
+        "restore_failures",
+        "release_failures",
+        "pending_releases",
+        "dropped_release_handles"
+      ],
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "capacity_entries": { "type": "integer", "minimum": 0 },
+        "capacity_bytes": { "type": "integer", "minimum": 0 },
+        "entry_count": { "type": "integer", "minimum": 0 },
+        "resident_bytes": { "type": "integer", "minimum": 0 },
+        "evictions": { "type": "integer", "minimum": 0 },
+        "captures": { "type": "integer", "minimum": 0 },
+        "hits": { "type": "integer", "minimum": 0 },
+        "misses": { "type": "integer", "minimum": 0 },
+        "restore_failures": { "type": "integer", "minimum": 0 },
+        "release_failures": { "type": "integer", "minimum": 0 },
+        "pending_releases": { "type": "integer", "minimum": 0, "maximum": 1024 },
+        "dropped_release_handles": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": false
+    },
+    "elastic_memory": {
+      "type": "object",
+      "required": [
+        "enabled",
+        "current_pressure",
+        "pending_pressure",
+        "normal_capacity_entries",
+        "normal_capacity_bytes",
+        "current_capacity_entries",
+        "current_capacity_bytes",
+        "adjustments",
+        "deferred_adjustments",
+        "last_evicted_entries"
+      ],
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "current_pressure": { "enum": ["normal", "warning", "critical", "unknown"] },
+        "pending_pressure": { "type": ["string", "null"], "enum": ["normal", "warning", "critical", null] },
+        "normal_capacity_entries": { "type": "integer", "minimum": 0 },
+        "normal_capacity_bytes": { "type": "integer", "minimum": 0 },
+        "current_capacity_entries": { "type": "integer", "minimum": 0 },
+        "current_capacity_bytes": { "type": "integer", "minimum": 0 },
+        "adjustments": { "type": "integer", "minimum": 0 },
+        "deferred_adjustments": { "type": "integer", "minimum": 0 },
+        "last_evicted_entries": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": false
+    },
+    "execution_plan": {
+      "type": "object",
+      "required": ["enabled", "active_plan_id", "pending_plan_id", "context_tokens", "prefill_batch_size", "decode_batch_size", "state_precision"],
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "active_plan_id": { "type": ["string", "null"] },
+        "pending_plan_id": { "type": ["string", "null"] },
+        "context_tokens": { "type": "integer", "minimum": 0 },
+        "prefill_batch_size": { "type": "integer", "minimum": 0 },
+        "decode_batch_size": { "type": "integer", "minimum": 0 },
+        "state_precision": { "type": ["string", "null"] }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

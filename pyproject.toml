@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools==80.9.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "vllm-apple"
+version = "0.1.0"
+description = "Memory-aware Apple Silicon runtime control plane for vLLM"
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [{ name = "vLLM-Apple contributors" }]
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["ruff==0.16.0"]
+
+[project.scripts]
+vllm-apple = "vllm_apple.cli:main"
+vllm-appled = "vllm_apple.daemon:main"
+vllm-apple-soak = "vllm_apple.soak:main"
+vllm-apple-optimize = "vllm_apple.optimizer.cli:main"
+vllm-apple-v2-measure = "vllm_apple.vllm_metal_v2_helper:main"
+
+[tool.setuptools.packages.find]
+include = ["vllm_apple*"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F"]

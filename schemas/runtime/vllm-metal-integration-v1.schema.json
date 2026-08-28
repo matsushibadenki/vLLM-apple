@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vllm-apple.local/schemas/runtime/vllm-metal-integration-v1.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "source_fingerprint", "topology", "native_v2_detected", "python_callsite_hook", "dynamic_thread_configuration_abi", "compatible", "issues"],
+  "properties": {
+    "schema_version": { "type": "integer", "const": 1 },
+    "source_fingerprint": { "type": "string", "minLength": 24, "maxLength": 24 },
+    "topology": { "type": "string", "enum": ["native_v2", "unknown"] },
+    "native_v2_detected": { "type": "boolean" },
+    "python_callsite_hook": { "type": "boolean" },
+    "dynamic_thread_configuration_abi": { "type": "boolean" },
+    "compatible": { "type": "boolean" },
+    "issues": {
+      "type": "array", "maxItems": 3,
+      "items": {
+        "type": "string",
+        "enum": ["native_v2_topology_not_detected", "python_callsite_hook_missing", "dynamic_thread_configuration_abi_missing"]
+      }
+    }
+  }
+}

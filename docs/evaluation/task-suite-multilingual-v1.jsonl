@@ -1,0 +1,9 @@
+{"id":"code-en-python","prompt":"Complete only the Python expression that returns the larger value: max(3, 7) == ","language":"en","domain":"code","expected_any":["7","True"],"match":"prefix"}
+{"id":"code-ja-python","prompt":"Python式の結果だけを補完してください: len([1, 2, 3]) == ","language":"ja","domain":"code","expected_any":["3","True"],"match":"prefix"}
+{"id":"code-zh-python","prompt":"仅补全Python表达式的结果: sum([2, 3]) == ","language":"zh-CN","domain":"code","expected_any":["5","True"],"match":"prefix"}
+{"id":"math-en-arithmetic","prompt":"Answer with only the number. 17 minus 9 equals ","language":"en","domain":"mathematics","expected_any":["8"],"match":"prefix"}
+{"id":"math-ja-arithmetic","prompt":"数字だけで答えてください。17引く9は ","language":"ja","domain":"mathematics","expected_any":["8","８"],"match":"prefix"}
+{"id":"math-zh-arithmetic","prompt":"只用数字回答。17减9等于 ","language":"zh-CN","domain":"mathematics","expected_any":["8","８"],"match":"prefix"}
+{"id":"context-en-retrieval","prompt":"Remember this fact: the launch code is KESTREL-42. Ignore the distractors ORBIT-11 and MAPLE-73. The launch code is ","language":"en","domain":"long-context","expected_any":["KESTREL-42","KESTREL"],"match":"prefix"}
+{"id":"context-ja-retrieval","prompt":"次の事実を覚えてください。起動コードは KESTREL-42 です。ORBIT-11 と MAPLE-73 は無関係です。起動コードは ","language":"ja","domain":"long-context","expected_any":["KESTREL-42","KESTREL"],"match":"prefix"}
+{"id":"context-zh-retrieval","prompt":"请记住这个事实：启动代码是 KESTREL-42。ORBIT-11 和 MAPLE-73 是干扰项。启动代码是 ","language":"zh-CN","domain":"long-context","expected_any":["KESTREL-42","KESTREL"],"match":"prefix"}

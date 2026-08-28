@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vllm-apple.local/schemas/runtime/serving-promotion-probe-v1.schema.json",
+  "title": "Serving promotion probe v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "model", "seed", "temperature", "digests", "checks", "passed"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "model": {"type": "string", "minLength": 1, "maxLength": 512},
+    "seed": {"type": "integer", "minimum": 0, "maximum": 2147483647},
+    "temperature": {"type": "number", "minimum": 0},
+    "digests": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["greedy", "sampled", "sampled_stream"],
+      "properties": {
+        "greedy": {"type": "string", "minLength": 64, "maxLength": 64},
+        "sampled": {"type": "string", "minLength": 64, "maxLength": 64},
+        "sampled_stream": {"type": "string", "minLength": 64, "maxLength": 64}
+      }
+    },
+    "checks": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["greedy_repeat_equal", "sampled_repeat_equal", "sampled_stream_equal", "stream_completed"],
+      "properties": {
+        "greedy_repeat_equal": {"type": "boolean"},
+        "sampled_repeat_equal": {"type": "boolean"},
+        "sampled_stream_equal": {"type": "boolean"},
+        "stream_completed": {"type": "boolean"}
+      }
+    },
+    "passed": {"type": "boolean"}
+  }
+}

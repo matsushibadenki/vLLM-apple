@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vllm-apple.local/schemas/runtime/vllm-metal-v2-measurement-abi-v1.schema.json",
+  "title": "vLLM-Metal native v2 measurement ABI v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["abi_version", "operation", "shape", "configuration"],
+  "properties": {
+    "abi_version": {"const": 1},
+    "operation": {"const": "measure_paged_attention_v2"},
+    "shape": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "context_tokens", "query_tokens", "sequences", "query_heads", "kv_heads",
+        "head_size", "block_size", "gpu_cores", "query_dtype", "cache_dtype",
+        "turboquant", "window_seqlen_q"
+      ],
+      "properties": {
+        "context_tokens": {"type": "integer", "minimum": 1},
+        "query_tokens": {"type": "integer", "minimum": 1},
+        "sequences": {"type": "integer", "minimum": 1},
+        "query_heads": {"type": "integer", "minimum": 1},
+        "kv_heads": {"type": "integer", "minimum": 1},
+        "head_size": {"type": "integer", "minimum": 1},
+        "block_size": {"type": "integer", "minimum": 1},
+        "gpu_cores": {"type": "integer", "minimum": 1},
+        "query_dtype": {"enum": ["float16", "bfloat16", "float32"]},
+        "cache_dtype": {"enum": ["float16", "bfloat16", "float32", "int8"]},
+        "turboquant": {"type": "boolean"},
+        "window_seqlen_q": {"type": "integer", "minimum": 1}
+      }
+    },
+    "configuration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["family", "threads", "tile_query", "tile_kv", "partition_size"],
+      "properties": {
+        "family": {"enum": ["nax_prefill", "tiled_prefill", "per_token", "split_kv"]},
+        "threads": {"enum": [32, 64, 128, 256]},
+        "tile_query": {"type": "integer", "minimum": 0},
+        "tile_kv": {"type": "integer", "minimum": 0},
+        "partition_size": {"type": "integer", "minimum": 0}
+      }
+    }
+  }
+}

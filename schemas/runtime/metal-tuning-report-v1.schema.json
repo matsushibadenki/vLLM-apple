@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vllm-apple.local/schemas/runtime/metal-tuning-report-v1.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "tuning_id", "profile_id", "model_id", "hardware_fingerprint", "environment_fingerprint", "created_at_unix_seconds", "samples_per_candidate", "tie_ratio", "decisions"],
+  "properties": {
+    "schema_version": { "type": "integer", "const": 1 },
+    "tuning_id": { "type": "string", "minLength": 24, "maxLength": 24 },
+    "profile_id": { "type": "string", "minLength": 24, "maxLength": 24 },
+    "model_id": { "type": "string", "minLength": 1, "maxLength": 512 },
+    "hardware_fingerprint": { "type": "string", "minLength": 1, "maxLength": 128 },
+    "environment_fingerprint": { "type": "string", "minLength": 1, "maxLength": 128 },
+    "created_at_unix_seconds": { "type": "integer", "minimum": 1 },
+    "samples_per_candidate": { "type": "integer", "minimum": 1, "maximum": 32 },
+    "tie_ratio": { "type": "number", "const": 1.02 },
+    "decisions": {
+      "type": "array", "minItems": 1, "maxItems": 16,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["shape", "winner", "candidates"],
+        "properties": {
+          "shape": { "type": "object" },
+          "winner": { "type": "object" },
+          "candidates": { "type": "array", "minItems": 1, "maxItems": 4, "items": { "type": "object" } }
+        }
+      }
+    }
+  }
+}
