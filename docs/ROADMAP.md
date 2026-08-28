@@ -630,6 +630,7 @@ vLLM-Metal対応とは見なさない。
 - `[Done]` raw detailを公開しないfailure fingerprintとSwift typed decode
 - `[Done]` private/atomic daemon crash diagnosticsとbounded log digest
 - `[Done]` optional native telemetry登録をcontrol readinessから隔離
+- `[Done]` Swift ManagedRuntime restart testを決定的なUDS fault-injection fixtureへ分離
 - `[Later]` fault injection suite
 
 ### Security
