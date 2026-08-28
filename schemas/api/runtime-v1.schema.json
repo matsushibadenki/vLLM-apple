@@ -17,8 +17,10 @@
     "semantic_cache",
     "elastic_memory",
     "memory_telemetry",
+    "memory_budget",
     "memory_admission",
     "token_estimation",
+    "context_reevaluation",
     "execution_plan",
     "last_error",
     "failure"
@@ -210,6 +212,32 @@
       },
       "additionalProperties": false
     },
+    "memory_budget": {
+      "type": "object",
+      "required": ["capacity_bytes", "known_component_bytes", "known_remaining_bytes", "overcommitted_bytes", "unknown_components", "overlap_envelope_bytes", "components"],
+      "properties": {
+        "capacity_bytes": { "type": "integer", "minimum": 1 },
+        "known_component_bytes": { "type": "integer", "minimum": 0 },
+        "known_remaining_bytes": { "type": "integer", "minimum": 0 },
+        "overcommitted_bytes": { "type": "integer", "minimum": 0 },
+        "unknown_components": { "type": "array", "maxItems": 5, "items": { "enum": ["weights", "kv", "prefix", "scratch", "coreml"] } },
+        "overlap_envelope_bytes": { "type": ["integer", "null"], "minimum": 0 },
+        "components": {
+          "type": "object",
+          "required": ["weights", "kv", "prefix", "scratch", "metal_heap", "coreml"],
+          "properties": {
+            "weights": { "type": "object", "required": ["current_bytes", "peak_bytes", "source", "accounting"], "properties": { "current_bytes": { "type": ["integer", "null"], "minimum": 0 }, "peak_bytes": { "type": ["integer", "null"], "minimum": 0 }, "source": { "type": ["string", "null"] }, "accounting": { "const": "additive" } }, "additionalProperties": false },
+            "kv": { "type": "object", "required": ["current_bytes", "peak_bytes", "source", "accounting"], "properties": { "current_bytes": { "type": ["integer", "null"], "minimum": 0 }, "peak_bytes": { "type": ["integer", "null"], "minimum": 0 }, "source": { "type": ["string", "null"] }, "accounting": { "const": "additive" } }, "additionalProperties": false },
+            "prefix": { "type": "object", "required": ["current_bytes", "peak_bytes", "source", "accounting"], "properties": { "current_bytes": { "type": ["integer", "null"], "minimum": 0 }, "peak_bytes": { "type": ["integer", "null"], "minimum": 0 }, "source": { "type": ["string", "null"] }, "accounting": { "const": "additive" } }, "additionalProperties": false },
+            "scratch": { "type": "object", "required": ["current_bytes", "peak_bytes", "source", "accounting"], "properties": { "current_bytes": { "type": ["integer", "null"], "minimum": 0 }, "peak_bytes": { "type": ["integer", "null"], "minimum": 0 }, "source": { "type": ["string", "null"] }, "accounting": { "const": "additive" } }, "additionalProperties": false },
+            "metal_heap": { "type": "object", "required": ["current_bytes", "peak_bytes", "source", "accounting"], "properties": { "current_bytes": { "type": ["integer", "null"], "minimum": 0 }, "peak_bytes": { "type": ["integer", "null"], "minimum": 0 }, "source": { "type": ["string", "null"] }, "accounting": { "const": "overlap_envelope" } }, "additionalProperties": false },
+            "coreml": { "type": "object", "required": ["current_bytes", "peak_bytes", "source", "accounting"], "properties": { "current_bytes": { "type": ["integer", "null"], "minimum": 0 }, "peak_bytes": { "type": ["integer", "null"], "minimum": 0 }, "source": { "type": ["string", "null"] }, "accounting": { "const": "additive" } }, "additionalProperties": false }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
     "memory_admission": {
       "type": "object",
       "required": [
@@ -225,7 +253,9 @@
           "type": ["string", "null"],
           "enum": [
             "critical_memory_pressure", "warning_memory_pressure_background",
-            "insufficient_unified_memory", "recovery_batch_limited",
+            "insufficient_unified_memory", "memory_budget_overcommitted",
+            "memory_budget_exceeded", "backend_context_capacity_exceeded",
+            "recovery_batch_limited",
             "recovery_context_limited", "recovery_memory_limited", null
           ]
         },
@@ -238,7 +268,7 @@
     },
     "token_estimation": {
       "type": "object",
-      "required": ["source", "measured", "failures", "fallbacks", "last_prompt_tokens", "cache_capacity", "cache_entries", "cache_hits", "cache_misses", "cache_evictions", "cache_expirations"],
+      "required": ["source", "measured", "failures", "fallbacks", "last_prompt_tokens", "cache_capacity", "cache_entries", "cache_hits", "cache_misses", "cache_evictions", "cache_expirations", "single_flight_capacity", "single_flight_active", "single_flight_leaders", "single_flight_followers", "single_flight_bypasses", "single_flight_timeouts"],
       "properties": {
         "source": { "enum": ["backend_tokenizer", "fallback"] },
         "measured": { "type": "integer", "minimum": 0 },
@@ -250,7 +280,30 @@
         "cache_hits": { "type": "integer", "minimum": 0 },
         "cache_misses": { "type": "integer", "minimum": 0 },
         "cache_evictions": { "type": "integer", "minimum": 0 },
-        "cache_expirations": { "type": "integer", "minimum": 0 }
+        "cache_expirations": { "type": "integer", "minimum": 0 },
+        "single_flight_capacity": { "type": "integer", "minimum": 0 },
+        "single_flight_active": { "type": "integer", "minimum": 0 },
+        "single_flight_leaders": { "type": "integer", "minimum": 0 },
+        "single_flight_followers": { "type": "integer", "minimum": 0 },
+        "single_flight_bypasses": { "type": "integer", "minimum": 0 },
+        "single_flight_timeouts": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": false
+    },
+    "context_reevaluation": {
+      "type": "object",
+      "required": ["enabled", "status", "configured_context_tokens", "effective_context_tokens", "capacity_context_tokens", "kv_capacity_bytes", "kv_bytes_per_token", "weights_bytes", "source", "reevaluations"],
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "status": { "enum": ["disabled", "pending", "sufficient", "reduced"] },
+        "configured_context_tokens": { "type": ["integer", "null"], "minimum": 1 },
+        "effective_context_tokens": { "type": ["integer", "null"], "minimum": 0 },
+        "capacity_context_tokens": { "type": ["integer", "null"], "minimum": 0 },
+        "kv_capacity_bytes": { "type": ["integer", "null"], "minimum": 0 },
+        "kv_bytes_per_token": { "type": ["integer", "null"], "minimum": 1 },
+        "weights_bytes": { "type": ["integer", "null"], "minimum": 0 },
+        "source": { "type": ["string", "null"] },
+        "reevaluations": { "type": "integer", "minimum": 0 }
       },
       "additionalProperties": false
     },

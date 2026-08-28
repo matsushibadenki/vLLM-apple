@@ -10,6 +10,7 @@ from .backend_tuning import (
 from .elastic_memory import ElasticMemoryController, ElasticMemoryDecision
 from .execution import AppleChipProfile, AppleExecutionPlan, AppleExecutionPlanner
 from .execution_profile import detect_apple_chip_profile, load_chip_profile, save_chip_profile
+from .context_reevaluation import ContextCapacityReevaluator, ContextReevaluationSnapshot
 from .kernel_context import InferenceKernelContext, PagedAttentionKernelSelection
 from .kernel_probe import (
     KernelCapabilityRegistry,
@@ -27,6 +28,11 @@ from .kernel_profile import (
 )
 from .long_context import LongContextEvaluator, LongContextObservation
 from .long_context_backend import VLLMLongContextAdapter
+from .memory_budget import (
+    MemoryBudgetComponent,
+    MemoryBudgetSnapshot,
+    UnifiedMemoryBudgetLedger,
+)
 from .metal_probe import (
     MetalShapeTuningDecision,
     MetalThreadConfiguration,
@@ -121,6 +127,8 @@ __all__ = [
     "BackendKernelTuningAdapter",
     "BackendStateReference",
     "BackendTuningSnapshot",
+    "ContextCapacityReevaluator",
+    "ContextReevaluationSnapshot",
     "ElasticMemoryController",
     "ElasticMemoryDecision",
     "ExecutionPhaseProfiler",
@@ -137,6 +145,8 @@ __all__ = [
     "MetalShapeTuningDecision",
     "MetalThreadConfiguration",
     "MetalTuningReport",
+    "MemoryBudgetComponent",
+    "MemoryBudgetSnapshot",
     "ModelKernelShapeProfile",
     "NativeMLXProbeAdapter",
     "NativeMetalProbeAdapter",
@@ -163,6 +173,7 @@ __all__ = [
     "SemanticRestoreResult",
     "SemanticStateBackend",
     "SemanticStateCoordinator",
+    "UnifiedMemoryBudgetLedger",
     "V2DispatchConfiguration",
     "V2PagedAttentionFamily",
     "V2PagedAttentionShape",

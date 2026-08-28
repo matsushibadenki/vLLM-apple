@@ -3,6 +3,7 @@ from __future__ import annotations
 import math
 import json
 import plistlib
+import re
 import subprocess
 import threading
 import urllib.error
@@ -13,6 +14,11 @@ MAX_METRICS_BYTES = 1024 * 1024
 MAX_METRIC_LINES = 20_000
 MAX_METRIC_LINE_BYTES = 4096
 _KV_METRICS = ("vllm:kv_cache_usage_perc", "vllm:gpu_cache_usage_perc")
+_CACHE_CONFIG_METRIC = "vllm:cache_config_info"
+MAX_KV_CAPACITY_BYTES = 2 * 1024**4
+_STANDARD_KV_MODEL_TYPES = frozenset(
+    {"gemma", "gemma2", "gpt2", "gpt_neox", "llama", "mistral", "mixtral", "phi3", "qwen2", "qwen3"}
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -21,14 +27,50 @@ class BackendMemorySample:
     kv_usage_ratio: float | None
     allocator_current_bytes: int | None = None
     allocator_peak_bytes: int | None = None
+    kv_used_bytes: int | None = None
+    kv_capacity_bytes: int | None = None
     source: str = "vllm-prometheus"
 
 
-def parse_prometheus_memory_metrics(payload: bytes) -> BackendMemorySample:
+@dataclass(frozen=True, slots=True)
+class KVCacheCapacityResolver:
+    """Version-gated conversion of vLLM logical KV token capacity to bytes."""
+
+    vllm_version: str
+    kv_bytes_per_token: int
+    model_type: str
+
+    def __post_init__(self) -> None:
+        match = re.match(r"^(\d+)\.(\d+)(?:\.(\d+))?", self.vllm_version)
+        if match is None:
+            raise ValueError("vLLM version is not parseable")
+        version = tuple(int(value or 0) for value in match.groups())
+        if not (0, 24, 0) <= version < (0, 29, 0):
+            raise ValueError("vLLM version does not have a verified KV capacity contract")
+        if not 0 < self.kv_bytes_per_token <= MAX_KV_CAPACITY_BYTES:
+            raise ValueError("invalid KV bytes-per-token")
+        if self.model_type not in _STANDARD_KV_MODEL_TYPES:
+            raise ValueError("model architecture has no verified KV byte conversion")
+
+    def resolve(self, identifiers: list[bytes]) -> int | None:
+        if len(identifiers) != 1:
+            return None
+        match = re.search(rb'(?:\{|,)kv_cache_size_tokens="([1-9]\d*)"(?:,|})', identifiers[0])
+        if match is None:
+            return None
+        capacity = int(match.group(1)) * self.kv_bytes_per_token
+        return capacity if capacity <= MAX_KV_CAPACITY_BYTES else None
+
+
+def parse_prometheus_memory_metrics(
+    payload: bytes,
+    kv_capacity_resolver: KVCacheCapacityResolver | None = None,
+) -> BackendMemorySample:
     if len(payload) > MAX_METRICS_BYTES:
         raise ValueError("backend metrics payload is too large")
     resident_values: list[float] = []
     kv_values: dict[str, list[float]] = {name: [] for name in _KV_METRICS}
+    cache_config_identifiers: list[bytes] = []
     for index, raw_line in enumerate(payload.splitlines()):
         if index >= MAX_METRIC_LINES:
             raise ValueError("backend metrics has too many lines")
@@ -49,20 +91,37 @@ def parse_prometheus_memory_metrics(payload: bytes) -> BackendMemorySample:
             resident_values.append(value)
         elif name in kv_values and value <= 1:
             kv_values[name].append(value)
+        elif name == _CACHE_CONFIG_METRIC and value == 1:
+            cache_config_identifiers.append(identifier)
     # Prefer the current v1 name; use the deprecated v0 alias only when needed.
     ratios = next((kv_values[name] for name in _KV_METRICS if kv_values[name]), [])
+    ratio = max(ratios) if ratios else None
+    capacity = (
+        kv_capacity_resolver.resolve(cache_config_identifiers)
+        if kv_capacity_resolver is not None
+        else None
+    )
+    used = min(capacity, round(capacity * ratio)) if capacity is not None and ratio is not None else None
     return BackendMemorySample(
         resident_bytes=int(max(resident_values)) if resident_values else None,
-        kv_usage_ratio=max(ratios) if ratios else None,
+        kv_usage_ratio=ratio,
+        kv_used_bytes=used,
+        kv_capacity_bytes=capacity if used is not None else None,
     )
 
 
 class VLLMMemoryMetricsAdapter:
-    def __init__(self, base_url: str, timeout: float = 1.0) -> None:
+    def __init__(
+        self,
+        base_url: str,
+        timeout: float = 1.0,
+        kv_capacity_resolver: KVCacheCapacityResolver | None = None,
+    ) -> None:
         if timeout <= 0:
             raise ValueError("metrics timeout must be positive")
         self._url = base_url.rstrip("/") + "/metrics"
         self._timeout = timeout
+        self._kv_capacity_resolver = kv_capacity_resolver
 
     def sample(self) -> BackendMemorySample:
         request = urllib.request.Request(self._url, headers={"Accept": "text/plain"})
@@ -71,7 +130,7 @@ class VLLMMemoryMetricsAdapter:
                 payload = response.read(MAX_METRICS_BYTES + 1)
         except (OSError, urllib.error.URLError) as error:
             raise RuntimeError("backend memory metrics are unavailable") from error
-        prometheus = parse_prometheus_memory_metrics(payload)
+        prometheus = parse_prometheus_memory_metrics(payload, self._kv_capacity_resolver)
         allocator_current = None
         allocator_peak = None
         try:
@@ -91,10 +150,12 @@ class VLLMMemoryMetricsAdapter:
         except (OSError, urllib.error.URLError, UnicodeDecodeError, json.JSONDecodeError):
             pass
         return BackendMemorySample(
-            prometheus.resident_bytes,
-            prometheus.kv_usage_ratio,
-            allocator_current,
-            allocator_peak,
+            resident_bytes=prometheus.resident_bytes,
+            kv_usage_ratio=prometheus.kv_usage_ratio,
+            allocator_current_bytes=allocator_current,
+            allocator_peak_bytes=allocator_peak,
+            kv_used_bytes=prometheus.kv_used_bytes,
+            kv_capacity_bytes=prometheus.kv_capacity_bytes,
         )
 
 
@@ -165,7 +226,13 @@ class MemoryMetricsMonitor:
             self._sink.record_backend_resident_memory(
                 sample.resident_bytes, source=sample.source
             )
-        if sample.kv_usage_ratio is not None:
+        if sample.kv_used_bytes is not None and sample.kv_capacity_bytes is not None:
+            self._sink.record_kv_cache_memory(
+                sample.kv_used_bytes,
+                sample.kv_capacity_bytes,
+                source="vllm-prometheus-cache-config-v1",
+            )
+        elif sample.kv_usage_ratio is not None:
             self._sink.record_kv_cache_ratio(sample.kv_usage_ratio, source=sample.source)
         if sample.allocator_current_bytes is not None:
             self._sink.record_framework_memory(

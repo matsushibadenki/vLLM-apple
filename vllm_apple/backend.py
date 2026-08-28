@@ -19,7 +19,7 @@ from typing import Any, BinaryIO, Iterable
 from .compat import resolve_vllm_executable
 from .kernel_context import KERNEL_TUNING_ACCEPTED_HEADER, InferenceKernelContext
 from .observability import REQUEST_ID_HEADER, current_request_id
-from .token_count_cache import TokenCountCache
+from .token_count_cache import TokenCountCache, TokenCountSingleFlight
 
 MAX_UPSTREAM_RESPONSE_BYTES = 16 * 1024 * 1024
 MAX_BACKEND_HELP_BYTES = 1024 * 1024
@@ -258,6 +258,7 @@ class OpenAIProxyEngine:
         base_url: str,
         process: BackendProcess | None = None,
         token_count_cache: TokenCountCache | None = None,
+        token_count_single_flight: TokenCountSingleFlight | None = None,
     ) -> None:
         self.base_url = base_url.rstrip("/")
         self.process = process
@@ -269,6 +270,7 @@ class OpenAIProxyEngine:
         self._tokenizer_measured = 0
         self._tokenizer_failures = 0
         self._token_count_cache = token_count_cache or TokenCountCache()
+        self._token_count_single_flight = token_count_single_flight or TokenCountSingleFlight()
 
     def tuning_ack_snapshot(self) -> dict[str, int]:
         with self._tuning_ack_lock:
@@ -280,6 +282,7 @@ class OpenAIProxyEngine:
 
     def tokenizer_snapshot(self) -> dict[str, int]:
         cache = self._token_count_cache.snapshot()
+        single_flight = self._token_count_single_flight.snapshot()
         with self._tokenizer_lock:
             return {
                 "measured": self._tokenizer_measured,
@@ -290,6 +293,12 @@ class OpenAIProxyEngine:
                 "cache_misses": cache.misses,
                 "cache_evictions": cache.evictions,
                 "cache_expirations": cache.expirations,
+                "single_flight_capacity": single_flight.capacity,
+                "single_flight_active": single_flight.active,
+                "single_flight_leaders": single_flight.leaders,
+                "single_flight_followers": single_flight.followers,
+                "single_flight_bypasses": single_flight.bypasses,
+                "single_flight_timeouts": single_flight.timeouts,
             }
 
     def estimate_prompt_tokens(self, request: dict[str, Any]) -> int | None:
@@ -311,6 +320,10 @@ class OpenAIProxyEngine:
         cached = self._token_count_cache.get(fingerprint)
         if cached is not None:
             return cached
+        flight = self._token_count_single_flight.join(fingerprint)
+        if not flight.leader:
+            return self._token_count_single_flight.wait(flight, timeout=5.5)
+        count: int | None = None
         try:
             with urllib.request.urlopen(self._request("/tokenize", body), timeout=5.0) as response:
                 scanned = bytearray()
@@ -328,6 +341,8 @@ class OpenAIProxyEngine:
                         return count
         except (OSError, urllib.error.URLError, ValueError):
             pass
+        finally:
+            self._token_count_single_flight.complete(flight, count)
         with self._tokenizer_lock:
             self._tokenizer_failures += 1
         return None

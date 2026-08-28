@@ -11,13 +11,18 @@ from .elastic_memory import (
     disabled_elastic_memory_snapshot,
 )
 from .events import EventBus
+from .context_reevaluation import (
+    ContextCapacityReevaluator,
+    disabled_context_reevaluation_snapshot,
+)
 from .execution import AppleExecutionPlan, WorkloadPhase
 from .kernel_context import InferenceKernelContext, PagedAttentionKernelSelection
 from .kernel_profile import PagedAttentionShape
 from .metal_probe import MetalThreadConfiguration
 from .metal_tuning import MetalTuningReport
-from .memory_telemetry import UnifiedMemoryTelemetry
+from .memory_telemetry import MemoryTelemetrySnapshot, UnifiedMemoryTelemetry
 from .memory_admission import MemoryPressureAdmissionError, MemoryPressureAdmissionGate
+from .memory_budget import MemoryBudgetSnapshot, UnifiedMemoryBudgetLedger
 from .operator_dispatch import OperatorDispatcher
 from .profile import build_profile
 from .runtime_errors import RuntimeFailure, classify_runtime_failure
@@ -28,7 +33,7 @@ from .semantic_state import (
     SemanticStateCoordinator,
     disabled_semantic_state_snapshot,
 )
-from .types import GIB, MemoryPressure, RuntimeProfile, RuntimeState
+from .types import GIB, MemoryPressure, ModelMemorySpec, RuntimeProfile, RuntimeState
 
 
 class InferenceUnavailableError(RuntimeError):
@@ -75,8 +80,10 @@ class ServiceSnapshot:
     elastic_memory: dict[str, int | bool | str | None]
     execution_plan: dict[str, str | int | bool | None]
     memory_telemetry: dict[str, int | float | str | None]
+    memory_budget: dict[str, object]
     memory_admission: dict[str, int | float | str | None]
     token_estimation: dict[str, int | str | None]
+    context_reevaluation: dict[str, int | str | bool | None]
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -92,8 +99,10 @@ class ServiceSnapshot:
             "elastic_memory": self.elastic_memory,
             "execution_plan": self.execution_plan,
             "memory_telemetry": self.memory_telemetry,
+            "memory_budget": self.memory_budget,
             "memory_admission": self.memory_admission,
             "token_estimation": self.token_estimation,
+            "context_reevaluation": self.context_reevaluation,
         }
 
 
@@ -105,6 +114,8 @@ class RuntimeService:
         event_bus: EventBus | None = None,
         semantic_state: SemanticStateCoordinator | None = None,
         memory_telemetry: UnifiedMemoryTelemetry | None = None,
+        model_memory_spec: ModelMemorySpec | None = None,
+        configured_context_tokens: int | None = None,
     ) -> None:
         self._lock = threading.RLock()
         self._state = RuntimeState.STARTING
@@ -132,6 +143,16 @@ class RuntimeService:
         emergency_margin = max(GIB, int(memory.total_bytes * 0.08))
         scheduler_capacity = max(0, memory.available_bytes - emergency_margin)
         self.scheduler = BasicScheduler(self.profile.hardware, scheduler_capacity)
+        self.memory_budget = UnifiedMemoryBudgetLedger(memory.total_bytes)
+        self.context_reevaluator = (
+            ContextCapacityReevaluator(
+                configured_context_tokens,
+                model_memory_spec.kv_bytes_per_token,
+                model_memory_spec.weights_bytes,
+            )
+            if model_memory_spec is not None and configured_context_tokens is not None
+            else None
+        )
         self.engine = engine or UnavailableInferenceEngine()
         self.semantic_state = semantic_state
         self.elastic_memory = (
@@ -173,30 +194,84 @@ class RuntimeService:
 
     def snapshot(self) -> ServiceSnapshot:
         with self._lock:
+            semantic_cache = (
+                self.semantic_state.snapshot()
+                if self.semantic_state is not None
+                else disabled_semantic_state_snapshot()
+            )
+            telemetry = self.memory_telemetry.snapshot()
+            scheduler = self.scheduler.memory.snapshot()
+            self._sync_memory_budget(telemetry, semantic_cache, scheduler)
             return ServiceSnapshot(
                 state=self._state,
                 control_ready=self._state not in {RuntimeState.FAILED, RuntimeState.STOPPED},
                 inference_ready=self.engine.ready,
                 profile=self.profile,
-                scheduler=self.scheduler.memory.snapshot(),
+                scheduler=scheduler,
                 last_error=self._last_error,
                 failure=self._failure.to_dict() if self._failure is not None else None,
                 events=self.events.snapshot(),
-                semantic_cache=(
-                    self.semantic_state.snapshot()
-                    if self.semantic_state is not None
-                    else disabled_semantic_state_snapshot()
-                ),
+                semantic_cache=semantic_cache,
                 elastic_memory=(
                     self.elastic_memory.snapshot()
                     if self.elastic_memory is not None
                     else disabled_elastic_memory_snapshot()
                 ),
                 execution_plan=self.scheduler.execution_plan_snapshot(),
-                memory_telemetry=self.memory_telemetry.snapshot().to_dict(),
+                memory_telemetry=telemetry.to_dict(),
+                memory_budget=self.memory_budget.snapshot().to_dict(),
                 memory_admission=self.memory_admission.snapshot().to_dict(),
                 token_estimation=self.token_estimation_snapshot(),
+                context_reevaluation=(
+                    self.context_reevaluator.snapshot().to_dict()
+                    if self.context_reevaluator is not None
+                    else disabled_context_reevaluation_snapshot()
+                ),
             )
+
+    def _sync_memory_budget(
+        self,
+        telemetry: MemoryTelemetrySnapshot,
+        semantic_cache: dict[str, int | bool],
+        scheduler: dict[str, int],
+    ) -> None:
+        kv_used = telemetry.kv_used_bytes
+        kv_source = telemetry.kv_source
+        self.memory_budget.update("kv", kv_used, source=kv_source if kv_used is not None else None)
+        self.memory_budget.update(
+            "prefix", int(semantic_cache["resident_bytes"]), source="semantic_state"
+        )
+        self.memory_budget.update(
+            "scratch", scheduler["reserved_bytes"], source="scheduler_reservations"
+        )
+        iogpu = telemetry.iogpu_bytes
+        allocator = telemetry.allocator_current_bytes
+        if iogpu is not None:
+            self.memory_budget.update(
+                "metal_heap", iogpu, source=telemetry.iogpu_source
+            )
+        elif allocator is not None:
+            self.memory_budget.update(
+                "metal_heap", allocator, source=telemetry.allocator_source
+            )
+        else:
+            self.memory_budget.update("metal_heap", None, source=None)
+
+    def memory_budget_snapshot(self) -> MemoryBudgetSnapshot:
+        telemetry = self.memory_telemetry.snapshot()
+        semantic_cache = (
+            self.semantic_state.snapshot()
+            if self.semantic_state is not None
+            else disabled_semantic_state_snapshot()
+        )
+        scheduler = self.scheduler.memory.snapshot()
+        self._sync_memory_budget(telemetry, semantic_cache, scheduler)
+        return self.memory_budget.snapshot()
+
+    def record_memory_budget_component(
+        self, name: str, current_bytes: int | None, *, source: str | None
+    ) -> None:
+        self.memory_budget.update(name, current_bytes, source=source)
 
     def token_estimation_snapshot(self) -> dict[str, int | str | None]:
         tokenizer_snapshot = getattr(self.engine, "tokenizer_snapshot", None)
@@ -214,6 +289,12 @@ class RuntimeService:
                 "cache_misses": int(backend.get("cache_misses", 0)),
                 "cache_evictions": int(backend.get("cache_evictions", 0)),
                 "cache_expirations": int(backend.get("cache_expirations", 0)),
+                "single_flight_capacity": int(backend.get("single_flight_capacity", 0)),
+                "single_flight_active": int(backend.get("single_flight_active", 0)),
+                "single_flight_leaders": int(backend.get("single_flight_leaders", 0)),
+                "single_flight_followers": int(backend.get("single_flight_followers", 0)),
+                "single_flight_bypasses": int(backend.get("single_flight_bypasses", 0)),
+                "single_flight_timeouts": int(backend.get("single_flight_timeouts", 0)),
             }
 
     def chat_schedule_request(self, request: dict[str, Any]) -> ScheduleRequest:
@@ -256,6 +337,8 @@ class RuntimeService:
         self, used_bytes: int, capacity_bytes: int, *, source: str
     ) -> None:
         self.memory_telemetry.update_kv_cache(used_bytes, capacity_bytes, source=source)
+        if self.context_reevaluator is not None:
+            self.context_reevaluator.update(capacity_bytes, source=source)
 
     def record_kv_cache_ratio(self, usage_ratio: float, *, source: str) -> None:
         self.memory_telemetry.update_kv_ratio(usage_ratio, source=source)
@@ -286,7 +369,16 @@ class RuntimeService:
 
     def admit_schedule(self, request: ScheduleRequest) -> Reservation:
         try:
-            self.memory_admission.admit(request, self.memory_telemetry.snapshot())
+            self.memory_admission.admit(
+                request,
+                self.memory_telemetry.snapshot(),
+                self.memory_budget_snapshot(),
+                maximum_context_tokens=(
+                    self.context_reevaluator.snapshot().effective_context_tokens
+                    if self.context_reevaluator is not None
+                    else None
+                ),
+            )
         except MemoryPressureAdmissionError as error:
             self.events.publish(
                 "memory.admission",

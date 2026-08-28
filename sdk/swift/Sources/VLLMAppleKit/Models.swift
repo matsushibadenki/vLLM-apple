@@ -103,6 +103,37 @@ public struct RuntimeProfile: Codable, Sendable, Equatable {
     public let capabilities: [String]
 }
 
+public enum MemoryBudgetAccounting: String, Codable, Sendable {
+    case additive
+    case overlapEnvelope = "overlap_envelope"
+}
+
+public struct MemoryBudgetComponent: Codable, Sendable, Equatable {
+    public let currentBytes: Int64?
+    public let peakBytes: Int64?
+    public let source: String?
+    public let accounting: MemoryBudgetAccounting
+}
+
+public struct MemoryBudgetComponents: Codable, Sendable, Equatable {
+    public let weights: MemoryBudgetComponent
+    public let kv: MemoryBudgetComponent
+    public let prefix: MemoryBudgetComponent
+    public let scratch: MemoryBudgetComponent
+    public let metalHeap: MemoryBudgetComponent
+    public let coreml: MemoryBudgetComponent
+}
+
+public struct MemoryBudget: Codable, Sendable, Equatable {
+    public let capacityBytes: Int64
+    public let knownComponentBytes: Int64
+    public let knownRemainingBytes: Int64
+    public let overcommittedBytes: Int64
+    public let unknownComponents: [String]
+    public let overlapEnvelopeBytes: Int64?
+    public let components: MemoryBudgetComponents
+}
+
 public struct HealthStatus: Codable, Sendable, Equatable {
     public let status: RuntimeState
     public let controlReady: Bool

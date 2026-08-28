@@ -14,7 +14,12 @@ from .backend import (
     make_backend_config,
     supports_kernel_tuning_middleware,
 )
-from .backend_memory import IOGPUMemoryAdapter, MemoryMetricsMonitor, VLLMMemoryMetricsAdapter
+from .backend_memory import (
+    IOGPUMemoryAdapter,
+    KVCacheCapacityResolver,
+    MemoryMetricsMonitor,
+    VLLMMemoryMetricsAdapter,
+)
 from .compat import inspect_backend
 from .context import recommend_context
 from .execution import AppleChipProfile
@@ -151,15 +156,16 @@ def serve(
         hardware = detect_hardware()
         recommendation = None
         inspected: InspectedModel | None = None
-        if max_model_len is None:
-            try:
-                inspected = inspect_model(model)
+        try:
+            inspected = inspect_model(model)
+            if max_model_len is None:
                 recommendation = recommend_context(hardware.memory, inspected.memory_spec)
                 balanced = next(tier for tier in recommendation.tiers if tier.name == "balanced")
                 if balanced.max_tokens <= 0:
                     raise RuntimeError("model does not fit in the current safe memory budget")
                 max_model_len = balanced.max_tokens
-            except ModelInspectionError:
+        except ModelInspectionError:
+            if max_model_len is None:
                 max_model_len = DEFAULT_UNINSPECTED_CONTEXT
         resolved_config = make_backend_config(
             model=model,
@@ -186,9 +192,35 @@ def serve(
         backend = BackendProcess(config)
         profile = build_profile(hardware, recommendation)
         proxy_engine = OpenAIProxyEngine(backend.base_url, backend)
-        service = RuntimeService(proxy_engine, profile=profile)
+        service = RuntimeService(
+            proxy_engine,
+            profile=profile,
+            model_memory_spec=inspected.memory_spec if inspected is not None else None,
+            configured_context_tokens=max_model_len,
+        )
+        if inspected is not None:
+            service.record_memory_budget_component(
+                "weights",
+                inspected.memory_spec.weights_bytes,
+                source="model_weight_files",
+            )
+        kv_capacity_resolver = None
+        if inspected is not None and compatibility.vllm_version is not None:
+            try:
+                kv_capacity_resolver = KVCacheCapacityResolver(
+                    compatibility.vllm_version,
+                    inspected.memory_spec.kv_bytes_per_token,
+                    str(inspected.config.get("model_type") or ""),
+                )
+            except ValueError:
+                pass
         memory_monitor = MemoryMetricsMonitor(
-            VLLMMemoryMetricsAdapter(backend.base_url), service, iogpu_adapter=IOGPUMemoryAdapter()
+            VLLMMemoryMetricsAdapter(
+                backend.base_url,
+                kv_capacity_resolver=kv_capacity_resolver,
+            ),
+            service,
+            iogpu_adapter=IOGPUMemoryAdapter(),
         )
         service.set_state(RuntimeState.LOADING_MODEL)
         chip = None

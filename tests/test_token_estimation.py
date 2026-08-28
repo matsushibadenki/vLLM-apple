@@ -1,4 +1,5 @@
 import json
+import threading
 import unittest
 from unittest.mock import patch
 
@@ -98,6 +99,43 @@ class TokenEstimationTests(unittest.TestCase):
             )
         self.assertEqual(calls, 2)
 
+    def test_backend_coalesces_concurrent_identical_requests(self) -> None:
+        entered = threading.Event()
+        release = threading.Event()
+        calls = 0
+
+        def open_request(_request, timeout):
+            nonlocal calls
+            self.assertEqual(timeout, 5.0)
+            calls += 1
+            entered.set()
+            self.assertTrue(release.wait(1.0))
+            return ChunkedResponse(b'{"count":31}')
+
+        engine = OpenAIProxyEngine("http://127.0.0.1:1")
+        request = {"model": "model", "messages": [{"role": "user", "content": "same"}]}
+        results: list[int | None] = []
+        with patch("urllib.request.urlopen", side_effect=open_request):
+            leader = threading.Thread(
+                target=lambda: results.append(engine.estimate_prompt_tokens(request))
+            )
+            follower = threading.Thread(
+                target=lambda: results.append(engine.estimate_prompt_tokens(request))
+            )
+            leader.start()
+            self.assertTrue(entered.wait(1.0))
+            follower.start()
+            release.set()
+            leader.join(timeout=1.0)
+            follower.join(timeout=1.0)
+
+        self.assertEqual(sorted(results), [31, 31])
+        self.assertEqual(calls, 1)
+        snapshot = engine.tokenizer_snapshot()
+        self.assertEqual(snapshot["single_flight_active"], 0)
+        self.assertEqual(snapshot["single_flight_leaders"], 1)
+        self.assertEqual(snapshot["single_flight_followers"], 1)
+
     def test_service_combines_measured_prompt_and_output_context(self) -> None:
         class Engine:
             ready = True
@@ -115,6 +153,12 @@ class TokenEstimationTests(unittest.TestCase):
                     "cache_misses": 1,
                     "cache_evictions": 0,
                     "cache_expirations": 0,
+                    "single_flight_capacity": 64,
+                    "single_flight_active": 0,
+                    "single_flight_leaders": 1,
+                    "single_flight_followers": 2,
+                    "single_flight_bypasses": 0,
+                    "single_flight_timeouts": 0,
                 }
 
         service = RuntimeService(engine=Engine())  # type: ignore[arg-type]
@@ -131,6 +175,8 @@ class TokenEstimationTests(unittest.TestCase):
         self.assertEqual(snapshot["last_prompt_tokens"], 3_000)
         self.assertEqual(snapshot["cache_capacity"], 256)
         self.assertEqual(snapshot["cache_hits"], 2)
+        self.assertEqual(snapshot["single_flight_capacity"], 64)
+        self.assertEqual(snapshot["single_flight_followers"], 2)
 
     def test_missing_tokenizer_falls_back_to_completion_only(self) -> None:
         service = RuntimeService()

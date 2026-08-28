@@ -17,6 +17,29 @@ class TokenCountCacheSnapshot:
     expirations: int
 
 
+@dataclass(frozen=True, slots=True)
+class TokenCountSingleFlightSnapshot:
+    capacity: int
+    active: int
+    leaders: int
+    followers: int
+    bypasses: int
+    timeouts: int
+
+
+@dataclass(slots=True)
+class _FlightState:
+    event: threading.Event
+    result: int | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class TokenCountFlight:
+    fingerprint: str
+    leader: bool
+    state: _FlightState | None
+
+
 class TokenCountCache:
     """Bounded TTL/LRU cache keyed only by an opaque request fingerprint."""
 
@@ -73,4 +96,68 @@ class TokenCountCache:
                 self._misses,
                 self._evictions,
                 self._expirations,
+            )
+
+
+class TokenCountSingleFlight:
+    """Bounds and coalesces concurrent work for identical opaque fingerprints."""
+
+    def __init__(self, capacity: int = 64) -> None:
+        if capacity <= 0:
+            raise ValueError("single-flight capacity must be positive")
+        self.capacity = capacity
+        self._entries: dict[str, _FlightState] = {}
+        self._lock = threading.Lock()
+        self._leaders = 0
+        self._followers = 0
+        self._bypasses = 0
+        self._timeouts = 0
+
+    def join(self, fingerprint: str) -> TokenCountFlight:
+        if not fingerprint:
+            raise ValueError("single-flight fingerprint cannot be empty")
+        with self._lock:
+            state = self._entries.get(fingerprint)
+            if state is not None:
+                self._followers += 1
+                return TokenCountFlight(fingerprint, False, state)
+            if len(self._entries) >= self.capacity:
+                self._bypasses += 1
+                return TokenCountFlight(fingerprint, True, None)
+            state = _FlightState(threading.Event())
+            self._entries[fingerprint] = state
+            self._leaders += 1
+            return TokenCountFlight(fingerprint, True, state)
+
+    def wait(self, flight: TokenCountFlight, timeout: float) -> int | None:
+        if flight.leader or flight.state is None or timeout <= 0:
+            raise ValueError("invalid single-flight follower wait")
+        if not flight.state.event.wait(timeout):
+            with self._lock:
+                self._timeouts += 1
+            return None
+        return flight.state.result
+
+    def complete(self, flight: TokenCountFlight, result: int | None) -> None:
+        if not flight.leader:
+            raise ValueError("only a single-flight leader can complete work")
+        if flight.state is None:
+            return
+        with self._lock:
+            current = self._entries.get(flight.fingerprint)
+            if current is not flight.state:
+                return
+            flight.state.result = result
+            del self._entries[flight.fingerprint]
+            flight.state.event.set()
+
+    def snapshot(self) -> TokenCountSingleFlightSnapshot:
+        with self._lock:
+            return TokenCountSingleFlightSnapshot(
+                self.capacity,
+                len(self._entries),
+                self._leaders,
+                self._followers,
+                self._bypasses,
+                self._timeouts,
             )

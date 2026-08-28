@@ -47,6 +47,7 @@ private struct UnixHardwareEnvelope: Decodable {
 private struct UnixRuntimeEnvelope: Decodable {
     let schemaVersion: Int
     let profile: RuntimeProfile
+    let memoryBudget: MemoryBudget
 }
 
 public final class UnixSocketRuntimeClient: VLLMAppleRuntimeClient, @unchecked Sendable {
@@ -72,6 +73,12 @@ public final class UnixSocketRuntimeClient: VLLMAppleRuntimeClient, @unchecked S
         let envelope = try await request("/v1/runtime", as: UnixRuntimeEnvelope.self)
         try validate(schemaVersion: envelope.schemaVersion)
         return envelope.profile
+    }
+
+    public func memoryBudget() async throws -> MemoryBudget {
+        let envelope = try await request("/v1/runtime", as: UnixRuntimeEnvelope.self)
+        try validate(schemaVersion: envelope.schemaVersion)
+        return envelope.memoryBudget
     }
 
     public func chat(_ request: ChatRequest) async throws -> ChatResponse {

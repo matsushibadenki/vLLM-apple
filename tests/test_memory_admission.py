@@ -4,6 +4,7 @@ from vllm_apple.memory_admission import (
     MemoryPressureAdmissionError,
     MemoryPressureAdmissionGate,
 )
+from vllm_apple.memory_budget import UnifiedMemoryBudgetLedger
 from vllm_apple.memory_telemetry import UnifiedMemoryTelemetry
 from vllm_apple.scheduler import ScheduleRequest
 from vllm_apple.types import MemoryPressure, Priority
@@ -89,6 +90,23 @@ class MemoryPressureAdmissionGateTests(unittest.TestCase):
         self.assertEqual(gate.snapshot().recovery_stage, 0)
         gate.refresh(self.memory(pressure=MemoryPressure.WARNING))
         self.assertIsNone(gate.snapshot().recovery_stage)
+
+    def test_known_budget_overcommit_rejects_before_pressure_policy(self) -> None:
+        gate = MemoryPressureAdmissionGate()
+        ledger = UnifiedMemoryBudgetLedger(100)
+        ledger.update("weights", 101, source="model_weight_files")
+        with self.assertRaisesRegex(
+            MemoryPressureAdmissionError, "memory_budget_overcommitted"
+        ):
+            gate.admit(ScheduleRequest("decode", 0), self.memory(), ledger.snapshot())
+
+    def test_request_cannot_cross_known_component_ceiling(self) -> None:
+        gate = MemoryPressureAdmissionGate()
+        ledger = UnifiedMemoryBudgetLedger(100)
+        ledger.update("weights", 90, source="model_weight_files")
+        with self.assertRaisesRegex(MemoryPressureAdmissionError, "memory_budget_exceeded"):
+            gate.admit(ScheduleRequest("decode", 11), self.memory(), ledger.snapshot())
+        gate.admit(ScheduleRequest("decode", 10), self.memory(), ledger.snapshot())
 
 
 if __name__ == "__main__":

@@ -20,6 +20,36 @@ The peak delta is signed because an allocator may account for shared or reserved
 pages differently from RSS. Consumers must treat it as an accounting difference,
 not as leaked memory.
 
+## Unified budget ledger
+
+`memory_budget` reconciles six fixed, constant-space categories: model weights,
+KV state, reusable prefix state, scheduler scratch reservations, the Metal heap,
+and Core ML buffers. Every category retains only its latest value, monotonic peak,
+and source. Missing backend measurements remain `null` and are listed in
+`unknown_components`; they are never silently converted to zero.
+
+Weights, KV, prefix, scratch, and Core ML are additive components.
+`known_component_bytes` and `known_remaining_bytes` include only those categories,
+and `overcommitted_bytes` makes a known over-budget state explicit. Metal heap is
+an `overlap_envelope`: MLX allocations, KV pages, and weights may already be inside
+the IOGPU/Metal observation, so it is published separately and never added again.
+IOGPU is preferred for that envelope, with the MLX allocator as a fallback.
+
+The runtime automatically reconciles measured KV bytes, semantic-prefix residency,
+active scheduler reservations, and the best Metal envelope on every snapshot.
+Model loaders and Core ML adapters can submit their exact values through
+`record_memory_budget_component`; until they do, those values remain unknown.
+Core ML adapters must report exclusive runtime buffers rather than model weights,
+which belong in the weights category. The Swift SDK exposes the same snapshot as
+typed `MemoryBudget` values through both HTTP and Unix-domain-socket clients.
+
+Managed model startup records the deduplicated size of local/Hugging Face cached
+weight shards even when `--max-model-len` is explicitly supplied. Before each
+inference reservation, admission refreshes the ledger and rejects a known existing
+overcommit as `memory_budget_overcommitted`, or a request that would cross the
+known component ceiling as `memory_budget_exceeded`. Unknown components remain
+observable but do not cause false rejection of backends that cannot report them.
+
 ## vLLM adapter
 
 The managed daemon polls the local backend `/metrics` endpoint once per second on
@@ -29,9 +59,21 @@ a dedicated daemon thread. Responses are limited to 1 MiB, 20,000 lines, and
 
 The adapter accepts the current `vllm:kv_cache_usage_perc` gauge and the legacy
 `vllm:gpu_cache_usage_perc` alias, preferring the current name. It also reads the
-standard Prometheus `process_resident_memory_bytes` gauge. When vLLM provides only
-a KV ratio, byte capacity and used bytes remain `null`; the runtime does not infer
-them from a planned context budget.
+standard Prometheus `process_resident_memory_bytes` gauge. For verified vLLM
+0.24.x–0.28.x backends and standard inspected models, one unambiguous
+`vllm:cache_config_info` series may supply `kv_cache_size_tokens`. The adapter
+multiplies that group-aware logical capacity by the inspected KV bytes/token and
+converts the ratio to used bytes. Unknown versions, missing/`None` labels, multiple
+config series, hybrid models that cannot be inspected, and values over 2 TiB retain
+ratio-only telemetry; planned context budgets are never substituted.
+
+When exact KV capacity becomes available after backend load, `context_reevaluation`
+divides it by the inspected model's KV bytes/token and compares the result with the
+configured context. A smaller capacity changes only the control-plane admission
+ceiling; the running backend is never mutated in place. Requests above the effective
+ceiling fail as `backend_context_capacity_exceeded`. Pending, sufficient, and reduced
+states expose the configured/effective token counts, inspected weights footprint,
+measurement source, and a constant-space reevaluation counter.
 
 The same in-backend middleware exposes a loopback-only JSON memory snapshot
 using MLX `get_active_memory`, `get_cache_memory`, and `get_peak_memory`.
@@ -115,3 +157,10 @@ fingerprint of the canonical tokenizer request and its integer count; prompt tex
 tool definitions, and token IDs are not retained. Runtime telemetry exposes cache
 capacity, current entries, hits, misses, evictions, and expirations without exposing
 request-derived keys.
+
+Concurrent cache misses for the same fingerprint are coalesced with a bounded
+single-flight coordinator. At most 64 distinct keys may be coordinated at once;
+additional distinct keys bypass coordination instead of growing memory. Followers
+wait at most 5.5 seconds and share either the leader's count or its failure. The
+coordinator removes completed entries immediately and publishes only aggregate
+active, leader, follower, bypass, and timeout counters.

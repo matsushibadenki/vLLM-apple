@@ -66,3 +66,30 @@ import Testing
     #expect(event.runtimeFailure?.recoverability == .retryable)
     #expect(event.runtimeFailure?.messageKey == "runtime.error.backend_readiness_timeout")
 }
+
+@Test func decodesUnifiedMemoryBudgetWithoutDoubleCountingMetalEnvelope() throws {
+    let data = Data("""
+    {
+      "capacity_bytes": 1000,
+      "known_component_bytes": 650,
+      "known_remaining_bytes": 350,
+      "overcommitted_bytes": 0,
+      "unknown_components": [],
+      "overlap_envelope_bytes": 700,
+      "components": {
+        "weights": {"current_bytes": 400, "peak_bytes": 400, "source": "manifest", "accounting": "additive"},
+        "kv": {"current_bytes": 100, "peak_bytes": 100, "source": "vllm", "accounting": "additive"},
+        "prefix": {"current_bytes": 50, "peak_bytes": 50, "source": "semantic", "accounting": "additive"},
+        "scratch": {"current_bytes": 25, "peak_bytes": 25, "source": "scheduler", "accounting": "additive"},
+        "metal_heap": {"current_bytes": 700, "peak_bytes": 700, "source": "ioreg", "accounting": "overlap_envelope"},
+        "coreml": {"current_bytes": 75, "peak_bytes": 75, "source": "coreml", "accounting": "additive"}
+      }
+    }
+    """.utf8)
+    let decoder = JSONDecoder()
+    decoder.keyDecodingStrategy = .convertFromSnakeCase
+    let budget = try decoder.decode(MemoryBudget.self, from: data)
+    #expect(budget.knownComponentBytes == 650)
+    #expect(budget.overlapEnvelopeBytes == 700)
+    #expect(budget.components.metalHeap.accounting == .overlapEnvelope)
+}

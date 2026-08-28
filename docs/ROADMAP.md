@@ -74,8 +74,12 @@ Graph / Memory Planner + Global Scheduler
 - `[Done]` pressure回復後の段階的batch/context ramp-up（0/5/15/30秒、transient memoryも12.5/25/50/100%で解除）
 - `[Done]` tokenizer実測prompt tokensをadmission context見積もりへ接続（vLLM `/tokenize`、64 KiB count scan、token ID非保持、fallback counter）
 - `[Done]` tokenize latency cacheと同一prompt fingerprintのbounded再利用（SHA-256 keyのみ、256件LRU、5分TTL）
-- `[Next]` 同時到着した同一tokenize要求を1回へ集約するbounded single-flight
-- `[Later]` weights、KV、prefix、scratch、Metal heap、Core ML bufferの統合budget ledger
+- `[Done]` 同時到着した同一tokenize要求を1回へ集約するbounded single-flight（最大64 active key、5.5秒wait、失敗共有）
+- `[Done]` weights、KV、prefix、scratch、Metal heap、Core ML bufferの統合budget ledger（unknown明示、monotonic peak、Metal overlap非加算）
+- `[Done]` model manifestからweights実測値を自動投入し、budget overcommitをadmissionへ接続
+- `[Done]` KV ratioのみのbackendでcapacity bytesを取得するversion-gated adapter（vLLM 0.24–0.28、単一cache config、2 TiB hard limit）
+- `[Done]` backend load後の実KV capacityとinspected weights footprintによるcontext再評価（起動設定非変更、admission上限のみ縮小）
+- `[Next]` context再評価結果のSSE通知とMac app警告表示
 - `[Later]` thermal stateとpower modeの検出
 
 ### Automatic context calculation

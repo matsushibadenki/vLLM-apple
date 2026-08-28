@@ -5,6 +5,7 @@ import time
 from dataclasses import asdict, dataclass
 from collections.abc import Callable
 
+from .memory_budget import MemoryBudgetSnapshot
 from .memory_telemetry import MemoryTelemetrySnapshot
 from .scheduler import ScheduleRequest
 from .types import MemoryPressure, Priority
@@ -85,10 +86,29 @@ class MemoryPressureAdmissionGate:
         }
         return native if ranks[native] >= ranks[derived] else derived
 
-    def admit(self, request: ScheduleRequest, memory: MemoryTelemetrySnapshot) -> None:
+    def admit(
+        self,
+        request: ScheduleRequest,
+        memory: MemoryTelemetrySnapshot,
+        budget: MemoryBudgetSnapshot | None = None,
+        maximum_context_tokens: int | None = None,
+    ) -> None:
         pressure = self.effective_pressure(memory)
         reason = None
-        if pressure == MemoryPressure.CRITICAL and request.priority not in {
+        if (
+            maximum_context_tokens is not None
+            and request.estimated_context_tokens > maximum_context_tokens
+        ):
+            reason = "backend_context_capacity_exceeded"
+        elif budget is not None and budget.overcommitted_bytes > 0:
+            reason = "memory_budget_overcommitted"
+        elif (
+            budget is not None
+            and budget.known_component_bytes + request.estimated_memory_bytes
+            > budget.capacity_bytes
+        ):
+            reason = "memory_budget_exceeded"
+        elif pressure == MemoryPressure.CRITICAL and request.priority not in {
             Priority.REALTIME,
             Priority.INTERACTIVE,
         }:
