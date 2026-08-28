@@ -72,7 +72,8 @@ Graph / Memory Planner + Global Scheduler
 - `[Done]` native macOS memory pressure notificationをtelemetryとelastic controllerへ接続（重複coalesce、scheduler safe point、登録失敗時fallback）
 - `[Done]` pressure、RSS、IOGPUを使った新規workload admission抑制（Unified Memory viewはmax、既存work非cancel、interactive escape hatch）
 - `[Done]` pressure回復後の段階的batch/context ramp-up（0/5/15/30秒、transient memoryも12.5/25/50/100%で解除）
-- `[Next]` tokenizer実測prompt tokensをadmission context見積もりへ接続
+- `[Done]` tokenizer実測prompt tokensをadmission context見積もりへ接続（vLLM `/tokenize`、64 KiB count scan、token ID非保持、fallback counter）
+- `[Next]` tokenize latency cacheと同一prompt fingerprintのbounded再利用
 - `[Later]` weights、KV、prefix、scratch、Metal heap、Core ML bufferの統合budget ledger
 - `[Later]` thermal stateとpower modeの検出
 
@@ -628,6 +629,7 @@ vLLM-Metal対応とは見なさない。
 - `[Done]` structured runtime error taxonomyとrecoverability
 - `[Done]` raw detailを公開しないfailure fingerprintとSwift typed decode
 - `[Done]` private/atomic daemon crash diagnosticsとbounded log digest
+- `[Done]` optional native telemetry登録をcontrol readinessから隔離
 - `[Later]` fault injection suite
 
 ### Security

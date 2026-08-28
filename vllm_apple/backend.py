@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import subprocess
 import tempfile
 import threading
@@ -20,6 +21,7 @@ from .observability import REQUEST_ID_HEADER, current_request_id
 
 MAX_UPSTREAM_RESPONSE_BYTES = 16 * 1024 * 1024
 MAX_BACKEND_HELP_BYTES = 1024 * 1024
+MAX_TOKENIZE_SCAN_BYTES = 64 * 1024
 VLLM_APPLE_TUNING_MIDDLEWARE = "vllm_apple.vllm_middleware.VLLMAppleKernelTuningMiddleware"
 
 
@@ -256,6 +258,9 @@ class OpenAIProxyEngine:
         self._tuning_acknowledged = 0
         self._tuning_ack_missing = 0
         self._tuning_ack_mismatch = 0
+        self._tokenizer_lock = threading.Lock()
+        self._tokenizer_measured = 0
+        self._tokenizer_failures = 0
 
     def tuning_ack_snapshot(self) -> dict[str, int]:
         with self._tuning_ack_lock:
@@ -264,6 +269,48 @@ class OpenAIProxyEngine:
                 "missing": self._tuning_ack_missing,
                 "mismatch": self._tuning_ack_mismatch,
             }
+
+    def tokenizer_snapshot(self) -> dict[str, int]:
+        with self._tokenizer_lock:
+            return {
+                "measured": self._tokenizer_measured,
+                "failures": self._tokenizer_failures,
+            }
+
+    def estimate_prompt_tokens(self, request: dict[str, Any]) -> int | None:
+        allowed = (
+            "model",
+            "messages",
+            "add_generation_prompt",
+            "continue_final_message",
+            "add_special_tokens",
+            "tools",
+            "chat_template",
+            "chat_template_kwargs",
+        )
+        payload = {key: request[key] for key in allowed if key in request}
+        if "messages" not in payload:
+            return None
+        body = json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
+        try:
+            with urllib.request.urlopen(self._request("/tokenize", body), timeout=5.0) as response:
+                scanned = bytearray()
+                while len(scanned) <= MAX_TOKENIZE_SCAN_BYTES:
+                    chunk = response.read(min(4096, MAX_TOKENIZE_SCAN_BYTES + 1 - len(scanned)))
+                    if not chunk:
+                        break
+                    scanned.extend(chunk)
+                    match = re.search(rb'"count"\s*:\s*(\d+)', scanned)
+                    if match is not None:
+                        count = int(match.group(1))
+                        with self._tokenizer_lock:
+                            self._tokenizer_measured += 1
+                        return count
+        except (OSError, urllib.error.URLError, ValueError):
+            pass
+        with self._tokenizer_lock:
+            self._tokenizer_failures += 1
+        return None
 
     def _record_tuning_ack(
         self, context: InferenceKernelContext | None, response: BinaryIO

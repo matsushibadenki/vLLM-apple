@@ -15,7 +15,6 @@ from typing import Any
 from .auth import SessionAuthenticator
 from .backend import BackendHTTPError
 from .events import RuntimeEvent, SubscriptionLimitError
-from .execution import WorkloadPhase
 from .memory_admission import MemoryPressureAdmissionError
 from .observability import (
     REQUEST_ID_HEADER,
@@ -24,7 +23,6 @@ from .observability import (
     request_scope,
     resolve_request_id,
 )
-from .scheduler import ScheduleRequest
 from .service import InferenceUnavailableError, RuntimeService
 from .version import API_VERSION, MINIMUM_CLIENT_VERSION, SCHEMA_VERSION, __version__
 
@@ -384,7 +382,7 @@ class RuntimeRequestHandler(BaseHTTPRequestHandler):
         started = time.monotonic()
         try:
             reservation = self.server.service.admit_schedule(
-                self._schedule_request(request)
+                self.server.service.chat_schedule_request(request)
             )
         except MemoryPressureAdmissionError as error:
             self._error(HTTPStatus.SERVICE_UNAVAILABLE, "memory_pressure", str(error))
@@ -412,28 +410,10 @@ class RuntimeRequestHandler(BaseHTTPRequestHandler):
             status = HTTPStatus.BAD_GATEWAY
         self._error(status, error.code or "backend_error", str(error))
 
-    @staticmethod
-    def _schedule_request(request: dict[str, Any]) -> ScheduleRequest:
-        raw_batch = request.get("n", 1)
-        batch_size = raw_batch if isinstance(raw_batch, int) and not isinstance(raw_batch, bool) and raw_batch > 0 else 1
-        raw_context = request.get("max_completion_tokens", request.get("max_tokens", 0))
-        context_tokens = (
-            raw_context
-            if isinstance(raw_context, int) and not isinstance(raw_context, bool) and raw_context > 0
-            else 0
-        )
-        return ScheduleRequest(
-            "paged_attention",
-            0,
-            batch_size=batch_size,
-            phase=WorkloadPhase.DECODE,
-            estimated_context_tokens=context_tokens,
-        )
-
     def _stream_chat(self, request: dict[str, Any]) -> None:
         try:
             reservation = self.server.service.admit_schedule(
-                self._schedule_request(request)
+                self.server.service.chat_schedule_request(request)
             )
         except MemoryPressureAdmissionError as error:
             self._error(HTTPStatus.SERVICE_UNAVAILABLE, "memory_pressure", str(error))

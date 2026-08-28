@@ -11,7 +11,7 @@ from .elastic_memory import (
     disabled_elastic_memory_snapshot,
 )
 from .events import EventBus
-from .execution import AppleExecutionPlan
+from .execution import AppleExecutionPlan, WorkloadPhase
 from .kernel_context import InferenceKernelContext, PagedAttentionKernelSelection
 from .kernel_profile import PagedAttentionShape
 from .metal_probe import MetalThreadConfiguration
@@ -76,6 +76,7 @@ class ServiceSnapshot:
     execution_plan: dict[str, str | int | bool | None]
     memory_telemetry: dict[str, int | float | str | None]
     memory_admission: dict[str, int | float | str | None]
+    token_estimation: dict[str, int | str | None]
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -92,6 +93,7 @@ class ServiceSnapshot:
             "execution_plan": self.execution_plan,
             "memory_telemetry": self.memory_telemetry,
             "memory_admission": self.memory_admission,
+            "token_estimation": self.token_estimation,
         }
 
 
@@ -111,6 +113,8 @@ class RuntimeService:
         self._pending_operator_dispatcher: OperatorDispatcher | None = None
         self._active_metal_tuning: MetalTuningReport | None = None
         self._pending_metal_tuning: MetalTuningReport | None = None
+        self._tokenizer_fallbacks = 0
+        self._last_prompt_tokens: int | None = None
         self.events = event_bus or EventBus()
         self.profile = profile or build_profile()
         memory = self.profile.hardware.memory
@@ -191,7 +195,51 @@ class RuntimeService:
                 execution_plan=self.scheduler.execution_plan_snapshot(),
                 memory_telemetry=self.memory_telemetry.snapshot().to_dict(),
                 memory_admission=self.memory_admission.snapshot().to_dict(),
+                token_estimation=self.token_estimation_snapshot(),
             )
+
+    def token_estimation_snapshot(self) -> dict[str, int | str | None]:
+        tokenizer_snapshot = getattr(self.engine, "tokenizer_snapshot", None)
+        backend = tokenizer_snapshot() if callable(tokenizer_snapshot) else {}
+        with self._lock:
+            return {
+                "source": "backend_tokenizer" if self._last_prompt_tokens is not None else "fallback",
+                "measured": int(backend.get("measured", 0)),
+                "failures": int(backend.get("failures", 0)),
+                "fallbacks": self._tokenizer_fallbacks,
+                "last_prompt_tokens": self._last_prompt_tokens,
+            }
+
+    def chat_schedule_request(self, request: dict[str, Any]) -> ScheduleRequest:
+        raw_batch = request.get("n", 1)
+        batch_size = (
+            raw_batch
+            if isinstance(raw_batch, int) and not isinstance(raw_batch, bool) and raw_batch > 0
+            else 1
+        )
+        raw_output = request.get("max_completion_tokens", request.get("max_tokens", 0))
+        output_tokens = (
+            raw_output
+            if isinstance(raw_output, int) and not isinstance(raw_output, bool) and raw_output > 0
+            else 0
+        )
+        estimator = getattr(self.engine, "estimate_prompt_tokens", None)
+        prompt_tokens = estimator(request) if callable(estimator) else None
+        if not isinstance(prompt_tokens, int) or isinstance(prompt_tokens, bool) or prompt_tokens < 0:
+            prompt_tokens = None
+        with self._lock:
+            if prompt_tokens is None:
+                self._tokenizer_fallbacks += 1
+                self._last_prompt_tokens = None
+            else:
+                self._last_prompt_tokens = prompt_tokens
+        return ScheduleRequest(
+            "paged_attention",
+            0,
+            batch_size=batch_size,
+            phase=WorkloadPhase.DECODE,
+            estimated_context_tokens=(prompt_tokens or 0) + output_tokens,
+        )
 
     def record_framework_memory(
         self, current_bytes: int, *, source: str, peak_bytes: int | None = None

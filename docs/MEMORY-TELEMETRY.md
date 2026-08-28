@@ -58,6 +58,9 @@ until completion.
 The source owns one callback and no polling history. Registration failure leaves
 the startup `vm_stat` pressure estimate in place and publishes an unavailable
 monitor event instead of preventing daemon startup.
+Control HTTP and UDS servers are created first; native source registration runs
+on an independent daemon thread. A virtualized runner that stalls inside
+libdispatch therefore cannot block runtime readiness.
 
 ## Admission gate
 
@@ -92,3 +95,16 @@ legacy `max_tokens` supplies the known lower bound of requested context. Backend
 tokenizer adapters may provide a fuller prompt-plus-output estimate. A renewed
 warning or critical notification cancels recovery immediately; a later normal
 transition starts again from stage zero.
+
+### Tokenizer-backed context estimate
+
+For managed vLLM backends, the control plane sends a bounded chat-form request
+to the official `/tokenize` endpoint before admission. It scans at most 64 KiB
+of the response for the integer `count` and closes the response immediately;
+the potentially large token-ID array is neither retained nor logged. Prompt
+count plus requested completion tokens becomes `estimated_context_tokens`.
+
+Only tokenizer-related fields are forwarded. Sampling parameters and generated
+content are excluded. A timeout, unsupported chat tokenization, malformed
+response, or missing backend falls back to the completion-only lower bound and
+increments bounded counters in `token_estimation` rather than failing inference.

@@ -18,6 +18,7 @@
     "elastic_memory",
     "memory_telemetry",
     "memory_admission",
+    "token_estimation",
     "execution_plan",
     "last_error",
     "failure"
@@ -232,6 +233,18 @@
         "recovery_max_batch_size": { "type": ["integer", "null"], "minimum": 1 },
         "recovery_max_context_tokens": { "type": ["integer", "null"], "minimum": 1 },
         "recovery_memory_fraction": { "type": ["number", "null"], "minimum": 0, "maximum": 1 }
+      },
+      "additionalProperties": false
+    },
+    "token_estimation": {
+      "type": "object",
+      "required": ["source", "measured", "failures", "fallbacks", "last_prompt_tokens"],
+      "properties": {
+        "source": { "enum": ["backend_tokenizer", "fallback"] },
+        "measured": { "type": "integer", "minimum": 0 },
+        "failures": { "type": "integer", "minimum": 0 },
+        "fallbacks": { "type": "integer", "minimum": 0 },
+        "last_prompt_tokens": { "type": ["integer", "null"], "minimum": 0 }
       },
       "additionalProperties": false
     },

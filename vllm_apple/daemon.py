@@ -249,17 +249,6 @@ def serve(
                 )
     else:
         service = RuntimeService()
-    pressure_monitor: MemoryPressureMonitor | None = None
-    try:
-        pressure_monitor = MemoryPressureMonitor(service.apply_memory_pressure)
-        pressure_monitor.start()
-    except (OSError, RuntimeError, ValueError):
-        pressure_monitor = None
-        service.events.publish(
-            "memory.pressure_monitor", {"status": "unavailable", "fallback": "vm_stat"}
-        )
-    else:
-        service.events.publish("memory.pressure_monitor", {"status": "active"})
     server = create_server(
         host,
         port,
@@ -285,6 +274,38 @@ def serve(
             name="vllm-apple-uds-server",
         )
         unix_thread.start()
+
+    # Optional OS telemetry must never delay control-plane readiness. Some
+    # virtualized macOS runners expose libdispatch's symbol but stall while
+    # registering the source, so registration is isolated from both servers.
+    pressure_monitor_lock = threading.Lock()
+    pressure_monitor_holder: list[MemoryPressureMonitor] = []
+    pressure_monitor_shutdown = threading.Event()
+
+    def launch_pressure_monitor() -> None:
+        try:
+            monitor = MemoryPressureMonitor(service.apply_memory_pressure)
+            if pressure_monitor_shutdown.is_set():
+                return
+            monitor.start()
+        except (OSError, RuntimeError, ValueError):
+            service.events.publish(
+                "memory.pressure_monitor", {"status": "unavailable", "fallback": "vm_stat"}
+            )
+            return
+        with pressure_monitor_lock:
+            if pressure_monitor_shutdown.is_set():
+                monitor.stop()
+                return
+            pressure_monitor_holder.append(monitor)
+        service.events.publish("memory.pressure_monitor", {"status": "active"})
+
+    pressure_monitor_thread = threading.Thread(
+        target=launch_pressure_monitor,
+        daemon=True,
+        name="vllm-apple-pressure-monitor",
+    )
+    pressure_monitor_thread.start()
 
     if backend is not None:
 
@@ -340,8 +361,10 @@ def serve(
     try:
         server.serve_forever(poll_interval=0.25)
     finally:
-        if pressure_monitor is not None:
-            pressure_monitor.stop()
+        pressure_monitor_shutdown.set()
+        with pressure_monitor_lock:
+            for pressure_monitor in pressure_monitor_holder:
+                pressure_monitor.stop()
         server.server_close()
         drain_deadline = time.monotonic() + shutdown_grace_period
         server.wait_for_drain(max(0.0, drain_deadline - time.monotonic()))
