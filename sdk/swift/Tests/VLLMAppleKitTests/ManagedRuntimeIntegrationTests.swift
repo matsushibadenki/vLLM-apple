@@ -35,6 +35,7 @@ private func repositoryRoot() throws -> URL {
     let socketURL = temporary.appending(path: "runtime.sock")
     let tokenURL = temporary.appending(path: "session.token")
     let markerURL = temporary.appending(path: "crashed-once")
+    let crashTriggerURL = temporary.appending(path: "trigger-crash")
     let executableURL = temporary.appending(path: "test-daemon")
     let token = String(repeating: "s", count: 32)
     try Data((token + "\n").utf8).write(to: tokenURL)
@@ -42,13 +43,14 @@ private func repositoryRoot() throws -> URL {
 
     let escapedRoot = root.path.replacingOccurrences(of: "'", with: "'\\''")
     let escapedMarker = markerURL.path.replacingOccurrences(of: "'", with: "'\\''")
+    let escapedCrashTrigger = crashTriggerURL.path.replacingOccurrences(of: "'", with: "'\\''")
     let script = """
     #!/bin/sh
     export PYTHONPATH='\(escapedRoot)'
     echo managed-runtime-test >&2
     if [ ! -f '\(escapedMarker)' ]; then
       touch '\(escapedMarker)'
-      (sleep 2; kill -9 $$) &
+      (while [ ! -f '\(escapedCrashTrigger)' ]; do sleep 0.05; done; kill -9 $$) &
     fi
     exec python3 -m vllm_apple.daemon "$@"
     """
@@ -71,6 +73,7 @@ private func repositoryRoot() throws -> URL {
         throw error
     }
     #expect(try await runtime.client.health().controlReady)
+    try Data().write(to: crashTriggerURL)
 
     let clock = ContinuousClock()
     let deadline = clock.now.advanced(by: .seconds(8))

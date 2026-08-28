@@ -43,7 +43,7 @@ jobs:
       QUALIFICATION_DURATION: ${{ inputs['duration-seconds'] }}
       QUALIFICATION_MAX_MODEL_LEN: ${{ inputs['max-model-len'] }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           clean: true
           persist-credentials: false
