@@ -66,7 +66,10 @@ private func repositoryRoot() throws -> URL {
         logCapacity: 20
     )
     do {
-        try await runtime.start(timeout: .seconds(5))
+        // GitHub macOS runners can spend more than five seconds in a cold
+        // Python import before the UDS is ready. Keep this below the package
+        // job timeout while avoiding a machine-speed-dependent failure.
+        try await runtime.start(timeout: .seconds(20))
     } catch {
         let startupLogs = await runtime.logs.snapshot()
         print("ManagedRuntime startup logs: \(startupLogs)")
@@ -76,7 +79,7 @@ private func repositoryRoot() throws -> URL {
     try Data().write(to: crashTriggerURL)
 
     let clock = ContinuousClock()
-    let deadline = clock.now.advanced(by: .seconds(8))
+    let deadline = clock.now.advanced(by: .seconds(25))
     var recovered = false
     while clock.now < deadline {
         if await runtime.restartAttempts == 1,
