@@ -1,4 +1,5 @@
 import SwiftUI
+import VLLMAppleKit
 
 struct ContentView: View {
     @ObservedObject var model: AppModel
@@ -85,6 +86,10 @@ struct ContentView: View {
                     .fixedSize(horizontal: false, vertical: true)
                 }
                 .accessibilityElement(children: .combine)
+            }
+
+            if let calibration = model.kvCalibration {
+                CalibrationDiagnostic(calibration: calibration)
             }
 
             if !model.qualificationReports.isEmpty {
@@ -235,6 +240,68 @@ struct ContentView: View {
             .foregroundStyle(DesignTokens.secondaryInk)
             .textCase(.uppercase)
             .tracking(0.8)
+    }
+
+    private func localized(_ key: String) -> String {
+        String(localized: String.LocalizationValue(key), bundle: .module)
+    }
+}
+
+private struct CalibrationDiagnostic: View {
+    let calibration: KVCalibrationProvenance
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: DesignTokens.compact) {
+            Text("sidebar.calibration")
+                .font(.caption2.monospaced().weight(.semibold))
+                .foregroundStyle(DesignTokens.secondaryInk)
+                .textCase(.uppercase)
+                .tracking(0.8)
+            Label(statusKey, systemImage: symbol)
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(color)
+            if calibration.status == .applied,
+               let bytes = calibration.calibratedBytesPerToken,
+               let context = calibration.maximumObservedContext {
+                Text(
+                    String(
+                        format: localized("calibration.applied.body"),
+                        bytes,
+                        Int64(context)
+                    )
+                )
+                .font(.caption2)
+                .foregroundStyle(DesignTokens.secondaryInk)
+                .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+        .accessibilityElement(children: .combine)
+    }
+
+    private var statusKey: LocalizedStringKey {
+        switch calibration.status {
+        case .applied: "calibration.status.applied"
+        case .invalid: "calibration.status.invalid"
+        case .notFound: "calibration.status.not_found"
+        case .disabled: "calibration.status.disabled"
+        case .notConfigured: "calibration.status.not_configured"
+        }
+    }
+
+    private var symbol: String {
+        switch calibration.status {
+        case .applied: "checkmark.shield.fill"
+        case .invalid: "exclamationmark.shield.fill"
+        case .notFound, .disabled, .notConfigured: "shield.lefthalf.filled"
+        }
+    }
+
+    private var color: Color {
+        switch calibration.status {
+        case .applied: DesignTokens.success
+        case .invalid: DesignTokens.warning
+        case .notFound, .disabled, .notConfigured: DesignTokens.secondaryInk
+        }
     }
 
     private func localized(_ key: String) -> String {

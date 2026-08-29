@@ -52,6 +52,7 @@ final class AppModel: ObservableObject {
     @Published private(set) var detail = ""
     @Published private(set) var transportLabel = "HTTP · 127.0.0.1:8000"
     @Published private(set) var contextWarning: RuntimeContextReevaluation?
+    @Published private(set) var kvCalibration: KVCalibrationProvenance?
     @Published private(set) var qualificationReports: [QualificationReportRecord]
 
     private let resolver: RuntimeResourceResolver
@@ -83,6 +84,7 @@ final class AppModel: ObservableObject {
         errorKey = nil
         detail = ""
         contextWarning = nil
+        kvCalibration = nil
         qualificationReports = qualificationStore.load()
 
         do {
@@ -106,6 +108,7 @@ final class AppModel: ObservableObject {
 
             guard let client else { return }
             let health = try await client.health()
+            kvCalibration = try await client.kvCalibration()
             apply(health.status)
             beginEventMonitoring(client: client)
         } catch let error as RuntimeResourceError {
@@ -204,6 +207,7 @@ final class AppModel: ObservableObject {
         if clearStatus {
             phase = .disconnected
             contextWarning = nil
+            kvCalibration = nil
         }
     }
 

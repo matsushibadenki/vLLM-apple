@@ -134,6 +134,34 @@ public struct MemoryBudget: Codable, Sendable, Equatable {
     public let components: MemoryBudgetComponents
 }
 
+public enum KVCalibrationStatus: String, Codable, Sendable {
+    case notConfigured = "not_configured"
+    case disabled
+    case notFound = "not_found"
+    case invalid
+    case applied
+}
+
+public struct KVCalibrationProvenance: Codable, Sendable, Equatable {
+    public let enabled: Bool
+    public let status: KVCalibrationStatus
+    public let backend: String?
+    public let evaluationID: String?
+    public let calibratedBytesPerToken: Int64?
+    public let maximumObservedContext: Int?
+    public let sampleCount: Int?
+    public let safetyMarginRatio: Double?
+
+    enum CodingKeys: String, CodingKey {
+        case enabled, status, backend
+        case evaluationID = "evaluation_id"
+        case calibratedBytesPerToken = "calibrated_bytes_per_token"
+        case maximumObservedContext = "maximum_observed_context"
+        case sampleCount = "sample_count"
+        case safetyMarginRatio = "safety_margin_ratio"
+    }
+}
+
 public enum ContextReevaluationStatus: String, Codable, Sendable {
     case disabled
     case pending

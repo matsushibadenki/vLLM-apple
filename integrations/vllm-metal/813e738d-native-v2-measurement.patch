@@ -1,0 +1,122 @@
+diff --git a/vllm_metal/metal/paged_ops.cpp b/vllm_metal/metal/paged_ops.cpp
+index 9d483a3..333602f 100644
+--- a/vllm_metal/metal/paged_ops.cpp
++++ b/vllm_metal/metal/paged_ops.cpp
+@@ -10,6 +10,7 @@
+ 
+ #include <algorithm>
+ #include <optional>
++#include <stdexcept>
+ #include <string>
+ #include <unordered_map>
+ 
+@@ -35,6 +36,10 @@ using namespace mlx::core;
+ // ---------------------------------------------------------------------------
+ 
+ static std::string v2_paged_attention_source_;
++// Test-only dispatch override used by the isolated vLLM-Apple measurement
++// helper. Thread-local state prevents a benchmark from changing another
++// request's family selection; the empty value preserves normal auto dispatch.
++static thread_local std::string vllm_apple_forced_v2_family_;
+ constexpr int kPartitionSize = VLLM_METAL_PARTITION_SIZE;
+ 
+ // Window mode for spec-decode verification (per-token kernel): query rows
+@@ -474,12 +479,25 @@ static void dispatch_paged_attention_v2_online(
+   // verify batch here always takes window mode, never the tiled fallback.
+   const bool window_batch =
+       has_prefill && window_seqlen_q > 1 && head_size <= kWindowMaxHeadSize;
++  const auto& forced_family = vllm_apple_forced_v2_family_;
++  const bool force_nax = forced_family == "nax_prefill";
++  const bool force_tiled = forced_family == "tiled_prefill";
++  const bool force_per_token = forced_family == "per_token";
++  const bool force_split_kv = forced_family == "split_kv";
++
++  if ((force_nax || force_tiled) &&
++      (!has_prefill || window_batch || use_turboquant || !dtype_ok)) {
++    throw std::runtime_error(
++        "forced prefill family is incompatible with this v2 shape");
++  }
+ 
+   // TurboQuant stays excluded from the tiled kernel.  Sink prefill can use it:
+   // pagedattention_tiled.metal folds the sink into each row's denominator-only
+   // softmax state before final normalization.
+-  if (has_prefill && !window_batch && !use_turboquant && dtype_ok) {
+-    if (nax_eligible(query.dtype(), head_size, block_size)) {
++  if (!force_per_token && !force_split_kv &&
++      has_prefill && !window_batch && !use_turboquant && dtype_ok) {
++    if ((forced_family.empty() || force_nax) &&
++        nax_eligible(query.dtype(), head_size, block_size)) {
+       dispatch_paged_attention_nax(
+           out, query, key_cache, value_cache,
+           num_kv_heads, scale, softcap,
+@@ -487,7 +505,12 @@ static void dispatch_paged_attention_v2_online(
+           block_size, sliding_window, s, sinks);
+       return;
+     }
+-    if (auto cfg = select_tile_config(head_size)) {
++    if (force_nax) {
++      throw std::runtime_error(
++          "forced NAX family is unavailable for this v2 shape or device");
++    }
++    if (auto cfg = select_tile_config(head_size);
++        cfg && (forced_family.empty() || force_tiled)) {
+       dispatch_paged_attention_tiled(
+           out, query, key_cache, value_cache,
+           num_kv_heads, scale, softcap,
+@@ -495,6 +518,10 @@ static void dispatch_paged_attention_v2_online(
+           block_size, max_seq_len, sliding_window, *cfg, s, sinks);
+       return;
+     }
++    if (force_tiled) {
++      throw std::runtime_error(
++          "forced tiled family is unavailable for this v2 shape");
++    }
+   }
+ 
+   // Fallback: original per-token kernel
+@@ -537,8 +564,14 @@ static void dispatch_paged_attention_v2_online(
+   // (For non-window batches grid_y == total_q_tokens, so this is the
+   // same value the gate always used.)
+   const int gate_grid = num_heads * total_q_tokens;  // grid.z = 1 occupancy
+-  const bool partition = (pure_decode || window_batch)
+-      && gate_grid < min_decode_grid() && max_num_partitions >= 2;
++  if (force_split_kv &&
++      (!(pure_decode || window_batch) || max_num_partitions < 2)) {
++    throw std::runtime_error(
++        "forced split-KV family is incompatible with this v2 shape");
++  }
++  const bool partition = force_split_kv ||
++      (!force_per_token && (pure_decode || window_batch)
++       && gate_grid < min_decode_grid() && max_num_partitions >= 2);
+ 
+   std::string kname =
+       "paged_attention_" + dt + "_cache_" + k_cache_dt + "_" + v_cache_dt +
+@@ -1651,6 +1684,28 @@ NB_MODULE(_paged_ops, m) {
+         nb::arg("enabled"),
+         "Runtime kill-switch for the NAX prefill kernel (tests / A-B runs).");
+ 
++  m.def("vllm_apple_set_paged_attention_v2_family",
++        [](const std::string& family) {
++          if (!family.empty() && family != "nax_prefill" &&
++              family != "tiled_prefill" && family != "per_token" &&
++              family != "split_kv") {
++            throw std::invalid_argument("unknown vLLM-Apple v2 family");
++          }
++          vllm_apple_forced_v2_family_ = family;
++        },
++        nb::arg("family"),
++        "Force one v2 paged-attention family on this helper thread; pass an "
++        "empty string to restore normal automatic dispatch.");
++
++  m.def("vllm_apple_measure_paged_attention_v2",
++        [](const std::string& request) {
++          nb::object measure = nb::module_::import_(
++              "vllm_apple.vllm_metal_v2_native_runtime").attr("measure");
++          return nb::cast<std::string>(measure(request));
++        },
++        nb::arg("request"),
++        "Run the bounded vLLM-Apple v2 fixture in the isolated helper.");
++
+   m.def("tq_encode",
+         [](nb::handle key_h, nb::handle value_h,
+            nb::handle key_cache_h, nb::handle value_cache_h,

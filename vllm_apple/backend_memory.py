@@ -159,6 +159,49 @@ class VLLMMemoryMetricsAdapter:
         )
 
 
+class MLXMemoryMetricsAdapter:
+    """Bounded reader for the backend-local MLX telemetry wrapper."""
+
+    def __init__(self, base_url: str, timeout: float = 1.0) -> None:
+        if timeout <= 0:
+            raise ValueError("metrics timeout must be positive")
+        self._url = base_url.rstrip("/") + "/v1/vllm-apple/memory"
+        self._timeout = timeout
+
+    def sample(self) -> BackendMemorySample:
+        try:
+            with urllib.request.urlopen(self._url, timeout=self._timeout) as response:
+                raw = response.read(4097)
+        except (OSError, urllib.error.URLError) as error:
+            raise RuntimeError("MLX memory metrics are unavailable") from error
+        if len(raw) > 4096:
+            raise RuntimeError("MLX memory metrics are oversized")
+        try:
+            payload = json.loads(raw)
+            active = payload["active_bytes"]
+            cache = payload["cache_bytes"]
+            peak = payload["peak_bytes"]
+            kv_used = payload["kv_cache_bytes"]
+            complete = payload["traversal_complete"]
+        except (KeyError, TypeError, UnicodeDecodeError, json.JSONDecodeError) as error:
+            raise RuntimeError("MLX memory metrics are invalid") from error
+        values = (active, cache, peak, kv_used)
+        if (
+            not all(isinstance(value, int) and not isinstance(value, bool) and value >= 0 for value in values)
+            or complete is not True
+        ):
+            raise RuntimeError("MLX memory metrics are incomplete")
+        current = active + cache
+        return BackendMemorySample(
+            resident_bytes=None,
+            kv_usage_ratio=None,
+            allocator_current_bytes=current,
+            allocator_peak_bytes=max(peak, current),
+            kv_used_bytes=kv_used,
+            source="mlx-wrapper-v1",
+        )
+
+
 class IOGPUMemoryAdapter:
     """Best-effort parser for public ioreg registry properties on macOS."""
 

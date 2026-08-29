@@ -7,6 +7,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 from vllm_apple.backend_memory import BackendMemorySample
+from vllm_apple.types import MemoryInfo, MemoryPressure
 from vllm_apple.qualification import (
     QualificationConfig,
     default_qualification_report_path,
@@ -34,6 +35,40 @@ class FakeBackend:
 
 
 class QualificationTests(unittest.TestCase):
+    def test_mlx_context_uses_allocator_endpoint_and_reserved_available_memory(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            model = self.model_fixture(Path(directory))
+            config = QualificationConfig(
+                model=str(model),
+                executable=Path("/tmp/mlx-server"),
+                backend_kind="mlx_lm",
+                max_model_len=4096,
+                duration_seconds=1,
+                require_30_minute_window=False,
+            )
+            sample = BackendMemorySample(
+                None,
+                None,
+                allocator_current_bytes=1024,
+                allocator_peak_bytes=2048,
+                kv_used_bytes=128,
+                source="mlx-wrapper-v1",
+            )
+            memory = MemoryInfo(
+                total_bytes=8 * 1024**3,
+                available_bytes=3 * 1024**3,
+                pressure=MemoryPressure.NORMAL,
+            )
+            with patch(
+                "vllm_apple.qualification.MLXMemoryMetricsAdapter.sample",
+                return_value=sample,
+            ), patch("vllm_apple.qualification.detect_memory", return_value=memory):
+                report = evaluate_qualification_context(config, "http://127.0.0.1:1")
+            self.assertTrue(report["enabled"])
+            self.assertEqual(report["status"], "sufficient")
+            self.assertEqual(report["kv_capacity_bytes"], 1024**3 + 128)
+            self.assertEqual(report["source"], "mlx-allocator-os-available-v1")
+
     def test_mlx_backend_uses_native_process_contract_and_report_identity(self) -> None:
         captured = []
 

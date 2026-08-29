@@ -2,7 +2,10 @@ import json
 import unittest
 
 from vllm_apple.vllm_metal_v2_adapter import build_v2_measurement_request
-from vllm_apple.vllm_metal_v2_helper import invoke_native_measurement
+from vllm_apple.vllm_metal_v2_helper import (
+    inspect_native_measurement_capability,
+    invoke_native_measurement,
+)
 from vllm_apple.vllm_metal_v2_tuning import (
     V2DispatchConfiguration,
     V2PagedAttentionFamily,
@@ -58,6 +61,13 @@ class VLLMMetalV2HelperTests(unittest.TestCase):
         )
         with self.assertRaisesRegex(RuntimeError, "invalid JSON"):
             invoke_native_measurement(self.request(), get_ops=lambda: ops)
+
+    def test_capability_reports_symbol_without_executing_it(self) -> None:
+        compatible = inspect_native_measurement_capability(get_ops=lambda: FakeOps({}))
+        self.assertTrue(compatible["compatible"])
+        missing = inspect_native_measurement_capability(get_ops=lambda: object())
+        self.assertFalse(missing["compatible"])
+        self.assertEqual(missing["issue"], "measurement_symbol_missing")
 
 
 if __name__ == "__main__":

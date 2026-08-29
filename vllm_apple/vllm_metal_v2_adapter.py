@@ -18,10 +18,33 @@ from .vllm_metal_v2_tuning import (
 
 VLLM_METAL_V2_MEASUREMENT_ABI_VERSION = 1
 MAX_V2_MEASUREMENT_OUTPUT_BYTES = 16 * 1024
+V2_MEASUREMENT_SYMBOL = "vllm_apple_measure_paged_attention_v2"
 
 
 class V2MeasurementAdapterError(RuntimeError):
     pass
+
+
+def parse_v2_capability_response(payload: object) -> dict[str, object]:
+    expected = {"abi_version", "compatible", "symbol", "issue"}
+    if not isinstance(payload, dict) or set(payload) != expected:
+        raise ValueError("native v2 capability response fields are invalid")
+    if (
+        payload["abi_version"] != VLLM_METAL_V2_MEASUREMENT_ABI_VERSION
+        or not isinstance(payload["compatible"], bool)
+        or payload["symbol"] != V2_MEASUREMENT_SYMBOL
+        or payload["issue"]
+        not in {
+            None,
+            "native_extension_unavailable",
+            "native_extension_load_failed",
+            "measurement_symbol_missing",
+        }
+        or (payload["compatible"] and payload["issue"] is not None)
+        or (not payload["compatible"] and payload["issue"] is None)
+    ):
+        raise ValueError("native v2 capability response values are invalid")
+    return payload
 
 
 def build_v2_measurement_request(
@@ -198,3 +221,20 @@ class VLLMMetalV2MeasurementAdapter:
             return parse_v2_measurement_response(payload)
         except ValueError as error:
             raise V2MeasurementAdapterError(str(error)) from error
+
+    def capability(self) -> dict[str, object]:
+        try:
+            completed = subprocess.run(
+                [str(self.executable), "--capabilities"],
+                capture_output=True,
+                timeout=min(self.timeout_seconds, 10.0),
+                check=False,
+            )
+        except (OSError, subprocess.SubprocessError) as error:
+            raise V2MeasurementAdapterError("native v2 capability probe failed") from error
+        if completed.returncode != 0 or not 1 <= len(completed.stdout) <= self.maximum_output_bytes:
+            raise V2MeasurementAdapterError("native v2 capability probe returned no result")
+        try:
+            return parse_v2_capability_response(json.loads(completed.stdout))
+        except (UnicodeDecodeError, json.JSONDecodeError, ValueError) as error:
+            raise V2MeasurementAdapterError("native v2 capability response is invalid") from error

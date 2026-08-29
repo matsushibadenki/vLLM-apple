@@ -71,3 +71,28 @@ requestは`abi_version=1`、`operation=measure_paged_attention_v2`、完全なsh
 `vllm_apple_measure_paged_attention_v2(str) -> str`を公開する場合だけ呼び出す。関数はcanonical request
 JSONを受け取り、result schema準拠JSONを返す。symbolがない現行upstreamでは終了code 2でfail closedし、
 通常の自動dispatchをfamily別計測の代用にはしない。
+
+helperの`--capabilities`はkernelやmodel bufferを確保せず、extension loadとsymbolのcallable性だけを
+bounded JSONで返す。`vllm-metal-v2-capability`およびtuning CLIはこのhandshakeをbenchmarkより先に
+実行する。
+
+`integrations/vllm-metal/813e738d-native-v2-measurement.patch`は確認対象commitへ次を追加する。
+
+- helper threadだけに作用し、空文字で必ず解除するfamily強制制御
+- NAX / tiled / per-token / split-KVのshape compatibility gate
+- bounded Python fixtureを呼ぶ`vllm_apple_measure_paged_attention_v2` symbol
+
+通常の推論threadではoverrideが空のため、upstreamの自動dispatchを変更しない。fixtureは256 MiBを
+上限とし、巨大なCPU attention行列を作らず、zero keyとKV-head別constant valueから既知の期待出力を
+生成する。各計測はMLX arrayを評価してGPU完了まで同期し、reference比較後だけlatencyとdigestを返す。
+
+2026-08-29にApple M4（10 GPU cores）、Python 3.12、vLLM-Metal `813e738d`でnative extensionと
+全Metal libraryをsource buildし、capability `compatible=true`を確認した。Gemma 2 2B IT 4-bitの
+float16 KV fixtureを1K/4K context、decode/prefill各3 sampleで測定し、全候補がreferenceと同一digestで
+correctnessを通過した。winnerは1K decodeがper-token、4K decodeがsplit-KV、16-token prefillは
+1K/4Kともper-tokenだった。profile `56d785bba017e1a14312a61e`はhardware/source fingerprint別の
+private Application Support領域へatomic保存した。
+
+次の境界は、このprofileを起動時にbounded探索し、完全一致shapeのwinnerだけをrequest-localに
+production dispatchへ適用することである。未一致、破損、fingerprint不一致はupstream自動dispatchへ
+fail closedする。

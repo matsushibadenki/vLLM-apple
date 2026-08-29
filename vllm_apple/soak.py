@@ -165,15 +165,18 @@ def run_soak(config: SoakConfig) -> dict[str, object]:
         process_lost.set()
         rss_final = None
     rss_growth = None
+    rss_peak_growth = None
     if rss_baseline is not None and rss_final is not None:
         rss_growth = max(0, rss_final - rss_baseline)
+    if rss_baseline is not None and config.target_pid is not None:
+        rss_peak_growth = max(0, rss_peak[0] - rss_baseline)
 
     result = metrics.snapshot()
     failures = int(result["failures"])
     rss_within_limit = (
         config.max_rss_growth_bytes is None
-        or rss_growth is None
-        or rss_growth <= config.max_rss_growth_bytes
+        or rss_peak_growth is None
+        or rss_peak_growth <= config.max_rss_growth_bytes
     )
     result.update(
         {
@@ -184,6 +187,7 @@ def run_soak(config: SoakConfig) -> dict[str, object]:
                 "peak_bytes": rss_peak[0] if config.target_pid else None,
                 "final_bytes": rss_final,
                 "growth_bytes": rss_growth,
+                "peak_growth_bytes": rss_peak_growth,
                 "limit_bytes": config.max_rss_growth_bytes,
             },
             "process_alive": not process_lost.is_set(),

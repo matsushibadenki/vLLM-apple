@@ -84,6 +84,7 @@ class ServiceSnapshot:
     memory_admission: dict[str, int | float | str | None]
     token_estimation: dict[str, int | str | None]
     context_reevaluation: dict[str, int | str | bool | None]
+    kv_calibration: dict[str, int | float | str | bool | None]
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -103,6 +104,7 @@ class ServiceSnapshot:
             "memory_admission": self.memory_admission,
             "token_estimation": self.token_estimation,
             "context_reevaluation": self.context_reevaluation,
+            "kv_calibration": self.kv_calibration,
         }
 
 
@@ -116,6 +118,7 @@ class RuntimeService:
         memory_telemetry: UnifiedMemoryTelemetry | None = None,
         model_memory_spec: ModelMemorySpec | None = None,
         configured_context_tokens: int | None = None,
+        kv_calibration: dict[str, int | float | str | bool | None] | None = None,
     ) -> None:
         self._lock = threading.RLock()
         self._state = RuntimeState.STARTING
@@ -153,6 +156,16 @@ class RuntimeService:
             if model_memory_spec is not None and configured_context_tokens is not None
             else None
         )
+        self.kv_calibration = kv_calibration or {
+            "enabled": False,
+            "status": "not_configured",
+            "backend": None,
+            "evaluation_id": None,
+            "calibrated_bytes_per_token": None,
+            "maximum_observed_context": None,
+            "sample_count": None,
+            "safety_margin_ratio": None,
+        }
         self.engine = engine or UnavailableInferenceEngine()
         self.semantic_state = semantic_state
         self.elastic_memory = (
@@ -227,6 +240,7 @@ class RuntimeService:
                     if self.context_reevaluator is not None
                     else disabled_context_reevaluation_snapshot()
                 ),
+                kv_calibration=dict(self.kv_calibration),
             )
 
     def _sync_memory_budget(

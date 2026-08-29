@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "evaluation_id": "7afdf801eecdbf8cdbf25260",
+  "model_id": "models/gemma-2-2b-it-4bit",
+  "hardware_fingerprint": "local-apple-silicon",
+  "backend": "mlx_lm",
+  "memory_ceiling_bytes": 12884901888,
+  "minimum_retrieval_score": 1.0,
+  "token_tolerance_ratio": 0.05,
+  "passed": false,
+  "stages": [
+    {
+      "target_tokens": 128,
+      "actual_prompt_tokens": 111,
+      "status": "passed",
+      "retrieval_score": 1.0,
+      "ttft_ms": 239.7405,
+      "tpot_ms": 17.59595588235294,
+      "tokens_per_second": 56.83124046718623,
+      "load_peak_rss_bytes": 0,
+      "steady_state_rss_bytes": 2123120640,
+      "state_bytes": 1056768,
+      "error_code": null
+    },
+    {
+      "target_tokens": 1024,
+      "actual_prompt_tokens": 983,
+      "status": "passed",
+      "retrieval_score": 1.0,
+      "ttft_ms": 1964.847667,
+      "tpot_ms": 20.03241417647059,
+      "tokens_per_second": 49.91909568116692,
+      "load_peak_rss_bytes": 0,
+      "steady_state_rss_bytes": 2123972608,
+      "state_bytes": 8200192,
+      "error_code": null
+    },
+    {
+      "target_tokens": 4096,
+      "actual_prompt_tokens": 3927,
+      "status": "passed",
+      "retrieval_score": 1.0,
+      "ttft_ms": 6967.167625,
+      "tpot_ms": 23.520453411764706,
+      "tokens_per_second": 42.51618718794806,
+      "load_peak_rss_bytes": 0,
+      "steady_state_rss_bytes": 2125266944,
+      "state_bytes": 32317440,
+      "error_code": null
+    },
+    {
+      "target_tokens": 8192,
+      "actual_prompt_tokens": null,
+      "status": "failed",
+      "retrieval_score": null,
+      "ttft_ms": null,
+      "tpot_ms": null,
+      "tokens_per_second": null,
+      "load_peak_rss_bytes": null,
+      "steady_state_rss_bytes": null,
+      "state_bytes": null,
+      "error_code": "first_token_missing"
+    }
+  ],
+  "storage": {
+    "raw_prompt_count": 0,
+    "raw_output_count": 0
+  }
+}

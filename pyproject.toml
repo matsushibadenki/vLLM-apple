@@ -20,6 +20,7 @@ vllm-appled = "vllm_apple.daemon:main"
 vllm-apple-soak = "vllm_apple.soak:main"
 vllm-apple-optimize = "vllm_apple.optimizer.cli:main"
 vllm-apple-v2-measure = "vllm_apple.vllm_metal_v2_helper:main"
+vllm-apple-mlx-server = "vllm_apple.mlx_server:main"
 
 [tool.setuptools.packages.find]
 include = ["vllm_apple*"]

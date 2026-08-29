@@ -11,9 +11,9 @@ from pathlib import Path
 from typing import Callable
 
 from .backend import BackendConfig, BackendProcess
-from .backend_memory import KVCacheCapacityResolver, VLLMMemoryMetricsAdapter
+from .backend_memory import KVCacheCapacityResolver, MLXMemoryMetricsAdapter, VLLMMemoryMetricsAdapter
 from .context_reevaluation import ContextCapacityReevaluator
-from .hardware import default_application_support
+from .hardware import default_application_support, detect_memory
 from .model import ModelInspectionError, inspect_model
 from .promotion_probe import PromotionProbeConfig, run_serving_promotion_probe
 from .soak import SoakConfig, run_soak
@@ -158,6 +158,25 @@ def evaluate_qualification_context(
     try:
         inspected = inspect_model(config.model)
         configured = config.max_model_len or inspected.memory_spec.model_max_context
+        if configured is not None and config.backend_kind == "mlx_lm":
+            sample = MLXMemoryMetricsAdapter(
+                base_url, timeout=min(5.0, config.request_timeout_seconds)
+            ).sample()
+            memory = detect_memory()
+            reserve = max(2 * 1024**3, memory.total_bytes // 10)
+            available_for_growth = max(0, memory.available_bytes - reserve)
+            capacity = (sample.kv_used_bytes or 0) + available_for_growth
+            reevaluator = ContextCapacityReevaluator(
+                configured,
+                inspected.memory_spec.kv_bytes_per_token,
+                inspected.memory_spec.weights_bytes,
+            )
+            reevaluator.update(capacity, source="mlx-allocator-os-available-v1")
+            snapshot = reevaluator.snapshot().to_dict()
+            return {
+                **snapshot,
+                "passed": snapshot["status"] != "reduced" or config.allow_context_reduction,
+            }
         if configured is None or config.vllm_version is None:
             return report
         resolver = KVCacheCapacityResolver(

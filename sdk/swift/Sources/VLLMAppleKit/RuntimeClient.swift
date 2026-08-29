@@ -4,6 +4,7 @@ public protocol VLLMAppleRuntimeClient: Sendable {
     func hardware() async throws -> HardwareInfo
     func runtimeProfile() async throws -> RuntimeProfile
     func memoryBudget() async throws -> MemoryBudget
+    func kvCalibration() async throws -> KVCalibrationProvenance
     func health() async throws -> HealthStatus
     func chat(_ request: ChatRequest) async throws -> ChatResponse
     func streamChat(_ request: ChatRequest) -> AsyncThrowingStream<ChatEvent, Error>
@@ -33,6 +34,7 @@ private struct RuntimeEnvelope: Decodable {
     let schemaVersion: Int
     let profile: RuntimeProfile
     let memoryBudget: MemoryBudget
+    let kvCalibration: KVCalibrationProvenance
 }
 
 private struct ErrorEnvelope: Decodable {
@@ -82,6 +84,12 @@ public final class HTTPRuntimeClient: VLLMAppleRuntimeClient, @unchecked Sendabl
         let envelope = try await get("v1/runtime", as: RuntimeEnvelope.self)
         try validate(schemaVersion: envelope.schemaVersion)
         return envelope.memoryBudget
+    }
+
+    public func kvCalibration() async throws -> KVCalibrationProvenance {
+        let envelope = try await get("v1/runtime", as: RuntimeEnvelope.self)
+        try validate(schemaVersion: envelope.schemaVersion)
+        return envelope.kvCalibration
     }
 
     public func chat(_ request: ChatRequest) async throws -> ChatResponse {

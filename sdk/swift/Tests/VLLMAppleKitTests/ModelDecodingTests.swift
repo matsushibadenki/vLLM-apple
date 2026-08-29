@@ -94,6 +94,27 @@ import Testing
     #expect(budget.components.metalHeap.accounting == .overlapEnvelope)
 }
 
+@Test func decodesKVCalibrationProvenance() throws {
+    let data = Data("""
+    {
+      "enabled": true,
+      "status": "applied",
+      "backend": "vllm_metal",
+      "evaluation_id": "0123456789abcdef01234567",
+      "calibrated_bytes_per_token": 11902,
+      "maximum_observed_context": 3927,
+      "sample_count": 3,
+      "safety_margin_ratio": 0.25
+    }
+    """.utf8)
+    let calibration = try JSONDecoder().decode(KVCalibrationProvenance.self, from: data)
+    #expect(calibration.status == .applied)
+    #expect(calibration.backend == "vllm_metal")
+    #expect(calibration.calibratedBytesPerToken == 11902)
+    #expect(calibration.maximumObservedContext == 3927)
+    #expect(calibration.sampleCount == 3)
+}
+
 @Test func contextReevaluationEventExposesReducedLimit() throws {
     let data = Data("""
     {

@@ -6,6 +6,7 @@ import urllib.request
 from dataclasses import dataclass, replace
 from typing import Any
 
+from .backend_memory import MLXMemoryMetricsAdapter
 from .long_context import LongContextEvaluationError, LongContextObservation
 from .phase_probe import MAX_PROMPT_BYTES, PhaseProbeConfig, PhaseProbeError, measure_stream
 from .soak import _validated_base_url
@@ -33,17 +34,29 @@ class VLLMLongContextAdapter:
         state_bytes_per_token: int,
         load_peak_rss_bytes: int = 0,
         token_tolerance_ratio: float = 0.05,
+        model_max_context: int | None = None,
     ) -> None:
         if state_bytes_per_token < 0 or load_peak_rss_bytes < 0:
             raise ValueError("memory values must not be negative")
         if not 0 <= token_tolerance_ratio <= 0.25:
             raise ValueError("token_tolerance_ratio must be in [0, 0.25]")
+        if model_max_context is not None and model_max_context <= 0:
+            raise ValueError("model_max_context must be positive")
         self.config = replace(probe_config, samples=1)
         self.state_bytes_per_token = state_bytes_per_token
         self.load_peak_rss_bytes = load_peak_rss_bytes
         self.token_tolerance_ratio = token_tolerance_ratio
+        self.model_max_context = model_max_context
 
     def measure(self, target_tokens: int) -> LongContextObservation:
+        if (
+            self.model_max_context is not None
+            and target_tokens + self.config.maximum_output_tokens > self.model_max_context
+        ):
+            raise LongContextEvaluationError(
+                "model_context_limit_exceeded",
+                "target context plus generation reserve exceeds the model context limit",
+            )
         try:
             case = self.build_case(target_tokens)
             result = measure_stream(
@@ -61,9 +74,10 @@ class VLLMLongContextAdapter:
             if intervals and measurement.decode_ns
             else 0.0
         )
+        prompt_tokens = self._reported_prompt_tokens(case, measurement.prompt_tokens)
         return LongContextObservation(
             target_tokens=target_tokens,
-            actual_prompt_tokens=measurement.prompt_tokens,
+            actual_prompt_tokens=prompt_tokens,
             retrieval_score=1.0 if result.expected_text_matched else 0.0,
             ttft_ms=measurement.ttft_ns / 1_000_000,
             tpot_ms=tpot_ms,
@@ -72,8 +86,13 @@ class VLLMLongContextAdapter:
             steady_state_rss_bytes=max(
                 result.steady_memory_bytes, measurement.peak_memory_bytes
             ),
-            state_bytes=measurement.prompt_tokens * self.state_bytes_per_token,
+            state_bytes=prompt_tokens * self.state_bytes_per_token,
         )
+
+    def _reported_prompt_tokens(
+        self, case: TokenizerAlignedRetrievalCase, streamed_prompt_tokens: int
+    ) -> int:
+        return streamed_prompt_tokens
 
     def build_case(self, target_tokens: int) -> TokenizerAlignedRetrievalCase:
         if target_tokens <= 0:
@@ -173,3 +192,49 @@ class VLLMLongContextAdapter:
                 "invalid_tokenize_response", "tokenize response did not contain a valid count"
             )
         return count
+
+
+class MLXLongContextAdapter(VLLMLongContextAdapter):
+    """MLX long-context adapter that records backend-observed KV allocation."""
+
+    def __init__(
+        self,
+        probe_config: PhaseProbeConfig,
+        *,
+        state_bytes_per_token: int,
+        load_peak_rss_bytes: int = 0,
+        token_tolerance_ratio: float = 0.05,
+        model_max_context: int | None = None,
+        memory_adapter: MLXMemoryMetricsAdapter | None = None,
+    ) -> None:
+        super().__init__(
+            replace(probe_config, model="default_model"),
+            state_bytes_per_token=state_bytes_per_token,
+            load_peak_rss_bytes=load_peak_rss_bytes,
+            token_tolerance_ratio=token_tolerance_ratio,
+            model_max_context=model_max_context,
+        )
+        self.memory_adapter = memory_adapter or MLXMemoryMetricsAdapter(
+            probe_config.base_url,
+            timeout=min(probe_config.timeout_seconds, 5.0),
+        )
+
+    def measure(self, target_tokens: int) -> LongContextObservation:
+        observation = super().measure(target_tokens)
+        try:
+            sample = self.memory_adapter.sample()
+        except RuntimeError as error:
+            raise LongContextEvaluationError("mlx_memory_unavailable", str(error)) from error
+        if sample.kv_used_bytes is None:
+            raise LongContextEvaluationError(
+                "mlx_kv_metrics_unavailable", "MLX wrapper did not report KV bytes"
+            )
+        return replace(observation, state_bytes=sample.kv_used_bytes)
+
+    def _reported_prompt_tokens(
+        self, case: TokenizerAlignedRetrievalCase, streamed_prompt_tokens: int
+    ) -> int:
+        # mlx-lm reports only the uncached prompt suffix in streamed usage when
+        # the preceding stage shares a prefix. The tokenizer endpoint count is
+        # the stable full-context value used to construct this exact case.
+        return case.actual_tokens

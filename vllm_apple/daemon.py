@@ -4,6 +4,7 @@ import argparse
 import signal
 import threading
 import time
+from dataclasses import replace
 from pathlib import Path
 
 from .api import create_server, create_unix_server
@@ -27,6 +28,10 @@ from .execution_profile import detect_apple_chip_profile
 from .hardware import default_application_support, detect_hardware
 from .kernel_probe import build_environment_fingerprint
 from .kernel_profile import build_model_kernel_shape_profile
+from .kv_calibration import (
+    calibration_report_directory,
+    discover_latest_kv_calibration,
+)
 from .metal_tuning import (
     MetalTuningReport,
     discover_metal_tuning_report,
@@ -71,7 +76,57 @@ def build_parser() -> argparse.ArgumentParser:
     tuning = parser.add_mutually_exclusive_group()
     tuning.add_argument("--metal-tuning-report", type=Path)
     tuning.add_argument("--disable-metal-tuning", action="store_true")
+    parser.add_argument("--disable-kv-calibration", action="store_true")
+    parser.add_argument("--kv-calibration-root", type=Path)
     return parser
+
+
+def apply_startup_kv_calibration(
+    model: InspectedModel,
+    hardware_fingerprint: str,
+    *,
+    root: Path | None = None,
+) -> tuple[InspectedModel, dict[str, int | float | str | bool | None]]:
+    provenance: dict[str, int | float | str | bool | None] = {
+        "enabled": True,
+        "status": "not_found",
+        "backend": "vllm_metal",
+        "evaluation_id": None,
+        "calibrated_bytes_per_token": None,
+        "maximum_observed_context": None,
+        "sample_count": None,
+        "safety_margin_ratio": None,
+    }
+    directory = calibration_report_directory(
+        model.model_id,
+        hardware_fingerprint,
+        "vllm_metal",
+        application_support=root,
+    )
+    if not directory.exists():
+        return model, provenance
+    try:
+        calibration, _ = discover_latest_kv_calibration(
+            expected_model_id=model.model_id,
+            expected_hardware_fingerprint=hardware_fingerprint,
+            expected_backend="vllm_metal",
+            application_support=root,
+        )
+    except ValueError:
+        provenance["status"] = "invalid"
+        return model, provenance
+    calibrated = replace(model, memory_spec=calibration.apply(model.memory_spec))
+    provenance.update(
+        {
+            "status": "applied",
+            "evaluation_id": calibration.evaluation_id,
+            "calibrated_bytes_per_token": calibration.calibrated_bytes_per_token,
+            "maximum_observed_context": calibration.maximum_observed_context,
+            "sample_count": calibration.sample_count,
+            "safety_margin_ratio": calibration.safety_margin_ratio,
+        }
+    )
+    return calibrated, provenance
 
 
 def install_startup_metal_tuning(
@@ -140,6 +195,8 @@ def serve(
     enable_runtime_probes: bool = True,
     enable_metal_tuning: bool = True,
     metal_tuning_report: Path | None = None,
+    enable_kv_calibration: bool = True,
+    kv_calibration_root: Path | None = None,
 ) -> None:
     if shutdown_grace_period < 0:
         raise ValueError("shutdown grace period cannot be negative")
@@ -160,10 +217,27 @@ def serve(
             verify_model_integrity(Path(model), model_integrity_manifest)
         hardware = detect_hardware()
         recommendation = None
+        calibration_provenance = {
+            "enabled": enable_kv_calibration,
+            "status": "not_found" if enable_kv_calibration else "disabled",
+            "backend": "vllm_metal",
+            "evaluation_id": None,
+            "calibrated_bytes_per_token": None,
+            "maximum_observed_context": None,
+            "sample_count": None,
+            "safety_margin_ratio": None,
+        }
         inspected: InspectedModel | None = None
         try:
             inspected = inspect_model(model)
             if max_model_len is None:
+                if enable_kv_calibration:
+                    chip_identity = detect_apple_chip_profile(hardware)
+                    inspected, calibration_provenance = apply_startup_kv_calibration(
+                        inspected,
+                        chip_identity.hardware_fingerprint,
+                        root=kv_calibration_root,
+                    )
                 recommendation = recommend_context(hardware.memory, inspected.memory_spec)
                 balanced = next(tier for tier in recommendation.tiers if tier.name == "balanced")
                 if balanced.max_tokens <= 0:
@@ -202,6 +276,7 @@ def serve(
             profile=profile,
             model_memory_spec=inspected.memory_spec if inspected is not None else None,
             configured_context_tokens=max_model_len,
+            kv_calibration=calibration_provenance,
         )
         if inspected is not None:
             service.record_memory_budget_component(
@@ -440,6 +515,8 @@ def main(argv: list[str] | None = None) -> int:
         enable_runtime_probes=not arguments.skip_runtime_probes,
         enable_metal_tuning=not arguments.disable_metal_tuning,
         metal_tuning_report=arguments.metal_tuning_report,
+        enable_kv_calibration=not arguments.disable_kv_calibration,
+        kv_calibration_root=arguments.kv_calibration_root,
     )
     return 0
 

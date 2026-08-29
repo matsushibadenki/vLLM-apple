@@ -15,6 +15,38 @@ MAX_V2_MEASUREMENT_REQUEST_BYTES = 16 * 1024
 NATIVE_MEASUREMENT_SYMBOL = "vllm_apple_measure_paged_attention_v2"
 
 
+def inspect_native_measurement_capability(
+    *, get_ops: Callable[[], object] | None = None
+) -> dict[str, object]:
+    if get_ops is None:
+        try:
+            from vllm_metal.metal import get_ops as native_get_ops
+        except ImportError:
+            return {
+                "abi_version": 1,
+                "compatible": False,
+                "symbol": NATIVE_MEASUREMENT_SYMBOL,
+                "issue": "native_extension_unavailable",
+            }
+        get_ops = native_get_ops
+    try:
+        ops = get_ops()
+    except Exception:
+        return {
+            "abi_version": 1,
+            "compatible": False,
+            "symbol": NATIVE_MEASUREMENT_SYMBOL,
+            "issue": "native_extension_load_failed",
+        }
+    compatible = callable(getattr(ops, NATIVE_MEASUREMENT_SYMBOL, None))
+    return {
+        "abi_version": 1,
+        "compatible": compatible,
+        "symbol": NATIVE_MEASUREMENT_SYMBOL,
+        "issue": None if compatible else "measurement_symbol_missing",
+    }
+
+
 def invoke_native_measurement(
     payload: object,
     *,
@@ -57,7 +89,20 @@ def invoke_native_measurement(
     }
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
+    arguments = sys.argv[1:] if argv is None else argv
+    if arguments == ["--capabilities"]:
+        sys.stdout.write(
+            json.dumps(
+                inspect_native_measurement_capability(),
+                sort_keys=True,
+                separators=(",", ":"),
+            )
+        )
+        return 0
+    if arguments:
+        print("unsupported native v2 helper argument", file=sys.stderr)
+        return 2
     raw = sys.stdin.buffer.read(MAX_V2_MEASUREMENT_REQUEST_BYTES + 1)
     if not 1 <= len(raw) <= MAX_V2_MEASUREMENT_REQUEST_BYTES:
         print("native v2 measurement request is empty or oversized", file=sys.stderr)

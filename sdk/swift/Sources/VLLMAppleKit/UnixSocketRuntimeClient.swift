@@ -48,6 +48,7 @@ private struct UnixRuntimeEnvelope: Decodable {
     let schemaVersion: Int
     let profile: RuntimeProfile
     let memoryBudget: MemoryBudget
+    let kvCalibration: KVCalibrationProvenance
 }
 
 public final class UnixSocketRuntimeClient: VLLMAppleRuntimeClient, @unchecked Sendable {
@@ -79,6 +80,12 @@ public final class UnixSocketRuntimeClient: VLLMAppleRuntimeClient, @unchecked S
         let envelope = try await request("/v1/runtime", as: UnixRuntimeEnvelope.self)
         try validate(schemaVersion: envelope.schemaVersion)
         return envelope.memoryBudget
+    }
+
+    public func kvCalibration() async throws -> KVCalibrationProvenance {
+        let envelope = try await request("/v1/runtime", as: UnixRuntimeEnvelope.self)
+        try validate(schemaVersion: envelope.schemaVersion)
+        return envelope.kvCalibration
     }
 
     public func chat(_ request: ChatRequest) async throws -> ChatResponse {

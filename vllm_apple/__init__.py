@@ -26,8 +26,18 @@ from .kernel_profile import (
     PagedAttentionShape,
     build_model_kernel_shape_profile,
 )
-from .long_context import LongContextEvaluator, LongContextObservation
-from .long_context_backend import VLLMLongContextAdapter
+from .long_context import (
+    LongContextEvaluator,
+    LongContextObservation,
+    save_long_context_report,
+)
+from .long_context_backend import MLXLongContextAdapter, VLLMLongContextAdapter
+from .kv_calibration import (
+    KVCalibration,
+    default_calibration_report_path,
+    discover_latest_kv_calibration,
+    load_kv_calibration,
+)
 from .memory_budget import (
     MemoryBudgetComponent,
     MemoryBudgetSnapshot,
@@ -179,6 +189,12 @@ __all__ = [
     "V2PagedAttentionShape",
     "V2ShapeTuningDecision",
     "VLLMLongContextAdapter",
+    "MLXLongContextAdapter",
+    "KVCalibration",
+    "load_kv_calibration",
+    "default_calibration_report_path",
+    "discover_latest_kv_calibration",
+    "save_long_context_report",
     "VLLMMetalIntegrationInspection",
     "VLLMMetalV2TuningProfile",
     "V2MeasurementAdapterError",

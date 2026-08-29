@@ -10,6 +10,7 @@ from vllm_apple.vllm_metal_v2_adapter import (
     V2MeasurementAdapterError,
     VLLMMetalV2MeasurementAdapter,
     build_v2_measurement_request,
+    parse_v2_capability_response,
 )
 from vllm_apple.vllm_metal_v2_tuning import (
     V2DispatchConfiguration,
@@ -19,6 +20,19 @@ from vllm_apple.vllm_metal_v2_tuning import (
 
 
 class VLLMMetalV2MeasurementAdapterTests(unittest.TestCase):
+    def test_capability_response_is_strict(self) -> None:
+        parsed = parse_v2_capability_response(
+            {
+                "abi_version": 1,
+                "compatible": False,
+                "symbol": "vllm_apple_measure_paged_attention_v2",
+                "issue": "measurement_symbol_missing",
+            }
+        )
+        self.assertFalse(parsed["compatible"])
+        with self.assertRaises(ValueError):
+            parse_v2_capability_response({"compatible": True})
+
     def shape(self):
         return V2PagedAttentionShape(4096, 1, 1, 32, 8, 128, 16, 16)
 

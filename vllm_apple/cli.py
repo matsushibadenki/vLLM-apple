@@ -12,11 +12,20 @@ from .execution_profile import detect_apple_chip_profile, save_chip_profile
 from .hardware import detect_hardware
 from .kernel_probe import build_environment_fingerprint
 from .kernel_profile import build_model_kernel_shape_profile
-from .long_context import LongContextEvaluationError, LongContextEvaluator
-from .long_context_backend import VLLMLongContextAdapter
+from .kv_calibration import (
+    default_calibration_report_path,
+    discover_latest_kv_calibration,
+    load_kv_calibration,
+)
+from .long_context import (
+    LongContextEvaluationError,
+    LongContextEvaluator,
+    save_long_context_report,
+)
+from .long_context_backend import MLXLongContextAdapter, VLLMLongContextAdapter
 from .metal_probe import NativeMetalProbeAdapter
 from .metal_tuning import save_metal_tuning_report, tune_metal_shape_profile
-from .model import inspect_model
+from .model import ModelInspectionError, inspect_model
 from .model_integrity import (
     ModelIntegrityError,
     build_model_integrity_manifest,
@@ -142,6 +151,13 @@ def build_parser() -> argparse.ArgumentParser:
     v2_output.add_argument("--output", type=Path)
     v2_output.add_argument("--stdout", action="store_true")
 
+    v2_capability = commands.add_parser(
+        "vllm-metal-v2-capability",
+        help="probe the native-v2 measurement symbol without running a benchmark",
+    )
+    v2_capability.add_argument("--helper", required=True, type=Path)
+    v2_capability.add_argument("--timeout", type=float, default=10)
+
     phase_profile = commands.add_parser(
         "phase-profile", help="measure prefill and decode phases through a streaming backend"
     )
@@ -166,13 +182,20 @@ def build_parser() -> argparse.ArgumentParser:
     long_context.add_argument("--memory-ceiling-gb", type=float, required=True)
     long_context.add_argument("--state-bytes-per-token", type=int, required=True)
     long_context.add_argument("--load-peak-rss-bytes", type=int, default=0)
+    long_context.add_argument("--model-max-context", type=int)
     long_context.add_argument("--hardware-fingerprint")
-    long_context.add_argument("--backend", default="vllm_metal")
+    long_context.add_argument(
+        "--backend", choices=("vllm_metal", "mlx_lm"), default="vllm_metal"
+    )
     long_context.add_argument("--max-tokens", type=int, default=32)
     long_context.add_argument("--timeout", type=float, default=300)
     long_context.add_argument("--session-token-file", type=Path)
     long_context.add_argument("--pid", type=int)
     long_context.add_argument("--allow-remote", action="store_true")
+    long_context_output = long_context.add_mutually_exclusive_group()
+    long_context_output.add_argument("--output", type=Path)
+    long_context_output.add_argument("--save", action="store_true")
+    long_context.add_argument("--application-support", type=Path)
 
     qualify = commands.add_parser(
         "qualify-model", help="launch and stability-test a local model backend"
@@ -206,6 +229,15 @@ def build_parser() -> argparse.ArgumentParser:
     context.add_argument("--kv-bytes-per-token", type=int, required=True)
     context.add_argument("--workspace-gb", type=float, default=0.0)
     context.add_argument("--model-max-context", type=int)
+    context_calibration = context.add_mutually_exclusive_group()
+    context_calibration.add_argument("--long-context-report", type=Path)
+    context_calibration.add_argument("--auto-calibration", action="store_true")
+    context.add_argument("--calibration-margin", type=float, default=0.25)
+    context.add_argument("--calibration-hardware-fingerprint")
+    context.add_argument(
+        "--calibration-backend", choices=("vllm_metal", "mlx_lm"), default="mlx_lm"
+    )
+    context.add_argument("--application-support", type=Path)
 
     server = commands.add_parser("serve", help="run the local control daemon")
     server.add_argument("model", nargs="?", help="model ID or local model path")
@@ -226,6 +258,8 @@ def build_parser() -> argparse.ArgumentParser:
     server_tuning = server.add_mutually_exclusive_group()
     server_tuning.add_argument("--metal-tuning-report", type=Path)
     server_tuning.add_argument("--disable-metal-tuning", action="store_true")
+    server.add_argument("--disable-kv-calibration", action="store_true")
+    server.add_argument("--kv-calibration-root", type=Path)
     return parser
 
 
@@ -278,7 +312,33 @@ def main(argv: list[str] | None = None) -> int:
             workspace_bytes=int(arguments.workspace_gb * GIB),
             model_max_context=arguments.model_max_context,
         )
-        _json(recommend_context(hardware.memory, spec).to_dict())
+        calibration = None
+        if arguments.long_context_report is not None or arguments.auto_calibration:
+            expected_hardware = (
+                arguments.calibration_hardware_fingerprint
+                or detect_apple_chip_profile().hardware_fingerprint
+            )
+            if arguments.auto_calibration:
+                calibration, _ = discover_latest_kv_calibration(
+                    expected_model_id=arguments.model_id,
+                    expected_hardware_fingerprint=expected_hardware,
+                    expected_backend=arguments.calibration_backend,
+                    application_support=arguments.application_support,
+                    safety_margin_ratio=arguments.calibration_margin,
+                )
+            else:
+                calibration = load_kv_calibration(
+                    arguments.long_context_report,
+                    expected_model_id=arguments.model_id,
+                    expected_hardware_fingerprint=expected_hardware,
+                    expected_backend=arguments.calibration_backend,
+                    safety_margin_ratio=arguments.calibration_margin,
+                )
+            spec = calibration.apply(spec)
+        result = recommend_context(hardware.memory, spec).to_dict()
+        if calibration is not None:
+            result["kv_calibration"] = calibration.to_dict()
+        _json(result)
         return 0
     if arguments.command == "execution-profile":
         profile = detect_apple_chip_profile(backend_executable=arguments.backend_executable)
@@ -391,6 +451,9 @@ def main(argv: list[str] | None = None) -> int:
                 arguments.helper,
                 timeout_seconds=arguments.timeout,
             )
+            capability = adapter.capability()
+            if not capability["compatible"]:
+                raise ValueError(f"native v2 capability unavailable: {capability['issue']}")
             profile = tune_v2_model_profile(
                 model_profile,
                 adapter.measure,
@@ -410,6 +473,17 @@ def main(argv: list[str] | None = None) -> int:
         else:
             print(save_v2_tuning_profile(profile, arguments.output))
         return 0
+    if arguments.command == "vllm-metal-v2-capability":
+        try:
+            capability = VLLMMetalV2MeasurementAdapter(
+                arguments.helper,
+                timeout_seconds=arguments.timeout,
+            ).capability()
+        except (ValueError, V2MeasurementAdapterError) as error:
+            _json({"compatible": False, "error": str(error)})
+            return 2
+        _json(capability)
+        return 0 if capability["compatible"] else 1
     if arguments.command == "phase-profile":
         try:
             chip = detect_apple_chip_profile()
@@ -466,13 +540,39 @@ def main(argv: list[str] | None = None) -> int:
                 model_id=arguments.model,
                 hardware_fingerprint=probe.hardware_fingerprint,
                 memory_ceiling_bytes=int(arguments.memory_ceiling_gb * GIB),
+                backend=arguments.backend,
             )
-            adapter = VLLMLongContextAdapter(
+            adapter_type = (
+                MLXLongContextAdapter
+                if arguments.backend == "mlx_lm"
+                else VLLMLongContextAdapter
+            )
+            model_max_context = arguments.model_max_context
+            if model_max_context is None:
+                try:
+                    model_max_context = inspect_model(
+                        arguments.model
+                    ).memory_spec.model_max_context
+                except ModelInspectionError:
+                    pass
+            adapter = adapter_type(
                 probe,
                 state_bytes_per_token=arguments.state_bytes_per_token,
                 load_peak_rss_bytes=arguments.load_peak_rss_bytes,
+                model_max_context=model_max_context,
             )
             result = evaluator.evaluate(stages, adapter.measure)
+            output = arguments.output
+            if arguments.save:
+                output = default_calibration_report_path(
+                    arguments.model,
+                    probe.hardware_fingerprint,
+                    arguments.backend,
+                    result["evaluation_id"],
+                    application_support=arguments.application_support,
+                )
+            if output is not None:
+                save_long_context_report(result, output)
         except (OSError, ValueError, LongContextEvaluationError) as error:
             code = (
                 error.code
@@ -550,6 +650,8 @@ def main(argv: list[str] | None = None) -> int:
                 enable_runtime_probes=not arguments.skip_runtime_probes,
                 enable_metal_tuning=not arguments.disable_metal_tuning,
                 metal_tuning_report=arguments.metal_tuning_report,
+                enable_kv_calibration=not arguments.disable_kv_calibration,
+                kv_calibration_root=arguments.kv_calibration_root,
             )
         except (RuntimeError, ValueError) as error:
             print(f"vllm-apple: {error}", file=sys.stderr)

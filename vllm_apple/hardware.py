@@ -33,6 +33,22 @@ def _positive_int(value: str | None) -> int | None:
     return parsed if parsed > 0 else None
 
 
+def _ioreg_gpu_core_count() -> int | None:
+    """Read Apple GPU cores when the model-specific sysctl is unavailable."""
+    try:
+        result = subprocess.run(
+            ["/usr/sbin/ioreg", "-r", "-c", "AGXAccelerator", "-d", "1"],
+            capture_output=True,
+            check=True,
+            text=True,
+            timeout=1.0,
+        )
+    except (FileNotFoundError, subprocess.SubprocessError):
+        return None
+    match = re.search(r'"gpu-core-count"\s*=\s*(\d+)', result.stdout)
+    return _positive_int(match.group(1)) if match else None
+
+
 def _total_memory() -> tuple[int, str]:
     sysctl_value = _positive_int(_sysctl("hw.memsize"))
     if sysctl_value:
@@ -111,6 +127,8 @@ def detect_hardware() -> HardwareInfo:
     logical = _positive_int(_sysctl("hw.logicalcpu")) or (os.cpu_count() or physical)
     soc = _sysctl("machdep.cpu.brand_string") or platform.processor() or "Unknown Apple SoC"
     gpu_cores = _positive_int(_sysctl("hw.perflevel0.gpu_count"))
+    if gpu_cores is None and system == "Darwin" and machine == "arm64":
+        gpu_cores = _ioreg_gpu_core_count()
     return HardwareInfo(
         platform=system,
         architecture=machine,

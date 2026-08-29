@@ -39,6 +39,7 @@ class SoakRunnerTests(unittest.TestCase):
             self.assertGreater(result["requests"], 0)
             self.assertGreater(result["requests_per_second"], 0)
             self.assertIsNotNone(result["rss"]["baseline_bytes"])
+            self.assertIsNotNone(result["rss"]["peak_growth_bytes"])
         finally:
             server.shutdown()
             server.server_close()

@@ -21,6 +21,7 @@
     "memory_admission",
     "token_estimation",
     "context_reevaluation",
+    "kv_calibration",
     "execution_plan",
     "last_error",
     "failure"
@@ -304,6 +305,21 @@
         "weights_bytes": { "type": ["integer", "null"], "minimum": 0 },
         "source": { "type": ["string", "null"] },
         "reevaluations": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": false
+    },
+    "kv_calibration": {
+      "type": "object",
+      "required": ["enabled", "status", "backend", "evaluation_id", "calibrated_bytes_per_token", "maximum_observed_context", "sample_count", "safety_margin_ratio"],
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "status": { "enum": ["not_configured", "disabled", "not_found", "invalid", "applied"] },
+        "backend": { "type": ["string", "null"] },
+        "evaluation_id": { "type": ["string", "null"] },
+        "calibrated_bytes_per_token": { "type": ["integer", "null"], "minimum": 1 },
+        "maximum_observed_context": { "type": ["integer", "null"], "minimum": 1 },
+        "sample_count": { "type": ["integer", "null"], "minimum": 1 },
+        "safety_margin_ratio": { "type": ["number", "null"], "minimum": 0, "maximum": 1 }
       },
       "additionalProperties": false
     },

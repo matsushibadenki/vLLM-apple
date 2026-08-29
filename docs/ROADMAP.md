@@ -485,8 +485,10 @@ VLLMAppleKit / Control API
 - `[Done]` candidate eligibility、中央値、winner、profile ID strict loader
 - `[Done]` native v2実kernel measurement adapterとversioned C++ helper ABI
 - `[Done]` native extension capability-gated benchmark helper bridge
+- `[Done]` native measurement symbol capability handshakeとbenchmark前fail-fast gate
 - `[Done]` model metadataからのbounded decode/prefill実device profile生成CLI
-- `[Next]` vLLM-Metal native measurement symbol実装と実Mac profile生成
+- `[Done]` vLLM-Metal `813e738d`向けnative measurement patchと実Mac profile生成
+- `[Next]` native v2 profileの自動探索とrequest-local production dispatch適用
 - `[Later]` Mac個体別runtime autotuner（batch、tile、KV block、prefill chunk、kernel）
 - `[Later]` OS、toolchain、MLX version変更時のprofile失効と安全な再benchmark
 
@@ -549,7 +551,8 @@ vLLM-Metal対応とは見なさない。
 - `[Done]` native v2実kernel measurement adapterとC++ dispatch configuration ABI
 - `[Done]` native extension capability-gated benchmark helper bridge
 - `[Done]` model metadataからのbounded decode/prefill実device profile生成CLI
-- `[Next]` vLLM-Metal native measurement symbol実装と実Mac profile生成
+- `[Done]` vLLM-Metal `813e738d`向けnative measurement patchと実Mac profile生成
+- `[Next]` native v2 profileの自動探索とrequest-local production dispatch適用
 - `[Done]` kernel capability、self-test結果、quarantine理由のversioned registry
 - `[Later]` vLLM-Metal Paged Attention capability/benchmark統合
 - `[Later]` native Metal Paged Attention拡張は計測済みの不足が残る場合のみ
@@ -681,7 +684,20 @@ vLLM-Metal対応とは見なさない。
 - `[Done]` qualification reportのSwift typed decodeを必須化するworkflow gate
 - `[Done]` MLX LM OpenAI server adapterとgreedy repeat/stream equivalence qualification gate
 - `[Done]` Gemma 2 2B IT MLX 4-bit実機qualification smoke（20秒、193/193成功、9.61 req/s、RSS増加0、clean shutdown）
-- `[Next]` Gemma 2 2B IT MLX 4-bitの30分memory stability qualification
+- `[Done]` Gemma 2 2B IT MLX 4-bitの30分memory stability qualification（12,722/12,722成功、7.07 req/s、RSS増加0、clean shutdown）
+- `[Done]` soak memory上限を終了時RSSではなく定常peak growthで判定
+- `[Done]` backend-local MLX allocator/KV cache telemetry wrapper（4 KiB response、4,096 node traversal上限）
+- `[Done]` MLX allocator、KV使用量、OS available memoryによるload後context再評価
+- `[Done]` MLX tokenizer互換面と長context KV実測adapter（prompt本文/token ID非保持）
+- `[Done]` Gemma 2 2B IT MLX 4-bitの128/1,024/4,096 token段階試験（retrieval 100%、KV実測約8.2 KiB/token）
+- `[Done]` model有効context上限の自動/明示検出と生成予約を含む事前gate（`model_context_limit_exceeded`）
+- `[Done]` MLX実測KV calibration readerとcontext recommendation反映（3段階/4K/identity/単調性gate、25%余裕、実測範囲cap）
+- `[Done]` calibration reportのprivate/atomic保存とhardware fingerprint適合gate
+- `[Done]` calibration artifactのApplication Support自動保存・bounded探索・最新適合report選択
+- `[Done]` daemon起動時のbackend適合calibration自動適用とruntime snapshot provenance
+- `[Done]` Swift SDKのcalibration provenance typed decodeとMac app多言語診断表示
+- `[Done]` native measurement symbolによるGemma 2 2B IT実Mac profile生成（M4、1K/4K、全候補correctness合格）
+- `[Next]` native v2 profileの自動探索とrequest-local production dispatch適用
 - `[Next]` 専用runner上でvLLM 0.28.x昇格workflowを実行
 - `[Later]` Ruff ruleの段階的拡張と既存style debt解消
 - `[Later]` signed daemon artifact
@@ -698,7 +714,7 @@ vLLM-Metal対応とは見なさない。
 5. `[Done]` Swift UDS transport、ManagedRuntimeのcrash recoveryとlog capture
 6. `[Done]` 最小SwiftUI Mac chat sample
 7. `[Done]` concurrent load、bounded soak runner、daemon crash/relaunch test
-8. `[Next]` 実modelのend-to-endと30分以上のmemory stability test
+8. `[Done]` 実modelのend-to-endと30分以上のmemory stability test
 9. `[Done]` OptimizationPlan / ArtifactManifest schemaとsafe dry-run planner
 10. `[Done]` optimizer duration profilerとstructured error taxonomy
 11. `[Done]` representation optimization backend adapterとcapability detection
@@ -746,10 +762,18 @@ vLLM-Metal対応とは見なさない。
 53. `[Done]` native v2実kernel measurement adapterとC++ ABI
 54. `[Done]` capability-gated vLLM-Metal benchmark helper bridge
 55. `[Done]` bounded native v2実device profile生成CLI
-56. `[Next]` native measurement symbolによる実Mac profile生成
-57. `[Later]` state/workspace統合budgetとMoE expert residency
-58. `[Later]` Qwen3.8-Flash-Next bounded metadata inspectionとcapability gate
-59. `[Later]` Mac companion app
+56. `[Done]` model有効context上限の事前検出と8,192 token境界の明示的error分類
+57. `[Done]` MLX実測KV係数をcontext recommendationへ安全側で反映
+58. `[Done]` calibration reportのprivate/atomic保存とhardware fingerprint適合gate
+59. `[Done]` calibration artifactのApplication Support自動探索と最新適合report選択
+60. `[Done]` daemon起動時の適合calibration自動適用とruntime snapshotへのprovenance公開
+61. `[Done]` Swift SDKでcalibration provenanceをtyped decodeしMac app診断へ表示
+62. `[Done]` native measurement symbolの実Mac capability handshakeとmissing symbolの特定
+63. `[Done]` vLLM-Metal `813e738d`向けnative measurement patch、実機build、Gemma 2 2B IT M4 profile生成
+64. `[Next]` native v2 profileの自動探索とrequest-local production dispatch適用
+65. `[Later]` state/workspace統合budgetとMoE expert residency
+66. `[Later]` Qwen3.8-Flash-Next bounded metadata inspectionとcapability gate
+67. `[Later]` Mac companion app
 
 この順序により、まず推論runtimeの実model安定性を確立し、その境界を壊さずにoptimizerを
 別processとして追加する。構造pruningはquantization、calibration、評価gateの後に着手する。

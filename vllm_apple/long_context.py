@@ -3,13 +3,18 @@ from __future__ import annotations
 import hashlib
 import json
 import math
+import os
+import stat
+import tempfile
 from dataclasses import asdict, dataclass
+from pathlib import Path
 from typing import Any, Callable, Sequence
 
 
 LONG_CONTEXT_SCHEMA_VERSION = 1
 MAX_CONTEXT_STAGES = 16
 MAX_CONTEXT_TOKENS = 1_000_000
+MAX_LONG_CONTEXT_REPORT_BYTES = 1024 * 1024
 
 
 @dataclass(frozen=True, slots=True)
@@ -81,10 +86,11 @@ class LongContextEvaluator:
         model_id: str,
         hardware_fingerprint: str,
         memory_ceiling_bytes: int,
+        backend: str = "unknown",
         minimum_retrieval_score: float = 1.0,
         token_tolerance_ratio: float = 0.05,
     ) -> None:
-        if not model_id or not hardware_fingerprint:
+        if not model_id or not hardware_fingerprint or not backend:
             raise ValueError("evaluation identity must not be empty")
         if memory_ceiling_bytes <= 0:
             raise ValueError("memory_ceiling_bytes must be positive")
@@ -95,6 +101,7 @@ class LongContextEvaluator:
         self.model_id = model_id
         self.hardware_fingerprint = hardware_fingerprint
         self.memory_ceiling_bytes = memory_ceiling_bytes
+        self.backend = backend
         self.minimum_retrieval_score = minimum_retrieval_score
         self.token_tolerance_ratio = token_tolerance_ratio
 
@@ -130,6 +137,7 @@ class LongContextEvaluator:
             "schema_version": LONG_CONTEXT_SCHEMA_VERSION,
             "model_id": self.model_id,
             "hardware_fingerprint": self.hardware_fingerprint,
+            "backend": self.backend,
             "memory_ceiling_bytes": self.memory_ceiling_bytes,
             "minimum_retrieval_score": self.minimum_retrieval_score,
             "token_tolerance_ratio": self.token_tolerance_ratio,
@@ -190,3 +198,34 @@ class LongContextEvaluator:
             state_bytes=None,
             error_code=code,
         )
+
+
+def save_long_context_report(report: dict[str, Any], path: Path) -> Path:
+    encoded = (
+        json.dumps(report, ensure_ascii=False, sort_keys=True, indent=2) + "\n"
+    ).encode("utf-8")
+    if not 0 < len(encoded) <= MAX_LONG_CONTEXT_REPORT_BYTES:
+        raise ValueError("long-context report exceeded 1 MiB")
+    path.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
+    parent = path.parent.lstat()
+    if (
+        not stat.S_ISDIR(parent.st_mode)
+        or parent.st_uid != os.getuid()
+        or parent.st_mode & 0o077
+    ):
+        raise ValueError("long-context report directory must be private")
+    descriptor, temporary = tempfile.mkstemp(prefix=f".{path.name}.", dir=path.parent)
+    try:
+        os.fchmod(descriptor, 0o600)
+        with os.fdopen(descriptor, "wb") as handle:
+            handle.write(encoded)
+            handle.flush()
+            os.fsync(handle.fileno())
+        os.replace(temporary, path)
+    except BaseException:
+        try:
+            os.unlink(temporary)
+        except FileNotFoundError:
+            pass
+        raise
+    return path

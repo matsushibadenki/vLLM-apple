@@ -6,8 +6,9 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 from tests.schema_validator import validate_instance
 from tests.test_schemas import load_schema
-from vllm_apple.long_context import LongContextEvaluator
-from vllm_apple.long_context_backend import VLLMLongContextAdapter
+from vllm_apple.long_context import LongContextEvaluationError, LongContextEvaluator
+from vllm_apple.backend_memory import BackendMemorySample
+from vllm_apple.long_context_backend import MLXLongContextAdapter, VLLMLongContextAdapter
 from vllm_apple.phase_probe import PhaseProbeConfig
 
 
@@ -102,6 +103,48 @@ class LongContextBackendTests(unittest.TestCase):
         validate_instance(
             report, load_schema("runtime/long-context-evaluation-v1.schema.json")
         )
+
+    def test_mlx_adapter_uses_observed_kv_bytes(self) -> None:
+        class MemoryAdapter:
+            def sample(self):
+                return BackendMemorySample(None, None, kv_used_bytes=987654)
+
+        config = PhaseProbeConfig(
+            base_url=f"http://127.0.0.1:{self.server.server_port}",
+            model="models/example",
+            hardware_fingerprint="test-hardware",
+            samples=1,
+            maximum_output_tokens=8,
+        )
+        adapter = MLXLongContextAdapter(
+            config,
+            state_bytes_per_token=128,
+            memory_adapter=MemoryAdapter(),
+        )
+        observation = adapter.measure(1024)
+        self.assertEqual(observation.state_bytes, 987654)
+        self.assertEqual(observation.actual_prompt_tokens, 1024)
+
+    def test_model_context_limit_fails_before_backend_request(self) -> None:
+        config = PhaseProbeConfig(
+            base_url=f"http://127.0.0.1:{self.server.server_port}",
+            model="test-model",
+            hardware_fingerprint="test-hardware",
+            maximum_output_tokens=32,
+        )
+        adapter = VLLMLongContextAdapter(
+            config,
+            state_bytes_per_token=128,
+            model_max_context=8192,
+        )
+        with self.assertRaisesRegex(
+            LongContextEvaluationError,
+            "generation reserve exceeds the model context limit",
+        ) as caught:
+            adapter.measure(8192)
+        self.assertEqual(caught.exception.code, "model_context_limit_exceeded")
+        self.assertEqual(TokenizerAndStreamHandler.tokenize_calls, 0)
+        self.assertEqual(TokenizerAndStreamHandler.stream_calls, 0)
 
 
 if __name__ == "__main__":
