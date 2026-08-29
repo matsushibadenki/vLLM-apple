@@ -162,6 +162,52 @@ public struct KVCalibrationProvenance: Codable, Sendable, Equatable {
     }
 }
 
+public enum NativeV2TuningStatus: String, Codable, Sendable {
+    case disabled
+    case idle
+    case waitingForIdle = "waiting_for_idle"
+    case running
+    case applied
+    case failed
+}
+
+public struct NativeV2TuningState: Codable, Sendable, Equatable {
+    public let enabled: Bool
+    public let status: NativeV2TuningStatus
+    public let runID: Int
+    public let profileID: String?
+    public let errorCode: String?
+
+    public static let idle = NativeV2TuningState(
+        enabled: true,
+        status: .idle,
+        runID: 0,
+        profileID: nil,
+        errorCode: nil
+    )
+
+    public init(
+        enabled: Bool,
+        status: NativeV2TuningStatus,
+        runID: Int,
+        profileID: String?,
+        errorCode: String?
+    ) {
+        self.enabled = enabled
+        self.status = status
+        self.runID = runID
+        self.profileID = profileID
+        self.errorCode = errorCode
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case enabled, status
+        case runID = "run_id"
+        case profileID = "profile_id"
+        case errorCode = "error_code"
+    }
+}
+
 public enum ContextReevaluationStatus: String, Codable, Sendable {
     case disabled
     case pending
@@ -316,6 +362,32 @@ public struct RuntimeEvent: Codable, Sendable, Equatable {
 }
 
 public extension RuntimeEvent {
+    var nativeV2Tuning: NativeV2TuningState? {
+        guard type == "runtime.native_v2_tuning",
+              case .string(let statusValue)? = payload["status"],
+              let status = NativeV2TuningStatus(rawValue: statusValue)
+        else { return nil }
+        let runID: Int
+        if case .number(let value)? = payload["run_id"] {
+            runID = Int(value)
+        } else {
+            runID = 0
+        }
+        let profileID: String?
+        if case .string(let value)? = payload["profile_id"] { profileID = value }
+        else { profileID = nil }
+        let errorCode: String?
+        if case .string(let value)? = payload["error_code"] { errorCode = value }
+        else { errorCode = nil }
+        return NativeV2TuningState(
+            enabled: status != .disabled,
+            status: status,
+            runID: runID,
+            profileID: profileID,
+            errorCode: errorCode
+        )
+    }
+
     var runtimeFailure: RuntimeFailure? {
         guard type == "runtime.failure",
               case .object(let failure)? = payload["failure"],
@@ -355,4 +427,15 @@ public extension RuntimeEvent {
             capacityContextTokens: capacity
         )
     }
+}
+
+public enum NativeV2TuningControlAction: String, Codable, Sendable {
+    case enable
+    case disable
+    case retry
+}
+
+public struct NativeV2TuningControlResult: Codable, Sendable, Equatable {
+    public let accepted: Bool
+    public let nativeV2Tuning: NativeV2TuningState
 }

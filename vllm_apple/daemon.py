@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import shutil
 import signal
 import threading
 import time
@@ -54,6 +55,16 @@ from .runtime_probe import (
 from .runtime_errors import classify_runtime_failure, persist_crash_diagnostic
 from .service import RuntimeService
 from .types import RuntimeState
+from .vllm_metal_integration import inspect_vllm_metal_integration
+from .vllm_metal_v2_adapter import VLLMMetalV2MeasurementAdapter
+from .vllm_metal_v2_observation import default_v2_observation_path, load_v2_observations
+from .vllm_metal_v2_orchestration import NativeV2ObservationMonitor
+from .vllm_metal_v2_preference import default_native_v2_preference_path
+from .vllm_metal_v2_tuning import (
+    build_v2_hardware_fingerprint,
+    save_v2_tuning_profile,
+    tune_v2_observed_shapes,
+)
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -78,6 +89,10 @@ def build_parser() -> argparse.ArgumentParser:
     tuning.add_argument("--disable-metal-tuning", action="store_true")
     parser.add_argument("--disable-kv-calibration", action="store_true")
     parser.add_argument("--kv-calibration-root", type=Path)
+    parser.add_argument("--vllm-metal-source-root", type=Path)
+    parser.add_argument("--vllm-metal-v2-helper", type=Path)
+    parser.add_argument("--disable-native-v2-idle-tuning", action="store_true")
+    parser.add_argument("--native-v2-preference-path", type=Path)
     return parser
 
 
@@ -177,6 +192,106 @@ def install_startup_metal_tuning(
     return report
 
 
+def start_observed_native_v2_tuning(
+    service: RuntimeService,
+    backend: BackendProcess,
+    *,
+    source_root: Path | None,
+    helper: Path | None,
+    samples: int = 3,
+) -> bool:
+    """Tune saved production shapes and recycle EngineCore under one idle lease."""
+    candidate = shutil.which("vllm-apple-v2-measure") if helper is None else None
+    resolved_helper = helper or (Path(candidate) if candidate else None)
+    if source_root is None or resolved_helper is None:
+        service.events.publish(
+            "runtime.native_v2_tuning",
+            {"status": "disabled", "reason": "source_or_helper_unavailable"},
+        )
+        return False
+    try:
+        inspection = inspect_vllm_metal_integration(source_root)
+        if not inspection.native_v2_detected:
+            raise ValueError("native v2 topology unavailable")
+        hardware_fingerprint = build_v2_hardware_fingerprint(service.profile.hardware)
+        observation = default_v2_observation_path(
+            hardware_fingerprint, inspection.source_fingerprint
+        )
+        if not observation.exists():
+            service.events.publish(
+                "runtime.native_v2_tuning",
+                {"status": "not_found", "reason": "no_observations"},
+            )
+            return False
+        adapter = VLLMMetalV2MeasurementAdapter(resolved_helper)
+        if not adapter.capability()["compatible"]:
+            raise ValueError("native v2 measurement capability unavailable")
+    except (OSError, ValueError):
+        service.events.publish(
+            "runtime.native_v2_tuning",
+            {"status": "rejected", "reason": "validation_failed"},
+        )
+        return False
+
+    def tune():
+        shapes = load_v2_observations(
+            observation,
+            hardware_fingerprint=hardware_fingerprint,
+            source_fingerprint=inspection.source_fingerprint,
+        )
+        return tune_v2_observed_shapes(
+            shapes,
+            adapter.measure,
+            hardware_fingerprint=hardware_fingerprint,
+            source_fingerprint=inspection.source_fingerprint,
+            samples=samples,
+        )
+
+    def apply(profile) -> None:
+        save_v2_tuning_profile(profile)
+        service.set_state(RuntimeState.LOADING_MODEL)
+        try:
+            backend.restart()
+        except Exception as error:
+            service.set_failure(error)
+            raise
+        service.set_state(RuntimeState.READY)
+
+    return service.start_native_v2_idle_tuning(tune, apply)
+
+
+def build_native_v2_observation_monitor(
+    service: RuntimeService,
+    backend: BackendProcess,
+    *,
+    source_root: Path | None,
+    helper: Path | None,
+    prime_existing: bool,
+) -> NativeV2ObservationMonitor | None:
+    candidate = shutil.which("vllm-apple-v2-measure") if helper is None else None
+    resolved_helper = helper or (Path(candidate) if candidate else None)
+    if source_root is None or resolved_helper is None:
+        return None
+    try:
+        inspection = inspect_vllm_metal_integration(source_root)
+        hardware_fingerprint = build_v2_hardware_fingerprint(service.profile.hardware)
+        observation = default_v2_observation_path(
+            hardware_fingerprint, inspection.source_fingerprint
+        )
+    except (OSError, ValueError):
+        return None
+    return NativeV2ObservationMonitor(
+        observation,
+        lambda: start_observed_native_v2_tuning(
+            service,
+            backend,
+            source_root=source_root,
+            helper=resolved_helper,
+        ),
+        prime_existing=prime_existing,
+    )
+
+
 def serve(
     host: str = "127.0.0.1",
     port: int = 8000,
@@ -197,6 +312,10 @@ def serve(
     metal_tuning_report: Path | None = None,
     enable_kv_calibration: bool = True,
     kv_calibration_root: Path | None = None,
+    enable_native_v2_idle_tuning: bool = True,
+    vllm_metal_source_root: Path | None = None,
+    vllm_metal_v2_helper: Path | None = None,
+    native_v2_preference_path: Path | None = None,
 ) -> None:
     if shutdown_grace_period < 0:
         raise ValueError("shutdown grace period cannot be negative")
@@ -305,7 +424,11 @@ def serve(
         service.set_state(RuntimeState.LOADING_MODEL)
         chip = None
         versions = None
-        if backend_tuning_enabled or (enable_runtime_probes and require_compatible_backend):
+        if (
+            backend_tuning_enabled
+            or enable_native_v2_idle_tuning
+            or (enable_runtime_probes and require_compatible_backend)
+        ):
             chip = detect_apple_chip_profile(hardware, compatibility)
             versions = discover_runtime_versions(
                 compatibility.vllm_metal_version or compatibility.vllm_version
@@ -361,6 +484,10 @@ def serve(
                 )
     else:
         service = RuntimeService()
+    enable_native_v2_idle_tuning = service.configure_native_v2_preference(
+        native_v2_preference_path or default_native_v2_preference_path(),
+        override_enabled=False if not enable_native_v2_idle_tuning else None,
+    )
     server = create_server(
         host,
         port,
@@ -419,6 +546,9 @@ def serve(
     )
     pressure_monitor_thread.start()
 
+    native_v2_monitor_lock = threading.Lock()
+    native_v2_monitor_holder: list[NativeV2ObservationMonitor] = []
+
     if backend is not None:
 
         def launch_backend() -> None:
@@ -451,6 +581,25 @@ def serve(
                     service.set_state(RuntimeState.READY)
                     assert memory_monitor is not None
                     memory_monitor.start()
+                    started = False
+                    if enable_native_v2_idle_tuning:
+                        started = start_observed_native_v2_tuning(
+                            service,
+                            backend,
+                            source_root=vllm_metal_source_root,
+                            helper=vllm_metal_v2_helper,
+                        )
+                    monitor = build_native_v2_observation_monitor(
+                        service,
+                        backend,
+                        source_root=vllm_metal_source_root,
+                        helper=vllm_metal_v2_helper,
+                        prime_existing=started,
+                    )
+                    if monitor is not None:
+                        with native_v2_monitor_lock:
+                            native_v2_monitor_holder.append(monitor)
+                            monitor.start()
 
         launch_thread = threading.Thread(
             target=launch_backend,
@@ -477,6 +626,9 @@ def serve(
         with pressure_monitor_lock:
             for pressure_monitor in pressure_monitor_holder:
                 pressure_monitor.stop()
+        with native_v2_monitor_lock:
+            for native_v2_monitor in native_v2_monitor_holder:
+                native_v2_monitor.stop()
         server.server_close()
         drain_deadline = time.monotonic() + shutdown_grace_period
         server.wait_for_drain(max(0.0, drain_deadline - time.monotonic()))
@@ -517,6 +669,10 @@ def main(argv: list[str] | None = None) -> int:
         metal_tuning_report=arguments.metal_tuning_report,
         enable_kv_calibration=not arguments.disable_kv_calibration,
         kv_calibration_root=arguments.kv_calibration_root,
+        enable_native_v2_idle_tuning=not arguments.disable_native_v2_idle_tuning,
+        vllm_metal_source_root=arguments.vllm_metal_source_root,
+        vllm_metal_v2_helper=arguments.vllm_metal_v2_helper,
+        native_v2_preference_path=arguments.native_v2_preference_path,
     )
     return 0
 

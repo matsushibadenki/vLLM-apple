@@ -22,6 +22,7 @@
     "token_estimation",
     "context_reevaluation",
     "kv_calibration",
+    "native_v2_tuning",
     "execution_plan",
     "last_error",
     "failure"
@@ -320,6 +321,18 @@
         "maximum_observed_context": { "type": ["integer", "null"], "minimum": 1 },
         "sample_count": { "type": ["integer", "null"], "minimum": 1 },
         "safety_margin_ratio": { "type": ["number", "null"], "minimum": 0, "maximum": 1 }
+      },
+      "additionalProperties": false
+    },
+    "native_v2_tuning": {
+      "type": "object",
+      "required": ["enabled", "status", "run_id", "profile_id", "error_code"],
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "status": { "enum": ["disabled", "idle", "waiting_for_idle", "running", "applied", "failed"] },
+        "run_id": { "type": "integer", "minimum": 0 },
+        "profile_id": { "type": ["string", "null"], "minLength": 24, "maxLength": 24 },
+        "error_code": { "type": ["string", "null"], "minLength": 1, "maxLength": 128 }
       },
       "additionalProperties": false
     },

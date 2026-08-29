@@ -133,5 +133,36 @@ coordinatorはsingle-flightで、計測または適用が失敗しても`finally
 残さずerror classだけを公開する。profile適用callbackもlease内で実行されるため、古いprofileを使うrequestと
 新しいprofileを使うrequestが混在しない。
 
-次はdaemonが適合するobservation artifact、measurement helper、source identityを自動発見し、EngineCoreが
-一度だけprofileをloadする現在の境界に合わせて、idle lease内でmanaged backendを安全にrecycleする。
+daemonは`--vllm-metal-source-root`で検証対象source identityを固定し、measurement helperは
+`--vllm-metal-v2-helper`またはPATH上の`vllm-apple-v2-measure`から発見する。完全一致するobservationが
+存在するときだけidle coordinatorを起動し、生成profileをatomic保存した後、同じlease内でmanaged backendを
+recycleする。再起動後のEngineCoreは統合profileを新規loadする。source/helper/observationが不足する場合は
+構造化eventを残して通常推論を継続し、`--disable-native-v2-idle-tuning`で明示的に無効化できる。
+
+observation artifactは5秒間隔のbounded pollingで監視し、最大64 KiBのprivate regular fileだけをSHA-256で
+比較する。新しい内容が10秒間安定した場合だけ起動し、同一digestは再計測しない。schedulerがbusyで開始
+できない場合はdigestを消費済みにせず次回pollで再試行する。起動済みdigestは計測失敗時にも自動反復せず、
+新しいshape追加時だけ次のtuning/recycleを許可するため、継続的なGPU負荷や再起動loopを生じない。
+
+次はこの状態とeventをSwift SDKでtyped decodeし、Mac appから自動tuningの有効状態、待機、実行、適用、
+失敗を確認・制御できるcontractを公開する。
+
+runtime snapshotへ`native_v2_tuning`を追加し、`status`、bounded `run_id`、適用profile ID、本文を含まない
+error codeを公開した。Swift SDKは`NativeV2TuningState`としてHTTP/UDSの両transportでdecodeし、古いdaemonで
+fieldが欠落する場合はidleへfallbackする。Mac sampleはevent streamもtyped decodeして、英語・日本語・
+简体中文で待機、実行、適用、失敗を即時表示する。自動tuning自体は既存daemon flagで無効化できる。
+
+`POST /v1/native-v2-tuning`はsession token認証後、fieldが`action`だけの`enable`、`disable`、`retry`を
+受け付ける。disableは実行中kernelを強制終了せず次回起動を止め、enableはartifact監視を再開する。retryは
+最後に検証済みのtune/apply closureがある場合だけsingle-flightで再実行し、未準備またはbusyなら409を返す。
+Swift SDKはHTTP/UDSの両方でtyped control resultを返し、Mac sampleは英語・日本語・简体中文の操作UIから
+状態を即時更新する。
+
+enable/disable preferenceはApplication Supportの`settings/native-v2-tuning.json`へ保存する。artifactは
+schema versionとbooleanだけを許し、最大4 KiB、current-user所有、0600 file、0700 directory、fsync後の
+atomic replaceを要求する。daemon flagによる明示disableを最優先し、それ以外は起動時に設定を復元する。
+破損・unsafe artifactは有効側へfail safeし、保存失敗でも明示disable自体は維持する。HTTP/UDS controlからの
+変更は永続化成功後だけruntime状態へ反映するため、画面表示と再起動後の設定が食い違わない。
+
+次は新profile保存後のbackend readinessが失敗した場合にlast-known-good profileへrollbackし、問題profileを
+quarantineして再発見しない適用transactionを実装する。

@@ -371,6 +371,9 @@ class RuntimeRequestHandler(BaseHTTPRequestHandler):
         if not self._authorize():
             return
         path = self.path.split("?", 1)[0]
+        if path == "/v1/native-v2-tuning":
+            self._control_native_v2_tuning()
+            return
         if path != "/v1/chat/completions":
             self._error(HTTPStatus.NOT_FOUND, "not_found", "endpoint not found")
             return
@@ -410,6 +413,39 @@ class RuntimeRequestHandler(BaseHTTPRequestHandler):
         response.setdefault("created", int(time.time()))
         response.setdefault("runtime_ms", round((time.monotonic() - started) * 1000, 3))
         self._send(HTTPStatus.OK, response)
+
+    def _control_native_v2_tuning(self) -> None:
+        request = self._read_json()
+        if request is None:
+            return
+        if set(request) != {"action"} or request["action"] not in {
+            "enable",
+            "disable",
+            "retry",
+        }:
+            self._error(
+                HTTPStatus.BAD_REQUEST,
+                "invalid_native_v2_tuning_action",
+                "action must be enable, disable, or retry",
+            )
+            return
+        try:
+            accepted, snapshot = self.server.service.control_native_v2_tuning(
+                request["action"]
+            )
+        except (OSError, ValueError):
+            self._error(
+                HTTPStatus.INTERNAL_SERVER_ERROR,
+                "native_v2_preference_persistence_failed",
+                "native v2 tuning preference could not be persisted",
+            )
+            return
+        status = HTTPStatus.OK if accepted else HTTPStatus.CONFLICT
+        self._send(
+            status,
+            self._control_payload({"accepted": accepted, "native_v2_tuning": snapshot}),
+            error_code=None if accepted else "native_v2_tuning_not_ready",
+        )
 
     def _backend_error(self, error: BackendHTTPError) -> None:
         try:

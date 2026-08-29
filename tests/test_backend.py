@@ -223,6 +223,9 @@ class BackendConfigTests(unittest.TestCase):
                 process.start()
                 self.assertTrue(process.ready)
                 self.assertTrue(any("fake backend ready" in line for line in process.recent_logs()))
+                process.restart()
+                self.assertTrue(process.ready)
+                self.assertIsNotNone(process.pid)
             finally:
                 process.stop()
             self.assertFalse(process.running)

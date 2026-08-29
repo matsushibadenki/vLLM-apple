@@ -268,6 +268,10 @@ def build_parser() -> argparse.ArgumentParser:
     server_tuning.add_argument("--disable-metal-tuning", action="store_true")
     server.add_argument("--disable-kv-calibration", action="store_true")
     server.add_argument("--kv-calibration-root", type=Path)
+    server.add_argument("--vllm-metal-source-root", type=Path)
+    server.add_argument("--vllm-metal-v2-helper", type=Path)
+    server.add_argument("--disable-native-v2-idle-tuning", action="store_true")
+    server.add_argument("--native-v2-preference-path", type=Path)
     return parser
 
 
@@ -678,6 +682,10 @@ def main(argv: list[str] | None = None) -> int:
                 metal_tuning_report=arguments.metal_tuning_report,
                 enable_kv_calibration=not arguments.disable_kv_calibration,
                 kv_calibration_root=arguments.kv_calibration_root,
+                enable_native_v2_idle_tuning=not arguments.disable_native_v2_idle_tuning,
+                vllm_metal_source_root=arguments.vllm_metal_source_root,
+                vllm_metal_v2_helper=arguments.vllm_metal_v2_helper,
+                native_v2_preference_path=arguments.native_v2_preference_path,
             )
         except (RuntimeError, ValueError) as error:
             print(f"vllm-apple: {error}", file=sys.stderr)

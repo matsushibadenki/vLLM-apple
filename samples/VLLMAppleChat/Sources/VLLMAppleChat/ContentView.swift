@@ -92,6 +92,10 @@ struct ContentView: View {
                 CalibrationDiagnostic(calibration: calibration)
             }
 
+            NativeV2TuningDiagnostic(state: model.nativeV2Tuning) { action in
+                Task { await model.controlNativeV2Tuning(action) }
+            }
+
             if !model.qualificationReports.isEmpty {
                 VStack(alignment: .leading, spacing: DesignTokens.compact) {
                     sectionLabel("sidebar.qualification")
@@ -306,6 +310,80 @@ private struct CalibrationDiagnostic: View {
 
     private func localized(_ key: String) -> String {
         String(localized: String.LocalizationValue(key), bundle: .module)
+    }
+}
+
+private struct NativeV2TuningDiagnostic: View {
+    let state: NativeV2TuningState
+    let onControl: (NativeV2TuningControlAction) -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: DesignTokens.compact) {
+            Text("sidebar.native_v2_tuning")
+                .font(.caption2.monospaced().weight(.semibold))
+                .foregroundStyle(DesignTokens.secondaryInk)
+                .textCase(.uppercase)
+                .tracking(0.8)
+            Label(statusKey, systemImage: symbol)
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(color)
+            if let profileID = state.profileID {
+                Text(profileID)
+                    .font(.caption2.monospaced())
+                    .foregroundStyle(DesignTokens.secondaryInk)
+                    .lineLimit(1)
+                    .truncationMode(.middle)
+                    .help(profileID)
+            }
+            HStack(spacing: DesignTokens.compact) {
+                Button(state.enabled ? "native_v2.action.disable" : "native_v2.action.enable") {
+                    onControl(state.enabled ? .disable : .enable)
+                }
+                .buttonStyle(.borderless)
+                .disabled(state.status == .running)
+
+                if state.status == .failed {
+                    Button("native_v2.action.retry") {
+                        onControl(.retry)
+                    }
+                    .buttonStyle(.borderless)
+                    .disabled(!state.enabled)
+                }
+            }
+        }
+        .accessibilityElement(children: .combine)
+    }
+
+    private var statusKey: LocalizedStringKey {
+        switch state.status {
+        case .disabled: "native_v2.status.disabled"
+        case .idle: "native_v2.status.idle"
+        case .waitingForIdle: "native_v2.status.waiting"
+        case .running: "native_v2.status.running"
+        case .applied: "native_v2.status.applied"
+        case .failed: "native_v2.status.failed"
+        }
+    }
+
+    private var symbol: String {
+        switch state.status {
+        case .disabled: "pause.circle"
+        case .idle: "speedometer"
+        case .waitingForIdle: "clock"
+        case .running: "gauge.with.dots.needle.67percent"
+        case .applied: "checkmark.circle.fill"
+        case .failed: "exclamationmark.triangle.fill"
+        }
+    }
+
+    private var color: Color {
+        switch state.status {
+        case .disabled: DesignTokens.secondaryInk
+        case .idle: DesignTokens.secondaryInk
+        case .waitingForIdle, .running: DesignTokens.cobalt
+        case .applied: DesignTokens.success
+        case .failed: DesignTokens.warning
+        }
     }
 }
 

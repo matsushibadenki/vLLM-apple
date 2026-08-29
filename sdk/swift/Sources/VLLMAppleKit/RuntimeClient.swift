@@ -5,6 +5,10 @@ public protocol VLLMAppleRuntimeClient: Sendable {
     func runtimeProfile() async throws -> RuntimeProfile
     func memoryBudget() async throws -> MemoryBudget
     func kvCalibration() async throws -> KVCalibrationProvenance
+    func nativeV2Tuning() async throws -> NativeV2TuningState
+    func controlNativeV2Tuning(
+        _ action: NativeV2TuningControlAction
+    ) async throws -> NativeV2TuningControlResult
     func health() async throws -> HealthStatus
     func chat(_ request: ChatRequest) async throws -> ChatResponse
     func streamChat(_ request: ChatRequest) -> AsyncThrowingStream<ChatEvent, Error>
@@ -35,6 +39,7 @@ private struct RuntimeEnvelope: Decodable {
     let profile: RuntimeProfile
     let memoryBudget: MemoryBudget
     let kvCalibration: KVCalibrationProvenance
+    let nativeV2Tuning: NativeV2TuningState?
 }
 
 private struct ErrorEnvelope: Decodable {
@@ -43,6 +48,10 @@ private struct ErrorEnvelope: Decodable {
         let code: String?
     }
     let error: Body
+}
+
+private struct NativeV2TuningControlRequest: Encodable {
+    let action: NativeV2TuningControlAction
 }
 
 public final class HTTPRuntimeClient: VLLMAppleRuntimeClient, @unchecked Sendable {
@@ -90,6 +99,24 @@ public final class HTTPRuntimeClient: VLLMAppleRuntimeClient, @unchecked Sendabl
         let envelope = try await get("v1/runtime", as: RuntimeEnvelope.self)
         try validate(schemaVersion: envelope.schemaVersion)
         return envelope.kvCalibration
+    }
+
+    public func nativeV2Tuning() async throws -> NativeV2TuningState {
+        let envelope = try await get("v1/runtime", as: RuntimeEnvelope.self)
+        try validate(schemaVersion: envelope.schemaVersion)
+        return envelope.nativeV2Tuning ?? .idle
+    }
+
+    public func controlNativeV2Tuning(
+        _ action: NativeV2TuningControlAction
+    ) async throws -> NativeV2TuningControlResult {
+        let body = try encoder.encode(NativeV2TuningControlRequest(action: action))
+        return try await send(
+            "v1/native-v2-tuning",
+            method: "POST",
+            body: body,
+            as: NativeV2TuningControlResult.self
+        )
     }
 
     public func chat(_ request: ChatRequest) async throws -> ChatResponse {

@@ -211,6 +211,17 @@ class MetalTuningReportTests(unittest.TestCase):
         daemon_arguments = build_daemon_parser().parse_args(["model", "--disable-metal-tuning"])
         self.assertEqual(cli_arguments.metal_tuning_report, Path("/tmp/tuning.json"))
         self.assertTrue(daemon_arguments.disable_metal_tuning)
+        native_v2 = build_daemon_parser().parse_args(
+            [
+                "model",
+                "--vllm-metal-source-root",
+                "/private/source",
+                "--vllm-metal-v2-helper",
+                "/private/helper",
+            ]
+        )
+        self.assertEqual(native_v2.vllm_metal_source_root, Path("/private/source"))
+        self.assertEqual(native_v2.vllm_metal_v2_helper, Path("/private/helper"))
 
     def test_runtime_applies_winner_only_after_scheduler_safe_point(self) -> None:
         report = tune_metal_shape_profile(

@@ -264,6 +264,15 @@ class BackendProcess:
                 process.wait(timeout=5.0)
         for thread in self._drainers:
             thread.join(timeout=1.0)
+        with self._lock:
+            if self._process is process:
+                self._process = None
+                self._drainers = []
+
+    def restart(self) -> None:
+        """Recycle the managed backend using the immutable validated config."""
+        self.stop()
+        self.start()
 
 
 class OpenAIProxyEngine:

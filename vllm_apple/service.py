@@ -4,6 +4,7 @@ import threading
 from collections.abc import Callable
 from contextlib import AbstractContextManager
 from dataclasses import dataclass, replace
+from pathlib import Path
 from typing import Any, BinaryIO, Protocol
 
 from .elastic_memory import (
@@ -36,6 +37,10 @@ from .semantic_state import (
 )
 from .types import GIB, MemoryPressure, ModelMemorySpec, RuntimeProfile, RuntimeState
 from .vllm_metal_v2_orchestration import NativeV2IdleTuningCoordinator
+from .vllm_metal_v2_preference import (
+    load_native_v2_preference,
+    save_native_v2_preference,
+)
 from .vllm_metal_v2_tuning import VLLMMetalV2TuningProfile
 
 
@@ -88,6 +93,7 @@ class ServiceSnapshot:
     token_estimation: dict[str, int | str | None]
     context_reevaluation: dict[str, int | str | bool | None]
     kv_calibration: dict[str, int | float | str | bool | None]
+    native_v2_tuning: dict[str, str | int | bool | None]
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -108,6 +114,7 @@ class ServiceSnapshot:
             "token_estimation": self.token_estimation,
             "context_reevaluation": self.context_reevaluation,
             "kv_calibration": self.kv_calibration,
+            "native_v2_tuning": self.native_v2_tuning,
         }
 
 
@@ -153,6 +160,7 @@ class RuntimeService:
             self.scheduler,
             publish=self.events.publish,
         )
+        self._native_v2_preference_path: Path | None = None
         self.memory_budget = UnifiedMemoryBudgetLedger(memory.total_bytes)
         self.context_reevaluator = (
             ContextCapacityReevaluator(
@@ -248,6 +256,7 @@ class RuntimeService:
                     else disabled_context_reevaluation_snapshot()
                 ),
                 kv_calibration=dict(self.kv_calibration),
+                native_v2_tuning=self.native_v2_tuning.snapshot().to_dict(),
             )
 
     def _sync_memory_budget(
@@ -517,6 +526,53 @@ class RuntimeService:
     ) -> bool:
         """Start one native-v2 tuning job only under an exclusive idle lease."""
         return self.native_v2_tuning.start(tune, apply)
+
+    def control_native_v2_tuning(self, action: str) -> tuple[bool, dict[str, object]]:
+        if action == "enable":
+            if self._native_v2_preference_path is not None:
+                save_native_v2_preference(True, self._native_v2_preference_path)
+            snapshot = self.native_v2_tuning.set_enabled(True)
+            return True, snapshot.to_dict()
+        if action == "disable":
+            if self._native_v2_preference_path is not None:
+                save_native_v2_preference(False, self._native_v2_preference_path)
+            snapshot = self.native_v2_tuning.set_enabled(False)
+            return True, snapshot.to_dict()
+        if action == "retry":
+            accepted = self.native_v2_tuning.retry()
+            return accepted, self.native_v2_tuning.snapshot().to_dict()
+        raise ValueError("unsupported native v2 tuning action")
+
+    def configure_native_v2_preference(
+        self,
+        path: Path,
+        *,
+        override_enabled: bool | None = None,
+    ) -> bool:
+        self._native_v2_preference_path = path
+        status = "default"
+        if override_enabled is not None:
+            enabled = override_enabled
+            try:
+                save_native_v2_preference(enabled, path)
+                status = "overridden"
+            except (OSError, ValueError):
+                status = "persistence_failed"
+        else:
+            try:
+                enabled = load_native_v2_preference(path)
+                status = "restored"
+            except FileNotFoundError:
+                enabled = True
+            except (OSError, ValueError):
+                enabled = True
+                status = "invalid"
+        self.native_v2_tuning.set_enabled(enabled)
+        self.events.publish(
+            "runtime.native_v2_preference",
+            {"status": status, "enabled": enabled},
+        )
+        return enabled
 
     def metal_tuning_snapshot(self) -> dict[str, object]:
         with self._lock:

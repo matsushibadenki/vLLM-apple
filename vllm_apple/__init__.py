@@ -128,7 +128,13 @@ from .vllm_metal_v2_observation import (
 )
 from .vllm_metal_v2_orchestration import (
     NativeV2IdleTuningCoordinator,
+    NativeV2ObservationMonitor,
     V2IdleTuningSnapshot,
+)
+from .vllm_metal_v2_preference import (
+    default_native_v2_preference_path,
+    load_native_v2_preference,
+    save_native_v2_preference,
 )
 from .vllm_metal_v2_adapter import (
     V2MeasurementAdapterError,
@@ -171,6 +177,7 @@ __all__ = [
     "NativeMLXProbeAdapter",
     "NativeMetalProbeAdapter",
     "NativeV2IdleTuningCoordinator",
+    "NativeV2ObservationMonitor",
     "OperatorDispatchDecision",
     "OperatorDispatchRequest",
     "OperatorDispatcher",
@@ -224,6 +231,7 @@ __all__ = [
     "default_metal_shape_benchmark_path",
     "default_metal_tuning_path",
     "default_v2_observation_path",
+    "default_native_v2_preference_path",
     "detect_apple_chip_profile",
     "discover_metal_tuning_report",
     "discover_runtime_versions",
@@ -233,6 +241,7 @@ __all__ = [
     "load_metal_tuning_report",
     "load_v2_tuning_profile",
     "load_v2_observations",
+    "load_native_v2_preference",
     "parse_kernel_tuning_headers",
     "persist_crash_diagnostic",
     "run_kernel_probe",
@@ -243,6 +252,7 @@ __all__ = [
     "save_metal_shape_benchmark",
     "save_metal_tuning_report",
     "save_v2_tuning_profile",
+    "save_native_v2_preference",
     "semantic_prefix_fingerprint",
     "tune_metal_shape_profile",
     "tune_v2_shape",

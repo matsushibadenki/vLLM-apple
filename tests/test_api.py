@@ -129,6 +129,33 @@ class AuthenticatedAPITests(unittest.TestCase):
         with urllib.request.urlopen(request, timeout=2) as response:
             self.assertTrue(json.load(response)["control_ready"])
 
+    def test_native_v2_tuning_control_requires_token_and_is_strict(self) -> None:
+        body = json.dumps({"action": "disable"}).encode()
+        unauthenticated = urllib.request.Request(
+            self.base_url + "/v1/native-v2-tuning",
+            data=body,
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        with self.assertRaises(urllib.error.HTTPError) as raised:
+            urllib.request.urlopen(unauthenticated, timeout=2)
+        self.assertEqual(raised.exception.code, 401)
+
+        authenticated = urllib.request.Request(
+            self.base_url + "/v1/native-v2-tuning",
+            data=body,
+            headers={
+                "Authorization": f"Bearer {self.token}",
+                "Content-Type": "application/json",
+            },
+            method="POST",
+        )
+        with urllib.request.urlopen(authenticated, timeout=2) as response:
+            payload = json.load(response)
+        self.assertTrue(payload["accepted"])
+        self.assertFalse(payload["native_v2_tuning"]["enabled"])
+        self.assertEqual(payload["native_v2_tuning"]["status"], "disabled")
+
     def test_authenticated_runtime_event_stream(self) -> None:
         request = urllib.request.Request(
             self.base_url + "/v1/events",

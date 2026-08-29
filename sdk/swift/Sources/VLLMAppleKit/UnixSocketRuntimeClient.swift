@@ -49,6 +49,11 @@ private struct UnixRuntimeEnvelope: Decodable {
     let profile: RuntimeProfile
     let memoryBudget: MemoryBudget
     let kvCalibration: KVCalibrationProvenance
+    let nativeV2Tuning: NativeV2TuningState?
+}
+
+private struct UnixNativeV2TuningControlRequest: Encodable {
+    let action: NativeV2TuningControlAction
 }
 
 public final class UnixSocketRuntimeClient: VLLMAppleRuntimeClient, @unchecked Sendable {
@@ -86,6 +91,24 @@ public final class UnixSocketRuntimeClient: VLLMAppleRuntimeClient, @unchecked S
         let envelope = try await request("/v1/runtime", as: UnixRuntimeEnvelope.self)
         try validate(schemaVersion: envelope.schemaVersion)
         return envelope.kvCalibration
+    }
+
+    public func nativeV2Tuning() async throws -> NativeV2TuningState {
+        let envelope = try await request("/v1/runtime", as: UnixRuntimeEnvelope.self)
+        try validate(schemaVersion: envelope.schemaVersion)
+        return envelope.nativeV2Tuning ?? .idle
+    }
+
+    public func controlNativeV2Tuning(
+        _ action: NativeV2TuningControlAction
+    ) async throws -> NativeV2TuningControlResult {
+        let body = try makeEncoder().encode(UnixNativeV2TuningControlRequest(action: action))
+        return try await request(
+            "/v1/native-v2-tuning",
+            method: "POST",
+            body: body,
+            as: NativeV2TuningControlResult.self
+        )
     }
 
     public func chat(_ request: ChatRequest) async throws -> ChatResponse {

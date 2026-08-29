@@ -53,6 +53,7 @@ final class AppModel: ObservableObject {
     @Published private(set) var transportLabel = "HTTP · 127.0.0.1:8000"
     @Published private(set) var contextWarning: RuntimeContextReevaluation?
     @Published private(set) var kvCalibration: KVCalibrationProvenance?
+    @Published private(set) var nativeV2Tuning: NativeV2TuningState = .idle
     @Published private(set) var qualificationReports: [QualificationReportRecord]
 
     private let resolver: RuntimeResourceResolver
@@ -85,6 +86,7 @@ final class AppModel: ObservableObject {
         detail = ""
         contextWarning = nil
         kvCalibration = nil
+        nativeV2Tuning = .idle
         qualificationReports = qualificationStore.load()
 
         do {
@@ -109,6 +111,7 @@ final class AppModel: ObservableObject {
             guard let client else { return }
             let health = try await client.health()
             kvCalibration = try await client.kvCalibration()
+            nativeV2Tuning = try await client.nativeV2Tuning()
             apply(health.status)
             beginEventMonitoring(client: client)
         } catch let error as RuntimeResourceError {
@@ -188,6 +191,18 @@ final class AppModel: ObservableObject {
         isSending = false
     }
 
+    func controlNativeV2Tuning(_ action: NativeV2TuningControlAction) async {
+        guard let client else { return }
+        do {
+            let result = try await client.controlNativeV2Tuning(action)
+            nativeV2Tuning = result.nativeV2Tuning
+        } catch let error as RuntimeClientError {
+            report(key: error.messageKey, detail: String(describing: error))
+        } catch {
+            report(key: "runtime.error.connection", detail: error.localizedDescription)
+        }
+    }
+
     func clearTranscript() {
         cancelGeneration()
         messages.removeAll(keepingCapacity: true)
@@ -208,6 +223,7 @@ final class AppModel: ObservableObject {
             phase = .disconnected
             contextWarning = nil
             kvCalibration = nil
+            nativeV2Tuning = .idle
         }
     }
 
@@ -260,6 +276,9 @@ final class AppModel: ObservableObject {
                     }
                     if let reevaluation = event.contextReevaluation {
                         self.contextWarning = reevaluation.status == .reduced ? reevaluation : nil
+                    }
+                    if let tuning = event.nativeV2Tuning {
+                        self.nativeV2Tuning = tuning
                     }
                 }
             } catch is CancellationError {

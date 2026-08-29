@@ -115,6 +115,36 @@ import Testing
     #expect(calibration.sampleCount == 3)
 }
 
+@Test func decodesNativeV2TuningStateAndEvent() throws {
+    let stateData = Data("""
+    {
+      "enabled": true,
+      "status": "applied",
+      "run_id": 3,
+      "profile_id": "0123456789abcdef01234567",
+      "error_code": null
+    }
+    """.utf8)
+    let state = try JSONDecoder().decode(NativeV2TuningState.self, from: stateData)
+    #expect(state.status == .applied)
+    #expect(state.enabled)
+    #expect(state.runID == 3)
+    #expect(state.profileID == "0123456789abcdef01234567")
+
+    let eventData = Data("""
+    {
+      "schema_version": 1,
+      "event_id": "45",
+      "type": "runtime.native_v2_tuning",
+      "timestamp": "2026-08-29T00:00:00Z",
+      "payload": {"status": "running", "run_id": 4}
+    }
+    """.utf8)
+    let event = try JSONDecoder().decode(RuntimeEvent.self, from: eventData)
+    #expect(event.nativeV2Tuning?.status == .running)
+    #expect(event.nativeV2Tuning?.runID == 4)
+}
+
 @Test func contextReevaluationEventExposesReducedLimit() throws {
     let data = Data("""
     {
