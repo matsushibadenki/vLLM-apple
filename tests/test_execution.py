@@ -32,6 +32,18 @@ class StateMemorySpecTests(unittest.TestCase):
         )
         self.assertEqual(spec.state_bytes(2048), 4096 + 2048 * 100 + 1024 * 50)
 
+    def test_sparse_index_grows_but_retrieval_workspace_is_bounded(self) -> None:
+        spec = StateMemorySpec(
+            model_id="qsa",
+            architecture="sparse",
+            weights_bytes=GIB,
+            kv_bytes_per_token=100,
+            sparse_index_bytes_per_token=10,
+            sparse_retrieval_bytes_per_token=20,
+            sparse_retrieval_tokens=2048,
+        )
+        self.assertEqual(spec.state_bytes(4096), 4096 * 110 + 2048 * 20)
+
     def test_fixed_state_requires_a_context_limit(self) -> None:
         with self.assertRaises(ValueError):
             StateMemorySpec("recurrent", "mamba", GIB, recurrent_state_bytes=1024)

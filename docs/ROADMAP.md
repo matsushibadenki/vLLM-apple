@@ -516,14 +516,15 @@ N-gram Embedding、MTP、Vision Encoderを組み合わせた`qwen4_exp`系hybrid
 recipeは現時点で専用imageとCUDA／ROCm構成を前提とするため、通常vLLM対応をそのまま
 vLLM-Metal対応とは見なさない。
 
-- `[Later]` `qwen4_exp` / `qwen4_exp_text` configのbounded metadata inspection
-- `[Later]` layer別Gated DeltaNet recurrent state計算
-- `[Later]` QSA block/indexer stateとsparse retrieval budgetの`StateMemorySpec`拡張
-- `[Later]` 512 expert、10 routed + 1 sharedのworking-set/residency計算
-- `[Later]` 51B N-gram Embeddingを独立residency classとして計画
-- `[Later]` Gated Residual scratch stateとMTP追加weight/state計算
-- `[Later]` text-only、Vision、MTP、native 262K、YaRN 1Mを別capabilityとして判定
-- `[Later]` vLLM-Metal / Native MLXのarchitecture capability gateと構造化error
+- `[Done]` `qwen4_exp` / `qwen4_exp_text` configのbounded metadata inspection
+- `[Done]` layer別Gated DeltaNet recurrent state計算
+- `[Done]` QSA block/indexer stateとsparse retrieval budgetの`StateMemorySpec`拡張
+- `[Done]` 512 expert、10 routed + 1 sharedのworking-set/residency計算
+- `[Done]` 51B N-gram Embeddingを独立residency classとして計画
+- `[Done]` Gated Residual scratch stateとMTP追加weight/state計算
+- `[Next]` text-only、Vision、MTP、native 262K、YaRN 1Mを別capabilityとして判定
+- `[Done]` vLLM-Metal architecture capability gateと構造化error
+- `[Later]` Native MLX architecture capability gate
 - `[Later]` quantized artifact実サイズによるMac適合判定とhard memory ceiling
 - `[Later]` 大容量Apple Siliconでtext-only smoke、TTFT、TPOT、RSS、品質gate
 - `[Later]` backend実測後にのみQSA、GDN、MoE、N-gram向けNative Metal/MLXを検討
@@ -581,7 +582,13 @@ vLLM-Metal対応とは見なさない。
 - `[Done]` explicit restore後のmanaged backend safe-point適用とreadiness再確認
 - `[Done]` OS、toolchain、MLX version変更時のprofile失効と安全な再benchmark
 - `[Done]` state/workspace統合budgetとMoE expert residency
-- `[Next]` Qwen3.8-Flash-Next bounded metadata inspectionとcapability gate
+- `[Done]` Qwen3.8-Flash-Next bounded metadata inspectionとcapability gate
+- `[Done]` layer別Gated DeltaNet recurrent state計算
+- `[Done]` QSA block/indexer stateとsparse retrieval budgetの`StateMemorySpec`拡張
+- `[Done]` 512 expert、10 routed + 1 sharedのworking-set/residency計算
+- `[Done]` 51B N-gram Embeddingを独立residency classとして計画
+- `[Done]` Gated Residual scratch stateとMTP追加weight/state計算
+- `[Next]` text-only、Vision、MTP、native 262K、YaRN 1Mを別capabilityとして判定
 - `[Done]` kernel capability、self-test結果、quarantine理由のversioned registry
 - `[Later]` vLLM-Metal Paged Attention capability/benchmark統合
 - `[Later]` native Metal Paged Attention拡張は計測済みの不足が残る場合のみ
@@ -741,7 +748,13 @@ vLLM-Metal対応とは見なさない。
 - `[Done]` explicit restore後のmanaged backend safe-point適用とreadiness再確認
 - `[Done]` OS、toolchain、MLX version変更時のprofile失効と安全な再benchmark
 - `[Done]` state/workspace統合budgetとMoE expert residency
-- `[Next]` Qwen3.8-Flash-Next bounded metadata inspectionとcapability gate
+- `[Done]` Qwen3.8-Flash-Next bounded metadata inspectionとcapability gate
+- `[Done]` layer別Gated DeltaNet recurrent state計算
+- `[Done]` QSA block/indexer stateとsparse retrieval budgetの`StateMemorySpec`拡張
+- `[Done]` 512 expert、10 routed + 1 sharedのworking-set/residency計算
+- `[Done]` 51B N-gram Embeddingを独立residency classとして計画
+- `[Done]` Gated Residual scratch stateとMTP追加weight/state計算
+- `[Next]` text-only、Vision、MTP、native 262K、YaRN 1Mを別capabilityとして判定
 - `[Next]` 専用runner上でvLLM 0.28.x昇格workflowを実行
 - `[Later]` Ruff ruleの段階的拡張と既存style debt解消
 - `[Later]` signed daemon artifact
@@ -829,8 +842,14 @@ vLLM-Metal対応とは見なさない。
 76. `[Done]` explicit restore後のmanaged backend safe-point適用とreadiness再確認
 77. `[Done]` OS、toolchain、MLX version変更時のprofile失効と安全な再benchmark
 78. `[Done]` state/workspace統合budgetとMoE expert residency
-79. `[Next]` Qwen3.8-Flash-Next bounded metadata inspectionとcapability gate
-80. `[Later]` Mac companion app
+79. `[Done]` Qwen3.8-Flash-Next bounded metadata inspectionとcapability gate
+80. `[Done]` layer別Gated DeltaNet recurrent state計算
+81. `[Done]` QSA block/indexer stateとsparse retrieval budgetの`StateMemorySpec`拡張
+82. `[Done]` 512 expert、10 routed + 1 sharedのworking-set/residency計算
+83. `[Done]` 51B N-gram Embeddingを独立residency classとして計画
+84. `[Done]` Gated Residual scratch stateとMTP追加weight/state計算
+85. `[Next]` text-only、Vision、MTP、native 262K、YaRN 1Mを別capabilityとして判定
+86. `[Later]` Mac companion app
 
 この順序により、まず推論runtimeの実model安定性を確立し、その境界を壊さずにoptimizerを
 別processとして追加する。構造pruningはquantization、calibration、評価gateの後に着手する。

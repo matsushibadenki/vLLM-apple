@@ -198,5 +198,37 @@ additive componentとして扱い、Metal heap/RSSだけをoverlap envelopeと�
 反映する。semantic prefixとmodel prefix、scheduler scratchとmodel workspaceはそれぞれ合算し、上限超過はbackendへ
 渡す前に拒否する。legacy `ModelMemorySpec`は同じstate contractへ変換される。
 
-次はQwen3.8-Flash-Nextのbounded metadata inspectionを追加し、hybrid architectureの必須機能がbackendにない場合は
-model load前に明示的なcapability errorとして拒否する。
+model inspectionは`config.json`を最大1 MiB、4096 nodes、深さ16へ制限する。`qwen4_exp`または
+`qwen4_exp_text`を検出すると、Gated DeltaNet、QSA、MoE、Gated Residual、N-gram Embedding、MTP、Visionの
+必須capability集合を生成する。vLLM-Metal daemonはweight shard走査より前にこの集合を検証し、未対応の場合は
+`backend_missing_model_capabilities`で停止する。通常のmetadata不備に使う4K fallbackはcapability errorには適用せず、
+標準Transformerとして誤ってロードしない。
+
+Qwen hybrid inspectionは`layer_types`と`num_hidden_layers`の完全一致を要求し、各Gated DeltaNet layerについて
+V-headのkey/value state matrixとQK/V convolution historyを`mamba_ssm_dtype`のbyte幅で計算する。公式構成の
+36 linear-attention layers、QK 16 heads、V 48 heads、128 dimensions、FP32 stateをそのまま表現する。
+1 sequence分はrecurrent常駐領域へ計上し、追加batch分はadmission時にprefix stateとともに増分予約する。不明dtype、
+未知layer type、過大dimensionは推測せずinspection errorにする。
+
+QSA stateはfull-attention layerだけのKV、全contextに比例するcompressed indexer key、`indexer_budget`で上限を
+持つretrieval workspaceへ分離する。公式48層構成では12 full-attention layersからKV 24 KiB/token、4:1圧縮の
+indexer 768 B/tokenを算出する。4-head、128-dimensionのretrieval workspaceは2048 tokensで飽和し、それ以降の
+長文では増加しない。これらはbatchごとにadmission予約され、未知または過大なindexer fieldはfail closedにする。
+
+MoE memoryは全512 routed expertsとshared expertのstorage、各tokenで有効な10 routed + 1 shared expertのresident
+working setへ分離する。各expertはgate/up/downの3行列として計算し、BF16、FP8、1〜16-bit quantizationを反映する。
+runtime weightsからexpert storageを除き、active working setだけをadditive componentへ入れるため二重計上しない。
+expert数、intermediate dimension、routing数はbounded検証し、routing数が総expert数を超える構成は拒否する。
+
+N-gram Embeddingは`ngram_vocab_size_base × hidden_size`から全table storageを計算し、`split_ngram_parts`で分割した
+1 partitionだけをruntime resident working setとして扱う。公式51.2B-parameter tableはBF16で約102.4 GBのstorage、
+128分割で約800 MBのresident classになる。量子化byte幅もMoEと共通化し、通常weightsからstorageを除いてresident
+partitionだけをadditive計上するため、巨大table全体をUnified Memory常駐と誤認しない。
+
+Hyper-Connection scratchは`hc_count × (hidden_size + hc_lowrank)`で最大1 layer分を計算し、layer間で再利用する。
+MTPは追加full-attention layerのQ/K/V/O、全expert storage、10+1 active expert working setを分離し、dedicated
+embeddingが有効な場合だけ追加tableを計上する。MTP metadataのlayer数、hybrid flag、layer type、embedding policyが
+不整合ならfail closedにする。scratchとMTP working setは独立componentとしてruntime admissionへ反映する。
+
+次はtext-only、Vision、MTP、およびnative 262K／YaRN 1M contextを独立capabilityとして判定し、部分対応backendで
+安全に機能を限定できるcontractを作る。

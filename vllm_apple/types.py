@@ -116,7 +116,15 @@ class StateMemorySpec:
     prefix_state_bytes: int = 0
     attention_window_bytes_per_token: int = 0
     attention_window_tokens: int | None = None
+    sparse_index_bytes_per_token: int = 0
+    sparse_retrieval_bytes_per_token: int = 0
+    sparse_retrieval_tokens: int | None = None
+    expert_storage_bytes: int = 0
     expert_working_set_bytes: int = 0
+    ngram_storage_bytes: int = 0
+    ngram_working_set_bytes: int = 0
+    mtp_storage_bytes: int = 0
+    mtp_working_set_bytes: int = 0
     scratch_workspace_bytes: int = 0
     model_max_context: int | None = None
 
@@ -129,7 +137,14 @@ class StateMemorySpec:
             self.recurrent_state_bytes,
             self.prefix_state_bytes,
             self.attention_window_bytes_per_token,
+            self.sparse_index_bytes_per_token,
+            self.sparse_retrieval_bytes_per_token,
+            self.expert_storage_bytes,
             self.expert_working_set_bytes,
+            self.ngram_storage_bytes,
+            self.ngram_working_set_bytes,
+            self.mtp_storage_bytes,
+            self.mtp_working_set_bytes,
             self.scratch_workspace_bytes,
         )
         if any(value < 0 for value in byte_fields):
@@ -138,6 +153,8 @@ class StateMemorySpec:
             raise ValueError("bounded-state models require model_max_context")
         if self.attention_window_tokens is not None and self.attention_window_tokens <= 0:
             raise ValueError("attention_window_tokens must be positive")
+        if self.sparse_retrieval_tokens is not None and self.sparse_retrieval_tokens <= 0:
+            raise ValueError("sparse_retrieval_tokens must be positive")
         if self.model_max_context is not None and self.model_max_context <= 0:
             raise ValueError("model_max_context must be positive")
 
@@ -148,6 +165,8 @@ class StateMemorySpec:
             + self.recurrent_state_bytes
             + self.prefix_state_bytes
             + self.expert_working_set_bytes
+            + self.ngram_working_set_bytes
+            + self.mtp_working_set_bytes
             + self.scratch_workspace_bytes
         )
 
@@ -157,17 +176,24 @@ class StateMemorySpec:
         window_tokens = tokens
         if self.attention_window_tokens is not None:
             window_tokens = min(tokens, self.attention_window_tokens)
+        retrieval_tokens = tokens
+        if self.sparse_retrieval_tokens is not None:
+            retrieval_tokens = min(tokens, self.sparse_retrieval_tokens)
         return (
             self.recurrent_state_bytes
             + self.prefix_state_bytes
             + tokens * self.kv_bytes_per_token
             + window_tokens * self.attention_window_bytes_per_token
+            + tokens * self.sparse_index_bytes_per_token
+            + retrieval_tokens * self.sparse_retrieval_bytes_per_token
         )
 
     def total_bytes(self, tokens: int) -> int:
         return (
             self.weights_bytes
             + self.expert_working_set_bytes
+            + self.ngram_working_set_bytes
+            + self.mtp_working_set_bytes
             + self.scratch_workspace_bytes
             + self.state_bytes(tokens)
         )

@@ -42,6 +42,7 @@ from .memory_pressure import MemoryPressureMonitor
 from .model import (
     DEFAULT_UNINSPECTED_CONTEXT,
     InspectedModel,
+    ModelCapabilityError,
     ModelInspectionError,
     inspect_model,
 )
@@ -467,7 +468,7 @@ def serve(
         }
         inspected: InspectedModel | None = None
         try:
-            inspected = inspect_model(model)
+            inspected = inspect_model(model, backend="vllm_metal")
             if max_model_len is None:
                 if enable_kv_calibration:
                     chip_identity = detect_apple_chip_profile(hardware)
@@ -481,6 +482,8 @@ def serve(
                 if balanced.max_tokens <= 0:
                     raise RuntimeError("model does not fit in the current safe memory budget")
                 max_model_len = balanced.max_tokens
+        except ModelCapabilityError:
+            raise
         except ModelInspectionError:
             if max_model_len is None:
                 max_model_len = DEFAULT_UNINSPECTED_CONTEXT
@@ -513,6 +516,7 @@ def serve(
             proxy_engine,
             profile=profile,
             model_memory_spec=inspected.memory_spec if inspected is not None else None,
+            state_memory_spec=inspected.state_memory_spec if inspected is not None else None,
             configured_context_tokens=max_model_len,
             kv_calibration=calibration_provenance,
         )

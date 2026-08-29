@@ -15,13 +15,15 @@ class UnifiedMemoryBudgetLedgerTests(unittest.TestCase):
         ledger.update("prefix", 50, source="semantic_state")
         ledger.update("window", 15, source="runtime")
         ledger.update("experts", 20, source="model")
+        ledger.update("ngram", 5, source="model")
+        ledger.update("mtp", 5, source="model")
         ledger.update("scratch", 25, source="scheduler")
         ledger.update("metal_heap", 700, source="ioreg")
         ledger.update("coreml", 75, source="coreml")
 
         snapshot = ledger.snapshot()
-        self.assertEqual(snapshot.known_component_bytes, 695)
-        self.assertEqual(snapshot.known_remaining_bytes, 305)
+        self.assertEqual(snapshot.known_component_bytes, 705)
+        self.assertEqual(snapshot.known_remaining_bytes, 295)
         self.assertEqual(snapshot.overlap_envelope_bytes, 700)
         self.assertEqual(snapshot.unknown_components, ())
         self.assertEqual(snapshot.components["metal_heap"].accounting, "overlap_envelope")
@@ -96,6 +98,10 @@ class RuntimeMemoryBudgetTests(unittest.TestCase):
             attention_window_bytes_per_token=3,
             attention_window_tokens=10,
             expert_working_set_bytes=40,
+            ngram_storage_bytes=1_000,
+            ngram_working_set_bytes=60,
+            mtp_storage_bytes=2_000,
+            mtp_working_set_bytes=70,
             scratch_workspace_bytes=50,
         )
         service = RuntimeService(state_memory_spec=spec)
@@ -104,13 +110,16 @@ class RuntimeMemoryBudgetTests(unittest.TestCase):
         self.assertEqual(budget.components["recurrent"].current_bytes, 30)
         self.assertEqual(budget.components["prefix"].current_bytes, 20)
         self.assertEqual(budget.components["experts"].current_bytes, 40)
+        self.assertEqual(budget.components["ngram"].current_bytes, 60)
+        self.assertEqual(budget.components["mtp"].current_bytes, 70)
         self.assertEqual(budget.components["scratch"].current_bytes, 50)
 
         reservation = service.admit_schedule(
             ScheduleRequest("decode", 7, batch_size=2, estimated_context_tokens=20)
         )
-        # 7 explicit + 2 batches * (20 * 2 KV + 10 * 3 window).
-        self.assertEqual(reservation.bytes, 147)
+        # 7 explicit + 2 batches * (20 * 2 KV + 10 * 3 window)
+        # + one additional batch of recurrent/prefix state.
+        self.assertEqual(reservation.bytes, 247)
         service.complete_schedule(reservation)
 
 

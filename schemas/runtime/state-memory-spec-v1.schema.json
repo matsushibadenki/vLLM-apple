@@ -4,7 +4,7 @@
   "title": "StateMemorySpec v1",
   "type": "object",
   "additionalProperties": false,
-  "required": ["model_id", "architecture", "weights_bytes", "kv_bytes_per_token", "recurrent_state_bytes", "prefix_state_bytes", "attention_window_bytes_per_token", "attention_window_tokens", "expert_working_set_bytes", "scratch_workspace_bytes", "model_max_context"],
+  "required": ["model_id", "architecture", "weights_bytes", "kv_bytes_per_token", "recurrent_state_bytes", "prefix_state_bytes", "attention_window_bytes_per_token", "attention_window_tokens", "sparse_index_bytes_per_token", "sparse_retrieval_bytes_per_token", "sparse_retrieval_tokens", "expert_storage_bytes", "expert_working_set_bytes", "ngram_storage_bytes", "ngram_working_set_bytes", "mtp_storage_bytes", "mtp_working_set_bytes", "scratch_workspace_bytes", "model_max_context"],
   "properties": {
     "model_id": { "type": "string", "minLength": 1 },
     "architecture": { "type": "string", "minLength": 1 },
@@ -14,7 +14,15 @@
     "prefix_state_bytes": { "type": "integer", "minimum": 0 },
     "attention_window_bytes_per_token": { "type": "integer", "minimum": 0 },
     "attention_window_tokens": { "type": ["integer", "null"], "minimum": 1 },
+    "sparse_index_bytes_per_token": { "type": "integer", "minimum": 0 },
+    "sparse_retrieval_bytes_per_token": { "type": "integer", "minimum": 0 },
+    "sparse_retrieval_tokens": { "type": ["integer", "null"], "minimum": 1 },
+    "expert_storage_bytes": { "type": "integer", "minimum": 0 },
     "expert_working_set_bytes": { "type": "integer", "minimum": 0 },
+    "ngram_storage_bytes": { "type": "integer", "minimum": 0 },
+    "ngram_working_set_bytes": { "type": "integer", "minimum": 0 },
+    "mtp_storage_bytes": { "type": "integer", "minimum": 0 },
+    "mtp_working_set_bytes": { "type": "integer", "minimum": 0 },
     "scratch_workspace_bytes": { "type": "integer", "minimum": 0 },
     "model_max_context": { "type": ["integer", "null"], "minimum": 1 }
   }

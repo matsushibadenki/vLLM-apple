@@ -11,6 +11,8 @@ COMPONENT_NAMES = (
     "prefix",
     "window",
     "experts",
+    "ngram",
+    "mtp",
     "scratch",
     "metal_heap",
     "coreml",

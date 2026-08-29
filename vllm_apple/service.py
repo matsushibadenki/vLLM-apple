@@ -185,6 +185,12 @@ class RuntimeService:
             self.memory_budget.update(
                 "experts", state.expert_working_set_bytes, source="model_spec"
             )
+            self.memory_budget.update(
+                "ngram", state.ngram_working_set_bytes, source="model_spec"
+            )
+            self.memory_budget.update(
+                "mtp", state.mtp_working_set_bytes, source="model_spec"
+            )
             self.memory_budget.update("window", 0, source="request_projection")
         self.context_reevaluator = (
             ContextCapacityReevaluator(
@@ -446,9 +452,20 @@ class RuntimeService:
                 if state.attention_window_tokens is not None
                 else tokens
             )
+            retrieval_tokens = (
+                min(tokens, state.sparse_retrieval_tokens)
+                if state.sparse_retrieval_tokens is not None
+                else tokens
+            )
             projected = request.batch_size * (
                 tokens * state.kv_bytes_per_token
                 + window_tokens * state.attention_window_bytes_per_token
+                + tokens * state.sparse_index_bytes_per_token
+                + retrieval_tokens * state.sparse_retrieval_bytes_per_token
+            ) + (request.batch_size - 1) * (
+                state.recurrent_state_bytes
+                + state.prefix_state_bytes
+                + state.scratch_workspace_bytes
             )
             admission_request = replace(
                 request,
