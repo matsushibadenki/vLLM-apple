@@ -335,6 +335,18 @@ private struct NativeV2TuningDiagnostic: View {
                     .truncationMode(.middle)
                     .help(profileID)
             }
+            if state.quarantinedProfiles > 0 {
+                Text(
+                    String(
+                        format: localized("native_v2.quarantine.body"),
+                        Int64(state.quarantinedProfiles)
+                    )
+                )
+                .font(.caption2)
+                .foregroundStyle(DesignTokens.warning)
+                .fixedSize(horizontal: false, vertical: true)
+                .help(state.latestQuarantinedProfileID ?? "")
+            }
             HStack(spacing: DesignTokens.compact) {
                 Button(state.enabled ? "native_v2.action.disable" : "native_v2.action.enable") {
                     onControl(state.enabled ? .disable : .enable)
@@ -384,6 +396,10 @@ private struct NativeV2TuningDiagnostic: View {
         case .applied: DesignTokens.success
         case .failed: DesignTokens.warning
         }
+    }
+
+    private func localized(_ key: String) -> String {
+        String(localized: String.LocalizationValue(key), bundle: .module)
     }
 }
 

@@ -177,13 +177,17 @@ public struct NativeV2TuningState: Codable, Sendable, Equatable {
     public let runID: Int
     public let profileID: String?
     public let errorCode: String?
+    public let quarantinedProfiles: Int
+    public let latestQuarantinedProfileID: String?
 
     public static let idle = NativeV2TuningState(
         enabled: true,
         status: .idle,
         runID: 0,
         profileID: nil,
-        errorCode: nil
+        errorCode: nil,
+        quarantinedProfiles: 0,
+        latestQuarantinedProfileID: nil
     )
 
     public init(
@@ -191,13 +195,17 @@ public struct NativeV2TuningState: Codable, Sendable, Equatable {
         status: NativeV2TuningStatus,
         runID: Int,
         profileID: String?,
-        errorCode: String?
+        errorCode: String?,
+        quarantinedProfiles: Int = 0,
+        latestQuarantinedProfileID: String? = nil
     ) {
         self.enabled = enabled
         self.status = status
         self.runID = runID
         self.profileID = profileID
         self.errorCode = errorCode
+        self.quarantinedProfiles = quarantinedProfiles
+        self.latestQuarantinedProfileID = latestQuarantinedProfileID
     }
 
     enum CodingKeys: String, CodingKey {
@@ -205,6 +213,23 @@ public struct NativeV2TuningState: Codable, Sendable, Equatable {
         case runID = "run_id"
         case profileID = "profile_id"
         case errorCode = "error_code"
+        case quarantinedProfiles = "quarantined_profiles"
+        case latestQuarantinedProfileID = "latest_quarantined_profile_id"
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        enabled = try container.decodeIfPresent(Bool.self, forKey: .enabled) ?? true
+        status = try container.decode(NativeV2TuningStatus.self, forKey: .status)
+        runID = try container.decodeIfPresent(Int.self, forKey: .runID) ?? 0
+        profileID = try container.decodeIfPresent(String.self, forKey: .profileID)
+        errorCode = try container.decodeIfPresent(String.self, forKey: .errorCode)
+        quarantinedProfiles = try container.decodeIfPresent(
+            Int.self, forKey: .quarantinedProfiles
+        ) ?? 0
+        latestQuarantinedProfileID = try container.decodeIfPresent(
+            String.self, forKey: .latestQuarantinedProfileID
+        )
     }
 }
 
@@ -379,12 +404,26 @@ public extension RuntimeEvent {
         let errorCode: String?
         if case .string(let value)? = payload["error_code"] { errorCode = value }
         else { errorCode = nil }
+        let quarantinedProfiles: Int
+        if case .number(let value)? = payload["quarantined_profiles"] {
+            quarantinedProfiles = Int(value)
+        } else {
+            quarantinedProfiles = 0
+        }
+        let latestQuarantinedProfileID: String?
+        if case .string(let value)? = payload["latest_quarantined_profile_id"] {
+            latestQuarantinedProfileID = value
+        } else {
+            latestQuarantinedProfileID = nil
+        }
         return NativeV2TuningState(
             enabled: status != .disabled,
             status: status,
             runID: runID,
             profileID: profileID,
-            errorCode: errorCode
+            errorCode: errorCode,
+            quarantinedProfiles: quarantinedProfiles,
+            latestQuarantinedProfileID: latestQuarantinedProfileID
         )
     }
 

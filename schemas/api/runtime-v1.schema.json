@@ -326,13 +326,15 @@
     },
     "native_v2_tuning": {
       "type": "object",
-      "required": ["enabled", "status", "run_id", "profile_id", "error_code"],
+      "required": ["enabled", "status", "run_id", "profile_id", "error_code", "quarantined_profiles", "latest_quarantined_profile_id"],
       "properties": {
         "enabled": { "type": "boolean" },
         "status": { "enum": ["disabled", "idle", "waiting_for_idle", "running", "applied", "failed"] },
         "run_id": { "type": "integer", "minimum": 0 },
         "profile_id": { "type": ["string", "null"], "minLength": 24, "maxLength": 24 },
-        "error_code": { "type": ["string", "null"], "minLength": 1, "maxLength": 128 }
+        "error_code": { "type": ["string", "null"], "minLength": 1, "maxLength": 128 },
+        "quarantined_profiles": { "type": "integer", "minimum": 0, "maximum": 64 },
+        "latest_quarantined_profile_id": { "type": ["string", "null"], "minLength": 24, "maxLength": 24 }
       },
       "additionalProperties": false
     },

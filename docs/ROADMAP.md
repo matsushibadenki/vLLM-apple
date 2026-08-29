@@ -497,7 +497,9 @@ VLLMAppleKit / Control API
 - `[Done]` runtime snapshot/eventとSwift SDK/Mac appへのnative v2 tuning状態公開
 - `[Done]` authenticated enable/disable/retry control endpointとMac app操作UI
 - `[Done]` native v2 tuning preferenceのprivate永続化とdaemon再起動時復元
-- `[Next]` profile適用後readiness失敗時のlast-known-good rollbackとquarantine
+- `[Done]` profile適用後readiness失敗時のlast-known-good rollbackとquarantine
+- `[Done]` quarantine診断のbounded snapshotとMac app表示
+- `[Next]` quarantine retention policyと再計測合格後だけのexplicit restore gate
 - `[Later]` Mac個体別runtime autotuner（batch、tile、KV block、prefill chunk、kernel）
 - `[Later]` OS、toolchain、MLX version変更時のprofile失効と安全な再benchmark
 
@@ -570,7 +572,9 @@ vLLM-Metal対応とは見なさない。
 - `[Done]` runtime snapshot/eventとSwift SDK/Mac appへのnative v2 tuning状態公開
 - `[Done]` authenticated enable/disable/retry control endpointとMac app操作UI
 - `[Done]` native v2 tuning preferenceのprivate永続化とdaemon再起動時復元
-- `[Next]` profile適用後readiness失敗時のlast-known-good rollbackとquarantine
+- `[Done]` profile適用後readiness失敗時のlast-known-good rollbackとquarantine
+- `[Done]` quarantine診断のbounded snapshotとMac app表示
+- `[Next]` quarantine retention policyと再計測合格後だけのexplicit restore gate
 - `[Done]` kernel capability、self-test結果、quarantine理由のversioned registry
 - `[Later]` vLLM-Metal Paged Attention capability/benchmark統合
 - `[Later]` native Metal Paged Attention拡張は計測済みの不足が残る場合のみ
@@ -724,7 +728,9 @@ vLLM-Metal対応とは見なさない。
 - `[Done]` runtime snapshot/eventとSwift SDK/Mac appへのnative v2 tuning状態公開
 - `[Done]` authenticated enable/disable/retry control endpointとMac app操作UI
 - `[Done]` native v2 tuning preferenceのprivate永続化とdaemon再起動時復元
-- `[Next]` profile適用後readiness失敗時のlast-known-good rollbackとquarantine
+- `[Done]` profile適用後readiness失敗時のlast-known-good rollbackとquarantine
+- `[Done]` quarantine診断のbounded snapshotとMac app表示
+- `[Next]` quarantine retention policyと再計測合格後だけのexplicit restore gate
 - `[Next]` 専用runner上でvLLM 0.28.x昇格workflowを実行
 - `[Later]` Ruff ruleの段階的拡張と既存style debt解消
 - `[Later]` signed daemon artifact
@@ -806,10 +812,12 @@ vLLM-Metal対応とは見なさない。
 70. `[Done]` runtime snapshot/eventとSwift SDK/Mac appへのnative v2 tuning状態公開
 71. `[Done]` authenticated enable/disable/retry control endpointとMac app操作UI
 72. `[Done]` native v2 tuning preferenceのprivate永続化とdaemon再起動時復元
-73. `[Next]` profile適用後readiness失敗時のlast-known-good rollbackとquarantine
-74. `[Later]` state/workspace統合budgetとMoE expert residency
-75. `[Later]` Qwen3.8-Flash-Next bounded metadata inspectionとcapability gate
-76. `[Later]` Mac companion app
+73. `[Done]` profile適用後readiness失敗時のlast-known-good rollbackとquarantine
+74. `[Done]` quarantine診断のbounded snapshotとMac app表示
+75. `[Next]` quarantine retention policyと再計測合格後だけのexplicit restore gate
+76. `[Later]` state/workspace統合budgetとMoE expert residency
+77. `[Later]` Qwen3.8-Flash-Next bounded metadata inspectionとcapability gate
+78. `[Later]` Mac companion app
 
 この順序により、まず推論runtimeの実model安定性を確立し、その境界を壊さずにoptimizerを
 別processとして追加する。構造pruningはquantization、calibration、評価gateの後に着手する。

@@ -21,6 +21,7 @@ from vllm_apple.vllm_metal_v2_tuning import (
     V2PagedAttentionShape,
     V2ShapeTuningDecision,
     build_v2_tuning_profile,
+    save_v2_tuning_profile,
 )
 
 from tests.test_scheduler import hardware
@@ -126,6 +127,62 @@ class NativeV2IdleTuningCoordinatorTests(unittest.TestCase):
         backend.restart.assert_called_once_with()
         self.assertEqual(service.native_v2_tuning.snapshot().status, "applied")
 
+    def test_daemon_quarantines_failed_profile_and_rolls_backend_back(self) -> None:
+        service = RuntimeService()
+        backend = Mock()
+        backend.restart.side_effect = [RuntimeError("new profile failed"), None]
+        generated = profile()
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            observation = root / "shapes.json"
+            observation.write_text("{}")
+            destination = root / "profiles" / f"{generated.profile_id}.json"
+            with (
+                patch(
+                    "vllm_apple.daemon.inspect_vllm_metal_integration",
+                    return_value=SimpleNamespace(
+                        native_v2_detected=True, source_fingerprint="source"
+                    ),
+                ),
+                patch(
+                    "vllm_apple.daemon.build_v2_hardware_fingerprint",
+                    return_value="hardware",
+                ),
+                patch(
+                    "vllm_apple.daemon.default_v2_observation_path",
+                    return_value=observation,
+                ),
+                patch(
+                    "vllm_apple.daemon.load_v2_observations",
+                    return_value=(generated.decisions[0].shape,),
+                ),
+                patch("vllm_apple.daemon.VLLMMetalV2MeasurementAdapter") as adapter_type,
+                patch(
+                    "vllm_apple.daemon.tune_v2_observed_shapes",
+                    return_value=generated,
+                ),
+                patch(
+                    "vllm_apple.daemon.save_v2_tuning_profile",
+                    side_effect=lambda value: save_v2_tuning_profile(value, destination),
+                ),
+            ):
+                adapter_type.return_value.capability.return_value = {"compatible": True}
+                self.assertTrue(
+                    start_observed_native_v2_tuning(
+                        service,
+                        backend,
+                        source_root=root,
+                        helper=Path("/private/helper"),
+                        samples=1,
+                    )
+                )
+                self.assertTrue(service.native_v2_tuning.wait(1))
+            self.assertFalse(destination.exists())
+            self.assertTrue((destination.parent / "quarantine" / destination.name).exists())
+        self.assertEqual(backend.restart.call_count, 2)
+        self.assertEqual(service.state.value, "ready")
+        self.assertEqual(service.native_v2_tuning.snapshot().status, "failed")
+
     def test_observation_monitor_debounces_and_deduplicates_content(self) -> None:
         calls = []
         with tempfile.TemporaryDirectory() as directory:
@@ -192,6 +249,20 @@ class NativeV2IdleTuningCoordinatorTests(unittest.TestCase):
         self.assertTrue(coordinator.retry())
         self.assertTrue(coordinator.wait(1))
         self.assertEqual(applied, [profile()])
+
+    def test_quarantine_summary_is_bounded_and_published(self) -> None:
+        scheduler = BasicScheduler(hardware(), 500)
+        events = []
+        coordinator = NativeV2IdleTuningCoordinator(
+            scheduler, publish=lambda name, payload: events.append((name, payload))
+        )
+        profile_id = "a" * 24
+        snapshot = coordinator.update_quarantine(2, profile_id)
+        self.assertEqual(snapshot.quarantined_profiles, 2)
+        self.assertEqual(snapshot.latest_quarantined_profile_id, profile_id)
+        self.assertEqual(events[-1][1]["quarantined_profiles"], 2)
+        with self.assertRaises(ValueError):
+            coordinator.update_quarantine(65, profile_id)
 
 
 if __name__ == "__main__":

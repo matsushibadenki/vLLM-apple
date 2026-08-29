@@ -13,7 +13,9 @@ from vllm_apple.vllm_metal_v2_tuning import (
     V2PagedAttentionShape,
     build_v2_tuning_profile,
     candidate_configurations,
+    inspect_v2_tuning_quarantine,
     load_v2_tuning_profile,
+    quarantine_v2_tuning_profile,
     save_v2_tuning_profile,
     tune_v2_model_profile,
     tune_v2_shape,
@@ -207,6 +209,32 @@ class VLLMMetalV2TuningTests(unittest.TestCase):
         )
         with self.assertRaises(ValueError):
             save_v2_tuning_profile(unsafe)
+
+    def test_profile_quarantine_removes_it_from_discovery_directory(self) -> None:
+        def measure(shape, configuration):
+            return True, 100 + configuration.threads, "d" * 64
+
+        profile = build_v2_tuning_profile(
+            (tune_v2_shape(self.decode_shape(), measure),),
+            hardware_fingerprint="hardware",
+            source_fingerprint="source",
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            parent = Path(directory) / "hardware" / "source"
+            path = parent / f"{profile.profile_id}.json"
+            save_v2_tuning_profile(profile, path)
+            quarantined = quarantine_v2_tuning_profile(path)
+            self.assertFalse(path.exists())
+            self.assertTrue(quarantined.is_file())
+            self.assertEqual(quarantined.parent.name, "quarantine")
+            self.assertEqual(stat.S_IMODE(quarantined.stat().st_mode), 0o600)
+            count, latest = inspect_v2_tuning_quarantine(
+                hardware_fingerprint="hardware",
+                source_fingerprint="source",
+                root=Path(directory),
+            )
+            self.assertEqual(count, 1)
+            self.assertEqual(latest, profile.profile_id)
 
 
 if __name__ == "__main__":

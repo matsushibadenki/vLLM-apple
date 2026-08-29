@@ -164,5 +164,16 @@ atomic replaceを要求する。daemon flagによる明示disableを最優先し
 破損・unsafe artifactは有効側へfail safeし、保存失敗でも明示disable自体は維持する。HTTP/UDS controlからの
 変更は永続化成功後だけruntime状態へ反映するため、画面表示と再起動後の設定が食い違わない。
 
-次は新profile保存後のbackend readinessが失敗した場合にlast-known-good profileへrollbackし、問題profileを
-quarantineして再発見しない適用transactionを実装する。
+profile適用は保存、backend recycle、readiness確認を一つのmaintenance transactionとして扱う。最初の
+restartが失敗した場合、新profileを同じprivate directory下の`quarantine/`へatomic moveして通常探索から
+除外し、残っているlast-known-good incremental profile集合でもう一度だけrestartする。rollback成功時は
+runtimeをREADYへ戻し、tuning runだけをFAILEDとして報告する。rollbackまたはquarantineに失敗した場合だけ
+runtime全体をFAILEDにする。quarantineはcurrent-user所有の0600 profile、0700 directory、最大64件に制限する。
+
+daemon起動時と新規隔離後にquarantine directoryをbounded走査し、最大64件の件数とmtime/profile IDで決まる
+直近24桁IDだけをcoordinatorへ復元する。runtime snapshotとeventは本文やpathを含まずこのsummaryだけを
+公開する。Swift SDKは旧daemonでfieldが欠落しても0件へfallbackし、Mac sampleは英語・日本語・简体中文で
+隔離件数を表示し、直近IDはhelp診断だけに利用する。
+
+次はquarantineのretention policyと、同じshapeを再計測してcorrectnessに合格した場合だけ許可するexplicit
+restore gateを追加する。

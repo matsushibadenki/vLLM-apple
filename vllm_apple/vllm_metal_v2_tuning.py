@@ -23,6 +23,7 @@ MAX_V2_SHAPES = 16
 MAX_V2_SAMPLES = 9
 MAX_V2_PROFILE_BYTES = 512 * 1024
 MAX_V2_PROFILE_CANDIDATES = 64
+MAX_V2_QUARANTINED_PROFILES = 64
 
 
 def build_v2_hardware_fingerprint(hardware: HardwareInfo) -> str:
@@ -456,6 +457,96 @@ def save_v2_tuning_profile(profile: VLLMMetalV2TuningProfile, path: Path | None 
             pass
         raise
     return destination
+
+
+def quarantine_v2_tuning_profile(path: Path) -> Path:
+    """Atomically move one private profile outside the discovery directory."""
+    attributes = path.lstat()
+    profile_id = path.stem
+    if (
+        path.suffix != ".json"
+        or len(profile_id) != 24
+        or any(character not in "0123456789abcdef" for character in profile_id)
+        or not stat.S_ISREG(attributes.st_mode)
+        or attributes.st_uid != os.getuid()
+        or attributes.st_mode & 0o077
+        or not 1 <= attributes.st_size <= MAX_V2_PROFILE_BYTES
+    ):
+        raise ValueError("invalid native v2 profile quarantine target")
+    parent = path.parent.lstat()
+    if not stat.S_ISDIR(parent.st_mode) or parent.st_uid != os.getuid() or parent.st_mode & 0o077:
+        raise ValueError("native v2 profile directory must be private")
+    quarantine = path.parent / "quarantine"
+    quarantine.mkdir(mode=0o700, exist_ok=True)
+    quarantine_attributes = quarantine.lstat()
+    if (
+        not stat.S_ISDIR(quarantine_attributes.st_mode)
+        or quarantine_attributes.st_uid != os.getuid()
+        or quarantine_attributes.st_mode & 0o077
+    ):
+        raise ValueError("native v2 quarantine directory must be private")
+    destination = quarantine / path.name
+    if not destination.exists():
+        count = sum(1 for entry in os.scandir(quarantine) if entry.name.endswith(".json"))
+        if count >= MAX_V2_QUARANTINED_PROFILES:
+            raise ValueError("native v2 quarantine exceeded 64 profiles")
+    os.replace(path, destination)
+    descriptor = os.open(quarantine, os.O_RDONLY)
+    try:
+        os.fsync(descriptor)
+    finally:
+        os.close(descriptor)
+    return destination
+
+
+def inspect_v2_tuning_quarantine(
+    *,
+    hardware_fingerprint: str,
+    source_fingerprint: str,
+    root: Path | None = None,
+) -> tuple[int, str | None]:
+    for value in (hardware_fingerprint, source_fingerprint):
+        if not 1 <= len(value) <= 128 or value in {".", ".."} or Path(value).name != value:
+            raise ValueError("invalid native v2 fingerprint path component")
+    quarantine = (
+        (root or default_application_support() / "profiles" / "vllm-metal-v2")
+        / hardware_fingerprint
+        / source_fingerprint
+        / "quarantine"
+    )
+    try:
+        directory = quarantine.lstat()
+    except FileNotFoundError:
+        return 0, None
+    if (
+        not stat.S_ISDIR(directory.st_mode)
+        or directory.st_uid != os.getuid()
+        or directory.st_mode & 0o077
+    ):
+        raise ValueError("native v2 quarantine directory must be private")
+    profiles: list[tuple[int, str]] = []
+    with os.scandir(quarantine) as entries:
+        for entry in entries:
+            if not entry.name.endswith(".json"):
+                continue
+            profile_id = entry.name[:-5]
+            attributes = entry.stat(follow_symlinks=False)
+            if (
+                len(profile_id) != 24
+                or any(character not in "0123456789abcdef" for character in profile_id)
+                or not stat.S_ISREG(attributes.st_mode)
+                or attributes.st_uid != os.getuid()
+                or attributes.st_mode & 0o077
+                or not 1 <= attributes.st_size <= MAX_V2_PROFILE_BYTES
+            ):
+                raise ValueError("invalid native v2 quarantined profile")
+            profiles.append((attributes.st_mtime_ns, profile_id))
+            if len(profiles) > MAX_V2_QUARANTINED_PROFILES:
+                raise ValueError("native v2 quarantine exceeded 64 profiles")
+    if not profiles:
+        return 0, None
+    latest = max(profiles, key=lambda item: (item[0], item[1]))[1]
+    return len(profiles), latest
 
 
 def load_v2_tuning_profile(

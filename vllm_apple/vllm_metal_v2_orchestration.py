@@ -22,6 +22,8 @@ class V2IdleTuningSnapshot:
     run_id: int
     profile_id: str | None
     error_code: str | None
+    quarantined_profiles: int
+    latest_quarantined_profile_id: str | None
 
     def to_dict(self) -> dict[str, str | int | None]:
         return {
@@ -30,6 +32,8 @@ class V2IdleTuningSnapshot:
             "run_id": self.run_id,
             "profile_id": self.profile_id,
             "error_code": self.error_code,
+            "quarantined_profiles": self.quarantined_profiles,
+            "latest_quarantined_profile_id": self.latest_quarantined_profile_id,
         }
 
 
@@ -53,6 +57,8 @@ class NativeV2IdleTuningCoordinator:
         self._profile_id: str | None = None
         self._error_code: str | None = None
         self._thread: threading.Thread | None = None
+        self._quarantined_profiles = 0
+        self._latest_quarantined_profile_id: str | None = None
         self._last_tune: Callable[[], VLLMMetalV2TuningProfile] | None = None
         self._last_apply: Callable[[VLLMMetalV2TuningProfile], None] | None = None
 
@@ -128,6 +134,8 @@ class NativeV2IdleTuningCoordinator:
             self._run_id,
             self._profile_id,
             self._error_code,
+            self._quarantined_profiles,
+            self._latest_quarantined_profile_id,
         )
 
     def wait(self, timeout: float | None = None) -> bool:
@@ -156,6 +164,25 @@ class NativeV2IdleTuningCoordinator:
         if not enabled or tune is None or apply is None:
             return False
         return self.start(tune, apply)
+
+    def update_quarantine(
+        self, count: int, latest_profile_id: str | None
+    ) -> V2IdleTuningSnapshot:
+        if not 0 <= count <= 64:
+            raise ValueError("native v2 quarantine count must be between 0 and 64")
+        if latest_profile_id is not None and (
+            len(latest_profile_id) != 24
+            or any(character not in "0123456789abcdef" for character in latest_profile_id)
+        ):
+            raise ValueError("invalid quarantined native v2 profile ID")
+        if (count == 0) != (latest_profile_id is None):
+            raise ValueError("native v2 quarantine summary is inconsistent")
+        with self._lock:
+            self._quarantined_profiles = count
+            self._latest_quarantined_profile_id = latest_profile_id
+            snapshot = self.snapshot_unlocked()
+        self._publish("runtime.native_v2_tuning", snapshot.to_dict())
+        return snapshot
 
 
 class NativeV2ObservationMonitor:
