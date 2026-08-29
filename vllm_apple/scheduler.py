@@ -22,6 +22,10 @@ class ExecutionPlanAdmissionError(RuntimeError):
     """Raised when work violates the active execution plan."""
 
 
+class MaintenanceInProgressError(RuntimeError):
+    """Raised while an exclusive idle maintenance operation owns the scheduler."""
+
+
 @dataclass(frozen=True, slots=True)
 class ScheduleRequest:
     operator: str
@@ -152,6 +156,7 @@ class BasicScheduler:
         self._active_plan: AppleExecutionPlan | None = None
         self._pending_plan: AppleExecutionPlan | None = None
         self._operator_dispatcher = operator_dispatcher
+        self._maintenance_owner: str | None = None
 
     def choose_backend(self, request: ScheduleRequest) -> Backend:
         operator = request.operator.lower()
@@ -196,6 +201,10 @@ class BasicScheduler:
 
     def admit(self, request: ScheduleRequest) -> Reservation:
         with self._policy_lock:
+            if self._maintenance_owner is not None:
+                raise MaintenanceInProgressError(
+                    f"scheduler maintenance is active: {self._maintenance_owner}"
+                )
             self._validate_plan_admission(request)
             reservation = self.memory.reserve(request, self.choose_backend(request))
             if self._active_plan is None:
@@ -268,6 +277,31 @@ class BasicScheduler:
             if self.memory.snapshot()["active_reservations"]:
                 return False, None
             return True, operation()
+
+    def begin_idle_maintenance(self, owner: str) -> bool:
+        """Acquire an exclusive lease only when no request or maintenance is active."""
+        if not owner or len(owner) > 64:
+            raise ValueError("maintenance owner must contain 1 to 64 characters")
+        with self._policy_lock:
+            if self._maintenance_owner is not None:
+                return False
+            if self.memory.snapshot()["active_reservations"]:
+                return False
+            self._maintenance_owner = owner
+            return True
+
+    def end_idle_maintenance(self, owner: str) -> None:
+        with self._policy_lock:
+            if self._maintenance_owner != owner:
+                raise RuntimeError("scheduler maintenance owner mismatch")
+            self._maintenance_owner = None
+
+    def maintenance_snapshot(self) -> dict[str, str | bool | None]:
+        with self._policy_lock:
+            return {
+                "active": self._maintenance_owner is not None,
+                "owner": self._maintenance_owner,
+            }
 
     def _validate_plan_admission(self, request: ScheduleRequest) -> None:
         plan = self._active_plan

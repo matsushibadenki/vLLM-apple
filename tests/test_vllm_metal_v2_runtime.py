@@ -1,7 +1,8 @@
 from __future__ import annotations
 
-import unittest
+import os
 import tempfile
+import unittest
 from pathlib import Path
 
 from vllm_apple.vllm_metal_v2_runtime import (
@@ -97,6 +98,38 @@ class NativeV2RuntimeTests(unittest.TestCase):
                 root=root,
             )
         self.assertEqual(loaded, profile)
+
+    def test_discovery_merges_incremental_shape_profiles(self) -> None:
+        first = self.profile()
+        shape = V2PagedAttentionShape(1024, 1024, 1, 8, 4, 256, 16, 10)
+        per_token = V2DispatchConfiguration(V2PagedAttentionFamily.PER_TOKEN, 256)
+        candidate = V2CandidateResult(per_token, True, 100, (100,), "b" * 64)
+        second = build_v2_tuning_profile(
+            (V2ShapeTuningDecision(shape, per_token, (candidate,)),),
+            hardware_fingerprint="hardware",
+            source_fingerprint="source",
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            parent = root / "hardware" / "source"
+            parent.mkdir(parents=True, mode=0o700)
+            first_path = parent / f"{first.profile_id}.json"
+            second_path = parent / f"{second.profile_id}.json"
+            save_v2_tuning_profile(first, first_path)
+            save_v2_tuning_profile(second, second_path)
+            os.utime(first_path, ns=(1, 1))
+            os.utime(second_path, ns=(2, 2))
+            loaded = discover_v2_tuning_profile(
+                hardware_fingerprint="hardware",
+                source_fingerprint="source",
+                root=root,
+            )
+        self.assertIsNotNone(loaded)
+        assert loaded is not None
+        self.assertEqual(
+            {item.shape for item in loaded.decisions},
+            {shape, first.decisions[0].shape},
+        )
 
 
 if __name__ == "__main__":

@@ -51,10 +51,12 @@ from .soak import _read_private_token
 from .types import GIB, ModelMemorySpec
 from .vllm_metal_integration import inspect_vllm_metal_integration
 from .vllm_metal_v2_adapter import V2MeasurementAdapterError, VLLMMetalV2MeasurementAdapter
+from .vllm_metal_v2_observation import load_v2_observations
 from .vllm_metal_v2_tuning import (
     build_v2_hardware_fingerprint,
     save_v2_tuning_profile,
     tune_v2_model_profile,
+    tune_v2_observed_shapes,
 )
 
 
@@ -152,6 +154,7 @@ def build_parser() -> argparse.ArgumentParser:
     v2_tune.add_argument("--timeout", type=float, default=30)
     v2_tune.add_argument("--disable-nax", action="store_true")
     v2_tune.add_argument("--dtype", choices=("float16", "bfloat16"), default="float16")
+    v2_tune.add_argument("--observed-shapes", type=Path)
     v2_output = v2_tune.add_mutually_exclusive_group()
     v2_output.add_argument("--output", type=Path)
     v2_output.add_argument("--stdout", action="store_true")
@@ -447,11 +450,7 @@ def main(argv: list[str] | None = None) -> int:
             inspection = inspect_vllm_metal_integration(arguments.source_root)
             if not inspection.native_v2_detected:
                 raise ValueError("vLLM-Metal native v2 topology was not detected")
-            model_profile = build_model_kernel_shape_profile(
-                inspect_model(arguments.model),
-                context_tiers=contexts,
-                block_tokens=arguments.block_tokens,
-            )
+            hardware_fingerprint = build_v2_hardware_fingerprint(detect_hardware())
             adapter = VLLMMetalV2MeasurementAdapter(
                 arguments.helper,
                 timeout_seconds=arguments.timeout,
@@ -459,18 +458,39 @@ def main(argv: list[str] | None = None) -> int:
             capability = adapter.capability()
             if not capability["compatible"]:
                 raise ValueError(f"native v2 capability unavailable: {capability['issue']}")
-            profile = tune_v2_model_profile(
-                model_profile,
-                adapter.measure,
-                hardware_fingerprint=build_v2_hardware_fingerprint(detect_hardware()),
-                source_fingerprint=inspection.source_fingerprint,
-                gpu_cores=chip.gpu_core_count,
-                samples=arguments.samples,
-                maximum_shapes=arguments.maximum_shapes,
-                prefill_query_tokens=arguments.prefill_query_tokens,
-                nax_available=not arguments.disable_nax,
-                floating_dtype=arguments.dtype,
-            )
+            if arguments.observed_shapes is not None:
+                observed = load_v2_observations(
+                    arguments.observed_shapes,
+                    hardware_fingerprint=hardware_fingerprint,
+                    source_fingerprint=inspection.source_fingerprint,
+                )
+                profile = tune_v2_observed_shapes(
+                    observed,
+                    adapter.measure,
+                    hardware_fingerprint=hardware_fingerprint,
+                    source_fingerprint=inspection.source_fingerprint,
+                    samples=arguments.samples,
+                    maximum_shapes=arguments.maximum_shapes,
+                    nax_available=not arguments.disable_nax,
+                )
+            else:
+                model_profile = build_model_kernel_shape_profile(
+                    inspect_model(arguments.model),
+                    context_tiers=contexts,
+                    block_tokens=arguments.block_tokens,
+                )
+                profile = tune_v2_model_profile(
+                    model_profile,
+                    adapter.measure,
+                    hardware_fingerprint=hardware_fingerprint,
+                    source_fingerprint=inspection.source_fingerprint,
+                    gpu_cores=chip.gpu_core_count,
+                    samples=arguments.samples,
+                    maximum_shapes=arguments.maximum_shapes,
+                    prefill_query_tokens=arguments.prefill_query_tokens,
+                    nax_available=not arguments.disable_nax,
+                    floating_dtype=arguments.dtype,
+                )
         except (OSError, ValueError, V2MeasurementAdapterError) as error:
             _json({"passed": False, "error": str(error)})
             return 2

@@ -111,5 +111,27 @@ telemetryはprofile load、各family初回hit、最大8種類のshape missだけ
 prompt本文とtoken IDは記録しない。API/EngineCore分離processでも観測でき、同一familyのlayer反復でlogを
 増幅しない。
 
-次の境界はproduction miss telemetryから代表shapeをbounded収集し、実query長を持つprofileを自動生成して
-prefill coverageを追加することである。
+production missは、hardware/source fingerprint別のprivate observation artifactへ最大16種類、64 KiBまで
+保存する。artifactはcurrent user所有のregular fileだけを受け付け、0600 fileと0700 directoryへatomicに
+更新する。同一shapeのlayer反復では再書き込みせず、prompt本文とtoken IDは保存しない。
+
+`vllm-apple vllm-metal-v2-tune --observed-shapes <path>`は、現在の物理hardware/source fingerprintと
+厳密に一致するartifactだけを読み、実際に観測したquery/context長を計測する。小さな追加tuning runが既存の
+decode coverageを上書きしないよう、profile探索は有効なincremental profileをshape単位で統合し、新しい
+decisionを優先しながら最大16 shapeの決定的なcomposite profileを構築する。
+
+Gemma 2 2B ITのproduction prefill `(context=1024, query=1024)`を観測artifactから再計測し、追加profile
+`b1e858be26d9a517a3c02163`を生成した。統合profile `3026b74e2c53de801fb3d9b9`では、このprefillと既存の
+decode `(context=1025, query=1)`がともに`per_token`へ解決され、shape hit 2、miss 0を確認した。
+
+次の境界は、推論requestと競合しないidle時だけこのtuningを起動し、完成profileをdaemon/Mac appの
+scheduler safe pointで反映するorchestrationである。
+
+このorchestrationのscheduler境界としてexclusive maintenance leaseを実装した。active reservationが
+存在する場合は開始せず、計測中は新しいadmissionを構造化された`runtime_maintenance`応答で抑止する。
+coordinatorはsingle-flightで、計測または適用が失敗しても`finally`でleaseを解放し、例外本文をeventへ
+残さずerror classだけを公開する。profile適用callbackもlease内で実行されるため、古いprofileを使うrequestと
+新しいprofileを使うrequestが混在しない。
+
+次はdaemonが適合するobservation artifact、measurement helper、source identityを自動発見し、EngineCoreが
+一度だけprofileをloadする現在の境界に合わせて、idle lease内でmanaged backendを安全にrecycleする。

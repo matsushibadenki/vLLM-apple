@@ -82,6 +82,25 @@ class APITests(unittest.TestCase):
         finally:
             self.server.service.apply_memory_pressure(MemoryPressure.NORMAL)
 
+    def test_chat_is_rejected_during_native_v2_idle_maintenance(self) -> None:
+        scheduler = self.server.service.scheduler
+        self.assertTrue(scheduler.begin_idle_maintenance("native-v2-test"))
+        try:
+            request = urllib.request.Request(
+                self.base_url + "/v1/chat/completions",
+                data=json.dumps({"model": "none", "messages": []}).encode(),
+                headers={"Content-Type": "application/json"},
+                method="POST",
+            )
+            with self.assertRaises(urllib.error.HTTPError) as raised:
+                urllib.request.urlopen(request, timeout=2)
+            self.assertEqual(raised.exception.code, 503)
+            self.assertEqual(
+                json.load(raised.exception)["error"]["code"], "runtime_maintenance"
+            )
+        finally:
+            scheduler.end_idle_maintenance("native-v2-test")
+
 
 class AuthenticatedAPITests(unittest.TestCase):
     @classmethod

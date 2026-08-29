@@ -389,6 +389,31 @@ def tune_v2_model_profile(
     )
 
 
+def tune_v2_observed_shapes(
+    shapes: tuple[V2PagedAttentionShape, ...],
+    measure: Callable[[V2PagedAttentionShape, V2DispatchConfiguration], Measurement],
+    *,
+    hardware_fingerprint: str,
+    source_fingerprint: str,
+    samples: int = 3,
+    maximum_shapes: int = MAX_V2_SHAPES,
+    nax_available: bool = True,
+) -> VLLMMetalV2TuningProfile:
+    if not shapes:
+        raise ValueError("native v2 observations contain no shapes")
+    if not 1 <= maximum_shapes <= MAX_V2_SHAPES:
+        raise ValueError("native v2 maximum shapes must be between 1 and 16")
+    decisions = tuple(
+        tune_v2_shape(shape, measure, samples=samples, nax_available=nax_available)
+        for shape in shapes[:maximum_shapes]
+    )
+    return build_v2_tuning_profile(
+        decisions,
+        hardware_fingerprint=hardware_fingerprint,
+        source_fingerprint=source_fingerprint,
+    )
+
+
 def default_v2_tuning_profile_path(profile: VLLMMetalV2TuningProfile) -> Path:
     for value in (profile.hardware_fingerprint, profile.source_fingerprint):
         if value in {".", ".."} or Path(value).name != value:
@@ -532,7 +557,21 @@ def discover_v2_tuning_profile(
             continue
     if not valid:
         return None
-    return max(valid, key=lambda item: (item[0], item[1].profile_id))[1]
+    # Profiles are incremental: an observation run may contain only one new
+    # production shape. Merge newest decisions first so adding prefill
+    # coverage cannot discard previously measured decode coverage.
+    decisions: dict[V2PagedAttentionShape, V2ShapeTuningDecision] = {}
+    for _, profile in sorted(
+        valid, key=lambda item: (item[0], item[1].profile_id), reverse=True
+    ):
+        for decision in profile.decisions:
+            if decision.shape not in decisions and len(decisions) < MAX_V2_SHAPES:
+                decisions[decision.shape] = decision
+    return build_v2_tuning_profile(
+        tuple(decisions.values()),
+        hardware_fingerprint=hardware_fingerprint,
+        source_fingerprint=source_fingerprint,
+    )
 
 
 def select_v2_winner(

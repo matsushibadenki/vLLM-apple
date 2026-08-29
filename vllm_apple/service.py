@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import threading
+from collections.abc import Callable
 from contextlib import AbstractContextManager
 from dataclasses import dataclass, replace
 from typing import Any, BinaryIO, Protocol
@@ -34,6 +35,8 @@ from .semantic_state import (
     disabled_semantic_state_snapshot,
 )
 from .types import GIB, MemoryPressure, ModelMemorySpec, RuntimeProfile, RuntimeState
+from .vllm_metal_v2_orchestration import NativeV2IdleTuningCoordinator
+from .vllm_metal_v2_tuning import VLLMMetalV2TuningProfile
 
 
 class InferenceUnavailableError(RuntimeError):
@@ -146,6 +149,10 @@ class RuntimeService:
         emergency_margin = max(GIB, int(memory.total_bytes * 0.08))
         scheduler_capacity = max(0, memory.available_bytes - emergency_margin)
         self.scheduler = BasicScheduler(self.profile.hardware, scheduler_capacity)
+        self.native_v2_tuning = NativeV2IdleTuningCoordinator(
+            self.scheduler,
+            publish=self.events.publish,
+        )
         self.memory_budget = UnifiedMemoryBudgetLedger(memory.total_bytes)
         self.context_reevaluator = (
             ContextCapacityReevaluator(
@@ -502,6 +509,14 @@ class RuntimeService:
             {"status": "applied" if applied else "deferred", "tuning_id": report.tuning_id},
         )
         return applied
+
+    def start_native_v2_idle_tuning(
+        self,
+        tune: Callable[[], VLLMMetalV2TuningProfile],
+        apply: Callable[[VLLMMetalV2TuningProfile], None],
+    ) -> bool:
+        """Start one native-v2 tuning job only under an exclusive idle lease."""
+        return self.native_v2_tuning.start(tune, apply)
 
     def metal_tuning_snapshot(self) -> dict[str, object]:
         with self._lock:

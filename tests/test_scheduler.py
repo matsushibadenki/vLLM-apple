@@ -12,6 +12,7 @@ from vllm_apple.execution import (
 from vllm_apple.scheduler import (
     BasicScheduler,
     ExecutionPlanAdmissionError,
+    MaintenanceInProgressError,
     MemoryCapacityError,
     ScheduleRequest,
 )
@@ -57,6 +58,24 @@ def execution_plan(plan_id: str, prefill_batch: int) -> AppleExecutionPlan:
 
 
 class SchedulerTests(unittest.TestCase):
+    def test_idle_maintenance_is_exclusive_and_blocks_admission(self) -> None:
+        scheduler = BasicScheduler(hardware(), 500)
+        self.assertTrue(scheduler.begin_idle_maintenance("native-v2"))
+        self.assertFalse(scheduler.begin_idle_maintenance("other"))
+        with self.assertRaises(MaintenanceInProgressError):
+            scheduler.admit(ScheduleRequest("paged_attention", 1))
+        scheduler.end_idle_maintenance("native-v2")
+        reservation = scheduler.admit(ScheduleRequest("paged_attention", 1))
+        scheduler.complete(reservation)
+
+    def test_idle_maintenance_waits_for_active_reservations(self) -> None:
+        scheduler = BasicScheduler(hardware(), 500)
+        reservation = scheduler.admit(ScheduleRequest("paged_attention", 1))
+        self.assertFalse(scheduler.begin_idle_maintenance("native-v2"))
+        scheduler.complete(reservation)
+        self.assertTrue(scheduler.begin_idle_maintenance("native-v2"))
+        scheduler.end_idle_maintenance("native-v2")
+
     def test_backend_choice_avoids_launch_overhead_for_tiny_decode(self) -> None:
         scheduler = BasicScheduler(hardware(), 500)
         self.assertEqual(scheduler.choose_backend(ScheduleRequest("gemv", 10)), Backend.CPU)

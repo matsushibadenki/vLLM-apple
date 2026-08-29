@@ -6,6 +6,7 @@ from pathlib import Path
 
 from .hardware import detect_hardware
 from .vllm_metal_integration import inspect_vllm_metal_integration
+from .vllm_metal_v2_observation import record_v2_observed_shape
 from .vllm_metal_v2_tuning import (
     V2PagedAttentionShape,
     VLLMMetalV2TuningProfile,
@@ -26,6 +27,8 @@ class NativeV2RuntimeSelector:
         self._lock = threading.Lock()
         self._loaded = profile is not None
         self._profile = profile
+        self._hardware_fingerprint = profile.hardware_fingerprint if profile else None
+        self._source_fingerprint = profile.source_fingerprint if profile else None
         self._shape_hits = 0
         self._shape_misses = 0
         self._family_hits = {
@@ -82,6 +85,18 @@ class NativeV2RuntimeSelector:
                         profile.profile_id,
                         miss,
                     )
+                    try:
+                        observed = V2PagedAttentionShape(
+                            gpu_cores=profile.decisions[0].shape.gpu_cores,
+                            **shape_values,
+                        )
+                        record_v2_observed_shape(
+                            observed,
+                            hardware_fingerprint=profile.hardware_fingerprint,
+                            source_fingerprint=profile.source_fingerprint,
+                        )
+                    except (OSError, TypeError, ValueError):
+                        pass
         return family
 
     def snapshot(self) -> dict[str, object]:
@@ -105,6 +120,8 @@ class NativeV2RuntimeSelector:
                 package = Path(vllm_metal.__file__).resolve().parent
                 inspection = inspect_vllm_metal_integration(package)
                 hardware_fingerprint = build_v2_hardware_fingerprint(detect_hardware())
+                self._hardware_fingerprint = hardware_fingerprint
+                self._source_fingerprint = inspection.source_fingerprint
                 self._profile = discover_v2_tuning_profile(
                     hardware_fingerprint=hardware_fingerprint,
                     source_fingerprint=inspection.source_fingerprint,

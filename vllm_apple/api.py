@@ -16,6 +16,7 @@ from .auth import SessionAuthenticator
 from .backend import BackendHTTPError
 from .events import RuntimeEvent, SubscriptionLimitError
 from .memory_admission import MemoryPressureAdmissionError
+from .scheduler import MaintenanceInProgressError
 from .observability import (
     REQUEST_ID_HEADER,
     RequestLogRecord,
@@ -387,6 +388,13 @@ class RuntimeRequestHandler(BaseHTTPRequestHandler):
         except MemoryPressureAdmissionError as error:
             self._error(HTTPStatus.SERVICE_UNAVAILABLE, "memory_pressure", str(error))
             return
+        except MaintenanceInProgressError:
+            self._error(
+                HTTPStatus.SERVICE_UNAVAILABLE,
+                "runtime_maintenance",
+                "native v2 tuning is applying at an idle scheduler safe point",
+            )
+            return
         try:
             response = self.server.service.chat_completions(request, reservation)
         except InferenceUnavailableError as error:
@@ -417,6 +425,13 @@ class RuntimeRequestHandler(BaseHTTPRequestHandler):
             )
         except MemoryPressureAdmissionError as error:
             self._error(HTTPStatus.SERVICE_UNAVAILABLE, "memory_pressure", str(error))
+            return
+        except MaintenanceInProgressError:
+            self._error(
+                HTTPStatus.SERVICE_UNAVAILABLE,
+                "runtime_maintenance",
+                "native v2 tuning is applying at an idle scheduler safe point",
+            )
             return
         try:
             upstream_context = self.server.service.open_chat_stream(request, reservation)
