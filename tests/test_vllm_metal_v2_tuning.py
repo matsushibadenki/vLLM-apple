@@ -2,6 +2,7 @@ import json
 import stat
 import tempfile
 import unittest
+from dataclasses import replace
 from pathlib import Path
 
 from tests.schema_validator import validate_instance
@@ -12,17 +13,56 @@ from vllm_apple.vllm_metal_v2_tuning import (
     V2PagedAttentionFamily,
     V2PagedAttentionShape,
     build_v2_tuning_profile,
+    build_v2_environment_fingerprint,
+    build_v2_hardware_fingerprint,
     candidate_configurations,
     inspect_v2_tuning_quarantine,
     load_v2_tuning_profile,
     quarantine_v2_tuning_profile,
+    restore_quarantined_v2_profile,
     save_v2_tuning_profile,
     tune_v2_model_profile,
     tune_v2_shape,
 )
+from tests.test_scheduler import hardware
 
 
 class VLLMMetalV2TuningTests(unittest.TestCase):
+    def test_environment_changes_invalidate_native_v2_hardware_identity(self) -> None:
+        device = hardware()
+        baseline_environment = build_v2_environment_fingerprint(
+            device, toolchain_version="metal-1", mlx_version="mlx-1"
+        )
+        self.assertNotEqual(
+            baseline_environment,
+            build_v2_environment_fingerprint(
+                device, toolchain_version="metal-2", mlx_version="mlx-1"
+            ),
+        )
+        self.assertNotEqual(
+            baseline_environment,
+            build_v2_environment_fingerprint(
+                device, toolchain_version="metal-1", mlx_version="mlx-2"
+            ),
+        )
+        self.assertNotEqual(
+            baseline_environment,
+            build_v2_environment_fingerprint(
+                replace(device, os_version="new-os"),
+                toolchain_version="metal-1",
+                mlx_version="mlx-1",
+            ),
+        )
+        baseline = build_v2_hardware_fingerprint(
+            device, toolchain_version="metal-1", mlx_version="mlx-1"
+        )
+        self.assertNotEqual(
+            baseline,
+            build_v2_hardware_fingerprint(
+                device, toolchain_version="metal-2", mlx_version="mlx-1"
+            ),
+        )
+
     def prefill_shape(self, **changes):
         values = {
             "context_tokens": 4096,
@@ -160,6 +200,21 @@ class VLLMMetalV2TuningTests(unittest.TestCase):
         self.assertEqual(arguments.maximum_shapes, 4)
         self.assertEqual(arguments.samples, 3)
 
+    def test_native_v2_restore_cli_requires_explicit_identity_inputs(self) -> None:
+        arguments = build_parser().parse_args(
+            [
+                "vllm-metal-v2-restore",
+                "a" * 24,
+                "--source-root",
+                "/source",
+                "--helper",
+                "/helper",
+            ]
+        )
+        self.assertEqual(arguments.command, "vllm-metal-v2-restore")
+        self.assertEqual(arguments.profile_id, "a" * 24)
+        self.assertEqual(arguments.samples, 3)
+
     def test_profile_is_deterministic_and_schema_valid(self) -> None:
         def measure(shape, configuration):
             return True, 100 + configuration.threads, "c" * 64
@@ -235,6 +290,80 @@ class VLLMMetalV2TuningTests(unittest.TestCase):
             )
             self.assertEqual(count, 1)
             self.assertEqual(latest, profile.profile_id)
+
+    def test_quarantined_profile_is_remeasured_before_restore(self) -> None:
+        def initial_measure(shape, configuration):
+            return True, 100 + configuration.threads, "d" * 64
+
+        profile = build_v2_tuning_profile(
+            (tune_v2_shape(self.decode_shape(), initial_measure),),
+            hardware_fingerprint="hardware",
+            source_fingerprint="source",
+        )
+        measured = []
+
+        def restore_measure(shape, configuration):
+            measured.append((shape, configuration))
+            return True, 200 + configuration.threads, "e" * 64
+
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            active = root / "hardware" / "source" / f"{profile.profile_id}.json"
+            save_v2_tuning_profile(profile, active)
+            quarantined = quarantine_v2_tuning_profile(active)
+            restored, destination = restore_quarantined_v2_profile(
+                profile.profile_id,
+                restore_measure,
+                hardware_fingerprint="hardware",
+                source_fingerprint="source",
+                samples=1,
+                root=root,
+            )
+            self.assertTrue(measured)
+            self.assertTrue(destination.is_file())
+            self.assertEqual(destination.name, f"{restored.profile_id}.json")
+            self.assertFalse(quarantined.exists())
+            self.assertTrue(
+                (root / "hardware" / "source" / "restored" / quarantined.name).is_file()
+            )
+            self.assertEqual(
+                inspect_v2_tuning_quarantine(
+                    hardware_fingerprint="hardware",
+                    source_fingerprint="source",
+                    root=root,
+                ),
+                (0, None),
+            )
+
+    def test_failed_restore_keeps_profile_quarantined(self) -> None:
+        def initial_measure(shape, configuration):
+            return True, 100 + configuration.threads, "f" * 64
+
+        profile = build_v2_tuning_profile(
+            (tune_v2_shape(self.decode_shape(), initial_measure),),
+            hardware_fingerprint="hardware",
+            source_fingerprint="source",
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            active = root / "hardware" / "source" / f"{profile.profile_id}.json"
+            save_v2_tuning_profile(profile, active)
+            quarantined = quarantine_v2_tuning_profile(active)
+
+            def failed_measure(shape, configuration):
+                return False, 1, "0" * 64
+
+            with self.assertRaisesRegex(ValueError, "correctness-passing"):
+                restore_quarantined_v2_profile(
+                    profile.profile_id,
+                    failed_measure,
+                    hardware_fingerprint="hardware",
+                    source_fingerprint="source",
+                    samples=1,
+                    root=root,
+                )
+            self.assertTrue(quarantined.is_file())
+            self.assertFalse((root / "hardware" / "source" / "restored").exists())
 
 
 if __name__ == "__main__":

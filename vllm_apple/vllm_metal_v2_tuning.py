@@ -10,6 +10,7 @@ import tempfile
 from collections.abc import Callable
 from dataclasses import asdict, dataclass
 from enum import Enum
+from functools import lru_cache
 from pathlib import Path
 
 from .hardware import default_application_support
@@ -26,7 +27,40 @@ MAX_V2_PROFILE_CANDIDATES = 64
 MAX_V2_QUARANTINED_PROFILES = 64
 
 
-def build_v2_hardware_fingerprint(hardware: HardwareInfo) -> str:
+def build_v2_environment_fingerprint(
+    hardware: HardwareInfo,
+    *,
+    toolchain_version: str,
+    mlx_version: str,
+) -> str:
+    for value in (hardware.os_version, toolchain_version, mlx_version):
+        if not value or len(value) > 128:
+            raise ValueError("invalid native v2 environment identity")
+    identity = {
+        "os_version": hardware.os_version,
+        "toolchain_version": toolchain_version,
+        "mlx_version": mlx_version,
+    }
+    return hashlib.sha256(
+        json.dumps(identity, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    ).hexdigest()[:24]
+
+
+def build_v2_hardware_fingerprint(
+    hardware: HardwareInfo,
+    *,
+    toolchain_version: str | None = None,
+    mlx_version: str | None = None,
+) -> str:
+    if toolchain_version is None or mlx_version is None:
+        detected_toolchain, detected_mlx = _current_v2_environment_versions()
+        toolchain_version = toolchain_version or detected_toolchain
+        mlx_version = mlx_version or detected_mlx
+    environment_fingerprint = build_v2_environment_fingerprint(
+        hardware,
+        toolchain_version=toolchain_version,
+        mlx_version=mlx_version,
+    )
     identity = {
         "platform": hardware.platform,
         "architecture": hardware.architecture,
@@ -34,10 +68,22 @@ def build_v2_hardware_fingerprint(hardware: HardwareInfo) -> str:
         "gpu_core_count": hardware.gpu_core_count,
         "total_memory_bytes": hardware.memory.total_bytes,
         "os_version": hardware.os_version,
+        "environment_fingerprint": environment_fingerprint,
     }
     return hashlib.sha256(
         json.dumps(identity, sort_keys=True, separators=(",", ":")).encode("utf-8")
     ).hexdigest()[:24]
+
+
+@lru_cache(maxsize=1)
+def _current_v2_environment_versions() -> tuple[str, str]:
+    # Delayed to avoid runtime_probe -> service -> orchestration -> tuning
+    # import cycles during package initialization. A process restart is the
+    # boundary at which installed toolchains or Python packages can change.
+    from .runtime_probe import discover_runtime_versions
+
+    versions = discover_runtime_versions(None)
+    return versions.toolchain_version, versions.mlx_version
 
 
 class V2PagedAttentionFamily(str, Enum):
@@ -547,6 +593,79 @@ def inspect_v2_tuning_quarantine(
         return 0, None
     latest = max(profiles, key=lambda item: (item[0], item[1]))[1]
     return len(profiles), latest
+
+
+def restore_quarantined_v2_profile(
+    profile_id: str,
+    measure: Callable[[V2PagedAttentionShape, V2DispatchConfiguration], Measurement],
+    *,
+    hardware_fingerprint: str,
+    source_fingerprint: str,
+    samples: int = 3,
+    nax_available: bool = True,
+    root: Path | None = None,
+) -> tuple[VLLMMetalV2TuningProfile, Path]:
+    if len(profile_id) != 24 or any(
+        character not in "0123456789abcdef" for character in profile_id
+    ):
+        raise ValueError("invalid quarantined native v2 profile ID")
+    for value in (hardware_fingerprint, source_fingerprint):
+        if not 1 <= len(value) <= 128 or value in {".", ".."} or Path(value).name != value:
+            raise ValueError("invalid native v2 fingerprint path component")
+    base = root or default_application_support() / "profiles" / "vllm-metal-v2"
+    parent = base / hardware_fingerprint / source_fingerprint
+    quarantined = parent / "quarantine" / f"{profile_id}.json"
+    original = load_v2_tuning_profile(
+        quarantined,
+        hardware_fingerprint=hardware_fingerprint,
+        source_fingerprint=source_fingerprint,
+    )
+    decisions = tuple(
+        tune_v2_shape(
+            decision.shape,
+            measure,
+            samples=samples,
+            nax_available=nax_available,
+        )
+        for decision in original.decisions
+    )
+    restored = build_v2_tuning_profile(
+        decisions,
+        hardware_fingerprint=hardware_fingerprint,
+        source_fingerprint=source_fingerprint,
+    )
+    archive = parent / "restored"
+    archive.mkdir(mode=0o700, exist_ok=True)
+    attributes = archive.lstat()
+    if (
+        not stat.S_ISDIR(attributes.st_mode)
+        or attributes.st_uid != os.getuid()
+        or attributes.st_mode & 0o077
+    ):
+        raise ValueError("native v2 restored archive must be private")
+    archived = archive / quarantined.name
+    if not archived.exists():
+        count = sum(1 for entry in os.scandir(archive) if entry.name.endswith(".json"))
+        if count >= MAX_V2_QUARANTINED_PROFILES:
+            raise ValueError("native v2 restored archive exceeded 64 profiles")
+    destination = parent / f"{restored.profile_id}.json"
+    destination_preexisted = destination.exists()
+    save_v2_tuning_profile(restored, destination)
+    try:
+        os.replace(quarantined, archived)
+    except BaseException:
+        if not destination_preexisted:
+            try:
+                os.unlink(destination)
+            except FileNotFoundError:
+                pass
+        raise
+    descriptor = os.open(archive, os.O_RDONLY)
+    try:
+        os.fsync(descriptor)
+    finally:
+        os.close(descriptor)
+    return restored, destination
 
 
 def load_v2_tuning_profile(

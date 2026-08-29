@@ -175,5 +175,28 @@ daemon起動時と新規隔離後にquarantine directoryをbounded走査し、�
 公開する。Swift SDKは旧daemonでfieldが欠落しても0件へfallbackし、Mac sampleは英語・日本語・简体中文で
 隔離件数を表示し、直近IDはhelp診断だけに利用する。
 
-次はquarantineのretention policyと、同じshapeを再計測してcorrectnessに合格した場合だけ許可するexplicit
-restore gateを追加する。
+`vllm-apple vllm-metal-v2-restore <profile-id>`は現在の物理hardware/source fingerprintを再検証し、隔離済み
+profileの全shapeを実helperで再計測する。candidate eligibility、CPU/MLX correctness、cross-family digest、中央値、
+2% tie-breakの全gateに合格した新しいprofileだけをactive directoryへ保存する。失敗時は隔離artifactを維持し、
+成功時も元artifactをprivateな`restored/`へ移して監査可能にする。`quarantine/`と`restored/`はいずれも64件を
+hard capとし、自動削除による診断情報の喪失を避ける。
+
+認証済み`POST /v1/native-v2-tuning`の`restore` actionはpathを受け取らず、24桁の隔離profile IDだけを受け取る。
+daemonは再計測と保存をexclusive maintenance lease内で実行し、managed backendのrecycleとreadiness確認が
+成功した場合だけruntimeをREADYへ戻す。失敗時は新profileを再隔離し、last-known-goodで一度だけrollbackする。
+Swift SDKはHTTP/UDSの両transportでtyped restore APIを公開し、Mac sampleは直近の隔離profileを英語・日本語・
+简体中文の操作から復帰できる。成功後はquarantine summaryも再走査して画面へ反映する。
+
+native v2 hardware identityは物理構成に加えて、OS、Metal toolchain、MLXから作る24桁environment fingerprintを
+合成する。環境検出はprocess内で一度だけ行い、fingerprint生成ごとのsubprocess起動を避ける。いずれかのversionが
+変わるとprofileとobservationの探索directoryが変わるため、旧artifactは削除せずfail closedで無効化される。
+新環境ではproduction shapeを再収集した後、既存のidle tuningとreadiness gateを通して再benchmarkする。
+
+runtime memory ledgerはweights、KV、recurrent、prefix、sliding-window、MoE experts、scratch、Core MLを独立した
+additive componentとして扱い、Metal heap/RSSだけをoverlap envelopeとして加算しない。`StateMemorySpec`の固定領域は
+起動時に常駐計上し、KV/windowはrequestのcontext tokensとbatchからadmission前に投影してscheduler reservationへ
+反映する。semantic prefixとmodel prefix、scheduler scratchとmodel workspaceはそれぞれ合算し、上限超過はbackendへ
+渡す前に拒否する。legacy `ModelMemorySpec`は同じstate contractへ変換される。
+
+次はQwen3.8-Flash-Nextのbounded metadata inspectionを追加し、hybrid architectureの必須機能がbackendにない場合は
+model load前に明示的なcapability errorとして拒否する。

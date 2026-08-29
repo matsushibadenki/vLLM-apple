@@ -4,8 +4,18 @@ import threading
 from dataclasses import asdict, dataclass
 
 
-COMPONENT_NAMES = ("weights", "kv", "prefix", "scratch", "metal_heap", "coreml")
-ADDITIVE_COMPONENTS = frozenset({"weights", "kv", "prefix", "scratch", "coreml"})
+COMPONENT_NAMES = (
+    "weights",
+    "kv",
+    "recurrent",
+    "prefix",
+    "window",
+    "experts",
+    "scratch",
+    "metal_heap",
+    "coreml",
+)
+ADDITIVE_COMPONENTS = frozenset(COMPONENT_NAMES) - {"metal_heap"}
 
 
 @dataclass(frozen=True, slots=True)

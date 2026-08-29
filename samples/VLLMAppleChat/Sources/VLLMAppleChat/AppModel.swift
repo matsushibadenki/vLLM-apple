@@ -203,6 +203,18 @@ final class AppModel: ObservableObject {
         }
     }
 
+    func restoreNativeV2Tuning(profileID: String) async {
+        guard let client else { return }
+        do {
+            let result = try await client.restoreNativeV2Tuning(profileID: profileID)
+            nativeV2Tuning = result.nativeV2Tuning
+        } catch let error as RuntimeClientError {
+            report(key: error.messageKey, detail: String(describing: error))
+        } catch {
+            report(key: "runtime.error.connection", detail: error.localizedDescription)
+        }
+    }
+
     func clearTranscript() {
         cancelGeneration()
         messages.removeAll(keepingCapacity: true)

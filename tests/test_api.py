@@ -156,6 +156,41 @@ class AuthenticatedAPITests(unittest.TestCase):
         self.assertFalse(payload["native_v2_tuning"]["enabled"])
         self.assertEqual(payload["native_v2_tuning"]["status"], "disabled")
 
+        self.service.control_native_v2_tuning("enable")
+        restored = []
+        self.service.configure_native_v2_restore(
+            lambda profile_id: restored.append(profile_id) is None
+        )
+        restore_body = json.dumps(
+            {"action": "restore", "profile_id": "a" * 24}
+        ).encode()
+        restore_request = urllib.request.Request(
+            self.base_url + "/v1/native-v2-tuning",
+            data=restore_body,
+            headers={
+                "Authorization": f"Bearer {self.token}",
+                "Content-Type": "application/json",
+            },
+            method="POST",
+        )
+        with urllib.request.urlopen(restore_request, timeout=2) as response:
+            restore_payload = json.load(response)
+        self.assertTrue(restore_payload["accepted"])
+        self.assertEqual(restored, ["a" * 24])
+
+        missing_id = urllib.request.Request(
+            self.base_url + "/v1/native-v2-tuning",
+            data=json.dumps({"action": "restore"}).encode(),
+            headers={
+                "Authorization": f"Bearer {self.token}",
+                "Content-Type": "application/json",
+            },
+            method="POST",
+        )
+        with self.assertRaises(urllib.error.HTTPError) as raised:
+            urllib.request.urlopen(missing_id, timeout=2)
+        self.assertEqual(raised.exception.code, 400)
+
     def test_authenticated_runtime_event_stream(self) -> None:
         request = urllib.request.Request(
             self.base_url + "/v1/events",

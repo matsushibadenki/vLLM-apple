@@ -94,6 +94,8 @@ struct ContentView: View {
 
             NativeV2TuningDiagnostic(state: model.nativeV2Tuning) { action in
                 Task { await model.controlNativeV2Tuning(action) }
+            } onRestore: { profileID in
+                Task { await model.restoreNativeV2Tuning(profileID: profileID) }
             }
 
             if !model.qualificationReports.isEmpty {
@@ -316,6 +318,7 @@ private struct CalibrationDiagnostic: View {
 private struct NativeV2TuningDiagnostic: View {
     let state: NativeV2TuningState
     let onControl: (NativeV2TuningControlAction) -> Void
+    let onRestore: (String) -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: DesignTokens.compact) {
@@ -360,6 +363,13 @@ private struct NativeV2TuningDiagnostic: View {
                     }
                     .buttonStyle(.borderless)
                     .disabled(!state.enabled)
+                }
+                if let profileID = state.latestQuarantinedProfileID {
+                    Button("native_v2.action.restore") {
+                        onRestore(profileID)
+                    }
+                    .buttonStyle(.borderless)
+                    .disabled(!state.enabled || state.status == .running)
                 }
             }
         }

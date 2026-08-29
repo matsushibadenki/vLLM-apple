@@ -11,14 +11,17 @@ class UnifiedMemoryBudgetLedgerTests(unittest.TestCase):
         ledger = UnifiedMemoryBudgetLedger(1_000)
         ledger.update("weights", 400, source="model_manifest")
         ledger.update("kv", 100, source="vllm")
+        ledger.update("recurrent", 10, source="model")
         ledger.update("prefix", 50, source="semantic_state")
+        ledger.update("window", 15, source="runtime")
+        ledger.update("experts", 20, source="model")
         ledger.update("scratch", 25, source="scheduler")
         ledger.update("metal_heap", 700, source="ioreg")
         ledger.update("coreml", 75, source="coreml")
 
         snapshot = ledger.snapshot()
-        self.assertEqual(snapshot.known_component_bytes, 650)
-        self.assertEqual(snapshot.known_remaining_bytes, 350)
+        self.assertEqual(snapshot.known_component_bytes, 695)
+        self.assertEqual(snapshot.known_remaining_bytes, 305)
         self.assertEqual(snapshot.overlap_envelope_bytes, 700)
         self.assertEqual(snapshot.unknown_components, ())
         self.assertEqual(snapshot.components["metal_heap"].accounting, "overlap_envelope")
@@ -79,6 +82,36 @@ class RuntimeMemoryBudgetTests(unittest.TestCase):
             service.memory_admission.snapshot().last_rejection_reason,
             "memory_budget_overcommitted",
         )
+
+    def test_state_spec_accounts_fixed_and_request_dependent_memory(self) -> None:
+        from vllm_apple.types import StateMemorySpec
+
+        spec = StateMemorySpec(
+            "hybrid",
+            "hybrid_moe",
+            weights_bytes=100,
+            kv_bytes_per_token=2,
+            recurrent_state_bytes=30,
+            prefix_state_bytes=20,
+            attention_window_bytes_per_token=3,
+            attention_window_tokens=10,
+            expert_working_set_bytes=40,
+            scratch_workspace_bytes=50,
+        )
+        service = RuntimeService(state_memory_spec=spec)
+        budget = service.memory_budget_snapshot()
+        self.assertEqual(budget.components["weights"].current_bytes, 100)
+        self.assertEqual(budget.components["recurrent"].current_bytes, 30)
+        self.assertEqual(budget.components["prefix"].current_bytes, 20)
+        self.assertEqual(budget.components["experts"].current_bytes, 40)
+        self.assertEqual(budget.components["scratch"].current_bytes, 50)
+
+        reservation = service.admit_schedule(
+            ScheduleRequest("decode", 7, batch_size=2, estimated_context_tokens=20)
+        )
+        # 7 explicit + 2 batches * (20 * 2 KV + 10 * 3 window).
+        self.assertEqual(reservation.bytes, 147)
+        service.complete_schedule(reservation)
 
 
 if __name__ == "__main__":

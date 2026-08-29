@@ -54,6 +54,7 @@ from .vllm_metal_v2_adapter import V2MeasurementAdapterError, VLLMMetalV2Measure
 from .vllm_metal_v2_observation import load_v2_observations
 from .vllm_metal_v2_tuning import (
     build_v2_hardware_fingerprint,
+    restore_quarantined_v2_profile,
     save_v2_tuning_profile,
     tune_v2_model_profile,
     tune_v2_observed_shapes,
@@ -165,6 +166,18 @@ def build_parser() -> argparse.ArgumentParser:
     )
     v2_capability.add_argument("--helper", required=True, type=Path)
     v2_capability.add_argument("--timeout", type=float, default=10)
+
+    v2_restore = commands.add_parser(
+        "vllm-metal-v2-restore",
+        help="remeasure a quarantined native-v2 profile before restoring it",
+    )
+    v2_restore.add_argument("profile_id")
+    v2_restore.add_argument("--source-root", required=True, type=Path)
+    v2_restore.add_argument("--helper", required=True, type=Path)
+    v2_restore.add_argument("--samples", type=int, default=3)
+    v2_restore.add_argument("--timeout", type=float, default=30)
+    v2_restore.add_argument("--disable-nax", action="store_true")
+    v2_restore.add_argument("--profile-root", type=Path)
 
     phase_profile = commands.add_parser(
         "phase-profile", help="measure prefill and decode phases through a streaming backend"
@@ -514,6 +527,39 @@ def main(argv: list[str] | None = None) -> int:
             return 2
         _json(capability)
         return 0 if capability["compatible"] else 1
+    if arguments.command == "vllm-metal-v2-restore":
+        try:
+            inspection = inspect_vllm_metal_integration(arguments.source_root)
+            if not inspection.native_v2_detected:
+                raise ValueError("vLLM-Metal native v2 topology was not detected")
+            adapter = VLLMMetalV2MeasurementAdapter(
+                arguments.helper,
+                timeout_seconds=arguments.timeout,
+            )
+            capability = adapter.capability()
+            if not capability["compatible"]:
+                raise ValueError(f"native v2 capability unavailable: {capability['issue']}")
+            profile, path = restore_quarantined_v2_profile(
+                arguments.profile_id,
+                adapter.measure,
+                hardware_fingerprint=build_v2_hardware_fingerprint(detect_hardware()),
+                source_fingerprint=inspection.source_fingerprint,
+                samples=arguments.samples,
+                nax_available=not arguments.disable_nax,
+                root=arguments.profile_root,
+            )
+        except (OSError, ValueError, V2MeasurementAdapterError) as error:
+            _json({"passed": False, "error": str(error)})
+            return 2
+        _json(
+            {
+                "passed": True,
+                "profile_id": profile.profile_id,
+                "restored_from_profile_id": arguments.profile_id,
+                "path": str(path),
+            }
+        )
+        return 0
     if arguments.command == "phase-profile":
         try:
             chip = detect_apple_chip_profile()

@@ -7,9 +7,10 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import Mock, patch
 
-from vllm_apple.daemon import start_observed_native_v2_tuning
+from vllm_apple.daemon import configure_native_v2_restore, start_observed_native_v2_tuning
 from vllm_apple.scheduler import BasicScheduler, MaintenanceInProgressError, ScheduleRequest
 from vllm_apple.service import RuntimeService
+from vllm_apple.types import RuntimeState
 from vllm_apple.vllm_metal_v2_orchestration import (
     NativeV2IdleTuningCoordinator,
     NativeV2ObservationMonitor,
@@ -158,6 +159,10 @@ class NativeV2IdleTuningCoordinatorTests(unittest.TestCase):
                 ),
                 patch("vllm_apple.daemon.VLLMMetalV2MeasurementAdapter") as adapter_type,
                 patch(
+                    "vllm_apple.daemon.inspect_v2_tuning_quarantine",
+                    return_value=(0, None),
+                ),
+                patch(
                     "vllm_apple.daemon.tune_v2_observed_shapes",
                     return_value=generated,
                 ),
@@ -182,6 +187,62 @@ class NativeV2IdleTuningCoordinatorTests(unittest.TestCase):
         self.assertEqual(backend.restart.call_count, 2)
         self.assertEqual(service.state.value, "ready")
         self.assertEqual(service.native_v2_tuning.snapshot().status, "failed")
+
+    def test_explicit_restore_remeasures_and_recycles_at_idle_safe_point(self) -> None:
+        service = RuntimeService()
+        backend = Mock()
+        restored = profile()
+        with tempfile.TemporaryDirectory() as directory:
+            destination = Path(directory) / f"{restored.profile_id}.json"
+            destination.touch(mode=0o600)
+            with (
+                patch(
+                    "vllm_apple.daemon.inspect_vllm_metal_integration",
+                    return_value=SimpleNamespace(
+                        native_v2_detected=True, source_fingerprint="source"
+                    ),
+                ),
+                patch(
+                    "vllm_apple.daemon.build_v2_hardware_fingerprint",
+                    return_value="hardware",
+                ),
+                patch("vllm_apple.daemon.VLLMMetalV2MeasurementAdapter") as adapter_type,
+                patch(
+                    "vllm_apple.daemon.restore_quarantined_v2_profile",
+                    return_value=(restored, destination),
+                ) as restore,
+                patch(
+                    "vllm_apple.daemon.inspect_v2_tuning_quarantine",
+                    return_value=(0, None),
+                ),
+            ):
+                adapter_type.return_value.capability.return_value = {"compatible": True}
+                self.assertTrue(
+                    configure_native_v2_restore(
+                        service,
+                        backend,
+                        source_root=Path(directory),
+                        helper=Path("/private/helper"),
+                        samples=1,
+                    )
+                )
+                accepted, _ = service.control_native_v2_tuning(
+                    "restore", profile_id=restored.profile_id
+                )
+                self.assertTrue(accepted)
+                self.assertTrue(service.native_v2_tuning.wait(1))
+            restore.assert_called_once()
+        backend.restart.assert_called_once_with()
+        self.assertEqual(service.state, RuntimeState.READY)
+        self.assertEqual(service.native_v2_tuning.snapshot().status, "applied")
+
+    def test_explicit_restore_is_rejected_until_daemon_configures_it(self) -> None:
+        service = RuntimeService()
+        accepted, snapshot = service.control_native_v2_tuning(
+            "restore", profile_id="a" * 24
+        )
+        self.assertFalse(accepted)
+        self.assertEqual(snapshot["status"], "idle")
 
     def test_observation_monitor_debounces_and_deduplicates_content(self) -> None:
         calls = []

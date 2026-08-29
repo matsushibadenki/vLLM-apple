@@ -418,20 +418,27 @@ class RuntimeRequestHandler(BaseHTTPRequestHandler):
         request = self._read_json()
         if request is None:
             return
-        if set(request) != {"action"} or request["action"] not in {
-            "enable",
-            "disable",
-            "retry",
-        }:
+        action = request.get("action")
+        valid = (
+            set(request) == {"action"} and action in {"enable", "disable", "retry"}
+        ) or (
+            set(request) == {"action", "profile_id"}
+            and action == "restore"
+            and isinstance(request["profile_id"], str)
+            and len(request["profile_id"]) == 24
+            and all(character in "0123456789abcdef" for character in request["profile_id"])
+        )
+        if not valid:
             self._error(
                 HTTPStatus.BAD_REQUEST,
                 "invalid_native_v2_tuning_action",
-                "action must be enable, disable, or retry",
+                "action must be enable, disable, retry, or restore with a profile_id",
             )
             return
         try:
             accepted, snapshot = self.server.service.control_native_v2_tuning(
-                request["action"]
+                action,
+                profile_id=request.get("profile_id"),
             )
         except (OSError, ValueError):
             self._error(

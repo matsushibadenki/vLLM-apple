@@ -35,7 +35,14 @@ from .semantic_state import (
     SemanticStateCoordinator,
     disabled_semantic_state_snapshot,
 )
-from .types import GIB, MemoryPressure, ModelMemorySpec, RuntimeProfile, RuntimeState
+from .types import (
+    GIB,
+    MemoryPressure,
+    ModelMemorySpec,
+    RuntimeProfile,
+    RuntimeState,
+    StateMemorySpec,
+)
 from .vllm_metal_v2_orchestration import NativeV2IdleTuningCoordinator
 from .vllm_metal_v2_preference import (
     load_native_v2_preference,
@@ -127,6 +134,7 @@ class RuntimeService:
         semantic_state: SemanticStateCoordinator | None = None,
         memory_telemetry: UnifiedMemoryTelemetry | None = None,
         model_memory_spec: ModelMemorySpec | None = None,
+        state_memory_spec: StateMemorySpec | None = None,
         configured_context_tokens: int | None = None,
         kv_calibration: dict[str, int | float | str | bool | None] | None = None,
     ) -> None:
@@ -161,7 +169,23 @@ class RuntimeService:
             publish=self.events.publish,
         )
         self._native_v2_preference_path: Path | None = None
+        self._native_v2_restore: Callable[[str], bool] | None = None
         self.memory_budget = UnifiedMemoryBudgetLedger(memory.total_bytes)
+        self._state_memory_spec = state_memory_spec or (
+            model_memory_spec.as_state_memory_spec()
+            if model_memory_spec is not None
+            else None
+        )
+        if self._state_memory_spec is not None:
+            state = self._state_memory_spec
+            self.memory_budget.update("weights", state.weights_bytes, source="model_spec")
+            self.memory_budget.update(
+                "recurrent", state.recurrent_state_bytes, source="model_spec"
+            )
+            self.memory_budget.update(
+                "experts", state.expert_working_set_bytes, source="model_spec"
+            )
+            self.memory_budget.update("window", 0, source="request_projection")
         self.context_reevaluator = (
             ContextCapacityReevaluator(
                 configured_context_tokens,
@@ -269,10 +293,22 @@ class RuntimeService:
         kv_source = telemetry.kv_source
         self.memory_budget.update("kv", kv_used, source=kv_source if kv_used is not None else None)
         self.memory_budget.update(
-            "prefix", int(semantic_cache["resident_bytes"]), source="semantic_state"
+            "prefix",
+            int(semantic_cache["resident_bytes"])
+            + (self._state_memory_spec.prefix_state_bytes if self._state_memory_spec else 0),
+            source="state_spec+semantic_state" if self._state_memory_spec else "semantic_state",
         )
         self.memory_budget.update(
-            "scratch", scheduler["reserved_bytes"], source="scheduler_reservations"
+            "scratch",
+            scheduler["reserved_bytes"]
+            + (
+                self._state_memory_spec.scratch_workspace_bytes
+                if self._state_memory_spec
+                else 0
+            ),
+            source="state_spec+scheduler_reservations"
+            if self._state_memory_spec
+            else "scheduler_reservations",
         )
         iogpu = telemetry.iogpu_bytes
         allocator = telemetry.allocator_current_bytes
@@ -401,9 +437,26 @@ class RuntimeService:
         self.memory_admission.refresh(self.memory_telemetry.snapshot())
 
     def admit_schedule(self, request: ScheduleRequest) -> Reservation:
+        admission_request = request
+        if self._state_memory_spec is not None and request.estimated_context_tokens > 0:
+            state = self._state_memory_spec
+            tokens = request.estimated_context_tokens
+            window_tokens = (
+                min(tokens, state.attention_window_tokens)
+                if state.attention_window_tokens is not None
+                else tokens
+            )
+            projected = request.batch_size * (
+                tokens * state.kv_bytes_per_token
+                + window_tokens * state.attention_window_bytes_per_token
+            )
+            admission_request = replace(
+                request,
+                estimated_memory_bytes=request.estimated_memory_bytes + projected,
+            )
         try:
             self.memory_admission.admit(
-                request,
+                admission_request,
                 self.memory_telemetry.snapshot(),
                 self.memory_budget_snapshot(),
                 maximum_context_tokens=(
@@ -418,7 +471,7 @@ class RuntimeService:
                 {"status": "rejected", "reason": str(error)},
             )
             raise
-        reservation = self.scheduler.admit(request)
+        reservation = self.scheduler.admit(admission_request)
         with self._lock:
             tuning_id = (
                 self._active_metal_tuning.tuning_id
@@ -527,7 +580,13 @@ class RuntimeService:
         """Start one native-v2 tuning job only under an exclusive idle lease."""
         return self.native_v2_tuning.start(tune, apply)
 
-    def control_native_v2_tuning(self, action: str) -> tuple[bool, dict[str, object]]:
+    def configure_native_v2_restore(self, restore: Callable[[str], bool]) -> None:
+        with self._lock:
+            self._native_v2_restore = restore
+
+    def control_native_v2_tuning(
+        self, action: str, *, profile_id: str | None = None
+    ) -> tuple[bool, dict[str, object]]:
         if action == "enable":
             if self._native_v2_preference_path is not None:
                 save_native_v2_preference(True, self._native_v2_preference_path)
@@ -540,6 +599,13 @@ class RuntimeService:
             return True, snapshot.to_dict()
         if action == "retry":
             accepted = self.native_v2_tuning.retry()
+            return accepted, self.native_v2_tuning.snapshot().to_dict()
+        if action == "restore":
+            with self._lock:
+                restore = self._native_v2_restore
+            if profile_id is None or restore is None:
+                return False, self.native_v2_tuning.snapshot().to_dict()
+            accepted = restore(profile_id)
             return accepted, self.native_v2_tuning.snapshot().to_dict()
         raise ValueError("unsupported native v2 tuning action")
 

@@ -53,7 +53,8 @@ private struct UnixRuntimeEnvelope: Decodable {
 }
 
 private struct UnixNativeV2TuningControlRequest: Encodable {
-    let action: NativeV2TuningControlAction
+    let action: String
+    let profileID: String?
 }
 
 public final class UnixSocketRuntimeClient: VLLMAppleRuntimeClient, @unchecked Sendable {
@@ -102,7 +103,23 @@ public final class UnixSocketRuntimeClient: VLLMAppleRuntimeClient, @unchecked S
     public func controlNativeV2Tuning(
         _ action: NativeV2TuningControlAction
     ) async throws -> NativeV2TuningControlResult {
-        let body = try makeEncoder().encode(UnixNativeV2TuningControlRequest(action: action))
+        let body = try makeEncoder().encode(
+            UnixNativeV2TuningControlRequest(action: action.rawValue, profileID: nil)
+        )
+        return try await request(
+            "/v1/native-v2-tuning",
+            method: "POST",
+            body: body,
+            as: NativeV2TuningControlResult.self
+        )
+    }
+
+    public func restoreNativeV2Tuning(
+        profileID: String
+    ) async throws -> NativeV2TuningControlResult {
+        let body = try makeEncoder().encode(
+            UnixNativeV2TuningControlRequest(action: "restore", profileID: profileID)
+        )
         return try await request(
             "/v1/native-v2-tuning",
             method: "POST",

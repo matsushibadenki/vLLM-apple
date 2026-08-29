@@ -9,6 +9,7 @@ public protocol VLLMAppleRuntimeClient: Sendable {
     func controlNativeV2Tuning(
         _ action: NativeV2TuningControlAction
     ) async throws -> NativeV2TuningControlResult
+    func restoreNativeV2Tuning(profileID: String) async throws -> NativeV2TuningControlResult
     func health() async throws -> HealthStatus
     func chat(_ request: ChatRequest) async throws -> ChatResponse
     func streamChat(_ request: ChatRequest) -> AsyncThrowingStream<ChatEvent, Error>
@@ -51,7 +52,8 @@ private struct ErrorEnvelope: Decodable {
 }
 
 private struct NativeV2TuningControlRequest: Encodable {
-    let action: NativeV2TuningControlAction
+    let action: String
+    let profileID: String?
 }
 
 public final class HTTPRuntimeClient: VLLMAppleRuntimeClient, @unchecked Sendable {
@@ -110,7 +112,23 @@ public final class HTTPRuntimeClient: VLLMAppleRuntimeClient, @unchecked Sendabl
     public func controlNativeV2Tuning(
         _ action: NativeV2TuningControlAction
     ) async throws -> NativeV2TuningControlResult {
-        let body = try encoder.encode(NativeV2TuningControlRequest(action: action))
+        let body = try encoder.encode(
+            NativeV2TuningControlRequest(action: action.rawValue, profileID: nil)
+        )
+        return try await send(
+            "v1/native-v2-tuning",
+            method: "POST",
+            body: body,
+            as: NativeV2TuningControlResult.self
+        )
+    }
+
+    public func restoreNativeV2Tuning(
+        profileID: String
+    ) async throws -> NativeV2TuningControlResult {
+        let body = try encoder.encode(
+            NativeV2TuningControlRequest(action: "restore", profileID: profileID)
+        )
         return try await send(
             "v1/native-v2-tuning",
             method: "POST",

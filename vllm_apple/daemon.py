@@ -56,7 +56,7 @@ from .runtime_errors import classify_runtime_failure, persist_crash_diagnostic
 from .service import RuntimeService
 from .types import RuntimeState
 from .vllm_metal_integration import inspect_vllm_metal_integration
-from .vllm_metal_v2_adapter import VLLMMetalV2MeasurementAdapter
+from .vllm_metal_v2_adapter import V2MeasurementAdapterError, VLLMMetalV2MeasurementAdapter
 from .vllm_metal_v2_observation import default_v2_observation_path, load_v2_observations
 from .vllm_metal_v2_orchestration import NativeV2ObservationMonitor
 from .vllm_metal_v2_preference import default_native_v2_preference_path
@@ -64,8 +64,10 @@ from .vllm_metal_v2_tuning import (
     build_v2_hardware_fingerprint,
     inspect_v2_tuning_quarantine,
     quarantine_v2_tuning_profile,
+    restore_quarantined_v2_profile,
     save_v2_tuning_profile,
     tune_v2_observed_shapes,
+    VLLMMetalV2TuningProfile,
 )
 
 
@@ -258,18 +260,110 @@ def start_observed_native_v2_tuning(
 
     def apply(profile) -> None:
         destination = save_v2_tuning_profile(profile)
-        service.set_state(RuntimeState.LOADING_MODEL)
+        _apply_native_v2_profile(
+            service,
+            backend,
+            profile,
+            destination,
+            hardware_fingerprint=hardware_fingerprint,
+            source_fingerprint=inspection.source_fingerprint,
+        )
+
+    return service.start_native_v2_idle_tuning(tune, apply)
+
+
+def _apply_native_v2_profile(
+    service: RuntimeService,
+    backend: BackendProcess,
+    profile: VLLMMetalV2TuningProfile,
+    destination: Path,
+    *,
+    hardware_fingerprint: str,
+    source_fingerprint: str,
+) -> None:
+    """Recycle through readiness, quarantining and rolling back on failure."""
+    service.set_state(RuntimeState.LOADING_MODEL)
+    try:
+        backend.restart()
+    except Exception as apply_error:
+        try:
+            quarantine_v2_tuning_profile(destination)
+        except (OSError, ValueError) as quarantine_error:
+            service.set_failure(quarantine_error)
+            raise RuntimeError("native v2 profile quarantine failed") from apply_error
+        service.events.publish(
+            "runtime.native_v2_tuning",
+            {"status": "quarantined", "profile_id": profile.profile_id},
+        )
+        quarantine_count, latest_quarantined = inspect_v2_tuning_quarantine(
+            hardware_fingerprint=hardware_fingerprint,
+            source_fingerprint=source_fingerprint,
+        )
+        service.native_v2_tuning.update_quarantine(
+            quarantine_count, latest_quarantined
+        )
         try:
             backend.restart()
-        except Exception as apply_error:
-            try:
-                quarantine_v2_tuning_profile(destination)
-            except (OSError, ValueError) as quarantine_error:
-                service.set_failure(quarantine_error)
-                raise RuntimeError("native v2 profile quarantine failed") from apply_error
-            service.events.publish(
-                "runtime.native_v2_tuning",
-                {"status": "quarantined", "profile_id": profile.profile_id},
+        except Exception as rollback_error:
+            service.set_failure(rollback_error)
+            raise RuntimeError("native v2 profile rollback failed") from apply_error
+        service.set_state(RuntimeState.READY)
+        service.events.publish(
+            "runtime.native_v2_tuning",
+            {"status": "rolled_back", "profile_id": profile.profile_id},
+        )
+        raise RuntimeError("native v2 profile was rolled back") from apply_error
+    service.set_state(RuntimeState.READY)
+
+
+def configure_native_v2_restore(
+    service: RuntimeService,
+    backend: BackendProcess,
+    *,
+    source_root: Path | None,
+    helper: Path | None,
+    samples: int = 3,
+) -> bool:
+    """Register an explicit, remeasurement-gated restore transaction."""
+    candidate = shutil.which("vllm-apple-v2-measure") if helper is None else None
+    resolved_helper = helper or (Path(candidate) if candidate else None)
+    if source_root is None or resolved_helper is None:
+        return False
+    try:
+        inspection = inspect_vllm_metal_integration(source_root)
+        if not inspection.native_v2_detected:
+            raise ValueError("native v2 topology unavailable")
+        hardware_fingerprint = build_v2_hardware_fingerprint(service.profile.hardware)
+        adapter = VLLMMetalV2MeasurementAdapter(resolved_helper)
+        if not adapter.capability()["compatible"]:
+            raise ValueError("native v2 measurement capability unavailable")
+    except (OSError, ValueError, V2MeasurementAdapterError):
+        return False
+
+    def start(profile_id: str) -> bool:
+        destination: list[Path] = []
+
+        def restore():
+            profile, path = restore_quarantined_v2_profile(
+                profile_id,
+                adapter.measure,
+                hardware_fingerprint=hardware_fingerprint,
+                source_fingerprint=inspection.source_fingerprint,
+                samples=samples,
+            )
+            destination.append(path)
+            return profile
+
+        def apply(profile) -> None:
+            if len(destination) != 1:
+                raise RuntimeError("native v2 restored profile path unavailable")
+            _apply_native_v2_profile(
+                service,
+                backend,
+                profile,
+                destination[0],
+                hardware_fingerprint=hardware_fingerprint,
+                source_fingerprint=inspection.source_fingerprint,
             )
             quarantine_count, latest_quarantined = inspect_v2_tuning_quarantine(
                 hardware_fingerprint=hardware_fingerprint,
@@ -278,20 +372,11 @@ def start_observed_native_v2_tuning(
             service.native_v2_tuning.update_quarantine(
                 quarantine_count, latest_quarantined
             )
-            try:
-                backend.restart()
-            except Exception as rollback_error:
-                service.set_failure(rollback_error)
-                raise RuntimeError("native v2 profile rollback failed") from apply_error
-            service.set_state(RuntimeState.READY)
-            service.events.publish(
-                "runtime.native_v2_tuning",
-                {"status": "rolled_back", "profile_id": profile.profile_id},
-            )
-            raise RuntimeError("native v2 profile was rolled back") from apply_error
-        service.set_state(RuntimeState.READY)
 
-    return service.start_native_v2_idle_tuning(tune, apply)
+        return service.start_native_v2_idle_tuning(restore, apply)
+
+    service.configure_native_v2_restore(start)
+    return True
 
 
 def build_native_v2_observation_monitor(
@@ -615,6 +700,12 @@ def serve(
                     service.set_state(RuntimeState.READY)
                     assert memory_monitor is not None
                     memory_monitor.start()
+                    configure_native_v2_restore(
+                        service,
+                        backend,
+                        source_root=vllm_metal_source_root,
+                        helper=vllm_metal_v2_helper,
+                    )
                     started = False
                     if enable_native_v2_idle_tuning:
                         started = start_observed_native_v2_tuning(
