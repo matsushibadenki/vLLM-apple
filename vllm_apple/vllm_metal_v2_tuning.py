@@ -14,6 +14,7 @@ from pathlib import Path
 
 from .hardware import default_application_support
 from .kernel_profile import ModelKernelShapeProfile
+from .types import HardwareInfo
 
 VLLM_METAL_V2_TUNING_SCHEMA_VERSION = 1
 VLLM_METAL_V2_TIE_RATIO = 1.02
@@ -21,6 +22,21 @@ VLLM_METAL_V2_PARTITION_SIZE = 512
 MAX_V2_SHAPES = 16
 MAX_V2_SAMPLES = 9
 MAX_V2_PROFILE_BYTES = 512 * 1024
+MAX_V2_PROFILE_CANDIDATES = 64
+
+
+def build_v2_hardware_fingerprint(hardware: HardwareInfo) -> str:
+    identity = {
+        "platform": hardware.platform,
+        "architecture": hardware.architecture,
+        "soc": hardware.soc,
+        "gpu_core_count": hardware.gpu_core_count,
+        "total_memory_bytes": hardware.memory.total_bytes,
+        "os_version": hardware.os_version,
+    }
+    return hashlib.sha256(
+        json.dumps(identity, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    ).hexdigest()[:24]
 
 
 class V2PagedAttentionFamily(str, Enum):
@@ -325,6 +341,7 @@ def tune_v2_model_profile(
     maximum_shapes: int = MAX_V2_SHAPES,
     prefill_query_tokens: int = 128,
     nax_available: bool = True,
+    floating_dtype: str = "float16",
 ) -> VLLMMetalV2TuningProfile:
     if isinstance(gpu_cores, bool) or gpu_cores <= 0:
         raise ValueError("native v2 tuning requires a positive GPU core count")
@@ -332,7 +349,11 @@ def tune_v2_model_profile(
         raise ValueError("native v2 maximum shapes must be between 1 and 16")
     if isinstance(prefill_query_tokens, bool) or prefill_query_tokens <= 0:
         raise ValueError("native v2 prefill query tokens must be positive")
+    if floating_dtype not in {"float16", "bfloat16"}:
+        raise ValueError("native v2 floating dtype must be float16 or bfloat16")
     cache_dtype = {1: "int8", 2: "float16", 4: "float32"}[model_profile.kv_dtype_bytes]
+    if cache_dtype == "float16":
+        cache_dtype = floating_dtype
     shapes: list[V2PagedAttentionShape] = []
     for source_shape in model_profile.shapes:
         common = {
@@ -343,7 +364,7 @@ def tune_v2_model_profile(
             "head_size": source_shape.head_dimension,
             "block_size": source_shape.block_tokens,
             "gpu_cores": gpu_cores,
-            "query_dtype": "float16",
+            "query_dtype": floating_dtype,
             "cache_dtype": cache_dtype,
         }
         shapes.append(V2PagedAttentionShape(query_tokens=source_shape.batch_size, **common))
@@ -458,6 +479,60 @@ def load_v2_tuning_profile(
         )
     except (KeyError, TypeError, ValueError) as error:
         raise ValueError("invalid native v2 tuning profile values") from error
+
+
+def discover_v2_tuning_profile(
+    *,
+    hardware_fingerprint: str,
+    source_fingerprint: str,
+    root: Path | None = None,
+) -> VLLMMetalV2TuningProfile | None:
+    """Load the newest valid profile from one exact hardware/source directory."""
+    for value in (hardware_fingerprint, source_fingerprint):
+        if not 1 <= len(value) <= 128 or value in {".", ".."} or Path(value).name != value:
+            raise ValueError("invalid native v2 fingerprint path component")
+    directory = (
+        (root or default_application_support() / "profiles" / "vllm-metal-v2")
+        / hardware_fingerprint
+        / source_fingerprint
+    )
+    try:
+        attributes = directory.lstat()
+    except FileNotFoundError:
+        return None
+    if (
+        not stat.S_ISDIR(attributes.st_mode)
+        or attributes.st_uid != os.getuid()
+        or attributes.st_mode & 0o077
+    ):
+        raise ValueError("native v2 discovery directory must be private")
+    candidates: list[Path] = []
+    with os.scandir(directory) as entries:
+        for entry in entries:
+            if not entry.name.endswith(".json"):
+                continue
+            profile_id = entry.name[:-5]
+            if len(profile_id) != 24 or any(
+                character not in "0123456789abcdef" for character in profile_id
+            ):
+                continue
+            candidates.append(Path(entry.path))
+            if len(candidates) > MAX_V2_PROFILE_CANDIDATES:
+                raise ValueError("native v2 profile candidate count exceeded 64")
+    valid: list[tuple[int, VLLMMetalV2TuningProfile]] = []
+    for path in sorted(candidates):
+        try:
+            profile = load_v2_tuning_profile(
+                path,
+                hardware_fingerprint=hardware_fingerprint,
+                source_fingerprint=source_fingerprint,
+            )
+            valid.append((path.stat().st_mtime_ns, profile))
+        except (OSError, ValueError, json.JSONDecodeError):
+            continue
+    if not valid:
+        return None
+    return max(valid, key=lambda item: (item[0], item[1].profile_id))[1]
 
 
 def select_v2_winner(

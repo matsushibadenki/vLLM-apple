@@ -82,7 +82,10 @@ bounded JSONで返す。`vllm-metal-v2-capability`およびtuning CLIはこのha
 - NAX / tiled / per-token / split-KVのshape compatibility gate
 - bounded Python fixtureを呼ぶ`vllm_apple_measure_paged_attention_v2` symbol
 
-通常の推論threadではoverrideが空のため、upstreamの自動dispatchを変更しない。fixtureは256 MiBを
+familyはthread-global stateではなくlazy MLX Primitiveのimmutable fieldへ格納する。これによりPythonで
+graphを構築した後にGPU評価されても選択が保持され、別request・別layerへの漏洩やlayerごとの強制同期を
+生じない。profile未発見、破損、hardware/source fingerprint不一致、shape missでは空値となり、upstreamの
+自動dispatchを変更しない。fixtureは256 MiBを
 上限とし、巨大なCPU attention行列を作らず、zero keyとKV-head別constant valueから既知の期待出力を
 生成する。各計測はMLX arrayを評価してGPU完了まで同期し、reference比較後だけlatencyとdigestを返す。
 
@@ -93,6 +96,20 @@ correctnessを通過した。winnerは1K decodeがper-token、4K decodeがsplit-
 1K/4Kともper-tokenだった。profile `56d785bba017e1a14312a61e`はhardware/source fingerprint別の
 private Application Support領域へatomic保存した。
 
-次の境界は、このprofileを起動時にbounded探索し、完全一致shapeのwinnerだけをrequest-localに
-production dispatchへ適用することである。未一致、破損、fingerprint不一致はupstream自動dispatchへ
-fail closedする。
+profileは最大64候補のprivate directoryからbounded探索し、物理Mac専用fingerprintとインストール済み
+vLLM-Metal source fingerprintを再検証する。完全一致shapeのwinnerだけを各Primitiveへ渡す。M4実環境で
+4K decodeが`split_kv`へ解決され、未登録2K shapeが空値へfail closedすることを確認した。
+
+2026-08-29にpatched vLLM-Metal 0.27.1 serverをGemma 2 2B IT 4-bit、BF16、4K context、
+`gpu-memory-utilization=0.25`で起動し、1,024 prompt tokensから2 tokensを生成した。実server shapeは
+prefill `(context=1024, query=1024)`、decode `(context=1025/1026, query=1)`だった。synthetic
+`query=16` profileは安全にmissし、production-aligned BF16 profile `588d5dbe0e795e3dddde5492`を
+生成後、最初のdecodeで`family=per_token`のEngineCore hitを確認した。responseはHTTP 200で正常終了し、
+prompt 1,024 / completion 2 tokensだった。
+
+telemetryはprofile load、各family初回hit、最大8種類のshape missだけをvLLM EngineCore loggerへ出す。
+prompt本文とtoken IDは記録しない。API/EngineCore分離processでも観測でき、同一familyのlayer反復でlogを
+増幅しない。
+
+次の境界はproduction miss telemetryから代表shapeをbounded収集し、実query長を持つprofileを自動生成して
+prefill coverageを追加することである。

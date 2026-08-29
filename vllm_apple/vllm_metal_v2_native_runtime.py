@@ -20,8 +20,14 @@ def measure(request_json: str) -> str:
         raise ValueError("native v2 request is invalid or oversized")
     payload = json.loads(request_json)
     shape, configuration = parse_v2_measurement_request(payload)
-    if shape.turboquant or shape.cache_dtype != "float16" or shape.query_dtype != "float16":
-        raise ValueError("native v2 fixture currently requires non-TurboQuant float16")
+    if (
+        shape.turboquant
+        or shape.query_dtype not in {"float16", "bfloat16"}
+        or shape.cache_dtype != shape.query_dtype
+    ):
+        raise ValueError(
+            "native v2 fixture requires matching non-TurboQuant float16 or bfloat16"
+        )
     if shape.sequences != 1:
         raise ValueError("native v2 fixture currently requires one sequence")
     blocks = math.ceil(shape.context_tokens / shape.block_size)
@@ -36,9 +42,6 @@ def measure(request_json: str) -> str:
     from vllm_metal.metal import get_ops
 
     ops = get_ops()
-    setter = getattr(ops, "vllm_apple_set_paged_attention_v2_family", None)
-    if not callable(setter):
-        raise RuntimeError("native v2 forced-family control is unavailable")
     if configuration.family is V2PagedAttentionFamily.NAX_PREFILL and not ops.nax_ready():
         raise RuntimeError("native v2 NAX family is unavailable on this device")
 
@@ -62,9 +65,10 @@ def measure(request_json: str) -> str:
     for head in range(shape.query_heads):
         expected[:, head, :] = value_vector[head // heads_per_kv]
 
-    query = mx.array(query_data)
-    key_cache = mx.array(key_data)
-    value_cache = mx.array(value_data)
+    mlx_dtype = mx.float16 if shape.query_dtype == "float16" else mx.bfloat16
+    query = mx.array(query_data).astype(mlx_dtype)
+    key_cache = mx.array(key_data).astype(mlx_dtype)
+    value_cache = mx.array(value_data).astype(mlx_dtype)
     block_tables = mx.array(np.arange(blocks, dtype=np.int32).reshape(1, blocks))
     seq_lens = mx.array(np.array([shape.context_tokens], dtype=np.int32))
     cu_seqlens_q = mx.array(np.array([0, shape.query_tokens], dtype=np.int32))
@@ -86,19 +90,18 @@ def measure(request_json: str) -> str:
             -1,
             output,
             window_seqlen_q=shape.window_seqlen_q,
+            vllm_apple_family=configuration.family.value,
         )
         mx.eval(output)
         return output
 
-    setter(configuration.family.value)
-    try:
-        run_once()
-        started = time.perf_counter_ns()
-        output = run_once()
-        latency = max(1, time.perf_counter_ns() - started)
-    finally:
-        setter("")
-    actual = np.asarray(output, dtype=np.float32)
+    run_once()
+    started = time.perf_counter_ns()
+    output = run_once()
+    latency = max(1, time.perf_counter_ns() - started)
+    # MLX bfloat16 intentionally has no NumPy dtype/buffer representation.
+    # Convert on-device to float32 before exposing the bounded result buffer.
+    actual = np.asarray(output.astype(mx.float32))
     passed = bool(np.allclose(actual, expected, rtol=2e-2, atol=2e-2))
     digest = hashlib.sha256(expected.astype("<f4", copy=False).tobytes()).hexdigest()
     return json.dumps(

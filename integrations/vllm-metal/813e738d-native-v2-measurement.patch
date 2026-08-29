@@ -1,31 +1,85 @@
+diff --git a/vllm_metal/attention/impls/sdpa.py b/vllm_metal/attention/impls/sdpa.py
+index 4d9b907..7492a9b 100644
+--- a/vllm_metal/attention/impls/sdpa.py
++++ b/vllm_metal/attention/impls/sdpa.py
+@@ -41,6 +41,10 @@ from vllm_metal.attention.impls.varlen_rope_compat import (
+     apply_attention_rope,
+ )
+ from vllm_metal.metal import get_ops
++from vllm_apple.vllm_metal_v2_runtime import (
++    native_v2_runtime_selector,
++    normalize_mlx_dtype,
++)
+
+ # === Metal kernel block-size support ===
+ # The paged attention Metal kernel is template-instantiated for these block
+@@ -665,6 +669,21 @@ def sdpa_forward(
+
+     ops = get_ops()
+     out = mx.array(0)
++    vllm_apple_family = native_v2_runtime_selector.family_for(
++        context_tokens=max_seq_len,
++        query_tokens=q_3d.shape[0],
++        sequences=cu_seqlens_q.shape[0] - 1,
++        query_heads=q_3d.shape[1],
++        kv_heads=cache_kv_heads,
++        head_size=q_3d.shape[2],
++        block_size=kernel_block_size,
++        query_dtype=normalize_mlx_dtype(q_3d.dtype),
++        cache_dtype=(
++            "int8" if kv_cache.turboquant else normalize_mlx_dtype(kernel_k_cache.dtype)
++        ),
++        turboquant=kv_cache.turboquant,
++        window_seqlen_q=ctx.verify_window_q,
++    )
+     if kv_cache.turboquant:
+         # Reshape scale/zero caches for kernel block size
+         kernel_key_scale = new_key_scale_cache
+@@ -711,6 +730,7 @@ def sdpa_forward(
+             quant_type=kv_cache.k_quant,
+             v_bits=kv_cache.v_bits,
+             window_seqlen_q=ctx.verify_window_q,
++            vllm_apple_family=vllm_apple_family,
+         )
+     else:
+         ops.paged_attention_primitive(
+@@ -729,6 +749,7 @@ def sdpa_forward(
+             out,
+             window_seqlen_q=ctx.verify_window_q,
+             sinks=sinks,
++            vllm_apple_family=vllm_apple_family,
+         )
+
+     # Reshape + strip padding back to actual head_dim before o_proj.
 diff --git a/vllm_metal/metal/paged_ops.cpp b/vllm_metal/metal/paged_ops.cpp
-index 9d483a3..333602f 100644
+index 9d483a3..8feef31 100644
 --- a/vllm_metal/metal/paged_ops.cpp
 +++ b/vllm_metal/metal/paged_ops.cpp
-@@ -10,6 +10,7 @@
- 
+@@ -10,8 +10,10 @@
+
  #include <algorithm>
  #include <optional>
 +#include <stdexcept>
  #include <string>
  #include <unordered_map>
- 
-@@ -35,6 +36,10 @@ using namespace mlx::core;
- // ---------------------------------------------------------------------------
- 
- static std::string v2_paged_attention_source_;
-+// Test-only dispatch override used by the isolated vLLM-Apple measurement
-+// helper. Thread-local state prevents a benchmark from changing another
-+// request's family selection; the empty value preserves normal auto dispatch.
-+static thread_local std::string vllm_apple_forced_v2_family_;
- constexpr int kPartitionSize = VLLM_METAL_PARTITION_SIZE;
- 
- // Window mode for spec-decode verification (per-token kernel): query rows
-@@ -474,12 +479,25 @@ static void dispatch_paged_attention_v2_online(
++#include <utility>
+
+ #include <CoreFoundation/CoreFoundation.h>
+ #include <IOKit/IOKitLib.h>
+@@ -452,7 +454,8 @@ static void dispatch_paged_attention_v2_online(
+     // Attention sinks (optional): one float per query head, a learned logit
+     // that joins the softmax denominator without contributing a value row.
+     // nullptr for every model that has no sinks, which is the common case.
+-    const array* sinks = nullptr) {
++    const array* sinks = nullptr,
++    const std::string& forced_family = "") {
+   int head_size = static_cast<int>(query.shape(2));
+
+   // Tiled kernel for prefill batches, matching vLLM Triton's 2D/3D dispatch
+@@ -474,12 +477,24 @@ static void dispatch_paged_attention_v2_online(
    // verify batch here always takes window mode, never the tiled fallback.
    const bool window_batch =
        has_prefill && window_seqlen_q > 1 && head_size <= kWindowMaxHeadSize;
-+  const auto& forced_family = vllm_apple_forced_v2_family_;
 +  const bool force_nax = forced_family == "nax_prefill";
 +  const bool force_tiled = forced_family == "tiled_prefill";
 +  const bool force_per_token = forced_family == "per_token";
@@ -36,7 +90,7 @@ index 9d483a3..333602f 100644
 +    throw std::runtime_error(
 +        "forced prefill family is incompatible with this v2 shape");
 +  }
- 
+
    // TurboQuant stays excluded from the tiled kernel.  Sink prefill can use it:
    // pagedattention_tiled.metal folds the sink into each row's denominator-only
    // softmax state before final normalization.
@@ -49,7 +103,7 @@ index 9d483a3..333602f 100644
        dispatch_paged_attention_nax(
            out, query, key_cache, value_cache,
            num_kv_heads, scale, softcap,
-@@ -487,7 +505,12 @@ static void dispatch_paged_attention_v2_online(
+@@ -487,7 +502,12 @@ static void dispatch_paged_attention_v2_online(
            block_size, sliding_window, s, sinks);
        return;
      }
@@ -63,7 +117,7 @@ index 9d483a3..333602f 100644
        dispatch_paged_attention_tiled(
            out, query, key_cache, value_cache,
            num_kv_heads, scale, softcap,
-@@ -495,6 +518,10 @@ static void dispatch_paged_attention_v2_online(
+@@ -495,6 +515,10 @@ static void dispatch_paged_attention_v2_online(
            block_size, max_seq_len, sliding_window, *cfg, s, sinks);
        return;
      }
@@ -72,9 +126,9 @@ index 9d483a3..333602f 100644
 +          "forced tiled family is unavailable for this v2 shape");
 +    }
    }
- 
+
    // Fallback: original per-token kernel
-@@ -537,8 +564,14 @@ static void dispatch_paged_attention_v2_online(
+@@ -537,8 +561,14 @@ static void dispatch_paged_attention_v2_online(
    // (For non-window batches grid_y == total_q_tokens, so this is the
    // same value the gate always used.)
    const int gate_grid = num_heads * total_q_tokens;  // grid.z = 1 occupancy
@@ -88,26 +142,84 @@ index 9d483a3..333602f 100644
 +  const bool partition = force_split_kv ||
 +      (!force_per_token && (pure_decode || window_batch)
 +       && gate_grid < min_decode_grid() && max_num_partitions >= 2);
- 
+
    std::string kname =
        "paged_attention_" + dt + "_cache_" + k_cache_dt + "_" + v_cache_dt +
-@@ -1651,6 +1684,28 @@ NB_MODULE(_paged_ops, m) {
+@@ -729,13 +759,15 @@ class PagedAttentionPrimitive : public UnaryPrimitive {
+       Stream stream, int num_kv_heads, float scale, float softcap,
+       int block_size, int max_seq_len, int sliding_window,
+       bool use_turboquant = false, int k_bits = 8, int v_bits = 3,
+-      int window_seqlen_q = 1, bool use_sinks = false)
++      int window_seqlen_q = 1, bool use_sinks = false,
++      std::string forced_family = "")
+       : UnaryPrimitive(stream),
+         num_kv_heads_(num_kv_heads), scale_(scale), softcap_(softcap),
+         block_size_(block_size), max_seq_len_(max_seq_len),
+         sliding_window_(sliding_window),
+         use_turboquant_(use_turboquant), k_bits_(k_bits), v_bits_(v_bits),
+-        window_seqlen_q_(window_seqlen_q), use_sinks_(use_sinks) {}
++        window_seqlen_q_(window_seqlen_q), use_sinks_(use_sinks),
++        forced_family_(std::move(forced_family)) {}
+
+   void eval_cpu(const std::vector<array>&, array&) override {
+     throw std::runtime_error(
+@@ -762,7 +794,8 @@ class PagedAttentionPrimitive : public UnaryPrimitive {
+         inputs[3], inputs[4], inputs[5],  // block_tables, seq_lens, cu_seqlens_q
+         block_size_, max_seq_len_, sliding_window_, window_seqlen_q_,
+         stream(),
+-        ks, vs, kz, vc, use_turboquant_, k_bits_, v_bits_, sk);
++        ks, vs, kz, vc, use_turboquant_, k_bits_, v_bits_, sk,
++        forced_family_);
+   }
+
+   const char* name() const override { return "PagedAttention"; }
+@@ -778,7 +811,8 @@ class PagedAttentionPrimitive : public UnaryPrimitive {
+         && rhs->k_bits_ == k_bits_
+         && rhs->v_bits_ == v_bits_
+         && rhs->window_seqlen_q_ == window_seqlen_q_
+-        && rhs->use_sinks_ == use_sinks_;
++        && rhs->use_sinks_ == use_sinks_
++        && rhs->forced_family_ == forced_family_;
+   }
+
+  private:
+@@ -793,6 +827,7 @@ class PagedAttentionPrimitive : public UnaryPrimitive {
+   int v_bits_;
+   int window_seqlen_q_;
+   bool use_sinks_;
++  std::string forced_family_;
+ };
+
+ static array paged_attention_primitive_fn(
+@@ -808,7 +843,13 @@ static array paged_attention_primitive_fn(
+     const array* key_zero_cache = nullptr,
+     const array* v_centroids = nullptr,
+     int v_bits = 3, int window_seqlen_q = 1,
+-    const array* sinks = nullptr) {
++    const array* sinks = nullptr,
++    const std::string& forced_family = "") {
++  if (!forced_family.empty() && forced_family != "nax_prefill" &&
++      forced_family != "tiled_prefill" && forced_family != "per_token" &&
++      forced_family != "split_kv") {
++    throw std::invalid_argument("unknown vLLM-Apple v2 family");
++  }
+   if (sinks != nullptr) {
+     // Upstream MLX refuses the same combination
+     // (mlx_lm/models/base.py: "Quantized SDPA does not support attention
+@@ -902,7 +943,8 @@ static array paged_attention_primitive_fn(
+       default_stream(Device::gpu),
+       num_kv_heads, scale, softcap,
+       block_size, max_seq_len, sliding_window,
+-      use_turboquant, k_bits, v_bits, window_seqlen_q, sinks != nullptr);
++      use_turboquant, k_bits, v_bits, window_seqlen_q, sinks != nullptr,
++      forced_family);
+   if (use_turboquant) {
+     return array(
+         query.shape(), query.dtype(), std::move(prim),
+@@ -1651,6 +1693,15 @@ NB_MODULE(_paged_ops, m) {
          nb::arg("enabled"),
          "Runtime kill-switch for the NAX prefill kernel (tests / A-B runs).");
- 
-+  m.def("vllm_apple_set_paged_attention_v2_family",
-+        [](const std::string& family) {
-+          if (!family.empty() && family != "nax_prefill" &&
-+              family != "tiled_prefill" && family != "per_token" &&
-+              family != "split_kv") {
-+            throw std::invalid_argument("unknown vLLM-Apple v2 family");
-+          }
-+          vllm_apple_forced_v2_family_ = family;
-+        },
-+        nb::arg("family"),
-+        "Force one v2 paged-attention family on this helper thread; pass an "
-+        "empty string to restore normal automatic dispatch.");
-+
+
 +  m.def("vllm_apple_measure_paged_attention_v2",
 +        [](const std::string& request) {
 +          nb::object measure = nb::module_::import_(
@@ -120,3 +232,30 @@ index 9d483a3..333602f 100644
    m.def("tq_encode",
          [](nb::handle key_h, nb::handle value_h,
             nb::handle key_cache_h, nb::handle value_cache_h,
+@@ -1803,7 +1854,8 @@ NB_MODULE(_paged_ops, m) {
+            const std::string& quant_type,
+            int v_bits,
+            int window_seqlen_q,
+-           nb::object sinks_h) {
++           nb::object sinks_h,
++           const std::string& vllm_apple_family) {
+           const array* sk = sinks_h.is_none()
+               ? nullptr : nb::inst_ptr<array>(sinks_h);
+           const array* ks = use_turboquant
+@@ -1824,7 +1876,7 @@ NB_MODULE(_paged_ops, m) {
+               *nb::inst_ptr<array>(cu_seqlens_q_h),
+               block_size, max_seq_len, sliding_window,
+               use_turboquant, quant_type, ks, vs, kz, vc, v_bits,
+-              window_seqlen_q, sk);
++              window_seqlen_q, sk, vllm_apple_family);
+           nb::inst_ptr<array>(out_h)->overwrite_descriptor(result);
+         },
+         nb::arg("query"),
+@@ -1844,6 +1896,7 @@ NB_MODULE(_paged_ops, m) {
+         nb::arg("v_bits") = 3,
+         nb::arg("window_seqlen_q") = 1,
+         nb::arg("sinks") = nb::none(),
++        nb::arg("vllm_apple_family") = "",
+         "Paged attention primitive (read-only). Cache writes are handled "
+         "by MLX-native scatter upstream.  window_seqlen_q must equal the "
+         "longest cu_seqlens_q segment (validated when > 1); small "

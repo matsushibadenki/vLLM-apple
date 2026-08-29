@@ -205,6 +205,37 @@ class BackendKernelTuningTests(unittest.TestCase):
             {"active_bytes": 10, "cache_bytes": 5, "peak_bytes": 12},
         )
 
+    def test_middleware_exposes_native_v2_telemetry(self) -> None:
+        response_messages = []
+
+        async def app(scope, receive, send):
+            self.fail("native v2 telemetry endpoint must not reach vLLM")
+
+        async def send(message):
+            response_messages.append(message)
+
+        snapshot = {
+            "profile_loaded": True,
+            "profile_id": "a" * 24,
+            "shape_hits": 3,
+            "shape_misses": 1,
+            "family_hits": {
+                "nax_prefill": 0,
+                "tiled_prefill": 0,
+                "per_token": 2,
+                "split_kv": 1,
+            },
+        }
+        middleware = VLLMAppleKernelTuningMiddleware(app)
+        scope = {"type": "http", "path": "/v1/vllm-apple/native-v2", "headers": []}
+        with patch(
+            "vllm_apple.vllm_middleware.native_v2_runtime_selector.snapshot",
+            return_value=snapshot,
+        ):
+            asyncio.run(middleware(scope, lambda: None, send))
+        self.assertEqual(response_messages[0]["status"], 200)
+        self.assertEqual(json.loads(response_messages[1]["body"]), snapshot)
+
 
 if __name__ == "__main__":
     unittest.main()

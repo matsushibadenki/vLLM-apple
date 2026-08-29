@@ -11,5 +11,7 @@ git apply /path/to/vLLM-apple/integrations/vllm-metal/813e738d-native-v2-measure
 VLLM_METAL_BUILD_FROM_SOURCE=1 python -m vllm_metal.metal.build
 ```
 
-The patch only exposes the isolated measurement ABI and a thread-local family
-override. With the override unset, normal vLLM-Metal dispatch is unchanged.
+The patch exposes the isolated measurement ABI and stores an optional family
+inside each lazy MLX Paged Attention Primitive. The Python call site performs
+an exact hardware/source/shape lookup; misses keep the family empty and preserve
+normal vLLM-Metal automatic dispatch.

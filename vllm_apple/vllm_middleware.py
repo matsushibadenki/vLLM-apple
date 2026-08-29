@@ -9,6 +9,7 @@ from .backend_tuning import (
     PagedAttentionKernelInvoker,
 )
 from .kernel_profile import PagedAttentionShape
+from .vllm_metal_v2_runtime import native_v2_runtime_selector
 
 # One process-wide adapter intentionally joins the ASGI request path and the
 # in-process vLLM-Metal Paged Attention call site.
@@ -20,6 +21,23 @@ class VLLMAppleKernelTuningMiddleware(KernelTuningASGIMiddleware):
         super().__init__(app, backend_kernel_tuning)
 
     async def __call__(self, scope: dict[str, Any], receive: Any, send: Any) -> None:
+        if scope.get("type") == "http" and scope.get("path") == "/v1/vllm-apple/native-v2":
+            payload = json.dumps(
+                native_v2_runtime_selector.snapshot(), separators=(",", ":")
+            ).encode()
+            await send(
+                {
+                    "type": "http.response.start",
+                    "status": 200,
+                    "headers": [
+                        (b"content-type", b"application/json"),
+                        (b"content-length", str(len(payload)).encode("ascii")),
+                        (b"cache-control", b"no-store"),
+                    ],
+                }
+            )
+            await send({"type": "http.response.body", "body": payload})
+            return
         if scope.get("type") == "http" and scope.get("path") == "/v1/vllm-apple/memory":
             try:
                 payload = json.dumps(mlx_memory_metrics(), separators=(",", ":")).encode()
@@ -73,3 +91,8 @@ def invoke_paged_attention_kernel(
 
 def backend_tuning_metrics() -> dict[str, int]:
     return backend_kernel_tuning.snapshot().to_dict()
+
+
+def native_v2_family_for(**shape_values: object) -> str:
+    """Return an exact-shape winner or empty string for upstream auto dispatch."""
+    return native_v2_runtime_selector.family_for(**shape_values)

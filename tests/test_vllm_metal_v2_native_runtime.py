@@ -31,7 +31,7 @@ class VLLMMetalV2NativeRuntimeTests(unittest.TestCase):
                 "partition_size": 0,
             },
         }
-        with self.assertRaisesRegex(ValueError, "requires non-TurboQuant float16"):
+        with self.assertRaisesRegex(ValueError, "requires matching non-TurboQuant"):
             measure(json.dumps(payload))
 
 
