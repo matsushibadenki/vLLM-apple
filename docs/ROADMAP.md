@@ -530,6 +530,18 @@ vLLM-Metal対応とは見なさない。
 - `[Done]` self-hosted Apple Silicon qualification workflowのNative MLX backend対応
 - `[Done]` MLX qualification process起動前のUnified Memory hard ceiling gate
 - `[Done]` phase profile/memory fitのSwift typed decodeとMac app三言語表示
+- `[Done]` self-hosted認定でphase/memory evidenceを必須化するSwift CI gate
+- `[Done]` 英語・日本語・简体中文の本文非保存semantic smokeとSwift evidence gate
+- `[Done]` incremental hash完全一致と16 MiB SSE上限によるconstant-memory quality判定
+- `[Done]` direct vLLM-Metal qualificationへのarchitecture/memory load前gate統合
+- `[Done]` vLLM-Metal明示architecture feature probeとdaemon/qualification昇格契約
+- `[Done]` 公式Qwen3.8-Flash-Next 48層configでのmetadata/state回帰固定
+- `[Done]` multimodal Qwenのrequested mode別text/Vision/MTP capability gate
+- `[Done]` text-only memory fitからMTP runtime working setを除外するmode-aware budget
+- `[Done]` download前artifact admission（Unified Memory、disk staging、構造化判定）
+- `[Done]` self-hosted qualification workflowのbackend起動前artifact admission evidence
+- `[Done]` artifact admission evidenceのSwift typed decodeとbounded CI再検証
+- `[Done]` admission evidenceとqualification modelの識別子binding
 - `[Next]` 大容量Apple Siliconでtext-only smoke、TTFT、TPOT、RSS、品質gate
 - `[Later]` backend実測後にのみQSA、GDN、MoE、N-gram向けNative Metal/MLXを検討
 
@@ -599,6 +611,14 @@ vLLM-Metal対応とは見なさない。
 - `[Done]` self-hosted qualification preflight/workflowのMLX切替
 - `[Done]` MLX実model qualificationへのload前memory fit統合
 - `[Done]` qualification phase metricsのSwift SDK/Mac app統合
+- `[Done]` qualification artifactのphase/memory evidence CI検証
+- `[Done]` 三言語bounded semantic smokeのqualification統合
+- `[Done]` 三言語応答の本文非保存exact-match gate
+- `[Done]` vLLM-Metal/MLX共通のqualification load前memory fit
+- `[Done]` vLLM-Metalのbounded Qwen feature宣言probe
+- `[Done]` 公式48層・36 GDN・12 QSA・Vision/MTP config照合
+- `[Done]` 公式multimodal artifactのtext-only qualification mode
+- `[Done]` requested modeを記録・再検証するSwift text-only evidence gate
 - `[Next]` 大容量Apple SiliconでQwen text-only実model qualification
 - `[Done]` kernel capability、self-test結果、quarantine理由のversioned registry
 - `[Later]` vLLM-Metal Paged Attention capability/benchmark統合
@@ -772,6 +792,14 @@ vLLM-Metal対応とは見なさない。
 - `[Done]` self-hosted qualification preflight/workflowのMLX切替
 - `[Done]` MLX実model qualificationへのload前memory fit統合
 - `[Done]` qualification phase metricsのSwift SDK/Mac app統合
+- `[Done]` qualification artifactのphase/memory evidence CI検証
+- `[Done]` 三言語bounded semantic smokeのqualification統合
+- `[Done]` 三言語応答の本文非保存exact-match gate
+- `[Done]` vLLM-Metal/MLX共通のqualification load前memory fit
+- `[Done]` vLLM-Metalのbounded Qwen feature宣言probe
+- `[Done]` 公式48層・36 GDN・12 QSA・Vision/MTP config照合
+- `[Done]` 公式multimodal artifactのtext-only qualification mode
+- `[Done]` requested modeを記録・再検証するSwift text-only evidence gate
 - `[Next]` 大容量Apple SiliconでQwen text-only実model qualification
 - `[Next]` 専用runner上でvLLM 0.28.x昇格workflowを実行
 - `[Later]` Ruff ruleの段階的拡張と既存style debt解消
@@ -873,8 +901,20 @@ vLLM-Metal対応とは見なさない。
 89. `[Done]` self-hosted Apple Silicon qualification workflowのNative MLX backend対応
 90. `[Done]` MLX qualification process起動前のUnified Memory hard ceiling gate
 91. `[Done]` phase profile/memory fitのSwift typed decodeとMac app三言語表示
-92. `[Next]` 大容量Apple SiliconでQwen text-only実model qualification
-93. `[Later]` Mac companion app
+92. `[Done]` self-hosted認定でphase/memory evidenceを必須化するSwift CI gate
+93. `[Done]` 英語・日本語・简体中文の本文非保存semantic smokeとSwift evidence gate
+94. `[Done]` incremental hash完全一致と16 MiB SSE上限によるconstant-memory quality判定
+95. `[Done]` direct vLLM-Metal qualificationへのarchitecture/memory load前gate統合
+96. `[Done]` vLLM-Metal明示architecture feature probeとdaemon/qualification昇格契約
+97. `[Done]` 公式Qwen3.8-Flash-Next 48層configでのmetadata/state回帰固定
+98. `[Done]` multimodal Qwenのrequested mode別text/Vision/MTP capability gate
+99. `[Done]` requested mode別memory budgetとSwift text-only evidence gate
+100. `[Done]` download前artifact admissionによる不適合な大容量model取得の防止
+101. `[Done]` self-hosted認定へのartifact/resident対入力とload前fail-closed gate統合
+102. `[Done]` Swift SDKでのartifact admission evidence再計算とCI必須gate
+103. `[Done]` model-bound admission evidenceによる別候補report replay防止
+104. `[Next]` 大容量Apple SiliconでQwen text-only実model qualification
+105. `[Later]` Mac companion app
 
 この順序により、まず推論runtimeの実model安定性を確立し、その境界を壊さずにoptimizerを
 別processとして追加する。構造pruningはquantization、calibration、評価gateの後に着手する。

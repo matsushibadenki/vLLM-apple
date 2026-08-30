@@ -30,6 +30,21 @@ private func qualificationPayload(model: String, passed: Bool = true) -> Data {
     """.utf8)
 }
 
+private let artifactAdmissionPayload = Data("""
+{
+  "schema_version": 1,
+  "model": "Qwen/Qwen3.8-Flash-Next",
+  "artifact_bytes": 100,
+  "estimated_resident_bytes": 120,
+  "memory_hard_ceiling_bytes": 200,
+  "disk_free_bytes": 200,
+  "disk_required_bytes": 105,
+  "fits_memory": true,
+  "fits_disk": true,
+  "eligible": true
+}
+""".utf8)
+
 @Test func reportStoreLoadsNewestWithinBoundsAndSkipsUnsafeFiles() throws {
     let manager = FileManager.default
     let directory = manager.temporaryDirectory.appending(path: UUID().uuidString, directoryHint: .isDirectory)
@@ -56,4 +71,20 @@ private func qualificationPayload(model: String, passed: Bool = true) -> Data {
     ).load()
     #expect(reports.count == 1)
     #expect(reports.first?.report.model == "new")
+}
+
+@Test func artifactAdmissionStoreIsBoundedAndRejectsSymlinks() throws {
+    let manager = FileManager.default
+    let directory = manager.temporaryDirectory.appending(path: UUID().uuidString, directoryHint: .isDirectory)
+    try manager.createDirectory(at: directory, withIntermediateDirectories: true)
+    defer { try? manager.removeItem(at: directory) }
+
+    let report = directory.appending(path: "artifact-admission.json")
+    try artifactAdmissionPayload.write(to: report)
+    #expect(ArtifactAdmissionReportStore(fileURL: report).load()?.hasValidEvidence == true)
+
+    let link = directory.appending(path: "linked-admission.json")
+    try manager.createSymbolicLink(at: link, withDestinationURL: report)
+    #expect(ArtifactAdmissionReportStore(fileURL: link).load() == nil)
+    #expect(ArtifactAdmissionReportStore(fileURL: report, maximumFileBytes: 8).load() == nil)
 }

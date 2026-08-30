@@ -10,11 +10,46 @@ from vllm_apple.compat import (
     _decode_mlx_probe,
     assess_backend_versions,
     assess_platform_selection,
+    inspect_backend,
     inspect_mlx_lm_backend,
 )
 
 
 class BackendVersionMatrixTests(unittest.TestCase):
+    def test_vllm_metal_backend_exposes_bounded_feature_contract(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            executable = Path(directory) / "vllm"
+            executable.write_text("#!/bin/sh\n", encoding="utf-8")
+            os.chmod(executable, 0o700)
+            payload = json.dumps(
+                {
+                    "python": "3.12.4",
+                    "vllm": "0.27.1",
+                    "vllm_metal": "0.3.0",
+                    "transformers": "5.12.1",
+                    "platform_module": "vllm_metal.platform",
+                    "platform_class": "MetalPlatform",
+                    "platform_is_cpu": False,
+                    "architecture_features": [
+                        "qwen_sparse_attention",
+                        "gated_deltanet",
+                        "gated_deltanet",
+                    ],
+                }
+            )
+            completed = CompletedProcess([], 0, stdout=payload, stderr="")
+            with patch("vllm_apple.compat.subprocess.run", return_value=completed):
+                result = inspect_backend(executable)
+        self.assertTrue(result.compatible)
+        self.assertEqual(
+            result.architecture_features,
+            ("gated_deltanet", "qwen_sparse_attention"),
+        )
+        self.assertEqual(
+            result.to_dict()["architecture_features"],
+            ["gated_deltanet", "qwen_sparse_attention"],
+        )
+
     def test_mlx_probe_declares_only_bounded_explicit_features(self) -> None:
         version, features = _decode_mlx_probe(
             json.dumps(

@@ -2,9 +2,11 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import sys
 from pathlib import Path
 
+from .artifact_admission import assess_artifact_admission_for_path
 from .compat import inspect_backend, inspect_mlx_lm_backend
 from .context import recommend_context
 from .daemon import serve
@@ -70,6 +72,15 @@ def build_parser() -> argparse.ArgumentParser:
     commands = parser.add_subparsers(dest="command", required=True)
 
     commands.add_parser("hardware", help="detect Apple hardware and memory")
+
+    artifact_admission = commands.add_parser(
+        "artifact-admission", help="check memory and disk fit before downloading a model"
+    )
+    artifact_admission.add_argument("--model", required=True)
+    artifact_admission.add_argument("--artifact-gib", type=float, required=True)
+    artifact_admission.add_argument("--resident-gib", type=float, required=True)
+    artifact_admission.add_argument("--target", type=Path, default=Path("models"))
+    artifact_admission.add_argument("--staging-factor", type=float, default=1.05)
 
     doctor = commands.add_parser("doctor", help="inspect the vLLM-Metal environment")
     doctor.add_argument("--backend-executable")
@@ -236,6 +247,13 @@ def build_parser() -> argparse.ArgumentParser:
     qualify.add_argument("--max-rss-growth-mib", type=float, default=256)
     qualify.add_argument("--phase-samples", type=int, default=3)
     qualify.add_argument("--phase-output-tokens", type=int, default=32)
+    qualify.add_argument("--skip-quality-smoke", action="store_true")
+    qualify.add_argument(
+        "--mode",
+        action="append",
+        choices=("text", "vision", "mtp", "yarn"),
+        dest="qualification_modes",
+    )
     qualify.add_argument("--allow-short-run", action="store_true")
     qualify.add_argument("--allow-context-reduction", action="store_true")
     qualify.add_argument("--output", type=Path)
@@ -298,6 +316,30 @@ def main(argv: list[str] | None = None) -> int:
     if arguments.command == "hardware":
         _json(detect_hardware().to_dict())
         return 0
+    if arguments.command == "artifact-admission":
+        try:
+            size_values = (arguments.artifact_gib, arguments.resident_gib)
+            if any(not math.isfinite(value) or value <= 0 or value > 16_384 for value in size_values):
+                raise ValueError("artifact and resident sizes must be between 0 and 16384 GiB")
+            admission = assess_artifact_admission_for_path(
+                model=arguments.model,
+                artifact_bytes=math.ceil(arguments.artifact_gib * GIB),
+                estimated_resident_bytes=math.ceil(arguments.resident_gib * GIB),
+                hardware=detect_hardware(),
+                target=arguments.target,
+                staging_factor=arguments.staging_factor,
+            )
+        except (OSError, ValueError) as error:
+            _json(
+                {
+                    "eligible": False,
+                    "error_code": "artifact_admission_failed",
+                    "detail": str(error),
+                }
+            )
+            return 2
+        _json(admission.to_dict())
+        return 0 if admission.eligible else 1
     if arguments.command == "doctor":
         report = inspect_backend(arguments.backend_executable)
         _json(report.to_dict())
@@ -675,6 +717,7 @@ def main(argv: list[str] | None = None) -> int:
                 if not compatibility.compatible:
                     raise ValueError("incompatible backend: " + ", ".join(compatibility.issues))
                 vllm_version = compatibility.vllm_version
+                architecture_features = compatibility.architecture_features
             else:
                 mlx_compatibility = inspect_mlx_lm_backend(arguments.backend_executable)
                 if not mlx_compatibility.compatible:
@@ -701,6 +744,8 @@ def main(argv: list[str] | None = None) -> int:
                     architecture_features=architecture_features,
                     phase_samples=arguments.phase_samples,
                     phase_output_tokens=arguments.phase_output_tokens,
+                    quality_smoke=not arguments.skip_quality_smoke,
+                    requested_modes=tuple(arguments.qualification_modes or ("text",)),
                 )
             )
             save_qualification_report(

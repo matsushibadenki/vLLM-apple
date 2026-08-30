@@ -90,13 +90,14 @@ class ModelInspectionTests(unittest.TestCase):
                 "vision_config": {},
                 "text_config": {
                     "model_type": "qwen4_exp_text",
-                    "num_hidden_layers": 4,
+                    "num_hidden_layers": 48,
                     "layer_types": [
                         "linear_attention",
                         "linear_attention",
                         "linear_attention",
                         "full_attention",
-                    ],
+                    ]
+                    * 12,
                     "num_attention_heads": 24,
                     "num_key_value_heads": 2,
                     "head_dim": 256,
@@ -148,24 +149,24 @@ class ModelInspectionTests(unittest.TestCase):
             assert inspected.state_memory_spec is not None
             self.assertEqual(
                 inspected.state_memory_spec.recurrent_state_bytes,
-                3 * (48 * 128 * 128 + (2 * 16 * 128 + 48 * 128) * 3) * 4,
+                36 * (48 * 128 * 128 + (2 * 16 * 128 + 48 * 128) * 3) * 4,
             )
-            self.assertEqual(inspected.memory_spec.kv_bytes_per_token, 2048)
+            self.assertEqual(inspected.memory_spec.kv_bytes_per_token, 24576)
             self.assertEqual(
-                inspected.state_memory_spec.sparse_index_bytes_per_token, 64
+                inspected.state_memory_spec.sparse_index_bytes_per_token, 768
             )
             self.assertEqual(
-                inspected.state_memory_spec.sparse_retrieval_bytes_per_token, 1024
+                inspected.state_memory_spec.sparse_retrieval_bytes_per_token, 12288
             )
             self.assertEqual(inspected.state_memory_spec.sparse_retrieval_tokens, 2048)
             expert_parameters = 3 * 2560 * 640
             self.assertEqual(
                 inspected.state_memory_spec.expert_storage_bytes,
-                4 * (512 + 1) * expert_parameters * 2,
+                48 * (512 + 1) * expert_parameters * 2,
             )
             self.assertEqual(
                 inspected.state_memory_spec.expert_working_set_bytes,
-                4 * (10 + 1) * expert_parameters * 2,
+                48 * (10 + 1) * expert_parameters * 2,
             )
             self.assertEqual(inspected.state_memory_spec.weights_bytes, 0)
             self.assertEqual(
@@ -210,7 +211,7 @@ class ModelInspectionTests(unittest.TestCase):
                 inspected.state_memory_spec.state_bytes(4096)
                 - inspected.state_memory_spec.state_bytes(2048)
             )
-            self.assertEqual(growth, 2048 * (2048 + 64))
+            self.assertEqual(growth, 2048 * (24576 + 768))
             with self.assertRaisesRegex(
                 ModelCapabilityError, "backend_missing_model_capabilities"
             ):
@@ -223,6 +224,32 @@ class ModelInspectionTests(unittest.TestCase):
                 inspected,
                 available_features=frozenset(capability.required_features),
             )
+            text_features = frozenset(
+                feature
+                for feature in capability.required_features
+                if feature not in {"vision_encoder", "multi_token_prediction"}
+            )
+            ensure_model_backend_compatible(
+                inspected,
+                available_features=text_features,
+                requested_modes=frozenset({"text"}),
+            )
+            with self.assertRaisesRegex(
+                ModelCapabilityError, "vision_encoder"
+            ):
+                ensure_model_backend_compatible(
+                    inspected,
+                    available_features=text_features,
+                    requested_modes=frozenset({"text", "vision"}),
+                )
+            with self.assertRaisesRegex(
+                ModelCapabilityError, "model_missing_requested_modes:yarn"
+            ):
+                ensure_model_backend_compatible(
+                    inspected,
+                    available_features=frozenset(capability.required_features),
+                    requested_modes=frozenset({"yarn"}),
+                )
             (path / "model.safetensors").unlink()
             with self.assertRaisesRegex(
                 ModelCapabilityError, "backend_missing_model_capabilities"

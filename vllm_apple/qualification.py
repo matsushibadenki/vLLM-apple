@@ -6,7 +6,7 @@ import math
 import os
 import tempfile
 import time
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import Callable
 
@@ -24,6 +24,7 @@ from .model import (
 )
 from .phase_probe import PhaseProbeConfig, run_phase_probe
 from .promotion_probe import PromotionProbeConfig, run_serving_promotion_probe
+from .quality_smoke import run_serving_quality_smoke
 from .vllm_metal_v2_tuning import build_v2_hardware_fingerprint
 from .soak import SoakConfig, run_soak
 
@@ -47,6 +48,8 @@ class QualificationConfig:
     architecture_features: tuple[str, ...] = ()
     phase_samples: int = 0
     phase_output_tokens: int = 32
+    quality_smoke: bool = False
+    requested_modes: tuple[str, ...] = ("text",)
 
     def __post_init__(self) -> None:
         if not self.model.strip():
@@ -70,6 +73,12 @@ class QualificationConfig:
             raise ValueError("RSS growth limit cannot be negative")
         if self.backend_kind not in {"vllm_metal", "mlx_lm"}:
             raise ValueError("unsupported qualification backend")
+        if (
+            not self.requested_modes
+            or len(set(self.requested_modes)) != len(self.requested_modes)
+            or any(mode not in {"text", "vision", "mtp", "yarn"} for mode in self.requested_modes)
+        ):
+            raise ValueError("qualification modes are invalid")
         if self.require_30_minute_window and self.duration_seconds < 1800:
             raise ValueError("real-model certification requires at least 1800 seconds")
 
@@ -81,32 +90,41 @@ def qualify_model(
 ) -> dict[str, object]:
     qualification_hardware = None
     model_memory_fit: dict[str, object] | None = None
-    if config.backend_kind == "mlx_lm":
-        inspected = inspect_model(config.model)
-        ensure_model_backend_compatible(
+    inspected = inspect_model(config.model)
+    ensure_model_backend_compatible(
+        inspected,
+        backend=config.backend_kind,
+        available_features=frozenset(config.architecture_features),
+        requested_modes=frozenset(config.requested_modes),
+    )
+    qualification_hardware = detect_hardware()
+    context_tokens = (
+        config.max_model_len
+        or inspected.architecture_capability.native_context_tokens
+        or inspected.memory_spec.model_max_context
+        or DEFAULT_UNINSPECTED_CONTEXT
+    )
+    memory_model = inspected
+    if "mtp" not in config.requested_modes and inspected.state_memory_spec is not None:
+        memory_model = replace(
             inspected,
-            backend=config.backend_kind,
-            available_features=frozenset(config.architecture_features),
+            state_memory_spec=replace(
+                inspected.state_memory_spec,
+                mtp_working_set_bytes=0,
+            ),
         )
-        qualification_hardware = detect_hardware()
-        context_tokens = (
-            config.max_model_len
-            or inspected.architecture_capability.native_context_tokens
-            or inspected.memory_spec.model_max_context
-            or DEFAULT_UNINSPECTED_CONTEXT
-        )
-        fit = assess_model_memory_fit(
-            inspected, qualification_hardware, context_tokens=context_tokens
-        )
-        model_memory_fit = {
-            "artifact_bytes": fit.artifact_bytes,
-            "estimated_resident_bytes": fit.estimated_resident_bytes,
-            "hard_ceiling_bytes": fit.hard_ceiling_bytes,
-            "context_tokens": fit.context_tokens,
-            "fits": fit.fits,
-        }
-        if not fit.fits:
-            raise ModelCapabilityError("model_memory_hard_ceiling_exceeded")
+    fit = assess_model_memory_fit(
+        memory_model, qualification_hardware, context_tokens=context_tokens
+    )
+    model_memory_fit = {
+        "artifact_bytes": fit.artifact_bytes,
+        "estimated_resident_bytes": fit.estimated_resident_bytes,
+        "hard_ceiling_bytes": fit.hard_ceiling_bytes,
+        "context_tokens": fit.context_tokens,
+        "fits": fit.fits,
+    }
+    if not fit.fits:
+        raise ModelCapabilityError("model_memory_hard_ceiling_exceeded")
     backend = process_factory(
         BackendConfig(
             model=config.model,
@@ -122,6 +140,7 @@ def qualify_model(
     soak: dict[str, object] | None = None
     promotion: dict[str, object] | None = None
     phase_profile: dict[str, object] | None = None
+    quality_smoke: dict[str, object] | None = None
     shutdown_clean = False
     context = _pending_context_report(config)
     api_model = "default_model" if config.backend_kind == "mlx_lm" else config.model
@@ -144,13 +163,14 @@ def qualify_model(
             if not promotion["passed"]:
                 raise RuntimeError("backend sampling/streaming promotion probe failed")
             if config.phase_samples:
+                hardware_fingerprint = build_v2_hardware_fingerprint(
+                    qualification_hardware or detect_hardware()
+                )
                 phase_profile = run_phase_probe(
                     PhaseProbeConfig(
                         base_url=backend.base_url,
                         model=api_model,
-                        hardware_fingerprint=build_v2_hardware_fingerprint(
-                            qualification_hardware or detect_hardware()
-                        ),
+                        hardware_fingerprint=hardware_fingerprint,
                         backend=config.backend_kind,
                         samples=config.phase_samples,
                         maximum_output_tokens=config.phase_output_tokens,
@@ -158,6 +178,24 @@ def qualify_model(
                         target_pid=pid,
                     )
                 )
+            if config.quality_smoke:
+                hardware_fingerprint = build_v2_hardware_fingerprint(
+                    qualification_hardware or detect_hardware()
+                )
+                quality_smoke = run_serving_quality_smoke(
+                    PhaseProbeConfig(
+                        base_url=backend.base_url,
+                        model=api_model,
+                        hardware_fingerprint=hardware_fingerprint,
+                        backend=config.backend_kind,
+                        samples=1,
+                        maximum_output_tokens=8,
+                        timeout_seconds=config.request_timeout_seconds,
+                        target_pid=pid,
+                    )
+                )
+                if not quality_smoke["passed"]:
+                    raise RuntimeError("backend multilingual quality smoke failed")
             soak = run_soak(
                 SoakConfig(
                     base_url=backend.base_url,
@@ -179,11 +217,13 @@ def qualify_model(
         "schema_version": 1,
         "model": config.model,
         "backend": config.backend_kind,
+        "requested_modes": list(config.requested_modes),
         "load_seconds": round(load_seconds, 3),
         "shutdown_clean": shutdown_clean,
         "promotion_probe": promotion,
         "phase_profile": phase_profile,
         "model_memory_fit": model_memory_fit,
+        "quality_smoke": quality_smoke,
         "soak": soak,
         "context_reevaluation": context,
         "passed": bool(

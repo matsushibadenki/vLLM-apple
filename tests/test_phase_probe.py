@@ -6,7 +6,12 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 from tests.schema_validator import validate_instance
 from tests.test_schemas import load_schema
-from vllm_apple.phase_probe import PhaseProbeConfig, PhaseProbeError, run_phase_probe
+from vllm_apple.phase_probe import (
+    PhaseProbeConfig,
+    PhaseProbeError,
+    measure_stream,
+    run_phase_probe,
+)
 
 
 class UsageStreamHandler(BaseHTTPRequestHandler):
@@ -91,6 +96,26 @@ class PhaseProbeTests(unittest.TestCase):
                 )
             )
         self.assertEqual(raised.exception.code, "usage_missing")
+
+    def test_exact_match_uses_the_complete_generated_text(self) -> None:
+        server = self._server(UsageStreamHandler)
+        config = PhaseProbeConfig(
+            base_url=f"http://127.0.0.1:{server.server_port}",
+            model="test-model",
+            hardware_fingerprint="test-hardware",
+        )
+        exact = measure_stream(
+            config, expected_text="hello", expected_match_mode="exact"
+        )
+        extra = measure_stream(
+            config, expected_text="hell", expected_match_mode="exact"
+        )
+        contains = measure_stream(
+            config, expected_text="hell", expected_match_mode="contains"
+        )
+        self.assertTrue(exact.expected_text_matched)
+        self.assertFalse(extra.expected_text_matched)
+        self.assertTrue(contains.expected_text_matched)
 
     def test_remote_endpoint_requires_explicit_permission(self) -> None:
         with self.assertRaises(ValueError):

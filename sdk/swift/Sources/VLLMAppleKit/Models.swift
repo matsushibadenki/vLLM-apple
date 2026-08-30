@@ -308,18 +308,100 @@ public struct QualificationModelMemoryFit: Codable, Sendable, Equatable {
     public let fits: Bool
 }
 
+public struct QualificationQualitySmoke: Codable, Sendable, Equatable {
+    public let schemaVersion: Int
+    public let sampleCount: Int
+    public let checks: [String: Bool]
+    public let storesGeneratedText: Bool
+    public let passed: Bool
+}
+
+public struct ArtifactAdmissionReport: Codable, Sendable, Equatable {
+    public let schemaVersion: Int
+    public let model: String
+    public let artifactBytes: Int64
+    public let estimatedResidentBytes: Int64
+    public let memoryHardCeilingBytes: Int64
+    public let diskFreeBytes: Int64
+    public let diskRequiredBytes: Int64
+    public let fitsMemory: Bool
+    public let fitsDisk: Bool
+    public let eligible: Bool
+
+    public var hasValidEvidence: Bool {
+        let computedMemoryFit = estimatedResidentBytes <= memoryHardCeilingBytes
+        let computedDiskFit = diskRequiredBytes <= diskFreeBytes
+        return schemaVersion == 1
+            && !model.isEmpty
+            && model.utf8.count <= 4_096
+            && model == model.trimmingCharacters(in: .whitespacesAndNewlines)
+            && artifactBytes > 0
+            && estimatedResidentBytes > 0
+            && memoryHardCeilingBytes >= 0
+            && diskFreeBytes >= 0
+            && diskRequiredBytes >= artifactBytes
+            && fitsMemory == computedMemoryFit
+            && fitsDisk == computedDiskFit
+            && eligible == (computedMemoryFit && computedDiskFit)
+            && eligible
+    }
+
+    public func isValidEvidence(forModel modelIdentifier: String) -> Bool {
+        hasValidEvidence && model == modelIdentifier
+    }
+}
+
 public struct QualificationReport: Codable, Sendable, Equatable {
     public let schemaVersion: Int
     public let model: String
     public let backend: String
+    public let requestedModes: [String]?
     public let loadSeconds: Double
     public let shutdownClean: Bool
     public let promotionProbe: [String: JSONValue]?
     public let phaseProfile: QualificationPhaseProfile?
     public let modelMemoryFit: QualificationModelMemoryFit?
+    public let qualitySmoke: QualificationQualitySmoke?
     public let soak: [String: JSONValue]?
     public let contextReevaluation: QualificationContextReevaluation
     public let passed: Bool
+
+    public var hasValidPhaseEvidence: Bool {
+        guard let profile = phaseProfile else { return false }
+        return profile.schemaVersion == 1
+            && profile.profileID.count == 24
+            && profile.sampleCount > 0
+            && profile.prefill.promptTokens > 0
+            && profile.prefill.ttft.meanMs >= 0
+            && profile.prefill.ttft.maxMs >= profile.prefill.ttft.meanMs
+            && profile.decode.outputTokens > 0
+            && profile.decode.tokenIntervals > 0
+            && profile.decode.tpot.meanMs >= 0
+            && profile.decode.tpot.maxMs >= profile.decode.tpot.meanMs
+            && profile.decode.tokensPerSecond > 0
+            && profile.peakMemoryBytes > 0
+    }
+
+    public var hasValidMemoryFitEvidence: Bool {
+        guard let fit = modelMemoryFit else { return false }
+        return fit.fits
+            && fit.artifactBytes > 0
+            && fit.estimatedResidentBytes > 0
+            && fit.hardCeilingBytes > 0
+            && fit.estimatedResidentBytes <= fit.hardCeilingBytes
+            && fit.contextTokens > 0
+    }
+
+    public var hasValidQualityEvidence: Bool {
+        guard let quality = qualitySmoke else { return false }
+        let required = Set(["english", "japanese", "simplified_chinese"])
+        return quality.schemaVersion == 1
+            && quality.sampleCount == required.count
+            && Set(quality.checks.keys) == required
+            && quality.checks.values.allSatisfy { $0 }
+            && !quality.storesGeneratedText
+            && quality.passed
+    }
 }
 
 public struct HealthStatus: Codable, Sendable, Equatable {

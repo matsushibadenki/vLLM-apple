@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import subprocess
 import threading
@@ -14,6 +15,7 @@ from .soak import _validated_base_url
 
 
 MAX_SSE_LINE_BYTES = 1024 * 1024
+MAX_SSE_RESPONSE_BYTES = 16 * 1024 * 1024
 MAX_PROMPT_BYTES = 8 * 1024 * 1024
 
 
@@ -70,12 +72,17 @@ def run_phase_probe(config: PhaseProbeConfig) -> dict[str, Any]:
 
 
 def measure_stream(
-    config: PhaseProbeConfig, *, expected_text: str | None = None
+    config: PhaseProbeConfig,
+    *,
+    expected_text: str | None = None,
+    expected_match_mode: str = "contains",
 ) -> StreamProbeResult:
     if expected_text is not None and (
         not expected_text or len(expected_text.encode("utf-8")) > 1024
     ):
         raise ValueError("expected_text must be between 1 byte and 1 KiB")
+    if expected_match_mode not in {"contains", "exact"}:
+        raise ValueError("expected match mode must be contains or exact")
     base_url = _validated_base_url(config.base_url, allow_remote=config.allow_remote)
     body = json.dumps(
         {
@@ -112,14 +119,22 @@ def measure_stream(
     usage: dict[str, Any] | None = None
     expected_matched = False
     match_tail = ""
+    generated_digest = hashlib.sha256()
+    generated_bytes = 0
+    response_bytes = 0
     try:
         with urllib.request.urlopen(request, timeout=config.timeout_seconds) as response:
             while True:
                 line = response.readline(MAX_SSE_LINE_BYTES + 1)
                 if not line:
                     break
+                response_bytes += len(line)
                 if len(line) > MAX_SSE_LINE_BYTES:
                     raise PhaseProbeError("sse_line_too_large", "backend SSE line exceeded 1 MiB")
+                if response_bytes > MAX_SSE_RESPONSE_BYTES:
+                    raise PhaseProbeError(
+                        "sse_response_too_large", "backend SSE response exceeded 16 MiB"
+                    )
                 if not line.startswith(b"data:"):
                     continue
                 data = line[5:].strip()
@@ -136,11 +151,15 @@ def measure_stream(
                 if generated and first_token_ns is None:
                     first_token_ns = time.monotonic_ns()
                 answer = _answer_text(event)
-                if expected_text is not None and answer and not expected_matched:
-                    candidate_text = match_tail + answer
-                    expected_matched = expected_text in candidate_text
-                    keep = max(0, len(expected_text) - 1)
-                    match_tail = candidate_text[-keep:] if keep else ""
+                if expected_text is not None and answer:
+                    encoded_answer = answer.encode("utf-8")
+                    generated_digest.update(encoded_answer)
+                    generated_bytes += len(encoded_answer)
+                    if expected_match_mode == "contains" and not expected_matched:
+                        candidate_text = match_tail + answer
+                        expected_matched = expected_text in candidate_text
+                        keep = max(0, len(expected_text) - 1)
+                        match_tail = candidate_text[-keep:] if keep else ""
                 candidate = event.get("usage")
                 if isinstance(candidate, dict):
                     usage = candidate
@@ -163,6 +182,11 @@ def measure_stream(
         raise PhaseProbeError(
             "usage_missing",
             "backend must return prompt_tokens and completion_tokens with stream usage",
+        )
+    if expected_text is not None and expected_match_mode == "exact":
+        encoded_expected = expected_text.encode("utf-8")
+        expected_matched = generated_bytes == len(encoded_expected) and (
+            generated_digest.digest() == hashlib.sha256(encoded_expected).digest()
         )
     return StreamProbeResult(
         measurement=PhaseMeasurement(

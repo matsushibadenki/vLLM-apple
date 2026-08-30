@@ -45,6 +45,7 @@ from .model import (
     ModelCapabilityError,
     ModelInspectionError,
     assess_model_memory_fit,
+    ensure_model_backend_compatible,
     inspect_model,
 )
 from .model_integrity import verify_model_integrity
@@ -482,7 +483,7 @@ def serve(
         }
         inspected: InspectedModel | None = None
         try:
-            inspected = inspect_model(model, backend="vllm_metal")
+            inspected = inspect_model(model)
             if max_model_len is None:
                 if enable_kv_calibration:
                     chip_identity = detect_apple_chip_profile(hardware)
@@ -539,6 +540,12 @@ def serve(
         if require_compatible_backend and not compatibility.compatible:
             issues = ", ".join(compatibility.issues)
             raise RuntimeError(f"incompatible vLLM-Metal environment: {issues}")
+        if inspected is not None:
+            ensure_model_backend_compatible(
+                inspected,
+                backend="vllm_metal",
+                available_features=frozenset(compatibility.architecture_features),
+            )
         backend = BackendProcess(config)
         profile = build_profile(hardware, recommendation)
         proxy_engine = OpenAIProxyEngine(backend.base_url, backend)

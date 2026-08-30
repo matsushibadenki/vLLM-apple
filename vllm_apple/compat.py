@@ -23,10 +23,12 @@ class BackendCompatibility:
     platform_module: str | None = None
     platform_class: str | None = None
     platform_is_cpu: bool | None = None
+    architecture_features: tuple[str, ...] = ()
 
     def to_dict(self) -> dict[str, Any]:
         result = asdict(self)
         result["issues"] = list(self.issues)
+        result["architecture_features"] = list(self.architecture_features)
         return result
 
 
@@ -50,6 +52,19 @@ MAX_MLX_ARCHITECTURE_FEATURES = 64
 _MLX_FEATURE_PATTERN = re.compile(r"^[a-z][a-z0-9_]{0,63}$")
 
 
+def _decode_architecture_features(value: object) -> tuple[str, ...]:
+    if (
+        not isinstance(value, list)
+        or len(value) > MAX_MLX_ARCHITECTURE_FEATURES
+        or any(
+            not isinstance(feature, str) or not _MLX_FEATURE_PATTERN.fullmatch(feature)
+            for feature in value
+        )
+    ):
+        raise ValueError("backend architecture features are invalid")
+    return tuple(sorted(set(value)))
+
+
 def _decode_mlx_probe(payload: str) -> tuple[str, tuple[str, ...]]:
     if not 1 <= len(payload.encode("utf-8")) <= MAX_MLX_PROBE_OUTPUT_BYTES:
         raise ValueError("mlx_lm probe output is outside the bounded limit")
@@ -60,13 +75,7 @@ def _decode_mlx_probe(payload: str) -> tuple[str, tuple[str, ...]]:
     features = decoded["architecture_features"]
     if not isinstance(version, str) or not 1 <= len(version) <= 128:
         raise ValueError("mlx_lm probe version is invalid")
-    if (
-        not isinstance(features, list)
-        or len(features) > MAX_MLX_ARCHITECTURE_FEATURES
-        or any(not isinstance(value, str) or not _MLX_FEATURE_PATTERN.fullmatch(value) for value in features)
-    ):
-        raise ValueError("mlx_lm architecture features are invalid")
-    return version, tuple(sorted(set(features)))
+    return version, _decode_architecture_features(features)
 
 
 def inspect_mlx_lm_backend(executable: str | Path) -> MLXBackendCompatibility:
@@ -200,14 +209,16 @@ def inspect_backend(executable: str | Path | None = None) -> BackendCompatibilit
     if not python.is_file():
         python = Path(sys.executable)
     script = (
-        "import importlib.metadata as m,json,platform;"
+        "import importlib.metadata as m,json,platform;import vllm_metal as vm;"
         "v=lambda n: (m.version(n) if any(d.metadata.get('Name','').lower()==n "
         "for d in m.distributions()) else None);"
         "from vllm.platforms import current_platform as p;"
+        "f=getattr(vm,'VLLM_APPLE_ARCHITECTURE_FEATURES',());"
+        "f=f if isinstance(f,(list,tuple,frozenset)) else ();"
         "print(json.dumps({'python':platform.python_version(),'vllm':v('vllm'),"
         "'vllm_metal':v('vllm-metal'),'transformers':v('transformers'),"
         "'platform_module':type(p).__module__,'platform_class':type(p).__name__,"
-        "'platform_is_cpu':p.is_cpu()}))"
+        "'platform_is_cpu':p.is_cpu(),'architecture_features':list(f)}))"
     )
     try:
         result = subprocess.run(
@@ -217,8 +228,15 @@ def inspect_backend(executable: str | Path | None = None) -> BackendCompatibilit
             text=True,
             timeout=5.0,
         )
+        if not 1 <= len(result.stdout.encode("utf-8")) <= MAX_MLX_PROBE_OUTPUT_BYTES:
+            raise ValueError("backend probe output is outside the bounded limit")
         payload = json.loads(result.stdout)
-    except (OSError, subprocess.SubprocessError, json.JSONDecodeError):
+        if not isinstance(payload, dict):
+            raise ValueError("backend probe output must be an object")
+        architecture_features = _decode_architecture_features(
+            payload.get("architecture_features")
+        )
+    except (OSError, subprocess.SubprocessError, UnicodeError, ValueError, json.JSONDecodeError):
         return BackendCompatibility(
             executable=str(resolved),
             python_version=None,
@@ -267,4 +285,5 @@ def inspect_backend(executable: str | Path | None = None) -> BackendCompatibilit
         platform_module=payload.get("platform_module"),
         platform_class=payload.get("platform_class"),
         platform_is_cpu=payload.get("platform_is_cpu"),
+        architecture_features=architecture_features,
     )

@@ -79,6 +79,43 @@ class QualificationTests(unittest.TestCase):
                 )
         self.assertFalse(factory_called)
 
+    def test_quality_smoke_failure_stops_before_soak(self) -> None:
+        created = []
+
+        def factory(config):
+            backend = FakeBackend(config)
+            created.append(backend)
+            return backend
+
+        with tempfile.TemporaryDirectory() as directory:
+            model = self.model_fixture(Path(directory))
+            with patch(
+                "vllm_apple.qualification.run_serving_promotion_probe",
+                return_value={"passed": True},
+            ), patch(
+                "vllm_apple.qualification.build_v2_hardware_fingerprint",
+                return_value="hardware-v1",
+            ), patch(
+                "vllm_apple.qualification.detect_hardware",
+                return_value=self.hardware_fixture(),
+            ), patch(
+                "vllm_apple.qualification.run_serving_quality_smoke",
+                return_value={"passed": False},
+            ), patch("vllm_apple.qualification.run_soak") as soak:
+                with self.assertRaisesRegex(RuntimeError, "quality smoke failed"):
+                    qualify_model(
+                        QualificationConfig(
+                            model=str(model),
+                            executable=Path("/tmp/vllm"),
+                            duration_seconds=1,
+                            require_30_minute_window=False,
+                            quality_smoke=True,
+                        ),
+                        process_factory=factory,
+                    )
+        soak.assert_not_called()
+        self.assertTrue(created[0].stopped)
+
     def test_mlx_context_uses_allocator_endpoint_and_reserved_available_memory(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             model = self.model_fixture(Path(directory))
@@ -113,34 +150,35 @@ class QualificationTests(unittest.TestCase):
             self.assertEqual(report["kv_capacity_bytes"], 1024**3 + 128)
             self.assertEqual(report["source"], "mlx-allocator-os-available-v1")
 
-    def test_mlx_memory_ceiling_prevents_process_construction(self) -> None:
-        factory_called = False
-
-        def factory(config):
-            nonlocal factory_called
-            factory_called = True
-            return FakeBackend(config)
-
+    def test_memory_ceiling_prevents_either_backend_process_construction(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             model = self.model_fixture(Path(directory))
-            with patch(
-                "vllm_apple.qualification.detect_hardware",
-                return_value=self.hardware_fixture(total_bytes=1024, available_bytes=0),
-            ):
-                with self.assertRaisesRegex(
-                    ModelCapabilityError, "model_memory_hard_ceiling_exceeded"
+            for backend_kind in ("vllm_metal", "mlx_lm"):
+                factory_called = False
+
+                def factory(config):
+                    nonlocal factory_called
+                    factory_called = True
+                    return FakeBackend(config)
+
+                with self.subTest(backend_kind=backend_kind), patch(
+                    "vllm_apple.qualification.detect_hardware",
+                    return_value=self.hardware_fixture(total_bytes=1024, available_bytes=0),
                 ):
-                    qualify_model(
-                        QualificationConfig(
-                            model=str(model),
-                            executable=Path("/tmp/mlx_lm.server"),
-                            backend_kind="mlx_lm",
-                            duration_seconds=1,
-                            require_30_minute_window=False,
-                        ),
-                        process_factory=factory,
-                    )
-        self.assertFalse(factory_called)
+                    with self.assertRaisesRegex(
+                        ModelCapabilityError, "model_memory_hard_ceiling_exceeded"
+                    ):
+                        qualify_model(
+                            QualificationConfig(
+                                model=str(model),
+                                executable=Path("/tmp/backend"),
+                                backend_kind=backend_kind,
+                                duration_seconds=1,
+                                require_30_minute_window=False,
+                            ),
+                            process_factory=factory,
+                        )
+                    self.assertFalse(factory_called)
 
     def test_mlx_backend_uses_native_process_contract_and_report_identity(self) -> None:
         captured = []
@@ -345,21 +383,28 @@ class QualificationTests(unittest.TestCase):
             created.append(backend)
             return backend
 
-        with patch(
-            "vllm_apple.qualification.run_serving_promotion_probe",
-            return_value={"passed": True},
-        ), patch("vllm_apple.qualification.run_soak", side_effect=RuntimeError("failed")):
-            with self.assertRaisesRegex(RuntimeError, "failed"):
-                qualify_model(
-                    QualificationConfig(
-                        model="local-model",
-                        executable=Path("/tmp/vllm"),
-                        duration_seconds=1,
-                        warmup_seconds=0,
-                        require_30_minute_window=False,
-                    ),
-                    process_factory=factory,  # type: ignore[arg-type]
-                )
+        with tempfile.TemporaryDirectory() as directory:
+            model = self.model_fixture(Path(directory))
+            with patch(
+                "vllm_apple.qualification.run_serving_promotion_probe",
+                return_value={"passed": True},
+            ), patch(
+                "vllm_apple.qualification.run_soak", side_effect=RuntimeError("failed")
+            ), patch(
+                "vllm_apple.qualification.detect_hardware",
+                return_value=self.hardware_fixture(),
+            ):
+                with self.assertRaisesRegex(RuntimeError, "failed"):
+                    qualify_model(
+                        QualificationConfig(
+                            model=str(model),
+                            executable=Path("/tmp/vllm"),
+                            duration_seconds=1,
+                            warmup_seconds=0,
+                            require_30_minute_window=False,
+                        ),
+                        process_factory=factory,  # type: ignore[arg-type]
+                    )
         self.assertTrue(created[0].stopped)
 
     def test_failed_promotion_stops_before_soak(self) -> None:
@@ -370,21 +415,26 @@ class QualificationTests(unittest.TestCase):
             created.append(backend)
             return backend
 
-        with patch(
-            "vllm_apple.qualification.run_serving_promotion_probe",
-            return_value={"passed": False},
-        ), patch("vllm_apple.qualification.run_soak") as soak:
-            with self.assertRaisesRegex(RuntimeError, "promotion probe failed"):
-                qualify_model(
-                    QualificationConfig(
-                        model="local-model",
-                        executable=Path("/tmp/vllm"),
-                        duration_seconds=1,
-                        warmup_seconds=0,
-                        require_30_minute_window=False,
-                    ),
-                    process_factory=factory,  # type: ignore[arg-type]
-                )
+        with tempfile.TemporaryDirectory() as directory:
+            model = self.model_fixture(Path(directory))
+            with patch(
+                "vllm_apple.qualification.run_serving_promotion_probe",
+                return_value={"passed": False},
+            ), patch("vllm_apple.qualification.run_soak") as soak, patch(
+                "vllm_apple.qualification.detect_hardware",
+                return_value=self.hardware_fixture(),
+            ):
+                with self.assertRaisesRegex(RuntimeError, "promotion probe failed"):
+                    qualify_model(
+                        QualificationConfig(
+                            model=str(model),
+                            executable=Path("/tmp/vllm"),
+                            duration_seconds=1,
+                            warmup_seconds=0,
+                            require_30_minute_window=False,
+                        ),
+                        process_factory=factory,  # type: ignore[arg-type]
+                    )
         soak.assert_not_called()
         self.assertTrue(created[0].stopped)
 

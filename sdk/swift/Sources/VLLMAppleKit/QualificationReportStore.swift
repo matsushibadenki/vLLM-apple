@@ -77,3 +77,32 @@ public struct QualificationReportStore: Sendable {
         return Array(decoded.prefix(maximumReports))
     }
 }
+
+public struct ArtifactAdmissionReportStore: Sendable {
+    public static let defaultMaximumFileBytes = 65_536
+    public let fileURL: URL
+    public let maximumFileBytes: Int
+
+    public init(fileURL: URL, maximumFileBytes: Int = Self.defaultMaximumFileBytes) {
+        self.fileURL = fileURL
+        self.maximumFileBytes = max(0, maximumFileBytes)
+    }
+
+    public func load() -> ArtifactAdmissionReport? {
+        guard maximumFileBytes > 0,
+              let values = try? fileURL.resourceValues(
+                forKeys: [.isRegularFileKey, .isSymbolicLinkKey, .fileSizeKey]
+              ),
+              values.isRegularFile == true,
+              values.isSymbolicLink != true,
+              let size = values.fileSize,
+              size > 0, size <= maximumFileBytes,
+              let data = try? Data(contentsOf: fileURL, options: .mappedIfSafe),
+              data.count <= maximumFileBytes else { return nil }
+        let decoder = JSONDecoder()
+        decoder.keyDecodingStrategy = .convertFromSnakeCase
+        guard let report = try? decoder.decode(ArtifactAdmissionReport.self, from: data),
+              report.schemaVersion == 1 else { return nil }
+        return report
+    }
+}

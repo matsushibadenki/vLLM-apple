@@ -171,11 +171,13 @@ def ensure_model_backend_compatible(
     *,
     backend: str = "vllm_metal",
     available_features: frozenset[str] | None = None,
+    requested_modes: frozenset[str] | None = None,
 ) -> None:
     ensure_architecture_backend_compatible(
         model.architecture_capability,
         backend=backend,
         available_features=available_features,
+        requested_modes=requested_modes,
     )
 
 
@@ -184,15 +186,35 @@ def ensure_architecture_backend_compatible(
     *,
     backend: str = "vllm_metal",
     available_features: frozenset[str] | None = None,
+    requested_modes: frozenset[str] | None = None,
 ) -> None:
+    supported_modes = frozenset(capability.modes)
+    if requested_modes is not None:
+        unsupported_modes = requested_modes - supported_modes
+        if unsupported_modes:
+            modes = ",".join(sorted(unsupported_modes))
+            raise ModelCapabilityError(f"model_missing_requested_modes:{modes}")
+    required_features = capability.required_features
+    if requested_modes is not None:
+        optional_features = {
+            "vision_encoder": "vision",
+            "multi_token_prediction": "mtp",
+            "yarn_extended_context": "yarn",
+        }
+        required_features = tuple(
+            feature
+            for feature in required_features
+            if optional_features.get(feature) in requested_modes
+            or feature not in optional_features
+        )
     if available_features is None:
         available_features = (
             frozenset()
             if backend in {"vllm_metal", "mlx_lm"}
-            else frozenset(capability.required_features)
+            else frozenset(required_features)
         )
     missing_features = tuple(
-        feature for feature in capability.required_features if feature not in available_features
+        feature for feature in required_features if feature not in available_features
     )
     if missing_features:
         missing = ",".join(missing_features)

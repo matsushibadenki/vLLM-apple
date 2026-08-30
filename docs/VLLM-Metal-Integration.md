@@ -3,6 +3,11 @@
 最終確認：2026-08-28  
 確認対象：`vllm-project/vllm-metal` commit `813e738d95840bd66b60248ad4a557485320d896`
 
+大容量model artifactはbackendを起動する前に`vllm-apple artifact-admission`を通す。現在availableな
+Unified Memoryに緊急余白を残したhard ceilingと、download/stagingを含む配置先disk容量を独立に判定し、
+どちらかが不足する場合はmodelを取得・loadしない。このpre-download gateはarchitecture capability gateや
+qualification時の実測peak RSS gateを置き換えず、その前段で不要な100 GiB級downloadを防ぐ。
+
 ## 現在の判定
 
 現行vLLM-Metalはnative v2 Paged Attentionを実装しているが、vLLM-Appleの3-stage
@@ -253,10 +258,37 @@ MLX qualificationはbackend process構築前に、選択contextでのmodel memor
 N-gram resident partition、MTP working set、GDN/QSA stateを合算し、現在のavailable Unified Memoryから8%または1 GiBの
 大きい方を除いたhard ceilingと比較する。超過時は`model_memory_hard_ceiling_exceeded`で停止し、processを生成しない。
 成功時はartifact bytes、resident estimate、hard ceiling、context、判定を`model_memory_fit`として認定reportへ残す。
+同じinspection、architecture feature差分、memory fitはdirect vLLM-Metal qualificationにも適用する。これによりdaemonを
+経由しないself-hosted認定でもQwen hybridを未対応backendへ渡さず、memory ceilingを迂回しない。
+
+vLLM-Metal probeはpackage rootの`VLLM_APPLE_ARCHITECTURE_FEATURES`を最大64件のlower snake case集合として読み、
+16 KiB以下のprobe JSONへ含める。daemonとqualificationはversion適合だけではQwen対応と見なさず、この集合とmodel要求の
+差分をload前に検査する。未宣言backendは従来どおりQwenを拒否し、将来の対応buildは実装済みfeatureだけを段階的に宣言できる。
+
+公式Qwen3.8-Flash-Next config（48層、36 linear attention、12 full attention、Vision/MTP有効）をmetadata関数へ通し、
+GDN recurrent state 117,669,888 bytes、QSA KV 24,576 bytes/token、index 768 bytes/token、MoE storage
+242,063,769,600 bytes、N-gram storage 102,400,000,000 bytes／resident partition 800,000,000 bytesを算出した。
+unit fixtureも同じ48層patternへ固定し、縮小shapeだけで互換性を主張しない。
+
+modelが持つmodeとqualificationが要求するmodeは分離する。既定の`--mode text`ではcore text featureとnative contextだけを
+要求し、artifactにVision/MTP weightが含まれていても`vision_encoder`と`multi_token_prediction`を実行capabilityとして
+要求しない。`--mode vision`、`--mode mtp`、`--mode yarn`を追加した場合だけ対応featureを必須にする。model自体が持たない
+mode指定は`model_missing_requested_modes`で拒否する。要求modeはreportの`requested_modes`へ保存し、text-only self-hosted
+workflowはSwift checkerの`--require-text-only`で`["text"]`との完全一致を再検証する。
+text-only memory fitはMTP runtime working setを加算せず、`mtp`要求時だけ追加する。MTP weightのartifact identity/storageは
+失わず、実行時resident領域だけをmode-awareに扱うため、text-only認定を過大評価せず、MTP認定を過小評価しない。
 
 Swift SDKは`phase_profile`と`model_memory_fit`をoptional typed modelとしてdecodeし、fieldを持たない旧reportとの
 後方互換性を維持する。Mac sampleは認定履歴へmean TTFT、mean TPOT、tokens/secを表示し、英語、日本語、简体中文の
 localizationを提供する。未知の追加集計fieldは無視するため、bounded report schemaの互換拡張で履歴全体を失わない。
+self-hosted CIのSwift checkerはphase evidenceを必須とし、MLXではmemory-fit evidenceも必須にする。単なるfield存在確認ではなく、
+sample/token数、TTFT/TPOTの非負性、tokens/sec、peak RSS、resident estimateがhard ceiling以下であることを再検証する。
+
+30分soakの前に、英語、日本語、简体中文の固定応答課題をstreamingで1回ずつ実行する。reportへは言語別boolean、
+sample数、本文非保存flagだけを含め、promptへの追従が1言語でも失敗すれば高コストなsoakへ進まない。これは軽量semantic
+smokeであり、perplexityやdomain benchmarkの代替ではない。self-hosted CIは3言語のkey集合、全成功、本文非保存を再検証する。
+一致判定は生成chunkを保持せずSHA-256とUTF-8 byte数だけをincremental更新し、期待値との完全一致を要求する。
+SSEは1行1 MiB、response全体16 MiBで打ち切るため、backendがoutput token上限を無視してもcontrol plane memoryを増やし続けない。
 
 load前memory fitはweight artifactの実file sizeをstorageとして保持し、非expert weights、active experts、N-gram page、
 MTP working set、GDN、QSA、選択contextのstateをresident estimateへ合算する。hard ceilingは現在のavailable unified

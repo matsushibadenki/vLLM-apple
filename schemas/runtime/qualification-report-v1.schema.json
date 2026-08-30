@@ -8,6 +8,12 @@
     "schema_version": {"const": 1},
     "model": {"type": "string", "minLength": 1},
     "backend": {"enum": ["vllm_metal", "mlx_lm"]},
+    "requested_modes": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 4,
+      "items": {"enum": ["text", "vision", "mtp", "yarn"]}
+    },
     "load_seconds": {"type": "number", "minimum": 0},
     "shutdown_clean": {"type": "boolean"},
     "promotion_probe": {"type": ["object", "null"]},
@@ -24,6 +30,7 @@
       "required": ["artifact_bytes", "estimated_resident_bytes", "hard_ceiling_bytes", "context_tokens", "fits"],
       "additionalProperties": false
     },
+    "quality_smoke": {"type": ["object", "null"]},
     "soak": {"type": ["object", "null"]},
     "context_reevaluation": {
       "type": "object",

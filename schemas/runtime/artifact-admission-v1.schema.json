@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vllm-apple.local/schemas/runtime/artifact-admission-v1.schema.json",
+  "title": "Pre-download artifact admission v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "model", "artifact_bytes", "estimated_resident_bytes", "memory_hard_ceiling_bytes", "disk_free_bytes", "disk_required_bytes", "fits_memory", "fits_disk", "eligible"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "model": {"type": "string", "minLength": 1, "maxLength": 4096},
+    "artifact_bytes": {"type": "integer", "minimum": 1},
+    "estimated_resident_bytes": {"type": "integer", "minimum": 1},
+    "memory_hard_ceiling_bytes": {"type": "integer", "minimum": 0},
+    "disk_free_bytes": {"type": "integer", "minimum": 0},
+    "disk_required_bytes": {"type": "integer", "minimum": 1},
+    "fits_memory": {"type": "boolean"},
+    "fits_disk": {"type": "boolean"},
+    "eligible": {"type": "boolean"}
+  }
+}

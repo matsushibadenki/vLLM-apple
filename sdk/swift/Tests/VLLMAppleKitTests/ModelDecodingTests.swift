@@ -172,6 +172,7 @@ import Testing
       "schema_version": 1,
       "model": "Qwen/example",
       "backend": "vllm_metal",
+      "requested_modes": ["text"],
       "load_seconds": 3.25,
       "shutdown_clean": true,
       "promotion_probe": {"passed": true},
@@ -203,6 +204,13 @@ import Testing
         "context_tokens": 262144,
         "fits": true
       },
+      "quality_smoke": {
+        "schema_version": 1,
+        "sample_count": 3,
+        "checks": {"english": true, "japanese": true, "simplified_chinese": true},
+        "stores_generated_text": false,
+        "passed": true
+      },
       "soak": {"passed": true, "requests": 24},
       "context_reevaluation": {
         "enabled": true,
@@ -232,5 +240,34 @@ import Testing
     #expect(report.phaseProfile?.peakMemoryBytes == 17_179_869_184)
     #expect(report.modelMemoryFit?.contextTokens == 262_144)
     #expect(report.modelMemoryFit?.fits == true)
+    #expect(report.hasValidPhaseEvidence)
+    #expect(report.hasValidMemoryFitEvidence)
+    #expect(report.hasValidQualityEvidence)
+    #expect(report.requestedModes == ["text"])
     #expect(!report.passed)
+}
+
+@Test func decodesAndValidatesArtifactAdmissionEvidence() throws {
+    let data = Data("""
+    {
+      "schema_version": 1,
+      "model": "Qwen/Qwen3.8-Flash-Next",
+      "artifact_bytes": 112742891520,
+      "estimated_resident_bytes": 112742891520,
+      "memory_hard_ceiling_bytes": 150323855360,
+      "disk_free_bytes": 214748364800,
+      "disk_required_bytes": 118380036096,
+      "fits_memory": true,
+      "fits_disk": true,
+      "eligible": true
+    }
+    """.utf8)
+    let decoder = JSONDecoder()
+    decoder.keyDecodingStrategy = .convertFromSnakeCase
+    let report = try decoder.decode(ArtifactAdmissionReport.self, from: data)
+    #expect(report.hasValidEvidence)
+    #expect(report.model == "Qwen/Qwen3.8-Flash-Next")
+    #expect(report.isValidEvidence(forModel: "Qwen/Qwen3.8-Flash-Next"))
+    #expect(!report.isValidEvidence(forModel: "Qwen/another-model"))
+    #expect(report.estimatedResidentBytes == 112_742_891_520)
 }

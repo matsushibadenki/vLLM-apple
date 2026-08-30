@@ -7,6 +7,7 @@ private enum ExitCode: Int32 {
     case invalidArguments = 2
     case noDecodableReport = 3
     case qualificationFailed = 4
+    case requiredEvidenceMissing = 5
 }
 
 private func finish(_ code: ExitCode, status: String, count: Int = 0) -> Never {
@@ -24,7 +25,17 @@ private func finish(_ code: ExitCode, status: String, count: Int = 0) -> Never {
 }
 
 let arguments = CommandLine.arguments
-guard arguments.count == 2 else {
+guard arguments.count >= 2 else {
+    finish(.invalidArguments, status: "invalid_arguments")
+}
+
+let options = Set(arguments.dropFirst(2))
+let knownOptions: Set<String> = [
+    "--require-phase-profile", "--require-memory-fit", "--require-quality-smoke",
+    "--require-text-only", "--require-artifact-admission"
+]
+guard options.count == arguments.dropFirst(2).count,
+      options.isSubset(of: knownOptions) else {
     finish(.invalidArguments, status: "invalid_arguments")
 }
 
@@ -37,5 +48,24 @@ guard newest.report.passed,
       newest.report.shutdownClean,
       newest.report.contextReevaluation.passed else {
     finish(.qualificationFailed, status: "qualification_failed", count: reports.count)
+}
+if options.contains("--require-phase-profile"), !newest.report.hasValidPhaseEvidence {
+    finish(.requiredEvidenceMissing, status: "phase_evidence_missing", count: reports.count)
+}
+if options.contains("--require-memory-fit"), !newest.report.hasValidMemoryFitEvidence {
+    finish(.requiredEvidenceMissing, status: "memory_fit_evidence_missing", count: reports.count)
+}
+if options.contains("--require-quality-smoke"), !newest.report.hasValidQualityEvidence {
+    finish(.requiredEvidenceMissing, status: "quality_evidence_missing", count: reports.count)
+}
+if options.contains("--require-text-only"), newest.report.requestedModes != ["text"] {
+    finish(.requiredEvidenceMissing, status: "text_only_evidence_missing", count: reports.count)
+}
+if options.contains("--require-artifact-admission") {
+    let admissionURL = directory.appending(path: "artifact-admission.json", directoryHint: .notDirectory)
+    let admission = ArtifactAdmissionReportStore(fileURL: admissionURL).load()
+    if admission?.isValidEvidence(forModel: newest.report.model) != true {
+        finish(.requiredEvidenceMissing, status: "artifact_admission_missing", count: reports.count)
+    }
 }
 finish(.success, status: "passed", count: reports.count)
