@@ -235,10 +235,33 @@ Qwen capability contractはcore text機能、Vision、MTP、native long context�
 backendが宣言したfeature集合との差分だけを`backend_missing_model_capabilities`へ含める。これによりtext-only実装が
 先行した場合もVision、MTP、1M contextを暗黙に有効化しない。
 
+Native MLX qualificationも同じ契約を使用する。`mlx-lm`の隔離probeはversionに加えて
+`VLLM_APPLE_ARCHITECTURE_FEATURES`をJSONで返し、16 KiB以下、最大64件、64文字以下のlower snake caseだけを受理する。
+version適合だけからarchitecture対応を推測せず、未宣言featureは未対応として扱う。modelのbounded inspectionとfeature差分検査は
+MLX server processの構築より前に実行し、Qwen hybridを標準Transformerとして誤起動しない。feature宣言を持たない既存の
+`mlx-lm`は通常architectureには利用できるが、Qwen hybrid qualificationにはfail closedとなる。
+
+実model qualificationはpromotion probe合格後、soak開始前に既定3 sampleのstreaming phase probeを行う。
+生成本文やraw sample列は保存せず、bounded histogramからTTFTとTPOTのmean、p50/p95 upper bound、maximum、
+tokens/sec、backend processのpeak RSSだけを`phase_profile`へ格納する。`--phase-samples 0`で明示的に無効化でき、
+実device workflowは既定で有効にする。usage token数またはfirst tokenが得られないbackendは推定値で補わず認定を停止する。
+self-hosted workflowは`backend-kind`で`vllm_metal`と`mlx_lm`を切り替え、共通のApple Silicon、GPU core、
+memory pressure検査後にbackend固有preflightを実行する。MLX経路でもmodel inspection、feature gate、phase profile、
+30分soak、private report、Swift bounded decodeを同じ順序で適用する。
+
+MLX qualificationはbackend process構築前に、選択contextでのmodel memory fitも評価する。weight artifact、active expert、
+N-gram resident partition、MTP working set、GDN/QSA stateを合算し、現在のavailable Unified Memoryから8%または1 GiBの
+大きい方を除いたhard ceilingと比較する。超過時は`model_memory_hard_ceiling_exceeded`で停止し、processを生成しない。
+成功時はartifact bytes、resident estimate、hard ceiling、context、判定を`model_memory_fit`として認定reportへ残す。
+
+Swift SDKは`phase_profile`と`model_memory_fit`をoptional typed modelとしてdecodeし、fieldを持たない旧reportとの
+後方互換性を維持する。Mac sampleは認定履歴へmean TTFT、mean TPOT、tokens/secを表示し、英語、日本語、简体中文の
+localizationを提供する。未知の追加集計fieldは無視するため、bounded report schemaの互換拡張で履歴全体を失わない。
+
 load前memory fitはweight artifactの実file sizeをstorageとして保持し、非expert weights、active experts、N-gram page、
 MTP working set、GDN、QSA、選択contextのstateをresident estimateへ合算する。hard ceilingは現在のavailable unified
 memoryから8%または1 GiBの大きい方を緊急余白として除いた値とする。balanced contextの自動選択と明示contextの
 双方で超過を検査し、`model_memory_hard_ceiling_exceeded`ならbackend processを起動しない。KV calibration後は統合
 state specも更新してから再評価する。
 
-次はNative MLX backendにも同じfeature-set方式のQwen architecture capability gateを接続する。
+次は対応featureを宣言できるMLX buildと大容量Apple Siliconを用い、text-only smoke、TTFT、TPOT、RSS、品質gateを実測する。

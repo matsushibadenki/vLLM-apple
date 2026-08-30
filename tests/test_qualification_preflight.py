@@ -3,7 +3,7 @@ import unittest
 from pathlib import Path
 
 from tests.schema_validator import validate_instance
-from vllm_apple.compat import BackendCompatibility
+from vllm_apple.compat import BackendCompatibility, MLXBackendCompatibility
 from vllm_apple.qualification_preflight import run_qualification_preflight
 from vllm_apple.types import HardwareInfo, MemoryInfo, MemoryPressure
 
@@ -42,6 +42,26 @@ def hardware(*, apple=True, pressure=MemoryPressure.NORMAL):
 
 
 class QualificationPreflightTests(unittest.TestCase):
+    def test_mlx_runner_uses_mlx_backend_contract(self) -> None:
+        result = run_qualification_preflight(
+            Path("/venv/bin/mlx_lm.server"),
+            backend_kind="mlx_lm",
+            hardware_detector=hardware,
+            backend_inspector=lambda executable: MLXBackendCompatibility(
+                executable=str(executable),
+                mlx_lm_version="0.26.3",
+                compatible=True,
+                issues=(),
+                architecture_features=("gated_deltanet", "native_long_context"),
+            ),
+        )
+        self.assertTrue(result.eligible)
+        self.assertEqual(result.backend_kind, "mlx_lm")
+        self.assertEqual(
+            result.backend["architecture_features"],
+            ["gated_deltanet", "native_long_context"],
+        )
+
     def test_eligible_runner_report_is_schema_valid(self) -> None:
         result = run_qualification_preflight(
             Path("/venv/bin/vllm"),

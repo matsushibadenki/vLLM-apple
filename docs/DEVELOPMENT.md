@@ -36,9 +36,12 @@ Metal device、実model、30分soak、memory pressure試験はhardware qualifica
 self-hosted, macOS, ARM64, vllm-metal
 ```
 
-runnerにはnative arm64 Python、確認対象のvLLM-Metal environment、ローカルmodelを事前配置する。
+runnerにはnative arm64 Python、確認対象のvLLM-MetalまたはMLX LM environment、ローカルmodelを事前配置する。
 workflowは1800〜21600秒の範囲だけを許可し、Apple Silicon、GPU core取得、memory pressure、version
-matrix、実際のMetal platform選択をpreflightで確認してからsampling/streaming probeとsoakを行う。
+matrixをpreflightで確認してからsampling/streaming probeとsoakを行う。`backend-kind=vllm_metal`では実際の
+Metal platform選択も必須とし、`backend-kind=mlx_lm`ではMLX LM versionと明示architecture feature集合を検査する。
+qualification reportにはsoakのthroughput/RSS安定性に加え、streaming phase probeのTTFT、TPOT、tokens/sec、
+peak RSSをconstant-memory集計して含める。既定は3 sample、32 output tokensで、生成本文とraw timing列は保存しない。
 認定後は`VLLMAppleQualificationCheck`が同じreportをSwift SDKのbounded readerで読み戻す。
 この検証が失敗した場合、Macアプリで履歴表示できない成果物としてworkflowを失敗させる。
 

@@ -267,6 +267,47 @@ public struct QualificationContextReevaluation: Codable, Sendable, Equatable {
     public let passed: Bool
 }
 
+public struct QualificationLatencySummary: Codable, Sendable, Equatable {
+    public let meanMs: Double
+    public let maxMs: Double
+}
+
+public struct QualificationPrefillProfile: Codable, Sendable, Equatable {
+    public let promptTokens: Int
+    public let ttft: QualificationLatencySummary
+}
+
+public struct QualificationDecodeProfile: Codable, Sendable, Equatable {
+    public let outputTokens: Int
+    public let tokenIntervals: Int
+    public let durationMs: Double
+    public let tpot: QualificationLatencySummary
+    public let tokensPerSecond: Double
+}
+
+public struct QualificationPhaseProfile: Codable, Sendable, Equatable {
+    public let schemaVersion: Int
+    public let profileId: String
+    public let hardwareFingerprint: String
+    public let modelId: String
+    public let backend: String
+    public let sampleCount: Int
+    public let prefill: QualificationPrefillProfile
+    public let decode: QualificationDecodeProfile
+    public let peakMemoryBytes: Int64
+
+    public var profileID: String { profileId }
+    public var modelID: String { modelId }
+}
+
+public struct QualificationModelMemoryFit: Codable, Sendable, Equatable {
+    public let artifactBytes: Int64
+    public let estimatedResidentBytes: Int64
+    public let hardCeilingBytes: Int64
+    public let contextTokens: Int
+    public let fits: Bool
+}
+
 public struct QualificationReport: Codable, Sendable, Equatable {
     public let schemaVersion: Int
     public let model: String
@@ -274,6 +315,8 @@ public struct QualificationReport: Codable, Sendable, Equatable {
     public let loadSeconds: Double
     public let shutdownClean: Bool
     public let promotionProbe: [String: JSONValue]?
+    public let phaseProfile: QualificationPhaseProfile?
+    public let modelMemoryFit: QualificationModelMemoryFit?
     public let soak: [String: JSONValue]?
     public let contextReevaluation: QualificationContextReevaluation
     public let passed: Bool

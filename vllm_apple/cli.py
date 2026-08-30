@@ -234,6 +234,8 @@ def build_parser() -> argparse.ArgumentParser:
     qualify.add_argument("--concurrency", type=int, default=4)
     qualify.add_argument("--request-timeout", type=float, default=300)
     qualify.add_argument("--max-rss-growth-mib", type=float, default=256)
+    qualify.add_argument("--phase-samples", type=int, default=3)
+    qualify.add_argument("--phase-output-tokens", type=int, default=32)
     qualify.add_argument("--allow-short-run", action="store_true")
     qualify.add_argument("--allow-context-reduction", action="store_true")
     qualify.add_argument("--output", type=Path)
@@ -243,6 +245,9 @@ def build_parser() -> argparse.ArgumentParser:
         help="verify an Apple Silicon runner and its selected vLLM-Metal platform",
     )
     qualification_preflight.add_argument("--backend-executable", required=True, type=Path)
+    qualification_preflight.add_argument(
+        "--backend-kind", choices=("vllm_metal", "mlx_lm"), default="vllm_metal"
+    )
 
     context = commands.add_parser("context", help="calculate safe context tiers")
     context.add_argument("--model-id", default="unknown")
@@ -664,6 +669,7 @@ def main(argv: list[str] | None = None) -> int:
             if arguments.max_rss_growth_mib < 0:
                 raise ValueError("RSS growth limit cannot be negative")
             vllm_version = None
+            architecture_features: tuple[str, ...] = ()
             if arguments.backend_kind == "vllm_metal":
                 compatibility = inspect_backend(str(arguments.backend_executable))
                 if not compatibility.compatible:
@@ -675,6 +681,7 @@ def main(argv: list[str] | None = None) -> int:
                     raise ValueError(
                         "incompatible backend: " + ", ".join(mlx_compatibility.issues)
                     )
+                architecture_features = mlx_compatibility.architecture_features
             result = qualify_model(
                 QualificationConfig(
                     model=arguments.model,
@@ -691,6 +698,9 @@ def main(argv: list[str] | None = None) -> int:
                     vllm_version=vllm_version,
                     allow_context_reduction=arguments.allow_context_reduction,
                     backend_kind=arguments.backend_kind,
+                    architecture_features=architecture_features,
+                    phase_samples=arguments.phase_samples,
+                    phase_output_tokens=arguments.phase_output_tokens,
                 )
             )
             save_qualification_report(
@@ -703,7 +713,9 @@ def main(argv: list[str] | None = None) -> int:
         _json(result)
         return 0 if result["passed"] else 1
     if arguments.command == "qualification-preflight":
-        result = run_qualification_preflight(arguments.backend_executable)
+        result = run_qualification_preflight(
+            arguments.backend_executable, backend_kind=arguments.backend_kind
+        )
         _json(result.to_dict())
         return 0 if result.eligible else 1
     if arguments.command == "serve":

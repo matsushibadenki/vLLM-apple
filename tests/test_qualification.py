@@ -7,7 +7,8 @@ from pathlib import Path
 from unittest.mock import patch
 
 from vllm_apple.backend_memory import BackendMemorySample
-from vllm_apple.types import MemoryInfo, MemoryPressure
+from vllm_apple.model import ModelCapabilityError
+from vllm_apple.types import HardwareInfo, MemoryInfo, MemoryPressure
 from vllm_apple.qualification import (
     QualificationConfig,
     default_qualification_report_path,
@@ -35,6 +36,49 @@ class FakeBackend:
 
 
 class QualificationTests(unittest.TestCase):
+    @staticmethod
+    def hardware_fixture(*, total_bytes: int = 32 * 1024**3, available_bytes: int = 24 * 1024**3) -> HardwareInfo:
+        return HardwareInfo(
+            platform="Darwin",
+            architecture="arm64",
+            soc="Apple M4",
+            physical_cpu_count=10,
+            logical_cpu_count=10,
+            gpu_core_count=16,
+            memory=MemoryInfo(total_bytes, available_bytes, MemoryPressure.NORMAL),
+            is_apple_silicon=True,
+            os_version="15.0",
+        )
+
+    def test_mlx_capability_failure_prevents_process_construction(self) -> None:
+        factory_called = False
+
+        def factory(config):
+            nonlocal factory_called
+            factory_called = True
+            return FakeBackend(config)
+
+        with patch("vllm_apple.qualification.inspect_model", return_value=object()), patch(
+            "vllm_apple.qualification.ensure_model_backend_compatible",
+            side_effect=ModelCapabilityError(
+                "backend_missing_model_capabilities:gated_deltanet"
+            ),
+        ):
+            with self.assertRaisesRegex(
+                ModelCapabilityError, "gated_deltanet"
+            ):
+                qualify_model(
+                    QualificationConfig(
+                        model="cached-qwen",
+                        executable=Path("/tmp/mlx_lm.server"),
+                        backend_kind="mlx_lm",
+                        duration_seconds=1,
+                        require_30_minute_window=False,
+                    ),
+                    process_factory=factory,
+                )
+        self.assertFalse(factory_called)
+
     def test_mlx_context_uses_allocator_endpoint_and_reserved_available_memory(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             model = self.model_fixture(Path(directory))
@@ -69,6 +113,35 @@ class QualificationTests(unittest.TestCase):
             self.assertEqual(report["kv_capacity_bytes"], 1024**3 + 128)
             self.assertEqual(report["source"], "mlx-allocator-os-available-v1")
 
+    def test_mlx_memory_ceiling_prevents_process_construction(self) -> None:
+        factory_called = False
+
+        def factory(config):
+            nonlocal factory_called
+            factory_called = True
+            return FakeBackend(config)
+
+        with tempfile.TemporaryDirectory() as directory:
+            model = self.model_fixture(Path(directory))
+            with patch(
+                "vllm_apple.qualification.detect_hardware",
+                return_value=self.hardware_fixture(total_bytes=1024, available_bytes=0),
+            ):
+                with self.assertRaisesRegex(
+                    ModelCapabilityError, "model_memory_hard_ceiling_exceeded"
+                ):
+                    qualify_model(
+                        QualificationConfig(
+                            model=str(model),
+                            executable=Path("/tmp/mlx_lm.server"),
+                            backend_kind="mlx_lm",
+                            duration_seconds=1,
+                            require_30_minute_window=False,
+                        ),
+                        process_factory=factory,
+                    )
+        self.assertFalse(factory_called)
+
     def test_mlx_backend_uses_native_process_contract_and_report_identity(self) -> None:
         captured = []
 
@@ -76,25 +149,44 @@ class QualificationTests(unittest.TestCase):
             captured.append(config)
             return FakeBackend(config)
 
-        with patch(
-            "vllm_apple.qualification.run_serving_promotion_probe",
-            return_value={"passed": True},
-        ), patch(
-            "vllm_apple.qualification.run_soak", return_value={"passed": True}
-        ):
-            report = qualify_model(
-                QualificationConfig(
-                    model="local-model",
-                    executable=Path("/tmp/mlx_lm.server"),
-                    backend_kind="mlx_lm",
-                    duration_seconds=1,
-                    warmup_seconds=0,
-                    require_30_minute_window=False,
-                ),
-                process_factory=factory,
-            )
+        with tempfile.TemporaryDirectory() as directory:
+            model = self.model_fixture(Path(directory))
+            with patch(
+                "vllm_apple.qualification.run_serving_promotion_probe",
+                return_value={"passed": True},
+            ), patch(
+                "vllm_apple.qualification.run_soak", return_value={"passed": True}
+            ), patch(
+                "vllm_apple.qualification.detect_hardware",
+                return_value=self.hardware_fixture(),
+            ), patch(
+                "vllm_apple.qualification.build_v2_hardware_fingerprint",
+                return_value="hardware-v1",
+            ), patch(
+                "vllm_apple.qualification.run_phase_probe",
+                return_value={"schema_version": 1, "sample_count": 2},
+            ) as phase:
+                report = qualify_model(
+                    QualificationConfig(
+                        model=str(model),
+                        executable=Path("/tmp/mlx_lm.server"),
+                        backend_kind="mlx_lm",
+                        duration_seconds=1,
+                        warmup_seconds=0,
+                        require_30_minute_window=False,
+                        phase_samples=2,
+                        phase_output_tokens=24,
+                    ),
+                    process_factory=factory,
+                )
         self.assertEqual(captured[0].backend_kind, "mlx_lm")
         self.assertEqual(report["backend"], "mlx_lm")
+        self.assertEqual(report["phase_profile"]["sample_count"], 2)
+        phase_config = phase.call_args.args[0]
+        self.assertEqual(phase_config.backend, "mlx_lm")
+        self.assertEqual(phase_config.samples, 2)
+        self.assertEqual(phase_config.maximum_output_tokens, 24)
+        self.assertEqual(phase_config.target_pid, os.getpid())
         self.assertTrue(report["passed"])
 
     def test_default_report_path_is_bounded_and_model_safe(self) -> None:
@@ -136,20 +228,22 @@ class QualificationTests(unittest.TestCase):
 
         soak = {"passed": True, "requests": 20}
         promotion = {"passed": True}
-        with patch(
-            "vllm_apple.qualification.run_serving_promotion_probe",
-            return_value=promotion,
-        ), patch("vllm_apple.qualification.run_soak", return_value=soak) as runner:
-            report = qualify_model(
-                QualificationConfig(
-                    model="local-model",
-                    executable=Path("/tmp/vllm"),
-                    duration_seconds=1,
-                    warmup_seconds=0,
-                    require_30_minute_window=False,
-                ),
-                process_factory=factory,  # type: ignore[arg-type]
-            )
+        with tempfile.TemporaryDirectory() as directory:
+            model = self.model_fixture(Path(directory))
+            with patch(
+                "vllm_apple.qualification.run_serving_promotion_probe",
+                return_value=promotion,
+            ), patch("vllm_apple.qualification.run_soak", return_value=soak) as runner:
+                report = qualify_model(
+                    QualificationConfig(
+                        model=str(model),
+                        executable=Path("/tmp/vllm"),
+                        duration_seconds=1,
+                        warmup_seconds=0,
+                        require_30_minute_window=False,
+                    ),
+                    process_factory=factory,  # type: ignore[arg-type]
+                )
         self.assertTrue(report["passed"])
         self.assertTrue(report["shutdown_clean"])
         self.assertEqual(report["promotion_probe"], promotion)

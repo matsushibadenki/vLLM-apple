@@ -504,7 +504,7 @@ VLLMAppleKit / Control API
 - `[Later]` Mac個体別runtime autotuner（batch、tile、KV block、prefill chunk、kernel）
 - `[Done]` OS、toolchain、MLX version変更時のprofile失効と安全な再benchmark
 - `[Done]` state/workspace統合budgetとMoE expert residency
-- `[Next]` Qwen3.8-Flash-Next bounded metadata inspectionとcapability gate
+- `[Done]` Qwen3.8-Flash-Next bounded metadata inspectionとcapability gate
 
 ## Compatibility Track — Qwen3.8-Flash-Next / Qwen4 Preview Architecture
 
@@ -524,9 +524,13 @@ vLLM-Metal対応とは見なさない。
 - `[Done]` Gated Residual scratch stateとMTP追加weight/state計算
 - `[Done]` text-only、Vision、MTP、native 262K、YaRN 1Mを別capabilityとして判定
 - `[Done]` vLLM-Metal architecture capability gateと構造化error
-- `[Next]` Native MLX architecture capability gate
+- `[Done]` Native MLX architecture capability gate
 - `[Done]` quantized artifact実サイズによるMac適合判定とhard memory ceiling
-- `[Later]` 大容量Apple Siliconでtext-only smoke、TTFT、TPOT、RSS、品質gate
+- `[Done]` qualification reportへのTTFT、TPOT、tokens/sec、peak RSS profile統合
+- `[Done]` self-hosted Apple Silicon qualification workflowのNative MLX backend対応
+- `[Done]` MLX qualification process起動前のUnified Memory hard ceiling gate
+- `[Done]` phase profile/memory fitのSwift typed decodeとMac app三言語表示
+- `[Next]` 大容量Apple Siliconでtext-only smoke、TTFT、TPOT、RSS、品質gate
 - `[Later]` backend実測後にのみQSA、GDN、MoE、N-gram向けNative Metal/MLXを検討
 
 参照：
@@ -590,7 +594,12 @@ vLLM-Metal対応とは見なさない。
 - `[Done]` Gated Residual scratch stateとMTP追加weight/state計算
 - `[Done]` text-only、Vision、MTP、native 262K、YaRN 1Mを別capabilityとして判定
 - `[Done]` quantized artifact実サイズによるMac適合判定とhard memory ceiling
-- `[Next]` Native MLX architecture capability gate
+- `[Done]` Native MLX architecture capability gate
+- `[Done]` qualification reportへのbounded phase profile統合
+- `[Done]` self-hosted qualification preflight/workflowのMLX切替
+- `[Done]` MLX実model qualificationへのload前memory fit統合
+- `[Done]` qualification phase metricsのSwift SDK/Mac app統合
+- `[Next]` 大容量Apple SiliconでQwen text-only実model qualification
 - `[Done]` kernel capability、self-test結果、quarantine理由のversioned registry
 - `[Later]` vLLM-Metal Paged Attention capability/benchmark統合
 - `[Later]` native Metal Paged Attention拡張は計測済みの不足が残る場合のみ
@@ -758,7 +767,12 @@ vLLM-Metal対応とは見なさない。
 - `[Done]` Gated Residual scratch stateとMTP追加weight/state計算
 - `[Done]` text-only、Vision、MTP、native 262K、YaRN 1Mを別capabilityとして判定
 - `[Done]` quantized artifact実サイズによるMac適合判定とhard memory ceiling
-- `[Next]` Native MLX architecture capability gate
+- `[Done]` Native MLX architecture capability gate
+- `[Done]` qualification reportへのbounded phase profile統合
+- `[Done]` self-hosted qualification preflight/workflowのMLX切替
+- `[Done]` MLX実model qualificationへのload前memory fit統合
+- `[Done]` qualification phase metricsのSwift SDK/Mac app統合
+- `[Next]` 大容量Apple SiliconでQwen text-only実model qualification
 - `[Next]` 専用runner上でvLLM 0.28.x昇格workflowを実行
 - `[Later]` Ruff ruleの段階的拡張と既存style debt解消
 - `[Later]` signed daemon artifact
@@ -854,8 +868,13 @@ vLLM-Metal対応とは見なさない。
 84. `[Done]` Gated Residual scratch stateとMTP追加weight/state計算
 85. `[Done]` text-only、Vision、MTP、native 262K、YaRN 1Mを別capabilityとして判定
 86. `[Done]` quantized artifact実サイズによるMac適合判定とhard memory ceiling
-87. `[Next]` Native MLX architecture capability gate
-88. `[Later]` Mac companion app
+87. `[Done]` Native MLX architecture capability gate
+88. `[Done]` qualification reportへのTTFT、TPOT、tokens/sec、peak RSS profile統合
+89. `[Done]` self-hosted Apple Silicon qualification workflowのNative MLX backend対応
+90. `[Done]` MLX qualification process起動前のUnified Memory hard ceiling gate
+91. `[Done]` phase profile/memory fitのSwift typed decodeとMac app三言語表示
+92. `[Next]` 大容量Apple SiliconでQwen text-only実model qualification
+93. `[Later]` Mac companion app
 
 この順序により、まず推論runtimeの実model安定性を確立し、その境界を壊さずにoptimizerを
 別processとして追加する。構造pruningはquantization、calibration、評価gateの後に着手する。

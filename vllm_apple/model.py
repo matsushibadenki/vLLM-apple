@@ -186,8 +186,10 @@ def ensure_architecture_backend_compatible(
     available_features: frozenset[str] | None = None,
 ) -> None:
     if available_features is None:
-        available_features = frozenset() if backend == "vllm_metal" else frozenset(
-            capability.required_features
+        available_features = (
+            frozenset()
+            if backend in {"vllm_metal", "mlx_lm"}
+            else frozenset(capability.required_features)
         )
     missing_features = tuple(
         feature for feature in capability.required_features if feature not in available_features

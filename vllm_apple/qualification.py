@@ -13,9 +13,18 @@ from typing import Callable
 from .backend import BackendConfig, BackendProcess
 from .backend_memory import KVCacheCapacityResolver, MLXMemoryMetricsAdapter, VLLMMemoryMetricsAdapter
 from .context_reevaluation import ContextCapacityReevaluator
-from .hardware import default_application_support, detect_memory
-from .model import ModelInspectionError, inspect_model
+from .hardware import default_application_support, detect_hardware, detect_memory
+from .model import (
+    DEFAULT_UNINSPECTED_CONTEXT,
+    ModelCapabilityError,
+    ModelInspectionError,
+    assess_model_memory_fit,
+    ensure_model_backend_compatible,
+    inspect_model,
+)
+from .phase_probe import PhaseProbeConfig, run_phase_probe
 from .promotion_probe import PromotionProbeConfig, run_serving_promotion_probe
+from .vllm_metal_v2_tuning import build_v2_hardware_fingerprint
 from .soak import SoakConfig, run_soak
 
 
@@ -35,6 +44,9 @@ class QualificationConfig:
     vllm_version: str | None = None
     allow_context_reduction: bool = False
     backend_kind: str = "vllm_metal"
+    architecture_features: tuple[str, ...] = ()
+    phase_samples: int = 0
+    phase_output_tokens: int = 32
 
     def __post_init__(self) -> None:
         if not self.model.strip():
@@ -50,6 +62,10 @@ class QualificationConfig:
             raise ValueError("warmup must be non-negative and finite")
         if not 1 <= self.concurrency <= 256:
             raise ValueError("concurrency must be between 1 and 256")
+        if not 0 <= self.phase_samples <= 1_000:
+            raise ValueError("phase samples must be between 0 and 1000")
+        if not 1 <= self.phase_output_tokens <= 4096:
+            raise ValueError("phase output tokens must be between 1 and 4096")
         if self.max_rss_growth_bytes < 0:
             raise ValueError("RSS growth limit cannot be negative")
         if self.backend_kind not in {"vllm_metal", "mlx_lm"}:
@@ -63,6 +79,34 @@ def qualify_model(
     *,
     process_factory: Callable[[BackendConfig], BackendProcess] = BackendProcess,
 ) -> dict[str, object]:
+    qualification_hardware = None
+    model_memory_fit: dict[str, object] | None = None
+    if config.backend_kind == "mlx_lm":
+        inspected = inspect_model(config.model)
+        ensure_model_backend_compatible(
+            inspected,
+            backend=config.backend_kind,
+            available_features=frozenset(config.architecture_features),
+        )
+        qualification_hardware = detect_hardware()
+        context_tokens = (
+            config.max_model_len
+            or inspected.architecture_capability.native_context_tokens
+            or inspected.memory_spec.model_max_context
+            or DEFAULT_UNINSPECTED_CONTEXT
+        )
+        fit = assess_model_memory_fit(
+            inspected, qualification_hardware, context_tokens=context_tokens
+        )
+        model_memory_fit = {
+            "artifact_bytes": fit.artifact_bytes,
+            "estimated_resident_bytes": fit.estimated_resident_bytes,
+            "hard_ceiling_bytes": fit.hard_ceiling_bytes,
+            "context_tokens": fit.context_tokens,
+            "fits": fit.fits,
+        }
+        if not fit.fits:
+            raise ModelCapabilityError("model_memory_hard_ceiling_exceeded")
     backend = process_factory(
         BackendConfig(
             model=config.model,
@@ -77,6 +121,7 @@ def qualify_model(
     load_seconds = 0.0
     soak: dict[str, object] | None = None
     promotion: dict[str, object] | None = None
+    phase_profile: dict[str, object] | None = None
     shutdown_clean = False
     context = _pending_context_report(config)
     api_model = "default_model" if config.backend_kind == "mlx_lm" else config.model
@@ -98,6 +143,21 @@ def qualify_model(
             )
             if not promotion["passed"]:
                 raise RuntimeError("backend sampling/streaming promotion probe failed")
+            if config.phase_samples:
+                phase_profile = run_phase_probe(
+                    PhaseProbeConfig(
+                        base_url=backend.base_url,
+                        model=api_model,
+                        hardware_fingerprint=build_v2_hardware_fingerprint(
+                            qualification_hardware or detect_hardware()
+                        ),
+                        backend=config.backend_kind,
+                        samples=config.phase_samples,
+                        maximum_output_tokens=config.phase_output_tokens,
+                        timeout_seconds=config.request_timeout_seconds,
+                        target_pid=pid,
+                    )
+                )
             soak = run_soak(
                 SoakConfig(
                     base_url=backend.base_url,
@@ -122,6 +182,8 @@ def qualify_model(
         "load_seconds": round(load_seconds, 3),
         "shutdown_clean": shutdown_clean,
         "promotion_probe": promotion,
+        "phase_profile": phase_profile,
+        "model_memory_fit": model_memory_fit,
         "soak": soak,
         "context_reevaluation": context,
         "passed": bool(

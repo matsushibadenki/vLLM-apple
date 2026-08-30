@@ -1,4 +1,4 @@
-name: Apple Silicon Metal qualification
+name: Apple Silicon model qualification
 
 on:
   workflow_dispatch:
@@ -8,9 +8,17 @@ on:
         required: true
         type: string
       backend-executable:
-        description: Absolute path to the vLLM executable in the vLLM-Metal environment
+        description: Absolute path to the selected backend executable
         required: true
         type: string
+      backend-kind:
+        description: Backend runtime to qualify
+        required: true
+        default: vllm_metal
+        type: choice
+        options:
+          - vllm_metal
+          - mlx_lm
       duration-seconds:
         description: Qualification duration; production certification requires at least 1800
         required: true
@@ -40,6 +48,7 @@ jobs:
     env:
       QUALIFICATION_MODEL: ${{ inputs.model }}
       QUALIFICATION_BACKEND: ${{ inputs['backend-executable'] }}
+      QUALIFICATION_BACKEND_KIND: ${{ inputs['backend-kind'] }}
       QUALIFICATION_DURATION: ${{ inputs['duration-seconds'] }}
       QUALIFICATION_MAX_MODEL_LEN: ${{ inputs['max-model-len'] }}
     steps:
@@ -57,21 +66,25 @@ jobs:
           value = os.environ.get("QUALIFICATION_MAX_MODEL_LEN", "")
           if value and not 1 <= int(value) <= 1048576:
               raise SystemExit("max-model-len must be between 1 and 1048576")
+          if os.environ["QUALIFICATION_BACKEND_KIND"] not in {"vllm_metal", "mlx_lm"}:
+              raise SystemExit("backend-kind is invalid")
           PY
       - name: Install dependency-free control plane
         run: python3 -m pip install -e .
       - name: Create private report directory
         run: install -d -m 700 qualification-results
-      - name: Verify Apple Silicon, memory pressure, versions, and Metal selection
+      - name: Verify Apple Silicon, memory pressure, and backend compatibility
         run: |
           python3 -m vllm_apple qualification-preflight \
             --backend-executable "$QUALIFICATION_BACKEND" \
+            --backend-kind "$QUALIFICATION_BACKEND_KIND" \
             > qualification-results/preflight.json
       - name: Run sampling, streaming, and 30-minute memory qualification
         run: |
           arguments=(
             qualify-model "$QUALIFICATION_MODEL"
             --backend-executable "$QUALIFICATION_BACKEND"
+            --backend-kind "$QUALIFICATION_BACKEND_KIND"
             --duration "$QUALIFICATION_DURATION"
           )
           if [[ -n "$QUALIFICATION_MAX_MODEL_LEN" ]]; then

@@ -36,6 +36,37 @@ class MLXBackendCompatibility:
     mlx_lm_version: str | None
     compatible: bool
     issues: tuple[str, ...]
+    architecture_features: tuple[str, ...] = ()
+
+    def to_dict(self) -> dict[str, Any]:
+        result = asdict(self)
+        result["issues"] = list(self.issues)
+        result["architecture_features"] = list(self.architecture_features)
+        return result
+
+
+MAX_MLX_PROBE_OUTPUT_BYTES = 16 * 1024
+MAX_MLX_ARCHITECTURE_FEATURES = 64
+_MLX_FEATURE_PATTERN = re.compile(r"^[a-z][a-z0-9_]{0,63}$")
+
+
+def _decode_mlx_probe(payload: str) -> tuple[str, tuple[str, ...]]:
+    if not 1 <= len(payload.encode("utf-8")) <= MAX_MLX_PROBE_OUTPUT_BYTES:
+        raise ValueError("mlx_lm probe output is outside the bounded limit")
+    decoded = json.loads(payload)
+    if not isinstance(decoded, dict) or set(decoded) != {"version", "architecture_features"}:
+        raise ValueError("mlx_lm probe output has an invalid schema")
+    version = decoded["version"]
+    features = decoded["architecture_features"]
+    if not isinstance(version, str) or not 1 <= len(version) <= 128:
+        raise ValueError("mlx_lm probe version is invalid")
+    if (
+        not isinstance(features, list)
+        or len(features) > MAX_MLX_ARCHITECTURE_FEATURES
+        or any(not isinstance(value, str) or not _MLX_FEATURE_PATTERN.fullmatch(value) for value in features)
+    ):
+        raise ValueError("mlx_lm architecture features are invalid")
+    return version, tuple(sorted(set(features)))
 
 
 def inspect_mlx_lm_backend(executable: str | Path) -> MLXBackendCompatibility:
@@ -50,15 +81,21 @@ def inspect_mlx_lm_backend(executable: str | Path) -> MLXBackendCompatibility:
             [
                 str(python),
                 "-c",
-                "import importlib.metadata as m;print(m.version('mlx-lm'))",
+                (
+                    "import importlib.metadata as m,json;import mlx_lm;"
+                    "f=getattr(mlx_lm,'VLLM_APPLE_ARCHITECTURE_FEATURES',());"
+                    "f=f if isinstance(f,(list,tuple,frozenset)) else ();"
+                    "print(json.dumps({'version':m.version('mlx-lm'),"
+                    "'architecture_features':list(f)}))"
+                ),
             ],
             capture_output=True,
             check=True,
             text=True,
             timeout=5.0,
         )
-        version = result.stdout.strip()
-    except (OSError, subprocess.SubprocessError):
+        version, features = _decode_mlx_probe(result.stdout.strip())
+    except (OSError, subprocess.SubprocessError, UnicodeError, ValueError, json.JSONDecodeError):
         return MLXBackendCompatibility(
             str(path.resolve()), None, False, ("mlx_lm_version_unavailable",)
         )
@@ -66,7 +103,9 @@ def inspect_mlx_lm_backend(executable: str | Path) -> MLXBackendCompatibility:
     issues = () if parsed is not None and (0, 26, 0) <= parsed < (0, 27, 0) else (
         "mlx_lm_version_outside_verified_matrix",
     )
-    return MLXBackendCompatibility(str(path.resolve()), version, not issues, issues)
+    return MLXBackendCompatibility(
+        str(path.resolve()), version, not issues, issues, features
+    )
 
 
 def resolve_vllm_executable(explicit: str | None = None) -> Path | None:

@@ -114,6 +114,19 @@ struct ContentView: View {
                                 Text(record.report.passed ? "qualification.passed" : "qualification.failed")
                                     .font(.caption2)
                                     .foregroundStyle(DesignTokens.secondaryInk)
+                                if let phase = record.report.phaseProfile {
+                                    Text(
+                                        String(
+                                            format: localized("qualification.metrics"),
+                                            phase.prefill.ttft.meanMs,
+                                            phase.decode.tpot.meanMs,
+                                            phase.decode.tokensPerSecond
+                                        )
+                                    )
+                                    .font(.caption2.monospacedDigit())
+                                    .foregroundStyle(DesignTokens.secondaryInk)
+                                    .fixedSize(horizontal: false, vertical: true)
+                                }
                             }
                         }
                         .help(record.fileURL.path)

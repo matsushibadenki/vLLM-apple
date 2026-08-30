@@ -11,6 +11,19 @@
     "load_seconds": {"type": "number", "minimum": 0},
     "shutdown_clean": {"type": "boolean"},
     "promotion_probe": {"type": ["object", "null"]},
+    "phase_profile": {"type": ["object", "null"]},
+    "model_memory_fit": {
+      "type": ["object", "null"],
+      "properties": {
+        "artifact_bytes": {"type": "integer", "minimum": 0},
+        "estimated_resident_bytes": {"type": "integer", "minimum": 0},
+        "hard_ceiling_bytes": {"type": "integer", "minimum": 0},
+        "context_tokens": {"type": "integer", "minimum": 1},
+        "fits": {"type": "boolean"}
+      },
+      "required": ["artifact_bytes", "estimated_resident_bytes", "hard_ceiling_bytes", "context_tokens", "fits"],
+      "additionalProperties": false
+    },
     "soak": {"type": ["object", "null"]},
     "context_reevaluation": {
       "type": "object",

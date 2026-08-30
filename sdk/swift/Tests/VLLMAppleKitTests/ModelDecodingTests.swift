@@ -175,6 +175,34 @@ import Testing
       "load_seconds": 3.25,
       "shutdown_clean": true,
       "promotion_probe": {"passed": true},
+      "phase_profile": {
+        "schema_version": 1,
+        "profile_id": "0123456789abcdef01234567",
+        "hardware_fingerprint": "apple-m4-32gb",
+        "model_id": "Qwen/example",
+        "backend": "mlx_lm",
+        "sample_count": 3,
+        "prefill": {
+          "prompt_tokens": 96,
+          "ttft": {"mean_ms": 125.5, "p50_upper_bound_ms": 250, "p95_upper_bound_ms": 500, "max_ms": 300.0}
+        },
+        "decode": {
+          "output_tokens": 96,
+          "token_intervals": 93,
+          "duration_ms": 1500.0,
+          "tpot": {"mean_ms": 16.1, "p50_upper_bound_ms": 25, "p95_upper_bound_ms": 50, "max_ms": 40.0},
+          "tokens_per_second": 62.0
+        },
+        "peak_memory_bytes": 17179869184,
+        "storage": {"latency_bucket_count": 26, "raw_sample_count": 0}
+      },
+      "model_memory_fit": {
+        "artifact_bytes": 12000000000,
+        "estimated_resident_bytes": 18000000000,
+        "hard_ceiling_bytes": 24000000000,
+        "context_tokens": 262144,
+        "fits": true
+      },
       "soak": {"passed": true, "requests": 24},
       "context_reevaluation": {
         "enabled": true,
@@ -198,5 +226,11 @@ import Testing
     #expect(report.model == "Qwen/example")
     #expect(report.contextReevaluation.status == .reduced)
     #expect(report.contextReevaluation.effectiveContextTokens == 2048)
+    #expect(report.phaseProfile?.prefill.ttft.meanMs == 125.5)
+    #expect(report.phaseProfile?.decode.tpot.meanMs == 16.1)
+    #expect(report.phaseProfile?.decode.tokensPerSecond == 62.0)
+    #expect(report.phaseProfile?.peakMemoryBytes == 17_179_869_184)
+    #expect(report.modelMemoryFit?.contextTokens == 262_144)
+    #expect(report.modelMemoryFit?.fits == true)
     #expect(!report.passed)
 }

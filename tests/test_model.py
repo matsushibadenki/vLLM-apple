@@ -215,6 +215,10 @@ class ModelInspectionTests(unittest.TestCase):
                 ModelCapabilityError, "backend_missing_model_capabilities"
             ):
                 ensure_model_backend_compatible(inspected)
+            with self.assertRaisesRegex(
+                ModelCapabilityError, "backend_missing_model_capabilities"
+            ):
+                ensure_model_backend_compatible(inspected, backend="mlx_lm")
             ensure_model_backend_compatible(
                 inspected,
                 available_features=frozenset(capability.required_features),
