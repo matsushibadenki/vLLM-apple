@@ -7,13 +7,36 @@ from vllm_apple.model import (
     MAX_MODEL_CONFIG_BYTES,
     ModelCapabilityError,
     ModelInspectionError,
+    assess_model_memory_fit,
     ensure_model_backend_compatible,
+    inspect_model_architecture,
     inspect_model,
     resolve_model_path,
 )
+from vllm_apple.types import GIB, HardwareInfo, MemoryInfo
 
 
 class ModelInspectionTests(unittest.TestCase):
+    def test_qwen_modes_and_yarn_context_are_independent_capabilities(self) -> None:
+        capability = inspect_model_architecture(
+            {
+                "model_type": "qwen4_exp",
+                "language_model_only": True,
+                "text_config": {
+                    "model_type": "qwen4_exp_text",
+                    "mtp_num_hidden_layers": 0,
+                    "max_position_embeddings": 262144,
+                    "rope_parameters": {"rope_type": "yarn", "factor": 4.0},
+                },
+            }
+        )
+        self.assertEqual(capability.modes, ("text", "yarn"))
+        self.assertEqual(capability.native_context_tokens, 262144)
+        self.assertEqual(capability.extended_context_tokens, 1048576)
+        self.assertNotIn("vision_encoder", capability.required_features)
+        self.assertNotIn("multi_token_prediction", capability.required_features)
+        self.assertIn("yarn_extended_context", capability.required_features)
+
     def test_standard_gqa_transformer_memory_is_derived_from_local_metadata(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory)
@@ -63,6 +86,8 @@ class ModelInspectionTests(unittest.TestCase):
             config = {
                 "model_type": "qwen4_exp",
                 "architectures": ["Qwen3.8-Flash-NextForConditionalGeneration"],
+                "language_model_only": False,
+                "vision_config": {},
                 "text_config": {
                     "model_type": "qwen4_exp_text",
                     "num_hidden_layers": 4,
@@ -116,6 +141,9 @@ class ModelInspectionTests(unittest.TestCase):
             self.assertEqual(capability.architecture, "qwen4_exp")
             self.assertIn("gated_deltanet", capability.required_features)
             self.assertIn("qwen_sparse_attention", capability.required_features)
+            self.assertEqual(capability.modes, ("text", "mtp", "vision"))
+            self.assertEqual(capability.native_context_tokens, 262144)
+            self.assertIsNone(capability.extended_context_tokens)
             self.assertIsNotNone(inspected.state_memory_spec)
             assert inspected.state_memory_spec is not None
             self.assertEqual(
@@ -161,6 +189,23 @@ class ModelInspectionTests(unittest.TestCase):
                 inspected.state_memory_spec.mtp_working_set_bytes,
                 (attention_parameters + (10 + 1) * expert_parameters) * 2,
             )
+            small_mac = HardwareInfo(
+                platform="Darwin",
+                architecture="arm64",
+                soc="Apple M",
+                physical_cpu_count=8,
+                logical_cpu_count=8,
+                gpu_core_count=10,
+                memory=MemoryInfo(2 * GIB, 2 * GIB),
+                is_apple_silicon=True,
+                os_version="test",
+            )
+            fit = assess_model_memory_fit(
+                inspected, small_mac, context_tokens=262144
+            )
+            self.assertEqual(fit.artifact_bytes, len(b"weights"))
+            self.assertEqual(fit.hard_ceiling_bytes, GIB)
+            self.assertFalse(fit.fits)
             growth = (
                 inspected.state_memory_spec.state_bytes(4096)
                 - inspected.state_memory_spec.state_bytes(2048)
@@ -170,6 +215,10 @@ class ModelInspectionTests(unittest.TestCase):
                 ModelCapabilityError, "backend_missing_model_capabilities"
             ):
                 ensure_model_backend_compatible(inspected)
+            ensure_model_backend_compatible(
+                inspected,
+                available_features=frozenset(capability.required_features),
+            )
             (path / "model.safetensors").unlink()
             with self.assertRaisesRegex(
                 ModelCapabilityError, "backend_missing_model_capabilities"

@@ -522,10 +522,10 @@ vLLM-Metal対応とは見なさない。
 - `[Done]` 512 expert、10 routed + 1 sharedのworking-set/residency計算
 - `[Done]` 51B N-gram Embeddingを独立residency classとして計画
 - `[Done]` Gated Residual scratch stateとMTP追加weight/state計算
-- `[Next]` text-only、Vision、MTP、native 262K、YaRN 1Mを別capabilityとして判定
+- `[Done]` text-only、Vision、MTP、native 262K、YaRN 1Mを別capabilityとして判定
 - `[Done]` vLLM-Metal architecture capability gateと構造化error
-- `[Later]` Native MLX architecture capability gate
-- `[Later]` quantized artifact実サイズによるMac適合判定とhard memory ceiling
+- `[Next]` Native MLX architecture capability gate
+- `[Done]` quantized artifact実サイズによるMac適合判定とhard memory ceiling
 - `[Later]` 大容量Apple Siliconでtext-only smoke、TTFT、TPOT、RSS、品質gate
 - `[Later]` backend実測後にのみQSA、GDN、MoE、N-gram向けNative Metal/MLXを検討
 
@@ -588,7 +588,9 @@ vLLM-Metal対応とは見なさない。
 - `[Done]` 512 expert、10 routed + 1 sharedのworking-set/residency計算
 - `[Done]` 51B N-gram Embeddingを独立residency classとして計画
 - `[Done]` Gated Residual scratch stateとMTP追加weight/state計算
-- `[Next]` text-only、Vision、MTP、native 262K、YaRN 1Mを別capabilityとして判定
+- `[Done]` text-only、Vision、MTP、native 262K、YaRN 1Mを別capabilityとして判定
+- `[Done]` quantized artifact実サイズによるMac適合判定とhard memory ceiling
+- `[Next]` Native MLX architecture capability gate
 - `[Done]` kernel capability、self-test結果、quarantine理由のversioned registry
 - `[Later]` vLLM-Metal Paged Attention capability/benchmark統合
 - `[Later]` native Metal Paged Attention拡張は計測済みの不足が残る場合のみ
@@ -754,7 +756,9 @@ vLLM-Metal対応とは見なさない。
 - `[Done]` 512 expert、10 routed + 1 sharedのworking-set/residency計算
 - `[Done]` 51B N-gram Embeddingを独立residency classとして計画
 - `[Done]` Gated Residual scratch stateとMTP追加weight/state計算
-- `[Next]` text-only、Vision、MTP、native 262K、YaRN 1Mを別capabilityとして判定
+- `[Done]` text-only、Vision、MTP、native 262K、YaRN 1Mを別capabilityとして判定
+- `[Done]` quantized artifact実サイズによるMac適合判定とhard memory ceiling
+- `[Next]` Native MLX architecture capability gate
 - `[Next]` 専用runner上でvLLM 0.28.x昇格workflowを実行
 - `[Later]` Ruff ruleの段階的拡張と既存style debt解消
 - `[Later]` signed daemon artifact
@@ -848,8 +852,10 @@ vLLM-Metal対応とは見なさない。
 82. `[Done]` 512 expert、10 routed + 1 sharedのworking-set/residency計算
 83. `[Done]` 51B N-gram Embeddingを独立residency classとして計画
 84. `[Done]` Gated Residual scratch stateとMTP追加weight/state計算
-85. `[Next]` text-only、Vision、MTP、native 262K、YaRN 1Mを別capabilityとして判定
-86. `[Later]` Mac companion app
+85. `[Done]` text-only、Vision、MTP、native 262K、YaRN 1Mを別capabilityとして判定
+86. `[Done]` quantized artifact実サイズによるMac適合判定とhard memory ceiling
+87. `[Next]` Native MLX architecture capability gate
+88. `[Later]` Mac companion app
 
 この順序により、まず推論runtimeの実model安定性を確立し、その境界を壊さずにoptimizerを
 別processとして追加する。構造pruningはquantization、calibration、評価gateの後に着手する。

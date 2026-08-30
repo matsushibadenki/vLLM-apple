@@ -67,6 +67,8 @@ def recommend_state_context(
         + model.recurrent_state_bytes
         + model.prefix_state_bytes
         + model.expert_working_set_bytes
+        + model.ngram_working_set_bytes
+        + model.mtp_working_set_bytes
         + workspace
     )
     state_capacity = max(0, allocatable - fixed)

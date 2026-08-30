@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from .types import ModelMemorySpec, StateMemorySpec
+from .types import GIB, HardwareInfo, ModelMemorySpec, StateMemorySpec
 
 
 DEFAULT_UNINSPECTED_CONTEXT = 4096
@@ -27,10 +27,43 @@ class ModelCapabilityError(ModelInspectionError):
 class ModelArchitectureCapability:
     architecture: str
     required_features: tuple[str, ...]
+    modes: tuple[str, ...] = ("text",)
+    native_context_tokens: int | None = None
+    extended_context_tokens: int | None = None
 
     @property
     def requires_hybrid_backend(self) -> bool:
         return bool(self.required_features)
+
+
+@dataclass(frozen=True, slots=True)
+class ModelMemoryFit:
+    artifact_bytes: int
+    estimated_resident_bytes: int
+    hard_ceiling_bytes: int
+    context_tokens: int
+    fits: bool
+
+
+def assess_model_memory_fit(
+    model: InspectedModel,
+    hardware: HardwareInfo,
+    *,
+    context_tokens: int,
+) -> ModelMemoryFit:
+    if context_tokens <= 0:
+        raise ValueError("model fit context must be positive")
+    state = model.state_memory_spec or model.memory_spec.as_state_memory_spec()
+    emergency_margin = max(GIB, int(hardware.memory.total_bytes * 0.08))
+    hard_ceiling = max(0, hardware.memory.available_bytes - emergency_margin)
+    resident = state.total_bytes(context_tokens)
+    return ModelMemoryFit(
+        artifact_bytes=model.memory_spec.weights_bytes,
+        estimated_resident_bytes=resident,
+        hard_ceiling_bytes=hard_ceiling,
+        context_tokens=context_tokens,
+        fits=resident <= hard_ceiling,
+    )
 
 
 @dataclass(frozen=True, slots=True)
@@ -81,32 +114,86 @@ def inspect_model_architecture(config: dict[str, Any]) -> ModelArchitectureCapab
         names.extend(value for value in architectures if isinstance(value, str))
     normalized = " ".join(names).lower()
     if "qwen4_exp" in normalized or "qwen3.8-flash-next" in normalized:
+        text = config.get("text_config", config)
+        if not isinstance(text, dict):
+            raise ModelInspectionError("qwen4_exp text_config is missing")
+        language_model_only = config.get("language_model_only", True)
+        if not isinstance(language_model_only, bool):
+            raise ModelInspectionError("qwen4_exp language_model_only must be boolean")
+        modes = ["text"]
+        features = [
+            "gated_deltanet",
+            "qwen_sparse_attention",
+            "mixture_of_experts",
+            "gated_residual",
+            "ngram_embedding",
+        ]
+        mtp_layers = text.get("mtp_num_hidden_layers", 0)
+        if not isinstance(mtp_layers, int) or isinstance(mtp_layers, bool) or mtp_layers < 0:
+            raise ModelInspectionError("qwen4_exp MTP layer count is invalid")
+        if mtp_layers > 0:
+            modes.append("mtp")
+            features.append("multi_token_prediction")
+        if not language_model_only:
+            if not isinstance(config.get("vision_config"), dict):
+                raise ModelInspectionError("qwen4_exp vision_config is missing")
+            modes.append("vision")
+            features.append("vision_encoder")
+        native_context = text.get("max_position_embeddings")
+        if (
+            not isinstance(native_context, int)
+            or isinstance(native_context, bool)
+            or not 1 <= native_context <= 16_777_216
+        ):
+            raise ModelInspectionError("qwen4_exp native context is invalid")
+        features.append("native_long_context")
+        extended_context = None
+        rope = text.get("rope_parameters", text.get("rope_scaling"))
+        if isinstance(rope, dict) and str(rope.get("rope_type") or "").lower() == "yarn":
+            factor = rope.get("factor")
+            if not isinstance(factor, (int, float)) or isinstance(factor, bool) or factor <= 1:
+                raise ModelInspectionError("qwen4_exp YaRN factor is invalid")
+            extended_context = min(16_777_216, int(native_context * factor))
+            modes.append("yarn")
+            features.append("yarn_extended_context")
         return ModelArchitectureCapability(
             architecture="qwen4_exp",
-            required_features=(
-                "gated_deltanet",
-                "qwen_sparse_attention",
-                "mixture_of_experts",
-                "gated_residual",
-                "ngram_embedding",
-                "multi_token_prediction",
-                "vision_encoder",
-            ),
+            required_features=tuple(features),
+            modes=tuple(modes),
+            native_context_tokens=native_context,
+            extended_context_tokens=extended_context,
         )
     return ModelArchitectureCapability(architecture, ())
 
 
 def ensure_model_backend_compatible(
-    model: InspectedModel, *, backend: str = "vllm_metal"
+    model: InspectedModel,
+    *,
+    backend: str = "vllm_metal",
+    available_features: frozenset[str] | None = None,
 ) -> None:
-    ensure_architecture_backend_compatible(model.architecture_capability, backend=backend)
+    ensure_architecture_backend_compatible(
+        model.architecture_capability,
+        backend=backend,
+        available_features=available_features,
+    )
 
 
 def ensure_architecture_backend_compatible(
-    capability: ModelArchitectureCapability, *, backend: str = "vllm_metal"
+    capability: ModelArchitectureCapability,
+    *,
+    backend: str = "vllm_metal",
+    available_features: frozenset[str] | None = None,
 ) -> None:
-    if backend == "vllm_metal" and capability.requires_hybrid_backend:
-        missing = ",".join(capability.required_features)
+    if available_features is None:
+        available_features = frozenset() if backend == "vllm_metal" else frozenset(
+            capability.required_features
+        )
+    missing_features = tuple(
+        feature for feature in capability.required_features if feature not in available_features
+    )
+    if missing_features:
+        missing = ",".join(missing_features)
         raise ModelCapabilityError(f"backend_missing_model_capabilities:{missing}")
 
 

@@ -23,7 +23,7 @@ from .backend_memory import (
     VLLMMemoryMetricsAdapter,
 )
 from .compat import inspect_backend
-from .context import recommend_context
+from .context import recommend_state_context
 from .execution import AppleChipProfile
 from .execution_profile import detect_apple_chip_profile
 from .hardware import default_application_support, detect_hardware
@@ -44,6 +44,7 @@ from .model import (
     InspectedModel,
     ModelCapabilityError,
     ModelInspectionError,
+    assess_model_memory_fit,
     inspect_model,
 )
 from .model_integrity import verify_model_integrity
@@ -135,7 +136,20 @@ def apply_startup_kv_calibration(
     except ValueError:
         provenance["status"] = "invalid"
         return model, provenance
-    calibrated = replace(model, memory_spec=calibration.apply(model.memory_spec))
+    calibrated_memory = calibration.apply(model.memory_spec)
+    calibrated_state = (
+        replace(
+            model.state_memory_spec,
+            kv_bytes_per_token=calibrated_memory.kv_bytes_per_token,
+        )
+        if model.state_memory_spec is not None
+        else None
+    )
+    calibrated = replace(
+        model,
+        memory_spec=calibrated_memory,
+        state_memory_spec=calibrated_state,
+    )
     provenance.update(
         {
             "status": "applied",
@@ -477,11 +491,27 @@ def serve(
                         chip_identity.hardware_fingerprint,
                         root=kv_calibration_root,
                     )
-                recommendation = recommend_context(hardware.memory, inspected.memory_spec)
+                recommendation = recommend_state_context(
+                    hardware.memory,
+                    inspected.state_memory_spec
+                    or inspected.memory_spec.as_state_memory_spec(),
+                )
                 balanced = next(tier for tier in recommendation.tiers if tier.name == "balanced")
                 if balanced.max_tokens <= 0:
                     raise RuntimeError("model does not fit in the current safe memory budget")
                 max_model_len = balanced.max_tokens
+            fit = assess_model_memory_fit(
+                inspected,
+                hardware,
+                context_tokens=max_model_len,
+            )
+            if not fit.fits:
+                raise ModelCapabilityError(
+                    "model_memory_hard_ceiling_exceeded:"
+                    f"resident={fit.estimated_resident_bytes}:"
+                    f"ceiling={fit.hard_ceiling_bytes}:"
+                    f"artifact={fit.artifact_bytes}"
+                )
         except ModelCapabilityError:
             raise
         except ModelInspectionError:

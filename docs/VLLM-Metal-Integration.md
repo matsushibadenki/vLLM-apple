@@ -230,5 +230,15 @@ MTPは追加full-attention layerのQ/K/V/O、全expert storage、10+1 active exp
 embeddingが有効な場合だけ追加tableを計上する。MTP metadataのlayer数、hybrid flag、layer type、embedding policyが
 不整合ならfail closedにする。scratchとMTP working setは独立componentとしてruntime admissionへ反映する。
 
-次はtext-only、Vision、MTP、およびnative 262K／YaRN 1M contextを独立capabilityとして判定し、部分対応backendで
-安全に機能を限定できるcontractを作る。
+Qwen capability contractはcore text機能、Vision、MTP、native long context、YaRN extended contextを独立featureとして
+公開する。`language_model_only`、Vision config、MTP layer metadata、native context、YaRN factorをbounded検証し、
+backendが宣言したfeature集合との差分だけを`backend_missing_model_capabilities`へ含める。これによりtext-only実装が
+先行した場合もVision、MTP、1M contextを暗黙に有効化しない。
+
+load前memory fitはweight artifactの実file sizeをstorageとして保持し、非expert weights、active experts、N-gram page、
+MTP working set、GDN、QSA、選択contextのstateをresident estimateへ合算する。hard ceilingは現在のavailable unified
+memoryから8%または1 GiBの大きい方を緊急余白として除いた値とする。balanced contextの自動選択と明示contextの
+双方で超過を検査し、`model_memory_hard_ceiling_exceeded`ならbackend processを起動しない。KV calibration後は統合
+state specも更新してから再評価する。
+
+次はNative MLX backendにも同じfeature-set方式のQwen architecture capability gateを接続する。
