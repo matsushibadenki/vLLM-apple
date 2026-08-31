@@ -4,6 +4,7 @@ from contextlib import redirect_stdout
 from io import StringIO
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from types import SimpleNamespace
 from unittest.mock import patch
 
 from tests.schema_validator import validate_instance
@@ -96,6 +97,10 @@ class ArtifactAdmissionTests(unittest.TestCase):
             output = StringIO()
             with (
                 patch("vllm_apple.cli.detect_hardware", return_value=hardware(192, 180)),
+                patch(
+                    "vllm_apple.artifact_admission.shutil.disk_usage",
+                    return_value=SimpleNamespace(free=500 * GIB),
+                ),
                 redirect_stdout(output),
             ):
                 exit_code = main(
@@ -113,6 +118,7 @@ class ArtifactAdmissionTests(unittest.TestCase):
                 )
         payload = json.loads(output.getvalue())
         self.assertEqual(exit_code, 0)
+        self.assertTrue(payload["fits_disk"])
         self.assertEqual(payload["artifact_bytes"], 105 * GIB + 17)
         self.assertEqual(payload["estimated_resident_bytes"], 105 * GIB + 29)
 
