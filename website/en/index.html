@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="vLLM Apple is a local inference engine for running open-weight LLMs quickly, efficiently, and securely on Apple Silicon.">
+  <meta name="theme-color" content="#eef6ff">
+  <link rel="alternate" hreflang="ja" href="../jp/">
+  <link rel="alternate" hreflang="en" href="../en/">
+  <link rel="alternate" hreflang="zh-Hans" href="../zh/">
+  <link rel="alternate" hreflang="x-default" href="../en/">
+  <title>vLLM Apple — Faster local AI for your Mac.</title>
+  <link rel="stylesheet" href="./assets/css/styles.css">
+  <script src="./assets/js/script.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-header" data-header>
+    <a class="brand" href="#top" aria-label="vLLM Apple home">
+      <span class="brand-mark" aria-hidden="true"><i></i><b></b></span>
+      <span>vLLM Apple</span>
+    </a>
+    <button class="menu-button" type="button" aria-expanded="false" aria-controls="site-nav" data-menu-button>
+      <span></span><span></span><span></span><span class="sr-only">Menu</span>
+    </button>
+    <nav id="site-nav" class="site-nav" data-nav>
+      <a href="#features">Features</a>
+      <a href="#how">How it works</a>
+      <a href="#safety">Safety</a>
+      <a class="nav-github" href="https://github.com/matsushibadenki/vLLM-apple">GitHub</a>
+    </nav>
+  </header>
+
+  <main id="main">
+    <section class="hero" id="top">
+      <div class="hero-copy reveal">
+        <h1>Local AI,<br>faster on your Mac.</h1>
+        <p>We examine your model and memory to create an inference setup tuned for Apple Silicon.</p>
+        <div class="hero-actions">
+          <a class="button button-primary" href="https://github.com/matsushibadenki/vLLM-apple">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 .8a11.4 11.4 0 0 0-3.6 22.2c.6.1.8-.2.8-.5v-2c-3.3.7-4-1.4-4-1.4-.5-1.4-1.3-1.7-1.3-1.7-1.1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1.1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.8-1.6-2.6-.3-5.4-1.3-5.4-5.7 0-1.3.5-2.3 1.2-3.1-.1-.3-.5-1.5.1-3.1 0 0 1-.3 3.1 1.2a10.7 10.7 0 0 1 5.7 0c2.2-1.5 3.1-1.2 3.1-1.2.6 1.6.2 2.8.1 3.1.8.8 1.2 1.8 1.2 3.1 0 4.4-2.8 5.4-5.4 5.7.4.4.8 1.1.8 2.2v3.3c0 .3.2.6.8.5A11.4 11.4 0 0 0 12 .8Z"/></svg>
+            View on GitHub
+          </a>
+          <a class="button button-secondary" href="#how">See how it works <span aria-hidden="true">↓</span></a>
+        </div>
+      </div>
+
+      <div class="hero-stage reveal" data-delay="1">
+        <div class="app-window" aria-label="Interactive preview of the vLLM Apple app">
+          <div class="window-bar"><span></span><span></span><span></span><strong>vLLM Apple</strong></div>
+          <div class="app-shell">
+            <aside class="app-sidebar">
+              <div class="mini-brand"><span class="mini-leaf"></span><b>vLLM Apple</b></div>
+              <div class="runtime-live"><i></i> Runtime ready</div>
+              <label for="model-demo">Model</label>
+              <select id="model-demo" data-model-select>
+                <option>Gemma 2 2B</option>
+                <option>Qwen Flash Next</option>
+                <option>Local Model</option>
+              </select>
+              <div class="app-nav-item active"><span>✦</span>Chat</div>
+              <div class="app-nav-item"><span>⌁</span>Models</div>
+              <div class="app-nav-item"><span>▥</span>Memory plan</div>
+            </aside>
+            <div class="chat-panel">
+              <div class="chat-top"><div><small>Local chat</small><strong data-model-label>Gemma 2 2B</strong></div><span class="local-dot">Running on this Mac</span></div>
+              <div class="chat-body">
+                <div class="bubble user">Tune it to run smoothly on this Mac.</div>
+                <div class="bubble assistant"><span class="bot-face">●</span><p>I checked the model and memory. I’ll prepare a setup that balances speed and stability.</p></div>
+                <div class="memory-card">
+                  <div class="memory-heading"><span>Unified Memory</span><b data-memory-status>Ready to optimize</b></div>
+                  <div class="memory-row"><span>Model</span><i style="--w:68%;--c:#3d74f5"></i></div>
+                  <div class="memory-row"><span>KV cache</span><i style="--w:46%;--c:#55cdb0"></i></div>
+                  <div class="memory-row"><span>Headroom</span><i style="--w:76%;--c:#ff947d"></i></div>
+                </div>
+              </div>
+              <button class="optimize-button" type="button" data-optimize><span>✦</span><span data-optimize-label>Optimize for this Mac</span></button>
+            </div>
+          </div>
+        </div>
+        <figure class="mascot-wrap">
+          <img src="./assets/img/vllm-apple-mascot-cutout.png" alt="The vLLM Apple mascot holding a memory module">
+        </figure>
+      </div>
+    </section>
+
+    <section class="flow-section" id="how">
+      <div class="section-heading centered reveal">
+        <h2>From model to local AI.</h2>
+        <p>Load a model, check compatibility and memory, then connect it to the best runtime.</p>
+      </div>
+      <div class="flow-track reveal" data-delay="1">
+        <article><span class="flow-icon folder"><i></i></span><b>Open Weight</b><small>Get an open model</small></article>
+        <i class="flow-arrow" aria-hidden="true">→</i>
+        <article><span class="flow-icon inspect"></span><b>Model Check</b><small>Check structure and compatibility</small></article>
+        <i class="flow-arrow" aria-hidden="true">→</i>
+        <article><span class="flow-icon ram"><i></i><i></i><i></i></span><b>Memory Plan</b><small>Plan capacity safely</small></article>
+        <i class="flow-arrow" aria-hidden="true">→</i>
+        <article><span class="flow-icon chip">M</span><b>Metal / MLX</b><small>Run on Apple Silicon</small></article>
+        <i class="flow-arrow" aria-hidden="true">→</i>
+        <article><span class="flow-icon chat"><i></i><i></i></span><b>Local Chat</b><small>Chat quickly on-device</small></article>
+      </div>
+    </section>
+
+    <section class="memory-section" id="features">
+      <div class="memory-copy reveal">
+        <p class="section-label">Unlock Apple Silicon</p>
+        <h2>Make every byte<br>of memory count.</h2>
+        <p>We treat the model, KV cache, and active workspace as one Unified Memory pool, choosing a safe plan before limits are reached.</p>
+        <ul>
+          <li>Pre-load checks that respect hard limits</li>
+          <li>Progressive evaluation for long contexts</li>
+          <li>Real-time memory status</li>
+        </ul>
+      </div>
+      <div class="memory-map reveal" data-delay="1">
+        <div class="map-title"><span>Unified Memory Map</span><small>Example: 32 GB Mac</small></div>
+        <div class="map-meter"><i></i><i></i><i></i><i></i></div>
+        <div class="memory-stack" aria-hidden="true">
+          <div class="slab slab-model">Model</div>
+          <div class="slab slab-kv">KV Cache</div>
+          <div class="slab slab-work">Workspace</div>
+          <div class="slab slab-system">macOS</div>
+        </div>
+        <div class="map-legend"><span><i class="blue"></i>Model</span><span><i class="mint"></i>KV cache</span><span><i class="coral"></i>Workspace</span><span><i class="gray"></i>System</span></div>
+      </div>
+    </section>
+
+    <section class="tuning-section">
+      <div class="tuning-visual reveal">
+        <img src="./assets/img/vllm-apple-mascot.png" alt="The vLLM Apple mascot tuning settings for a Mac">
+      </div>
+      <div class="tuning-copy reveal" data-delay="1">
+        <p class="section-label blue-label">Automatic optimization</p>
+        <h2>The right settings<br>for your Mac.</h2>
+        <p>The best setup changes with your Mac and workload, even for the same model. We observe real shapes and memory use to choose a configuration without overcommitting resources.</p>
+        <div class="compare-panel">
+          <div><small>Before</small><span>Memory headroom</span><i><b style="--w:38%"></b></i><span>Responsiveness</span><i><b style="--w:46%"></b></i></div>
+          <strong aria-hidden="true">→</strong>
+          <div class="after"><small>After</small><span>Memory headroom</span><i><b style="--w:72%"></b></i><span>Responsiveness</span><i><b style="--w:84%"></b></i></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="safety-section" id="safety">
+      <div class="safety-copy reveal">
+        <p class="section-label blue-label">Safe, trusted distribution</p>
+        <h2>Local by design.<br>Private by default.</h2>
+        <p>Your prompts and models stay on your Mac. Signing, notarization, and integrity verification are part of a design built for trusted local AI.</p>
+        <ul class="check-list"><li>Inference that can run fully offline</li><li>macOS Notarization support</li><li>SHA-256 and provenance verification</li></ul>
+      </div>
+      <div class="safety-art reveal" data-delay="1">
+        <div class="package-window"><span class="package-mark"><i></i><b></b></span><strong>vLLM Apple.app</strong><small><i>✓</i> Notarized</small></div>
+        <div class="shield"><svg viewBox="0 0 120 140" aria-hidden="true"><path d="M60 5 108 24v42c0 31-19 56-48 69C31 122 12 97 12 66V24L60 5Z"/><path d="m36 69 15 15 34-39"/></svg></div>
+      </div>
+    </section>
+
+    <section class="final-cta">
+      <div class="reveal">
+        <h2>Bring local AI<br>to your Mac.</h2>
+        <p>Run open models quickly, safely, and entirely on your own machine.</p>
+        <a class="button button-primary" href="https://github.com/matsushibadenki/vLLM-apple">Get started on GitHub <span aria-hidden="true">→</span></a>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <a class="brand" href="#top"><span class="brand-mark" aria-hidden="true"><i></i><b></b></span><span>vLLM Apple</span></a>
+    <p>Fast. Local. Yours.</p>
+    <div><a href="#features">Features</a><a href="#how">How it works</a><a href="#safety">Safety</a><a href="https://github.com/matsushibadenki/vLLM-apple">GitHub</a></div>
+    <small>MIT License · © 2026 vLLM Apple</small>
+  </footer>
+</body>
+</html>

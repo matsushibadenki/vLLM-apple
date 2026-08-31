@@ -5,6 +5,7 @@ import VLLMAppleKit
 struct ContentView: View {
     @ObservedObject var model: AppModel
     @State private var isShowingQualificationImporter = false
+    @State private var isShowingReleaseVerifier = false
 
     var body: some View {
         NavigationSplitView {
@@ -29,6 +30,15 @@ struct ContentView: View {
         ) { result in
             if case .success(let urls) = result, let source = urls.first {
                 model.importQualificationDirectory(source)
+            }
+        }
+        .fileImporter(
+            isPresented: $isShowingReleaseVerifier,
+            allowedContentTypes: [.folder],
+            allowsMultipleSelection: false
+        ) { result in
+            if case .success(let urls) = result, let source = urls.first {
+                model.verifyMacReleaseDirectory(source)
             }
         }
     }
@@ -169,6 +179,32 @@ struct ContentView: View {
                 isShowingQualificationImporter = true
             } label: {
                 Label("qualification.import.action", systemImage: "square.and.arrow.down")
+            }
+            .buttonStyle(.bordered)
+
+            if let release = model.verifiedMacRelease {
+                VStack(alignment: .leading, spacing: DesignTokens.compact) {
+                    sectionLabel("sidebar.release_evidence")
+                    Label("release.verify.passed", systemImage: "checkmark.shield.fill")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(DesignTokens.success)
+                    Text(
+                        String(
+                            format: localized("release.verify.detail"),
+                            release.artifact.shortVersion,
+                            String(release.source.commit.prefix(12))
+                        )
+                    )
+                    .font(.caption2.monospaced())
+                    .foregroundStyle(DesignTokens.secondaryInk)
+                }
+                .accessibilityElement(children: .combine)
+            }
+
+            Button {
+                isShowingReleaseVerifier = true
+            } label: {
+                Label("release.verify.action", systemImage: "shippingbox.and.arrow.backward")
             }
             .buttonStyle(.bordered)
 

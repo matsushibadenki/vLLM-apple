@@ -17,6 +17,7 @@
     "memory_pressure": {"enum": ["normal", "warning", "critical"]},
     "backend_kind": {"enum": ["vllm_metal", "mlx_lm"]},
     "backend": {"type": "object"},
+    "model": {"type": ["object", "null"]},
     "issues": {"type": "array", "maxItems": 32, "items": {"type": "string", "minLength": 1}}
   }
 }

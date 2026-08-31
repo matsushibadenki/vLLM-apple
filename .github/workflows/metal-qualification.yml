@@ -107,9 +107,17 @@ jobs:
             > qualification-results/artifact-admission.json
       - name: Verify Apple Silicon, memory pressure, and backend compatibility
         run: |
-          python3 -m vllm_apple qualification-preflight \
-            --backend-executable "$QUALIFICATION_BACKEND" \
-            --backend-kind "$QUALIFICATION_BACKEND_KIND" \
+          arguments=(
+            qualification-preflight
+            --backend-executable "$QUALIFICATION_BACKEND"
+            --backend-kind "$QUALIFICATION_BACKEND_KIND"
+            --model "$QUALIFICATION_MODEL"
+            --mode text
+          )
+          if [[ -n "$QUALIFICATION_MAX_MODEL_LEN" ]]; then
+            arguments+=(--max-model-len "$QUALIFICATION_MAX_MODEL_LEN")
+          fi
+          python3 -m vllm_apple "${arguments[@]}" \
             > qualification-results/preflight.json
       - name: Run sampling, streaming, and 30-minute memory qualification
         run: |

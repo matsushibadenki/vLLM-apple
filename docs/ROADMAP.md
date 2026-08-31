@@ -715,6 +715,7 @@ vLLM-Metal対応とは見なさない。
 - `[Done]` private/atomic daemon crash diagnosticsとbounded log digest
 - `[Done]` optional native telemetry登録をcontrol readinessから隔離
 - `[Done]` Swift ManagedRuntime restart testを決定的なUDS fault-injection fixtureへ分離
+- `[Done]` host memory pressureから隔離した決定的なmonitor transition回帰fixture
 - `[Later]` fault injection suite
 
 ### Security
@@ -741,6 +742,10 @@ vLLM-Metal対応とは見なさない。
 - `[Later]` Vision、Audio、Video固有metrics
 
 ### Packaging and release
+
+- `[Done]` 日本語・英語・简体中文の製品Webサイトとレスポンシブなアプリ画面・キャラクター表示
+- `[Done]` 三言語`hreflang`相互参照と英語`x-default`によるlocale discovery
+- `[Done]` 言語metadata、操作contract、ローカルasset、動的状態文言を固定するWebサイト回帰テスト
 
 - `[Done]` Python package metadataとCLI entry points
 - `[Done]` Swift Package metadata
@@ -818,9 +823,21 @@ vLLM-Metal対応とは見なさない。
 - `[Done]` requested modeを記録・再検証するSwift text-only evidence gate
 - `[Next]` 大容量Apple SiliconでQwen text-only実model qualification
 - `[Next]` 専用runner上でvLLM 0.28.x昇格workflowを実行
+- `[Done]` locked PyInstallerによるApple Silicon standalone daemon生成
+- `[Done]` standalone daemonを埋め込むunsigned Mac app release candidateとSHA-256検証CI
+- `[Done]` ephemeral keychain、inside-out hardened runtime署名、公証、staple、Gatekeeper検証release workflow
+- `[Done]` P12／password、P8 private key、Key ID／Issuer、一時keychain secretの非漏洩fail-fast検証
+- `[Done]` macOS／Linux共通OpenSSL Base64 decodeによるrelease credential materialize
+- `[Done]` notarized ZIP、内部実行file、Info.plist、公証結果、source commitを結ぶbounded release manifest
+- `[Done]` GitHub artifact attestationとupload前manifest再検証
+- `[Done]` notarization run artifactの再取得、四重evidence検証、tag/commit bindingによるdraft release昇格gate
+- `[Done]` Swift SDKのbounded Mac release evidence verifierとstreaming archive SHA-256
+- `[Done]` Mac appのrelease directory picker、三言語verified/failed表示
+- `[Done]` model-aware qualification preflightのarchitecture feature・mode・Unified Memory hard ceiling統合
+- `[Done]` Qwen／candidate stack／汎用Metal workflowのmodel load前fail-closed証跡
+- `[Next]` protected `mac-release` environment上で実資格情報による初回notarized artifact生成
+- `[Next]` 初回notarized artifactをexact tagへ結合しdraft release昇格を実行
 - `[Later]` Ruff ruleの段階的拡張と既存style debt解消
-- `[Later]` signed daemon artifact
-- `[Later]` notarized Mac app integration package
 
 ## Recommended Immediate Sequence
 

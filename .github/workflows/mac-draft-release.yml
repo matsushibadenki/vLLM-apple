@@ -1,0 +1,61 @@
+name: Mac draft release promotion
+
+on:
+  workflow_dispatch:
+    inputs:
+      notarization-run-id:
+        description: Successful Mac notarized release workflow run ID
+        required: true
+        type: string
+      release-tag:
+        description: Existing exact release tag such as v0.1.0
+        required: true
+        type: string
+
+permissions:
+  actions: read
+  attestations: read
+  contents: write
+
+jobs:
+  promote:
+    name: Verify and create draft release
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    environment: mac-release
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: Validate bounded promotion inputs
+        env:
+          RELEASE_RUN_ID: ${{ inputs['notarization-run-id'] }}
+          RELEASE_TAG: ${{ inputs['release-tag'] }}
+        run: |
+          printf '%s\n' "$RELEASE_RUN_ID" | grep -Eq '^[0-9]{1,20}$'
+          printf '%s\n' "$RELEASE_TAG" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+$'
+      - name: Install release verifier
+        run: python -m pip install .
+      - name: Download notarized release evidence
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_RUN_ID: ${{ inputs['notarization-run-id'] }}
+        run: |
+          install -d -m 700 "$RUNNER_TEMP/release-bundle"
+          gh run download "$RELEASE_RUN_ID" \
+            --repo "$GITHUB_REPOSITORY" \
+            --name VLLMAppleChat-notarized-arm64 \
+            --dir "$RUNNER_TEMP/release-bundle"
+      - name: Verify evidence and create draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ inputs['release-tag'] }}
+        run: |
+          scripts/promote_mac_release.sh \
+            "$RUNNER_TEMP/release-bundle" \
+            "$RELEASE_TAG" \
+            "$GITHUB_REPOSITORY"

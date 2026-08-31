@@ -58,6 +58,7 @@ final class AppModel: ObservableObject {
     @Published private(set) var qualificationReports: [QualificationReportRecord]
     @Published private(set) var verifiedPromotionReportURLs: Set<URL>
     @Published private(set) var signedPromotionReportURLs: Set<URL>
+    @Published private(set) var verifiedMacRelease: MacReleaseManifest?
 
     private let resolver: RuntimeResourceResolver
     private let qualificationStore: QualificationReportStore
@@ -87,6 +88,7 @@ final class AppModel: ObservableObject {
         qualificationReports = []
         verifiedPromotionReportURLs = []
         signedPromotionReportURLs = []
+        verifiedMacRelease = nil
         reloadQualificationReports()
     }
 
@@ -270,6 +272,21 @@ final class AppModel: ObservableObject {
             report(key: "qualification.import.failed", detail: String(describing: error))
         } catch {
             report(key: "qualification.import.failed", detail: error.localizedDescription)
+        }
+    }
+
+    func verifyMacReleaseDirectory(_ sourceURL: URL) {
+        let accessed = sourceURL.startAccessingSecurityScopedResource()
+        defer {
+            if accessed { sourceURL.stopAccessingSecurityScopedResource() }
+        }
+        do {
+            verifiedMacRelease = try MacReleaseVerifier().verify(directoryURL: sourceURL)
+            errorKey = nil
+            detail = ""
+        } catch {
+            verifiedMacRelease = nil
+            report(key: "release.verify.failed", detail: String(describing: error))
         }
     }
 

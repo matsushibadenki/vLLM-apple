@@ -130,6 +130,9 @@ jobs:
           python3 -m vllm_apple qualification-preflight \
             --backend-executable "$QWEN_BACKEND" \
             --backend-kind "$QWEN_BACKEND_KIND" \
+            --model "$QWEN_MODEL" \
+            --max-model-len "$QWEN_MAX_MODEL_LEN" \
+            --mode text \
             > qualification-results/preflight.json
       - name: Verify signed artifact provenance before load
         if: ${{ inputs['integrity-manifest'] != '' }}

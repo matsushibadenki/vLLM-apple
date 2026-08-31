@@ -327,6 +327,11 @@ def build_parser() -> argparse.ArgumentParser:
     qualification_preflight.add_argument("--candidate-vllm-version")
     qualification_preflight.add_argument("--candidate-vllm-metal-version")
     qualification_preflight.add_argument("--candidate-transformers-version")
+    qualification_preflight.add_argument("--model")
+    qualification_preflight.add_argument("--max-model-len", type=int)
+    qualification_preflight.add_argument(
+        "--mode", action="append", choices=("text", "vision", "mtp", "yarn"), dest="preflight_modes"
+    )
     qualification_bundle = commands.add_parser(
         "qualification-bundle", help="build a bounded, tamper-evident promotion bundle"
     )
@@ -951,6 +956,9 @@ def main(argv: list[str] | None = None) -> int:
             arguments.backend_executable,
             backend_kind=arguments.backend_kind,
             candidate_versions=candidate_versions,
+            model=arguments.model,
+            max_model_len=arguments.max_model_len,
+            requested_modes=tuple(arguments.preflight_modes or ("text",)),
         )
         _json(result.to_dict())
         return 0 if result.eligible else 1

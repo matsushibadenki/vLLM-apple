@@ -7,6 +7,7 @@ from vllm_apple.memory_pressure import (
     MemoryPressureMonitor,
     pressure_from_dispatch_data,
 )
+from vllm_apple.memory_telemetry import UnifiedMemoryTelemetry
 from vllm_apple.service import RuntimeService
 from vllm_apple.types import MemoryPressure
 
@@ -43,7 +44,14 @@ class MemoryPressureMonitorTests(unittest.TestCase):
 
     def test_monitor_deduplicates_notifications_and_updates_runtime(self) -> None:
         source = FakePressureSource()
-        service = RuntimeService()
+        service = RuntimeService(
+            memory_telemetry=UnifiedMemoryTelemetry(
+                16 * 1024**3,
+                12 * 1024**3,
+                "test-fixture",
+                MemoryPressure.NORMAL,
+            )
+        )
         monitor = MemoryPressureMonitor(
             service.apply_memory_pressure, source=source  # type: ignore[arg-type]
         )

@@ -6,7 +6,7 @@ class MetalQualificationWorkflowTests(unittest.TestCase):
     def test_artifact_admission_precedes_backend_and_model_load(self) -> None:
         workflow = Path(".github/workflows/metal-qualification.yml").read_text()
         admission = workflow.index("python3 -m vllm_apple artifact-admission")
-        preflight = workflow.index("python3 -m vllm_apple qualification-preflight")
+        preflight = workflow.index("qualification-preflight")
         qualification = workflow.index("qualify-model \"$QUALIFICATION_MODEL\"")
         self.assertLess(admission, preflight)
         self.assertLess(preflight, qualification)
@@ -70,6 +70,8 @@ class MetalQualificationWorkflowTests(unittest.TestCase):
         self.assertLess(sdk_gate, bundle)
         self.assertIn("large-memory", workflow)
         self.assertIn("--mode text", workflow)
+        self.assertIn("--model \"$QWEN_MODEL\"", workflow)
+        self.assertIn("--max-model-len \"$QWEN_MAX_MODEL_LEN\"", workflow)
         self.assertIn("--duration 1800", workflow)
         self.assertIn("--require-artifact-admission", workflow)
         self.assertIn("inputs['upload-report']", workflow)

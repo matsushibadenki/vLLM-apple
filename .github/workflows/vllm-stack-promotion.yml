@@ -109,6 +109,9 @@ jobs:
           python3 -m vllm_apple qualification-preflight \
             --backend-executable "$PROMOTION_BACKEND" \
             --backend-kind vllm_metal \
+            --model "$PROMOTION_MODEL" \
+            --max-model-len "$PROMOTION_MAX_MODEL_LEN" \
+            --mode text \
             --candidate-vllm-version "$PROMOTION_VLLM" \
             --candidate-vllm-metal-version "$PROMOTION_VLLM_METAL" \
             --candidate-transformers-version "$PROMOTION_TRANSFORMERS" \

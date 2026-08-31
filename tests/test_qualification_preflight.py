@@ -1,11 +1,14 @@
 import json
 import unittest
+from dataclasses import replace
 from pathlib import Path
+from unittest.mock import patch
 
 from tests.schema_validator import validate_instance
 from vllm_apple.compat import BackendCompatibility, MLXBackendCompatibility
 from vllm_apple.qualification_preflight import run_qualification_preflight
-from vllm_apple.types import HardwareInfo, MemoryInfo, MemoryPressure
+from vllm_apple.model import InspectedModel, ModelArchitectureCapability
+from vllm_apple.types import HardwareInfo, MemoryInfo, MemoryPressure, ModelMemorySpec
 
 
 def backend(*, compatible=True):
@@ -111,6 +114,54 @@ class QualificationPreflightTests(unittest.TestCase):
             "backend:vllm_metal_platform_not_selected",
             result.issues,
         )
+
+    def test_model_aware_preflight_rejects_missing_features_before_load(self) -> None:
+        candidate = replace(backend(), architecture_features=("gated_deltanet",))
+        inspected = InspectedModel(
+            model_id="qwen-candidate",
+            path=Path("/models/qwen-candidate"),
+            config={},
+            memory_spec=ModelMemorySpec("qwen-candidate", 1024, 16, 262144),
+            kv_dtype_bytes=2,
+            architecture_capability=ModelArchitectureCapability(
+                "qwen4_exp",
+                ("gated_deltanet", "qwen_sparse_attention"),
+                native_context_tokens=262144,
+            ),
+        )
+        with patch("vllm_apple.qualification_preflight.inspect_model", return_value=inspected):
+            result = run_qualification_preflight(
+                Path("/venv/bin/vllm"),
+                model="qwen-candidate",
+                max_model_len=4096,
+                hardware_detector=hardware,
+                backend_inspector=lambda executable: candidate,
+            )
+        self.assertFalse(result.eligible)
+        self.assertIn(
+            "backend:missing_model_features:qwen_sparse_attention", result.issues
+        )
+        assert result.model is not None
+        self.assertEqual(result.model["architecture"], "qwen4_exp")
+        self.assertEqual(result.model["context_tokens"], 4096)
+
+    def test_model_aware_preflight_rejects_memory_ceiling_before_load(self) -> None:
+        inspected = InspectedModel(
+            model_id="oversized",
+            path=Path("/models/oversized"),
+            config={},
+            memory_spec=ModelMemorySpec("oversized", 40 * 1024**3, 1, 4096),
+            kv_dtype_bytes=2,
+        )
+        with patch("vllm_apple.qualification_preflight.inspect_model", return_value=inspected):
+            result = run_qualification_preflight(
+                Path("/venv/bin/vllm"),
+                model="oversized",
+                hardware_detector=hardware,
+                backend_inspector=lambda executable: backend(),
+            )
+        self.assertFalse(result.eligible)
+        self.assertIn("model:memory_hard_ceiling_exceeded", result.issues)
 
 
 if __name__ == "__main__":

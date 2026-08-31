@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vllm-apple.dev/schemas/runtime/mac-release-manifest-v1.schema.json",
+  "title": "vLLM-Apple Mac release manifest v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "created_at", "source", "build", "notarization", "artifact"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "created_at": {"type": "string", "format": "date-time"},
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["commit"],
+      "properties": {"commit": {"type": "string", "minLength": 40, "maxLength": 40}}
+    },
+    "build": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["run_id", "runner_image"],
+      "properties": {
+        "run_id": {"type": "string", "minLength": 1, "maxLength": 128},
+        "runner_image": {"type": "string", "minLength": 1, "maxLength": 128}
+      }
+    },
+    "notarization": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "status", "report_sha256", "report_size_bytes"],
+      "properties": {
+        "id": {"type": "string", "minLength": 1, "maxLength": 128},
+        "status": {"const": "Accepted"},
+        "report_sha256": {"type": "string", "minLength": 64, "maxLength": 64},
+        "report_size_bytes": {"type": "integer", "minimum": 1}
+      }
+    },
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["filename", "sha256", "size_bytes", "bundle_identifier", "bundle_version", "short_version", "minimum_system_version", "components"],
+      "properties": {
+        "filename": {"type": "string", "minLength": 1},
+        "sha256": {"type": "string", "minLength": 64, "maxLength": 64},
+        "size_bytes": {"type": "integer", "minimum": 1},
+        "bundle_identifier": {"type": "string", "minLength": 1},
+        "bundle_version": {"type": "string", "minLength": 1},
+        "short_version": {"type": "string", "minLength": 1},
+        "minimum_system_version": {"type": "string", "minLength": 1},
+        "components": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["path", "sha256", "size_bytes"],
+            "properties": {
+              "path": {"type": "string", "minLength": 1},
+              "sha256": {"type": "string", "minLength": 64, "maxLength": 64},
+              "size_bytes": {"type": "integer", "minimum": 1}
+            }
+          }
+        }
+      }
+    }
+  }
+}
