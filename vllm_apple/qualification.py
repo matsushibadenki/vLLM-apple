@@ -50,6 +50,7 @@ class QualificationConfig:
     phase_output_tokens: int = 32
     quality_smoke: bool = False
     requested_modes: tuple[str, ...] = ("text",)
+    backend_versions: dict[str, str | None] | None = None
 
     def __post_init__(self) -> None:
         if not self.model.strip():
@@ -217,6 +218,7 @@ def qualify_model(
         "schema_version": 1,
         "model": config.model,
         "backend": config.backend_kind,
+        "backend_versions": config.backend_versions,
         "requested_modes": list(config.requested_modes),
         "load_seconds": round(load_seconds, 3),
         "shutdown_clean": shutdown_clean,

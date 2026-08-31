@@ -91,6 +91,31 @@ class ArtifactAdmissionTests(unittest.TestCase):
                 disk_free_bytes=100 * GIB,
             )
 
+    def test_cli_accepts_exact_byte_sizes_for_evidence_binding(self) -> None:
+        with TemporaryDirectory() as directory:
+            output = StringIO()
+            with (
+                patch("vllm_apple.cli.detect_hardware", return_value=hardware(192, 180)),
+                redirect_stdout(output),
+            ):
+                exit_code = main(
+                    [
+                        "artifact-admission",
+                        "--model",
+                        "Qwen/Qwen3.8-Flash-Next",
+                        "--artifact-bytes",
+                        str(105 * GIB + 17),
+                        "--resident-bytes",
+                        str(105 * GIB + 29),
+                        "--target",
+                        directory,
+                    ]
+                )
+        payload = json.loads(output.getvalue())
+        self.assertEqual(exit_code, 0)
+        self.assertEqual(payload["artifact_bytes"], 105 * GIB + 17)
+        self.assertEqual(payload["estimated_resident_bytes"], 105 * GIB + 29)
+
 
 if __name__ == "__main__":
     unittest.main()

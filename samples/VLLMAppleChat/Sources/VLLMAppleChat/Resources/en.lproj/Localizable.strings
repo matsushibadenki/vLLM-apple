@@ -31,6 +31,7 @@
 "runtime.error.events" = "Runtime status updates stopped.";
 "runtime.error.already_running" = "The runtime is already running.";
 "runtime.error.daemon_not_executable" = "The daemon executable is unavailable.";
+"runtime.error.invalid_daemon_arguments" = "The runtime launch configuration is invalid.";
 "runtime.error.readiness_timed_out" = "The runtime did not become ready in time.";
 "runtime.error.daemon_exited" = "The runtime exited unexpectedly.";
 "runtime.error.invalid_session_token_file" = "The session token file is invalid.";
@@ -55,6 +56,11 @@
 "calibration.applied.body" = "%lld bytes/token · verified through %lld tokens";
 "qualification.passed" = "Passed";
 "qualification.failed" = "Failed";
+"qualification.promotion_verified" = "Evidence hashes verified";
+"qualification.signature_verified" = "Trusted signature verified";
+"qualification.import.action" = "Import qualification";
+"qualification.import.failed" = "The qualification package could not be verified and imported.";
+"qualification.import.trust_invalid" = "The promotion trust configuration is incomplete.";
 "qualification.metrics" = "TTFT %.1f ms · TPOT %.1f ms · %.1f tok/s";
 "sidebar.native_v2_tuning" = "Native v2 tuning";
 "native_v2.status.idle" = "Ready to optimize when needed";
@@ -68,3 +74,11 @@
 "native_v2.action.retry" = "Retry";
 "native_v2.action.restore" = "Remeasure & Restore";
 "native_v2.quarantine.body" = "%lld profile(s) isolated after readiness failure";
+"startup.initializing" = "Preparing the local runtime";
+"startup.profiling" = "Checking this Mac";
+"startup.loading_model" = "Loading the model";
+"startup.ready" = "Runtime ready";
+"startup.degraded" = "Runtime started with limited inference";
+"startup.failed" = "Runtime startup failed";
+"startup.stopping" = "Stopping the runtime";
+"startup.stopped" = "Runtime stopped";

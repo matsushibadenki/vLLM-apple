@@ -1,0 +1,183 @@
+name: vLLM candidate stack promotion
+
+on:
+  workflow_dispatch:
+    inputs:
+      model:
+        description: Local text model path available to the runner
+        required: true
+        type: string
+      backend-executable:
+        description: Absolute path to the candidate vLLM executable
+        required: true
+        type: string
+      vllm-version:
+        description: Exact vLLM release to qualify
+        required: true
+        default: "0.28.0"
+        type: string
+      vllm-metal-version:
+        description: Exact vLLM-Metal release to qualify
+        required: true
+        type: string
+      transformers-version:
+        description: Exact Transformers release to qualify
+        required: true
+        default: "5.15.0"
+        type: string
+      max-model-len:
+        description: Maximum model context used by this qualification
+        required: true
+        default: "4096"
+        type: string
+      integrity-manifest:
+        description: Optional absolute path to a trusted model integrity manifest
+        required: false
+        type: string
+      integrity-signature:
+        description: Optional absolute path to its detached CMS signature
+        required: false
+        type: string
+      integrity-trusted-ca:
+        description: Optional absolute path to the trusted CA PEM bundle
+        required: false
+        type: string
+      integrity-signer-sha256:
+        description: Optional expected signer certificate SHA-256 fingerprint
+        required: false
+        type: string
+
+concurrency:
+  group: apple-silicon-vllm-stack-promotion
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  promote:
+    runs-on: [self-hosted, macOS, ARM64, vllm-metal]
+    timeout-minutes: 90
+    env:
+      PROMOTION_MODEL: ${{ inputs.model }}
+      PROMOTION_BACKEND: ${{ inputs['backend-executable'] }}
+      PROMOTION_VLLM: ${{ inputs['vllm-version'] }}
+      PROMOTION_VLLM_METAL: ${{ inputs['vllm-metal-version'] }}
+      PROMOTION_TRANSFORMERS: ${{ inputs['transformers-version'] }}
+      PROMOTION_MAX_MODEL_LEN: ${{ inputs['max-model-len'] }}
+      PROMOTION_INTEGRITY_MANIFEST: ${{ inputs['integrity-manifest'] }}
+      PROMOTION_INTEGRITY_SIGNATURE: ${{ inputs['integrity-signature'] }}
+      PROMOTION_INTEGRITY_TRUSTED_CA: ${{ inputs['integrity-trusted-ca'] }}
+      PROMOTION_INTEGRITY_SIGNER_SHA256: ${{ inputs['integrity-signer-sha256'] }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          clean: true
+          persist-credentials: false
+      - name: Validate bounded promotion inputs
+        run: |
+          python3 - <<'PY'
+          import os, re
+          version = re.compile(r"^[0-9]+\.[0-9]+\.[0-9]+$")
+          for name in ("PROMOTION_VLLM", "PROMOTION_VLLM_METAL", "PROMOTION_TRANSFORMERS"):
+              if not version.fullmatch(os.environ[name]):
+                  raise SystemExit(f"{name} must be an exact x.y.z release")
+          context = int(os.environ["PROMOTION_MAX_MODEL_LEN"])
+          if not 1 <= context <= 1048576:
+              raise SystemExit("max-model-len must be between 1 and 1048576")
+          integrity = [
+              os.environ[name]
+              for name in (
+                  "PROMOTION_INTEGRITY_MANIFEST", "PROMOTION_INTEGRITY_SIGNATURE",
+                  "PROMOTION_INTEGRITY_TRUSTED_CA", "PROMOTION_INTEGRITY_SIGNER_SHA256",
+              )
+          ]
+          if any(integrity) and not all(integrity):
+              raise SystemExit("all signed integrity inputs must be provided together")
+          if integrity[-1] and (
+              len(integrity[-1]) != 64
+              or any(character not in "0123456789abcdefABCDEF" for character in integrity[-1])
+          ):
+              raise SystemExit("integrity signer fingerprint must be 64 hexadecimal characters")
+          PY
+      - name: Install dependency-free control plane
+        run: python3 -m pip install -e .
+      - name: Create private report directory
+        run: install -d -m 700 qualification-results qualification-private
+      - name: Verify exact candidate stack and Apple Silicon platform
+        run: |
+          python3 -m vllm_apple qualification-preflight \
+            --backend-executable "$PROMOTION_BACKEND" \
+            --backend-kind vllm_metal \
+            --candidate-vllm-version "$PROMOTION_VLLM" \
+            --candidate-vllm-metal-version "$PROMOTION_VLLM_METAL" \
+            --candidate-transformers-version "$PROMOTION_TRANSFORMERS" \
+            > qualification-results/preflight.json
+      - name: Verify signed promotion model provenance before load
+        if: ${{ inputs['integrity-manifest'] != '' }}
+        run: |
+          python3 -m vllm_apple model-integrity-verify "$PROMOTION_MODEL" \
+            --manifest "$PROMOTION_INTEGRITY_MANIFEST" \
+            --signature "$PROMOTION_INTEGRITY_SIGNATURE" \
+            --trusted-ca "$PROMOTION_INTEGRITY_TRUSTED_CA" \
+            --expected-signer-sha256 "$PROMOTION_INTEGRITY_SIGNER_SHA256" \
+            > /dev/null
+      - name: Capture ephemeral promotion model integrity before load
+        if: ${{ inputs['integrity-manifest'] == '' }}
+        run: |
+          python3 -m vllm_apple model-integrity-create "$PROMOTION_MODEL" \
+            --output qualification-private/model-integrity-manifest.json
+      - name: Run promotion probes and 30-minute stability qualification
+        run: |
+          python3 -m vllm_apple qualify-model "$PROMOTION_MODEL" \
+            --backend-executable "$PROMOTION_BACKEND" \
+            --backend-kind vllm_metal \
+            --max-model-len "$PROMOTION_MAX_MODEL_LEN" \
+            --duration 1800 \
+            --candidate-vllm-version "$PROMOTION_VLLM" \
+            --candidate-vllm-metal-version "$PROMOTION_VLLM_METAL" \
+            --candidate-transformers-version "$PROMOTION_TRANSFORMERS" \
+            --output qualification-results/qualification.json
+      - name: Verify identical ephemeral promotion model after qualification
+        if: ${{ inputs['integrity-manifest'] == '' }}
+        run: |
+          python3 -m vllm_apple model-integrity-verify "$PROMOTION_MODEL" \
+            --manifest qualification-private/model-integrity-manifest.json \
+            > /dev/null
+      - name: Reverify signed promotion model provenance after qualification
+        if: ${{ inputs['integrity-manifest'] != '' }}
+        run: |
+          python3 -m vllm_apple model-integrity-verify "$PROMOTION_MODEL" \
+            --manifest "$PROMOTION_INTEGRITY_MANIFEST" \
+            --signature "$PROMOTION_INTEGRITY_SIGNATURE" \
+            --trusted-ca "$PROMOTION_INTEGRITY_TRUSTED_CA" \
+            --expected-signer-sha256 "$PROMOTION_INTEGRITY_SIGNER_SHA256" \
+            > /dev/null
+      - name: Verify complete promotion evidence with the Mac SDK
+        run: |
+          swift run --package-path sdk/swift VLLMAppleQualificationCheck \
+            qualification-results \
+            --require-phase-profile \
+            --require-quality-smoke \
+            --require-memory-fit \
+            --require-text-only \
+            --require-backend-versions \
+            --expected-vllm-version="$PROMOTION_VLLM" \
+            --expected-vllm-metal-version="$PROMOTION_VLLM_METAL" \
+            --expected-transformers-version="$PROMOTION_TRANSFORMERS"
+      - name: Build tamper-evident promotion bundle
+        run: |
+          python3 -m vllm_apple qualification-bundle \
+            --reports qualification-results \
+            --output qualification-results/promotion-bundle.json
+      - name: Restrict report permissions
+        if: always()
+        run: chmod -R go-rwx qualification-results qualification-private
+      - name: Upload bounded promotion evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vllm-candidate-stack-promotion
+          path: qualification-results/*.json
+          if-no-files-found: error
+          retention-days: 14

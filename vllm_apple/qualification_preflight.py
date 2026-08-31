@@ -9,6 +9,7 @@ from .compat import (
     MLXBackendCompatibility,
     inspect_backend,
     inspect_mlx_lm_backend,
+    assess_candidate_backend,
 )
 from .hardware import detect_hardware
 from .types import HardwareInfo, MemoryPressure
@@ -57,6 +58,7 @@ def run_qualification_preflight(
         [str | Path | None], BackendCompatibility | MLXBackendCompatibility
     ]
     | None = None,
+    candidate_versions: tuple[str, str, str] | None = None,
 ) -> QualificationPreflight:
     if backend_kind not in {"vllm_metal", "mlx_lm"}:
         raise ValueError("unsupported qualification backend")
@@ -72,8 +74,19 @@ def run_qualification_preflight(
         issues.append("metal_gpu_core_count_unavailable")
     if hardware.memory.pressure is MemoryPressure.CRITICAL:
         issues.append("memory_pressure_critical")
-    if not backend.compatible:
-        issues.extend(f"backend:{issue}" for issue in backend.issues)
+    backend_issues = backend.issues
+    if candidate_versions is not None:
+        if backend_kind != "vllm_metal" or not isinstance(backend, BackendCompatibility):
+            backend_issues = ("candidate_stack_requires_vllm_metal",)
+        else:
+            backend_issues = assess_candidate_backend(
+                backend,
+                expected_vllm=candidate_versions[0],
+                expected_vllm_metal=candidate_versions[1],
+                expected_transformers=candidate_versions[2],
+            )
+    if backend_issues:
+        issues.extend(f"backend:{issue}" for issue in backend_issues)
     return QualificationPreflight(
         QUALIFICATION_PREFLIGHT_SCHEMA_VERSION,
         not issues,

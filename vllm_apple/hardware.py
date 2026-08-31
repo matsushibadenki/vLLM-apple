@@ -46,7 +46,35 @@ def _ioreg_gpu_core_count() -> int | None:
     except (FileNotFoundError, subprocess.SubprocessError):
         return None
     match = re.search(r'"gpu-core-count"\s*=\s*(\d+)', result.stdout)
-    return _positive_int(match.group(1)) if match else None
+    if match:
+        return _positive_int(match.group(1))
+    data_match = re.search(r'"gpu-core-count"\s*=\s*<([0-9a-fA-F]{8})>', result.stdout)
+    if not data_match:
+        return None
+    raw = bytes.fromhex(data_match.group(1))
+    value = int.from_bytes(raw, byteorder="little", signed=False)
+    return value if 0 < value <= 512 else None
+
+
+def _system_profiler_chip() -> str | None:
+    """Read the Apple chip name only when the fast sysctl probe is unavailable."""
+    try:
+        result = subprocess.run(
+            ["/usr/sbin/system_profiler", "SPHardwareDataType", "-detailLevel", "mini"],
+            capture_output=True,
+            check=True,
+            text=True,
+            timeout=2.0,
+        )
+    except (FileNotFoundError, subprocess.SubprocessError):
+        return None
+    if len(result.stdout.encode("utf-8")) > 64 * 1024:
+        return None
+    match = re.search(r"^\s*(?:Chip|チップ|芯片):\s*(.{1,128})$", result.stdout, re.MULTILINE)
+    if not match:
+        return None
+    value = match.group(1).strip()
+    return value if value.startswith("Apple ") else None
 
 
 def _total_memory() -> tuple[int, str]:
@@ -125,9 +153,13 @@ def detect_hardware() -> HardwareInfo:
     system = platform.system()
     physical = _positive_int(_sysctl("hw.physicalcpu")) or (os.cpu_count() or 1)
     logical = _positive_int(_sysctl("hw.logicalcpu")) or (os.cpu_count() or physical)
-    soc = _sysctl("machdep.cpu.brand_string") or platform.processor() or "Unknown Apple SoC"
+    apple_silicon = system == "Darwin" and machine == "arm64"
+    soc = _sysctl("machdep.cpu.brand_string") or platform.processor()
+    if apple_silicon and (not soc or soc.strip().lower() in {"arm", "arm64", "unknown"}):
+        soc = _system_profiler_chip()
+    soc = soc or "Unknown Apple SoC"
     gpu_cores = _positive_int(_sysctl("hw.perflevel0.gpu_count"))
-    if gpu_cores is None and system == "Darwin" and machine == "arm64":
+    if gpu_cores is None and apple_silicon:
         gpu_cores = _ioreg_gpu_core_count()
     return HardwareInfo(
         platform=system,
@@ -137,7 +169,7 @@ def detect_hardware() -> HardwareInfo:
         logical_cpu_count=logical,
         gpu_core_count=gpu_cores,
         memory=detect_memory(),
-        is_apple_silicon=system == "Darwin" and machine == "arm64",
+        is_apple_silicon=apple_silicon,
         os_version=platform.mac_ver()[0] if system == "Darwin" else platform.release(),
     )
 

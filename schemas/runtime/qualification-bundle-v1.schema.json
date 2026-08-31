@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vllm-apple.local/schemas/runtime/qualification-bundle-v1.schema.json",
+  "title": "Qualification promotion bundle v1",
+  "type": "object",
+  "required": ["schema_version", "bundle_id", "model_sha256", "backend", "requested_modes", "backend_versions", "evidence_sha256", "passed"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "bundle_id": {"type": "string", "minLength": 64, "maxLength": 64},
+    "model_sha256": {"type": "string", "minLength": 64, "maxLength": 64},
+    "backend": {"enum": ["vllm_metal", "mlx_lm"]},
+    "requested_modes": {"const": ["text"]},
+    "backend_versions": {"type": ["object", "null"]},
+    "evidence_sha256": {
+      "type": "object",
+      "additionalProperties": {"type": "string", "minLength": 64, "maxLength": 64}
+    },
+    "passed": {"const": true}
+  },
+  "additionalProperties": false
+}

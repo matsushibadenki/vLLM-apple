@@ -8,6 +8,16 @@
     "schema_version": {"const": 1},
     "model": {"type": "string", "minLength": 1},
     "backend": {"enum": ["vllm_metal", "mlx_lm"]},
+    "backend_versions": {
+      "type": ["object", "null"],
+      "properties": {
+        "vllm": {"type": ["string", "null"], "minLength": 1, "maxLength": 128},
+        "vllm_metal": {"type": ["string", "null"], "minLength": 1, "maxLength": 128},
+        "transformers": {"type": ["string", "null"], "minLength": 1, "maxLength": 128},
+        "mlx_lm": {"type": ["string", "null"], "minLength": 1, "maxLength": 128}
+      },
+      "additionalProperties": false
+    },
     "requested_modes": {
       "type": "array",
       "minItems": 1,

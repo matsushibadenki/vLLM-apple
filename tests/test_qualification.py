@@ -279,11 +279,17 @@ class QualificationTests(unittest.TestCase):
                         duration_seconds=1,
                         warmup_seconds=0,
                         require_30_minute_window=False,
+                        backend_versions={
+                            "vllm": "0.28.0",
+                            "vllm_metal": "0.3.0",
+                            "transformers": "5.15.0",
+                        },
                     ),
                     process_factory=factory,  # type: ignore[arg-type]
                 )
         self.assertTrue(report["passed"])
         self.assertTrue(report["shutdown_clean"])
+        self.assertEqual(report["backend_versions"]["vllm"], "0.28.0")
         self.assertEqual(report["promotion_probe"], promotion)
         self.assertTrue(created[0].stopped)
         soak_config = runner.call_args.args[0]

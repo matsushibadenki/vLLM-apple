@@ -17,6 +17,90 @@ from vllm_apple.types import GIB, HardwareInfo, MemoryInfo
 
 
 class ModelInspectionTests(unittest.TestCase):
+    def _inspect_config(self, config: dict) -> object:
+        temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(temporary.cleanup)
+        path = Path(temporary.name)
+        (path / "config.json").write_text(json.dumps(config), encoding="utf-8")
+        (path / "model.safetensors").write_bytes(b"weights")
+        return inspect_model(path)
+
+    def test_mla_uses_compressed_latent_cache_instead_of_full_kv(self) -> None:
+        inspected = self._inspect_config(
+            {
+                "model_type": "deepseek_v3",
+                "num_hidden_layers": 12,
+                "num_attention_heads": 16,
+                "hidden_size": 2048,
+                "kv_lora_rank": 256,
+                "qk_rope_head_dim": 64,
+                "max_position_embeddings": 32768,
+                "torch_dtype": "bfloat16",
+            }
+        )
+        self.assertEqual(inspected.memory_spec.kv_bytes_per_token, 12 * (256 + 64) * 2)
+        self.assertEqual(inspected.state_memory_spec.architecture, "mla")
+
+    def test_state_space_model_uses_fixed_recurrent_state_and_zero_kv(self) -> None:
+        inspected = self._inspect_config(
+            {
+                "model_type": "mamba2",
+                "num_hidden_layers": 24,
+                "intermediate_size": 4096,
+                "state_size": 128,
+                "conv_kernel": 4,
+                "max_position_embeddings": 65536,
+                "ssm_state_dtype": "float32",
+            }
+        )
+        self.assertEqual(inspected.memory_spec.kv_bytes_per_token, 0)
+        self.assertEqual(inspected.state_memory_spec.architecture, "state_space")
+        expected = 24 * 4096 * (128 + 4) * 4
+        self.assertEqual(inspected.state_memory_spec.recurrent_state_bytes, expected)
+        self.assertEqual(inspected.state_memory_spec.state_bytes(1), expected)
+        self.assertEqual(inspected.state_memory_spec.state_bytes(65536), expected)
+
+    def test_hybrid_counts_attention_and_recurrent_layers_separately(self) -> None:
+        inspected = self._inspect_config(
+            {
+                "model_type": "hybrid_test",
+                "num_hidden_layers": 4,
+                "layer_types": ["mamba", "full_attention", "mamba", "full_attention"],
+                "num_attention_heads": 8,
+                "num_key_value_heads": 2,
+                "head_dim": 64,
+                "intermediate_size": 1024,
+                "state_size": 16,
+                "conv_kernel": 4,
+                "max_position_embeddings": 8192,
+                "torch_dtype": "float16",
+            }
+        )
+        self.assertEqual(inspected.memory_spec.kv_bytes_per_token, 2 * 2 * 2 * 64 * 2)
+        self.assertEqual(
+            inspected.state_memory_spec.recurrent_state_bytes,
+            2 * 1024 * (16 + 4) * 4,
+        )
+        self.assertEqual(inspected.state_memory_spec.architecture, "hybrid_state_space")
+
+    def test_mamba2_derives_expansion_and_grouped_convolution_state(self) -> None:
+        inspected = self._inspect_config(
+            {
+                "model_type": "mamba2",
+                "num_hidden_layers": 2,
+                "hidden_size": 512,
+                "expand": 2,
+                "state_size": 64,
+                "conv_kernel": 4,
+                "n_groups": 8,
+                "max_position_embeddings": 4096,
+            }
+        )
+        intermediate = 1024
+        convolution_channels = intermediate + 2 * 8 * 64
+        expected = 2 * (intermediate * 64 + convolution_channels * 4) * 4
+        self.assertEqual(inspected.state_memory_spec.recurrent_state_bytes, expected)
+
     def test_qwen_modes_and_yarn_context_are_independent_capabilities(self) -> None:
         capability = inspect_model_architecture(
             {

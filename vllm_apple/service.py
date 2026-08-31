@@ -29,6 +29,7 @@ from .operator_dispatch import OperatorDispatcher
 from .profile import build_profile
 from .runtime_errors import RuntimeFailure, classify_runtime_failure
 from .scheduler import BasicScheduler, PlanApplicationDecision, Reservation, ScheduleRequest
+from .startup_progress import StartupProgress
 from .semantic_cache import SemanticAnchor, SemanticAnchorKind
 from .semantic_state import (
     SemanticRestoreResult,
@@ -101,6 +102,7 @@ class ServiceSnapshot:
     context_reevaluation: dict[str, int | str | bool | None]
     kv_calibration: dict[str, int | float | str | bool | None]
     native_v2_tuning: dict[str, str | int | bool | None]
+    startup_progress: dict[str, object]
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -122,6 +124,7 @@ class ServiceSnapshot:
             "context_reevaluation": self.context_reevaluation,
             "kv_calibration": self.kv_calibration,
             "native_v2_tuning": self.native_v2_tuning,
+            "startup_progress": self.startup_progress,
         }
 
 
@@ -140,6 +143,7 @@ class RuntimeService:
     ) -> None:
         self._lock = threading.RLock()
         self._state = RuntimeState.STARTING
+        self._startup_progress = StartupProgress(1, "initializing", 0, 6, "startup.initializing")
         self._last_error: str | None = None
         self._failure: RuntimeFailure | None = None
         self._pending_operator_dispatcher: OperatorDispatcher | None = None
@@ -217,6 +221,7 @@ class RuntimeService:
             ElasticMemoryController(semantic_state) if semantic_state is not None else None
         )
         self._state = RuntimeState.READY if self.engine.ready else RuntimeState.DEGRADED
+        self._startup_progress = self._progress_for_state(self._state)
         self.events.publish(
             "runtime.state",
             {"state": self._state.value, "inference_ready": self.engine.ready},
@@ -230,6 +235,7 @@ class RuntimeService:
     def set_state(self, state: RuntimeState) -> None:
         with self._lock:
             self._state = state
+            self._startup_progress = self._progress_for_state(state)
             if state != RuntimeState.FAILED:
                 self._last_error = None
                 self._failure = None
@@ -237,6 +243,16 @@ class RuntimeService:
             "runtime.state",
             {"state": state.value, "inference_ready": self.engine.ready},
         )
+        self.events.publish("runtime.startup_progress", self._startup_progress.to_dict())
+
+    def set_startup_progress(
+        self, stage: str, completed_units: int, total_units: int, message_key: str
+    ) -> StartupProgress:
+        progress = StartupProgress(1, stage, completed_units, total_units, message_key)
+        with self._lock:
+            self._startup_progress = progress
+        self.events.publish("runtime.startup_progress", progress.to_dict())
+        return progress
 
     def set_failure(self, error: BaseException | str | RuntimeFailure) -> RuntimeFailure:
         failure = error if isinstance(error, RuntimeFailure) else classify_runtime_failure(error)
@@ -244,10 +260,12 @@ class RuntimeService:
             self._last_error = failure.message_key
             self._failure = failure
             self._state = RuntimeState.FAILED
+            self._startup_progress = self._progress_for_state(RuntimeState.FAILED)
         self.events.publish(
             "runtime.failure",
             {"state": RuntimeState.FAILED.value, "failure": failure.to_dict()},
         )
+        self.events.publish("runtime.startup_progress", self._startup_progress.to_dict())
         return failure
 
     def snapshot(self) -> ServiceSnapshot:
@@ -287,7 +305,23 @@ class RuntimeService:
                 ),
                 kv_calibration=dict(self.kv_calibration),
                 native_v2_tuning=self.native_v2_tuning.snapshot().to_dict(),
+                startup_progress=self._startup_progress.to_dict(),
             )
+
+    @staticmethod
+    def _progress_for_state(state: RuntimeState) -> StartupProgress:
+        mapping = {
+            RuntimeState.STARTING: ("initializing", 0),
+            RuntimeState.PROFILING: ("profiling", 2),
+            RuntimeState.LOADING_MODEL: ("loading_model", 4),
+            RuntimeState.READY: ("ready", 6),
+            RuntimeState.DEGRADED: ("degraded", 6),
+            RuntimeState.FAILED: ("failed", 6),
+            RuntimeState.STOPPING: ("stopping", 6),
+            RuntimeState.STOPPED: ("stopped", 6),
+        }
+        stage, completed = mapping[state]
+        return StartupProgress(1, stage, completed, 6, f"startup.{stage}")
 
     def _sync_memory_budget(
         self,

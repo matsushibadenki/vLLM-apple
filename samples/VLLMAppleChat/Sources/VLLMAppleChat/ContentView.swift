@@ -1,8 +1,10 @@
 import SwiftUI
+import UniformTypeIdentifiers
 import VLLMAppleKit
 
 struct ContentView: View {
     @ObservedObject var model: AppModel
+    @State private var isShowingQualificationImporter = false
 
     var body: some View {
         NavigationSplitView {
@@ -19,6 +21,15 @@ struct ContentView: View {
         }
         .onDisappear {
             Task { await model.shutdown() }
+        }
+        .fileImporter(
+            isPresented: $isShowingQualificationImporter,
+            allowedContentTypes: [.folder],
+            allowsMultipleSelection: false
+        ) { result in
+            if case .success(let urls) = result, let source = urls.first {
+                model.importQualificationDirectory(source)
+            }
         }
     }
 
@@ -37,6 +48,16 @@ struct ContentView: View {
             VStack(alignment: .leading, spacing: DesignTokens.standard) {
                 sectionLabel("sidebar.runtime")
                 StatusRow(phase: model.phase)
+                if let progress = model.startupProgress,
+                   model.phase == .connecting {
+                    VStack(alignment: .leading, spacing: DesignTokens.micro) {
+                        ProgressView(value: Double(progress.percent), total: 100)
+                        Text(localized(progress.messageKey))
+                            .font(.caption2)
+                            .foregroundStyle(DesignTokens.secondaryInk)
+                    }
+                    .accessibilityElement(children: .combine)
+                }
                 LabeledContent("sidebar.transport") {
                     Text(model.transportLabel)
                         .lineLimit(1)
@@ -114,6 +135,15 @@ struct ContentView: View {
                                 Text(record.report.passed ? "qualification.passed" : "qualification.failed")
                                     .font(.caption2)
                                     .foregroundStyle(DesignTokens.secondaryInk)
+                                if model.hasVerifiedPromotionBundle(for: record) {
+                                    Label(
+                                        promotionStatusKey(record),
+                                        systemImage: model.hasSignedPromotionBundle(for: record)
+                                            ? "checkmark.shield.fill" : "checkmark.seal"
+                                    )
+                                        .font(.caption2.weight(.semibold))
+                                        .foregroundStyle(DesignTokens.success)
+                                }
                                 if let phase = record.report.phaseProfile {
                                     Text(
                                         String(
@@ -134,6 +164,13 @@ struct ContentView: View {
                     }
                 }
             }
+
+            Button {
+                isShowingQualificationImporter = true
+            } label: {
+                Label("qualification.import.action", systemImage: "square.and.arrow.down")
+            }
+            .buttonStyle(.bordered)
 
             Spacer(minLength: DesignTokens.standard)
 
@@ -262,7 +299,15 @@ struct ContentView: View {
     }
 
     private func localized(_ key: String) -> String {
-        String(localized: String.LocalizationValue(key), bundle: .module)
+        String(localized: String.LocalizationValue(key), bundle: AppLocalization.bundle)
+    }
+
+    private func promotionStatusKey(
+        _ record: QualificationReportRecord
+    ) -> LocalizedStringKey {
+        model.hasSignedPromotionBundle(for: record)
+            ? "qualification.signature_verified"
+            : "qualification.promotion_verified"
     }
 }
 
@@ -324,7 +369,7 @@ private struct CalibrationDiagnostic: View {
     }
 
     private func localized(_ key: String) -> String {
-        String(localized: String.LocalizationValue(key), bundle: .module)
+        String(localized: String.LocalizationValue(key), bundle: AppLocalization.bundle)
     }
 }
 
@@ -422,7 +467,7 @@ private struct NativeV2TuningDiagnostic: View {
     }
 
     private func localized(_ key: String) -> String {
-        String(localized: String.LocalizationValue(key), bundle: .module)
+        String(localized: String.LocalizationValue(key), bundle: AppLocalization.bundle)
     }
 }
 
@@ -433,7 +478,12 @@ private struct StatusRow: View {
         HStack(spacing: DesignTokens.compact) {
             Image(systemName: symbol)
                 .foregroundStyle(color)
-            Text(String(localized: String.LocalizationValue(phase.localizationKey), bundle: .module))
+            Text(
+                String(
+                    localized: String.LocalizationValue(phase.localizationKey),
+                    bundle: AppLocalization.bundle
+                )
+            )
                 .font(.callout.weight(.medium))
         }
         .accessibilityElement(children: .combine)
@@ -483,7 +533,7 @@ private struct EmptyTranscriptView: View {
     }
 
     private func localized(_ key: String) -> String {
-        String(localized: String.LocalizationValue(key), bundle: .module)
+        String(localized: String.LocalizationValue(key), bundle: AppLocalization.bundle)
     }
 }
 
@@ -517,7 +567,7 @@ private struct MessageRow: View {
     }
 
     private func localized(_ key: String) -> String {
-        String(localized: String.LocalizationValue(key), bundle: .module)
+        String(localized: String.LocalizationValue(key), bundle: AppLocalization.bundle)
     }
 }
 

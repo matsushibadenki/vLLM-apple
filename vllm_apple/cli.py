@@ -7,11 +7,12 @@ import sys
 from pathlib import Path
 
 from .artifact_admission import assess_artifact_admission_for_path
-from .compat import inspect_backend, inspect_mlx_lm_backend
+from .compat import assess_candidate_backend, inspect_backend, inspect_mlx_lm_backend
 from .context import recommend_context
 from .daemon import serve
 from .execution_profile import detect_apple_chip_profile, save_chip_profile
 from .hardware import detect_hardware
+from .huggingface_metadata import HuggingFaceMetadataError, fetch_hugging_face_metadata
 from .kernel_probe import build_environment_fingerprint
 from .kernel_profile import build_model_kernel_shape_profile
 from .kv_calibration import (
@@ -32,8 +33,11 @@ from .model_integrity import (
     ModelIntegrityError,
     build_model_integrity_manifest,
     save_model_integrity_manifest,
+    sign_model_integrity_manifest,
     verify_model_integrity,
+    verify_signed_model_integrity,
 )
+from .model_recommendation import build_model_recommendation
 from .phase_probe import PhaseProbeConfig, PhaseProbeError, run_phase_probe
 from .profile import build_profile, save_profile
 from .qualification import (
@@ -43,6 +47,14 @@ from .qualification import (
     save_qualification_report,
 )
 from .qualification_preflight import run_qualification_preflight
+from .qualification_bundle import (
+    QualificationBundleError,
+    build_qualification_bundle,
+    save_qualification_bundle,
+    sign_qualification_bundle,
+    verify_qualification_bundle,
+    verify_signed_qualification_bundle,
+)
 from .runtime_probe import discover_runtime_versions
 from .shape_benchmark import (
     default_metal_shape_benchmark_path,
@@ -67,6 +79,17 @@ def _json(value: object) -> None:
     print(json.dumps(value, ensure_ascii=False, indent=2, sort_keys=True))
 
 
+def _candidate_versions(arguments: argparse.Namespace) -> tuple[str, str, str] | None:
+    values = (
+        arguments.candidate_vllm_version,
+        arguments.candidate_vllm_metal_version,
+        arguments.candidate_transformers_version,
+    )
+    if any(values) and not all(values):
+        raise ValueError("all candidate stack versions must be provided together")
+    return values if all(values) else None
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="vllm-apple")
     commands = parser.add_subparsers(dest="command", required=True)
@@ -77,13 +100,35 @@ def build_parser() -> argparse.ArgumentParser:
         "artifact-admission", help="check memory and disk fit before downloading a model"
     )
     artifact_admission.add_argument("--model", required=True)
-    artifact_admission.add_argument("--artifact-gib", type=float, required=True)
-    artifact_admission.add_argument("--resident-gib", type=float, required=True)
+    artifact_size = artifact_admission.add_mutually_exclusive_group(required=True)
+    artifact_size.add_argument("--artifact-gib", type=float)
+    artifact_size.add_argument("--artifact-bytes", type=int)
+    resident_size = artifact_admission.add_mutually_exclusive_group(required=True)
+    resident_size.add_argument("--resident-gib", type=float)
+    resident_size.add_argument("--resident-bytes", type=int)
     artifact_admission.add_argument("--target", type=Path, default=Path("models"))
     artifact_admission.add_argument("--staging-factor", type=float, default=1.05)
 
     doctor = commands.add_parser("doctor", help="inspect the vLLM-Metal environment")
     doctor.add_argument("--backend-executable")
+
+    inspect = commands.add_parser(
+        "inspect-model", help="inspect local metadata and recommend a safe configuration"
+    )
+    inspect.add_argument("model")
+    inspect.add_argument("--backend", choices=("vllm_metal", "mlx_lm"), default="vllm_metal")
+    inspect.add_argument("--feature", action="append", dest="features")
+    inspect.add_argument(
+        "--mode", action="append", choices=("text", "vision", "mtp", "yarn"), dest="modes"
+    )
+
+    metadata = commands.add_parser(
+        "fetch-model-metadata",
+        help="fetch bounded config metadata without downloading model weights",
+    )
+    metadata.add_argument("model")
+    metadata.add_argument("--revision", default="main")
+    metadata.add_argument("--timeout", type=float, default=10.0)
 
     integrity_create = commands.add_parser(
         "model-integrity-create", help="create a streaming SHA-256 model manifest"
@@ -95,6 +140,16 @@ def build_parser() -> argparse.ArgumentParser:
     )
     integrity_verify.add_argument("model", type=Path)
     integrity_verify.add_argument("--manifest", required=True, type=Path)
+    integrity_verify.add_argument("--signature", type=Path)
+    integrity_verify.add_argument("--trusted-ca", type=Path)
+    integrity_verify.add_argument("--expected-signer-sha256")
+    integrity_sign = commands.add_parser(
+        "model-integrity-sign", help="create a detached CMS signature for a model manifest"
+    )
+    integrity_sign.add_argument("--manifest", required=True, type=Path)
+    integrity_sign.add_argument("--certificate", required=True, type=Path)
+    integrity_sign.add_argument("--private-key", required=True, type=Path)
+    integrity_sign.add_argument("--output", required=True, type=Path)
 
     profile = commands.add_parser("profile", help="build a runtime profile")
     profile.add_argument("--save", action="store_true")
@@ -257,6 +312,9 @@ def build_parser() -> argparse.ArgumentParser:
     qualify.add_argument("--allow-short-run", action="store_true")
     qualify.add_argument("--allow-context-reduction", action="store_true")
     qualify.add_argument("--output", type=Path)
+    qualify.add_argument("--candidate-vllm-version")
+    qualify.add_argument("--candidate-vllm-metal-version")
+    qualify.add_argument("--candidate-transformers-version")
 
     qualification_preflight = commands.add_parser(
         "qualification-preflight",
@@ -266,6 +324,30 @@ def build_parser() -> argparse.ArgumentParser:
     qualification_preflight.add_argument(
         "--backend-kind", choices=("vllm_metal", "mlx_lm"), default="vllm_metal"
     )
+    qualification_preflight.add_argument("--candidate-vllm-version")
+    qualification_preflight.add_argument("--candidate-vllm-metal-version")
+    qualification_preflight.add_argument("--candidate-transformers-version")
+    qualification_bundle = commands.add_parser(
+        "qualification-bundle", help="build a bounded, tamper-evident promotion bundle"
+    )
+    qualification_bundle.add_argument("--reports", required=True, type=Path)
+    qualification_bundle.add_argument("--output", required=True, type=Path)
+    qualification_bundle_verify = commands.add_parser(
+        "qualification-bundle-verify", help="verify a promotion bundle and its source evidence"
+    )
+    qualification_bundle_verify.add_argument("--reports", required=True, type=Path)
+    qualification_bundle_verify.add_argument("--bundle", required=True, type=Path)
+    qualification_bundle_verify.add_argument("--signature", type=Path)
+    qualification_bundle_verify.add_argument("--trusted-ca", type=Path)
+    qualification_bundle_verify.add_argument("--expected-signer-sha256")
+    qualification_bundle_sign = commands.add_parser(
+        "qualification-bundle-sign", help="sign a promotion bundle with detached CMS"
+    )
+    qualification_bundle_sign.add_argument("--reports", required=True, type=Path)
+    qualification_bundle_sign.add_argument("--bundle", required=True, type=Path)
+    qualification_bundle_sign.add_argument("--certificate", required=True, type=Path)
+    qualification_bundle_sign.add_argument("--private-key", required=True, type=Path)
+    qualification_bundle_sign.add_argument("--output", required=True, type=Path)
 
     context = commands.add_parser("context", help="calculate safe context tiers")
     context.add_argument("--model-id", default="unknown")
@@ -318,13 +400,30 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     if arguments.command == "artifact-admission":
         try:
-            size_values = (arguments.artifact_gib, arguments.resident_gib)
-            if any(not math.isfinite(value) or value <= 0 or value > 16_384 for value in size_values):
+            gib_values = tuple(
+                value
+                for value in (arguments.artifact_gib, arguments.resident_gib)
+                if value is not None
+            )
+            if any(not math.isfinite(value) or value <= 0 or value > 16_384 for value in gib_values):
                 raise ValueError("artifact and resident sizes must be between 0 and 16384 GiB")
+            byte_values = tuple(
+                value
+                for value in (arguments.artifact_bytes, arguments.resident_bytes)
+                if value is not None
+            )
+            if any(value <= 0 or value > 16_384 * GIB for value in byte_values):
+                raise ValueError("artifact and resident byte sizes are outside the supported range")
+            artifact_bytes = arguments.artifact_bytes
+            if artifact_bytes is None:
+                artifact_bytes = math.ceil(arguments.artifact_gib * GIB)
+            resident_bytes = arguments.resident_bytes
+            if resident_bytes is None:
+                resident_bytes = math.ceil(arguments.resident_gib * GIB)
             admission = assess_artifact_admission_for_path(
                 model=arguments.model,
-                artifact_bytes=math.ceil(arguments.artifact_gib * GIB),
-                estimated_resident_bytes=math.ceil(arguments.resident_gib * GIB),
+                artifact_bytes=artifact_bytes,
+                estimated_resident_bytes=resident_bytes,
                 hardware=detect_hardware(),
                 target=arguments.target,
                 staging_factor=arguments.staging_factor,
@@ -344,6 +443,41 @@ def main(argv: list[str] | None = None) -> int:
         report = inspect_backend(arguments.backend_executable)
         _json(report.to_dict())
         return 0 if report.compatible else 1
+    if arguments.command == "inspect-model":
+        try:
+            features = frozenset(arguments.features or ())
+            if len(features) > 64 or any(not value or len(value) > 128 for value in features):
+                raise ValueError("model feature declarations are invalid")
+            report = build_model_recommendation(
+                inspect_model(arguments.model),
+                detect_hardware(),
+                backend=arguments.backend,
+                available_features=features,
+                requested_modes=frozenset(arguments.modes or ("text",)),
+            )
+        except (OSError, ModelInspectionError, ValueError) as error:
+            _json({"runnable": False, "error_code": "model_inspection_failed", "detail": str(error)})
+            return 2
+        _json(report.to_dict())
+        return 0 if report.runnable else 1
+    if arguments.command == "fetch-model-metadata":
+        try:
+            metadata = fetch_hugging_face_metadata(
+                arguments.model,
+                revision=arguments.revision,
+                timeout_seconds=arguments.timeout,
+            )
+        except (HuggingFaceMetadataError, ValueError) as error:
+            _json(
+                {
+                    "fetched": False,
+                    "error_code": "model_metadata_fetch_failed",
+                    "detail": str(error),
+                }
+            )
+            return 2
+        _json(metadata.to_dict())
+        return 0
     if arguments.command == "model-integrity-create":
         try:
             model_root = arguments.model.expanduser().resolve(strict=True)
@@ -359,11 +493,40 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     if arguments.command == "model-integrity-verify":
         try:
-            manifest = verify_model_integrity(arguments.model, arguments.manifest)
+            signed_inputs = (
+                arguments.signature,
+                arguments.trusted_ca,
+                arguments.expected_signer_sha256,
+            )
+            if any(value is not None for value in signed_inputs):
+                if not all(value is not None for value in signed_inputs):
+                    raise ModelIntegrityError("signed verification inputs must be provided together")
+                manifest = verify_signed_model_integrity(
+                    arguments.model,
+                    arguments.manifest,
+                    arguments.signature,
+                    arguments.trusted_ca,
+                    arguments.expected_signer_sha256,
+                )
+            else:
+                manifest = verify_model_integrity(arguments.model, arguments.manifest)
         except (OSError, ModelIntegrityError) as error:
             _json({"passed": False, "error_code": "model_integrity_failed", "detail": str(error)})
             return 1
         _json({"passed": True, "root_sha256": manifest["root_sha256"]})
+        return 0
+    if arguments.command == "model-integrity-sign":
+        try:
+            output = sign_model_integrity_manifest(
+                arguments.manifest,
+                arguments.certificate,
+                arguments.private_key,
+                arguments.output,
+            )
+        except (OSError, ModelIntegrityError) as error:
+            _json({"passed": False, "error_code": "model_integrity_signing_failed", "detail": str(error)})
+            return 2
+        _json({"passed": True, "signature": str(output)})
         return 0
     if arguments.command == "profile":
         profile = build_profile()
@@ -710,13 +873,32 @@ def main(argv: list[str] | None = None) -> int:
         try:
             if arguments.max_rss_growth_mib < 0:
                 raise ValueError("RSS growth limit cannot be negative")
+            candidate_versions = _candidate_versions(arguments)
+            if candidate_versions is not None and arguments.backend_kind != "vllm_metal":
+                raise ValueError("candidate stack qualification requires vllm_metal")
             vllm_version = None
+            backend_versions: dict[str, str | None] | None = None
             architecture_features: tuple[str, ...] = ()
             if arguments.backend_kind == "vllm_metal":
                 compatibility = inspect_backend(str(arguments.backend_executable))
-                if not compatibility.compatible:
-                    raise ValueError("incompatible backend: " + ", ".join(compatibility.issues))
+                candidate_issues = (
+                    assess_candidate_backend(
+                        compatibility,
+                        expected_vllm=candidate_versions[0],
+                        expected_vllm_metal=candidate_versions[1],
+                        expected_transformers=candidate_versions[2],
+                    )
+                    if candidate_versions is not None
+                    else compatibility.issues
+                )
+                if candidate_issues:
+                    raise ValueError("incompatible backend: " + ", ".join(candidate_issues))
                 vllm_version = compatibility.vllm_version
+                backend_versions = {
+                    "vllm": compatibility.vllm_version,
+                    "vllm_metal": compatibility.vllm_metal_version,
+                    "transformers": compatibility.transformers_version,
+                }
                 architecture_features = compatibility.architecture_features
             else:
                 mlx_compatibility = inspect_mlx_lm_backend(arguments.backend_executable)
@@ -725,6 +907,7 @@ def main(argv: list[str] | None = None) -> int:
                         "incompatible backend: " + ", ".join(mlx_compatibility.issues)
                     )
                 architecture_features = mlx_compatibility.architecture_features
+                backend_versions = {"mlx_lm": mlx_compatibility.mlx_lm_version}
             result = qualify_model(
                 QualificationConfig(
                     model=arguments.model,
@@ -746,6 +929,7 @@ def main(argv: list[str] | None = None) -> int:
                     phase_output_tokens=arguments.phase_output_tokens,
                     quality_smoke=not arguments.skip_quality_smoke,
                     requested_modes=tuple(arguments.qualification_modes or ("text",)),
+                    backend_versions=backend_versions,
                 )
             )
             save_qualification_report(
@@ -758,11 +942,70 @@ def main(argv: list[str] | None = None) -> int:
         _json(result)
         return 0 if result["passed"] else 1
     if arguments.command == "qualification-preflight":
+        try:
+            candidate_versions = _candidate_versions(arguments)
+        except ValueError as error:
+            _json({"eligible": False, "error_code": "invalid_candidate_stack", "detail": str(error)})
+            return 2
         result = run_qualification_preflight(
-            arguments.backend_executable, backend_kind=arguments.backend_kind
+            arguments.backend_executable,
+            backend_kind=arguments.backend_kind,
+            candidate_versions=candidate_versions,
         )
         _json(result.to_dict())
         return 0 if result.eligible else 1
+    if arguments.command == "qualification-bundle":
+        try:
+            bundle = build_qualification_bundle(arguments.reports)
+            output = save_qualification_bundle(bundle, arguments.output)
+        except (OSError, ValueError, QualificationBundleError) as error:
+            _json({"passed": False, "error_code": "qualification_bundle_failed", "detail": str(error)})
+            return 2
+        _json({"passed": True, "bundle_id": bundle["bundle_id"], "output": str(output)})
+        return 0
+    if arguments.command == "qualification-bundle-verify":
+        try:
+            signed = (
+                arguments.signature,
+                arguments.trusted_ca,
+                arguments.expected_signer_sha256,
+            )
+            if any(value is not None for value in signed) and not all(
+                value is not None for value in signed
+            ):
+                raise QualificationBundleError(
+                    "signed qualification bundle inputs must be provided together"
+                )
+            bundle = (
+                verify_signed_qualification_bundle(
+                    arguments.reports,
+                    arguments.bundle,
+                    arguments.signature,
+                    arguments.trusted_ca,
+                    arguments.expected_signer_sha256,
+                )
+                if all(value is not None for value in signed)
+                else verify_qualification_bundle(arguments.reports, arguments.bundle)
+            )
+        except (OSError, ValueError, QualificationBundleError) as error:
+            _json({"passed": False, "error_code": "qualification_bundle_failed", "detail": str(error)})
+            return 1
+        _json({"passed": True, "bundle_id": bundle["bundle_id"]})
+        return 0
+    if arguments.command == "qualification-bundle-sign":
+        try:
+            output = sign_qualification_bundle(
+                arguments.reports,
+                arguments.bundle,
+                arguments.certificate,
+                arguments.private_key,
+                arguments.output,
+            )
+        except (OSError, ValueError, QualificationBundleError) as error:
+            _json({"passed": False, "error_code": "qualification_bundle_signing_failed", "detail": str(error)})
+            return 2
+        _json({"passed": True, "signature": str(output)})
+        return 0
     if arguments.command == "serve":
         try:
             serve(

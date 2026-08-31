@@ -7,7 +7,9 @@ from subprocess import CompletedProcess
 from unittest.mock import patch
 
 from vllm_apple.compat import (
+    BackendCompatibility,
     _decode_mlx_probe,
+    assess_candidate_backend,
     assess_backend_versions,
     assess_platform_selection,
     inspect_backend,
@@ -16,6 +18,55 @@ from vllm_apple.compat import (
 
 
 class BackendVersionMatrixTests(unittest.TestCase):
+    def test_exact_unverified_candidate_stack_is_accepted_for_qualification(self) -> None:
+        backend = BackendCompatibility(
+            executable="/venv/bin/vllm",
+            python_version="3.12.0",
+            vllm_version="0.28.0",
+            vllm_metal_version="0.3.0.dev1",
+            compatible=False,
+            issues=(
+                "vllm_version_outside_verified_matrix",
+                "transformers_version_outside_verified_matrix",
+            ),
+            transformers_version="5.15.0",
+            platform_module="vllm_metal.platform",
+            platform_class="MetalPlatform",
+            platform_is_cpu=False,
+        )
+        self.assertEqual(
+            assess_candidate_backend(
+                backend,
+                expected_vllm="0.28.0",
+                expected_vllm_metal="0.3.0",
+                expected_transformers="5.15.0",
+            ),
+            (),
+        )
+
+    def test_candidate_stack_rejects_mismatch_and_platform_failure(self) -> None:
+        backend = BackendCompatibility(
+            executable="/venv/bin/vllm",
+            python_version="3.12.0",
+            vllm_version="0.28.1",
+            vllm_metal_version="0.3.0",
+            compatible=False,
+            issues=(
+                "vllm_version_outside_verified_matrix",
+                "vllm_metal_platform_not_selected",
+            ),
+            transformers_version="5.15.0",
+        )
+        self.assertEqual(
+            assess_candidate_backend(
+                backend,
+                expected_vllm="0.28.0",
+                expected_vllm_metal="0.3.0",
+                expected_transformers="5.15.0",
+            ),
+            ("vllm_metal_platform_not_selected", "vllm_candidate_version_mismatch"),
+        )
+
     def test_vllm_metal_backend_exposes_bounded_feature_contract(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             executable = Path(directory) / "vllm"

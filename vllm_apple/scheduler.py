@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import heapq
 import threading
 import uuid
 from collections.abc import Callable
@@ -8,7 +9,13 @@ from time import monotonic
 from typing import TypeVar
 
 from .execution import AppleExecutionPlan, ExecutionBackend, WorkloadPhase
-from .operator_dispatch import OperatorDispatcher, OperatorDispatchRequest
+from .operator_dispatch import (
+    OperatorDispatchDecision,
+    OperatorDispatcher,
+    OperatorDispatchRequest,
+    OperatorExecutionResult,
+    OperatorFallbackExecutor,
+)
 from .types import Backend, HardwareInfo, Priority
 
 _SafePointResult = TypeVar("_SafePointResult")
@@ -24,6 +31,18 @@ class ExecutionPlanAdmissionError(RuntimeError):
 
 class MaintenanceInProgressError(RuntimeError):
     """Raised while an exclusive idle maintenance operation owns the scheduler."""
+
+
+class ScheduleQueueFullError(RuntimeError):
+    """Raised before enqueueing beyond the bounded scheduler queue."""
+
+
+class QueuedAdmissionError(RuntimeError):
+    def __init__(self, token: str, request: "ScheduleRequest", error: Exception) -> None:
+        super().__init__("queued request admission failed")
+        self.token = token
+        self.request = request
+        self.error = error
 
 
 @dataclass(frozen=True, slots=True)
@@ -53,6 +72,91 @@ class Reservation:
     created_at_monotonic: float
     execution_plan_id: str | None = None
     kernel_tuning_id: str | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class QueuedAdmission:
+    token: str
+    request: ScheduleRequest
+    reservation: Reservation
+
+
+class PriorityScheduleQueue:
+    _RANK = {
+        Priority.REALTIME: 0,
+        Priority.INTERACTIVE: 1,
+        Priority.NORMAL: 2,
+        Priority.BACKGROUND: 3,
+    }
+
+    def __init__(self, maximum_requests: int = 1024) -> None:
+        if maximum_requests <= 0 or maximum_requests > 65_536:
+            raise ValueError("maximum_requests must be between 1 and 65536")
+        self._maximum = maximum_requests
+        self._sequence = 0
+        self._heap: list[tuple[int, int, str]] = []
+        self._requests: dict[str, ScheduleRequest] = {}
+        self._claimed: set[str] = set()
+        self._condition = threading.Condition()
+
+    def enqueue(self, request: ScheduleRequest) -> str:
+        with self._condition:
+            if len(self._requests) + len(self._claimed) >= self._maximum:
+                raise ScheduleQueueFullError("scheduler queue is full")
+            token = uuid.uuid4().hex
+            sequence = self._sequence
+            self._sequence += 1
+            self._requests[token] = request
+            heapq.heappush(self._heap, (self._RANK[request.priority], sequence, token))
+            self._condition.notify()
+            return token
+
+    def cancel(self, token: str) -> bool:
+        with self._condition:
+            if self._requests.pop(token, None) is not None:
+                return True
+            if token in self._claimed:
+                self._claimed.remove(token)
+                return True
+            return False
+
+    def finish_claim(self, token: str) -> bool:
+        with self._condition:
+            if token not in self._claimed:
+                return False
+            self._claimed.remove(token)
+            return True
+
+    def dequeue(self, timeout: float | None = None) -> tuple[str, ScheduleRequest] | None:
+        if timeout is not None and timeout < 0:
+            raise ValueError("queue timeout must not be negative")
+        deadline = None if timeout is None else monotonic() + timeout
+        with self._condition:
+            while True:
+                while self._heap:
+                    _, _, token = heapq.heappop(self._heap)
+                    request = self._requests.pop(token, None)
+                    if request is not None:
+                        self._claimed.add(token)
+                        return token, request
+                if timeout == 0:
+                    return None
+                remaining = None if deadline is None else deadline - monotonic()
+                if remaining is not None and remaining <= 0:
+                    return None
+                self._condition.wait(remaining)
+
+    def snapshot(self) -> dict[str, int]:
+        with self._condition:
+            counts = {priority.value: 0 for priority in Priority}
+            for request in self._requests.values():
+                counts[request.priority.value] += 1
+            return {
+                "queued": len(self._requests),
+                "dispatching": len(self._claimed),
+                "capacity": self._maximum,
+                **counts,
+            }
 
 
 @dataclass(frozen=True, slots=True)
@@ -149,6 +253,7 @@ class BasicScheduler:
         hardware: HardwareInfo,
         memory_capacity_bytes: int,
         operator_dispatcher: OperatorDispatcher | None = None,
+        maximum_queued_requests: int = 1024,
     ) -> None:
         self.hardware = hardware
         self.memory = MemoryAdmissionController(memory_capacity_bytes)
@@ -157,30 +262,39 @@ class BasicScheduler:
         self._pending_plan: AppleExecutionPlan | None = None
         self._operator_dispatcher = operator_dispatcher
         self._maintenance_owner: str | None = None
+        self._queue = PriorityScheduleQueue(maximum_queued_requests)
+        self._queued_active: dict[str, Reservation] = {}
 
     def choose_backend(self, request: ScheduleRequest) -> Backend:
+        decision = self.dispatch_decision(request)
+        return {
+            ExecutionBackend.CPU: Backend.CPU,
+            ExecutionBackend.NATIVE_MLX: Backend.MLX_GPU,
+            ExecutionBackend.NATIVE_METAL: Backend.METAL,
+        }.get(decision.selected, Backend.CPU)
+
+    def dispatch_decision(self, request: ScheduleRequest) -> OperatorDispatchDecision:
         operator = request.operator.lower()
+        candidates = self._dispatch_candidates(operator, request.batch_size)
         if self._operator_dispatcher is not None:
-            candidates = self._dispatch_candidates(operator, request.batch_size)
-            decision = self._operator_dispatcher.dispatch(
-                OperatorDispatchRequest(operator, candidates)
-            )
-            return {
-                ExecutionBackend.CPU: Backend.CPU,
-                ExecutionBackend.NATIVE_MLX: Backend.MLX_GPU,
-                ExecutionBackend.NATIVE_METAL: Backend.METAL,
-            }.get(decision.selected, Backend.CPU)
-        if operator in self._CPU_OPERATORS:
-            return Backend.CPU
-        if self.hardware.is_apple_silicon and operator in self._METAL_OPERATORS:
-            return Backend.METAL
-        if self.hardware.is_apple_silicon and operator in self._GPU_OPERATORS:
-            # Tiny single-item GEMV often loses to GPU launch overhead. The profiler
-            # will replace this threshold in Phase 2.
-            if operator in {"gemv", "matmul"} and request.batch_size == 1:
-                return Backend.CPU
-            return Backend.MLX_GPU
-        return Backend.CPU
+            return self._operator_dispatcher.dispatch(OperatorDispatchRequest(operator, candidates))
+        if not self.hardware.is_apple_silicon:
+            candidates = (ExecutionBackend.CPU,)
+        return OperatorDispatchDecision(
+            operator,
+            candidates[0],
+            candidates[1:],
+            (),
+            (),
+            "legacy_policy",
+        )
+
+    def execute_with_fallback(
+        self,
+        request: ScheduleRequest,
+        operation: Callable[[ExecutionBackend], _SafePointResult],
+    ) -> OperatorExecutionResult[_SafePointResult]:
+        return OperatorFallbackExecutor().execute(self.dispatch_decision(request), operation)
 
     def _dispatch_candidates(
         self, operator: str, batch_size: int
@@ -221,6 +335,48 @@ class BasicScheduler:
     def complete(self, reservation: Reservation) -> None:
         with self._policy_lock:
             self.memory.release(reservation.reservation_id)
+
+    def submit(self, request: ScheduleRequest) -> str:
+        return self._queue.enqueue(request)
+
+    def admit_next(self, timeout: float | None = None) -> QueuedAdmission | None:
+        queued = self._queue.dequeue(timeout)
+        if queued is None:
+            return None
+        token, request = queued
+        try:
+            reservation = self.admit(request)
+        except BaseException as error:
+            self._queue.finish_claim(token)
+            if isinstance(error, Exception):
+                raise QueuedAdmissionError(token, request, error) from error
+            raise
+        with self._policy_lock:
+            self._queued_active[token] = reservation
+            if not self._queue.finish_claim(token):
+                self._queued_active.pop(token, None)
+                self.memory.release(reservation.reservation_id)
+                return None
+        return QueuedAdmission(token, request, reservation)
+
+    def complete_queued(self, token: str) -> bool:
+        with self._policy_lock:
+            reservation = self._queued_active.pop(token, None)
+            if reservation is None:
+                return False
+            self.memory.release(reservation.reservation_id)
+            return True
+
+    def cancel(self, token: str) -> bool:
+        if self._queue.cancel(token):
+            return True
+        return self.complete_queued(token)
+
+    def queue_snapshot(self) -> dict[str, int]:
+        snapshot = self._queue.snapshot()
+        with self._policy_lock:
+            snapshot["active"] = len(self._queued_active)
+        return snapshot
 
     def request_execution_plan(self, plan: AppleExecutionPlan) -> PlanApplicationDecision:
         self._validate_execution_plan(plan)

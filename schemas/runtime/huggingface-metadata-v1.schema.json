@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vllm-apple.local/schemas/runtime/huggingface-metadata-v1.schema.json",
+  "title": "Bounded Hugging Face model metadata v1",
+  "type": "object",
+  "required": ["schema_version", "model_id", "requested_revision", "resolved_revision", "config_sha256", "config_bytes", "architecture", "modes", "required_features", "weights_downloaded", "memory_fit_evaluated", "config"],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "model_id": { "type": "string", "minLength": 3, "maxLength": 512 },
+    "requested_revision": { "type": "string", "minLength": 1, "maxLength": 256 },
+    "resolved_revision": { "type": "string", "minLength": 40, "maxLength": 64 },
+    "config_sha256": { "type": "string", "minLength": 64, "maxLength": 64 },
+    "config_bytes": { "type": "integer", "minimum": 1, "maximum": 1048576 },
+    "architecture": { "type": "string", "minLength": 1, "maxLength": 128 },
+    "modes": { "type": "array", "minItems": 1, "maxItems": 4, "items": { "type": "string", "minLength": 1, "maxLength": 64 } },
+    "required_features": { "type": "array", "maxItems": 64, "items": { "type": "string", "minLength": 1, "maxLength": 128 } },
+    "weights_downloaded": { "const": false },
+    "memory_fit_evaluated": { "const": false },
+    "config": { "type": "object" }
+  },
+  "additionalProperties": false
+}

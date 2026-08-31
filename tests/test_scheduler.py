@@ -2,6 +2,7 @@ import unittest
 from dataclasses import replace
 import threading
 import time
+from unittest.mock import patch
 
 from vllm_apple.execution import (
     AppleExecutionPlan,
@@ -14,6 +15,7 @@ from vllm_apple.scheduler import (
     ExecutionPlanAdmissionError,
     MaintenanceInProgressError,
     MemoryCapacityError,
+    ScheduleQueueFullError,
     ScheduleRequest,
 )
 from vllm_apple.types import Backend, HardwareInfo, MemoryInfo, Priority
@@ -58,6 +60,66 @@ def execution_plan(plan_id: str, prefill_batch: int) -> AppleExecutionPlan:
 
 
 class SchedulerTests(unittest.TestCase):
+    def test_priority_queue_is_fifo_within_each_priority(self) -> None:
+        scheduler = BasicScheduler(hardware(), 500)
+        background = scheduler.submit(ScheduleRequest("decode", 1, Priority.BACKGROUND))
+        normal_first = scheduler.submit(ScheduleRequest("decode", 1, Priority.NORMAL))
+        realtime = scheduler.submit(ScheduleRequest("decode", 1, Priority.REALTIME))
+        normal_second = scheduler.submit(ScheduleRequest("decode", 1, Priority.NORMAL))
+        expected = (realtime, normal_first, normal_second, background)
+        admitted = tuple(scheduler.admit_next(timeout=0) for _ in expected)
+        self.assertEqual(tuple(item.token for item in admitted if item), expected)
+        for item in admitted:
+            self.assertIsNotNone(item)
+            scheduler.complete_queued(item.token)
+
+    def test_queue_capacity_and_cancellation_release_reservations(self) -> None:
+        scheduler = BasicScheduler(hardware(), 100, maximum_queued_requests=1)
+        queued = scheduler.submit(ScheduleRequest("decode", 80))
+        with self.assertRaises(ScheduleQueueFullError):
+            scheduler.submit(ScheduleRequest("decode", 1))
+        self.assertTrue(scheduler.cancel(queued))
+        active_token = scheduler.submit(ScheduleRequest("decode", 80))
+        admission = scheduler.admit_next(timeout=0)
+        self.assertIsNotNone(admission)
+        self.assertEqual(scheduler.memory.reserved_bytes, 80)
+        self.assertTrue(scheduler.cancel(active_token))
+        self.assertEqual(scheduler.memory.reserved_bytes, 0)
+        self.assertFalse(scheduler.cancel(active_token))
+
+    def test_queue_snapshot_is_bounded_and_does_not_expose_tokens(self) -> None:
+        scheduler = BasicScheduler(hardware(), 100, maximum_queued_requests=4)
+        scheduler.submit(ScheduleRequest("decode", 1, Priority.INTERACTIVE))
+        snapshot = scheduler.queue_snapshot()
+        self.assertEqual(snapshot["queued"], 1)
+        self.assertEqual(snapshot["interactive"], 1)
+        self.assertEqual(snapshot["capacity"], 4)
+        self.assertNotIn("token", snapshot)
+
+    def test_cancellation_during_dispatch_releases_new_reservation(self) -> None:
+        scheduler = BasicScheduler(hardware(), 100)
+        token = scheduler.submit(ScheduleRequest("decode", 80))
+        entered = threading.Event()
+        proceed = threading.Event()
+        original_admit = scheduler.admit
+
+        def delayed_admit(request: ScheduleRequest):
+            entered.set()
+            proceed.wait(timeout=2)
+            return original_admit(request)
+
+        result: list[object] = []
+        with patch.object(scheduler, "admit", side_effect=delayed_admit):
+            worker = threading.Thread(target=lambda: result.append(scheduler.admit_next(timeout=0)))
+            worker.start()
+            self.assertTrue(entered.wait(timeout=1))
+            self.assertTrue(scheduler.cancel(token))
+            proceed.set()
+            worker.join(timeout=1)
+        self.assertEqual(result, [None])
+        self.assertEqual(scheduler.memory.reserved_bytes, 0)
+        self.assertEqual(scheduler.queue_snapshot()["active"], 0)
+
     def test_idle_maintenance_is_exclusive_and_blocks_admission(self) -> None:
         scheduler = BasicScheduler(hardware(), 500)
         self.assertTrue(scheduler.begin_idle_maintenance("native-v2"))

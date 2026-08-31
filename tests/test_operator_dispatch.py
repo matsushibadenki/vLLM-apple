@@ -19,7 +19,14 @@ from vllm_apple.metal_probe import (
     _model_paged_attention_program,
 )
 from vllm_apple.mlx_probe import NativeMLXProbeAdapter, build_mlx_probe_registry
-from vllm_apple.operator_dispatch import OperatorDispatcher, OperatorDispatchRequest
+from vllm_apple.operator_dispatch import (
+    BackendExecutionError,
+    OperatorDispatchDecision,
+    OperatorDispatcher,
+    OperatorDispatchRequest,
+    OperatorFallbackExhaustedError,
+    OperatorFallbackExecutor,
+)
 from vllm_apple.scheduler import BasicScheduler, ScheduleRequest
 from vllm_apple.types import Backend
 
@@ -34,6 +41,67 @@ def passing_result(backend: ExecutionBackend, operator: str):
 
 
 class OperatorDispatchTests(unittest.TestCase):
+    def test_runtime_failure_uses_bounded_metal_mlx_cpu_fallback_order(self) -> None:
+        decision = OperatorDispatchDecision(
+            "paged_attention",
+            ExecutionBackend.NATIVE_METAL,
+            (ExecutionBackend.NATIVE_MLX, ExecutionBackend.CPU),
+            (),
+            (),
+            "preferred_probe_passed",
+        )
+        invoked = []
+
+        def operation(backend):
+            invoked.append(backend)
+            if backend is ExecutionBackend.NATIVE_METAL:
+                raise BackendExecutionError("metal_command_failed")
+            return "mlx-result"
+
+        result = OperatorFallbackExecutor().execute(decision, operation)
+        self.assertEqual(result.backend, ExecutionBackend.NATIVE_MLX)
+        self.assertEqual(result.value, "mlx-result")
+        self.assertEqual(invoked, [ExecutionBackend.NATIVE_METAL, ExecutionBackend.NATIVE_MLX])
+        self.assertEqual(tuple(attempt.status for attempt in result.attempts), ("failed", "succeeded"))
+
+    def test_non_retryable_backend_error_does_not_fallback(self) -> None:
+        decision = OperatorDispatchDecision(
+            "sampling",
+            ExecutionBackend.NATIVE_MLX,
+            (ExecutionBackend.CPU,),
+            (),
+            (),
+            "preferred_probe_passed",
+        )
+        invoked = []
+
+        def operation(backend):
+            invoked.append(backend)
+            raise BackendExecutionError("invalid_request", retryable=False)
+
+        with self.assertRaises(BackendExecutionError):
+            OperatorFallbackExecutor().execute(decision, operation)
+        self.assertEqual(invoked, [ExecutionBackend.NATIVE_MLX])
+
+    def test_fallback_exhaustion_exposes_codes_without_exception_details(self) -> None:
+        decision = OperatorDispatchDecision(
+            "attention",
+            ExecutionBackend.NATIVE_MLX,
+            (ExecutionBackend.CPU,),
+            (),
+            (),
+            "preferred_probe_passed",
+        )
+        with self.assertRaises(OperatorFallbackExhaustedError) as raised:
+            OperatorFallbackExecutor().execute(
+                decision,
+                lambda backend: (_ for _ in ()).throw(
+                    BackendExecutionError(f"{backend.value}_failed")
+                ),
+            )
+        self.assertEqual(len(raised.exception.attempts), 2)
+        self.assertEqual(str(raised.exception), "operator backend fallback exhausted")
+
     def test_metal_probe_is_isolated_and_validates_fixed_output(self) -> None:
         values = [float(value + value) for value in range(64)]
         completed = subprocess.CompletedProcess(
@@ -259,6 +327,25 @@ class OperatorDispatchTests(unittest.TestCase):
         self.assertEqual(
             scheduler.choose_backend(ScheduleRequest("paged_attention", 10)), Backend.METAL
         )
+
+    def test_scheduler_executes_only_probe_approved_runtime_fallbacks(self) -> None:
+        registry = KernelCapabilityRegistry("hardware", "environment")
+        registry.record(passing_result(ExecutionBackend.NATIVE_METAL, "paged_attention"))
+        registry.record(passing_result(ExecutionBackend.NATIVE_MLX, "paged_attention"))
+        scheduler = BasicScheduler(
+            hardware(), 500, operator_dispatcher=OperatorDispatcher(registry)
+        )
+
+        def operation(backend):
+            if backend is ExecutionBackend.NATIVE_METAL:
+                raise BackendExecutionError("metal_runtime_failed")
+            return backend.value
+
+        result = scheduler.execute_with_fallback(
+            ScheduleRequest("paged_attention", 10), operation
+        )
+        self.assertEqual(result.backend, ExecutionBackend.NATIVE_MLX)
+        self.assertEqual(result.value, "native_mlx")
 
     def test_mlx_probe_is_isolated_and_native_crash_becomes_quarantine(self) -> None:
         adapter = NativeMLXProbeAdapter()

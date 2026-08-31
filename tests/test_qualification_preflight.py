@@ -42,6 +42,31 @@ def hardware(*, apple=True, pressure=MemoryPressure.NORMAL):
 
 
 class QualificationPreflightTests(unittest.TestCase):
+    def test_exact_candidate_stack_can_pass_before_matrix_promotion(self) -> None:
+        candidate = backend(compatible=False)
+        candidate = BackendCompatibility(
+            executable=candidate.executable,
+            python_version=candidate.python_version,
+            vllm_version="0.28.0",
+            vllm_metal_version="0.3.0",
+            compatible=False,
+            issues=(
+                "vllm_version_outside_verified_matrix",
+                "transformers_version_outside_verified_matrix",
+            ),
+            transformers_version="5.15.0",
+            platform_module=candidate.platform_module,
+            platform_class=candidate.platform_class,
+            platform_is_cpu=candidate.platform_is_cpu,
+        )
+        result = run_qualification_preflight(
+            Path("/venv/bin/vllm"),
+            hardware_detector=hardware,
+            backend_inspector=lambda executable: candidate,
+            candidate_versions=("0.28.0", "0.3.0", "5.15.0"),
+        )
+        self.assertTrue(result.eligible)
+
     def test_mlx_runner_uses_mlx_backend_contract(self) -> None:
         result = run_qualification_preflight(
             Path("/venv/bin/mlx_lm.server"),

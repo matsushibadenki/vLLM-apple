@@ -19,10 +19,11 @@ from .backend import (
 from .backend_memory import (
     IOGPUMemoryAdapter,
     KVCacheCapacityResolver,
+    MLXMemoryMetricsAdapter,
     MemoryMetricsMonitor,
     VLLMMemoryMetricsAdapter,
 )
-from .compat import inspect_backend
+from .compat import inspect_backend, inspect_mlx_lm_backend
 from .context import recommend_state_context
 from .execution import AppleChipProfile
 from .execution_profile import detect_apple_chip_profile
@@ -48,7 +49,7 @@ from .model import (
     ensure_model_backend_compatible,
     inspect_model,
 )
-from .model_integrity import verify_model_integrity
+from .model_integrity import verify_model_integrity, verify_signed_model_integrity
 from .profile import build_profile
 from .runtime_probe import (
     RuntimeEnvironmentVersions,
@@ -81,10 +82,14 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--max-concurrent-requests", type=int, default=32)
     parser.add_argument("model", nargs="?")
     parser.add_argument("--backend-executable")
+    parser.add_argument("--backend-kind", choices=("vllm_metal", "mlx_lm"), default="vllm_metal")
     parser.add_argument("--backend-port", type=int, default=8001)
     parser.add_argument("--backend-startup-timeout", type=float, default=600.0)
     parser.add_argument("--max-model-len", type=int)
     parser.add_argument("--model-integrity-manifest", type=Path)
+    parser.add_argument("--model-integrity-signature", type=Path)
+    parser.add_argument("--model-integrity-trusted-ca", type=Path)
+    parser.add_argument("--model-integrity-signer-sha256")
     parser.add_argument("--skip-backend-check", action="store_true")
     parser.add_argument("--socket-path")
     parser.add_argument("--session-token")
@@ -433,10 +438,14 @@ def serve(
     max_concurrent_requests: int = 32,
     model: str | None = None,
     backend_executable: str | None = None,
+    backend_kind: str = "vllm_metal",
     backend_port: int = 8001,
     backend_startup_timeout: float = 600.0,
     max_model_len: int | None = None,
     model_integrity_manifest: Path | None = None,
+    model_integrity_signature: Path | None = None,
+    model_integrity_trusted_ca: Path | None = None,
+    model_integrity_signer_sha256: str | None = None,
     require_compatible_backend: bool = True,
     socket_path: str | None = None,
     session_token: str | None = None,
@@ -458,6 +467,15 @@ def serve(
         raise ValueError("control and inference backend ports must differ")
     if session_token is not None and session_token_file is not None:
         raise ValueError("session_token and session_token_file are mutually exclusive")
+    signed_integrity = (
+        model_integrity_signature,
+        model_integrity_trusted_ca,
+        model_integrity_signer_sha256,
+    )
+    if any(value is not None for value in signed_integrity) and (
+        model_integrity_manifest is None or not all(value is not None for value in signed_integrity)
+    ):
+        raise ValueError("signed model integrity inputs must be provided together")
     if not enable_metal_tuning and metal_tuning_report is not None:
         raise ValueError("metal_tuning_report and disabled Metal tuning are mutually exclusive")
     if session_token_file is not None:
@@ -468,13 +486,24 @@ def serve(
     memory_monitor: MemoryMetricsMonitor | None = None
     if model is not None:
         if model_integrity_manifest is not None:
-            verify_model_integrity(Path(model), model_integrity_manifest)
+            if model_integrity_signature is not None:
+                assert model_integrity_trusted_ca is not None
+                assert model_integrity_signer_sha256 is not None
+                verify_signed_model_integrity(
+                    Path(model),
+                    model_integrity_manifest,
+                    model_integrity_signature,
+                    model_integrity_trusted_ca,
+                    model_integrity_signer_sha256,
+                )
+            else:
+                verify_model_integrity(Path(model), model_integrity_manifest)
         hardware = detect_hardware()
         recommendation = None
         calibration_provenance = {
             "enabled": enable_kv_calibration,
             "status": "not_found" if enable_kv_calibration else "disabled",
-            "backend": "vllm_metal",
+            "backend": backend_kind,
             "evaluation_id": None,
             "calibrated_bytes_per_token": None,
             "maximum_observed_context": None,
@@ -524,6 +553,7 @@ def serve(
             port=backend_port,
             max_model_len=max_model_len,
             startup_timeout=backend_startup_timeout,
+            backend_kind=backend_kind,
         )
         backend_tuning_enabled = enable_metal_tuning and supports_kernel_tuning_middleware(
             resolved_config.executable
@@ -535,15 +565,20 @@ def serve(
             max_model_len=max_model_len,
             startup_timeout=backend_startup_timeout,
             enable_kernel_tuning_middleware=backend_tuning_enabled,
+            backend_kind=backend_kind,
         )
-        compatibility = inspect_backend(config.executable)
+        compatibility = (
+            inspect_mlx_lm_backend(config.executable)
+            if backend_kind == "mlx_lm"
+            else inspect_backend(config.executable)
+        )
         if require_compatible_backend and not compatibility.compatible:
             issues = ", ".join(compatibility.issues)
-            raise RuntimeError(f"incompatible vLLM-Metal environment: {issues}")
+            raise RuntimeError(f"incompatible {backend_kind} environment: {issues}")
         if inspected is not None:
             ensure_model_backend_compatible(
                 inspected,
-                backend="vllm_metal",
+                backend=backend_kind,
                 available_features=frozenset(compatibility.architecture_features),
             )
         backend = BackendProcess(config)
@@ -564,27 +599,32 @@ def serve(
                 source="model_weight_files",
             )
         kv_capacity_resolver = None
-        if inspected is not None and compatibility.vllm_version is not None:
+        vllm_version = getattr(compatibility, "vllm_version", None)
+        if inspected is not None and vllm_version is not None:
             try:
                 kv_capacity_resolver = KVCacheCapacityResolver(
-                    compatibility.vllm_version,
+                    vllm_version,
                     inspected.memory_spec.kv_bytes_per_token,
                     str(inspected.config.get("model_type") or ""),
                 )
             except ValueError:
                 pass
+        metrics_adapter = (
+            MLXMemoryMetricsAdapter(backend.base_url)
+            if backend_kind == "mlx_lm"
+            else VLLMMemoryMetricsAdapter(
+                backend.base_url, kv_capacity_resolver=kv_capacity_resolver
+            )
+        )
         memory_monitor = MemoryMetricsMonitor(
-            VLLMMemoryMetricsAdapter(
-                backend.base_url,
-                kv_capacity_resolver=kv_capacity_resolver,
-            ),
+            metrics_adapter,
             service,
             iogpu_adapter=IOGPUMemoryAdapter(),
         )
         service.set_state(RuntimeState.LOADING_MODEL)
         chip = None
         versions = None
-        if (
+        if backend_kind == "vllm_metal" and (
             backend_tuning_enabled
             or enable_native_v2_idle_tuning
             or (enable_runtime_probes and require_compatible_backend)
@@ -821,10 +861,14 @@ def main(argv: list[str] | None = None) -> int:
         max_concurrent_requests=arguments.max_concurrent_requests,
         model=arguments.model,
         backend_executable=arguments.backend_executable,
+        backend_kind=arguments.backend_kind,
         backend_port=arguments.backend_port,
         backend_startup_timeout=arguments.backend_startup_timeout,
         max_model_len=arguments.max_model_len,
         model_integrity_manifest=arguments.model_integrity_manifest,
+        model_integrity_signature=arguments.model_integrity_signature,
+        model_integrity_trusted_ca=arguments.model_integrity_trusted_ca,
+        model_integrity_signer_sha256=arguments.model_integrity_signer_sha256,
         require_compatible_backend=not arguments.skip_backend_check,
         socket_path=arguments.socket_path,
         session_token=arguments.session_token,

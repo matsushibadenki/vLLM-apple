@@ -54,10 +54,15 @@ final class AppModel: ObservableObject {
     @Published private(set) var contextWarning: RuntimeContextReevaluation?
     @Published private(set) var kvCalibration: KVCalibrationProvenance?
     @Published private(set) var nativeV2Tuning: NativeV2TuningState = .idle
+    @Published private(set) var startupProgress: StartupProgress?
     @Published private(set) var qualificationReports: [QualificationReportRecord]
+    @Published private(set) var verifiedPromotionReportURLs: Set<URL>
+    @Published private(set) var signedPromotionReportURLs: Set<URL>
 
     private let resolver: RuntimeResourceResolver
     private let qualificationStore: QualificationReportStore
+    private let promotionTrustedCAURL: URL?
+    private let promotionSignerSHA256: String?
     private var client: (any VLLMAppleRuntimeClient)?
     private var managedRuntime: ManagedRuntime?
     private var eventTask: Task<Void, Never>?
@@ -75,7 +80,14 @@ final class AppModel: ObservableObject {
             daemonExecutableURL: daemonURL
         )
         self.qualificationStore = qualificationStore
-        qualificationReports = qualificationStore.load()
+        promotionTrustedCAURL = environment["VLLM_APPLE_PROMOTION_TRUSTED_CA"].map {
+            URL(fileURLWithPath: $0)
+        }
+        promotionSignerSHA256 = environment["VLLM_APPLE_PROMOTION_SIGNER_SHA256"]
+        qualificationReports = []
+        verifiedPromotionReportURLs = []
+        signedPromotionReportURLs = []
+        reloadQualificationReports()
     }
 
     func connect() async {
@@ -87,7 +99,8 @@ final class AppModel: ObservableObject {
         contextWarning = nil
         kvCalibration = nil
         nativeV2Tuning = .idle
-        qualificationReports = qualificationStore.load()
+        startupProgress = nil
+        reloadQualificationReports()
 
         do {
             let resources = try resolver.resolve()
@@ -222,6 +235,76 @@ final class AppModel: ObservableObject {
         detail = ""
     }
 
+    func hasVerifiedPromotionBundle(for record: QualificationReportRecord) -> Bool {
+        verifiedPromotionReportURLs.contains(record.fileURL)
+    }
+
+    func hasSignedPromotionBundle(for record: QualificationReportRecord) -> Bool {
+        signedPromotionReportURLs.contains(record.fileURL)
+    }
+
+    func importQualificationDirectory(_ sourceURL: URL) {
+        let accessed = sourceURL.startAccessingSecurityScopedResource()
+        defer {
+            if accessed { sourceURL.stopAccessingSecurityScopedResource() }
+        }
+        do {
+            if (promotionTrustedCAURL == nil) != (promotionSignerSHA256 == nil) {
+                report(key: "qualification.import.trust_invalid", detail: "")
+                return
+            }
+            let signatureRequirement = promotionTrustedCAURL.flatMap { caURL in
+                promotionSignerSHA256.map {
+                    QualificationPromotionSignatureRequirement(
+                        trustedCAURL: caURL, expectedSignerSHA256: $0
+                    )
+                }
+            }
+            _ = try QualificationPromotionBundleImporter(
+                destinationRootURL: qualificationStore.directoryURL
+            ).importDirectory(sourceURL, signatureRequirement: signatureRequirement)
+            errorKey = nil
+            detail = ""
+            reloadQualificationReports()
+        } catch let error as QualificationPromotionImportError {
+            report(key: "qualification.import.failed", detail: String(describing: error))
+        } catch {
+            report(key: "qualification.import.failed", detail: error.localizedDescription)
+        }
+    }
+
+    private func reloadQualificationReports() {
+        let reports = qualificationStore.load()
+        var verified: Set<URL> = []
+        var signed: Set<URL> = []
+        for record in reports {
+            let directory = record.fileURL.deletingLastPathComponent()
+            let bundleURL = directory.appending(
+                path: "promotion-bundle.json", directoryHint: .notDirectory
+            )
+            let store = QualificationPromotionBundleStore(fileURL: bundleURL)
+            if store.loadValidated(
+                reportsDirectoryURL: directory,
+                qualification: record.report
+            ) != nil {
+                verified.insert(record.fileURL)
+                if let caURL = promotionTrustedCAURL,
+                   let fingerprint = promotionSignerSHA256,
+                   (try? QualificationCMSVerifier().verify(
+                    bundleURL: bundleURL,
+                    signatureURL: directory.appending(path: "promotion-bundle.cms"),
+                    trustedCAURL: caURL,
+                    expectedSignerSHA256: fingerprint
+                   )) != nil {
+                    signed.insert(record.fileURL)
+                }
+            }
+        }
+        qualificationReports = reports
+        verifiedPromotionReportURLs = verified
+        signedPromotionReportURLs = signed
+    }
+
     func shutdown(clearStatus: Bool = true) async {
         cancelGeneration()
         eventTask?.cancel()
@@ -291,6 +374,9 @@ final class AppModel: ObservableObject {
                     }
                     if let tuning = event.nativeV2Tuning {
                         self.nativeV2Tuning = tuning
+                    }
+                    if let progress = event.startupProgress {
+                        self.startupProgress = progress
                     }
                 }
             } catch is CancellationError {

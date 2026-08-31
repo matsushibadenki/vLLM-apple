@@ -1,0 +1,196 @@
+name: Qwen Flash Next text-only qualification
+
+on:
+  workflow_dispatch:
+    inputs:
+      model:
+        description: Local Qwen3.8-Flash-Next artifact path on the runner
+        required: true
+        type: string
+      backend-executable:
+        description: Absolute path to the architecture-capable backend executable
+        required: true
+        type: string
+      backend-kind:
+        description: Backend implementation to qualify
+        required: true
+        default: mlx_lm
+        type: choice
+        options:
+          - mlx_lm
+          - vllm_metal
+      artifact-size-bytes:
+        description: Exact local artifact size in bytes
+        required: true
+        type: string
+      estimated-resident-bytes:
+        description: Exact pre-load resident estimate in bytes
+        required: true
+        type: string
+      artifact-target:
+        description: Existing destination volume used for disk admission
+        required: true
+        default: models
+        type: string
+      max-model-len:
+        description: Text-only context used for this first qualification
+        required: true
+        default: "4096"
+        type: string
+      integrity-manifest:
+        description: Optional absolute path to a trusted model integrity manifest
+        required: false
+        type: string
+      integrity-signature:
+        description: Optional absolute path to its detached CMS signature
+        required: false
+        type: string
+      integrity-trusted-ca:
+        description: Optional absolute path to the trusted CA PEM bundle
+        required: false
+        type: string
+      integrity-signer-sha256:
+        description: Optional expected signer certificate SHA-256 fingerprint
+        required: false
+        type: string
+      upload-report:
+        description: Upload private reports containing the local model identifier
+        required: true
+        default: false
+        type: boolean
+
+concurrency:
+  group: apple-silicon-qwen-flash-next-qualification
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  qualify-text-only:
+    runs-on: [self-hosted, macOS, ARM64, vllm-metal, large-memory]
+    timeout-minutes: 120
+    env:
+      QWEN_MODEL: ${{ inputs.model }}
+      QWEN_BACKEND: ${{ inputs['backend-executable'] }}
+      QWEN_BACKEND_KIND: ${{ inputs['backend-kind'] }}
+      QWEN_ARTIFACT_BYTES: ${{ inputs['artifact-size-bytes'] }}
+      QWEN_RESIDENT_BYTES: ${{ inputs['estimated-resident-bytes'] }}
+      QWEN_ARTIFACT_TARGET: ${{ inputs['artifact-target'] }}
+      QWEN_MAX_MODEL_LEN: ${{ inputs['max-model-len'] }}
+      QWEN_INTEGRITY_MANIFEST: ${{ inputs['integrity-manifest'] }}
+      QWEN_INTEGRITY_SIGNATURE: ${{ inputs['integrity-signature'] }}
+      QWEN_INTEGRITY_TRUSTED_CA: ${{ inputs['integrity-trusted-ca'] }}
+      QWEN_INTEGRITY_SIGNER_SHA256: ${{ inputs['integrity-signer-sha256'] }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          clean: true
+          persist-credentials: false
+      - name: Validate bounded inputs
+        run: |
+          python3 - <<'PY'
+          import os
+          for name in ("QWEN_ARTIFACT_BYTES", "QWEN_RESIDENT_BYTES"):
+              value = int(os.environ[name])
+              if not 0 < value <= 16384 * 1024**3:
+                  raise SystemExit(f"{name} is outside the supported range")
+          context = int(os.environ["QWEN_MAX_MODEL_LEN"])
+          if not 1 <= context <= 262144:
+              raise SystemExit("max-model-len must be between 1 and native 262144")
+          integrity = [
+              os.environ[name]
+              for name in (
+                  "QWEN_INTEGRITY_MANIFEST", "QWEN_INTEGRITY_SIGNATURE",
+                  "QWEN_INTEGRITY_TRUSTED_CA", "QWEN_INTEGRITY_SIGNER_SHA256",
+              )
+          ]
+          if any(integrity) and not all(integrity):
+              raise SystemExit("all signed integrity inputs must be provided together")
+          if integrity[-1] and (
+              len(integrity[-1]) != 64
+              or any(character not in "0123456789abcdefABCDEF" for character in integrity[-1])
+          ):
+              raise SystemExit("integrity signer fingerprint must be 64 hexadecimal characters")
+          PY
+      - name: Install dependency-free control plane
+        run: python3 -m pip install -e .
+      - name: Create private report directory
+        run: install -d -m 700 qualification-results qualification-private
+      - name: Reject insufficient Unified Memory or disk before model load
+        run: |
+          python3 -m vllm_apple artifact-admission \
+            --model "$QWEN_MODEL" \
+            --artifact-bytes "$QWEN_ARTIFACT_BYTES" \
+            --resident-bytes "$QWEN_RESIDENT_BYTES" \
+            --target "$QWEN_ARTIFACT_TARGET" \
+            > qualification-results/artifact-admission.json
+      - name: Verify Apple Silicon and architecture-capable backend
+        run: |
+          python3 -m vllm_apple qualification-preflight \
+            --backend-executable "$QWEN_BACKEND" \
+            --backend-kind "$QWEN_BACKEND_KIND" \
+            > qualification-results/preflight.json
+      - name: Verify signed artifact provenance before load
+        if: ${{ inputs['integrity-manifest'] != '' }}
+        run: |
+          python3 -m vllm_apple model-integrity-verify "$QWEN_MODEL" \
+            --manifest "$QWEN_INTEGRITY_MANIFEST" \
+            --signature "$QWEN_INTEGRITY_SIGNATURE" \
+            --trusted-ca "$QWEN_INTEGRITY_TRUSTED_CA" \
+            --expected-signer-sha256 "$QWEN_INTEGRITY_SIGNER_SHA256" \
+            > /dev/null
+      - name: Capture ephemeral constant-memory model integrity before load
+        if: ${{ inputs['integrity-manifest'] == '' }}
+        run: |
+          python3 -m vllm_apple model-integrity-create "$QWEN_MODEL" \
+            --output qualification-private/model-integrity-manifest.json
+      - name: Run text-only quality, phase, and 30-minute memory qualification
+        run: |
+          python3 -m vllm_apple qualify-model "$QWEN_MODEL" \
+            --backend-executable "$QWEN_BACKEND" \
+            --backend-kind "$QWEN_BACKEND_KIND" \
+            --mode text \
+            --max-model-len "$QWEN_MAX_MODEL_LEN" \
+            --duration 1800 \
+            --output qualification-results/qualification.json
+      - name: Verify the identical ephemeral model tree after qualification
+        if: ${{ inputs['integrity-manifest'] == '' }}
+        run: |
+          python3 -m vllm_apple model-integrity-verify "$QWEN_MODEL" \
+            --manifest qualification-private/model-integrity-manifest.json \
+            > /dev/null
+      - name: Reverify signed artifact provenance after qualification
+        if: ${{ inputs['integrity-manifest'] != '' }}
+        run: |
+          python3 -m vllm_apple model-integrity-verify "$QWEN_MODEL" \
+            --manifest "$QWEN_INTEGRITY_MANIFEST" \
+            --signature "$QWEN_INTEGRITY_SIGNATURE" \
+            --trusted-ca "$QWEN_INTEGRITY_TRUSTED_CA" \
+            --expected-signer-sha256 "$QWEN_INTEGRITY_SIGNER_SHA256" \
+            > /dev/null
+      - name: Recompute complete evidence with the Mac SDK
+        run: |
+          swift run --package-path sdk/swift VLLMAppleQualificationCheck \
+            qualification-results \
+            --require-phase-profile \
+            --require-quality-smoke \
+            --require-memory-fit \
+            --require-text-only \
+            --require-artifact-admission
+      - name: Build tamper-evident promotion bundle
+        run: |
+          python3 -m vllm_apple qualification-bundle \
+            --reports qualification-results \
+            --output qualification-results/promotion-bundle.json
+      - name: Restrict report permissions
+        if: always()
+        run: chmod -R go-rwx qualification-results qualification-private
+      - name: Upload qualification evidence
+        if: ${{ always() && inputs['upload-report'] }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: qwen-flash-next-text-qualification
+          path: qualification-results/*.json
+          if-no-files-found: error
+          retention-days: 14

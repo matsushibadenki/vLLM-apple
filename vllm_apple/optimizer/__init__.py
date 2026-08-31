@@ -23,6 +23,12 @@ from .checkpoint import (
     decide_resume,
     execution_fingerprint,
 )
+from .candidate_selection import (
+    CandidateComparisonReport,
+    CandidateEvidence,
+    CandidateRanking,
+    compare_candidates,
+)
 from .events import OptimizerEvent, OptimizerEventBus, OptimizerState
 from .evaluation import (
     PerplexityEvaluationReport,
@@ -74,6 +80,9 @@ __all__ = [
     "ArtifactValidationError",
     "CalibrationManifest",
     "CancellationToken",
+    "CandidateComparisonReport",
+    "CandidateEvidence",
+    "CandidateRanking",
     "CheckpointError",
     "CheckpointLease",
     "CheckpointLeaseError",
@@ -112,6 +121,7 @@ __all__ = [
     "build_dry_run_plan",
     "builtin_adapter_registry",
     "compare_perplexity_reports",
+    "compare_candidates",
     "compare_generation_reports",
     "decide_resume",
     "execution_fingerprint",

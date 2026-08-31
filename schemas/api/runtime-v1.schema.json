@@ -23,6 +23,7 @@
     "context_reevaluation",
     "kv_calibration",
     "native_v2_tuning",
+    "startup_progress",
     "execution_plan",
     "last_error",
     "failure"
@@ -56,6 +57,19 @@
         "message_key": {"type": "string", "minLength": 1, "maxLength": 128},
         "recoverability": {"enum": ["retryable", "user_action_required", "fatal"]},
         "detail_fingerprint": {"type": "string", "minLength": 24, "maxLength": 24}
+      },
+      "additionalProperties": false
+    },
+    "startup_progress": {
+      "type": "object",
+      "required": ["schema_version", "stage", "completed_units", "total_units", "message_key", "percent"],
+      "properties": {
+        "schema_version": {"const": 1},
+        "stage": {"enum": ["initializing", "profiling", "loading_model", "ready", "degraded", "failed", "stopping", "stopped"]},
+        "completed_units": {"type": "integer", "minimum": 0, "maximum": 1000},
+        "total_units": {"type": "integer", "minimum": 1, "maximum": 1000},
+        "message_key": {"type": "string", "minLength": 1, "maxLength": 128},
+        "percent": {"type": "integer", "minimum": 0, "maximum": 100}
       },
       "additionalProperties": false
     },

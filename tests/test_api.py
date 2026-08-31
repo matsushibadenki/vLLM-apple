@@ -49,7 +49,11 @@ class APITests(unittest.TestCase):
         with urllib.request.urlopen(request, timeout=2) as response:
             json.load(response)
             self.assertEqual(response.headers["X-Request-ID"], "client-12345678")
-        record = self.server.request_log.records()[-1]
+        record = next(
+            record
+            for record in reversed(self.server.request_log.records())
+            if record.request_id == "client-12345678"
+        )
         self.assertEqual(record.request_id, "client-12345678")
         self.assertEqual(record.route, "/health")
         self.assertNotIn("secret", json.dumps(record.to_dict()))

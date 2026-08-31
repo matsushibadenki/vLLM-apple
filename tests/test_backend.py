@@ -94,6 +94,20 @@ class FakeVLLMHandler(BaseHTTPRequestHandler):
 
 
 class BackendConfigTests(unittest.TestCase):
+    def test_factory_preserves_explicit_mlx_backend_kind(self) -> None:
+        from vllm_apple.backend import make_backend_config
+
+        config = make_backend_config(
+            "/models/gemma",
+            "/bin/echo",
+            8123,
+            None,
+            30,
+            backend_kind="mlx_lm",
+        )
+        self.assertEqual(config.backend_kind, "mlx_lm")
+        self.assertEqual(config.command()[1:3], ["--model", "/models/gemma"])
+
     def test_mlx_server_command_uses_its_native_cli_contract(self) -> None:
         config = BackendConfig(
             model="/models/gemma",

@@ -95,6 +95,7 @@ from .semantic_state import (
     SemanticStateBackend,
     SemanticStateCoordinator,
 )
+from .mlx_semantic_state import MLXPromptCacheStateAdapter
 from .shape_benchmark import (
     MetalShapeBenchmark,
     default_metal_shape_benchmark_path,
@@ -177,6 +178,7 @@ __all__ = [
     "MetalTuningReport",
     "MemoryBudgetComponent",
     "MemoryBudgetSnapshot",
+    "MLXPromptCacheStateAdapter",
     "ModelKernelShapeProfile",
     "NativeMLXProbeAdapter",
     "NativeMetalProbeAdapter",

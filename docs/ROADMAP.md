@@ -1,6 +1,6 @@
 # vLLM-Apple Runtime Roadmap
 
-最終更新：2026-08-28
+最終更新：2026-08-30
 
 本ロードマップは、[Design-Specifications.md](Design-Specifications.md)を実装可能な単位へ分解し、現在のコードベースに対する進捗を示す。
 
@@ -14,12 +14,13 @@
 
 ## 現在地
 
-Phase 1のcontrol plane、メモリ安全性基盤、Macアプリ向けSwift SDK foundation、
-3言語対応の最小macOS SwiftUI chat sampleまで実装済み。
+Phase 1のcontrol plane、メモリ安全性基盤、AppleExecutionPlanner、StateMemorySpec、
+prefill/decode別profile、Swift SDK、3言語macOS sample、Gemma実modelの30分安定性まで実装済み。
 
-現在の最優先目標は、実modelを使ったend-to-end経路と長時間安定性を完成させつつ、
-control planeとexecution planeの境界を保った`AppleExecutionPlanner`、`StateMemorySpec`、
-prefill/decode別profileの基礎を実装することである。設計判断は
+2026-08-30のstatus監査で、後続実装と実機記録が存在した古い`[Next]` 10件を`[Done]`へ更新した。
+現在のactionableな`[Next]`表記は6件、重複参照をまとめた実作業は2件である。最優先は大容量Apple Siliconでの
+Qwen3.8-Flash-Next text-only qualificationと、専用runnerでのvLLM 0.28.x昇格試験である。
+設計判断は
 [Architecture-Decision-Apple-Execution.md](Architecture-Decision-Apple-Execution.md)に固定する。
 
 ```text
@@ -65,7 +66,7 @@ Graph / Memory Planner + Global Scheduler
 - `[Done]` `vm_stat`を利用した現在のavailable memory検出
 - `[Done]` memory pressureの基礎判定
 - `[Done]` 検出APIが利用できない場合の保守的fallback
-- `[Next]` GPU core数とSoC名の検出精度向上
+- `[Done]` GPU core数とSoC名の検出精度向上
 - `[Done]` framework allocator値とOS resident観測を分離するsource-aware二層memory telemetry（unknownはnull、latest値+monotonic peakのみを保持）
 - `[Done]` vLLM Prometheus adapterからの非同期自動sample投入（1秒poll、1 MiB/20,000行/4 KiB行上限、last-good保持）
 - `[Done]` IOGPU統計とMLX allocator adapterからの自動sample投入（backend内active/cache/peak、bounded ioreg、取得不能時null）
@@ -83,7 +84,7 @@ Graph / Memory Planner + Global Scheduler
 - `[Done]` 実model qualificationへcontext reduced判定とprivate/atomic report保存を統合
 - `[Done]` qualification reportのSwift typed decodeとMac app履歴表示（bounded、破損・oversize・symlink fail-soft）
 - `[Done]` self-hosted qualification成果物をMac SDKのbounded readerで再検証するCI gate
-- `[Next]` self-hosted Apple Silicon runnerで実model 30分qualification workflowを実行
+- `[Done]` self-hosted Apple Silicon runnerで実model 30分qualification workflowを実行
 - `[Later]` thermal stateとpower modeの検出
 
 ### Automatic context calculation
@@ -100,9 +101,9 @@ Graph / Memory Planner + Global Scheduler
 - `[Done]` model metadataからmodel max contextを検出
 - `[Done]` inspect不能時の4096 token保守的fallback
 - `[Done]` managed backendへのbalanced context自動適用
-- `[Next]` MLA、state-space、hybrid model固有のstate memory計算
-- `[Next]` 未cache Hugging Face model metadataの取得
-- `[Next]` model load前後でのcontext再評価
+- `[Done]` MLA latent KV、state-space recurrent/conv state、hybrid layer構成固有のstate memory計算
+- `[Done]` 未cache Hugging Face modelのweightを取得しないbounded metadata fetchとrevision binding
+- `[Done]` model load前後でのcontext再評価
 - `[Later]` workload履歴とthermal状態を用いた動的context調整
 
 ### Runtime profile
@@ -111,8 +112,8 @@ Graph / Memory Planner + Global Scheduler
 - `[Done]` versioned profile schema
 - `[Done]` private permissionによるprofile保存
 - `[Done]` `fsync`とatomic replaceによる破損防止
-- `[Next]` profile load、validation、migration
-- `[Next]` hardware/model別profile cache
+- `[Done]` profile load、validation、migration
+- `[Done]` hardware/model別profile cache
 - `[Later]` benchmark結果を含むprofile versioning
 
 ### Basic scheduler
@@ -122,10 +123,10 @@ Graph / Memory Planner + Global Scheduler
 - `[Done]` transient memoryのhard admission limit
 - `[Done]` thread-safe reservationとrelease
 - `[Done]` request priority model
-- `[Next]` queueingとpriority arbitration
-- `[Next]` cancellation時のreservation自動解放
-- `[Next]` backend failure時のMetal → MLX → CPU fallback
-- `[Next]` application threadからbackend command queueを隔離するglobal submission scheduler
+- `[Done]` queueingとpriority arbitration
+- `[Done]` cancellation時のreservation自動解放
+- `[Done]` backend failure時のMetal → MLX → CPU fallback
+- `[Done]` application threadからbackend command queueを隔離するglobal submission scheduler
 - `[Later]` prefill、decode、sampling、encoder別のoperator dispatch
 - `[Later]` Vision/Audio encoderのCore ML/ANE routingとGPU LLM pipeline連携
 - `[Later]` profiler実測値によるbackend選択
@@ -142,7 +143,7 @@ Metal向けに独立実装する。外部engineへのruntime依存は追加し�
 - `[Done]` daemon RuntimeServiceとbackend KV/recurrent state adapter contractの接続
 - `[Done]` capture/restore/release、stale state破棄、bounded release retry queue
 - `[Done]` semantic cache hit/miss/capture/eviction/release failure runtime metrics
-- `[Next]` vLLM-MetalまたはMLX backend固有のKV state capture/restore adapter
+- `[Done]` MLX prompt cache固有のopaque KV state capture/restore/release adapter
 - `[Done]` scheduler safe pointでのsemantic cache elastic memory再配分
 - `[Done]` Normal/Warning/Criticalによる1x/1/2x/1/8x budgetとNormal復元
 - `[Done]` active reservation中のbudget変更保留とpending適用event/metrics
@@ -174,7 +175,7 @@ Metal向けに独立実装する。外部engineへのruntime依存は追加し�
 - `[Done]` 4KiB単位でflushするSSE token streaming proxy
 - `[Done]` client切断時のupstream stream解放
 - `[Done]` backend terminate、timeout後killによるshutdown
-- `[Next]` 実modelを用いたvLLM-Metal互換性検証
+- `[Done]` 実modelを用いたvLLM-Metal互換性検証
 - `[Done]` graceful request drainを伴うshutdown
 - `[Done]` Unix Domain Socket HTTP transport
 - `[Done]` UDS pathのowner/type検証と0600 permission
@@ -196,8 +197,8 @@ Metal向けに独立実装する。外部engineへのruntime依存は追加し�
 - `[Done]` managed backend port、startup timeout、max model context options
 - `[Done]` `doctor` command
 - `[Done]` UDS、session token、session token file options
-- `[Next]` automatic model inspectionとrecommended configuration表示
-- `[Next]` structured startup progress
+- `[Done]` automatic model inspectionとrecommended configuration表示
+- `[Done]` structured startup progress
 - `[Later]` daemon install、start、stop、status command
 
 ### Swift SDK and Mac app integration
@@ -231,7 +232,7 @@ Metal向けに独立実装する。外部engineへのruntime依存は追加し�
 - `[Done]` 最小SwiftUI Mac chat sample
 - `[Done]` sample transcript 200件、prompt 32Ki文字、response 128Ki文字の上限
 - `[Done]` sampleのbounded conversation contextとstream cancellation
-- `[Next]` Xcode app targetへのdaemon bundle組み込みsample
+- `[Done]` Xcode app target、Swift package、3言語resource、検証付きdaemon bundle build phase sample
 - `[Later]` Objective-C adapter
 - `[Later]` notarizationとApp Sandbox統合sample
 
@@ -272,7 +273,7 @@ Metal向けに独立実装する。外部engineへのruntime依存は追加し�
 - `[Done]` compatible backendの起動、readiness、認定、shutdownを束ねる実model qualification CLI
 - `[Done]` greedy、seed付きsampling、SSE完了を束ねる昇格probe
 - `[Done]` sampling再現性とstream/non-stream digest一致のfail-closed gate
-- `[Next]` 実modelで30分以上のlong-running memory stability test
+- `[Done]` 実modelで30分以上のlong-running memory stability test
 - `[Done]` daemon SIGKILL後のstale UDS replacementとtoken/auth recovery test
 - `[Done]` daemon relaunch後のSIGTERM cleanupと残留process確認
 - `[Later]` real-model correctness regression suite
@@ -281,13 +282,13 @@ Metal向けに独立実装する。外部engineへのruntime依存は追加し�
 
 Phase 1を完了とする条件：
 
-- `[Next]` `vllm-apple serve <model>` だけで実際の対応modelを起動できることを検証する
-- `[Next]` OpenAI互換のnon-streaming/streaming chatが実modelで成功する
-- `[Next]` Swift sample appからdaemon起動、model load、streaming chat、shutdownが成功する
-- `[Next]` modelに応じた安全なcontextが自動設定される
-- `[Next]` memory pressure時に新規workloadを抑制し、daemonが異常終了しない
+- `[Done]` `vllm-apple serve <model>` だけで実際の対応modelを起動できることを検証する
+- `[Done]` OpenAI互換のnon-streaming/streaming chatが実modelで成功する
+- `[Done]` Swift ManagedRuntimeからGemma 2 2B IT 4-bitのMLX load、UDS streaming chat、shutdown実model E2E
+- `[Done]` modelに応じた安全なcontextが自動設定される
+- `[Done]` memory pressure時に新規workloadを抑制し、daemonが異常終了しない
 - `[Done]` backend errorが構造化され、Swift側で復旧可能性を判定できる
-- `[Next]` Python、Swift、end-to-end testが継続的に成功する
+- `[Done]` Python、Swift、end-to-end testが継続的に成功する
 
 ## Model Optimization Compiler — Companion Track
 
@@ -375,7 +376,7 @@ VLLMAppleKit / Control API
 - `[Done]` tokenizer準拠retrieval datasetと実backend measurement adapter
 - `[Done]` `/tokenize`によるbounded長さ調整とSSE境界をまたぐretrieval検証
 - `[Done]` perplexity、latency、RSSのbaseline比較
-- `[Next]` task score、artifact sizeを含むcandidate比較
+- `[Done]` quality gate通過を必須とし、task score、artifact size、throughput、peak RSSで決定的に順位付けするbounded candidate比較
 - `[Done]` 未評価能力とquality regressionを明示するrelease gate
 
 ### O3 — Weight and structural optimization
@@ -542,6 +543,10 @@ vLLM-Metal対応とは見なさない。
 - `[Done]` self-hosted qualification workflowのbackend起動前artifact admission evidence
 - `[Done]` artifact admission evidenceのSwift typed decodeとbounded CI再検証
 - `[Done]` admission evidenceとqualification modelの識別子binding
+- `[Done]` admissionとqualification memory-fitのartifact/resident byte binding
+- `[Done]` large-memory runner、exact artifact/resident bytes、text-only、30分、Swift証跡再計算を固定したQwen専用qualification workflow
+- `[Done]` Qwen認定前後のmodel tree streaming SHA-256再検証（constant-memory、private manifest、report非公開）
+- `[Done]` Qwen認定での任意CMS provenance mode（trusted CA・signer identity・load前後署名再検証）
 - `[Next]` 大容量Apple Siliconでtext-only smoke、TTFT、TPOT、RSS、品質gate
 - `[Later]` backend実測後にのみQSA、GDN、MoE、N-gram向けNative Metal/MLXを検討
 
@@ -719,7 +724,7 @@ vLLM-Metal対応とは見なさない。
 - `[Done]` profile fileのprivate permission
 - `[Done]` UDS permissionとsession authentication
 - `[Done]` model tree全regular fileのstreaming SHA-256 manifest生成・起動前検証（symlink/special file拒否、変更検出、bounded走査）
-- `[Next]` trusted manifestの署名と配布元identity検証
+- `[Done]` detached CMS trusted manifest署名、trusted CA chain、signer SHA-256 identityのmodel load前検証
 - `[Later]` remote TLS、API key、client identity
 
 ### Observability
@@ -742,6 +747,17 @@ vLLM-Metal対応とは見なさない。
 - `[Done]` supported Python、vLLM、vLLM-Metal、Transformers version matrix
 - `[Done]` current platform module/classとCPU fallbackの起動前検出
 - `[Done]` sampling・streaming昇格probeと30分qualification前段統合
+- `[Done]` 未昇格versionを通常matrixから分離し、exact version照合・Metal platform・30分証跡を必須化するcandidate stack昇格workflow
+- `[Done]` qualification reportへのbackend stack version結合とSwift側の昇格証跡必須gate
+- `[Done]` Swift checkerでの期待candidate stack三version完全一致再検証
+- `[Done]` vLLM candidate昇格modelの前後integrity・任意CMS provenance再検証
+- `[Done]` 認定証跡を再検証しmodel IDをSHA-256化する決定論的promotion bundle
+- `[Done]` promotion bundleのdetached CMS署名とCA chain・signer identity・元証跡一括検証
+- `[Done]` Swift SDKのpromotion bundle typed decode・CryptoKit SHA-256・bundle ID再計算
+- `[Done]` Mac sampleの認定directory自動検出と三言語promotion verified表示
+- `[Done]` Mac directory pickerからのprivate staging・copy後再検証・bundle ID atomic import
+- `[Done]` macOS Security frameworkによるdetached CMS・custom CA trust・signer SHA-256 native検証
+- `[Done]` Mac importerの署名必須modeとhash-only／trusted-signature三言語状態分離
 - `[Next]` vLLM 0.28.x / Transformers 5.15.x実環境での昇格試験
 - `[Done]` Python 3.12既定値とdevelopment dependency lock
 - `[Done]` MakefileによるPython／Swift一括check
@@ -913,8 +929,9 @@ vLLM-Metal対応とは見なさない。
 101. `[Done]` self-hosted認定へのartifact/resident対入力とload前fail-closed gate統合
 102. `[Done]` Swift SDKでのartifact admission evidence再計算とCI必須gate
 103. `[Done]` model-bound admission evidenceによる別候補report replay防止
-104. `[Next]` 大容量Apple SiliconでQwen text-only実model qualification
-105. `[Later]` Mac companion app
+104. `[Done]` 同名別量子化artifact間のadmission evidence replay防止
+105. `[Next]` 大容量Apple SiliconでQwen text-only実model qualification
+106. `[Later]` Mac companion app
 
 この順序により、まず推論runtimeの実model安定性を確立し、その境界を壊さずにoptimizerを
 別processとして追加する。構造pruningはquantization、calibration、評価gateの後に着手する。

@@ -12,6 +12,17 @@ import Testing
     #expect(entries.map(\.message) == ["two", "three"])
 }
 
+@Test func managedRuntimeRejectsArgumentsThatOverrideTransportOwnership() throws {
+    for argument in ["--host", "--port=9000", "--socket-path", "--session-token=unsafe"] {
+        #expect(throws: ManagedRuntimeError.invalidDaemonArguments) {
+            try ManagedRuntime(
+                executableURL: URL(fileURLWithPath: "/bin/echo"),
+                daemonArguments: [argument]
+            )
+        }
+    }
+}
+
 @Test func managedRuntimeRestartsOnceAndReconnectsOverUnixSocket() async throws {
     let shortID = UUID().uuidString.prefix(8)
     let temporary = URL(fileURLWithPath: "/tmp/vla-\(shortID)", isDirectory: true)

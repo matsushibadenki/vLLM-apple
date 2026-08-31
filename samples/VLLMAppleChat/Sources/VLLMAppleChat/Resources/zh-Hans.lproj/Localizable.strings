@@ -31,6 +31,7 @@
 "runtime.error.events" = "运行时状态更新已停止。";
 "runtime.error.already_running" = "运行时已在运行。";
 "runtime.error.daemon_not_executable" = "守护进程不可执行。";
+"runtime.error.invalid_daemon_arguments" = "运行时启动配置无效。";
 "runtime.error.readiness_timed_out" = "运行时未能及时就绪。";
 "runtime.error.daemon_exited" = "运行时意外退出。";
 "runtime.error.invalid_session_token_file" = "会话令牌文件无效。";
@@ -55,6 +56,11 @@
 "calibration.applied.body" = "%lld字节/令牌・已验证至%lld个令牌";
 "qualification.passed" = "通过";
 "qualification.failed" = "未通过";
+"qualification.promotion_verified" = "证据哈希已验证";
+"qualification.signature_verified" = "可信签名已验证";
+"qualification.import.action" = "导入认证结果";
+"qualification.import.failed" = "无法验证并导入认证包。";
+"qualification.import.trust_invalid" = "升级信任配置不完整。";
 "qualification.metrics" = "TTFT %.1f 毫秒 · TPOT %.1f 毫秒 · %.1f token/秒";
 "sidebar.native_v2_tuning" = "Native v2优化";
 "native_v2.status.idle" = "可在需要时优化";
@@ -68,3 +74,11 @@
 "native_v2.action.retry" = "重试";
 "native_v2.action.restore" = "重新测量并恢复";
 "native_v2.quarantine.body" = "因就绪检查失败已隔离%lld个配置";
+"startup.initializing" = "正在准备本地运行时";
+"startup.profiling" = "正在检查此 Mac";
+"startup.loading_model" = "正在加载模型";
+"startup.ready" = "运行时已就绪";
+"startup.degraded" = "运行时已在受限推理模式下启动";
+"startup.failed" = "运行时启动失败";
+"startup.stopping" = "正在停止运行时";
+"startup.stopped" = "运行时已停止";

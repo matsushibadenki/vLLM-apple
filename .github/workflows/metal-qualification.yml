@@ -28,12 +28,12 @@ on:
         description: Optional maximum model context
         required: false
         type: string
-      artifact-size-gib:
-        description: Optional download size; pair with estimated-resident-gib
+      artifact-size-bytes:
+        description: Optional exact download size; pair with estimated-resident-bytes
         required: false
         type: string
-      estimated-resident-gib:
-        description: Optional peak resident estimate; pair with artifact-size-gib
+      estimated-resident-bytes:
+        description: Optional exact resident estimate; pair with artifact-size-bytes
         required: false
         type: string
       artifact-target:
@@ -64,8 +64,8 @@ jobs:
       QUALIFICATION_BACKEND_KIND: ${{ inputs['backend-kind'] }}
       QUALIFICATION_DURATION: ${{ inputs['duration-seconds'] }}
       QUALIFICATION_MAX_MODEL_LEN: ${{ inputs['max-model-len'] }}
-      QUALIFICATION_ARTIFACT_GIB: ${{ inputs['artifact-size-gib'] }}
-      QUALIFICATION_RESIDENT_GIB: ${{ inputs['estimated-resident-gib'] }}
+      QUALIFICATION_ARTIFACT_BYTES: ${{ inputs['artifact-size-bytes'] }}
+      QUALIFICATION_RESIDENT_BYTES: ${{ inputs['estimated-resident-bytes'] }}
       QUALIFICATION_ARTIFACT_TARGET: ${{ inputs['artifact-target'] }}
     steps:
       - uses: actions/checkout@v6
@@ -75,7 +75,7 @@ jobs:
       - name: Validate bounded numeric inputs
         run: |
           python3 - <<'PY'
-          import math, os
+          import os
           duration = int(os.environ["QUALIFICATION_DURATION"])
           if not 1800 <= duration <= 21600:
               raise SystemExit("duration-seconds must be between 1800 and 21600")
@@ -84,25 +84,25 @@ jobs:
               raise SystemExit("max-model-len must be between 1 and 1048576")
           if os.environ["QUALIFICATION_BACKEND_KIND"] not in {"vllm_metal", "mlx_lm"}:
               raise SystemExit("backend-kind is invalid")
-          artifact = os.environ.get("QUALIFICATION_ARTIFACT_GIB", "")
-          resident = os.environ.get("QUALIFICATION_RESIDENT_GIB", "")
+          artifact = os.environ.get("QUALIFICATION_ARTIFACT_BYTES", "")
+          resident = os.environ.get("QUALIFICATION_RESIDENT_BYTES", "")
           if bool(artifact) != bool(resident):
-              raise SystemExit("artifact-size-gib and estimated-resident-gib must be provided together")
-          for name, value in (("artifact-size-gib", artifact), ("estimated-resident-gib", resident)):
-              if value and (not math.isfinite(float(value)) or not 0 < float(value) <= 16384):
-                  raise SystemExit(f"{name} must be between 0 and 16384")
+              raise SystemExit("artifact-size-bytes and estimated-resident-bytes must be provided together")
+          for name, value in (("artifact-size-bytes", artifact), ("estimated-resident-bytes", resident)):
+              if value and not 0 < int(value) <= 16384 * 1024**3:
+                  raise SystemExit(f"{name} is outside the supported range")
           PY
       - name: Install dependency-free control plane
         run: python3 -m pip install -e .
       - name: Create private report directory
         run: install -d -m 700 qualification-results
       - name: Verify artifact memory and disk admission
-        if: ${{ inputs['artifact-size-gib'] != '' }}
+        if: ${{ inputs['artifact-size-bytes'] != '' }}
         run: |
           python3 -m vllm_apple artifact-admission \
             --model "$QUALIFICATION_MODEL" \
-            --artifact-gib "$QUALIFICATION_ARTIFACT_GIB" \
-            --resident-gib "$QUALIFICATION_RESIDENT_GIB" \
+            --artifact-bytes "$QUALIFICATION_ARTIFACT_BYTES" \
+            --resident-bytes "$QUALIFICATION_RESIDENT_BYTES" \
             --target "$QUALIFICATION_ARTIFACT_TARGET" \
             > qualification-results/artifact-admission.json
       - name: Verify Apple Silicon, memory pressure, and backend compatibility
@@ -127,7 +127,7 @@ jobs:
       - name: Verify report with the Mac SDK decoder
         run: |
           evidence=(--require-phase-profile --require-quality-smoke --require-memory-fit --require-text-only)
-          if [[ -n "$QUALIFICATION_ARTIFACT_GIB" ]]; then
+          if [[ -n "$QUALIFICATION_ARTIFACT_BYTES" ]]; then
             evidence+=(--require-artifact-admission)
           fi
           swift run --package-path sdk/swift \

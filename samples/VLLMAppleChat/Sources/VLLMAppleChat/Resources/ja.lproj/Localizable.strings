@@ -31,6 +31,7 @@
 "runtime.error.events" = "ランタイム状態の更新が停止しました。";
 "runtime.error.already_running" = "ランタイムはすでに実行中です。";
 "runtime.error.daemon_not_executable" = "デーモン実行ファイルを利用できません。";
+"runtime.error.invalid_daemon_arguments" = "ランタイムの起動構成が正しくありません。";
 "runtime.error.readiness_timed_out" = "ランタイムの起動が時間内に完了しませんでした。";
 "runtime.error.daemon_exited" = "ランタイムが予期せず終了しました。";
 "runtime.error.invalid_session_token_file" = "セッショントークンファイルが無効です。";
@@ -55,6 +56,11 @@
 "calibration.applied.body" = "%lld bytes/token・%lldトークンまで検証済み";
 "qualification.passed" = "合格";
 "qualification.failed" = "不合格";
+"qualification.promotion_verified" = "証跡hashを検証済み";
+"qualification.signature_verified" = "信頼済み署名を検証済み";
+"qualification.import.action" = "認定結果を読み込む";
+"qualification.import.failed" = "認定packageを検証して読み込めませんでした。";
+"qualification.import.trust_invalid" = "昇格用の信頼設定が不完全です。";
 "qualification.metrics" = "TTFT %.1f ms・TPOT %.1f ms・%.1f tok/s";
 "sidebar.native_v2_tuning" = "Native v2最適化";
 "native_v2.status.idle" = "必要時に最適化できます";
@@ -68,3 +74,11 @@
 "native_v2.action.retry" = "再試行";
 "native_v2.action.restore" = "再計測して復帰";
 "native_v2.quarantine.body" = "readiness失敗により%lld件のprofileを隔離済み";
+"startup.initializing" = "ローカルランタイムを準備しています";
+"startup.profiling" = "このMacを確認しています";
+"startup.loading_model" = "モデルを読み込んでいます";
+"startup.ready" = "ランタイムの準備ができました";
+"startup.degraded" = "推論機能を制限して起動しました";
+"startup.failed" = "ランタイムの起動に失敗しました";
+"startup.stopping" = "ランタイムを停止しています";
+"startup.stopped" = "ランタイムを停止しました";

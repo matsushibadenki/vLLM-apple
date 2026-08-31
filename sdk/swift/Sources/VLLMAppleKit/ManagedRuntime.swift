@@ -7,6 +7,7 @@ public enum ManagedRuntimeError: Error, Sendable, Equatable {
     case readinessTimedOut
     case daemonExited(Int32)
     case invalidSessionTokenFile
+    case invalidDaemonArguments
 
     public var messageKey: String {
         switch self {
@@ -15,6 +16,7 @@ public enum ManagedRuntimeError: Error, Sendable, Equatable {
         case .readinessTimedOut: "runtime.error.readiness_timed_out"
         case .daemonExited: "runtime.error.daemon_exited"
         case .invalidSessionTokenFile: "runtime.error.invalid_session_token_file"
+        case .invalidDaemonArguments: "runtime.error.invalid_daemon_arguments"
         }
     }
 }
@@ -70,6 +72,7 @@ public actor ManagedRuntime {
     private let socketPath: String?
     private let sessionTokenFileURL: URL?
     private let restartPolicy: RestartPolicy
+    private let daemonArguments: [String]
     private var process: Process?
     private var stdoutPipe: Pipe?
     private var stderrPipe: Pipe?
@@ -86,6 +89,7 @@ public actor ManagedRuntime {
         port: UInt16 = 8000,
         socketPath: String? = nil,
         sessionTokenFileURL: URL? = nil,
+        daemonArguments: [String] = [],
         restartPolicy: RestartPolicy = .never,
         logCapacity: Int = 400
     ) throws {
@@ -94,6 +98,15 @@ public actor ManagedRuntime {
         self.port = port
         self.socketPath = socketPath
         self.sessionTokenFileURL = sessionTokenFileURL
+        let reserved = ["--host", "--port", "--socket-path", "--session-token", "--session-token-file"]
+        guard !daemonArguments.contains(where: { argument in
+                  reserved.contains(where: { argument == $0 || argument.hasPrefix("\($0)=") })
+              }),
+              daemonArguments.count <= 64,
+              daemonArguments.allSatisfy({ !$0.isEmpty && $0.utf8.count <= 4_096 }) else {
+            throw ManagedRuntimeError.invalidDaemonArguments
+        }
+        self.daemonArguments = daemonArguments
         self.restartPolicy = restartPolicy
         self.logs = BoundedRuntimeLogBuffer(capacity: logCapacity)
 
@@ -161,6 +174,7 @@ public actor ManagedRuntime {
         if let sessionTokenFileURL {
             arguments.append(contentsOf: ["--session-token-file", sessionTokenFileURL.path])
         }
+        arguments.append(contentsOf: daemonArguments)
         process.arguments = arguments
         configureLogPipes(for: process)
         try process.run()

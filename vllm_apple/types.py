@@ -87,10 +87,12 @@ class ModelMemorySpec:
     model_max_context: int | None = None
 
     def __post_init__(self) -> None:
-        if self.weights_bytes < 0 or self.kv_bytes_per_token <= 0 or self.workspace_bytes < 0:
+        if self.weights_bytes < 0 or self.kv_bytes_per_token < 0 or self.workspace_bytes < 0:
             raise ValueError("invalid model memory specification")
         if self.model_max_context is not None and self.model_max_context <= 0:
             raise ValueError("model_max_context must be positive")
+        if self.kv_bytes_per_token == 0 and self.model_max_context is None:
+            raise ValueError("bounded-state models require model_max_context")
 
     def as_state_memory_spec(self) -> StateMemorySpec:
         """Return the generalized state model without changing the legacy API."""

@@ -11,6 +11,15 @@ public enum RuntimeState: String, Codable, Sendable {
     case stopping
 }
 
+public struct StartupProgress: Codable, Sendable, Equatable {
+    public let schemaVersion: Int
+    public let stage: String
+    public let completedUnits: Int
+    public let totalUnits: Int
+    public let messageKey: String
+    public let percent: Int
+}
+
 public enum MemoryPressure: String, Codable, Sendable {
     case normal
     case warning
@@ -349,12 +358,24 @@ public struct ArtifactAdmissionReport: Codable, Sendable, Equatable {
     public func isValidEvidence(forModel modelIdentifier: String) -> Bool {
         hasValidEvidence && model == modelIdentifier
     }
+
+    public func isValidEvidence(
+        forModel modelIdentifier: String,
+        memoryFit: QualificationModelMemoryFit?
+    ) -> Bool {
+        guard let memoryFit else { return false }
+        return isValidEvidence(forModel: modelIdentifier)
+            && artifactBytes == memoryFit.artifactBytes
+            && estimatedResidentBytes == memoryFit.estimatedResidentBytes
+            && memoryFit.fits
+    }
 }
 
 public struct QualificationReport: Codable, Sendable, Equatable {
     public let schemaVersion: Int
     public let model: String
     public let backend: String
+    public let backendVersions: QualificationBackendVersions?
     public let requestedModes: [String]?
     public let loadSeconds: Double
     public let shutdownClean: Bool
@@ -401,6 +422,55 @@ public struct QualificationReport: Codable, Sendable, Equatable {
             && quality.checks.values.allSatisfy { $0 }
             && !quality.storesGeneratedText
             && quality.passed
+    }
+
+    public var hasValidVLLMStackEvidence: Bool {
+        guard backend == "vllm_metal", let versions = backendVersions else { return false }
+        return versions.vllm?.isBoundedVersion == true
+            && versions.vllmMetal?.isBoundedVersion == true
+            && versions.transformers?.isBoundedVersion == true
+    }
+
+    public func hasVLLMStackEvidence(
+        vllm expectedVLLM: String,
+        vllmMetal expectedVLLMMetal: String,
+        transformers expectedTransformers: String
+    ) -> Bool {
+        guard hasValidVLLMStackEvidence,
+              expectedVLLM.isBoundedVersion,
+              expectedVLLMMetal.isBoundedVersion,
+              expectedTransformers.isBoundedVersion else { return false }
+        return backendVersions?.vllm == expectedVLLM
+            && backendVersions?.vllmMetal == expectedVLLMMetal
+            && backendVersions?.transformers == expectedTransformers
+    }
+}
+
+public struct QualificationBackendVersions: Codable, Sendable, Equatable {
+    public let vllm: String?
+    public let vllmMetal: String?
+    public let transformers: String?
+    public let mlxLm: String?
+}
+
+public struct QualificationPromotionBundle: Codable, Sendable, Equatable {
+    public let schemaVersion: Int
+    public let bundleId: String
+    public let modelSha256: String
+    public let backend: String
+    public let requestedModes: [String]
+    public let backendVersions: QualificationBackendVersions?
+    public let evidenceSha256: [String: String]
+    public let passed: Bool
+
+    public var bundleID: String { bundleId }
+    public var modelSHA256: String { modelSha256 }
+}
+
+private extension String {
+    var isBoundedVersion: Bool {
+        !isEmpty && utf8.count <= 128
+            && unicodeScalars.allSatisfy { !CharacterSet.controlCharacters.contains($0) }
     }
 }
 
@@ -512,6 +582,20 @@ public struct RuntimeEvent: Codable, Sendable, Equatable {
 }
 
 public extension RuntimeEvent {
+    var startupProgress: StartupProgress? {
+        let decoder = JSONDecoder()
+        decoder.keyDecodingStrategy = .convertFromSnakeCase
+        guard type == "runtime.startup_progress",
+              let data = try? JSONEncoder().encode(payload),
+              let progress = try? decoder.decode(StartupProgress.self, from: data),
+              progress.schemaVersion == 1,
+              progress.totalUnits > 0,
+              (0...progress.totalUnits).contains(progress.completedUnits),
+              (0...100).contains(progress.percent)
+        else { return nil }
+        return progress
+    }
+
     var nativeV2Tuning: NativeV2TuningState? {
         guard type == "runtime.native_v2_tuning",
               case .string(let statusValue)? = payload["status"],

@@ -481,6 +481,80 @@ def _kv_dtype_bytes(config: dict[str, Any]) -> int:
     return 2
 
 
+def _bounded_positive_config_int(
+    config: dict[str, Any], name: str, maximum: int = 16_777_216
+) -> int:
+    value = config.get(name)
+    if (
+        not isinstance(value, int)
+        or isinstance(value, bool)
+        or not 1 <= value <= maximum
+    ):
+        raise ModelInspectionError(f"{name} must be a bounded positive integer")
+    return value
+
+
+def _state_layer_counts(config: dict[str, Any], layers: int) -> tuple[int, int]:
+    layer_types = config.get("layer_types")
+    if layer_types is None:
+        return 0, layers
+    if not isinstance(layer_types, list) or len(layer_types) != layers:
+        raise ModelInspectionError("hybrid layer_types must match num_hidden_layers")
+    attention = 0
+    recurrent = 0
+    for layer_type in layer_types:
+        if not isinstance(layer_type, str):
+            raise ModelInspectionError("hybrid layer type must be a string")
+        normalized = layer_type.lower()
+        if normalized in {"mamba", "ssm", "state_space", "linear_attention"}:
+            recurrent += 1
+        elif "attention" in normalized:
+            attention += 1
+        else:
+            raise ModelInspectionError(f"unsupported hybrid layer type: {layer_type}")
+    return attention, recurrent
+
+
+def _recurrent_state_bytes(config: dict[str, Any], recurrent_layers: int) -> int:
+    if recurrent_layers == 0:
+        return 0
+    raw_intermediate = config.get("intermediate_size")
+    if isinstance(raw_intermediate, int) and not isinstance(raw_intermediate, bool):
+        intermediate = _bounded_positive_config_int(config, "intermediate_size")
+    else:
+        hidden = _bounded_positive_config_int(config, "hidden_size")
+        expand = _bounded_positive_config_int(config, "expand", 64)
+        intermediate = hidden * expand
+        if intermediate > 16_777_216:
+            raise ModelInspectionError("derived state-space intermediate size is too large")
+    state_size = _bounded_positive_config_int(config, "state_size", 65_536)
+    convolution_kernel = _bounded_positive_config_int(config, "conv_kernel", 4_096)
+    dtype = str(config.get("ssm_state_dtype") or config.get("mamba_ssm_dtype") or "float32")
+    dtype_bytes = {
+        "float32": 4,
+        "fp32": 4,
+        "float16": 2,
+        "fp16": 2,
+        "bfloat16": 2,
+        "bf16": 2,
+    }.get(dtype.lower())
+    if dtype_bytes is None:
+        raise ModelInspectionError("state-space state dtype is unsupported")
+    convolution_channels = intermediate
+    groups = config.get("n_groups")
+    if groups is not None:
+        group_count = _bounded_positive_config_int(config, "n_groups", 65_536)
+        convolution_channels += 2 * group_count * state_size
+    elements_per_layer = intermediate * state_size + convolution_channels * convolution_kernel
+    return recurrent_layers * elements_per_layer * dtype_bytes
+
+
+def _mla_bytes_per_token(config: dict[str, Any], attention_layers: int, dtype_bytes: int) -> int:
+    latent_rank = _bounded_positive_config_int(config, "kv_lora_rank", 65_536)
+    rope_dimension = _bounded_positive_config_int(config, "qk_rope_head_dim", 65_536)
+    return attention_layers * (latent_rank + rope_dimension) * dtype_bytes
+
+
 def _weight_bytes(path: Path) -> int:
     total = 0
     seen_files: set[tuple[int, int]] = set()
@@ -519,23 +593,61 @@ def inspect_model(
     if not isinstance(shape_config, dict):
         raise ModelInspectionError("model text_config must be an object")
     layers = _positive_config_int(shape_config, "num_hidden_layers", "n_layer")
-    attention_heads = _positive_config_int(shape_config, "num_attention_heads", "n_head")
-    kv_heads_value = shape_config.get("num_key_value_heads", attention_heads)
-    if not isinstance(kv_heads_value, int) or isinstance(kv_heads_value, bool) or kv_heads_value <= 0:
-        raise ModelInspectionError("num_key_value_heads must be positive")
-    head_dim_value = shape_config.get("head_dim")
-    if isinstance(head_dim_value, int) and not isinstance(head_dim_value, bool) and head_dim_value > 0:
-        head_dim = head_dim_value
-    else:
-        hidden_size = _positive_config_int(
-            shape_config, "hidden_size", "n_embd", "d_model"
-        )
-        if hidden_size % attention_heads:
-            raise ModelInspectionError("hidden_size is not divisible by num_attention_heads")
-        head_dim = hidden_size // attention_heads
-
     dtype_bytes = _kv_dtype_bytes(shape_config)
-    kv_bytes_per_token = 2 * layers * kv_heads_value * head_dim * dtype_bytes
+    max_context = None
+    for key in ("max_position_embeddings", "model_max_length", "n_positions", "seq_length"):
+        value = shape_config.get(key)
+        if isinstance(value, int) and not isinstance(value, bool) and value > 0:
+            max_context = value
+            break
+
+    recurrent_state_bytes = 0
+    derived_architecture = architecture_capability.architecture
+    has_state_space = "state_size" in shape_config and "conv_kernel" in shape_config and (
+        "intermediate_size" in shape_config
+        or ("hidden_size" in shape_config and "expand" in shape_config)
+    )
+    has_mla = "kv_lora_rank" in shape_config or "qk_rope_head_dim" in shape_config
+    attention_layers = layers
+    recurrent_layers = 0
+    if has_state_space:
+        attention_layers, recurrent_layers = _state_layer_counts(shape_config, layers)
+        recurrent_state_bytes = _recurrent_state_bytes(shape_config, recurrent_layers)
+        derived_architecture = "hybrid_state_space" if attention_layers else "state_space"
+
+    if has_mla:
+        if "kv_lora_rank" not in shape_config or "qk_rope_head_dim" not in shape_config:
+            raise ModelInspectionError("MLA latent cache metadata is incomplete")
+        kv_bytes_per_token = _mla_bytes_per_token(
+            shape_config, attention_layers, dtype_bytes
+        )
+        derived_architecture = "hybrid_mla_state_space" if recurrent_layers else "mla"
+    elif attention_layers:
+        attention_heads = _positive_config_int(shape_config, "num_attention_heads", "n_head")
+        kv_heads_value = shape_config.get("num_key_value_heads", attention_heads)
+        if (
+            not isinstance(kv_heads_value, int)
+            or isinstance(kv_heads_value, bool)
+            or kv_heads_value <= 0
+        ):
+            raise ModelInspectionError("num_key_value_heads must be positive")
+        head_dim_value = shape_config.get("head_dim")
+        if (
+            isinstance(head_dim_value, int)
+            and not isinstance(head_dim_value, bool)
+            and head_dim_value > 0
+        ):
+            head_dim = head_dim_value
+        else:
+            hidden_size = _positive_config_int(
+                shape_config, "hidden_size", "n_embd", "d_model"
+            )
+            if hidden_size % attention_heads:
+                raise ModelInspectionError("hidden_size is not divisible by num_attention_heads")
+            head_dim = hidden_size // attention_heads
+        kv_bytes_per_token = 2 * attention_layers * kv_heads_value * head_dim * dtype_bytes
+    else:
+        kv_bytes_per_token = 0
     sparse_index_bytes = 0
     sparse_retrieval_bytes = 0
     sparse_retrieval_tokens = None
@@ -546,12 +658,8 @@ def inspect_model(
             sparse_retrieval_bytes,
             sparse_retrieval_tokens,
         ) = qwen4_exp_sparse_state(config, dtype_bytes=dtype_bytes)
-    max_context = None
-    for key in ("max_position_embeddings", "model_max_length", "n_positions", "seq_length"):
-        value = shape_config.get(key)
-        if isinstance(value, int) and not isinstance(value, bool) and value > 0:
-            max_context = value
-            break
+    if kv_bytes_per_token == 0 and max_context is None:
+        raise ModelInspectionError("bounded state-space model requires a context limit")
 
     spec = ModelMemorySpec(
         model_id=normalized_model_id,
@@ -560,6 +668,15 @@ def inspect_model(
         model_max_context=max_context,
     )
     state_spec = spec.as_state_memory_spec()
+    if recurrent_state_bytes or has_mla:
+        state_spec = StateMemorySpec(
+            model_id=normalized_model_id,
+            architecture=derived_architecture,
+            weights_bytes=spec.weights_bytes,
+            kv_bytes_per_token=spec.kv_bytes_per_token,
+            recurrent_state_bytes=recurrent_state_bytes,
+            model_max_context=spec.model_max_context,
+        )
     if architecture_capability.architecture == "qwen4_exp":
         expert_storage_bytes, expert_working_set_bytes = qwen4_exp_expert_memory(config)
         ngram_storage_bytes, ngram_working_set_bytes = qwen4_exp_ngram_memory(config)

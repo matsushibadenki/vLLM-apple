@@ -1,0 +1,33 @@
+name: VLLMAppleChat
+options:
+  bundleIdPrefix: dev.vllm-apple
+  deploymentTarget:
+    macOS: "13.0"
+  createIntermediateGroups: true
+packages:
+  VLLMAppleKit:
+    path: ../../sdk/swift
+targets:
+  VLLMAppleChat:
+    type: application
+    platform: macOS
+    sources:
+      - path: ../VLLMAppleChat/Sources/VLLMAppleChat
+    dependencies:
+      - package: VLLMAppleKit
+        product: VLLMAppleKit
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: dev.vllm-apple.chat
+        PRODUCT_NAME: VLLMAppleChat
+        GENERATE_INFOPLIST_FILE: NO
+        INFOPLIST_FILE: Info.plist
+        CODE_SIGN_ENTITLEMENTS: VLLMAppleChat.entitlements
+        ENABLE_HARDENED_RUNTIME: YES
+        SWIFT_VERSION: "6.0"
+        MACOSX_DEPLOYMENT_TARGET: "13.0"
+    postBuildScripts:
+      - name: Embed vllm-appled
+        script: |
+          "${SRCROOT}/Scripts/embed-daemon.sh"
+        basedOnDependencyAnalysis: false

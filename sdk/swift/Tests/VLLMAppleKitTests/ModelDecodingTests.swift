@@ -42,6 +42,28 @@ import Testing
     #expect(event.payload["state"] == .string("ready"))
 }
 
+@Test func decodesStructuredStartupProgressEvent() throws {
+    let data = Data("""
+    {
+      "schema_version": 1,
+      "event_id": "45",
+      "type": "runtime.startup_progress",
+      "timestamp": "2026-08-30T00:00:00Z",
+      "payload": {
+        "schema_version": 1,
+        "stage": "loading_model",
+        "completed_units": 4,
+        "total_units": 6,
+        "message_key": "startup.loading_model",
+        "percent": 66
+      }
+    }
+    """.utf8)
+    let event = try JSONDecoder().decode(RuntimeEvent.self, from: data)
+    #expect(event.startupProgress?.stage == "loading_model")
+    #expect(event.startupProgress?.percent == 66)
+}
+
 @Test func runtimeFailureEventExposesRecoverability() throws {
     let data = Data("""
     {
@@ -172,6 +194,11 @@ import Testing
       "schema_version": 1,
       "model": "Qwen/example",
       "backend": "vllm_metal",
+      "backend_versions": {
+        "vllm": "0.28.0",
+        "vllm_metal": "0.3.0.dev1",
+        "transformers": "5.15.0"
+      },
       "requested_modes": ["text"],
       "load_seconds": 3.25,
       "shutdown_clean": true,
@@ -244,6 +271,18 @@ import Testing
     #expect(report.hasValidMemoryFitEvidence)
     #expect(report.hasValidQualityEvidence)
     #expect(report.requestedModes == ["text"])
+    #expect(report.backendVersions?.vllm == "0.28.0")
+    #expect(report.hasValidVLLMStackEvidence)
+    #expect(report.hasVLLMStackEvidence(
+        vllm: "0.28.0",
+        vllmMetal: "0.3.0.dev1",
+        transformers: "5.15.0"
+    ))
+    #expect(!report.hasVLLMStackEvidence(
+        vllm: "0.28.1",
+        vllmMetal: "0.3.0.dev1",
+        transformers: "5.15.0"
+    ))
     #expect(!report.passed)
 }
 
@@ -269,5 +308,21 @@ import Testing
     #expect(report.model == "Qwen/Qwen3.8-Flash-Next")
     #expect(report.isValidEvidence(forModel: "Qwen/Qwen3.8-Flash-Next"))
     #expect(!report.isValidEvidence(forModel: "Qwen/another-model"))
+    let matchingFit = QualificationModelMemoryFit(
+        artifactBytes: 112_742_891_520,
+        estimatedResidentBytes: 112_742_891_520,
+        hardCeilingBytes: 150_323_855_360,
+        contextTokens: 262_144,
+        fits: true
+    )
+    #expect(report.isValidEvidence(forModel: report.model, memoryFit: matchingFit))
+    let differentQuantization = QualificationModelMemoryFit(
+        artifactBytes: 70_000_000_000,
+        estimatedResidentBytes: 75_000_000_000,
+        hardCeilingBytes: 150_323_855_360,
+        contextTokens: 262_144,
+        fits: true
+    )
+    #expect(!report.isValidEvidence(forModel: report.model, memoryFit: differentQuantization))
     #expect(report.estimatedResidentBytes == 112_742_891_520)
 }

@@ -9,6 +9,10 @@ let package = Package(
         .executable(
             name: "VLLMAppleQualificationCheck",
             targets: ["VLLMAppleQualificationCheck"]
+        ),
+        .executable(
+            name: "VLLMAppleModelE2E",
+            targets: ["VLLMAppleModelE2E"]
         )
     ],
     targets: [
@@ -17,6 +21,7 @@ let package = Package(
             name: "VLLMAppleQualificationCheck",
             dependencies: ["VLLMAppleKit"]
         ),
+        .executableTarget(name: "VLLMAppleModelE2E", dependencies: ["VLLMAppleKit"]),
         .testTarget(name: "VLLMAppleKitTests", dependencies: ["VLLMAppleKit"])
     ]
 )

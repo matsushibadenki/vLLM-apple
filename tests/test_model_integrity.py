@@ -1,5 +1,6 @@
 import json
 import os
+import subprocess
 import tempfile
 import unittest
 from contextlib import redirect_stdout
@@ -11,12 +12,67 @@ from vllm_apple.model_integrity import (
     ModelIntegrityError,
     build_model_integrity_manifest,
     save_model_integrity_manifest,
+    sign_model_integrity_manifest,
     verify_model_integrity,
+    verify_signed_model_integrity,
 )
 from vllm_apple.cli import main
 
 
 class ModelIntegrityTests(unittest.TestCase):
+    def test_cms_signature_requires_trusted_chain_and_expected_signer_identity(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory) / "model"
+            root.mkdir()
+            (root / "config.json").write_text("{}")
+            manifest = Path(directory) / "manifest.json"
+            save_model_integrity_manifest(build_model_integrity_manifest(root), manifest)
+            key = Path(directory) / "signer.key"
+            certificate = Path(directory) / "signer.pem"
+            subprocess.run(
+                [
+                    "/usr/bin/openssl", "req", "-x509", "-newkey", "rsa:2048", "-nodes",
+                    "-keyout", str(key), "-out", str(certificate), "-days", "1",
+                    "-subj", "/CN=vLLM-Apple Test Signer",
+                ],
+                check=True,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+            )
+            key.chmod(0o600)
+            fingerprint_output = subprocess.run(
+                [
+                    "/usr/bin/openssl", "x509", "-in", str(certificate), "-noout",
+                    "-fingerprint", "-sha256",
+                ],
+                check=True,
+                capture_output=True,
+                text=True,
+            ).stdout
+            fingerprint = fingerprint_output.strip().split("=", 1)[1].replace(":", "")
+            signature = Path(directory) / "manifest.cms"
+            sign_model_integrity_manifest(manifest, certificate, key, signature)
+            verified = verify_signed_model_integrity(
+                root, manifest, signature, certificate, fingerprint
+            )
+            self.assertEqual(verified["file_count"], 1)
+            self.assertEqual(signature.stat().st_mode & 0o777, 0o600)
+            with self.assertRaisesRegex(ModelIntegrityError, "identity"):
+                verify_signed_model_integrity(
+                    root, manifest, signature, certificate, "0" * 64
+                )
+            linked_signature = Path(directory) / "linked.cms"
+            linked_signature.symlink_to(signature)
+            with self.assertRaisesRegex(ModelIntegrityError, "symbolic link"):
+                verify_signed_model_integrity(
+                    root, manifest, linked_signature, certificate, fingerprint
+                )
+            manifest.write_text("{}")
+            with self.assertRaisesRegex(ModelIntegrityError, "CMS manifest verification"):
+                verify_signed_model_integrity(
+                    root, manifest, signature, certificate, fingerprint
+                )
+
     def test_cli_create_and_verify_round_trip(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory) / "model"

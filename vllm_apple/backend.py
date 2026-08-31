@@ -515,6 +515,7 @@ def make_backend_config(
     max_model_len: int | None,
     startup_timeout: float,
     enable_kernel_tuning_middleware: bool = False,
+    backend_kind: str = "vllm_metal",
 ) -> BackendConfig:
     resolved = resolve_vllm_executable(executable)
     if resolved is None:
@@ -528,4 +529,5 @@ def make_backend_config(
         max_model_len=max_model_len,
         startup_timeout=startup_timeout,
         enable_kernel_tuning_middleware=enable_kernel_tuning_middleware,
+        backend_kind=backend_kind,
     )

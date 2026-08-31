@@ -179,6 +179,44 @@ def assess_backend_versions(
     return tuple(issues)
 
 
+def assess_candidate_backend(
+    backend: BackendCompatibility,
+    *,
+    expected_vllm: str,
+    expected_vllm_metal: str,
+    expected_transformers: str,
+) -> tuple[str, ...]:
+    """Fail closed while permitting an exact, not-yet-promoted stack."""
+    expected = {
+        "vllm": expected_vllm,
+        "vllm_metal": expected_vllm_metal,
+        "transformers": expected_transformers,
+    }
+    actual = {
+        "vllm": backend.vllm_version,
+        "vllm_metal": backend.vllm_metal_version,
+        "transformers": backend.transformers_version,
+    }
+    issues = [
+        issue
+        for issue in backend.issues
+        if issue
+        not in {
+            "vllm_version_outside_verified_matrix",
+            "vllm_metal_version_outside_verified_matrix",
+            "transformers_version_outside_verified_matrix",
+        }
+    ]
+    for name, expected_version in expected.items():
+        parsed_expected = _release_tuple(expected_version)
+        parsed_actual = _release_tuple(actual[name])
+        if parsed_expected is None:
+            issues.append(f"expected_{name}_version_unparseable")
+        elif parsed_actual != parsed_expected:
+            issues.append(f"{name}_candidate_version_mismatch")
+    return tuple(issues)
+
+
 def assess_platform_selection(
     *,
     platform_module: str | None,
