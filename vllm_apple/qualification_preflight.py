@@ -12,7 +12,12 @@ from .compat import (
     assess_candidate_backend,
 )
 from .hardware import detect_hardware
-from .model import ModelInspectionError, assess_model_memory_fit, inspect_model
+from .model import (
+    ModelInspectionError,
+    assess_model_memory_fit,
+    inspect_model,
+    inspect_model_metadata,
+)
 from .types import HardwareInfo, MemoryPressure
 
 QUALIFICATION_PREFLIGHT_SCHEMA_VERSION = 1
@@ -63,6 +68,7 @@ def run_qualification_preflight(
     | None = None,
     candidate_versions: tuple[str, str, str] | None = None,
     model: str | None = None,
+    model_metadata: str | Path | None = None,
     max_model_len: int | None = None,
     requested_modes: tuple[str, ...] = ("text",),
 ) -> QualificationPreflight:
@@ -93,7 +99,52 @@ def run_qualification_preflight(
             )
     if backend_issues:
         issues.extend(f"backend:{issue}" for issue in backend_issues)
+    if model is not None and model_metadata is not None:
+        raise ValueError("model and model metadata are mutually exclusive")
     model_evidence: dict[str, object] | None = None
+    if model_metadata is not None:
+        try:
+            if not requested_modes or len(set(requested_modes)) != len(requested_modes):
+                raise ValueError("requested modes are invalid")
+            if any(mode not in {"text", "vision", "mtp", "yarn"} for mode in requested_modes):
+                raise ValueError("requested modes are invalid")
+            if max_model_len is not None and not 1 <= max_model_len <= 16_777_216:
+                raise ValueError("maximum model length is outside the supported range")
+            _, capability = inspect_model_metadata(model_metadata)
+            unsupported_modes = set(requested_modes) - set(capability.modes)
+            if unsupported_modes:
+                issues.append("model:missing_requested_modes:" + ",".join(sorted(unsupported_modes)))
+            optional_features = {
+                "vision_encoder": "vision",
+                "multi_token_prediction": "mtp",
+                "yarn_extended_context": "yarn",
+            }
+            required_features = tuple(
+                feature
+                for feature in capability.required_features
+                if feature not in optional_features
+                or optional_features[feature] in requested_modes
+            )
+            missing_features = tuple(
+                feature
+                for feature in required_features
+                if feature not in frozenset(backend.architecture_features)
+            )
+            if missing_features:
+                issues.append("backend:missing_model_features:" + ",".join(missing_features))
+            model_evidence = {
+                "identifier": str(model_metadata),
+                "architecture": capability.architecture,
+                "requested_modes": list(requested_modes),
+                "required_features": list(required_features),
+                "missing_features": list(missing_features),
+                "context_tokens": max_model_len or capability.native_context_tokens or 4096,
+                "metadata_only": True,
+                "memory_fit_evaluated": False,
+            }
+        except (ModelInspectionError, OSError, ValueError):
+            issues.append("model:metadata_inspection_failed")
+            model_evidence = {"identifier": str(model_metadata), "status": "invalid"}
     if model is not None:
         try:
             if not requested_modes or len(set(requested_modes)) != len(requested_modes):

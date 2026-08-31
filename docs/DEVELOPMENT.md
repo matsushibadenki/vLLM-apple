@@ -176,6 +176,33 @@ PRやpushからは起動せず、同時に複数の実modelを走らせない。
 含むため公開可能性を確認してからuploadする。
 # Qwen3.8-Flash-Next text-only qualification
 
+実weightを配置する前は、取得済みの`config.json`だけを使ってbackendのarchitecture featureを
+fail-closedで照合できる。metadata-only判定はartifact容量とresident memoryを評価済みとは扱わない。
+
+```bash
+python3 -m vllm_apple qualification-preflight \
+  --backend-executable /path/to/venv/bin/mlx_lm.server \
+  --backend-kind mlx_lm \
+  --model-metadata models/qwen3.8-flash-next-metadata \
+  --mode text
+```
+
+`backend:missing_model_features`が残る間はweightをdownloadしない。実weight配置後の認定では従来どおり
+`--model`を使用し、memory fitとartifact admissionを必須にする。`--model`と`--model-metadata`は同時に
+指定できない。
+
+更新したMLX LMにQwen4実装候補が含まれるかは、backendをimportせずMetal deviceやmodel bufferを確保しない
+静的readiness監査で確認する。
+
+```bash
+python3 -m vllm_apple mlx-qwen4-readiness \
+  --backend-executable /path/to/venv/bin/mlx_lm.server
+```
+
+この監査は再利用可能なGated DeltaNet、MoE、N-gram componentと、不足するQSA、Gated Residual、Qwen4 model
+登録を分離して報告する。componentが見つかってもbackend capabilityを自動表明せず、`ready=true`だけでも
+実weight qualificationの代用にはしない。
+
 大容量Apple Silicon runnerには`self-hosted`、`macOS`、`ARM64`、`vllm-metal`に加えて
 `large-memory` labelを設定する。GitHub Actionsの
 `Qwen Flash Next text-only qualification`を手動実行し、runner上のlocal model path、backend

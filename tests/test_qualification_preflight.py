@@ -1,4 +1,5 @@
 import json
+import tempfile
 import unittest
 from dataclasses import replace
 from pathlib import Path
@@ -45,6 +46,49 @@ def hardware(*, apple=True, pressure=MemoryPressure.NORMAL):
 
 
 class QualificationPreflightTests(unittest.TestCase):
+    def test_metadata_only_preflight_rejects_missing_backend_features(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "config.json").write_text(
+                json.dumps(
+                    {
+                        "model_type": "qwen4_exp",
+                        "language_model_only": True,
+                        "text_config": {
+                            "model_type": "qwen4_exp_text",
+                            "max_position_embeddings": 262144,
+                            "mtp_num_hidden_layers": 0,
+                        },
+                    }
+                ),
+                encoding="utf-8",
+            )
+            result = run_qualification_preflight(
+                Path("/venv/bin/mlx_lm.server"),
+                model_metadata=root,
+                max_model_len=4096,
+                requested_modes=("text",),
+                hardware_detector=hardware,
+                backend_kind="mlx_lm",
+                backend_inspector=lambda executable: MLXBackendCompatibility(
+                    executable=str(executable),
+                    mlx_lm_version="0.26.2",
+                    compatible=True,
+                    issues=(),
+                    architecture_features=(),
+                ),
+            )
+        self.assertFalse(result.eligible)
+        self.assertIn(
+            "backend:missing_model_features:gated_deltanet,qwen_sparse_attention,"
+            "mixture_of_experts,gated_residual,ngram_embedding,native_long_context",
+            result.issues,
+        )
+        assert result.model is not None
+        self.assertTrue(result.model["metadata_only"])
+        self.assertFalse(result.model["memory_fit_evaluated"])
+        self.assertEqual(result.model["context_tokens"], 4096)
+
     def test_exact_candidate_stack_can_pass_before_matrix_promotion(self) -> None:
         candidate = backend(compatible=False)
         candidate = BackendCompatibility(

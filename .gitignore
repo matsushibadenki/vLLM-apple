@@ -3,11 +3,25 @@ __pycache__/
 *.egg-info/
 .pytest_cache/
 .ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+.cache/
 .venv/
+.venv-*/
 .build/
 .swiftpm/
 DerivedData/
 .DS_Store
+
+# Local self-hosted GitHub Actions installation, credentials, worktrees, and logs.
+actions-runner/
+
+# Local qualification evidence. Workflows upload only explicitly selected reports.
+qualification-results/
+qualification-private/
+
+# Model weights and locally fetched model metadata can be very large.
 models/
 website/*
 !website/jp/

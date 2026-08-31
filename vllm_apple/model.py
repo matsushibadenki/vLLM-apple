@@ -105,6 +105,14 @@ def _bounded_config(path: Path) -> dict[str, Any]:
     return payload
 
 
+def inspect_model_metadata(path: str | Path) -> tuple[dict[str, Any], ModelArchitectureCapability]:
+    """Inspect bounded local config metadata without requiring model weights."""
+    root = Path(path).expanduser()
+    config_path = root / "config.json" if root.is_dir() else root
+    config = _bounded_config(config_path)
+    return config, inspect_model_architecture(config)
+
+
 def inspect_model_architecture(config: dict[str, Any]) -> ModelArchitectureCapability:
     model_type = config.get("model_type")
     architectures = config.get("architectures")

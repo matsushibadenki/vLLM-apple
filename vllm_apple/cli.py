@@ -47,6 +47,7 @@ from .qualification import (
     save_qualification_report,
 )
 from .qualification_preflight import run_qualification_preflight
+from .mlx_qwen4_readiness import inspect_mlx_qwen4_readiness
 from .qualification_bundle import (
     QualificationBundleError,
     build_qualification_bundle,
@@ -327,11 +328,22 @@ def build_parser() -> argparse.ArgumentParser:
     qualification_preflight.add_argument("--candidate-vllm-version")
     qualification_preflight.add_argument("--candidate-vllm-metal-version")
     qualification_preflight.add_argument("--candidate-transformers-version")
-    qualification_preflight.add_argument("--model")
+    preflight_model = qualification_preflight.add_mutually_exclusive_group()
+    preflight_model.add_argument("--model")
+    preflight_model.add_argument(
+        "--model-metadata",
+        type=Path,
+        help="inspect bounded local config metadata without requiring model weights",
+    )
     qualification_preflight.add_argument("--max-model-len", type=int)
     qualification_preflight.add_argument(
         "--mode", action="append", choices=("text", "vision", "mtp", "yarn"), dest="preflight_modes"
     )
+    mlx_qwen4_readiness = commands.add_parser(
+        "mlx-qwen4-readiness",
+        help="inspect reusable MLX Qwen4 components without importing MLX or allocating Metal",
+    )
+    mlx_qwen4_readiness.add_argument("--backend-executable", required=True, type=Path)
     qualification_bundle = commands.add_parser(
         "qualification-bundle", help="build a bounded, tamper-evident promotion bundle"
     )
@@ -957,11 +969,20 @@ def main(argv: list[str] | None = None) -> int:
             backend_kind=arguments.backend_kind,
             candidate_versions=candidate_versions,
             model=arguments.model,
+            model_metadata=arguments.model_metadata,
             max_model_len=arguments.max_model_len,
             requested_modes=tuple(arguments.preflight_modes or ("text",)),
         )
         _json(result.to_dict())
         return 0 if result.eligible else 1
+    if arguments.command == "mlx-qwen4-readiness":
+        try:
+            result = inspect_mlx_qwen4_readiness(arguments.backend_executable)
+        except ValueError as error:
+            _json({"ready": False, "error_code": "mlx_qwen4_readiness_failed", "detail": str(error)})
+            return 2
+        _json(result)
+        return 0 if result["ready"] else 1
     if arguments.command == "qualification-bundle":
         try:
             bundle = build_qualification_bundle(arguments.reports)

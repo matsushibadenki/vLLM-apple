@@ -537,6 +537,8 @@ vLLM-Metal対応とは見なさない。
 - `[Done]` direct vLLM-Metal qualificationへのarchitecture/memory load前gate統合
 - `[Done]` vLLM-Metal明示architecture feature probeとdaemon/qualification昇格契約
 - `[Done]` 公式Qwen3.8-Flash-Next 48層configでのmetadata/state回帰固定
+- `[Done]` weight取得前の`--model-metadata` backend capability preflight
+- `[Done]` MLXをimportせず既存Qwen4構成部品を監査するstatic readiness CLI
 - `[Done]` multimodal Qwenのrequested mode別text/Vision/MTP capability gate
 - `[Done]` text-only memory fitからMTP runtime working setを除外するmode-aware budget
 - `[Done]` download前artifact admission（Unified Memory、disk staging、構造化判定）
