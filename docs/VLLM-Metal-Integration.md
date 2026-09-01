@@ -219,6 +219,18 @@ component/shard境界だけをproduction adapterへ渡す。
 safetensors loader境界はshard headerだけをbounded readし、weight indexとのtensor名完全一致、dtype/shape byte長、
 offsetの連続性を検証する。重複JSON key、overlap、gap、shard越境を拒否し、tensor dataを読む処理はこの検証より後の
 production adapterに限定する。
+検証後のtensor readerは同一file descriptor上でmanifest digestを再確認してから、headerで確定した範囲だけを最大
+8 MiBの`pread`でstreamする。open shardは常に1つとし、読込中のfile identity変更とrequested mode外tensor accessを
+fail closedで拒否する。raw bytesからMLX arrayへの変換はreaderへ含めず、後段のmemory admission対象とする。
+component loaderはdestination dtypeからarray bytesを再計算し、stream chunkと変換scratchを加えたatomic reservationが
+成功した場合だけreaderを開始する。global/component ceiling、並行reservation数をboundedに保ち、consumer例外や
+cancelでもcontext終了時にiterator/file descriptorと予約を必ず解放する。
+load planはresident weight、packed MoEのactive expert fraction、PLE最大partition、requested optional modeを別々に
+集計する。全storageと同時resident working setを混同せず、最大tensor reservationとexpert axis-0 slicing要件を
+backend allocation前に確定する。
+packed expert tensorはaxis-0と`num_experts`の一致を必須とし、active expert範囲だけをslice readerとslice専用
+reservationで処理する。これにより全expert tensorをdestination arrayへ展開せず、load planのresident/peak値と
+実際のreader lifecycleを同じ境界へ揃える。
 
 Qwen hybrid inspectionは`layer_types`と`num_hidden_layers`の完全一致を要求し、各Gated DeltaNet layerについて
 V-headのkey/value state matrixとQK/V convolution historyを`mamba_ssm_dtype`のbyte幅で計算する。公式構成の

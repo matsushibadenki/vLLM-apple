@@ -53,6 +53,7 @@ from .qwen4_adapter_contract import build_qwen4_adapter_contract
 from .qwen4_adapter_loader import inspect_qwen4_adapter_headers
 from .qwen4_conversion_plan import build_qwen4_conversion_plan
 from .qwen4_mlx_fixture import run_qwen4_mlx_fixture
+from .qwen4_load_plan import build_qwen4_component_load_plan
 from .qwen4_shard_stager import stage_qwen4_shards, verify_qwen4_stage
 from .qwen4_weight_map import inspect_qwen4_weight_map
 from .qualification_bundle import (
@@ -420,6 +421,17 @@ def build_parser() -> argparse.ArgumentParser:
     qwen4_adapter_headers.add_argument("--maximum-header-bytes", type=int)
     qwen4_adapter_headers.add_argument(
         "--mode", action="append", choices=("text", "mtp", "vision"), dest="qwen4_header_modes"
+    )
+    qwen4_load_plan = commands.add_parser(
+        "qwen4-load-plan",
+        help="calculate resident and on-demand Qwen4 component memory without allocating a backend",
+    )
+    qwen4_load_plan.add_argument("--stage", required=True, type=Path)
+    qwen4_load_plan.add_argument("--maximum-artifact-bytes", required=True, type=int)
+    qwen4_load_plan.add_argument("--target-dtype", choices=("BF16", "F16", "F32"), default="BF16")
+    qwen4_load_plan.add_argument("--scratch-bytes-per-tensor", type=int, default=0)
+    qwen4_load_plan.add_argument(
+        "--mode", action="append", choices=("text", "mtp", "vision"), dest="qwen4_load_modes"
     )
     qualification_bundle = commands.add_parser(
         "qualification-bundle", help="build a bounded, tamper-evident promotion bundle"
@@ -1163,6 +1175,20 @@ def main(argv: list[str] | None = None) -> int:
             )
         except (OSError, ModelInspectionError, ValueError) as error:
             _json({"passed": False, "error_code": "qwen4_adapter_headers_failed", "detail": str(error)})
+            return 2
+        _json(result)
+        return 0
+    if arguments.command == "qwen4-load-plan":
+        try:
+            result = build_qwen4_component_load_plan(
+                arguments.stage,
+                requested_modes=tuple(arguments.qwen4_load_modes or ("text",)),
+                maximum_artifact_bytes=arguments.maximum_artifact_bytes,
+                target_dtype=arguments.target_dtype,
+                scratch_bytes_per_tensor=arguments.scratch_bytes_per_tensor,
+            )
+        except (OSError, ModelInspectionError, ValueError) as error:
+            _json({"passed": False, "error_code": "qwen4_load_plan_failed", "detail": str(error)})
             return 2
         _json(result)
         return 0

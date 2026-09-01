@@ -317,6 +317,45 @@ headerは既定64 MiB、tensor rank 16、shardあたり16,384 tensorに制限す
 不一致、重複range、未割当gap、shard外offsetを拒否する。各shardを1つずつ開いてheader範囲だけを読み、weight dataや
 MLX/Metal allocatorには触れない。reportにはdtype/rank別件数だけを保存し、tensor名やshape一覧は出力しない。
 
+`vllm_apple.qwen4_tensor_reader.Qwen4TensorReader`は検証済みheader offsetからtensor dataをread-onlyでstreamする
+production adapter向け内部境界である。tensor読込前に、同じopen file descriptorを8 MiB chunkで再hashしてstage
+manifestと照合する。tensor本体も既定最大8 MiBの`pread`に分割し、常にopen shardを1つへ制限する。読込中にsize、
+mtime、inode、deviceが変化した場合は停止する。requested modeで無効なVision/MTP tensorはdata read前に拒否する。
+
+readerはraw bytesをMLX arrayへ変換しない。dtype変換、quantization、device allocationは後続production adapterの
+責務であり、その工程でもtensor単位・component単位のmemory ceilingを別途適用する。
+
+`vllm_apple.qwen4_component_loader.Qwen4MemoryAdmission`は、変換後destination array、readerの1 chunk、変換scratchを
+加算してからatomicに予約する。global capacityに加えてcomponent別上限を設定でき、並行loadによるovercommitを
+data read前に拒否する。BF16、F16、F32のdestination byte数はheader shapeから再計算し、source dtypeのbyte数を
+流用しない。
+
+`Qwen4ComponentLoader.open_tensor()`のcontext内だけreservationとchunk iteratorが有効になる。正常完了、変換例外、
+途中キャンセルのいずれでもiteratorをcloseして予約を返却する。raw chunkからMLX arrayを生成する後続adapterは、必ず
+このlease内で変換とdevice allocationを完了し、lease外へraw iteratorを保持しない。
+
+component policy別の常駐量はbackend allocationなしで事前計画できる。
+
+```bash
+python3 -m vllm_apple qwen4-load-plan \
+  --stage /path/to/private-qwen4-stage \
+  --maximum-artifact-bytes 370000000000 \
+  --target-dtype BF16 \
+  --scratch-bytes-per-tensor 8388608 \
+  --mode text
+```
+
+resident componentは全destination bytes、packed MoE expertは`active_experts_per_token / expert_count`、PLE n-gram
+tableは最大1 partitionだけをworking setへ計上する。Vision/MTPはrequested modeの場合だけ含める。reportは全storage、
+resident working set、最大単一tensor reservationを分離し、modelやMetalをallocateしない。packed MoEの比率計上には
+axis-0 slice readerが必要なため、`requires_expert_axis0_slicing`で後続adapterの必須条件を明示する。
+
+packed MoE tensorはshapeの先頭dimensionがconfigの`num_experts`と完全一致する場合だけ受理する。
+`Qwen4TensorReader.iter_tensor_axis0_slice()`はexpert行の連続範囲だけをbounded `pread`し、component loaderは
+`open_tensor_axis0_slice()`でslice shapeからdestination/source reservationを再計算する。通常のresident tensorを
+誤って部分loadしないよう、このcomponent APIはpacked `mixture_of_experts` tensorだけに制限する。load planのpeak
+reservationも全packed tensorではなくactive expert slice量を使用する。
+
 大容量Apple Silicon runnerには`self-hosted`、`macOS`、`ARM64`、`vllm-metal`に加えて
 `large-memory` labelを設定する。GitHub Actionsの
 `Qwen Flash Next text-only qualification`を手動実行し、runner上のlocal model path、backend

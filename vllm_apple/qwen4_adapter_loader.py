@@ -124,7 +124,13 @@ def _inspect_header(
         if end - start != expected_bytes:
             raise ValueError("Qwen4 safetensors tensor byte length does not match its shape")
         intervals.append((start, end))
-        tensors[name] = {"dtype": dtype, "rank": len(shape), "bytes": expected_bytes}
+        tensors[name] = {
+            "dtype": dtype,
+            "shape": list(shape),
+            "rank": len(shape),
+            "bytes": expected_bytes,
+            "file_offset": 8 + header_bytes + start,
+        }
     intervals.sort()
     if intervals[0][0] != 0 or intervals[-1][1] != data_bytes:
         raise ValueError("Qwen4 safetensors data region contains an unassigned boundary")

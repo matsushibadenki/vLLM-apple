@@ -10,14 +10,24 @@ from vllm_apple.qwen4_adapter_loader import inspect_qwen4_adapter_headers
 from vllm_apple.qwen4_shard_stager import stage_qwen4_shards
 
 
-def _write_safetensors(path: Path, names: list[str], *, invalid_offset: bool = False) -> None:
+def _write_safetensors(
+    path: Path,
+    names: list[str],
+    *,
+    invalid_offset: bool = False,
+    shapes: dict[str, list[int]] | None = None,
+) -> None:
     header = {}
     data = bytearray()
     for name in names:
         start = len(data)
-        data.extend(b"\0\0")
+        shape = (shapes or {}).get(name, [1])
+        tensor_bytes = 2
+        for dimension in shape:
+            tensor_bytes *= dimension
+        data.extend(b"\0" * tensor_bytes)
         end = len(data) + (1 if invalid_offset and not header else 0)
-        header[name] = {"dtype": "BF16", "shape": [1], "data_offsets": [start, end]}
+        header[name] = {"dtype": "BF16", "shape": shape, "data_offsets": [start, end]}
     encoded = json.dumps(header, separators=(",", ":")).encode()
     path.write_bytes(struct.pack("<Q", len(encoded)) + encoded + data)
 

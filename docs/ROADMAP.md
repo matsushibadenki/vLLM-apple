@@ -555,6 +555,14 @@ vLLM-Metal対応とは見なさない。
 - `[Done]` verified stageからのmode-aware component/shard adapter contract生成
 - `[Done]` weight data非読込のbounded safetensors header・dtype・shape・offset検証
 - `[Done]` index/header完全一致、重複key、overlap、gap、shard越境のfail-closed拒否
+- `[Done]` manifest digest再検証付きread-only tensor catalog／bounded `pread` reader
+- `[Done]` 1 open shard・最大8 MiB chunk・requested mode別tensor access gate
+- `[Done]` destination array・stream chunk・scratchのatomic tensor memory admission
+- `[Done]` component別上限、並行load overcommit拒否、例外時reservation自動解放
+- `[Done]` resident／on-demand expert／partitioned PLE／optional mode別load plan
+- `[Done]` MoE active expert比率と最大PLE partitionによるresident working-set算定
+- `[Done]` packed MoE expert axisとconfig topologyの完全一致gate
+- `[Done]` expert axis-0 bounded slice readerとslice単位memory reservation
 - `[Done]` multimodal Qwenのrequested mode別text/Vision/MTP capability gate
 - `[Done]` text-only memory fitからMTP runtime working setを除外するmode-aware budget
 - `[Done]` download前artifact admission（Unified Memory、disk staging、構造化判定）
@@ -566,7 +574,7 @@ vLLM-Metal対応とは見なさない。
 - `[Done]` Qwen認定前後のmodel tree streaming SHA-256再検証（constant-memory、private manifest、report非公開）
 - `[Done]` Qwen認定での任意CMS provenance mode（trusted CA・signer identity・load前後署名再検証）
 - `[Next]` 大容量Apple Siliconでtext-only smoke、TTFT、TPOT、RSS、品質gate
-- `[Later]` 検証済みheader offsetだけを読むQSA、GDN、MoE、N-gram production MLX adapter
+- `[Later]` expert slice reservation lease内でMLX arrayへ変換するproduction component adapter
 - `[Later]` production MLX adapterのcorrectness合格後にNative Metal kernelを比較検討
 
 参照：

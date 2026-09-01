@@ -25,6 +25,8 @@ class Qwen4ShardStagerTests(unittest.TestCase):
                 "num_hidden_layers": 1,
                 "layer_types": ["full_attention"],
                 "max_position_embeddings": 262144,
+                "num_experts": 1,
+                "num_experts_per_tok": 1,
                 "mtp_num_hidden_layers": 0,
                 "ple_layer_ids": [],
                 "split_ngram_parts": 1,
