@@ -32,6 +32,7 @@ class Qwen4RuntimeWorker:
         self.session_id = create_qwen4_runtime_session_id()
         self.session_file = Path(session_file).expanduser().resolve(strict=False)
         self._session_identity: tuple[int, int] | None = None
+        self._session_descriptor: int | None = None
         reader = Qwen4TensorReader(
             stage_root,
             maximum_artifact_bytes=maximum_artifact_bytes,
@@ -76,6 +77,8 @@ class Qwen4RuntimeWorker:
         descriptor, temporary = tempfile.mkstemp(prefix=f".{self.session_file.name}.", dir=parent)
         try:
             os.fchmod(descriptor, 0o600)
+            temporary_info = os.fstat(descriptor)
+            self._session_identity = (temporary_info.st_dev, temporary_info.st_ino)
             with os.fdopen(descriptor, "w", encoding="utf-8") as handle:
                 json.dump(
                     {"schema_version": 1, "session_id": self.session_id},
@@ -88,14 +91,29 @@ class Qwen4RuntimeWorker:
                 os.fsync(handle.fileno())
             os.link(temporary, self.session_file, follow_symlinks=False)
             os.unlink(temporary)
-            info = self.session_file.lstat()
-            self._session_identity = (info.st_dev, info.st_ino)
+            flags = os.O_RDONLY
+            if hasattr(os, "O_NOFOLLOW"):
+                flags |= os.O_NOFOLLOW
+            session_descriptor = os.open(self.session_file, flags)
+            info = os.fstat(session_descriptor)
+            if (
+                not stat.S_ISREG(info.st_mode)
+                or info.st_uid != os.getuid()
+                or stat.S_IMODE(info.st_mode) & 0o077
+                or (info.st_dev, info.st_ino) != self._session_identity
+            ):
+                os.close(session_descriptor)
+                raise ValueError("Qwen4 runtime session credential identity changed during publish")
+            self._session_descriptor = session_descriptor
+            # Keep the published inode open until cleanup. Linux may otherwise
+            # immediately reuse its inode number for a replacement path.
             directory = os.open(parent, os.O_RDONLY)
             try:
                 os.fsync(directory)
             finally:
                 os.close(directory)
         except BaseException:
+            self._remove_session_file()
             try:
                 os.unlink(temporary)
             except FileNotFoundError:
@@ -106,14 +124,30 @@ class Qwen4RuntimeWorker:
         try:
             info = self.session_file.lstat()
         except FileNotFoundError:
-            return
-        if (
-            self._session_identity is not None
-            and stat.S_ISREG(info.st_mode)
-            and info.st_uid == os.getuid()
-            and (info.st_dev, info.st_ino) == self._session_identity
-        ):
-            self.session_file.unlink()
+            info = None
+        try:
+            descriptor_info = (
+                os.fstat(self._session_descriptor)
+                if self._session_descriptor is not None
+                else None
+            )
+            identity = (
+                (descriptor_info.st_dev, descriptor_info.st_ino)
+                if descriptor_info is not None
+                else self._session_identity
+            )
+            if (
+                info is not None
+                and identity is not None
+                and stat.S_ISREG(info.st_mode)
+                and info.st_uid == os.getuid()
+                and (info.st_dev, info.st_ino) == identity
+            ):
+                self.session_file.unlink()
+        finally:
+            if self._session_descriptor is not None:
+                os.close(self._session_descriptor)
+                self._session_descriptor = None
             self._session_identity = None
 
     def __enter__(self) -> Qwen4RuntimeWorker:
