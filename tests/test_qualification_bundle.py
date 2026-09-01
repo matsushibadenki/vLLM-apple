@@ -101,6 +101,62 @@ class QualificationBundleTests(unittest.TestCase):
             with self.assertRaisesRegex(QualificationBundleError, "admission"):
                 build_qualification_bundle(root)
 
+    def test_binds_optional_qwen_static_evidence_as_a_pair(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            self.reports(root)
+            fingerprint = "a" * 64
+            index_sha256 = "c" * 64
+            (root / "qwen4-weight-map.json").write_text(
+                json.dumps(
+                    {
+                        "schema_version": 1,
+                        "compatible": True,
+                        "architecture": "qwen4_exp",
+                        "requested_modes": ["text"],
+                        "missing_count": 0,
+                        "loads_weights": False,
+                        "config_fingerprint": fingerprint,
+                        "index_sha256": index_sha256,
+                    }
+                )
+            )
+            (root / "qwen4-conversion-plan.json").write_text(
+                json.dumps(
+                    {
+                        "schema_version": 1,
+                        "architecture": "qwen4_exp",
+                        "requested_modes": ["text"],
+                        "config_fingerprint": fingerprint,
+                        "index_sha256": index_sha256,
+                        "peak_open_source_shards": 1,
+                        "peak_open_destination_shards": 1,
+                        "requires_full_artifact_in_memory": False,
+                        "loads_tensor_data": False,
+                    }
+                )
+            )
+            cache = {
+                "schema_version": 1,
+                "passed": True,
+                "architecture": "qwen4_exp",
+                "prefill_segmented_decode_match": True,
+                "stores_token_ids": False,
+                "stores_tensor_values": False,
+                "allocates_model_or_metal": False,
+                "config_fingerprint": fingerprint,
+            }
+            (root / "qwen4-cache-fixture.json").write_text(json.dumps(cache))
+            bundle = build_qualification_bundle(root)
+            self.assertIn("qwen4-weight-map.json", bundle["evidence_sha256"])
+            self.assertIn("qwen4-conversion-plan.json", bundle["evidence_sha256"])
+            self.assertIn("qwen4-cache-fixture.json", bundle["evidence_sha256"])
+
+            cache["config_fingerprint"] = "b" * 64
+            (root / "qwen4-cache-fixture.json").write_text(json.dumps(cache))
+            with self.assertRaisesRegex(QualificationBundleError, "cache evidence"):
+                build_qualification_bundle(root)
+
     def test_rejects_symlinked_evidence(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

@@ -209,6 +209,17 @@ model inspectionは`config.json`を最大1 MiB、4096 nodes、深さ16へ制限�
 `backend_missing_model_capabilities`で停止する。通常のmetadata不備に使う4K fallbackはcapability errorには適用せず、
 標準Transformerとして誤ってロードしない。
 
+Qwen4 artifactの変換準備は、8 MiB固定bufferで一度にsource/destination shardを各1つだけ開くstaging層を
+通す。shardはtemporary fileへの完全writeと`fsync`後にatomic置換し、private checkpointはconversion plan ID、
+size、SHA-256を保持する。再開時に一致しない既存shardやmetadata、未知のcheckpoint entryは拒否する。この層は
+weightをdecodeせず量子化もしないため、production MLX adapterとは明確に分離する。
+完了manifestは全shardのsizeとSHA-256を保持する。adapter contract生成時に全fileを再走査し、plan/config/index bindingと
+directoryの完全なfile集合を検証する。requested modeで無効なVision/MTP entryはscheduleから分離し、検証を通過した
+component/shard境界だけをproduction adapterへ渡す。
+safetensors loader境界はshard headerだけをbounded readし、weight indexとのtensor名完全一致、dtype/shape byte長、
+offsetの連続性を検証する。重複JSON key、overlap、gap、shard越境を拒否し、tensor dataを読む処理はこの検証より後の
+production adapterに限定する。
+
 Qwen hybrid inspectionは`layer_types`と`num_hidden_layers`の完全一致を要求し、各Gated DeltaNet layerについて
 V-headのkey/value state matrixとQK/V convolution historyを`mamba_ssm_dtype`のbyte幅で計算する。公式構成の
 36 linear-attention layers、QK 16 heads、V 48 heads、128 dimensions、FP32 stateをそのまま表現する。
@@ -245,6 +256,15 @@ Native MLX qualificationも同じ契約を使用する。`mlx-lm`の隔離probe�
 version適合だけからarchitecture対応を推測せず、未宣言featureは未対応として扱う。modelのbounded inspectionとfeature差分検査は
 MLX server processの構築より前に実行し、Qwen hybridを標準Transformerとして誤起動しない。feature宣言を持たない既存の
 `mlx-lm`は通常architectureには利用できるが、Qwen hybrid qualificationにはfail closedとなる。
+
+Qwen4 artifactはbackend起動前にsafetensors indexの必須tensor mappingも検査する。公式multimodal構成は
+text、MTP、Visionを合わせて1,658 entries、131 shardsであり、48 layerのlinear/QSA分岐、各layerの2組の
+Gated Residual、MoE、128 PLE shardsをconfigから再構築する。indexだけをboundedに読み、weight dataは開かない。
+cache fixtureも同じconfig fingerprintにbindingし、一括prefill、segmented prefill、token decodeでGDN conv、
+PLE n-gram tail、QSA complete block/tail境界が一致しなければmodel loadへ進まない。
+conversion planはweight indexをGDN、QSA、Gated Residual、MoE、PLE、Vision、MTPへ完全分類し、sourceと
+destinationを各1 shardずつ処理する。MoEはon-demand、PLEはpartitioned lookupとして計画し、全artifactの同時展開を
+要求するplan、未分類tensor、config/index digest不一致はpromotion証跡として受理しない。
 
 実model qualificationはpromotion probe合格後、soak開始前に既定3 sampleのstreaming phase probeを行う。
 生成本文やraw sample列は保存せず、bounded histogramからTTFTとTPOTのmean、p50/p95 upper bound、maximum、

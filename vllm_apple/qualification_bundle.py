@@ -122,6 +122,54 @@ def build_qualification_bundle(directory: Path) -> dict[str, object]:
             raise QualificationBundleError("artifact admission evidence does not match")
         evidence["artifact-admission.json"] = hashlib.sha256(admission_raw).hexdigest()
 
+    qwen_weight_path = root / "qwen4-weight-map.json"
+    qwen_cache_path = root / "qwen4-cache-fixture.json"
+    qwen_plan_path = root / "qwen4-conversion-plan.json"
+    qwen_static_paths = (qwen_weight_path, qwen_plan_path, qwen_cache_path)
+    if any(path.exists() for path in qwen_static_paths) and not all(
+        path.exists() for path in qwen_static_paths
+    ):
+        raise QualificationBundleError("Qwen4 static evidence must be provided together")
+    if qwen_weight_path.exists():
+        qwen_weight, qwen_weight_raw = _read_report(qwen_weight_path)
+        qwen_plan, qwen_plan_raw = _read_report(qwen_plan_path)
+        qwen_cache, qwen_cache_raw = _read_report(qwen_cache_path)
+        if (
+            qwen_weight.get("schema_version") != 1
+            or qwen_weight.get("compatible") is not True
+            or qwen_weight.get("architecture") != "qwen4_exp"
+            or qwen_weight.get("requested_modes") != ["text"]
+            or qwen_weight.get("missing_count") != 0
+            or qwen_weight.get("loads_weights") is not False
+        ):
+            raise QualificationBundleError("Qwen4 weight mapping evidence is incomplete")
+        if (
+            qwen_plan.get("schema_version") != 1
+            or qwen_plan.get("architecture") != "qwen4_exp"
+            or qwen_plan.get("requested_modes") != ["text"]
+            or qwen_plan.get("config_fingerprint") != qwen_weight.get("config_fingerprint")
+            or qwen_plan.get("index_sha256") != qwen_weight.get("index_sha256")
+            or qwen_plan.get("peak_open_source_shards") != 1
+            or qwen_plan.get("peak_open_destination_shards") != 1
+            or qwen_plan.get("requires_full_artifact_in_memory") is not False
+            or qwen_plan.get("loads_tensor_data") is not False
+        ):
+            raise QualificationBundleError("Qwen4 conversion plan evidence is incomplete")
+        if (
+            qwen_cache.get("schema_version") != 1
+            or qwen_cache.get("passed") is not True
+            or qwen_cache.get("architecture") != "qwen4_exp"
+            or qwen_cache.get("prefill_segmented_decode_match") is not True
+            or qwen_cache.get("stores_token_ids") is not False
+            or qwen_cache.get("stores_tensor_values") is not False
+            or qwen_cache.get("allocates_model_or_metal") is not False
+            or qwen_cache.get("config_fingerprint") != qwen_weight.get("config_fingerprint")
+        ):
+            raise QualificationBundleError("Qwen4 cache evidence is incomplete")
+        evidence["qwen4-weight-map.json"] = hashlib.sha256(qwen_weight_raw).hexdigest()
+        evidence["qwen4-conversion-plan.json"] = hashlib.sha256(qwen_plan_raw).hexdigest()
+        evidence["qwen4-cache-fixture.json"] = hashlib.sha256(qwen_cache_raw).hexdigest()
+
     body: dict[str, object] = {
         "schema_version": 1,
         "model_sha256": hashlib.sha256(model.encode("utf-8")).hexdigest(),

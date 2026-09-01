@@ -28,7 +28,7 @@ from .long_context import (
 from .long_context_backend import MLXLongContextAdapter, VLLMLongContextAdapter
 from .metal_probe import NativeMetalProbeAdapter
 from .metal_tuning import save_metal_tuning_report, tune_metal_shape_profile
-from .model import ModelInspectionError, inspect_model
+from .model import ModelInspectionError, inspect_model, inspect_model_metadata
 from .model_integrity import (
     ModelIntegrityError,
     build_model_integrity_manifest,
@@ -46,8 +46,15 @@ from .qualification import (
     qualify_model,
     save_qualification_report,
 )
-from .qualification_preflight import run_qualification_preflight
 from .mlx_qwen4_readiness import inspect_mlx_qwen4_readiness
+from .qualification_preflight import run_qualification_preflight
+from .qwen4_cache_contract import run_qwen4_cache_fixture
+from .qwen4_adapter_contract import build_qwen4_adapter_contract
+from .qwen4_adapter_loader import inspect_qwen4_adapter_headers
+from .qwen4_conversion_plan import build_qwen4_conversion_plan
+from .qwen4_mlx_fixture import run_qwen4_mlx_fixture
+from .qwen4_shard_stager import stage_qwen4_shards, verify_qwen4_stage
+from .qwen4_weight_map import inspect_qwen4_weight_map
 from .qualification_bundle import (
     QualificationBundleError,
     build_qualification_bundle,
@@ -344,6 +351,76 @@ def build_parser() -> argparse.ArgumentParser:
         help="inspect reusable MLX Qwen4 components without importing MLX or allocating Metal",
     )
     mlx_qwen4_readiness.add_argument("--backend-executable", required=True, type=Path)
+    qwen4_mlx_fixture = commands.add_parser(
+        "qwen4-mlx-fixture",
+        help="compare bounded MLX Qwen4 primitives with the dependency-free CPU reference",
+    )
+    qwen4_mlx_fixture.add_argument("--python-executable", required=True, type=Path)
+    qwen4_weight_map = commands.add_parser(
+        "qwen4-weight-map-inspect",
+        help="validate a bounded Qwen4 safetensors index without loading weights",
+    )
+    qwen4_weight_map.add_argument("--model-metadata", required=True, type=Path)
+    qwen4_weight_map.add_argument("--index", required=True, type=Path)
+    qwen4_weight_map.add_argument(
+        "--mode", action="append", choices=("text", "mtp", "vision"), dest="qwen4_weight_modes"
+    )
+    qwen4_cache_fixture = commands.add_parser(
+        "qwen4-cache-fixture",
+        help="verify Qwen4 prefill, segmented prefill, and decode cache boundaries without tensors",
+    )
+    qwen4_cache_fixture.add_argument("--model-metadata", required=True, type=Path)
+    qwen4_conversion_plan = commands.add_parser(
+        "qwen4-conversion-plan",
+        help="build a one-shard-at-a-time Qwen4 MLX conversion plan without loading tensors",
+    )
+    qwen4_conversion_plan.add_argument("--model-metadata", required=True, type=Path)
+    qwen4_conversion_plan.add_argument("--index", required=True, type=Path)
+    qwen4_conversion_plan.add_argument(
+        "--mode", action="append", choices=("text", "mtp", "vision"), dest="qwen4_plan_modes"
+    )
+    qwen4_shard_stage = commands.add_parser(
+        "qwen4-shard-stage",
+        help="atomically stage Qwen4 shards with bounded memory and digest-bound resume",
+    )
+    qwen4_shard_stage.add_argument("--source", required=True, type=Path)
+    qwen4_shard_stage.add_argument("--output", required=True, type=Path)
+    qwen4_shard_stage.add_argument("--maximum-output-bytes", required=True, type=int)
+    qwen4_shard_stage.add_argument(
+        "--mode", action="append", choices=("text", "mtp", "vision"), dest="qwen4_stage_modes"
+    )
+    qwen4_shard_stage.add_argument("--resume", action="store_true")
+    qwen4_shard_stage.add_argument(
+        "--execute", action="store_true", help="explicitly authorize copying the model artifact"
+    )
+    qwen4_stage_verify = commands.add_parser(
+        "qwen4-stage-verify",
+        help="verify every staged Qwen4 shard before adapter construction",
+    )
+    qwen4_stage_verify.add_argument("--stage", required=True, type=Path)
+    qwen4_stage_verify.add_argument("--maximum-artifact-bytes", required=True, type=int)
+    qwen4_stage_verify.add_argument(
+        "--mode", action="append", choices=("text", "mtp", "vision"), dest="qwen4_verify_modes"
+    )
+    qwen4_adapter_contract = commands.add_parser(
+        "qwen4-adapter-contract",
+        help="build a component/shard execution contract from a verified Qwen4 stage",
+    )
+    qwen4_adapter_contract.add_argument("--stage", required=True, type=Path)
+    qwen4_adapter_contract.add_argument("--maximum-artifact-bytes", required=True, type=int)
+    qwen4_adapter_contract.add_argument(
+        "--mode", action="append", choices=("text", "mtp", "vision"), dest="qwen4_adapter_modes"
+    )
+    qwen4_adapter_headers = commands.add_parser(
+        "qwen4-adapter-headers",
+        help="validate bounded safetensors headers against a verified Qwen4 adapter contract",
+    )
+    qwen4_adapter_headers.add_argument("--stage", required=True, type=Path)
+    qwen4_adapter_headers.add_argument("--maximum-artifact-bytes", required=True, type=int)
+    qwen4_adapter_headers.add_argument("--maximum-header-bytes", type=int)
+    qwen4_adapter_headers.add_argument(
+        "--mode", action="append", choices=("text", "mtp", "vision"), dest="qwen4_header_modes"
+    )
     qualification_bundle = commands.add_parser(
         "qualification-bundle", help="build a bounded, tamper-evident promotion bundle"
     )
@@ -983,6 +1060,112 @@ def main(argv: list[str] | None = None) -> int:
             return 2
         _json(result)
         return 0 if result["ready"] else 1
+    if arguments.command == "qwen4-mlx-fixture":
+        try:
+            result = run_qwen4_mlx_fixture(arguments.python_executable)
+        except ValueError as error:
+            _json({"passed": False, "error_code": "qwen4_mlx_fixture_failed", "detail": str(error)})
+            return 2
+        _json(result)
+        return 0 if result["passed"] else 1
+    if arguments.command == "qwen4-weight-map-inspect":
+        try:
+            result = inspect_qwen4_weight_map(
+                arguments.model_metadata,
+                arguments.index,
+                requested_modes=tuple(arguments.qwen4_weight_modes or ("text",)),
+            )
+        except (ModelInspectionError, ValueError) as error:
+            _json({"compatible": False, "error_code": "qwen4_weight_map_failed", "detail": str(error)})
+            return 2
+        _json(result)
+        return 0 if result["compatible"] else 1
+    if arguments.command == "qwen4-cache-fixture":
+        try:
+            config, _ = inspect_model_metadata(arguments.model_metadata)
+            result = run_qwen4_cache_fixture(config)
+        except (ModelInspectionError, ValueError) as error:
+            _json({"passed": False, "error_code": "qwen4_cache_fixture_failed", "detail": str(error)})
+            return 2
+        _json(result)
+        return 0 if result["passed"] else 1
+    if arguments.command == "qwen4-conversion-plan":
+        try:
+            result = build_qwen4_conversion_plan(
+                arguments.model_metadata,
+                arguments.index,
+                requested_modes=tuple(arguments.qwen4_plan_modes or ("text",)),
+            )
+        except (ModelInspectionError, ValueError) as error:
+            _json({"passed": False, "error_code": "qwen4_conversion_plan_failed", "detail": str(error)})
+            return 2
+        _json(result)
+        return 0
+    if arguments.command == "qwen4-shard-stage":
+        if not arguments.execute:
+            _json(
+                {
+                    "completed": False,
+                    "error_code": "explicit_execution_required",
+                    "detail": "Pass --execute after reviewing the source, output, and byte ceiling.",
+                }
+            )
+            return 2
+        try:
+            result = stage_qwen4_shards(
+                arguments.source,
+                arguments.output,
+                maximum_output_bytes=arguments.maximum_output_bytes,
+                requested_modes=tuple(arguments.qwen4_stage_modes or ("text",)),
+                resume=arguments.resume,
+            )
+        except (OSError, ModelInspectionError, ValueError) as error:
+            _json({"completed": False, "error_code": "qwen4_shard_stage_failed", "detail": str(error)})
+            return 2
+        _json(result)
+        return 0
+    if arguments.command == "qwen4-stage-verify":
+        try:
+            result = verify_qwen4_stage(
+                arguments.stage,
+                requested_modes=tuple(arguments.qwen4_verify_modes or ("text",)),
+                maximum_artifact_bytes=arguments.maximum_artifact_bytes,
+            )
+        except (OSError, ModelInspectionError, ValueError) as error:
+            _json({"verified": False, "error_code": "qwen4_stage_verify_failed", "detail": str(error)})
+            return 2
+        _json(result)
+        return 0
+    if arguments.command == "qwen4-adapter-contract":
+        try:
+            result = build_qwen4_adapter_contract(
+                arguments.stage,
+                requested_modes=tuple(arguments.qwen4_adapter_modes or ("text",)),
+                maximum_artifact_bytes=arguments.maximum_artifact_bytes,
+            )
+        except (OSError, ModelInspectionError, ValueError) as error:
+            _json(
+                {"passed": False, "error_code": "qwen4_adapter_contract_failed", "detail": str(error)}
+            )
+            return 2
+        _json(result)
+        return 0
+    if arguments.command == "qwen4-adapter-headers":
+        keyword_arguments = {}
+        if arguments.maximum_header_bytes is not None:
+            keyword_arguments["maximum_header_bytes"] = arguments.maximum_header_bytes
+        try:
+            result = inspect_qwen4_adapter_headers(
+                arguments.stage,
+                requested_modes=tuple(arguments.qwen4_header_modes or ("text",)),
+                maximum_artifact_bytes=arguments.maximum_artifact_bytes,
+                **keyword_arguments,
+            )
+        except (OSError, ModelInspectionError, ValueError) as error:
+            _json({"passed": False, "error_code": "qwen4_adapter_headers_failed", "detail": str(error)})
+            return 2
+        _json(result)
+        return 0
     if arguments.command == "qualification-bundle":
         try:
             bundle = build_qualification_bundle(arguments.reports)

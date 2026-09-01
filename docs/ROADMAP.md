@@ -539,6 +539,22 @@ vLLM-Metal対応とは見なさない。
 - `[Done]` 公式Qwen3.8-Flash-Next 48層configでのmetadata/state回帰固定
 - `[Done]` weight取得前の`--model-metadata` backend capability preflight
 - `[Done]` MLXをimportせず既存Qwen4構成部品を監査するstatic readiness CLI
+- `[Done]` Transformers 5.16.1 Qwen4-Exp準拠のGated Residual/QSA依存なしCPU参照fixture
+- `[Done]` 128 byte固定MLX fixtureとCPU oracleのbounded numerical comparison
+- `[Done]` 公式1,658 tensor／131 shardのtext・MTP・Vision weight mapping schema
+- `[Done]` weight非ロードのbounded safetensors index検査とpath traversal拒否
+- `[Done]` Qwen4 GDN/QSA/PLE chunk-invariant cache-state契約とconfig fingerprint binding
+- `[Done]` prefill／segmented prefill／token decodeの純CPU semantic cache fixture
+- `[Done]` Qwen専用workflowのweight/cache静的証跡とpromotion bundle binding
+- `[Done]` GDN/QSA/GR/MoE/PLE/Vision/MTP全tensorのcomponent分類
+- `[Done]` source/destination各1 shard上限のconstant-memory MLX conversion plan
+- `[Done]` conversion plan ID・config・index digestのpromotion bundle binding
+- `[Done]` 8 MiB固定bufferとshard単位atomic置換によるidentity-preserving staging
+- `[Done]` SHA-256 binding済みprivate checkpointからの安全な中断再開と改変拒否
+- `[Done]` 完了stage全shardのdigest再検証とunexpected file拒否
+- `[Done]` verified stageからのmode-aware component/shard adapter contract生成
+- `[Done]` weight data非読込のbounded safetensors header・dtype・shape・offset検証
+- `[Done]` index/header完全一致、重複key、overlap、gap、shard越境のfail-closed拒否
 - `[Done]` multimodal Qwenのrequested mode別text/Vision/MTP capability gate
 - `[Done]` text-only memory fitからMTP runtime working setを除外するmode-aware budget
 - `[Done]` download前artifact admission（Unified Memory、disk staging、構造化判定）
@@ -550,7 +566,8 @@ vLLM-Metal対応とは見なさない。
 - `[Done]` Qwen認定前後のmodel tree streaming SHA-256再検証（constant-memory、private manifest、report非公開）
 - `[Done]` Qwen認定での任意CMS provenance mode（trusted CA・signer identity・load前後署名再検証）
 - `[Next]` 大容量Apple Siliconでtext-only smoke、TTFT、TPOT、RSS、品質gate
-- `[Later]` backend実測後にのみQSA、GDN、MoE、N-gram向けNative Metal/MLXを検討
+- `[Later]` 検証済みheader offsetだけを読むQSA、GDN、MoE、N-gram production MLX adapter
+- `[Later]` production MLX adapterのcorrectness合格後にNative Metal kernelを比較検討
 
 参照：
 [Qwen model card](https://huggingface.co/Qwen/Qwen3.8-Flash-Next)、

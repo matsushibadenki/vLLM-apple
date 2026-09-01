@@ -203,6 +203,120 @@ python3 -m vllm_apple mlx-qwen4-readiness \
 登録を分離して報告する。componentが見つかってもbackend capabilityを自動表明せず、`ready=true`だけでも
 実weight qualificationの代用にはしない。
 
+Gated ResidualとQSA block selectorの移植では、Transformers 5.16.1の公式Qwen4-Exp実装を参照基準とする。
+`vllm_apple.qwen4_reference`は小型float64 fixtureだけを処理する依存なしCPU oracleであり、production inference
+には使用しない。Gated Residualはbranch単位RMSNorm、low-rank SiLU/sigmoid mixing、2倍sigmoid injectionを、
+QSAはzero-weight key RMSNorm・identity RoPE fixtureでcomplete blockのReLU head-score top-kと未完tail保持を
+検証する。入力幅とtoken数を制限し、巨大model
+allocationなしで後続MLX adapterとのcorrectness比較に使用する。
+
+参照実装：
+[Transformers 5.16.1 Qwen4-Exp](https://github.com/huggingface/transformers/blob/v5.16.1/src/transformers/models/qwen4_exp/modeling_qwen4_exp.py)
+
+MLX 0.31系の小型primitive fixtureは通常のmacOS terminalで実行する。workerは128 byteの入力tensorから
+Gated ResidualとQSA selectorを計算し、controllerがCPU oracleとの差の最大値だけを保持する。model weight、
+生成本文、tensor値はreportへ保存しない。このfixtureはallocatorのpeak memoryを測定せず、実model RSS gateの
+代用にはしない。
+
+```bash
+python3 -m vllm_apple qwen4-mlx-fixture \
+  --python-executable /path/to/mlx-0.31-venv/bin/python
+```
+
+Metal deviceを取得できないsandboxでは終了code 2でfail closedする。通常terminalで`passed=true`になっても、
+Qwen4 model登録、weight mapping、cache、実model semantic qualificationが完了するまではbackend capabilityを
+表明しない。
+
+公式safetensors indexはweightを開かず、text、MTP、Visionのmode別mappingを検証できる。indexは4 MiB、
+16,384 entries、tensor名1 KiBに制限し、shard名のpath traversalを拒否する。
+
+```bash
+python3 -m vllm_apple qwen4-weight-map-inspect \
+  --model-metadata /path/to/Qwen3.8-Flash-Next \
+  --index /path/to/Qwen3.8-Flash-Next/model.safetensors.index.json \
+  --mode text --mode mtp --mode vision
+```
+
+公式BF16 indexでは1,658 required entries、131 shards、359,999,963,128 artifact bytesが完全一致する。
+reportは不足名を最大32件に制限し、tensorをloadしない。変換済みMLX artifactは同じcommandで変換後indexを検査し、
+mappingが異なる場合は専用schemaを追加してから認定する。
+
+cache/state契約はGDN recurrent/conv、QSA KV/indexer/block tail、PLE n-gram/conv tailをconfig fingerprintへ
+結び付ける。固定9-token fixtureを一括prefill、4+2+3 segmented prefill、1-token decodeで処理し、token chain、
+tail、block境界が完全一致することだけを保存する。token IDとtensor値は保存しない。
+
+```bash
+python3 -m vllm_apple qwen4-cache-fixture \
+  --model-metadata /path/to/Qwen3.8-Flash-Next
+```
+
+Qwen専用workflowはmodel load前にweight map、conversion plan、cache fixtureの3つを実行する。これらはconfig
+fingerprintとindex digestの一致をpromotion bundleで再検証し、一部だけの証跡や改変されたcache証跡を拒否する。
+
+変換前には同じindexからcomponent分類とstreaming scheduleを生成する。公式indexの全1,658 tensorをGDN、QSA、
+Gated Residual、MoE、PLE、Vision、MTP、embedding/headへ分類し、未分類tensorが1件でもあれば停止する。
+
+```bash
+python3 -m vllm_apple qwen4-conversion-plan \
+  --model-metadata /path/to/Qwen3.8-Flash-Next \
+  --index /path/to/Qwen3.8-Flash-Next/model.safetensors.index.json \
+  --mode text
+```
+
+planはsource/destination shardを各1つだけ開き、MoEをon-demand expert、PLEをpartitioned lookup、Vision/MTPを
+mode別optional componentとして扱う。現段階ではtensor dataをload・変換せず、source tensor名を保持したMLX adapter
+向けscheduleだけを生成する。plan ID、config fingerprint、index SHA-256はweight/cache証跡とともにpromotion bundleへ
+bindingされる。
+
+実weightを扱う前処理には、tensorをdecode・量子化せずsource artifactを安全な作業領域へ複製するbounded shard
+stagerを利用できる。8 MiB固定bufferでsource/destination shardを各1つだけ開き、temporary fileへ書き切って
+`fsync`した後にatomic置換する。出力先はprivate directoryでなければならず、sourceと親子関係にできない。
+
+```bash
+python3 -m vllm_apple qwen4-shard-stage \
+  --source /path/to/Qwen3.8-Flash-Next \
+  --output /path/to/private-qwen4-stage \
+  --maximum-output-bytes 370000000000 \
+  --mode text \
+  --execute
+```
+
+中断後は同じ引数へ`--resume`を追加する。checkpointのplan ID、file size、SHA-256が一致したshardだけを再利用する。
+`--execute`を省略すると何も書き込まない。このstagerはtensor名とshard内容を保持するidentity-preserving層であり、
+production MLX adapterまたは量子化器はmanifest検証済みartifactを別工程で入力にする。
+
+staging後はadapterを構築する直前に全shardを再検証する。manifestにないfile、欠落file、config/indexとplanの不一致、
+shardのsizeまたはSHA-256不一致はすべて拒否される。
+
+```bash
+python3 -m vllm_apple qwen4-stage-verify \
+  --stage /path/to/private-qwen4-stage \
+  --maximum-artifact-bytes 370000000000 \
+  --mode text
+
+python3 -m vllm_apple qwen4-adapter-contract \
+  --stage /path/to/private-qwen4-stage \
+  --maximum-artifact-bytes 370000000000 \
+  --mode text
+```
+
+adapter contractは検証済みplan/config/indexへbindingされ、component policyとshardごとのactive entry数だけを出力する。
+text-onlyではVision/MTP entryを`skipped_optional_entries`へ分離する。tensor dataのloadやMetal allocationは行わず、
+後続production adapterが処理してよいshard/component境界を固定する。
+
+次にsafetensors headerだけを読み、indexとのtensor名完全一致、dtype、shape、data offsetを検証する。
+
+```bash
+python3 -m vllm_apple qwen4-adapter-headers \
+  --stage /path/to/private-qwen4-stage \
+  --maximum-artifact-bytes 370000000000 \
+  --mode text
+```
+
+headerは既定64 MiB、tensor rank 16、shardあたり16,384 tensorに制限する。重複JSON key、未知dtype、shapeとbyte長の
+不一致、重複range、未割当gap、shard外offsetを拒否する。各shardを1つずつ開いてheader範囲だけを読み、weight dataや
+MLX/Metal allocatorには触れない。reportにはdtype/rank別件数だけを保存し、tensor名やshape一覧は出力しない。
+
 大容量Apple Silicon runnerには`self-hosted`、`macOS`、`ARM64`、`vllm-metal`に加えて
 `large-memory` labelを設定する。GitHub Actionsの
 `Qwen Flash Next text-only qualification`を手動実行し、runner上のlocal model path、backend

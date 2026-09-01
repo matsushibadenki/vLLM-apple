@@ -125,6 +125,25 @@ jobs:
             --resident-bytes "$QWEN_RESIDENT_BYTES" \
             --target "$QWEN_ARTIFACT_TARGET" \
             > qualification-results/artifact-admission.json
+      - name: Verify Qwen4 weight mapping without loading tensors
+        run: |
+          python3 -m vllm_apple qwen4-weight-map-inspect \
+            --model-metadata "$QWEN_MODEL" \
+            --index "$QWEN_MODEL/model.safetensors.index.json" \
+            --mode text \
+            > qualification-results/qwen4-weight-map.json
+      - name: Build bounded one-shard Qwen4 conversion plan
+        run: |
+          python3 -m vllm_apple qwen4-conversion-plan \
+            --model-metadata "$QWEN_MODEL" \
+            --index "$QWEN_MODEL/model.safetensors.index.json" \
+            --mode text \
+            > qualification-results/qwen4-conversion-plan.json
+      - name: Verify chunk-invariant Qwen4 cache boundaries without Metal
+        run: |
+          python3 -m vllm_apple qwen4-cache-fixture \
+            --model-metadata "$QWEN_MODEL" \
+            > qualification-results/qwen4-cache-fixture.json
       - name: Verify Apple Silicon and architecture-capable backend
         run: |
           python3 -m vllm_apple qualification-preflight \
