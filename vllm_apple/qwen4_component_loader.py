@@ -127,6 +127,28 @@ class Qwen4MemoryAdmission:
             else:
                 del self._component_bytes[reservation.component]
 
+    def retain_destination(
+        self, reservation: TensorLoadReservation
+    ) -> TensorLoadReservation:
+        with self._lock:
+            current = self._reservations.get(reservation.reservation_id)
+            if current != reservation:
+                raise ValueError("Qwen4 tensor load reservation is unknown or already changed")
+            retained = TensorLoadReservation(
+                reservation_id=reservation.reservation_id,
+                tensor_name=reservation.tensor_name,
+                component=reservation.component,
+                source_stream_bytes=0,
+                destination_bytes=reservation.destination_bytes,
+                scratch_bytes=0,
+                reserved_bytes=reservation.destination_bytes,
+            )
+            released_bytes = reservation.reserved_bytes - retained.reserved_bytes
+            self._reservations[reservation.reservation_id] = retained
+            self._reserved_bytes -= released_bytes
+            self._component_bytes[reservation.component] -= released_bytes
+            return retained
+
     def snapshot(self) -> dict[str, object]:
         with self._lock:
             return {
@@ -183,6 +205,31 @@ class Qwen4ComponentLoader:
         target_dtype: str,
         scratch_bytes: int = 0,
     ) -> Iterator[TensorLoadLease]:
+        descriptor = self.axis0_slice_descriptor(tensor_name, start=start, count=count)
+        source_bytes = descriptor["bytes"]
+        reservation = self.admission.reserve(
+            tensor_name,
+            descriptor,
+            target_dtype=target_dtype,
+            source_stream_bytes=min(source_bytes, self.reader.maximum_chunk_bytes),
+            scratch_bytes=scratch_bytes,
+        )
+        chunks = self.reader.iter_tensor_axis0_slice(tensor_name, start=start, count=count)
+        try:
+            yield TensorLoadLease(
+                reservation=reservation,
+                descriptor=descriptor,
+                chunks=chunks,
+            )
+        finally:
+            close = getattr(chunks, "close", None)
+            if close is not None:
+                close()
+            self.admission.release(reservation)
+
+    def axis0_slice_descriptor(
+        self, tensor_name: str, *, start: int, count: int
+    ) -> dict[str, object]:
         descriptor = self.reader.descriptor(tensor_name)
         shape = descriptor.get("shape")
         source_bytes = descriptor.get("bytes")
@@ -205,27 +252,8 @@ class Qwen4ComponentLoader:
             or start + count > shape[0]
         ):
             raise ValueError("Qwen4 component loader axis-0 slice is invalid")
-        slice_descriptor = {
+        return {
             **descriptor,
             "shape": [count, *shape[1:]],
             "bytes": source_bytes // shape[0] * count,
         }
-        reservation = self.admission.reserve(
-            tensor_name,
-            slice_descriptor,
-            target_dtype=target_dtype,
-            source_stream_bytes=min(slice_descriptor["bytes"], self.reader.maximum_chunk_bytes),
-            scratch_bytes=scratch_bytes,
-        )
-        chunks = self.reader.iter_tensor_axis0_slice(tensor_name, start=start, count=count)
-        try:
-            yield TensorLoadLease(
-                reservation=reservation,
-                descriptor=slice_descriptor,
-                chunks=chunks,
-            )
-        finally:
-            close = getattr(chunks, "close", None)
-            if close is not None:
-                close()
-            self.admission.release(reservation)

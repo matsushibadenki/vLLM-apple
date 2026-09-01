@@ -21,6 +21,7 @@ vllm-apple-soak = "vllm_apple.soak:main"
 vllm-apple-optimize = "vllm_apple.optimizer.cli:main"
 vllm-apple-v2-measure = "vllm_apple.vllm_metal_v2_helper:main"
 vllm-apple-mlx-server = "vllm_apple.mlx_server:main"
+vllm-apple-qwen4-convert-worker = "vllm_apple.qwen4_mlx_conversion_worker:main"
 vllm-apple-release-manifest = "vllm_apple.release_manifest:main"
 
 [tool.setuptools.packages.find]

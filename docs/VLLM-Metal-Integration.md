@@ -231,6 +231,27 @@ backend allocation前に確定する。
 packed expert tensorはaxis-0と`num_experts`の一致を必須とし、active expert範囲だけをslice readerとslice専用
 reservationで処理する。これにより全expert tensorをdestination arrayへ展開せず、load planのresident/peak値と
 実際のreader lifecycleを同じ境界へ揃える。
+MLX変換はABI v1 helper processへ隔離し、stage/tensor selectorとmemory ceilingだけを渡す。controllerはboundedな
+file-backed stdoutをstrict parseし、shape×dtype、output digest、peak reservation、contract/load plan bindingを
+再検証する。raw tensor bytesやtensor値はIPC/reportへ含めず、未信頼permissionのhelperは起動しない。
+worker実行核はstageからcontract/load planをrequested mode込みで再構築し、ID一致後にだけreservation leaseを開く。
+converterは全chunk消費とshape保持を要求され、途中失敗でもlease/file descriptorを解放する。テスト用converterと実MLX
+converterは同じprotocolを実装するが、production capabilityは実MLX converterのcorrectness合格後だけ表明する。
+one-shot correctness helperはBF16/F16/F32をMLXへ変換・evalし、最大16 MiBの結果digestだけを返す。全temporary
+representationをreservationへ含め、scratch不足はMLX import前に拒否する。arrayを保持しないためproduction runtime
+capabilityとは見なさず、長寿命runtime workerの昇格前証跡としてのみ扱う。
+長寿命workerのresident storeは変換予約を解放せずdestination常駐予約へatomic縮小し、random handleでresourceを保持する。
+unloadはbackend解放成功後だけmemoryを返却する。cleanup失敗resourceは予約ごとquarantineし、明示retry成功まで
+available memoryへ戻さないため、backend failure時にもresident memoryを過少計上しない。
+runtime ABI v1はsession/request identityとcontiguous sequenceを必須にし、完全一致requestだけをbounded cacheから
+idempotent replayする。load/unload/status/quarantine retry/shutdownのresult schemaを固定し、error detailとtensor名を
+responseへ保存しない。transport追加後もこのservice contractをUnix socket層から分離して維持する。
+transportは16 KiB length-prefixed frame、current-user peer credential、private directory/socket mode、1,024 command上限を
+適用する。作成socketのdevice/inodeをcloseまでbindingし、path差替え後の別socketをcleanupで削除しない。不正frameは
+protocol responseへ推測変換せずconnectionをfail closedで終了する。
+worker compositionはreader/admission/store/service/transportを単一lifecycleへ束ね、backend実装だけを注入可能にする。
+session IDはprivate `0600` credentialへatomic no-clobber publishし、device/inode binding済みfileだけを終了時に削除する。
+これによりsocket pathとcredential pathの両方で差替え後artifactを誤cleanupしない。
 
 Qwen hybrid inspectionは`layer_types`と`num_hidden_layers`の完全一致を要求し、各Gated DeltaNet layerについて
 V-headのkey/value state matrixとQK/V convolution historyを`mamba_ssm_dtype`のbyte幅で計算する。公式構成の

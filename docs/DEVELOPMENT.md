@@ -356,6 +356,69 @@ packed MoE tensorはshapeの先頭dimensionがconfigの`num_experts`と完全一
 誤って部分loadしないよう、このcomponent APIはpacked `mixture_of_experts` tensorだけに制限する。load planのpeak
 reservationも全packed tensorではなくactive expert slice量を使用する。
 
+MLX変換processとの境界は`vllm_apple.qwen4_conversion_protocol`のABI v1で固定する。requestはstage path、tensor
+selector、contract/load plan ID、target dtype、artifact/memory/scratch ceiling、任意のaxis-0 sliceだけを含み、raw
+tensor bytesをstdinへ複製しない。responseはshape、output bytes、digest、peak reservationだけを返し、tensor値を
+保存しない。
+
+controllerはhelperを別processで実行し、stdoutをmemory captureせずtemporary fileへ受ける。responseは最大16 KiB、
+timeoutは既定120秒で、ABI fieldの完全一致、shape×dtype byte数、reservation上限、contract/load plan IDのrequest
+bindingを再検証する。helperはcurrent-user所有のregular executableに限定し、symlinkとgroup/world writable fileを
+拒否する。現段階ではprotocolとfake helper回帰までを実装済みであり、実MLX workerはこのABIを変更せず後続実装する。
+
+`vllm_apple.qwen4_conversion_worker.execute_qwen4_conversion_request()`はworker側のbackend非依存実行核である。
+requestのcontract/load plan IDを信用せず、stageからrequested mode込みで両方を再構築する。一致後にだけmemory
+admissionとtensor／expert-slice leaseを開き、converter protocolへbounded chunk iteratorを渡す。converterが全source
+bytesを消費しない場合、shapeを変更した場合、output byte数やdigest responseが不正な場合は失敗し、leaseを解放する。
+
+テスト用identity converterでworker lifecycleを固定しているが、これはproduction変換結果として昇格しない。実MLX
+converterは同じprotocolへ実装し、leaseの`reserved_bytes`以内でdtype変換と`mx.eval`を完了する必要がある。
+
+`vllm-apple-qwen4-convert-worker`はABI v1を実行するone-shot MLX correctness helperである。BF16はuint16からFP32へ
+明示decodeし、F16/F32とともにMLX arrayへ変換して`mx.eval`する。出力は最大16 MiBに制限し、raw input、FP32
+decode buffer、target array、digest readbackを保守的に同時memoryへ計上する。必要なscratchをrequestが予約して
+いなければMLX import前に拒否する。
+
+helperは変換後arrayを保持せず、binary representationのSHA-256、shape、bytesだけを返すcorrectness用途である。
+したがってproduction inference backendではなく、worker/MLX versionごとの昇格証跡に使用する。model residencyを
+保持するproduction MLX runtimeは、同じstage/contract/load-plan gateを使う長寿命process protocolとして別途実装する。
+
+`vllm_apple.qwen4_resident_store.Qwen4ResidentStore`は長寿命worker向けのbackend非依存residency lifecycleを提供する。
+変換中はsource chunk、scratch、destinationの全予約を保持し、backend evidence合格後に同じreservation IDのまま
+destination bytesだけへatomicに縮小する。予約を一度解放して取り直す隙間がないため、並行loadにcapacityを奪われない。
+
+resident resourceはrandom handleで管理し、snapshotへtensor名を保存しない。明示unloadでbackend resourceの解放が
+成功した後だけreservationとhandleを削除する。変換失敗後のcleanupも失敗した場合はresourceと全reservationを内部
+quarantineへ残し、`retry_quarantined_releases()`が成功するまでmemoryを使用中として計上する。
+
+長寿命worker commandは`vllm_apple.qwen4_runtime_protocol`のABI v1を使用する。load、unload、status、
+retry-quarantine、shutdownをoperation別の完全一致schemaで検証し、session ID、request ID、1から連続するsequenceを
+必須とする。同じsequenceはcanonical requestが完全一致する場合だけ最大256件のbounded cacheから再送し、内容差替えと
+sequence gapを拒否する。
+
+operation errorもsequenceを消費し、本文や例外detailを返さず固定error codeだけを返す。statusはresident/quarantine
+件数、component別件数、memory snapshotだけを含み、tensor名を保存しない。shutdown成功後は同一requestの再送だけを
+許可し、新規commandを拒否する。command serviceとUnix socket transportは分離し、framing異常でservice stateを変更しない。
+
+`vllm_apple.qwen4_runtime_transport.Qwen4RuntimeUnixServer`はABI v1を4-byte network-order length prefix付きJSON frameで
+公開する。request/responseは各16 KiB、1 connectionは最大1,024 commands、idle readは既定30秒に制限する。
+socket directoryはcurrent-user所有かつ`0700`相当、socketは`0600`に固定し、macOS `LOCAL_PEERCRED`またはLinux
+`SO_PEERCRED`でcurrent-user clientだけを許可する。
+
+既存pathやsymlinkは削除して再利用しない。serverがbindしたsocketのdevice/inodeを記録し、close時に同一identityの
+current-user socketだけをunlinkする。不正length、重複JSON key、途中EOF、command上限超過ではsequenceを進めず接続を
+閉じる。隔離環境ではfilesystem上のAF_UNIX bindがEPERMになるため、socketpairによるframing/peer試験とmock bindによる
+permission契約をCIで実行し、実bind smokeは通常macOS terminalで行う。
+
+`vllm_apple.qwen4_runtime_worker.Qwen4RuntimeWorker`は、検証済みreader、memory admission、resident store、command
+service、Unix transportを一つのlifecycleへ構成する。backendはprotocolで注入するため、fake backendによる実機不要の
+composition試験とproduction MLX backendを同じ制御経路で利用できる。
+
+random session IDはstdoutやreportへ出さず、current-user private directoryのcredential fileへ`0600`で保存する。
+temporary fileの`fsync`後、hard-linkでatomic no-clobber publishするため、同名fileが競合した場合は上書きせず起動を
+失敗させる。終了時は作成時のdevice/inodeと一致するcurrent-user regular fileだけを削除し、差替え済みcredentialを
+誤削除しない。server起動失敗時もcredentialを同じ規則で回収する。
+
 大容量Apple Silicon runnerには`self-hosted`、`macOS`、`ARM64`、`vllm-metal`に加えて
 `large-memory` labelを設定する。GitHub Actionsの
 `Qwen Flash Next text-only qualification`を手動実行し、runner上のlocal model path、backend

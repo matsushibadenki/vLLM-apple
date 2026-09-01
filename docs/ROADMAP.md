@@ -563,6 +563,23 @@ vLLM-Metal対応とは見なさない。
 - `[Done]` MoE active expert比率と最大PLE partitionによるresident working-set算定
 - `[Done]` packed MoE expert axisとconfig topologyの完全一致gate
 - `[Done]` expert axis-0 bounded slice readerとslice単位memory reservation
+- `[Done]` backend非依存Qwen tensor conversion ABI v1とstrict request/response binding
+- `[Done]` bounded file-backed worker output、timeout、helper ownership/permission gate
+- `[Done]` worker側stage contract/load plan再構築とrequested mode binding
+- `[Done]` reservation lease内converter protocol、全chunk消費・shape保持gate
+- `[Done]` 16 MiB上限のone-shot MLX correctness converter entrypoint
+- `[Done]` BF16/F16/F32 decode・dtype変換・eval・値非保存digest evidence
+- `[Done]` conversion reservationからresident destinationへのatomic縮小
+- `[Done]` backend非依存resident tensor storeとexplicit unload lifecycle
+- `[Done]` cleanup失敗resourceのreservation保持quarantineとrelease retry
+- `[Done]` runtime ABI v1 load/unload/status/quarantine-retry/shutdown command schema
+- `[Done]` session binding、contiguous sequence、bounded idempotent replay cache
+- `[Done]` operation別strict responseと本文非保存status contract
+- `[Done]` 16 KiB length-prefixed private Unix socket transport
+- `[Done]` macOS `LOCAL_PEERCRED`／Linux `SO_PEERCRED` current-user peer gate
+- `[Done]` socket device/inode binding済みsafe cleanupと接続command上限
+- `[Done]` verified reader・admission・resident store・service・transport worker composition
+- `[Done]` private session credentialのatomic no-clobber publishとinode-bound cleanup
 - `[Done]` multimodal Qwenのrequested mode別text/Vision/MTP capability gate
 - `[Done]` text-only memory fitからMTP runtime working setを除外するmode-aware budget
 - `[Done]` download前artifact admission（Unified Memory、disk staging、構造化判定）
@@ -574,7 +591,7 @@ vLLM-Metal対応とは見なさない。
 - `[Done]` Qwen認定前後のmodel tree streaming SHA-256再検証（constant-memory、private manifest、report非公開）
 - `[Done]` Qwen認定での任意CMS provenance mode（trusted CA・signer identity・load前後署名再検証）
 - `[Next]` 大容量Apple Siliconでtext-only smoke、TTFT、TPOT、RSS、品質gate
-- `[Later]` expert slice reservation lease内でMLX arrayへ変換するproduction component adapter
+- `[Later]` worker compositionへ実MLX resident backendを注入するproduction entrypoint
 - `[Later]` production MLX adapterのcorrectness合格後にNative Metal kernelを比較検討
 
 参照：

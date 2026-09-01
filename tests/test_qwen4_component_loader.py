@@ -68,6 +68,24 @@ class Qwen4ComponentLoaderTests(unittest.TestCase):
                 self.assertEqual(lease.reservation.destination_bytes, 4)
                 self.assertEqual(lease.reservation.source_stream_bytes, 2)
 
+    def test_atomically_reduces_conversion_reservation_to_resident_destination(self) -> None:
+        admission = Qwen4MemoryAdmission(32)
+        reservation = admission.reserve(
+            "tensor",
+            {"component": "token_embedding", "shape": [2]},
+            target_dtype="F32",
+            source_stream_bytes=4,
+            scratch_bytes=6,
+        )
+        retained = admission.retain_destination(reservation)
+        self.assertEqual(retained.reserved_bytes, 8)
+        self.assertEqual(retained.source_stream_bytes, 0)
+        self.assertEqual(retained.scratch_bytes, 0)
+        self.assertEqual(admission.snapshot()["reserved_bytes"], 8)
+        with self.assertRaisesRegex(ValueError, "changed"):
+            admission.retain_destination(reservation)
+        admission.release(retained)
+
 
 if __name__ == "__main__":
     unittest.main()
