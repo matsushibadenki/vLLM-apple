@@ -65,6 +65,8 @@ class MemoryPressureMonitorTests(unittest.TestCase):
         telemetry = service.snapshot().memory_telemetry
         self.assertEqual(telemetry["pressure"], "critical")
         self.assertEqual(telemetry["pressure_notifications"], 2)
+        self.assertEqual(telemetry["unified_total_bytes"], 16 * 1024**3)
+        self.assertLess(service.snapshot().scheduler["capacity_bytes"], 12 * 1024**3)
         self.assertFalse(service.snapshot().elastic_memory["enabled"])
 
 

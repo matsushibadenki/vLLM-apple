@@ -23,6 +23,9 @@ vllm-apple-v2-measure = "vllm_apple.vllm_metal_v2_helper:main"
 vllm-apple-mlx-server = "vllm_apple.mlx_server:main"
 vllm-apple-qwen4-convert-worker = "vllm_apple.qwen4_mlx_conversion_worker:main"
 vllm-apple-release-manifest = "vllm_apple.release_manifest:main"
+vllm-apple-diffusers-worker = "vllm_apple.diffusers_generation_worker:main"
+vllm-apple-mflux-worker = "vllm_apple.mflux_generation_worker:main"
+vllm-apple-mlx-gen-worker = "vllm_apple.mlx_gen_generation_worker:main"
 
 [tool.setuptools.packages.find]
 include = ["vllm_apple*"]

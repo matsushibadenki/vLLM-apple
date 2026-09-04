@@ -171,6 +171,110 @@ admissionの`model`はqualification reportの`model`と完全一致しなけれ�
 workflowは丸め差を避けるためexact byteを受け取る。対話的な事前確認では`--artifact-gib`と
 `--resident-gib`も利用できるが、認定証拠には`--artifact-bytes`と`--resident-bytes`を使用する。
 
+画像・動画生成候補は、weightを取得またはloadする前に共通のbounded初期profileを確認できる。
+
+```bash
+python3 -m vllm_apple generative-candidates
+
+python3 -m vllm_apple generative-qualification-plan \
+  --candidate wan2.2-ti2v-5b \
+  --artifact-bytes 8589934592 \
+  --resident-bytes 19327352832 \
+  --quantization int4 \
+  --component transformer:denoiser:6442450944:15032385536 \
+  --component text-encoder:text_encoder:1073741824:2147483648 \
+  --component vae:vae:1073741824:2147483648 \
+  --target models
+```
+
+候補ごとに最初のwidth、height、frames、steps、batch sizeと必須memory strategyを固定する。
+初期profileを超える設定、M4/32GBで量子化必須の候補に対する`quantization=none`、または既存の
+disk/Unified Memory admission不合格は`eligible=false`となり、modelはloadされない。`--component`は
+`name:role:artifact_bytes:resident_bytes`形式で、roleは`denoiser`、`text_encoder`、`vae`、`other`を
+受け付ける。先頭3 roleは必須であり、component名は重複できない。CLIのaggregate容量値は全componentの
+合計と完全一致しなければならない。現段階のresident値は安全側の同時常駐合計とし、offloadを考慮した
+実測peak RSSの認定は後続段階で追加する。
+
+生成backend adapterが実測sampleを取得した後は、`GenerativeSampleEvidence`と
+`evaluate_generative_qualification`で再計算可能なreportを構築する。reportは元planのcanonical
+SHA-256に結合し、sample indexの連続性、出力寸法・frame数、peak RSS hard ceiling、memory pressure、
+thermal stateを検証する。`critical`または不明なmemory pressure、`serious`以上または不明なthermal
+state、出力shape不一致、promptまたは生成物の保持はfail closedとなる。reportには生成内容を含めず、
+出力のSHA-256だけを保存する。`save_generative_evaluation_report`はdirectoryを0700、reportを0600にし、
+atomic replaceで書き込む。対応backendからのsample collectorは後続実装とする。
+
+backend adapterは`GenerationTelemetryEvent`を`started`、`progress`、任意の`first_output`、
+`completed`の順でstreamする。`collect_generative_sample`は最大4096 eventを保持せず逐次集計し、時刻の
+逆行、重複start/first-output、completion後のevent、completion欠落を拒否する。出力寸法・frame数・
+SHA-256はcompleted eventだけに許可し、中間eventを経由した生成内容の混入を防ぐ。collectorはstream中の
+最大RSSと最悪のmemory pressure・thermal stateをsample evidenceへ変換する。実backend固有adapterは、
+このevent contractへ接続する薄い境界として後続実装する。
+
+外部workerとの共通境界には`SubprocessGenerativeTelemetryAdapter`を使う。commandはargument配列で
+起動し、shell展開を行わない。stdinとstderrは閉じ、stdoutのJSONLだけを既定16 KiB/event、最大1 MiBの
+設定範囲で逐次decodeする。field集合はcontractと完全一致しなければならず、未知field、invalid UTF-8、
+不正JSON、oversize line、非zero exitを拒否する。timeoutは最大24時間で、timeout、decode失敗、または
+collector側の早期中断時には専用process groupへTERMを送り、2秒で終了しなければKILLする。
+
+```json
+{"kind":"started","elapsed_ms":0,"process_rss_bytes":1073741824,"memory_pressure":"normal","thermal_state":"nominal","output_width":null,"output_height":null,"output_frames":null,"output_sha256":null}
+{"kind":"completed","elapsed_ms":120000,"process_rss_bytes":19327352832,"memory_pressure":"warning","thermal_state":"fair","output_width":640,"output_height":360,"output_frames":33,"output_sha256":"<lowercase-sha256>"}
+```
+
+prompt、seed、生成物path、生成内容はprotocol fieldに含めない。MLX、Diffusers、ComfyUI固有workerは
+このJSONL境界の背後に置き、framework importとmodel/Metal allocationをcontrol processから隔離する。
+
+生成workerへの入力は`build_generative_worker_request`で構築する。requestはqualification plan digest、
+prompt digest、candidate/model、mode、seed、shape、memory hard ceilingに結合される。model rootとoutput
+rootは指定workspace内の実directoryに限定し、outputをmodel tree内へ置くことはできない。
+`save_private_generative_request`は最大32 KiBのrequestを0600でatomic保存する。workerは
+`consume_private_generative_request`で`O_NOFOLLOW`を使って開き、owner、regular file、permission、size、
+prompt digestを再検証する。読み取りに成功した場合も検証に失敗した場合も、opened inodeとpathのinodeが
+一致する場合だけrequestをunlinkする。これによりsymlink追跡、path差し替えによる別file削除、promptの
+telemetry/report残留を防ぐ。実workerはconsume後にのみDiffusersまたはMLXをimportしてmodelをloadする。
+
+Diffusers workerを配置する前に、対象virtual environmentのpipeline classを静的検査する。
+
+```bash
+python3 -m vllm_apple diffusers-generative-readiness \
+  --python /path/to/diffusers-venv/bin/python
+```
+
+probe subprocessは`importlib.metadata`だけでDiffusersのversionとsource rootを返す。control processは
+sourceを最大4096 file、合計32 MiB、1 file 2 MiBの範囲でAST scanし、`Flux2KleinPipeline`、`Flux2Pipeline`、
+`QwenImagePipeline`、`WanPipeline`、`WanImageToVideoPipeline`、`HunyuanVideo15Pipeline`、
+`HunyuanVideo15ImageToVideoPipeline`の存在を候補別に照合する。Diffusers自体をimportせず、model weight、
+MPS、Metal deviceをallocateしない。T2VとI2Vの両方を候補に掲げるmodelは、片方のclassだけではreadyへ
+昇格しない。全6候補が揃っていない場合の終了codeは1、probe自体の失敗は2である。
+
+画像候補のworker execution coreは`execute_diffusers_image_request`を使う。現段階ではFLUX.2 [klein]
+9B Baseの`Flux2KleinPipeline`、FLUX.2 [dev]の`Flux2Pipeline`、Qwen-Image-2512の
+`QwenImagePipeline`をcandidate IDへ固定し、
+text-to-imageだけを受け付ける。runtimeは各stepからprogress callbackを呼び、coreが共通telemetry eventへ
+変換する。pipeline classが候補と一致しない場合はgeneration前に拒否する。
+
+生成画像はrequestのoutput root内にあるcurrent-user regular fileだけを受け付け、最大16 GiBまでを
+1 MiB chunkでSHA-256計算する。hash後はopened inodeとpath inodeが一致する場合だけ削除し、reportには
+digestとshapeだけを渡す。output root外のpathやsymlinkは拒否し、workerの権限外にあるfileは削除しない。
+image-edit、Wan/HunyuanVideo video生成、量子化方式固有loaderは後続段階とする。
+
+`vllm-apple-diffusers-worker`はprivate requestをconsumeした後に限って`torch`と`diffusers`を遅延importする。
+対象はFLUX.2 [klein]の`Flux2KleinPipeline`、FLUX.2 [dev]の`Flux2Pipeline`、Qwen Imageの
+`QwenImagePipeline`によるtext-to-imageである。
+MPS availabilityをmodel load前に確認し、pipelineはlocal model directoryから`local_files_only=True`、
+BF16 computeで構築する。VAEがtilingを提供する場合は有効化し、pipelineをMPSへ移動する。seedはCPU
+generatorへ固定し、Diffusersのstep-end callbackをbounded progress telemetryへ変換する。requestの
+memory hard ceilingをworker RSSが超えた時点で失敗させる。終了時はpipeline参照を解放し、利用可能なら
+MPS cacheをclearする。image-edit、動画pipeline、量子化方式固有loaderは後続段階とする。
+
+```bash
+vllm-apple-diffusers-worker \
+  --request /private/workspace/request.json \
+  --workspace-root /private/workspace
+```
+
+workerは失敗詳細やpromptをstdoutへ出さず、成功時のstdoutは共通JSONL telemetryだけに限定する。
+
 PRやpushからは起動せず、同時に複数の実modelを走らせない。report directoryは0700、reportは必要な
 場合だけ明示的な`upload-report`入力で14日間保存する。reportには生成本文を含めないが、model識別子を
 含むため公開可能性を確認してからuploadする。
@@ -434,3 +538,28 @@ manifestは相対file名を含むため、GitHub Actions artifactにはuploadし
 `integrity-trusted-ca`、`integrity-signer-sha256`をすべて指定する。このmodeでは一時manifestを
 信頼の根拠にせず、load前とqualification後の両方でCA chain、signer certificate identity、署名、
 model treeを再検証する。4入力の一部だけを指定したrunはmodelをloadする前に拒否する。
+### Generative model artifact inspection
+
+Inspect downloaded image/video model structure and exact component sizes without importing the
+backend, loading weights, or allocating Metal memory:
+
+```bash
+python3 -m vllm_apple inspect-generative-artifact models/Z-Image-Turbo-MLX-4bit
+python3 -m vllm_apple inspect-generative-artifact models/Qwen-Image-2512-4bit
+```
+
+The report distinguishes Diffusers, MLX Diffusers conversions, and MFLUX layouts. Its
+`memory_fit_evaluated` field remains `false`: artifact bytes are not a substitute for measured
+peak Unified Memory, so run the corresponding backend readiness and qualification stages before
+generation.
+
+MFLUX support can be inspected without importing MLX or allocating Metal:
+
+```bash
+python3 -m vllm_apple mflux-generative-readiness \
+  --python /path/to/mflux-venv/bin/python3 \
+  --model models/Qwen-Image-2512-4bit
+```
+
+Only a report with a compatible `mflux` artifact layout may reach the one-shot
+`vllm-apple-mflux-worker`. An MLX-tagged checkpoint is not assumed to be MFLUX-compatible.

@@ -2181,6 +2181,45 @@ video VLM
 streaming video
 ```
 
+初期の動画生成qualification候補は、MacBook Air M4 / 32GBでload前memory admissionを通過する
+構成に限定する。
+
+```text
+Tier A: Wan 2.2 TI2V-5B
+        T2V/I2V、high-compression VAE、量子化、逐次module residencyを優先
+
+Tier B: HunyuanVideo 1.5 8.3B
+        480p、step-distilled、SSTA、model offloadを優先
+
+Tier C: Wan 2.2 A14B quantized
+        stretch候補。T2V/I2V artifactを区別し、dual expertを同時常駐させず、
+        CPU/SSD offloadを併用する。非量子化artifactはM4/32GBでload前に拒否
+```
+
+最初の認定profileは低解像度、短尺、batch 1、bounded frames/stepsとする。DiTまたはexpert、
+text encoder、3D VAEのartifact bytesとresident bytesを個別に見積もる。合格後は解像度、
+frame数、steps、連続生成のうち一軸だけを増やす。reportにはfirst-frame/wall latency、
+peak RSS、memory pressure、thermal state、frames/sec、output metadata、backend/model fingerprint、
+量子化方式、変換元digest、licenseを含める。CIはweightおよび生成動画をartifactとして保存しない。
+
+実測backendはcontrol processへ直接importせず、shellを介さないsubprocessとして隔離する。共通JSONL
+telemetryは1 event 16 KiB、1 sample 4096 eventを既定上限とし、collectorはevent履歴を保持しない。
+timeoutまたはprotocol違反ではworker process groupを停止する。prompt、生成内容、生成物pathはtelemetryへ
+含めず、completed eventに出力shape、frame数、content SHA-256だけを含める。
+
+Diffusers対応は、frameworkをimportする前に配布sourceをbounded AST scanし、候補ごとのpipeline classを
+照合する。T2V/I2Vの両modeを宣言する候補は両pipeline classを要求する。静的readiness通過はsource上の
+API存在だけを示し、MPSでのcorrectness、memory fit、実生成成功を示すqualificationとしては扱わない。
+
+Diffusers image worker coreはcandidate IDとpipeline classを固定対応させる。qualification生成物はworkspace内の
+一時outputだけに限定し、bounded streaming SHA-256後にinodeを再確認して削除する。reportへ渡すのはshape、
+digest、telemetryだけとし、画像bytesとpathは渡さない。workspace外fileをworkerが返した場合は拒否するが、
+権限範囲外のfileをcleanup名目で削除しない。
+
+最初の実runtimeはDiffusers text-to-imageとし、private request消費後にだけframeworkを遅延importする。
+local-files-only、MPS availability、candidate/pipeline identity、memory hard ceilingをmodel load/generation境界で
+検証する。step callbackを共通telemetryへ変換し、runtime終了時にpipeline参照とMPS cacheを解放する。
+
 ---
 
 ## Phase 7 — Generative Media
@@ -2196,6 +2235,26 @@ music generation
 video generation
 latent memory management
 ```
+
+初期の画像生成qualification候補は、MacBook Air M4 / 32GBでload前memory admissionを通過する
+構成に限定する。
+
+```text
+Tier A: FLUX.2 [klein] 9B Base
+        量子化、text encoder分離、VAE tiling、逐次module residencyを優先
+
+Tier B: Qwen-Image-2512
+        対応MPS/MLX backend、量子化、offloadの組み合わせを検証
+
+Tier C: FLUX.2 [dev]
+        stretch候補。4-bit級量子化、CPU/SSD offload、chunkingを必須とし、
+        非量子化artifactはM4/32GBでload前に拒否
+```
+
+最初の認定profileは512×512、batch 1、単一画像、bounded stepsとし、model、text encoder、
+VAEのartifact bytesとresident bytesを個別に見積もる。合格後だけ768/1024と連続生成へ進む。
+reportにはwall latency、peak RSS、memory pressure、thermal state、backend/model fingerprint、
+quantization provenance、licenseを含める。CIはweightおよび生成画像をartifactとして保存しない。
 
 ---
 

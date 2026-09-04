@@ -1,6 +1,6 @@
 # vLLM-Apple Runtime Roadmap
 
-最終更新：2026-08-30
+最終更新：2026-09-04
 
 本ロードマップは、[Design-Specifications.md](Design-Specifications.md)を実装可能な単位へ分解し、現在のコードベースに対する進捗を示す。
 
@@ -705,6 +705,7 @@ vLLM-Metal対応とは見なさない。
 
 ## Phase 6 — Video
 
+- `[Done]` 3候補のbounded初期profile catalogと共通load前artifact/Unified Memory admission
 - `[Later]` hardware video decoder integration
 - `[Later]` GPU-accessible bufferへのcopy削減path
 - `[Later]` frame scheduler
@@ -713,10 +714,41 @@ vLLM-Metal対応とは見なさない。
 - `[Later]` video VLM integration
 - `[Later]` streaming video input
 - `[Later]` frames/sec、seconds-of-video/sec、memory/minute benchmark
+- `[Later]` M4/32GB向け動画生成qualification profile（最初は低解像度、短尺、batch 1、bounded frames/steps）
+- `[Later]` Wan 2.2 TI2V-5Bを優先候補とするT2V/I2V、high-compression VAE、量子化、逐次module residency検証
+- `[Later]` HunyuanVideo 1.5 8.3Bを候補とする480p、step-distilled、SSTA、model offload検証
+- `[Later]` Wan 2.2 A14B量子化版をstretch候補とするT2V/I2V別artifact、dual-expert residency、CPU/SSD offload検証
+- `[Done]` video diffusion pipelineのDiT/expert、text encoder、3D VAE別artifact admissionとconservative resident-memory hard ceiling
+- `[Done]` privacy-preserving動画生成qualification report schemaとdeterministic evaluator（first-output/wall latency、peak RSS、memory pressure、thermal state、frames/sec、output metadata、plan fingerprint）
+- `[Done]` backend-neutralなbounded telemetry event contractとconstant-memory sample collector
+- `[Done]` shellを介さないbounded JSONL subprocess telemetry adapterとtimeout時process-group停止
+- `[Done]` workspace-bound one-shot worker request、prompt digest binding、0600 atomic保存、consume後unlink
+- `[Done]` Diffusers sourceのbounded AST scanによる6候補pipeline class readiness gate（backend import/model/Metal allocationなし）
+- `[Later]` MLX、Diffusers、ComfyUI固有workerからqualification sampleを取得するadapter
+- `[Later]` 最小profile合格後だけ解像度、frame数、steps、連続生成を一軸ずつ増やす段階的memory-stability gate
+- `[Later]` model license、量子化方式、変換元digest、workflow provenanceを記録し、CIではweightと生成動画を保存・uploadしないprivacy gate
 
 ## Phase 7 — Generative Media
 
+- `[Done]` 3候補のbounded初期profile catalogと共通load前artifact/Unified Memory admission
 - `[Later]` image generation workload
+- `[Later]` M4/32GB向け画像生成qualification profile（最初は512×512、batch 1、単一画像、bounded steps）
+- `[Later]` FLUX.2 [klein] 9B Baseを優先候補とする量子化、text encoder分離、VAE tiling、逐次module residency検証
+- `[Next]` 配置済みZ-Image-Turbo-MLX-4bitを優先候補とするMLX backend readiness、512×512・9 steps実機qualification
+- `[Later]` Qwen-Image-2512を候補とするMPS/MLXまたは対応backendの量子化、offload、peak Unified Memory検証
+- `[Later]` FLUX.2 [dev]をstretch候補とする4-bit級量子化、CPU/SSD offload、chunking検証（非量子化weightはM4/32GBでload前にreject）
+- `[Done]` diffusion pipelineのmodel、text encoder、VAE別artifact admissionとconservative resident-memory hard ceiling
+- `[Done]` privacy-preserving画像生成qualification report schemaとdeterministic evaluator（first-output/wall latency、peak RSS、memory pressure、thermal state、output metadata、plan fingerprint）
+- `[Done]` backend-neutralなbounded telemetry event contractとconstant-memory sample collector
+- `[Done]` shellを介さないbounded JSONL subprocess telemetry adapterとtimeout時process-group停止
+- `[Done]` workspace-bound one-shot worker request、prompt digest binding、0600 atomic保存、consume後unlink
+- `[Done]` Diffusers sourceのbounded AST scanによる6候補pipeline class readiness gate（backend import/model/Metal allocationなし）
+- `[Done]` FLUX.2/Qwen Image向けDiffusers image worker execution core、pipeline identity gate、streaming output hash、qualification後削除
+- `[Done]` local-only Diffusers MPS text-to-image runtime、BF16 compute、VAE tiling、step telemetry、one-shot executable
+- `[Later]` Diffusers image-editとWan/HunyuanVideo video worker adapter
+- `[Later]` MLX、ComfyUI固有workerからqualification sampleを取得するadapter
+- `[Later]` 512×512合格後だけ768/1024と連続生成へ進む段階的memory-stability gate
+- `[Later]` model license、gated artifact、quantization provenanceを記録し、CIではweightと生成画像を保存・uploadしないprivacy gate
 - `[Later]` audio and music generation workload
 - `[Later]` video generation workload
 - `[Later]` latent memory manager
@@ -993,6 +1025,33 @@ vLLM-Metal対応とは見なさない。
 104. `[Done]` 同名別量子化artifact間のadmission evidence replay防止
 105. `[Next]` 大容量Apple SiliconでQwen text-only実model qualification
 106. `[Later]` Mac companion app
+107. `[Later]` M4/32GB画像生成qualification（FLUX.2 [klein] 9B Base、Qwen-Image-2512、量子化FLUX.2 [dev]）
+108. `[Later]` M4/32GB動画生成qualification（Wan 2.2 TI2V-5B、HunyuanVideo 1.5 8.3B、量子化Wan 2.2 A14B）
+109. `[Done]` 画像・動画6候補のbounded qualification plan schema、CLI、load前aggregate admission
+110. `[Done]` denoiser、text encoder、VAE別容量証拠とaggregate完全一致によるload前fail-closed gate
+111. `[Done]` 生成本文非保存の実測evidence evaluator、plan binding、private/atomic report保存
+112. `[Done]` 最大4096 eventのconstant-memory生成telemetry collectorとstrict lifecycle検証
+113. `[Done]` 16 KiB/event上限、24時間hard timeout、process-group cleanup付きJSONL backend境界
+114. `[Done]` prompt非永続化の32 KiB one-shot生成worker request ABIとsymlink/race防御
+115. `[Done]` Flux2、QwenImage、Wan、HunyuanVideo 1.5のDiffusers静的readiness CLI
+116. `[Done]` Diffusers image qualification worker coreとworkspace-bound一時生成物のstreaming digest/delete
+117. `[Done]` FLUX.2/Qwen Imageのlocal-only MPS Diffusers runtimeとisolated worker entrypoint
+118. `[Done]` 実FLUX.2 [klein] checkpointで判明した`Flux2KleinPipeline` identityへのreadiness/runtime修正
+119. `[Done]` MLX Diffusers変換/MFLUX artifactのbounded静的形式判定、component実容量集計、backend誤接続防止
+120. `[Next]` Z-Image-Turbo-MLX-4bitの対応MLX workerとM4/32GB最小profile qualification
+121. `[Later]` Qwen-Image-2512-4bitのMFLUX workerとoffload前提memory-stability qualification
+122. `[Done]` MFLUX Z-Image/Qwen Image backend classとartifact形式を分離したloadなしreadiness gate
+123. `[Next]` Z-Image artifactをMFLUX互換形式へ揃え、readinessを合格させる配置手順の確定
+124. `[Done]` MFLUX Z-Image/Qwen Image local-only one-shot worker、private output digest/delete、memory ceiling telemetry接続
+125. `[Done]` 配置済みFLUX.2 Klein 9B 4-bitのMLX-Gen形式、component実容量、非商用license provenance静的検査
+126. `[Done]` MLX-Gen local-only FLUX.2 Klein worker接続
+127. `[Done]` MLX-Gen 0.18.2+、console entrypoint、FLUX.2 Klein base identity、4-bit形式のload前readiness gate
+128. `[Done]` MLX-Gen bounded JSON progressを用いたFLUX.2 Klein one-shot worker
+129. `[Done]` MLX-Gen 0.33.1でFLUX.2 Klein 512×512実機最小profile qualification
+130. `[Done]` FLUX.2 Klein routeで未対応の`--vae-tiling`を事前smokeで検出し、512 profileをautomatic VAE decodeへ修正
+131. `[Done]` MLX-Gen JSON event捕捉とqualification telemetry出力のstream分離による再帰防止
+132. `[Done]` M4/32GBで20-step完走、worker 2-step ABI完走、Peak MLX 7.76GB／Peak RSS 5.74GBの実測
+133. `[Next]` 20-step worker evidenceのreport保存と連続2回memory-stability gate
 
 この順序により、まず推論runtimeの実model安定性を確立し、その境界を壊さずにoptimizerを
 別processとして追加する。構造pruningはquantization、calibration、評価gateの後に着手する。

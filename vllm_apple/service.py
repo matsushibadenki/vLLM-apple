@@ -157,16 +157,20 @@ class RuntimeService:
         self.memory_telemetry = memory_telemetry or UnifiedMemoryTelemetry(
             memory.total_bytes, memory.available_bytes, memory.source, memory.pressure
         )
+        telemetry_before_update = self.memory_telemetry.snapshot()
         self.memory_telemetry.update_os(
-            available_bytes=memory.available_bytes,
+            available_bytes=telemetry_before_update.unified_available_bytes,
             control_resident_bytes=memory.process_resident_bytes,
         )
         self.memory_admission = MemoryPressureAdmissionGate()
         self.memory_admission.refresh(self.memory_telemetry.snapshot())
         # Scheduler reservations cover transient work only. Retain the larger of
         # 1 GiB or 8% as an unreservable emergency margin.
-        emergency_margin = max(GIB, int(memory.total_bytes * 0.08))
-        scheduler_capacity = max(0, memory.available_bytes - emergency_margin)
+        telemetry_capacity = self.memory_telemetry.snapshot()
+        emergency_margin = max(GIB, int(telemetry_capacity.unified_total_bytes * 0.08))
+        scheduler_capacity = max(
+            0, telemetry_capacity.unified_available_bytes - emergency_margin
+        )
         self.scheduler = BasicScheduler(self.profile.hardware, scheduler_capacity)
         self.native_v2_tuning = NativeV2IdleTuningCoordinator(
             self.scheduler,

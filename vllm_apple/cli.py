@@ -10,9 +10,17 @@ from .artifact_admission import assess_artifact_admission_for_path
 from .compat import assess_candidate_backend, inspect_backend, inspect_mlx_lm_backend
 from .context import recommend_context
 from .daemon import serve
+from .diffusers_generative_readiness import inspect_diffusers_generative_readiness
 from .execution_profile import detect_apple_chip_profile, save_chip_profile
 from .hardware import detect_hardware
 from .huggingface_metadata import HuggingFaceMetadataError, fetch_hugging_face_metadata
+from .generative_qualification import (
+    GENERATIVE_CANDIDATES,
+    build_generative_qualification_plan,
+    list_generative_candidates,
+    parse_generative_component,
+)
+from .generative_artifact_inspection import inspect_generative_artifact
 from .kernel_probe import build_environment_fingerprint
 from .kernel_profile import build_model_kernel_shape_profile
 from .kv_calibration import (
@@ -47,6 +55,8 @@ from .qualification import (
     save_qualification_report,
 )
 from .mlx_qwen4_readiness import inspect_mlx_qwen4_readiness
+from .mflux_generative_readiness import inspect_mflux_generative_readiness
+from .mlx_gen_generative_readiness import inspect_mlx_gen_generative_readiness
 from .qualification_preflight import run_qualification_preflight
 from .qwen4_cache_contract import run_qwen4_cache_fixture
 from .qwen4_adapter_contract import build_qwen4_adapter_contract
@@ -117,6 +127,58 @@ def build_parser() -> argparse.ArgumentParser:
     resident_size.add_argument("--resident-bytes", type=int)
     artifact_admission.add_argument("--target", type=Path, default=Path("models"))
     artifact_admission.add_argument("--staging-factor", type=float, default=1.05)
+
+    commands.add_parser(
+        "generative-candidates",
+        help="list bounded image and video qualification candidates",
+    )
+    generative_artifact = commands.add_parser(
+        "inspect-generative-artifact",
+        help="inspect a local image or video artifact without loading weights",
+    )
+    generative_artifact.add_argument("model", type=Path)
+    generative = commands.add_parser(
+        "generative-qualification-plan",
+        help="build a bounded load-before-admission plan for an image or video model",
+    )
+    generative.add_argument("--candidate", choices=tuple(GENERATIVE_CANDIDATES), required=True)
+    generative.add_argument("--artifact-bytes", type=int, required=True)
+    generative.add_argument("--resident-bytes", type=int, required=True)
+    generative.add_argument(
+        "--quantization",
+        choices=("none", "int8", "fp8", "int4", "other"),
+        required=True,
+    )
+    generative.add_argument("--width", type=int)
+    generative.add_argument("--height", type=int)
+    generative.add_argument("--frames", type=int)
+    generative.add_argument("--steps", type=int)
+    generative.add_argument("--batch-size", type=int, default=1)
+    generative.add_argument("--target", type=Path, default=Path("models"))
+    generative.add_argument(
+        "--component",
+        action="append",
+        type=parse_generative_component,
+        required=True,
+        help="component evidence as name:role:artifact_bytes:resident_bytes",
+    )
+    diffusers_readiness = commands.add_parser(
+        "diffusers-generative-readiness",
+        help="statically inspect Diffusers pipeline support without model or Metal allocation",
+    )
+    diffusers_readiness.add_argument("--python", type=Path, default=Path(sys.executable))
+    mflux_readiness = commands.add_parser(
+        "mflux-generative-readiness",
+        help="statically inspect MFLUX image support without importing it or allocating Metal",
+    )
+    mflux_readiness.add_argument("--python", type=Path, default=Path(sys.executable))
+    mflux_readiness.add_argument("--model", type=Path)
+    mlx_gen_readiness = commands.add_parser(
+        "mlx-gen-generative-readiness",
+        help="verify MLX-Gen and a local FLUX.2 Klein artifact without loading weights",
+    )
+    mlx_gen_readiness.add_argument("--python", type=Path, default=Path(sys.executable))
+    mlx_gen_readiness.add_argument("--model", required=True, type=Path)
 
     doctor = commands.add_parser("doctor", help="inspect the vLLM-Metal environment")
     doctor.add_argument("--backend-executable")
@@ -504,6 +566,98 @@ def main(argv: list[str] | None = None) -> int:
     if arguments.command == "hardware":
         _json(detect_hardware().to_dict())
         return 0
+    if arguments.command == "generative-candidates":
+        _json({"schema_version": 1, "candidates": [item.to_dict() for item in list_generative_candidates()]})
+        return 0
+    if arguments.command == "inspect-generative-artifact":
+        try:
+            report = inspect_generative_artifact(arguments.model)
+        except (OSError, ValueError) as error:
+            _json(
+                {
+                    "inspectable": False,
+                    "error_code": "generative_artifact_inspection_failed",
+                    "detail": str(error),
+                }
+            )
+            return 2
+        _json(report)
+        return 0 if report["inspectable"] else 1
+    if arguments.command == "generative-qualification-plan":
+        try:
+            plan = build_generative_qualification_plan(
+                candidate_id=arguments.candidate,
+                artifact_bytes=arguments.artifact_bytes,
+                estimated_resident_bytes=arguments.resident_bytes,
+                hardware=detect_hardware(),
+                target=arguments.target,
+                quantization=arguments.quantization,
+                components=tuple(arguments.component),
+                width=arguments.width,
+                height=arguments.height,
+                frames=arguments.frames,
+                steps=arguments.steps,
+                batch_size=arguments.batch_size,
+            )
+        except (OSError, ValueError) as error:
+            _json(
+                {
+                    "eligible": False,
+                    "error_code": "generative_qualification_plan_failed",
+                    "detail": str(error),
+                }
+            )
+            return 2
+        _json(plan.to_dict())
+        return 0 if plan.eligible else 1
+    if arguments.command == "diffusers-generative-readiness":
+        try:
+            report = inspect_diffusers_generative_readiness(arguments.python)
+        except (OSError, ValueError) as error:
+            _json(
+                {
+                    "ready": False,
+                    "error_code": "diffusers_generative_readiness_failed",
+                    "detail": str(error),
+                }
+            )
+            return 2
+        _json(report)
+        return 0 if report["ready"] else 1
+    if arguments.command == "mflux-generative-readiness":
+        try:
+            report = inspect_mflux_generative_readiness(
+                arguments.python,
+                model=arguments.model,
+            )
+        except (OSError, ValueError) as error:
+            _json(
+                {
+                    "ready": False,
+                    "error_code": "mflux_generative_readiness_failed",
+                    "detail": str(error),
+                }
+            )
+            return 2
+        _json(report)
+        return 0 if report["ready"] else 1
+    if arguments.command == "mlx-gen-generative-readiness":
+        try:
+            report = inspect_mlx_gen_generative_readiness(
+                arguments.python,
+                model=arguments.model,
+            )
+        except (OSError, ValueError) as error:
+            _json(
+                {
+                    "ready": False,
+                    "error_code": "mlx_gen_generative_readiness_failed",
+                    "detail": str(error),
+                }
+            )
+            return 2
+        _json(report)
+        return 0 if report["ready"] else 1
     if arguments.command == "artifact-admission":
         try:
             gib_values = tuple(
