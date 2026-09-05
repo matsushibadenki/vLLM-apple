@@ -1066,7 +1066,8 @@ vLLM-Metal対応とは見なさない。
 145. `[Done]` 合格済み同一provenance baselineのplan hashを後続planへ結合するresolution promotion gate
 146. `[Done]` 768合格reportを起点に、解像度を固定した4回独立生成の一軸promotion gateと長時間memory-stability qualification（最大effective resident 10,886,420,556 bytes、peak spread 0.001%未満、4回目memory pressure warning）
 147. `[Done]` bounded inter-sample memory pressure回復待ちと、全sample normalを必須にする次解像度promotion blocker
-148. `[Next]` pressure recovery gate有効下での768×768・4回再qualificationとall-normal baseline取得
+148. `[Done]` pressure recovery gate有効下での768×768・4回再qualificationとall-normal baseline取得（最大effective resident 10,886,404,598 bytes、全sample pressure normal）
+149. `[Next]` all-normal 768 baselineと512 parentを結合する1024解像度の二段階promotion admission
 
 この順序により、まず推論runtimeの実model安定性を確立し、その境界を壊さずにoptimizerを
 別processとして追加する。構造pruningはquantization、calibration、評価gateの後に着手する。

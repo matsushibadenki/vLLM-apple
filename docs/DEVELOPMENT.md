@@ -642,3 +642,11 @@ consecutive `normal` observations before starting the next worker. Polling is bo
 baseline containing `warning`, `critical`, or `unknown`, even when that baseline otherwise
 passed. Consequently, the four-sample report above documents stable 768 operation but cannot
 authorize a 1024 run because its final sample recorded `warning`.
+
+The recovery-gated repeat started with 15,011,823,616 available bytes and completed all four
+768×768 workers with `normal` memory pressure and `fair` thermal state. Maximum effective
+resident was 10,886,404,598 bytes, median wall time was 634,075.89 ms, and the peak spread
+remained below the 25% stability ceiling. The strict-verified report is
+`qualification-results/flux2-klein-base-9b-4bit-768-stability-4-recovery.json`. It retains no
+prompt or image and is suitable as the all-normal baseline for planning—not yet executing—the
+next resolution tier.
