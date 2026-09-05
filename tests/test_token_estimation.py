@@ -5,8 +5,9 @@ from unittest.mock import patch
 
 from vllm_apple.backend import OpenAIProxyEngine
 from vllm_apple.memory_admission import MemoryPressureAdmissionError
+from vllm_apple.memory_telemetry import UnifiedMemoryTelemetry
 from vllm_apple.service import RuntimeService
-from vllm_apple.types import MemoryPressure
+from vllm_apple.types import GIB, MemoryPressure
 
 
 class ChunkedResponse:
@@ -161,7 +162,11 @@ class TokenEstimationTests(unittest.TestCase):
                     "single_flight_timeouts": 0,
                 }
 
-        service = RuntimeService(engine=Engine())  # type: ignore[arg-type]
+        telemetry = UnifiedMemoryTelemetry(32 * GIB, 28 * GIB, "test", MemoryPressure.NORMAL)
+        service = RuntimeService(  # type: ignore[arg-type]
+            engine=Engine(),
+            memory_telemetry=telemetry,
+        )
         service.apply_memory_pressure(MemoryPressure.CRITICAL)
         service.apply_memory_pressure(MemoryPressure.NORMAL)
         schedule = service.chat_schedule_request(

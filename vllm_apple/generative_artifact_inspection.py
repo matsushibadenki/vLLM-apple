@@ -5,6 +5,8 @@ import os
 from pathlib import Path
 from typing import Any
 
+from .generative_qualification import GenerativeArtifactComponent
+
 
 MAX_METADATA_BYTES = 4 * 1024 * 1024
 MAX_FILES = 4096
@@ -186,3 +188,32 @@ def inspect_generative_artifact(path: str | Path) -> dict[str, object]:
         "issues": issues,
         "inspectable": not issues,
     }
+
+
+def qualification_components_from_inspection(
+    report: dict[str, object], estimated_resident_bytes: int
+) -> tuple[GenerativeArtifactComponent, ...]:
+    raw_components = report.get("components")
+    artifact_bytes = report.get("artifact_bytes")
+    if (
+        not isinstance(raw_components, list)
+        or not isinstance(artifact_bytes, int)
+        or artifact_bytes <= 0
+        or estimated_resident_bytes < len(raw_components)
+    ):
+        raise ValueError("artifact inspection cannot produce qualification components")
+    components = []
+    allocated = 0
+    for index, item in enumerate(raw_components):
+        if not isinstance(item, dict):
+            raise ValueError("artifact inspection component is invalid")
+        name, role, component_bytes = item.get("name"), item.get("role"), item.get("artifact_bytes")
+        if not isinstance(name, str) or not isinstance(role, str) or not isinstance(component_bytes, int):
+            raise ValueError("artifact inspection component is invalid")
+        if index == len(raw_components) - 1:
+            resident = estimated_resident_bytes - allocated
+        else:
+            resident = max(1, estimated_resident_bytes * component_bytes // artifact_bytes)
+            allocated += resident
+        components.append(GenerativeArtifactComponent(name, role, component_bytes, resident))
+    return tuple(components)

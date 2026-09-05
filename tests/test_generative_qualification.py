@@ -9,6 +9,8 @@ from vllm_apple.generative_qualification import (
     GenerativeArtifactComponent,
     build_generative_qualification_plan,
     parse_generative_component,
+    promote_generative_resolution_plan,
+    promote_generative_sample_count_plan,
 )
 from vllm_apple.types import GIB, HardwareInfo, MemoryInfo
 
@@ -97,6 +99,112 @@ class GenerativeQualificationTests(unittest.TestCase):
         self.assertFalse(plan.initial_profile)
         self.assertFalse(plan.eligible)
         self.assertIn("initial_profile_limits_exceeded", plan.issues)
+
+        with self.assertRaisesRegex(ValueError, "single-axis"):
+            promote_generative_resolution_plan(
+                plan,
+                baseline_candidate_id="hunyuanvideo-1.5-8.3b",
+                baseline_plan_sha256="a" * 64,
+                baseline_sample_count=2,
+                baseline_width=640,
+                baseline_height=360,
+                baseline_frames=33,
+                baseline_memory_pressures=("normal", "normal"),
+            )
+
+    def test_resolution_only_plan_can_be_promoted_by_a_bound_baseline(self) -> None:
+        with TemporaryDirectory() as directory:
+            plan = build_generative_qualification_plan(
+                candidate_id="flux2-klein-9b-base",
+                artifact_bytes=8 * GIB,
+                estimated_resident_bytes=18 * GIB,
+                hardware=hardware(),
+                target=Path(directory),
+                quantization="int4",
+                components=components(8, 18),
+                width=768,
+                height=768,
+                steps=20,
+            )
+        promoted = promote_generative_resolution_plan(
+            plan,
+            baseline_candidate_id="flux2-klein-9b-base",
+            baseline_plan_sha256="a" * 64,
+            baseline_sample_count=2,
+            baseline_width=512,
+            baseline_height=512,
+            baseline_frames=1,
+            baseline_memory_pressures=("normal", "normal"),
+        )
+        self.assertTrue(promoted.eligible)
+        self.assertEqual(promoted.promotion_axis, "resolution")
+        self.assertEqual(promoted.baseline_plan_sha256, "a" * 64)
+
+        with self.assertRaisesRegex(ValueError, "all-normal"):
+            promote_generative_resolution_plan(
+                plan,
+                baseline_candidate_id="flux2-klein-9b-base",
+                baseline_plan_sha256="a" * 64,
+                baseline_sample_count=2,
+                baseline_width=512,
+                baseline_height=512,
+                baseline_frames=1,
+                baseline_memory_pressures=("normal", "warning"),
+            )
+
+    def test_same_workload_can_promote_from_two_to_four_samples(self) -> None:
+        with TemporaryDirectory() as directory:
+            plan = build_generative_qualification_plan(
+                candidate_id="flux2-klein-9b-base",
+                artifact_bytes=8 * GIB,
+                estimated_resident_bytes=18 * GIB,
+                hardware=hardware(),
+                target=Path(directory),
+                quantization="int4",
+                components=components(8, 18),
+                width=768,
+                height=768,
+                steps=20,
+            )
+        promoted = promote_generative_sample_count_plan(
+            plan,
+            baseline_candidate_id="flux2-klein-9b-base",
+            baseline_plan_sha256="b" * 64,
+            baseline_sample_count=2,
+            baseline_width=768,
+            baseline_height=768,
+            baseline_frames=1,
+            baseline_memory_pressures=("normal", "normal"),
+            target_sample_count=4,
+        )
+        self.assertTrue(promoted.eligible)
+        self.assertEqual(promoted.promotion_axis, "sample_count_4")
+
+        with self.assertRaisesRegex(ValueError, "identity"):
+            promote_generative_sample_count_plan(
+                plan,
+                baseline_candidate_id="flux2-klein-9b-base",
+                baseline_plan_sha256="not-a-hash",
+                baseline_sample_count=2,
+                baseline_width=768,
+                baseline_height=768,
+                baseline_frames=1,
+                baseline_memory_pressures=("normal", "normal"),
+                target_sample_count=4,
+            )
+
+        with self.assertRaisesRegex(ValueError, "all-normal"):
+            promote_generative_sample_count_plan(
+                plan,
+                baseline_candidate_id="flux2-klein-9b-base",
+                baseline_plan_sha256="b" * 64,
+                baseline_sample_count=2,
+                baseline_width=768,
+                baseline_height=768,
+                baseline_frames=1,
+                baseline_memory_pressures=("normal", "warning"),
+                target_sample_count=4,
+            )
 
     def test_component_totals_must_match_aggregate_admission(self) -> None:
         with TemporaryDirectory() as directory:

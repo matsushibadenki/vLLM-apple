@@ -6,6 +6,7 @@ from tempfile import TemporaryDirectory
 from vllm_apple.generative_artifact_inspection import (
     GenerativeArtifactInspectionError,
     inspect_generative_artifact,
+    qualification_components_from_inspection,
 )
 
 
@@ -89,6 +90,19 @@ class GenerativeArtifactInspectionTests(unittest.TestCase):
             (root / "linked").symlink_to(target)
             with self.assertRaisesRegex(GenerativeArtifactInspectionError, "symlinks"):
                 inspect_generative_artifact(root)
+
+    def test_qualification_component_residency_matches_requested_total(self) -> None:
+        report = {
+            "artifact_bytes": 10,
+            "components": [
+                {"name": "transformer", "role": "denoiser", "artifact_bytes": 6},
+                {"name": "text", "role": "text_encoder", "artifact_bytes": 3},
+                {"name": "vae", "role": "vae", "artifact_bytes": 1},
+            ],
+        }
+        components = qualification_components_from_inspection(report, 101)
+        self.assertEqual(sum(item.estimated_resident_bytes for item in components), 101)
+        self.assertEqual(sum(item.artifact_bytes for item in components), 10)
 
 
 if __name__ == "__main__":

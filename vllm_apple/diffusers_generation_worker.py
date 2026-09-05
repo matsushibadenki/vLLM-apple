@@ -10,6 +10,7 @@ import os
 import platform
 import resource
 import stat
+import sys
 import tempfile
 import time
 from dataclasses import asdict, dataclass
@@ -324,7 +325,20 @@ def default_worker_telemetry() -> WorkerTelemetry:
     memory = detect_memory()
     usage = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
     rss = int(usage if platform.system() == "Darwin" else usage * 1024)
-    return WorkerTelemetry(max(1, rss), memory.pressure.value, _darwin_thermal_state())
+    mlx_peak = 0
+    mlx_core = sys.modules.get("mlx.core")
+    get_peak_memory = getattr(mlx_core, "get_peak_memory", None)
+    if callable(get_peak_memory):
+        try:
+            mlx_peak = max(0, int(get_peak_memory()))
+        except (RuntimeError, TypeError, ValueError):
+            mlx_peak = 0
+    effective_resident = max(1, rss, mlx_peak)
+    return WorkerTelemetry(
+        effective_resident,
+        memory.pressure.value,
+        _darwin_thermal_state(),
+    )
 
 
 def main(argv: list[str] | None = None) -> int:

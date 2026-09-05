@@ -4,7 +4,7 @@
   "title": "Bounded generative qualification plan v1",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schema_version", "candidate", "width", "height", "frames", "steps", "batch_size", "quantization", "components", "component_artifact_bytes", "component_resident_bytes", "component_totals_verified", "initial_profile", "issues", "artifact_admission", "eligible"],
+  "required": ["schema_version", "candidate", "width", "height", "frames", "steps", "batch_size", "quantization", "components", "component_artifact_bytes", "component_resident_bytes", "component_totals_verified", "initial_profile", "promotion_axis", "baseline_plan_sha256", "issues", "artifact_admission", "eligible"],
   "properties": {
     "schema_version": {"const": 1},
     "candidate": {
@@ -51,6 +51,8 @@
     "component_resident_bytes": {"type": "integer", "minimum": 1},
     "component_totals_verified": {"type": "boolean"},
     "initial_profile": {"type": "boolean"},
+    "promotion_axis": {"type": ["string", "null"], "enum": ["resolution", "sample_count_4", null]},
+    "baseline_plan_sha256": {"type": ["string", "null"], "minLength": 64, "maxLength": 64},
     "issues": {"type": "array", "maxItems": 16, "items": {"type": "string", "minLength": 1, "maxLength": 128}},
     "artifact_admission": {
       "type": "object",

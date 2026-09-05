@@ -1051,7 +1051,22 @@ vLLM-Metal対応とは見なさない。
 130. `[Done]` FLUX.2 Klein routeで未対応の`--vae-tiling`を事前smokeで検出し、512 profileをautomatic VAE decodeへ修正
 131. `[Done]` MLX-Gen JSON event捕捉とqualification telemetry出力のstream分離による再帰防止
 132. `[Done]` M4/32GBで20-step完走、worker 2-step ABI完走、Peak MLX 7.76GB／Peak RSS 5.74GBの実測
-133. `[Next]` 20-step worker evidenceのreport保存と連続2回memory-stability gate
+133. `[Done]` 20-step worker evidenceのreport保存と連続2回memory-stability gate
+134. `[Done]` private request生成、worker反復、streaming collector、atomic report保存を束ねるgenerative qualification runner
+135. `[Done]` 連続sample間のpeak RSS差25%以内を要求するmemory-stability gate
+136. `[Done]` worker hard ceilingへRSSとMLX allocator peakの最大値を反映するeffective-resident telemetry
+137. `[Done]` FLUX.2 Klein Base 9B 4-bitの512×512・20-step連続2回実機合格（peak 7,761,058,338 bytes、memory pressure normal）
+138. `[Done]` 連続qualification runnerの正式CLI化とhardware/backend/model provenance拡張
+139. `[Done]` provenance付き正式CLIによるbaseline再発行とschema consumer回帰
+140. `[Done]` generative reportのbounded race-safe strict loader、aggregate再計算、plan/provenance replay拒否
+141. `[Done]` 現在のMac・MLX-Gen・local artifactに対するgenerative report strict verification CLI
+142. `[Done]` 正式CLIのload-before-admission拒否にresident／hard ceiling／disk診断を追加
+143. `[Done]` provenance付きFLUX.2 Klein baselineの現在Mac/backend/artifact照合合格
+144. `[Done]` 512 baselineから一軸だけ変更する768解像度admissionと実機段階昇格（20-step独立2回、最大effective resident 10,886,404,598 bytes、memory pressure normal）
+145. `[Done]` 合格済み同一provenance baselineのplan hashを後続planへ結合するresolution promotion gate
+146. `[Done]` 768合格reportを起点に、解像度を固定した4回独立生成の一軸promotion gateと長時間memory-stability qualification（最大effective resident 10,886,420,556 bytes、peak spread 0.001%未満、4回目memory pressure warning）
+147. `[Done]` bounded inter-sample memory pressure回復待ちと、全sample normalを必須にする次解像度promotion blocker
+148. `[Next]` pressure recovery gate有効下での768×768・4回再qualificationとall-normal baseline取得
 
 この順序により、まず推論runtimeの実model安定性を確立し、その境界を壊さずにoptimizerを
 別processとして追加する。構造pruningはquantization、calibration、評価gateの後に着手する。

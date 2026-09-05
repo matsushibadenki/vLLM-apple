@@ -563,3 +563,82 @@ python3 -m vllm_apple mflux-generative-readiness \
 
 Only a report with a compatible `mflux` artifact layout may reach the one-shot
 `vllm-apple-mflux-worker`. An MLX-tagged checkpoint is not assumed to be MFLUX-compatible.
+
+The M4/32GB FLUX.2 Klein Base 9B 4-bit baseline uses MLX-Gen 0.33.1, `--low-ram`,
+512×512, batch one, and 20 steps. Two independent workers completed with normal memory
+pressure and a maximum effective resident value of 7,761,057,912 bytes. Effective resident
+is the larger of process peak RSS and the MLX allocator peak. The private report is written to
+`qualification-results/flux2-klein-base-9b-4bit-512.json`; prompts and generated images are not
+retained.
+
+Run the complete repeated qualification through the supported CLI (the prompt is internal and is
+never accepted on argv or retained):
+
+```bash
+.venv-mlx-gen/bin/python -m vllm_apple mlx-gen-image-qualification \
+  models/flux.2-klein-base-9b-4bit \
+  --python .venv-mlx-gen/bin/python \
+  --resident-gib 10 \
+  --samples 2
+```
+
+The report binds the measurement to the SoC, GPU core count, total Unified Memory, backend
+version, artifact format and byte count, quantization, license, and base-model identity.
+
+Verify a saved report against the current Mac, backend environment, and exact local artifact:
+
+```bash
+.venv-mlx-gen/bin/python -m vllm_apple generative-report-verify \
+  qualification-results/flux2-klein-base-9b-4bit-512.json \
+  --model models/flux.2-klein-base-9b-4bit \
+  --python .venv-mlx-gen/bin/python
+```
+
+After the 512 baseline passes, resolution may be promoted one axis at a time by binding the
+new plan to that baseline report. On the M4/32GB host, the 768×768, batch-one, 20-step profile
+completed in two independent workers with normal memory pressure. Its maximum effective
+resident value was 10,886,404,598 bytes; median wall time was 586,425.63 ms. Both samples ran
+under fair thermal state. The verified private report is
+`qualification-results/flux2-klein-base-9b-4bit-768.json`, and no prompt or generated image is
+retained.
+
+```bash
+.venv-mlx-gen/bin/python -m vllm_apple mlx-gen-image-qualification \
+  models/flux.2-klein-base-9b-4bit \
+  --python .venv-mlx-gen/bin/python \
+  --resident-gib 10 \
+  --width 768 --height 768 --steps 20 --samples 2 \
+  --baseline-report qualification-results/flux2-klein-base-9b-4bit-512.json \
+  --report qualification-results/flux2-klein-base-9b-4bit-768.json
+```
+
+Longer stability qualification keeps the 768 workload unchanged and promotes only the isolated
+sample count from two to four. The CLI requires both the passed 768 report and its 512 parent,
+validates the promotion chain, and records `sample_count_4` in the hashed plan. A partial run
+cannot pass this plan.
+
+```bash
+.venv-mlx-gen/bin/python -m vllm_apple mlx-gen-image-qualification \
+  models/flux.2-klein-base-9b-4bit \
+  --python .venv-mlx-gen/bin/python \
+  --resident-gib 10 \
+  --width 768 --height 768 --steps 20 --samples 4 \
+  --baseline-report qualification-results/flux2-klein-base-9b-4bit-768.json \
+  --promotion-parent-report qualification-results/flux2-klein-base-9b-4bit-512.json \
+  --report qualification-results/flux2-klein-base-9b-4bit-768-stability-4.json
+```
+
+On the M4/32GB host all four workers completed. Maximum effective resident was
+10,886,420,556 bytes and median wall time was 738,238.36 ms. Peak residency varied by less
+than 0.001%, all thermal samples were `fair`, and no private content was retained. The fourth
+sample reached memory pressure `warning` and took 1,050,063.47 ms. The profile therefore
+qualifies repeated 768 execution, but it is not evidence for immediate resolution promotion;
+the next gate must wait for pressure recovery and require an all-`normal` baseline.
+
+The runner now probes host memory pressure between every isolated sample and requires two
+consecutive `normal` observations before starting the next worker. Polling is bounded by
+`--recovery-timeout` (300 seconds by default) and fails closed instead of waiting forever;
+`--recovery-poll` defaults to five seconds. Resolution and four-sample promotions reject a
+baseline containing `warning`, `critical`, or `unknown`, even when that baseline otherwise
+passed. Consequently, the four-sample report above documents stable 768 operation but cannot
+authorize a 1024 run because its final sample recorded `warning`.

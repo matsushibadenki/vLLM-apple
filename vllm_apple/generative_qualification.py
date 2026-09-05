@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, replace
 from pathlib import Path
 
 from .artifact_admission import ArtifactAdmission, assess_artifact_admission_for_path
@@ -13,6 +13,7 @@ MAX_FRAMES = 257
 MAX_STEPS = 200
 MAX_COMPONENTS = 16
 MAX_COMPONENT_BYTES = 16_384 * 1024**3
+STABILITY_PROMOTION_SAMPLE_COUNT = 4
 COMPONENT_ROLES = frozenset({"denoiser", "text_encoder", "vae", "other"})
 
 
@@ -173,6 +174,8 @@ class GenerativeQualificationPlan:
     component_resident_bytes: int
     component_totals_verified: bool
     initial_profile: bool
+    promotion_axis: str | None
+    baseline_plan_sha256: str | None
     issues: tuple[str, ...]
     artifact_admission: ArtifactAdmission
     eligible: bool
@@ -291,7 +294,100 @@ def build_generative_qualification_plan(
         component_resident_bytes,
         component_totals_verified,
         initial_profile,
+        None,
+        None,
         tuple(issues),
         admission,
         not issues and admission.eligible,
+    )
+
+
+def promote_generative_resolution_plan(
+    plan: GenerativeQualificationPlan,
+    *,
+    baseline_candidate_id: str,
+    baseline_plan_sha256: str,
+    baseline_sample_count: int,
+    baseline_width: int,
+    baseline_height: int,
+    baseline_frames: int,
+    baseline_memory_pressures: tuple[str, ...],
+) -> GenerativeQualificationPlan:
+    if plan.initial_profile:
+        raise ValueError("initial generative profile does not require promotion")
+    if (
+        baseline_candidate_id != plan.candidate.candidate_id
+        or len(baseline_plan_sha256) != 64
+        or any(character not in "0123456789abcdef" for character in baseline_plan_sha256)
+        or baseline_sample_count < 2
+    ):
+        raise ValueError("generative baseline identity is invalid")
+    if len(baseline_memory_pressures) != baseline_sample_count or any(
+        pressure != "normal" for pressure in baseline_memory_pressures
+    ):
+        raise ValueError("generative resolution promotion requires an all-normal baseline")
+    if (
+        baseline_width != plan.candidate.initial_width
+        or baseline_height != plan.candidate.initial_height
+        or baseline_frames != plan.candidate.initial_frames
+        or plan.frames != baseline_frames
+        or plan.batch_size != 1
+        or plan.steps > plan.candidate.initial_steps
+        or plan.width <= baseline_width
+        or plan.height <= baseline_height
+        or plan.width > baseline_width * 2
+        or plan.height > baseline_height * 2
+    ):
+        raise ValueError("generative resolution promotion is not a bounded single-axis step")
+    if plan.issues != ("initial_profile_limits_exceeded",):
+        raise ValueError("generative plan has non-promotable issues")
+    return replace(
+        plan,
+        promotion_axis="resolution",
+        baseline_plan_sha256=baseline_plan_sha256,
+        issues=(),
+        eligible=plan.artifact_admission.eligible,
+    )
+
+
+def promote_generative_sample_count_plan(
+    plan: GenerativeQualificationPlan,
+    *,
+    baseline_candidate_id: str,
+    baseline_plan_sha256: str,
+    baseline_sample_count: int,
+    baseline_width: int,
+    baseline_height: int,
+    baseline_frames: int,
+    baseline_memory_pressures: tuple[str, ...],
+    target_sample_count: int,
+) -> GenerativeQualificationPlan:
+    """Promote a verified workload from two to four isolated stability samples."""
+    if (
+        baseline_candidate_id != plan.candidate.candidate_id
+        or len(baseline_plan_sha256) != 64
+        or any(character not in "0123456789abcdef" for character in baseline_plan_sha256)
+    ):
+        raise ValueError("generative stability baseline identity is invalid")
+    if baseline_sample_count != 2 or target_sample_count != STABILITY_PROMOTION_SAMPLE_COUNT:
+        raise ValueError("generative stability promotion must increase two samples to four")
+    if len(baseline_memory_pressures) != baseline_sample_count or any(
+        pressure != "normal" for pressure in baseline_memory_pressures
+    ):
+        raise ValueError("generative stability promotion requires an all-normal baseline")
+    if (
+        baseline_width != plan.width
+        or baseline_height != plan.height
+        or baseline_frames != plan.frames
+        or plan.batch_size != 1
+    ):
+        raise ValueError("generative sample-count promotion changed the workload shape")
+    if plan.issues != ("initial_profile_limits_exceeded",):
+        raise ValueError("generative plan has non-promotable issues")
+    return replace(
+        plan,
+        promotion_axis="sample_count_4",
+        baseline_plan_sha256=baseline_plan_sha256,
+        issues=(),
+        eligible=plan.artifact_admission.eligible,
     )

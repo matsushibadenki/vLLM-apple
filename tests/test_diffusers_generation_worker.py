@@ -1,12 +1,15 @@
+import sys
 import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from types import SimpleNamespace
+from unittest.mock import patch
 
 from vllm_apple.diffusers_generation_worker import (
     GeneratedImageArtifact,
     LocalDiffusersImageRuntime,
     WorkerTelemetry,
+    default_worker_telemetry,
     execute_diffusers_image_request,
 )
 
@@ -25,6 +28,25 @@ class FakeRuntime:
 
 
 class DiffusersGenerationWorkerTests(unittest.TestCase):
+    def test_default_telemetry_includes_mlx_allocator_peak(self) -> None:
+        memory = SimpleNamespace(pressure=SimpleNamespace(value="normal"))
+        with patch.dict(
+            sys.modules,
+            {"mlx.core": SimpleNamespace(get_peak_memory=lambda: 9000)},
+        ), patch(
+            "vllm_apple.diffusers_generation_worker.resource.getrusage",
+            return_value=SimpleNamespace(ru_maxrss=1000),
+        ), patch(
+            "vllm_apple.diffusers_generation_worker.detect_memory", return_value=memory
+        ), patch(
+            "vllm_apple.diffusers_generation_worker.platform.system", return_value="Darwin"
+        ), patch(
+            "vllm_apple.diffusers_generation_worker._darwin_thermal_state",
+            return_value="nominal",
+        ):
+            snapshot = default_worker_telemetry()
+        self.assertEqual(snapshot.process_rss_bytes, 9000)
+
     def test_image_worker_emits_telemetry_and_removes_private_output(self) -> None:
         with TemporaryDirectory() as directory:
             root = Path(directory)

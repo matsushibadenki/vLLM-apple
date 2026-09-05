@@ -19,8 +19,18 @@ from .generative_qualification import (
     build_generative_qualification_plan,
     list_generative_candidates,
     parse_generative_component,
+    promote_generative_resolution_plan,
+    promote_generative_sample_count_plan,
 )
-from .generative_artifact_inspection import inspect_generative_artifact
+from .generative_artifact_inspection import (
+    inspect_generative_artifact,
+    qualification_components_from_inspection,
+)
+from .generative_evaluation import (
+    GenerativeEvaluationProvenance,
+    load_generative_evaluation_report,
+)
+from .generative_qualification_runner import run_generative_qualification
 from .kernel_probe import build_environment_fingerprint
 from .kernel_profile import build_model_kernel_shape_profile
 from .kv_calibration import (
@@ -179,6 +189,44 @@ def build_parser() -> argparse.ArgumentParser:
     )
     mlx_gen_readiness.add_argument("--python", type=Path, default=Path(sys.executable))
     mlx_gen_readiness.add_argument("--model", required=True, type=Path)
+    mlx_gen_qualification = commands.add_parser(
+        "mlx-gen-image-qualification",
+        help="run repeated local MLX-Gen image qualification and save private evidence",
+    )
+    mlx_gen_qualification.add_argument("model", type=Path)
+    mlx_gen_qualification.add_argument("--python", required=True, type=Path)
+    resident = mlx_gen_qualification.add_mutually_exclusive_group(required=True)
+    resident.add_argument("--resident-gib", type=float)
+    resident.add_argument("--resident-bytes", type=int)
+    mlx_gen_qualification.add_argument("--width", type=int, default=512)
+    mlx_gen_qualification.add_argument("--height", type=int, default=512)
+    mlx_gen_qualification.add_argument("--steps", type=int, default=20)
+    mlx_gen_qualification.add_argument("--samples", type=int, default=2)
+    mlx_gen_qualification.add_argument("--baseline-report", type=Path)
+    mlx_gen_qualification.add_argument(
+        "--promotion-parent-report",
+        type=Path,
+        help="parent report used to reconstruct and verify a same-shape stability baseline",
+    )
+    mlx_gen_qualification.add_argument("--timeout", type=float, default=1800.0)
+    mlx_gen_qualification.add_argument("--recovery-timeout", type=float, default=300.0)
+    mlx_gen_qualification.add_argument("--recovery-poll", type=float, default=5.0)
+    mlx_gen_qualification.add_argument("--workspace-root", type=Path, default=Path("."))
+    mlx_gen_qualification.add_argument(
+        "--private-root", type=Path, default=Path("qualification-private/mlx-gen-image")
+    )
+    mlx_gen_qualification.add_argument(
+        "--report",
+        type=Path,
+        default=Path("qualification-results/mlx-gen-image.json"),
+    )
+    generative_verify = commands.add_parser(
+        "generative-report-verify",
+        help="strictly verify a generative report against this hardware, backend, and artifact",
+    )
+    generative_verify.add_argument("report", type=Path)
+    generative_verify.add_argument("--model", required=True, type=Path)
+    generative_verify.add_argument("--python", required=True, type=Path)
 
     doctor = commands.add_parser("doctor", help="inspect the vLLM-Metal environment")
     doctor.add_argument("--backend-executable")
@@ -658,6 +706,218 @@ def main(argv: list[str] | None = None) -> int:
             return 2
         _json(report)
         return 0 if report["ready"] else 1
+    if arguments.command == "mlx-gen-image-qualification":
+        try:
+            artifact = inspect_generative_artifact(arguments.model)
+            readiness = inspect_mlx_gen_generative_readiness(
+                arguments.python,
+                model=arguments.model,
+            )
+            if not readiness["ready"]:
+                raise ValueError("MLX-Gen backend or artifact did not pass readiness")
+            if artifact.get("base_model") != "black-forest-labs/FLUX.2-klein-base-9B":
+                raise ValueError("formal MLX-Gen qualification currently supports Klein Base 9B")
+            if arguments.resident_bytes is not None:
+                resident_bytes = arguments.resident_bytes
+            else:
+                if not math.isfinite(arguments.resident_gib) or arguments.resident_gib <= 0:
+                    raise ValueError("resident GiB must be finite and positive")
+                resident_bytes = int(arguments.resident_gib * GIB)
+            hardware = detect_hardware()
+            quantization_bits = artifact.get("quantization", {}).get("bits")
+            quantization = f"int{quantization_bits}"
+            plan = build_generative_qualification_plan(
+                candidate_id="flux2-klein-9b-base",
+                artifact_bytes=artifact["artifact_bytes"],
+                estimated_resident_bytes=resident_bytes,
+                hardware=hardware,
+                target=arguments.model.parent,
+                quantization=quantization,
+                components=qualification_components_from_inspection(artifact, resident_bytes),
+                width=arguments.width,
+                height=arguments.height,
+                steps=arguments.steps,
+                batch_size=1,
+            )
+            provenance = GenerativeEvaluationProvenance(
+                hardware.platform,
+                hardware.architecture,
+                hardware.soc,
+                hardware.gpu_core_count,
+                hardware.memory.total_bytes,
+                "mlx-gen",
+                readiness["mlx_gen_version"],
+                artifact["artifact_format"],
+                artifact["artifact_bytes"],
+                quantization,
+                artifact.get("license"),
+                artifact.get("base_model"),
+            )
+            if not plan.initial_profile:
+                if arguments.baseline_report is None:
+                    raise ValueError("promoted profile requires --baseline-report")
+                baseline = load_generative_evaluation_report(
+                    arguments.baseline_report,
+                    expected_provenance=provenance,
+                )
+                if not baseline.passed:
+                    raise ValueError("generative baseline did not pass")
+                baseline_shapes = {
+                    (sample.output_width, sample.output_height, sample.output_frames)
+                    for sample in baseline.samples
+                }
+                if len(baseline_shapes) != 1:
+                    raise ValueError("generative baseline output shapes are inconsistent")
+                baseline_width, baseline_height, baseline_frames = baseline_shapes.pop()
+                if (baseline_width, baseline_height, baseline_frames) == (
+                    plan.width,
+                    plan.height,
+                    plan.frames,
+                ):
+                    if arguments.promotion_parent_report is None:
+                        raise ValueError(
+                            "same-shape stability promotion requires --promotion-parent-report"
+                        )
+                    parent = load_generative_evaluation_report(
+                        arguments.promotion_parent_report,
+                        expected_provenance=provenance,
+                    )
+                    if not parent.passed:
+                        raise ValueError("generative promotion parent did not pass")
+                    parent_shapes = {
+                        (sample.output_width, sample.output_height, sample.output_frames)
+                        for sample in parent.samples
+                    }
+                    if len(parent_shapes) != 1:
+                        raise ValueError("generative promotion parent shapes are inconsistent")
+                    parent_width, parent_height, parent_frames = parent_shapes.pop()
+                    promote_generative_resolution_plan(
+                        plan,
+                        baseline_candidate_id=parent.candidate_id,
+                        baseline_plan_sha256=parent.plan_sha256,
+                        baseline_sample_count=parent.sample_count,
+                        baseline_width=parent_width,
+                        baseline_height=parent_height,
+                        baseline_frames=parent_frames,
+                        baseline_memory_pressures=tuple(
+                            sample.memory_pressure for sample in parent.samples
+                        ),
+                    )
+                    plan = promote_generative_sample_count_plan(
+                        plan,
+                        baseline_candidate_id=baseline.candidate_id,
+                        baseline_plan_sha256=baseline.plan_sha256,
+                        baseline_sample_count=baseline.sample_count,
+                        baseline_width=baseline_width,
+                        baseline_height=baseline_height,
+                        baseline_frames=baseline_frames,
+                        baseline_memory_pressures=tuple(
+                            sample.memory_pressure for sample in baseline.samples
+                        ),
+                        target_sample_count=arguments.samples,
+                    )
+                else:
+                    plan = promote_generative_resolution_plan(
+                        plan,
+                        baseline_candidate_id=baseline.candidate_id,
+                        baseline_plan_sha256=baseline.plan_sha256,
+                        baseline_sample_count=baseline.sample_count,
+                        baseline_width=baseline_width,
+                        baseline_height=baseline_height,
+                        baseline_frames=baseline_frames,
+                        baseline_memory_pressures=tuple(
+                            sample.memory_pressure for sample in baseline.samples
+                        ),
+                    )
+            if not plan.eligible:
+                admission = plan.artifact_admission
+                raise ValueError(
+                    "load-before-admission rejected: "
+                    f"estimated_resident_bytes={admission.estimated_resident_bytes}, "
+                    f"memory_hard_ceiling_bytes={admission.memory_hard_ceiling_bytes}, "
+                    f"fits_disk={admission.fits_disk}, fits_memory={admission.fits_memory}"
+                )
+            backend_python = str(arguments.python.expanduser().absolute())
+            report = run_generative_qualification(
+                plan,
+                workspace_root=arguments.workspace_root,
+                model_root=arguments.model,
+                private_root=arguments.private_root,
+                report_path=arguments.report,
+                prompt=(
+                    "A small friendly robot examining a glowing Apple Silicon chip on a clean "
+                    "wooden desk, playful cinematic illustration"
+                ),
+                sample_count=arguments.samples,
+                worker_command=(
+                    backend_python,
+                    "-m",
+                    "vllm_apple.mlx_gen_generation_worker",
+                ),
+                provenance=provenance,
+                timeout_seconds=arguments.timeout,
+                recovery_timeout_seconds=arguments.recovery_timeout,
+                recovery_poll_seconds=arguments.recovery_poll,
+            )
+        except (OSError, ValueError, RuntimeError) as error:
+            _json(
+                {
+                    "passed": False,
+                    "error_code": "mlx_gen_image_qualification_failed",
+                    "detail": str(error),
+                }
+            )
+            return 2
+        _json(report.to_dict())
+        return 0 if report.passed else 1
+    if arguments.command == "generative-report-verify":
+        try:
+            artifact = inspect_generative_artifact(arguments.model)
+            readiness = inspect_mlx_gen_generative_readiness(
+                arguments.python,
+                model=arguments.model,
+            )
+            if not readiness["ready"]:
+                raise ValueError("MLX-Gen backend or artifact did not pass readiness")
+            hardware = detect_hardware()
+            bits = artifact.get("quantization", {}).get("bits")
+            provenance = GenerativeEvaluationProvenance(
+                hardware.platform,
+                hardware.architecture,
+                hardware.soc,
+                hardware.gpu_core_count,
+                hardware.memory.total_bytes,
+                "mlx-gen",
+                readiness["mlx_gen_version"],
+                artifact["artifact_format"],
+                artifact["artifact_bytes"],
+                f"int{bits}",
+                artifact.get("license"),
+                artifact.get("base_model"),
+            )
+            report = load_generative_evaluation_report(
+                arguments.report,
+                expected_provenance=provenance,
+            )
+        except (OSError, ValueError) as error:
+            _json(
+                {
+                    "verified": False,
+                    "error_code": "generative_report_verification_failed",
+                    "detail": str(error),
+                }
+            )
+            return 2
+        _json(
+            {
+                "verified": True,
+                "passed": report.passed,
+                "candidate_id": report.candidate_id,
+                "plan_sha256": report.plan_sha256,
+                "sample_count": report.sample_count,
+            }
+        )
+        return 0 if report.passed else 1
     if arguments.command == "artifact-admission":
         try:
             gib_values = tuple(

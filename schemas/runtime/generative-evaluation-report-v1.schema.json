@@ -4,13 +4,32 @@
   "title": "Privacy-preserving generative evaluation report v1",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schema_version", "candidate_id", "model", "modality", "plan_sha256", "sample_count", "median_wall_time_ms", "median_first_output_ms", "maximum_peak_rss_bytes", "minimum_frames_per_second", "samples", "issues", "stores_prompt", "stores_output", "passed"],
+  "required": ["schema_version", "candidate_id", "model", "modality", "plan_sha256", "provenance", "sample_count", "median_wall_time_ms", "median_first_output_ms", "maximum_peak_rss_bytes", "minimum_frames_per_second", "samples", "issues", "stores_prompt", "stores_output", "passed"],
   "properties": {
     "schema_version": {"const": 1},
     "candidate_id": {"type": "string", "minLength": 1, "maxLength": 128},
     "model": {"type": "string", "minLength": 1, "maxLength": 4096},
     "modality": {"enum": ["image", "video"]},
     "plan_sha256": {"type": "string", "minLength": 64, "maxLength": 64},
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["platform", "architecture", "soc", "gpu_core_count", "total_memory_bytes", "backend", "backend_version", "artifact_format", "artifact_bytes", "quantization", "license", "base_model"],
+      "properties": {
+        "platform": {"type": "string", "minLength": 1, "maxLength": 512},
+        "architecture": {"type": "string", "minLength": 1, "maxLength": 512},
+        "soc": {"type": "string", "minLength": 1, "maxLength": 512},
+        "gpu_core_count": {"type": ["integer", "null"], "minimum": 1, "maximum": 1024},
+        "total_memory_bytes": {"type": "integer", "minimum": 1, "maximum": 17592186044416},
+        "backend": {"type": "string", "minLength": 1, "maxLength": 512},
+        "backend_version": {"type": "string", "minLength": 1, "maxLength": 512},
+        "artifact_format": {"type": "string", "minLength": 1, "maxLength": 512},
+        "artifact_bytes": {"type": "integer", "minimum": 1, "maximum": 17592186044416},
+        "quantization": {"type": "string", "minLength": 1, "maxLength": 512},
+        "license": {"type": ["string", "null"], "minLength": 1, "maxLength": 4096},
+        "base_model": {"type": ["string", "null"], "minLength": 1, "maxLength": 4096}
+      }
+    },
     "sample_count": {"type": "integer", "minimum": 1, "maximum": 32},
     "median_wall_time_ms": {"type": "number", "minimum": 0, "maximum": 86400000},
     "median_first_output_ms": {"type": "number", "minimum": 0, "maximum": 86400000},
