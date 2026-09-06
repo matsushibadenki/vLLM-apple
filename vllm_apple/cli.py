@@ -16,9 +16,11 @@ from .hardware import detect_hardware
 from .huggingface_metadata import HuggingFaceMetadataError, fetch_hugging_face_metadata
 from .generative_qualification import (
     GENERATIVE_CANDIDATES,
+    GenerativeBaselineEvidence,
     build_generative_qualification_plan,
     list_generative_candidates,
     parse_generative_component,
+    promote_generative_chained_resolution_plan,
     promote_generative_resolution_plan,
     promote_generative_sample_count_plan,
 )
@@ -206,7 +208,7 @@ def build_parser() -> argparse.ArgumentParser:
     mlx_gen_qualification.add_argument(
         "--promotion-parent-report",
         type=Path,
-        help="parent report used to reconstruct and verify a same-shape stability baseline",
+        help="initial parent/root report used to verify a promoted baseline chain",
     )
     mlx_gen_qualification.add_argument("--timeout", type=float, default=1800.0)
     mlx_gen_qualification.add_argument("--recovery-timeout", type=float, default=300.0)
@@ -769,6 +771,15 @@ def main(argv: list[str] | None = None) -> int:
                 if len(baseline_shapes) != 1:
                     raise ValueError("generative baseline output shapes are inconsistent")
                 baseline_width, baseline_height, baseline_frames = baseline_shapes.pop()
+                baseline_evidence = GenerativeBaselineEvidence(
+                    baseline.candidate_id,
+                    baseline.plan_sha256,
+                    baseline.sample_count,
+                    baseline_width,
+                    baseline_height,
+                    baseline_frames,
+                    tuple(sample.memory_pressure for sample in baseline.samples),
+                )
                 if (baseline_width, baseline_height, baseline_frames) == (
                     plan.width,
                     plan.height,
@@ -791,43 +802,85 @@ def main(argv: list[str] | None = None) -> int:
                     if len(parent_shapes) != 1:
                         raise ValueError("generative promotion parent shapes are inconsistent")
                     parent_width, parent_height, parent_frames = parent_shapes.pop()
+                    parent_evidence = GenerativeBaselineEvidence(
+                        parent.candidate_id,
+                        parent.plan_sha256,
+                        parent.sample_count,
+                        parent_width,
+                        parent_height,
+                        parent_frames,
+                        tuple(sample.memory_pressure for sample in parent.samples),
+                    )
                     promote_generative_resolution_plan(
                         plan,
-                        baseline_candidate_id=parent.candidate_id,
-                        baseline_plan_sha256=parent.plan_sha256,
-                        baseline_sample_count=parent.sample_count,
-                        baseline_width=parent_width,
-                        baseline_height=parent_height,
-                        baseline_frames=parent_frames,
-                        baseline_memory_pressures=tuple(
-                            sample.memory_pressure for sample in parent.samples
-                        ),
+                        baseline_candidate_id=parent_evidence.candidate_id,
+                        baseline_plan_sha256=parent_evidence.plan_sha256,
+                        baseline_sample_count=parent_evidence.sample_count,
+                        baseline_width=parent_evidence.width,
+                        baseline_height=parent_evidence.height,
+                        baseline_frames=parent_evidence.frames,
+                        baseline_memory_pressures=parent_evidence.memory_pressures,
                     )
                     plan = promote_generative_sample_count_plan(
                         plan,
-                        baseline_candidate_id=baseline.candidate_id,
-                        baseline_plan_sha256=baseline.plan_sha256,
-                        baseline_sample_count=baseline.sample_count,
-                        baseline_width=baseline_width,
-                        baseline_height=baseline_height,
-                        baseline_frames=baseline_frames,
-                        baseline_memory_pressures=tuple(
-                            sample.memory_pressure for sample in baseline.samples
-                        ),
+                        baseline_candidate_id=baseline_evidence.candidate_id,
+                        baseline_plan_sha256=baseline_evidence.plan_sha256,
+                        baseline_sample_count=baseline_evidence.sample_count,
+                        baseline_width=baseline_evidence.width,
+                        baseline_height=baseline_evidence.height,
+                        baseline_frames=baseline_evidence.frames,
+                        baseline_memory_pressures=baseline_evidence.memory_pressures,
                         target_sample_count=arguments.samples,
+                    )
+                elif (baseline_width, baseline_height, baseline_frames) != (
+                    plan.candidate.initial_width,
+                    plan.candidate.initial_height,
+                    plan.candidate.initial_frames,
+                ):
+                    if arguments.promotion_parent_report is None:
+                        raise ValueError(
+                            "second resolution promotion requires --promotion-parent-report"
+                        )
+                    initial_root = load_generative_evaluation_report(
+                        arguments.promotion_parent_report,
+                        expected_provenance=provenance,
+                    )
+                    if not initial_root.passed:
+                        raise ValueError("generative promotion chain contains a failed report")
+
+                    def evidence_for(report):
+                        shapes = {
+                            (sample.output_width, sample.output_height, sample.output_frames)
+                            for sample in report.samples
+                        }
+                        if len(shapes) != 1:
+                            raise ValueError("generative promotion chain shapes are inconsistent")
+                        width, height, frames = shapes.pop()
+                        return GenerativeBaselineEvidence(
+                            report.candidate_id,
+                            report.plan_sha256,
+                            report.sample_count,
+                            width,
+                            height,
+                            frames,
+                            tuple(sample.memory_pressure for sample in report.samples),
+                        )
+
+                    plan = promote_generative_chained_resolution_plan(
+                        plan,
+                        stability_baseline=baseline_evidence,
+                        initial_baseline=evidence_for(initial_root),
                     )
                 else:
                     plan = promote_generative_resolution_plan(
                         plan,
-                        baseline_candidate_id=baseline.candidate_id,
-                        baseline_plan_sha256=baseline.plan_sha256,
-                        baseline_sample_count=baseline.sample_count,
-                        baseline_width=baseline_width,
-                        baseline_height=baseline_height,
-                        baseline_frames=baseline_frames,
-                        baseline_memory_pressures=tuple(
-                            sample.memory_pressure for sample in baseline.samples
-                        ),
+                        baseline_candidate_id=baseline_evidence.candidate_id,
+                        baseline_plan_sha256=baseline_evidence.plan_sha256,
+                        baseline_sample_count=baseline_evidence.sample_count,
+                        baseline_width=baseline_evidence.width,
+                        baseline_height=baseline_evidence.height,
+                        baseline_frames=baseline_evidence.frames,
+                        baseline_memory_pressures=baseline_evidence.memory_pressures,
                     )
             if not plan.eligible:
                 admission = plan.artifact_admission

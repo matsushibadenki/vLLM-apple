@@ -7,8 +7,12 @@ from tests.schema_validator import validate_instance
 from vllm_apple.generative_qualification import (
     GENERATIVE_CANDIDATES,
     GenerativeArtifactComponent,
+    GenerativeBaselineEvidence,
     build_generative_qualification_plan,
+    generative_plan_sha256,
+    generative_promotion_chain_sha256,
     parse_generative_component,
+    promote_generative_chained_resolution_plan,
     promote_generative_resolution_plan,
     promote_generative_sample_count_plan,
 )
@@ -204,6 +208,133 @@ class GenerativeQualificationTests(unittest.TestCase):
                 baseline_frames=1,
                 baseline_memory_pressures=("normal", "warning"),
                 target_sample_count=4,
+            )
+
+    def test_second_resolution_promotion_verifies_the_complete_plan_chain(self) -> None:
+        with TemporaryDirectory() as directory:
+            root = Path(directory)
+            common = {
+                "candidate_id": "flux2-klein-9b-base",
+                "artifact_bytes": 8 * GIB,
+                "estimated_resident_bytes": 18 * GIB,
+                "hardware": hardware(),
+                "target": root,
+                "quantization": "int4",
+                "components": components(8, 18),
+                "steps": 20,
+            }
+            initial = build_generative_qualification_plan(**common, width=512, height=512)
+            intermediate = build_generative_qualification_plan(
+                **common, width=768, height=768
+            )
+            target = build_generative_qualification_plan(**common, width=1024, height=1024)
+
+        initial_evidence = GenerativeBaselineEvidence(
+            "flux2-klein-9b-base",
+            generative_plan_sha256(initial),
+            2,
+            512,
+            512,
+            1,
+            ("normal", "normal"),
+        )
+        resolution_plan = promote_generative_resolution_plan(
+            intermediate,
+            baseline_candidate_id=initial_evidence.candidate_id,
+            baseline_plan_sha256=initial_evidence.plan_sha256,
+            baseline_sample_count=initial_evidence.sample_count,
+            baseline_width=initial_evidence.width,
+            baseline_height=initial_evidence.height,
+            baseline_frames=initial_evidence.frames,
+            baseline_memory_pressures=initial_evidence.memory_pressures,
+        )
+        resolution_evidence = GenerativeBaselineEvidence(
+            "flux2-klein-9b-base",
+            generative_plan_sha256(resolution_plan),
+            2,
+            768,
+            768,
+            1,
+            ("normal", "normal"),
+        )
+        stability_plan = promote_generative_sample_count_plan(
+            intermediate,
+            baseline_candidate_id=resolution_evidence.candidate_id,
+            baseline_plan_sha256=resolution_evidence.plan_sha256,
+            baseline_sample_count=resolution_evidence.sample_count,
+            baseline_width=resolution_evidence.width,
+            baseline_height=resolution_evidence.height,
+            baseline_frames=resolution_evidence.frames,
+            baseline_memory_pressures=resolution_evidence.memory_pressures,
+            target_sample_count=4,
+        )
+        stability_evidence = GenerativeBaselineEvidence(
+            "flux2-klein-9b-base",
+            generative_plan_sha256(stability_plan),
+            4,
+            768,
+            768,
+            1,
+            ("normal",) * 4,
+        )
+
+        promoted = promote_generative_chained_resolution_plan(
+            target,
+            stability_baseline=stability_evidence,
+            initial_baseline=initial_evidence,
+        )
+        self.assertTrue(promoted.eligible)
+        self.assertEqual(promoted.promotion_axis, "resolution")
+        self.assertEqual(
+            promoted.baseline_plan_sha256,
+            generative_promotion_chain_sha256(stability_evidence, initial_evidence),
+        )
+
+        substituted_root = GenerativeBaselineEvidence(
+            initial_evidence.candidate_id,
+            "f" * 64,
+            initial_evidence.sample_count,
+            initial_evidence.width,
+            initial_evidence.height,
+            initial_evidence.frames,
+            initial_evidence.memory_pressures,
+        )
+        substituted = promote_generative_chained_resolution_plan(
+            target,
+            stability_baseline=stability_evidence,
+            initial_baseline=substituted_root,
+        )
+        self.assertNotEqual(
+            substituted.baseline_plan_sha256, promoted.baseline_plan_sha256
+        )
+
+    def test_second_resolution_promotion_requires_all_normal_stability(self) -> None:
+        with TemporaryDirectory() as directory:
+            target = build_generative_qualification_plan(
+                candidate_id="flux2-klein-9b-base",
+                artifact_bytes=8 * GIB,
+                estimated_resident_bytes=18 * GIB,
+                hardware=hardware(),
+                target=Path(directory),
+                quantization="int4",
+                components=components(8, 18),
+                width=1024,
+                height=1024,
+                steps=20,
+            )
+
+        def evidence(digest, count, size, pressures):
+            return GenerativeBaselineEvidence(
+                "flux2-klein-9b-base", digest, count, size, size, 1, pressures
+            )
+
+        with self.assertRaisesRegex(ValueError, "all-normal"):
+            promote_generative_chained_resolution_plan(
+                target,
+                stability_baseline=evidence(
+                    "a" * 64, 4, 768, ("normal", "normal", "normal", "warning")
+                ),
+                initial_baseline=evidence("c" * 64, 2, 512, ("normal", "normal")),
             )
 
     def test_component_totals_must_match_aggregate_admission(self) -> None:

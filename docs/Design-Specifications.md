@@ -2256,6 +2256,11 @@ VAEのartifact bytesとresident bytesを個別に見積もる。合格後だけ7
 reportにはwall latency、peak RSS、memory pressure、thermal state、backend/model fingerprint、
 quantization provenance、licenseを含める。CIはweightおよび生成画像をartifactとして保存しない。
 
+1024解像度への昇格は、512 initial reportと、768の同一shapeを4 sample測定したall-normal
+stability reportを必要とする。両reportのplan SHA-256を決定論的chain digestへ結合し、candidate、
+artifact/backend/hardware provenance、steps、frames、batch sizeを固定したまま解像度だけを変更する。
+chainの欠落やwarning/critical/unknown pressureを一件でも含むbaselineはmodel load前に拒否する。
+
 ---
 
 ## Phase 8 — MoE / Large Model

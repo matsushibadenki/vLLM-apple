@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass, replace
+import hashlib
+import json
 from pathlib import Path
 
 from .artifact_admission import ArtifactAdmission, assess_artifact_admission_for_path
@@ -189,8 +191,59 @@ class GenerativeQualificationPlan:
         return payload
 
 
+@dataclass(frozen=True, slots=True)
+class GenerativeBaselineEvidence:
+    candidate_id: str
+    plan_sha256: str
+    sample_count: int
+    width: int
+    height: int
+    frames: int
+    memory_pressures: tuple[str, ...]
+
+    def __post_init__(self) -> None:
+        if (
+            not self.candidate_id
+            or len(self.plan_sha256) != 64
+            or any(character not in "0123456789abcdef" for character in self.plan_sha256)
+            or not 1 <= self.sample_count <= 32
+            or len(self.memory_pressures) != self.sample_count
+            or min(self.width, self.height, self.frames) <= 0
+        ):
+            raise ValueError("generative baseline identity is invalid")
+        if any(
+            pressure not in {"normal", "warning", "critical", "unknown"}
+            for pressure in self.memory_pressures
+        ):
+            raise ValueError("generative baseline memory pressure is invalid")
+
+
 def list_generative_candidates() -> tuple[GenerativeCandidate, ...]:
     return _CANDIDATES
+
+
+def generative_plan_sha256(plan: GenerativeQualificationPlan) -> str:
+    encoded = json.dumps(
+        plan.to_dict(), ensure_ascii=False, sort_keys=True, separators=(",", ":")
+    ).encode("utf-8")
+    return hashlib.sha256(encoded).hexdigest()
+
+
+def generative_promotion_chain_sha256(
+    stability_baseline: GenerativeBaselineEvidence,
+    initial_baseline: GenerativeBaselineEvidence,
+) -> str:
+    encoded = json.dumps(
+        {
+            "initial_plan_sha256": initial_baseline.plan_sha256,
+            "kind": "generative-resolution-promotion-chain",
+            "schema_version": 1,
+            "stability_plan_sha256": stability_baseline.plan_sha256,
+        },
+        sort_keys=True,
+        separators=(",", ":"),
+    ).encode("utf-8")
+    return hashlib.sha256(encoded).hexdigest()
 
 
 def parse_generative_component(value: str) -> GenerativeArtifactComponent:
@@ -388,6 +441,61 @@ def promote_generative_sample_count_plan(
         plan,
         promotion_axis="sample_count_4",
         baseline_plan_sha256=baseline_plan_sha256,
+        issues=(),
+        eligible=plan.artifact_admission.eligible,
+    )
+
+
+def promote_generative_chained_resolution_plan(
+    plan: GenerativeQualificationPlan,
+    *,
+    stability_baseline: GenerativeBaselineEvidence,
+    initial_baseline: GenerativeBaselineEvidence,
+) -> GenerativeQualificationPlan:
+    """Promote resolution while binding the stable intermediate and initial reports."""
+    if plan.initial_profile or plan.issues != ("initial_profile_limits_exceeded",):
+        raise ValueError("generative plan has non-promotable issues")
+    if any(
+        evidence.candidate_id != plan.candidate.candidate_id
+        for evidence in (stability_baseline, initial_baseline)
+    ):
+        raise ValueError("generative promotion chain candidate does not match")
+    if (
+        initial_baseline.width != plan.candidate.initial_width
+        or initial_baseline.height != plan.candidate.initial_height
+        or initial_baseline.frames != plan.candidate.initial_frames
+        or initial_baseline.sample_count < 2
+        or stability_baseline.sample_count != STABILITY_PROMOTION_SAMPLE_COUNT
+    ):
+        raise ValueError("generative promotion chain shape or sample count is invalid")
+    if any(
+        pressure != "normal"
+        for evidence in (initial_baseline, stability_baseline)
+        for pressure in evidence.memory_pressures
+    ):
+        raise ValueError("generative chained resolution promotion requires all-normal baselines")
+
+    if (
+        stability_baseline.frames != initial_baseline.frames
+        or stability_baseline.width <= initial_baseline.width
+        or stability_baseline.height <= initial_baseline.height
+        or stability_baseline.width > initial_baseline.width * 2
+        or stability_baseline.height > initial_baseline.height * 2
+        or plan.frames != stability_baseline.frames
+        or plan.batch_size != 1
+        or plan.steps > plan.candidate.initial_steps
+        or plan.width <= stability_baseline.width
+        or plan.height <= stability_baseline.height
+        or plan.width > stability_baseline.width * 2
+        or plan.height > stability_baseline.height * 2
+    ):
+        raise ValueError("generative chained resolution promotion is not a bounded step")
+    return replace(
+        plan,
+        promotion_axis="resolution",
+        baseline_plan_sha256=generative_promotion_chain_sha256(
+            stability_baseline, initial_baseline
+        ),
         issues=(),
         eligible=plan.artifact_admission.eligible,
     )

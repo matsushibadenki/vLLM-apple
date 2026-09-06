@@ -650,3 +650,19 @@ remained below the 25% stability ceiling. The strict-verified report is
 `qualification-results/flux2-klein-base-9b-4bit-768-stability-4-recovery.json`. It retains no
 prompt or image and is suitable as the all-normal baseline for planning—not yet executing—the
 next resolution tier.
+
+The 1024 tier binds both required stages before loading the model: the all-normal four-sample
+768 report and the original 512 root. Their report plan hashes are combined into a deterministic
+chain digest stored in the 1024 plan. Only resolution changes; steps, frames, batch size, artifact
+identity, backend, and hardware provenance remain fixed.
+
+```bash
+.venv-mlx-gen/bin/python -m vllm_apple mlx-gen-image-qualification \
+  models/flux.2-klein-base-9b-4bit \
+  --python .venv-mlx-gen/bin/python \
+  --resident-gib 10 \
+  --width 1024 --height 1024 --steps 20 --samples 2 \
+  --baseline-report qualification-results/flux2-klein-base-9b-4bit-768-stability-4-recovery.json \
+  --promotion-parent-report qualification-results/flux2-klein-base-9b-4bit-512.json \
+  --report qualification-results/flux2-klein-base-9b-4bit-1024.json
+```

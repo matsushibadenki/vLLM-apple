@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import hashlib
 import json
 import math
 import os
@@ -10,7 +9,7 @@ import tempfile
 from dataclasses import asdict, dataclass
 from pathlib import Path
 
-from .generative_qualification import GenerativeQualificationPlan
+from .generative_qualification import GenerativeQualificationPlan, generative_plan_sha256
 
 
 GENERATIVE_EVALUATION_SCHEMA_VERSION = 1
@@ -127,13 +126,6 @@ class GenerativeEvaluationReport:
         payload["samples"] = [sample.to_dict() for sample in self.samples]
         payload["issues"] = list(self.issues)
         return payload
-
-
-def generative_plan_sha256(plan: GenerativeQualificationPlan) -> str:
-    encoded = json.dumps(
-        plan.to_dict(), ensure_ascii=False, sort_keys=True, separators=(",", ":")
-    ).encode("utf-8")
-    return hashlib.sha256(encoded).hexdigest()
 
 
 def evaluate_generative_qualification(
