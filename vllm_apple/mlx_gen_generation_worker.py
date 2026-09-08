@@ -24,7 +24,24 @@ from .generative_worker_protocol import consume_private_generative_request
 
 MAX_BACKEND_EVENT_BYTES = 16 * 1024
 MAX_BACKEND_EVENTS = 4096
-_MLX_GEN_RUNTIME_CLASSES = {"flux2-klein-9b-base": "MLXGenFlux2KleinBase9B"}
+_MLX_GEN_RUNTIME_CLASSES = {
+    "flux2-klein-9b-base": "MLXGenFlux2KleinBase9B",
+    "z-image-turbo-mlx-4bit": "MLXGenZImageTurbo",
+}
+
+
+def _failure_code(error: BaseException) -> str:
+    if isinstance(error, MemoryError):
+        return "memory_error"
+    if isinstance(error, ImportError):
+        return "backend_import_error"
+    if isinstance(error, OSError):
+        return "backend_io_error"
+    if isinstance(error, SystemExit):
+        return "backend_system_exit"
+    if isinstance(error, ValueError):
+        return "request_or_output_validation_error"
+    return "backend_runtime_error"
 
 
 class _BoundedProgressSink(io.TextIOBase):
@@ -73,9 +90,17 @@ class _BoundedProgressSink(io.TextIOBase):
 class LocalMLXGenImageRuntime:
     """Runs MLX-Gen in-process so RSS and memory-pressure evidence cover model execution."""
 
-    pipeline_class = "MLXGenFlux2KleinBase9B"
-
-    def __init__(self, *, module_loader=importlib.import_module) -> None:
+    def __init__(
+        self,
+        candidate_id: str = "flux2-klein-9b-base",
+        *,
+        module_loader=importlib.import_module,
+    ) -> None:
+        try:
+            self.pipeline_class = _MLX_GEN_RUNTIME_CLASSES[candidate_id]
+        except KeyError as error:
+            raise ValueError("unsupported MLX-Gen image candidate") from error
+        self._candidate_id = candidate_id
         self._module_loader = module_loader
 
     def generate(
@@ -83,8 +108,10 @@ class LocalMLXGenImageRuntime:
         request: Mapping[str, object],
         progress: Callable[[], None],
     ) -> GeneratedImageArtifact:
-        if request.get("candidate_id") != "flux2-klein-9b-base":
-            raise ValueError("MLX-Gen runtime only supports FLUX.2 Klein Base 9B")
+        if request.get("candidate_id") != self._candidate_id:
+            raise ValueError("MLX-Gen runtime candidate does not match its request")
+        if self._candidate_id == "z-image-turbo-mlx-4bit" and request.get("steps", 0) < 2:
+            raise ValueError("MLX-Gen Z-Image Turbo requires at least two inference steps")
         if platform.system() != "Darwin" or platform.machine() not in {"arm64", "aarch64"}:
             raise RuntimeError("MLX-Gen image worker requires Apple Silicon")
         model_root = Path(str(request["model_root"])).resolve(strict=True)
@@ -106,6 +133,10 @@ class LocalMLXGenImageRuntime:
             "generate",
             "--model",
             str(model_root),
+        ]
+        if self._candidate_id == "z-image-turbo-mlx-4bit":
+            argv.extend(["--base-model", "Tongyi-MAI/Z-Image-Turbo"])
+        argv.extend([
             "--prompt",
             str(request["prompt"]),
             "--width",
@@ -121,7 +152,7 @@ class LocalMLXGenImageRuntime:
             "--json-events",
             "--no-progress",
             "--low-ram",
-        ]
+        ])
         backend = self._module_loader("mflux.cli.mlx_gen")
         previous_argv = sys.argv
         sink = _BoundedProgressSink(progress)
@@ -185,11 +216,16 @@ def main(argv: list[str] | None = None) -> int:
 
         execute_mlx_gen_image_request(
             request,
-            LocalMLXGenImageRuntime(),
+            LocalMLXGenImageRuntime(str(request["candidate_id"])),
             telemetry=default_worker_telemetry,
             emit=emit,
         )
-    except (ImportError, MemoryError, OSError, RuntimeError, SystemExit, ValueError):
+    except (ImportError, MemoryError, OSError, RuntimeError, SystemExit, ValueError) as error:
+        print(
+            "\n" + json.dumps({"vllm_apple_error_code": _failure_code(error)}),
+            file=sys.stderr,
+            flush=True,
+        )
         return 1
     return 0
 

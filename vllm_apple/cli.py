@@ -202,7 +202,9 @@ def build_parser() -> argparse.ArgumentParser:
     resident.add_argument("--resident-bytes", type=int)
     mlx_gen_qualification.add_argument("--width", type=int, default=512)
     mlx_gen_qualification.add_argument("--height", type=int, default=512)
-    mlx_gen_qualification.add_argument("--steps", type=int, default=20)
+    mlx_gen_qualification.add_argument(
+        "--steps", type=int, help="defaults to 9 for Z-Image Turbo and 20 for FLUX.2 Klein"
+    )
     mlx_gen_qualification.add_argument("--samples", type=int, default=2)
     mlx_gen_qualification.add_argument("--baseline-report", type=Path)
     mlx_gen_qualification.add_argument(
@@ -717,8 +719,12 @@ def main(argv: list[str] | None = None) -> int:
             )
             if not readiness["ready"]:
                 raise ValueError("MLX-Gen backend or artifact did not pass readiness")
-            if artifact.get("base_model") != "black-forest-labs/FLUX.2-klein-base-9B":
-                raise ValueError("formal MLX-Gen qualification currently supports Klein Base 9B")
+            candidate_id = readiness["candidate_id"]
+            if candidate_id not in {
+                "flux2-klein-9b-base",
+                "z-image-turbo-mlx-4bit",
+            }:
+                raise ValueError("formal MLX-Gen qualification does not support this candidate")
             if arguments.resident_bytes is not None:
                 resident_bytes = arguments.resident_bytes
             else:
@@ -728,8 +734,13 @@ def main(argv: list[str] | None = None) -> int:
             hardware = detect_hardware()
             quantization_bits = artifact.get("quantization", {}).get("bits")
             quantization = f"int{quantization_bits}"
+            steps = arguments.steps
+            if steps is None:
+                steps = 9 if candidate_id == "z-image-turbo-mlx-4bit" else 20
+            if candidate_id == "z-image-turbo-mlx-4bit" and steps < 2:
+                raise ValueError("MLX-Gen Z-Image Turbo requires at least two inference steps")
             plan = build_generative_qualification_plan(
-                candidate_id="flux2-klein-9b-base",
+                candidate_id=candidate_id,
                 artifact_bytes=artifact["artifact_bytes"],
                 estimated_resident_bytes=resident_bytes,
                 hardware=hardware,
@@ -738,7 +749,7 @@ def main(argv: list[str] | None = None) -> int:
                 components=qualification_components_from_inspection(artifact, resident_bytes),
                 width=arguments.width,
                 height=arguments.height,
-                steps=arguments.steps,
+                steps=steps,
                 batch_size=1,
             )
             provenance = GenerativeEvaluationProvenance(

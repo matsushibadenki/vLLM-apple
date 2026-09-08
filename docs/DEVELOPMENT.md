@@ -564,6 +564,55 @@ python3 -m vllm_apple mflux-generative-readiness \
 Only a report with a compatible `mflux` artifact layout may reach the one-shot
 `vllm-apple-mflux-worker`. An MLX-tagged checkpoint is not assumed to be MFLUX-compatible.
 
+MLX-Gen 0.33.1 exposes the Z-Image Turbo route, but the downloaded
+`mlx-community/Z-Image-Turbo-MLX-4bit` Diffusers conversion is not an MLX-Gen runtime package.
+It reaches the text encoder with missing quantized-layer metadata and fails with incompatible
+matrix shapes. The readiness command therefore rejects `mlx-diffusers-conversion` before model
+load even when the backend supports Z-Image:
+
+```bash
+.venv-mlx-gen/bin/python -m vllm_apple mlx-gen-generative-readiness \
+  --python .venv-mlx-gen/bin/python \
+  --model models/Z-Image-Turbo-MLX-4bit
+```
+
+Keep that artifact unchanged. Create a separate MLX-Gen package from the upstream model; this
+command may download source weights and must be run only after disk and Unified Memory admission:
+
+```bash
+.venv-mlx-gen/bin/mlxgen prepare \
+  --model Tongyi-MAI/Z-Image-Turbo \
+  --path models/z-image-turbo-mlx-gen-4bit \
+  --quantize 4
+```
+
+Re-run readiness against the new directory. A qualifying package must identify the Z-Image Turbo
+base model, contain 4-bit metadata, use the native `mlx-gen` saved-weight layout, and run on a
+backend exposing both `mlxgen` and `mflux-generate-z-image-turbo`. The isolated worker pins
+`--base-model Tongyi-MAI/Z-Image-Turbo`; without this binding the generic router selects the
+non-Turbo path. Z-Image also rejects fewer than two inference steps before weight loading.
+
+After readiness passes, run the M4/32GB minimum profile with two isolated workers. The prompt and
+generated images are not retained:
+
+```bash
+.venv-mlx-gen/bin/python -m vllm_apple mlx-gen-image-qualification \
+  models/z-image-turbo-mlx-gen-4bit \
+  --python .venv-mlx-gen/bin/python \
+  --resident-gib 8 \
+  --width 512 --height 512 --steps 9 --samples 2 \
+  --private-root qualification-private/z-image-turbo \
+  --report qualification-results/z-image-turbo-mlx-gen-4bit-512.json
+```
+
+The Apple M4/32 GiB qualification completed with MLX-Gen 0.33.1 and a locally prepared
+5,902,985,857-byte int4 artifact. Both independent 512x512, 9-step samples reported normal memory
+pressure and fair thermal state. Maximum effective resident memory was 5,627,119,126 bytes; median
+wall time was 104,226 ms. The report is stored at
+`qualification-results/z-image-turbo-mlx-gen-4bit-512.json`; prompts and generated images were not
+retained. A 9 GiB estimate is rejected before model load by this machine's current admission ceiling,
+so the measured baseline uses an 8 GiB estimate.
+
 The M4/32GB FLUX.2 Klein Base 9B 4-bit baseline uses MLX-Gen 0.33.1, `--low-ram`,
 512×512, batch one, and 20 steps. Two independent workers completed with normal memory
 pressure and a maximum effective resident value of 7,761,057,912 bytes. Effective resident
@@ -666,3 +715,19 @@ identity, backend, and hardware provenance remain fixed.
   --promotion-parent-report qualification-results/flux2-klein-base-9b-4bit-512.json \
   --report qualification-results/flux2-klein-base-9b-4bit-1024.json
 ```
+
+On 2026-09-08 both parent reports passed strict verification, but the first 1024 execution attempt
+was rejected before model load: the 10 GiB estimate was 10,737,418,240 bytes while the dynamic hard
+ceiling was 10,501,027,267 bytes. Do not lower the estimate to bypass admission: the verified 768
+baseline already reached 10,886,404,598 bytes. Retry the same command only after host available
+memory has recovered enough to preserve the emergency margin. The rejected attempt loaded no model
+and produced no image or qualification report.
+
+After memory recovered, the same promotion chain passed admission with a 13,707,998,659-byte hard
+ceiling. The first isolated worker then ran for approximately 18 minutes and exited with status 1;
+the runner did not start sample two or retain an image/report. At that point the generic subprocess
+adapter discarded worker stderr, so the exit could not be classified further. The adapter now drains
+stderr concurrently into a 4 KiB tail and accepts only an exact bounded structured error code from
+the MLX-Gen worker. Arbitrary backend stderr is never copied into the qualification error. Re-run
+after memory recovery to distinguish memory, import, I/O, validation, router exit, and runtime
+failures without persisting prompts or paths.

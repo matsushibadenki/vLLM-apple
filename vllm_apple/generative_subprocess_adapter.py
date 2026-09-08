@@ -15,8 +15,10 @@ from .generative_collector import GenerationTelemetryEvent
 
 
 DEFAULT_MAX_LINE_BYTES = 16 * 1024
+MAX_STDERR_TAIL_BYTES = 4 * 1024
 MAX_COMMAND_ARGUMENTS = 256
 _EVENT_FIELDS = frozenset(field.name for field in fields(GenerationTelemetryEvent))
+_DIAGNOSTIC_FIELD = "vllm_apple_error_code"
 
 
 class GenerativeSubprocessAdapterError(RuntimeError):
@@ -74,48 +76,76 @@ class SubprocessGenerativeTelemetryAdapter:
             env=self.environment,
             stdin=subprocess.DEVNULL,
             stdout=subprocess.PIPE,
-            stderr=subprocess.DEVNULL,
+            stderr=subprocess.PIPE,
             shell=False,
             start_new_session=True,
         )
-        assert process.stdout is not None
+        assert process.stdout is not None and process.stderr is not None
         selector = selectors.DefaultSelector()
-        selector.register(process.stdout, selectors.EVENT_READ)
+        selector.register(process.stdout, selectors.EVENT_READ, "stdout")
+        selector.register(process.stderr, selectors.EVENT_READ, "stderr")
         deadline = time.monotonic() + self.timeout_seconds
         buffer = bytearray()
+        stderr_tail = bytearray()
         try:
-            while True:
+            while selector.get_map():
                 remaining = deadline - time.monotonic()
                 if remaining <= 0:
                     raise GenerativeSubprocessAdapterError("generative backend timed out")
                 ready = selector.select(min(remaining, 0.25))
                 if ready:
-                    chunk = os.read(process.stdout.fileno(), 4096)
-                    if not chunk:
-                        break
-                    buffer.extend(chunk)
-                    if len(buffer) > self.max_line_bytes and b"\n" not in buffer:
-                        raise GenerativeSubprocessAdapterError(
-                            "generative backend telemetry line limit exceeded"
-                        )
-                    while b"\n" in buffer:
-                        raw, _, remainder = buffer.partition(b"\n")
-                        buffer = bytearray(remainder)
-                        yield self._decode_event(raw)
-                elif process.poll() is not None:
-                    break
+                    for key, _ in ready:
+                        chunk = os.read(key.fileobj.fileno(), 4096)
+                        if not chunk:
+                            selector.unregister(key.fileobj)
+                            continue
+                        if key.data == "stderr":
+                            stderr_tail.extend(chunk)
+                            if len(stderr_tail) > MAX_STDERR_TAIL_BYTES:
+                                del stderr_tail[:-MAX_STDERR_TAIL_BYTES]
+                            continue
+                        buffer.extend(chunk)
+                        if len(buffer) > self.max_line_bytes and b"\n" not in buffer:
+                            raise GenerativeSubprocessAdapterError(
+                                "generative backend telemetry line limit exceeded"
+                            )
+                        while b"\n" in buffer:
+                            raw, _, remainder = buffer.partition(b"\n")
+                            buffer = bytearray(remainder)
+                            yield self._decode_event(raw)
             if buffer:
                 yield self._decode_event(bytes(buffer))
             return_code = process.wait(timeout=1)
             if return_code != 0:
+                diagnostic = self._diagnostic_code(bytes(stderr_tail))
+                detail = f": {diagnostic}" if diagnostic is not None else ""
                 raise GenerativeSubprocessAdapterError(
-                    f"generative backend exited with status {return_code}"
+                    f"generative backend exited with status {return_code}{detail}"
                 )
         finally:
             selector.close()
             process.stdout.close()
+            process.stderr.close()
             if process.poll() is None:
                 self._terminate(process)
+
+    @staticmethod
+    def _diagnostic_code(raw: bytes) -> str | None:
+        for line in reversed(raw.splitlines()):
+            try:
+                payload = json.loads(line.decode("utf-8"))
+            except (UnicodeDecodeError, json.JSONDecodeError):
+                continue
+            if not isinstance(payload, dict) or set(payload) != {_DIAGNOSTIC_FIELD}:
+                continue
+            code = payload.get(_DIAGNOSTIC_FIELD)
+            if (
+                isinstance(code, str)
+                and 1 <= len(code) <= 64
+                and all(character.islower() or character.isdigit() or character == "_" for character in code)
+            ):
+                return code
+        return None
 
     def _decode_event(self, raw: bytes) -> GenerationTelemetryEvent:
         if not raw or len(raw) > self.max_line_bytes:

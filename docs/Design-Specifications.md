@@ -2256,10 +2256,31 @@ VAEのartifact bytesとresident bytesを個別に見積もる。合格後だけ7
 reportにはwall latency、peak RSS、memory pressure、thermal state、backend/model fingerprint、
 quantization provenance、licenseを含める。CIはweightおよび生成画像をartifactとして保存しない。
 
+Z-Image TurboのMLX-Gen経路では、backendがZ-Image classを持つこととartifact互換性を別gateにする。
+`mlx-diffusers-conversion`は量子化設定が存在してもMLX-Genのquantized layer metadataを保証しないため、
+workerへ渡さない。`mlxgen prepare --model Tongyi-MAI/Z-Image-Turbo --quantize 4`で別directoryへ生成した
+`mlx-gen` packageだけを候補とし、base-model、4-bit metadata、Z-Image Turbo console routeをload前に
+照合する。native packageはDiffusersの`model_index.json`を持たないためpipeline classは必須にしないが、
+値が存在する場合は`ZImagePipeline`との一致を要求する。generic routerにはbase-model identityを明示し、
+非Turbo routeへの誤dispatchを防ぐ。
+backend制約に合わせて2 step未満をload前に拒否し、正式な最小profileは512×512、9 steps、batch 1、
+独立2 sampleとする。Apple M4/32 GiBでの基準実測は、artifact 5,902,985,857 bytes、最大effective
+resident 5,627,119,126 bytes、全sample memory pressure normal、thermal fairで合格した。9 GiBの
+事前見積りは現在のhard ceilingを超えるためload前に拒否され、基準planは8 GiB見積りを使用する。
+
 1024解像度への昇格は、512 initial reportと、768の同一shapeを4 sample測定したall-normal
 stability reportを必要とする。両reportのplan SHA-256を決定論的chain digestへ結合し、candidate、
 artifact/backend/hardware provenance、steps、frames、batch sizeを固定したまま解像度だけを変更する。
 chainの欠落やwarning/critical/unknown pressureを一件でも含むbaselineはmodel load前に拒否する。
+1024実行では10 GiBのresident見積りを維持し、dynamic hard ceilingを下回る時だけloadを許可する。
+2026-09-08の初回試行は見積り10,737,418,240 bytesに対してceiling 10,501,027,267 bytesだったため、
+model load前に安全停止した。768実測peakが10,886,404,598 bytesであるため、admissionを通す目的で
+見積りを引き下げず、available memoryとemergency marginが回復してから同一planを再実行する。
+memory回復後にadmissionを通過した初回workerは約18分でstatus 1となり、2 sample目を開始せず停止した。
+この診断欠落を防ぐため、subprocess adapterはstdout telemetryとstderrを同時にdrainし、stderrは4 KiB tailに
+制限する。親processへ公開するのはworkerが出力した単一fieldのallowlisted error codeだけとし、任意のstderr、
+prompt、model/output pathは転記しない。これによりpipe deadlockと秘密情報漏洩を避けながら、次回試行で
+memory、import、I/O、validation、router exit、runtime failureを分類する。
 
 ---
 
@@ -2289,6 +2310,40 @@ pipeline parallel
 modality parallel
 distributed KV/state
 ```
+
+---
+
+## Late Phase — CPU / GPU / ANE Heterogeneous Scheduling
+
+CPU、GPU、ANEの同時利用は後半フェーズで導入する。`AppleExecutionPlanner`をdevice placementの
+唯一の決定点とし、各backendが独自に別deviceへ処理を逃がすことは禁止する。すべてのassignmentは
+versioned execution planへ記録し、active request中は変更せずscheduler safe pointでのみ切り替える。
+
+実装順序：
+
+1. `[Later]` 公開APIだけを使うCore ML/ANE capability probeと固定graph backend adapterを追加する。
+2. `[Later]` CPU thread、GPU command queue、ANE task、Unified Memory、memory bandwidthを同じresource
+   ledgerで予約し、overcommitをmodel load前とoperator dispatch前に拒否する。
+3. `[Later]` operator、shape、batch、precision、phaseごとにCPU/GPU/ANEの単独実行を測定する。
+   device間同期、tensor変換、Core ML compile/load時間を必ずend-to-end latencyへ含める。
+4. `[Later]` Vision/Audio encoder、embedding、classifier、background modelなど固定graph化しやすい
+   auxiliary workloadからANE routingを開始する。LLM prefill/decodeはGPU baselineを維持する。
+5. `[Later]` 共有memory bandwidth競合を測定し、単独実行より改善する組み合わせに限ってCPU/GPU/ANE
+   pipeline並列化またはbounded work stealingを有効化する。
+6. `[Later]` CPU/Core ML draft + GPU verifyをcorrectness-neutralなspeculative executionとして評価する。
+7. `[Later]` thermal、memory pressure、low-power modeを入力に、batch、concurrency、device assignmentを
+   段階的に縮退・復元する。既存requestをcancelせず、新規admissionと次のsafe pointへだけ適用する。
+8. `[Later]` hardware、OS、Core ML、MLX、Metal、model、shapeに結び付いたprofileを保存し、期限切れ、
+   quarantine、last-known-good rollbackを既存kernel profileと同じfail-closed policyで管理する。
+
+昇格条件は、backend間のbounded numerical comparisonまたはtask固有quality gateが合格し、代表workloadで
+TTFT、TPOT、throughput、energy/requestの少なくとも一つが改善し、peak Unified Memory、memory pressure、
+thermal stateが悪化しないことである。compile failure、timeout、shape非対応、数値不一致では
+ANE → GPU → CPUの明示fallbackを使う。ANE利用不可は通常状態として扱い、runtime readinessを失敗させない。
+
+Mac appには自動、省電力、最高性能の三policyとdevice assignmentの診断を英語、日本語、简体中文で
+表示する。operator入力、prompt、生成内容はtelemetryに保存せず、queue wait、実行時間、fallback理由、
+resource pressureだけをbounded metricとして保持する。
 
 ---
 

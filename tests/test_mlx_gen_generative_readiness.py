@@ -50,6 +50,68 @@ class MLXGenGenerativeReadinessTests(unittest.TestCase):
         self.assertFalse(report["ready"])
         self.assertIn("mlx_gen_version_below_0.18.2", report["issues"])
 
+    def test_native_z_image_package_is_ready_with_the_matching_cli(self) -> None:
+        with TemporaryDirectory() as directory:
+            root = Path(directory)
+            root.joinpath("README.md").write_text(
+                "---\nlibrary_name: mlx-gen\nlicense: apache-2.0\n"
+                "base_model: Tongyi-MAI/Z-Image-Turbo\n---\n"
+            )
+            for component in ("transformer", "text_encoder", "vae"):
+                path = root / component
+                path.mkdir()
+                path.joinpath("model.safetensors.index.json").write_text(
+                    json.dumps(
+                        {
+                            "metadata": {
+                                "mflux_version": "0.1.0",
+                                "quantization_level": "4",
+                            }
+                        }
+                    )
+                )
+                path.joinpath("weights.safetensors").write_bytes(b"x")
+            report = assess_mlx_gen_generative_readiness(
+                executable="/test/python",
+                version="0.33.1",
+                cli_registered=True,
+                z_image_cli_registered=True,
+                model=root,
+            )
+        self.assertTrue(report["ready"])
+        self.assertEqual(report["candidate_id"], "z-image-turbo-mlx-4bit")
+        self.assertEqual(report["minimum_version"], "0.33.1")
+
+    def test_z_image_requires_the_candidate_specific_cli(self) -> None:
+        with TemporaryDirectory() as directory:
+            root = Path(directory)
+            root.joinpath("README.md").write_text(
+                "---\nlibrary_name: mlx\nlicense: apache-2.0\n"
+                "base_model: Tongyi-MAI/Z-Image-Turbo\n---\n"
+            )
+            root.joinpath("model_index.json").write_text(
+                json.dumps({"_class_name": "ZImagePipeline"})
+            )
+            root.joinpath("quantize_config.json").write_text(
+                json.dumps({"quantization": {"bits": 4}})
+            )
+            for component in ("transformer", "text_encoder", "vae"):
+                path = root / component
+                path.mkdir()
+                path.joinpath("weights.safetensors").write_bytes(b"x")
+            report = assess_mlx_gen_generative_readiness(
+                executable="/test/python",
+                version="0.33.1",
+                cli_registered=True,
+                z_image_cli_registered=False,
+                model=root,
+            )
+        self.assertFalse(report["ready"])
+        self.assertIn("z_image_turbo_console_script_missing", report["issues"])
+        self.assertIn(
+            "unsupported_artifact_format:mlx-diffusers-conversion", report["issues"]
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

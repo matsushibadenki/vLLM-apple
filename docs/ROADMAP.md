@@ -1,6 +1,6 @@
 # vLLM-Apple Runtime Roadmap
 
-最終更新：2026-09-04
+最終更新：2026-09-08
 
 本ロードマップは、[Design-Specifications.md](Design-Specifications.md)を実装可能な単位へ分解し、現在のコードベースに対する進捗を示す。
 
@@ -18,7 +18,8 @@ Phase 1のcontrol plane、メモリ安全性基盤、AppleExecutionPlanner、Sta
 prefill/decode別profile、Swift SDK、3言語macOS sample、Gemma実modelの30分安定性まで実装済み。
 
 2026-08-30のstatus監査で、後続実装と実機記録が存在した古い`[Next]` 10件を`[Done]`へ更新した。
-現在のactionableな`[Next]`表記は6件、重複参照をまとめた実作業は2件である。最優先は大容量Apple Siliconでの
+現在のactionableな`[Next]`表記は9件、重複参照をまとめた実作業は5件である。ローカルの最優先は
+FLUX.2 Klein 1024 qualification、外部環境の最優先は大容量Apple Siliconでの
 Qwen3.8-Flash-Next text-only qualificationと、専用runnerでのvLLM 0.28.x昇格試験である。
 設計判断は
 [Architecture-Decision-Apple-Execution.md](Architecture-Decision-Apple-Execution.md)に固定する。
@@ -734,7 +735,7 @@ vLLM-Metal対応とは見なさない。
 - `[Later]` image generation workload
 - `[Later]` M4/32GB向け画像生成qualification profile（最初は512×512、batch 1、単一画像、bounded steps）
 - `[Later]` FLUX.2 [klein] 9B Baseを優先候補とする量子化、text encoder分離、VAE tiling、逐次module residency検証
-- `[Next]` 配置済みZ-Image-Turbo-MLX-4bitを優先候補とするMLX backend readiness、512×512・9 steps実機qualification
+- `[Done]` MLX-Gen互換Z-Image Turbo 4-bitを優先候補とするbackend readiness、512×512・9 steps実機qualification
 - `[Later]` Qwen-Image-2512を候補とするMPS/MLXまたは対応backendの量子化、offload、peak Unified Memory検証
 - `[Later]` FLUX.2 [dev]をstretch候補とする4-bit級量子化、CPU/SSD offload、chunking検証（非量子化weightはM4/32GBでload前にreject）
 - `[Done]` diffusion pipelineのmodel、text encoder、VAE別artifact admissionとconservative resident-memory hard ceiling
@@ -774,6 +775,29 @@ vLLM-Metal対応とは見なさない。
 - `[Later]` distributed KV/state
 - `[Later]` topology-aware partitioning
 - `[Later]` node failure recovery
+
+## Late Phase — CPU / GPU / ANE Heterogeneous Scheduling
+
+AppleExecutionPlannerと既存のglobal schedulerを拡張し、CPU、GPU、ANEを個別backendではなく、
+Unified Memoryとmemory bandwidthを共有する一つの実行系として管理する。ANEは公開Core ML APIで
+実行可能な固定graph中心の処理だけを対象とし、dynamic LLM decodeを前提にしない。
+
+- `[Later]` CPU、MLX GPU、Native Metal、Core ML/ANEのversioned capability・operator eligibility registry
+- `[Later]` Core ML model compile/loadを隔離するANE backend adapterと、OS／chip／model fingerprint別cache
+- `[Later]` CPU thread、GPU command queue、ANE in-flight task、Unified Memory、memory bandwidthの統合resource ledger
+- `[Later]` operator graphへ依存関係、deadline、phase、precision、fallback、同期costを付与するdispatch contract
+- `[Later]` CPU/GPU/ANE別microbenchmark（latency、throughput、energy、peak memory、同期・変換overhead）
+- `[Later]` prefill、decode、Vision/Audio encoder、sampling、draft/verify別のend-to-end performance profile
+- `[Later]` scheduler safe pointだけでdevice assignmentを切り替えるadaptive placementとbounded work stealing
+- `[Later]` memory pressure、thermal state、low-power modeに応じたconcurrency／batch／device割当の段階的縮退
+- `[Later]` Vision/Audio encoderとembedding/classifierから開始するANE routing、GPU LLM pipelineとの非同期連携
+- `[Later]` CPUまたはANE draft + GPU verifyによるheterogeneous speculative execution
+- `[Later]` 並列実行が逐次実行を上回る場合だけ有効化するshared-bandwidth contention gate
+- `[Later]` hardware／OS／model／shape別autotuning profile、期限切れ、quarantine、last-known-good rollback
+- `[Later]` backend別correctness比較、timeout／compile failure／numerical mismatch時のANE → GPU → CPU fallback
+- `[Later]` TTFT、TPOT、tokens/sec、frames/sec、energy/request、peak Unified Memoryを用いたpromotion gate
+- `[Later]` device assignment、queue wait、fallback、contention、thermal/power decisionのbounded observability
+- `[Later]` Mac appでの英語、日本語、简体中文diagnosticsと自動／省電力／最高性能policy選択
 
 ## Cross-Cutting Work
 
@@ -1038,10 +1062,11 @@ vLLM-Metal対応とは見なさない。
 117. `[Done]` FLUX.2/Qwen Imageのlocal-only MPS Diffusers runtimeとisolated worker entrypoint
 118. `[Done]` 実FLUX.2 [klein] checkpointで判明した`Flux2KleinPipeline` identityへのreadiness/runtime修正
 119. `[Done]` MLX Diffusers変換/MFLUX artifactのbounded静的形式判定、component実容量集計、backend誤接続防止
-120. `[Next]` Z-Image-Turbo-MLX-4bitの対応MLX workerとM4/32GB最小profile qualification
+120. `[Done]` MLX-Gen互換Z-Image Turbo 4-bit artifactの生成とM4/32GB最小profile qualification
+120a. `[Done]` MLX-Gen 0.33.1のZ-Image Turbo capability検出、candidate-bound worker route、base-model固定、2-step未満のload前拒否
 121. `[Later]` Qwen-Image-2512-4bitのMFLUX workerとoffload前提memory-stability qualification
 122. `[Done]` MFLUX Z-Image/Qwen Image backend classとartifact形式を分離したloadなしreadiness gate
-123. `[Next]` Z-Image artifactをMFLUX互換形式へ揃え、readinessを合格させる配置手順の確定
+123. `[Done]` 配置済みMLX Diffusers変換artifactの量子化layer非互換を実機で特定し、別directoryへMLX-Gen 4-bit packageを生成する配置手順を確定
 124. `[Done]` MFLUX Z-Image/Qwen Image local-only one-shot worker、private output digest/delete、memory ceiling telemetry接続
 125. `[Done]` 配置済みFLUX.2 Klein 9B 4-bitのMLX-Gen形式、component実容量、非商用license provenance静的検査
 126. `[Done]` MLX-Gen local-only FLUX.2 Klein worker接続
@@ -1068,7 +1093,9 @@ vLLM-Metal対応とは見なさない。
 147. `[Done]` bounded inter-sample memory pressure回復待ちと、全sample normalを必須にする次解像度promotion blocker
 148. `[Done]` pressure recovery gate有効下での768×768・4回再qualificationとall-normal baseline取得（最大effective resident 10,886,404,598 bytes、全sample pressure normal）
 149. `[Done]` all-normal 768 baselineと512 rootをchain digestで結合する1024解像度の二段階promotion admission
-150. `[Next]` 二段階promotion admission通過後の1024×1024・20-step実機qualification
+150. `[Next]` 二段階promotion admission通過後の1024×1024・20-step実機qualification（memory回復後の初回workerは約18分でstatus 1となり、2回目を開始せず安全停止。診断code有効下で再測定）
+151. `[Done]` MLX-Gen形式のZ-Image Turbo 4-bitで512×512・9-stepを独立2回実行するmemory-stability qualification（最大effective resident 5,627,119,126 bytes、全sample pressure normal、thermal fair）
+152. `[Done]` generative subprocessのstderrをdeadlockなしでdrainする4 KiB bounded tailと、秘密情報を含まないstructured worker failure code
 
 この順序により、まず推論runtimeの実model安定性を確立し、その境界を壊さずにoptimizerを
 別processとして追加する。構造pruningはquantization、calibration、評価gateの後に着手する。

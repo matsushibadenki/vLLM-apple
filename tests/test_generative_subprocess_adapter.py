@@ -57,6 +57,21 @@ class GenerativeSubprocessAdapterTests(unittest.TestCase):
         with self.assertRaisesRegex(GenerativeSubprocessAdapterError, "status 7"):
             tuple(failed.events())
 
+    def test_bounded_structured_stderr_diagnostic_is_reported(self) -> None:
+        script = (
+            "import json,sys;"
+            "sys.stderr.write('x' * 65536 + '\\n');"
+            "print(json.dumps({'vllm_apple_error_code':'memory_error'}), file=sys.stderr);"
+            "raise SystemExit(7)"
+        )
+        adapter = SubprocessGenerativeTelemetryAdapter(
+            (sys.executable, "-c", script), timeout_seconds=2
+        )
+        with self.assertRaisesRegex(
+            GenerativeSubprocessAdapterError, "status 7: memory_error"
+        ):
+            tuple(adapter.events())
+
     def test_timeout_terminates_worker(self) -> None:
         adapter = SubprocessGenerativeTelemetryAdapter(
             (sys.executable, "-c", "import time; time.sleep(10)"), timeout_seconds=0.05
