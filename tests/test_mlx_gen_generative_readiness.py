@@ -5,6 +5,7 @@ from tempfile import TemporaryDirectory
 
 from vllm_apple.mlx_gen_generative_readiness import (
     assess_mlx_gen_generative_readiness,
+    select_mlx_gen_qualification_candidate,
 )
 
 
@@ -23,6 +24,16 @@ def model_fixture(root: Path) -> None:
 
 
 class MLXGenGenerativeReadinessTests(unittest.TestCase):
+    def test_low_cache_profile_selection_is_exact_and_flux_only(self) -> None:
+        self.assertEqual(
+            select_mlx_gen_qualification_candidate("flux2-klein-9b-base", 0.25),
+            "flux2-klein-9b-base-low-cache",
+        )
+        with self.assertRaisesRegex(ValueError, "only FLUX"):
+            select_mlx_gen_qualification_candidate("flux2-klein-9b-base", 0.5)
+        with self.assertRaisesRegex(ValueError, "only FLUX"):
+            select_mlx_gen_qualification_candidate("z-image-turbo-mlx-4bit", 0.25)
+
     def test_matching_backend_and_artifact_are_ready_without_loading(self) -> None:
         with TemporaryDirectory() as directory:
             root = Path(directory)

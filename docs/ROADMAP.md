@@ -18,8 +18,8 @@ Phase 1のcontrol plane、メモリ安全性基盤、AppleExecutionPlanner、Sta
 prefill/decode別profile、Swift SDK、3言語macOS sample、Gemma実modelの30分安定性まで実装済み。
 
 2026-08-30のstatus監査で、後続実装と実機記録が存在した古い`[Next]` 10件を`[Done]`へ更新した。
-現在のactionableな`[Next]`表記は9件、重複参照をまとめた実作業は5件である。ローカルの最優先は
-FLUX.2 Klein 1024 qualification、外部環境の最優先は大容量Apple Siliconでの
+現在のactionableな`[Next]`表記は8件、重複参照をまとめた実作業は4件である。いずれも外部環境または
+release資格情報を必要とし、最優先は大容量Apple Siliconでの
 Qwen3.8-Flash-Next text-only qualificationと、専用runnerでのvLLM 0.28.x昇格試験である。
 設計判断は
 [Architecture-Decision-Apple-Execution.md](Architecture-Decision-Apple-Execution.md)に固定する。
@@ -1093,9 +1093,11 @@ Unified Memoryとmemory bandwidthを共有する一つの実行系として管�
 147. `[Done]` bounded inter-sample memory pressure回復待ちと、全sample normalを必須にする次解像度promotion blocker
 148. `[Done]` pressure recovery gate有効下での768×768・4回再qualificationとall-normal baseline取得（最大effective resident 10,886,404,598 bytes、全sample pressure normal）
 149. `[Done]` all-normal 768 baselineと512 rootをchain digestで結合する1024解像度の二段階promotion admission
-150. `[Next]` 二段階promotion admission通過後の1024×1024・20-step実機qualification（memory回復後の初回workerは約18分でstatus 1となり、2回目を開始せず安全停止。診断code有効下で再測定）
+150. `[Done]` 二段階promotion admission通過後の1024×1024・20-step実機qualification（診断code有効の再試行でも1 sample目がruntime hard ceiling超過。M4/32GBの現profile上限を768に確定）
 151. `[Done]` MLX-Gen形式のZ-Image Turbo 4-bitで512×512・9-stepを独立2回実行するmemory-stability qualification（最大effective resident 5,627,119,126 bytes、全sample pressure normal、thermal fair）
 152. `[Done]` generative subprocessのstderrをdeadlockなしでdrainする4 KiB bounded tailと、秘密情報を含まないstructured worker failure code
+153. `[Done]` 0.25 GB MLX cacheを独立candidate profileとしてplan hashへ結合し、通常baseline流用を拒否する512実機qualification（最大effective resident差65,154 bytes、0.00084%減に留まり1024昇格は見送り）
+154. `[Later]` transformer attention/MLP chunkingまたはblock単位residencyをprofile identityへ結合し、512 rootから取り直す1024 memory optimization
 
 この順序により、まず推論runtimeの実model安定性を確立し、その境界を壊さずにoptimizerを
 別processとして追加する。構造pruningはquantization、calibration、評価gateの後に着手する。

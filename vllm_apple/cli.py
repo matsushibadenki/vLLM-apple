@@ -68,7 +68,10 @@ from .qualification import (
 )
 from .mlx_qwen4_readiness import inspect_mlx_qwen4_readiness
 from .mflux_generative_readiness import inspect_mflux_generative_readiness
-from .mlx_gen_generative_readiness import inspect_mlx_gen_generative_readiness
+from .mlx_gen_generative_readiness import (
+    inspect_mlx_gen_generative_readiness,
+    select_mlx_gen_qualification_candidate,
+)
 from .qualification_preflight import run_qualification_preflight
 from .qwen4_cache_contract import run_qwen4_cache_fixture
 from .qwen4_adapter_contract import build_qwen4_adapter_contract
@@ -206,6 +209,11 @@ def build_parser() -> argparse.ArgumentParser:
         "--steps", type=int, help="defaults to 9 for Z-Image Turbo and 20 for FLUX.2 Klein"
     )
     mlx_gen_qualification.add_argument("--samples", type=int, default=2)
+    mlx_gen_qualification.add_argument(
+        "--mlx-cache-limit-gb",
+        type=float,
+        help="select the separately hashed FLUX.2 low-cache profile; currently only 0.25",
+    )
     mlx_gen_qualification.add_argument("--baseline-report", type=Path)
     mlx_gen_qualification.add_argument(
         "--promotion-parent-report",
@@ -720,8 +728,12 @@ def main(argv: list[str] | None = None) -> int:
             if not readiness["ready"]:
                 raise ValueError("MLX-Gen backend or artifact did not pass readiness")
             candidate_id = readiness["candidate_id"]
+            candidate_id = select_mlx_gen_qualification_candidate(
+                candidate_id, arguments.mlx_cache_limit_gb
+            )
             if candidate_id not in {
                 "flux2-klein-9b-base",
+                "flux2-klein-9b-base-low-cache",
                 "z-image-turbo-mlx-4bit",
             }:
                 raise ValueError("formal MLX-Gen qualification does not support this candidate")

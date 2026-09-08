@@ -45,14 +45,35 @@ def components(artifact_gib: int, resident_gib: int) -> tuple[GenerativeArtifact
 
 class GenerativeQualificationTests(unittest.TestCase):
     def test_catalog_contains_requested_image_and_video_candidates(self) -> None:
-        self.assertEqual(len(GENERATIVE_CANDIDATES), 7)
+        self.assertEqual(len(GENERATIVE_CANDIDATES), 8)
         self.assertIn("z-image-turbo-mlx-4bit", GENERATIVE_CANDIDATES)
         self.assertIn("flux2-klein-9b-base", GENERATIVE_CANDIDATES)
+        self.assertIn("flux2-klein-9b-base-low-cache", GENERATIVE_CANDIDATES)
         self.assertIn("qwen-image-2512", GENERATIVE_CANDIDATES)
         self.assertIn("flux2-dev", GENERATIVE_CANDIDATES)
         self.assertIn("wan2.2-ti2v-5b", GENERATIVE_CANDIDATES)
         self.assertIn("hunyuanvideo-1.5-8.3b", GENERATIVE_CANDIDATES)
         self.assertIn("wan2.2-a14b-quantized", GENERATIVE_CANDIDATES)
+
+    def test_low_cache_profile_has_a_distinct_plan_identity(self) -> None:
+        with TemporaryDirectory() as directory:
+            arguments = {
+                "artifact_bytes": 8 * GIB,
+                "estimated_resident_bytes": 18 * GIB,
+                "hardware": hardware(),
+                "target": Path(directory),
+                "quantization": "int4",
+                "components": components(8, 18),
+                "steps": 20,
+            }
+            normal = build_generative_qualification_plan(
+                candidate_id="flux2-klein-9b-base", **arguments
+            )
+            low_cache = build_generative_qualification_plan(
+                candidate_id="flux2-klein-9b-base-low-cache", **arguments
+            )
+        self.assertNotEqual(generative_plan_sha256(normal), generative_plan_sha256(low_cache))
+        self.assertIn("mlx-cache-limit-250mb", low_cache.candidate.required_strategies)
 
     def test_bounded_quantized_plan_passes_load_before_admission(self) -> None:
         with TemporaryDirectory() as directory:

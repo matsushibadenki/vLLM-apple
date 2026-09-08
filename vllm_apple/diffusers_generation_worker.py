@@ -266,7 +266,7 @@ def _execute_image_request(
         snapshot = telemetry()
         ceiling = request.get("memory_hard_ceiling_bytes")
         if isinstance(ceiling, int) and snapshot.process_rss_bytes > ceiling:
-            raise MemoryError("Diffusers worker exceeded its memory hard ceiling")
+            raise MemoryError("Generative worker exceeded its memory hard ceiling")
         elapsed_ms = max(0.0, (clock() - started) * 1000.0)
         return GenerationTelemetryEvent(
             kind=kind,

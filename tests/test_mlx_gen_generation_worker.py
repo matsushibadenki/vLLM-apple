@@ -10,6 +10,7 @@ from vllm_apple.diffusers_generation_worker import WorkerTelemetry
 from vllm_apple.mlx_gen_generation_worker import (
     LocalMLXGenImageRuntime,
     _BoundedProgressSink,
+    _failure_code,
     execute_mlx_gen_image_request,
 )
 
@@ -126,10 +127,68 @@ class MLXGenGenerationWorkerTests(unittest.TestCase):
             self.assertFalse(list(output.glob("*.png")))
         self.assertEqual(events[-1].kind, "completed")
 
+    def test_low_cache_profile_forwards_the_bound_cache_limit(self) -> None:
+        with TemporaryDirectory() as directory:
+            root = Path(directory)
+            model = root / "model"
+            output = root / "output"
+            model.mkdir()
+            output.mkdir()
+            seen = {}
+
+            def backend_main():
+                seen["argv"] = list(sys.argv)
+                Path(sys.argv[sys.argv.index("--output") + 1]).write_bytes(b"png")
+                print(json.dumps({"event": "step", "step": 1}))
+
+            runtime = LocalMLXGenImageRuntime(
+                "flux2-klein-9b-base-low-cache",
+                module_loader=lambda name: SimpleNamespace(main=backend_main),
+            )
+            request = {
+                "candidate_id": "flux2-klein-9b-base-low-cache",
+                "modality": "image",
+                "mode": "text-to-image",
+                "model_root": str(model),
+                "output_root": str(output),
+                "prompt": "local test",
+                "seed": 42,
+                "width": 512,
+                "height": 512,
+                "steps": 20,
+                "batch_size": 1,
+                "sample_index": 0,
+                "memory_hard_ceiling_bytes": 1024 * 1024,
+            }
+            events = []
+            with patch(
+                "vllm_apple.mlx_gen_generation_worker.platform.system",
+                return_value="Darwin",
+            ), patch(
+                "vllm_apple.mlx_gen_generation_worker.platform.machine",
+                return_value="arm64",
+            ):
+                execute_mlx_gen_image_request(
+                    request,
+                    runtime,
+                    telemetry=lambda: WorkerTelemetry(1024, "normal", "nominal"),
+                    emit=events.append,
+                )
+        index = seen["argv"].index("--mlx-cache-limit-gb")
+        self.assertEqual(seen["argv"][index + 1], "0.25")
+        self.assertEqual(events[-1].kind, "completed")
+
     def test_progress_sink_rejects_non_json_output(self) -> None:
         sink = _BoundedProgressSink(lambda: None)
         with self.assertRaisesRegex(RuntimeError, "non-JSON"):
             sink.write("unsafe diagnostic\n")
+
+    def test_failure_code_distinguishes_the_worker_memory_ceiling(self) -> None:
+        self.assertEqual(
+            _failure_code(MemoryError("Generative worker exceeded its memory hard ceiling")),
+            "memory_hard_ceiling_exceeded",
+        )
+        self.assertEqual(_failure_code(MemoryError("allocator failed")), "memory_error")
 
 
 if __name__ == "__main__":

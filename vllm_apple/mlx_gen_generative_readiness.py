@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import math
 import os
 import subprocess
 from pathlib import Path
@@ -11,6 +12,24 @@ from .generative_artifact_inspection import inspect_generative_artifact
 MINIMUM_MLX_GEN_VERSION = (0, 18, 2)
 MINIMUM_Z_IMAGE_VERSION = (0, 33, 1)
 MAX_PROBE_OUTPUT_BYTES = 16 * 1024
+FLUX2_LOW_CACHE_LIMIT_GB = 0.25
+
+
+def select_mlx_gen_qualification_candidate(
+    candidate_id: str, cache_limit_gb: float | None
+) -> str:
+    if cache_limit_gb is None:
+        return candidate_id
+    if (
+        candidate_id != "flux2-klein-9b-base"
+        or not math.isfinite(cache_limit_gb)
+        or cache_limit_gb != FLUX2_LOW_CACHE_LIMIT_GB
+    ):
+        raise ValueError(
+            "formal MLX-Gen low-cache qualification supports only "
+            "FLUX.2 Klein with --mlx-cache-limit-gb 0.25"
+        )
+    return "flux2-klein-9b-base-low-cache"
 
 
 def _version_tuple(value: str) -> tuple[int, int, int] | None:

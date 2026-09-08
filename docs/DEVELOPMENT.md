@@ -728,6 +728,32 @@ ceiling. The first isolated worker then ran for approximately 18 minutes and exi
 the runner did not start sample two or retain an image/report. At that point the generic subprocess
 adapter discarded worker stderr, so the exit could not be classified further. The adapter now drains
 stderr concurrently into a 4 KiB tail and accepts only an exact bounded structured error code from
-the MLX-Gen worker. Arbitrary backend stderr is never copied into the qualification error. Re-run
-after memory recovery to distinguish memory, import, I/O, validation, router exit, and runtime
-failures without persisting prompts or paths.
+the MLX-Gen worker. Arbitrary backend stderr is never copied into the qualification error.
+
+A diagnostic-enabled retry started with a 13,661,173,187-byte hard ceiling and again stopped during
+sample one, this time reporting `memory_error`. MLX-Gen contains no explicit Python `MemoryError`
+raise on this route; the project worker's runtime ceiling check is the only such raise site. The M4/
+32 GiB qualification therefore records 1024 as unsupported by the current profile and retains 768
+as the verified maximum. A future low-cache retry must add the cache limit to the hashed profile and
+establish a new 512 root before promotion; changing it only at 1024 would invalidate the one-axis
+comparison.
+
+The first bounded optimization profile fixes `--mlx-cache-limit-gb 0.25` into the distinct
+`flux2-klein-9b-base-low-cache` candidate identity. This prevents ordinary FLUX.2 reports from
+authorizing low-cache promotions even though the artifact and backend provenance are identical:
+
+```bash
+.venv-mlx-gen/bin/python -m vllm_apple mlx-gen-image-qualification \
+  models/flux.2-klein-base-9b-4bit \
+  --python .venv-mlx-gen/bin/python \
+  --resident-gib 10 --mlx-cache-limit-gb 0.25 \
+  --width 512 --height 512 --steps 20 --samples 2 \
+  --private-root qualification-private/flux2-klein-low-cache-512 \
+  --report qualification-results/flux2-klein-base-9b-4bit-low-cache-512.json
+```
+
+Both samples passed with normal memory pressure and fair thermal state. Maximum effective resident
+was 7,760,992,758 bytes, only 65,154 bytes (0.00084%) below the ordinary 512 baseline. The cache cap
+therefore does not materially reduce this workload's peak and is not promoted to 768/1024. A future
+optimization must target active transformer attention/MLP or block residency and start a new hashed
+512 root rather than reusing either existing chain.

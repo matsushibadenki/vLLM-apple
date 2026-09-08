@@ -2279,8 +2279,18 @@ model load前に安全停止した。768実測peakが10,886,404,598 bytesであ�
 memory回復後にadmissionを通過した初回workerは約18分でstatus 1となり、2 sample目を開始せず停止した。
 この診断欠落を防ぐため、subprocess adapterはstdout telemetryとstderrを同時にdrainし、stderrは4 KiB tailに
 制限する。親processへ公開するのはworkerが出力した単一fieldのallowlisted error codeだけとし、任意のstderr、
-prompt、model/output pathは転記しない。これによりpipe deadlockと秘密情報漏洩を避けながら、次回試行で
+prompt、model/output pathは転記しない。これによりpipe deadlockと秘密情報漏洩を避けながら、
 memory、import、I/O、validation、router exit、runtime failureを分類する。
+診断有効の再試行はhard ceiling 13,661,173,187 bytesでadmissionを通過したが、1 sample目の実行中に
+`memory_error`で停止した。この経路で明示的に`MemoryError`を投げる箇所はworkerのruntime ceiling check
+だけであるため、M4/32 GiBの現profileでは1024を不合格、all-normal 768を最大認定解像度とする。
+MLX cache上限を変更して再試験する場合は、その値をplan hashへ追加し、512 rootから別の一軸promotion
+chainとして取り直す。1024段だけのcache変更は比較条件を壊すため認めない。
+最初の低cache profileは0.25 GBを`flux2-klein-9b-base-low-cache` candidate identityとrequired strategyへ
+固定し、通常candidateのreportをbaselineに指定した場合はcandidate不一致で拒否する。512×512・20 steps・
+独立2 sampleの実測は全pressure normal、thermal fairで合格したが、最大effective residentは
+7,760,992,758 bytesで通常profileとの差が65,154 bytes（0.00084%）に留まった。このためcache cap単独を
+1024へ昇格せず、次の候補はactive transformer attention/MLP chunkingまたはblock単位residencyとする。
 
 ---
 

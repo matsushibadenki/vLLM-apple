@@ -26,12 +26,18 @@ MAX_BACKEND_EVENT_BYTES = 16 * 1024
 MAX_BACKEND_EVENTS = 4096
 _MLX_GEN_RUNTIME_CLASSES = {
     "flux2-klein-9b-base": "MLXGenFlux2KleinBase9B",
+    "flux2-klein-9b-base-low-cache": "MLXGenFlux2KleinBase9B",
     "z-image-turbo-mlx-4bit": "MLXGenZImageTurbo",
 }
 
 
 def _failure_code(error: BaseException) -> str:
     if isinstance(error, MemoryError):
+        if str(error) in {
+            "Diffusers worker exceeded its memory hard ceiling",
+            "Generative worker exceeded its memory hard ceiling",
+        }:
+            return "memory_hard_ceiling_exceeded"
         return "memory_error"
     if isinstance(error, ImportError):
         return "backend_import_error"
@@ -136,6 +142,8 @@ class LocalMLXGenImageRuntime:
         ]
         if self._candidate_id == "z-image-turbo-mlx-4bit":
             argv.extend(["--base-model", "Tongyi-MAI/Z-Image-Turbo"])
+        elif self._candidate_id == "flux2-klein-9b-base-low-cache":
+            argv.extend(["--mlx-cache-limit-gb", "0.25"])
         argv.extend([
             "--prompt",
             str(request["prompt"]),
