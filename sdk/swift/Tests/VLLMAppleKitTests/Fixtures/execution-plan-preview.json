@@ -1,0 +1,38 @@
+{
+  "api_version": "v1",
+  "schema_version": 1,
+  "runtime_version": "test",
+  "minimum_client_version": "0.1.0",
+  "available": true,
+  "reason": null,
+  "plan": {
+    "schema_version": 1,
+    "plan_id": "b72b5940af4d1cf8529d8916",
+    "model_id": "test/model",
+    "hardware_fingerprint": "m4-16g-test",
+    "context_tokens": 52224,
+    "memory_ceiling_bytes": 12584254178,
+    "estimated_peak_bytes": 11140071424,
+    "prefill": {
+      "phase": "prefill",
+      "backend": "vllm_metal",
+      "batch_size": 2,
+      "state_precision": "fp16"
+    },
+    "decode": {
+      "phase": "decode",
+      "backend": "vllm_metal",
+      "batch_size": 1,
+      "state_precision": "fp16"
+    },
+    "fallback_chain": [
+      "cpu"
+    ],
+    "decision_reasons": [
+      "context:physical_memory",
+      "thermal:unknown",
+      "power:unknown"
+    ],
+    "dry_run": true
+  }
+}

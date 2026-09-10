@@ -22,6 +22,7 @@ let package = Package(
             dependencies: ["VLLMAppleKit"]
         ),
         .executableTarget(name: "VLLMAppleModelE2E", dependencies: ["VLLMAppleKit"]),
-        .testTarget(name: "VLLMAppleKitTests", dependencies: ["VLLMAppleKit"])
+        .testTarget(name: "VLLMAppleKitTests", dependencies: ["VLLMAppleKit"],
+                    resources: [.copy("Fixtures")])
     ]
 )

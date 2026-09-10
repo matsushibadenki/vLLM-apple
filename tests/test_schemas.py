@@ -21,6 +21,25 @@ def load_schema(relative_path: str) -> dict:
 
 
 class SchemaTests(unittest.TestCase):
+    def test_one_of_requires_exactly_one_match(self) -> None:
+        schema = {"oneOf": [{"type": "integer"}, {"const": 1}]}
+        validate_instance(2, schema)
+        for invalid in (1, "no match"):
+            with self.assertRaises(SchemaValidationError):
+                validate_instance(invalid, schema)
+
+    def test_preview_rejects_contradictory_availability(self) -> None:
+        schema = load_schema("api/execution-plan-preview-v1.schema.json")
+        response = {
+            "api_version": "v1", "schema_version": 1, "runtime_version": "test",
+            "minimum_client_version": "0.1.0", "available": False,
+            "reason": "model_spec_unavailable", "plan": None,
+        }
+        validate_instance(response, schema)
+        for change in ({"available": True}, {"reason": None}, {"plan": {}}, {"reason": "invalid"}):
+            with self.assertRaises(SchemaValidationError):
+                validate_instance({**response, **change}, schema)
+
     def test_committed_schemas_are_valid_json_versioned_and_supported(self) -> None:
         schemas = sorted(SCHEMA_ROOT.rglob("*.schema.json"))
         self.assertTrue(schemas)
@@ -54,6 +73,9 @@ class SchemaTests(unittest.TestCase):
 
 
 class LiveResponseSchemaTests(unittest.TestCase):
+    def test_preview_response_matches_schema(self) -> None:
+        validate_instance(self.get_json("/v1/execution-plan/preview"),
+                          load_schema("api/execution-plan-preview-v1.schema.json"))
     @classmethod
     def setUpClass(cls) -> None:
         cls.service = RuntimeService()

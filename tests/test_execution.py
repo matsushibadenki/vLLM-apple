@@ -1,7 +1,13 @@
 import unittest
+import json
+from pathlib import Path
+from dataclasses import replace
 
 from tests.schema_validator import validate_instance
 from tests.test_schemas import load_schema
+from tests.test_scheduler import hardware
+from vllm_apple.profile import build_profile
+from vllm_apple.service import RuntimeService
 from vllm_apple.context import ContextPolicy, recommend_context, recommend_state_context
 from vllm_apple.execution import (
     AppleChipProfile,
@@ -66,6 +72,55 @@ class StateMemorySpecTests(unittest.TestCase):
 
 
 class AppleExecutionPlannerTests(unittest.TestCase):
+    def test_shared_swift_fixture_matches_current_python_planner(self) -> None:
+        path = Path(__file__).resolve().parents[1] / (
+            "sdk/swift/Tests/VLLMAppleKitTests/Fixtures/execution-plan-preview.json"
+        )
+        response = json.loads(path.read_text())
+        validate_instance(response, load_schema("api/execution-plan-preview-v1.schema.json"))
+        expected = AppleExecutionPlanner().plan(model=self.model, memory=self.memory, chip=self.chip)
+        self.assertEqual(response["plan"], expected.to_dict())
+
+    def test_diagnostic_preview_respects_configured_context_and_missing_chip(self) -> None:
+        device = replace(hardware(), soc=self.chip.soc, memory=self.memory)
+        service = RuntimeService(
+            profile=build_profile(device), state_memory_spec=self.model,
+            execution_chip_profile=self.chip, configured_context_tokens=512,
+        )
+        result = service.execution_plan_preview()
+        self.assertTrue(result["available"])
+        validate_instance(
+            {"api_version": "v1", "schema_version": 1, "runtime_version": "test",
+             "minimum_client_version": "0.1.0", **result},
+            load_schema("api/execution-plan-preview-v1.schema.json"),
+        )
+        self.assertLessEqual(result["plan"]["context_tokens"], 512)
+        self.assertTrue(result["plan"]["dry_run"])
+        self.assertIsNone(service.scheduler.execution_plan_snapshot()["active_plan_id"])
+        missing = RuntimeService(profile=build_profile(device), state_memory_spec=self.model)
+        self.assertEqual(missing.execution_plan_preview()["reason"], "chip_profile_unavailable")
+
+    def test_runtime_preview_uses_live_state_without_activating_plan(self) -> None:
+        device = replace(hardware(), soc=self.chip.soc, memory=self.memory)
+        service = RuntimeService(profile=build_profile(device), state_memory_spec=self.model)
+        service.apply_operating_state(ThermalState.NOMINAL, PowerMode.AUTOMATIC)
+        normal = service.preview_execution_plan(self.chip)
+        self.assertEqual(normal.prefill.batch_size, 4)
+        service.apply_operating_state(ThermalState.SERIOUS, PowerMode.LOW_POWER)
+        hot = service.preview_execution_plan(self.chip)
+        self.assertEqual(hot.prefill.batch_size, 1)
+        self.assertNotEqual(normal.plan_id, hot.plan_id)
+        service.memory_telemetry.update_os(available_bytes=10 * GIB, control_resident_bytes=0)
+        constrained = service.preview_execution_plan(self.chip)
+        self.assertLess(constrained.memory_ceiling_bytes, hot.memory_ceiling_bytes)
+        self.assertTrue(constrained.dry_run)
+        self.assertIsNone(service.scheduler.execution_plan_snapshot()["active_plan_id"])
+        with self.assertRaises(ValueError):
+            service.preview_execution_plan(replace(self.chip, soc="another chip"))
+        unconfigured = RuntimeService(profile=build_profile(device))
+        with self.assertRaises(ValueError):
+            unconfigured.preview_execution_plan(self.chip)
+
     def setUp(self) -> None:
         self.memory = MemoryInfo(16 * GIB, 14 * GIB, pressure=MemoryPressure.NORMAL)
         self.chip = AppleChipProfile(

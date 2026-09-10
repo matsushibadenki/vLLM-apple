@@ -114,6 +114,16 @@ import Testing
                     + b"Content-Length: " + str(len(body)).encode()
                     + b"\\r\\nConnection: close\\r\\n\\r\\n" + body
                 )
+            elif received.startswith(b"GET /v1/execution-plan/preview "):
+                body = json.dumps({
+                    "schema_version": 1, "available": False,
+                    "reason": "model_spec_unavailable", "plan": None,
+                }).encode()
+                connection.sendall(
+                    b"HTTP/1.1 200 OK\\r\\nContent-Type: application/json\\r\\n"
+                    + b"Content-Length: " + str(len(body)).encode()
+                    + b"\\r\\nConnection: close\\r\\n\\r\\n" + body
+                )
             else:
                 connection.sendall(response)
     """
@@ -138,6 +148,10 @@ import Testing
     #expect(try await runtime.client.health().controlReady)
     var receivedEvents: [RuntimeEvent] = []
     let eventClient = await runtime.client
+    let preview = try await eventClient.executionPlanPreview()
+    #expect(!preview.available)
+    #expect(preview.reason == "model_spec_unavailable")
+    #expect(preview.plan == nil)
     for try await event in eventClient.runtimeEvents(afterEventID: nil) {
         receivedEvents.append(event)
         if receivedEvents.count == 2 { break }

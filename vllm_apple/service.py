@@ -17,7 +17,7 @@ from .context_reevaluation import (
     ContextCapacityReevaluator,
     disabled_context_reevaluation_snapshot,
 )
-from .execution import AppleExecutionPlan, WorkloadPhase
+from .execution import AppleChipProfile, AppleExecutionPlan, AppleExecutionPlanner, WorkloadPhase
 from .kernel_context import InferenceKernelContext, PagedAttentionKernelSelection
 from .kernel_profile import PagedAttentionShape
 from .metal_probe import MetalThreadConfiguration
@@ -142,8 +142,11 @@ class RuntimeService:
         state_memory_spec: StateMemorySpec | None = None,
         configured_context_tokens: int | None = None,
         kv_calibration: dict[str, int | float | str | bool | None] | None = None,
+        execution_chip_profile: AppleChipProfile | None = None,
     ) -> None:
         self._lock = threading.RLock()
+        self._execution_chip_profile = execution_chip_profile
+        self._configured_context_tokens = configured_context_tokens
         self._state = RuntimeState.STARTING
         self._startup_progress = StartupProgress(1, "initializing", 0, 6, "startup.initializing")
         self._last_error: str | None = None
@@ -579,6 +582,48 @@ class RuntimeService:
         decision = self.scheduler.request_execution_plan(plan)
         self._publish_plan_decision(decision)
         return decision
+
+    def preview_execution_plan(
+        self, chip: AppleChipProfile, *, requested_context_tokens: int | None = None
+    ) -> AppleExecutionPlan:
+        """Plan from current telemetry without changing active runtime policy."""
+        with self._lock:
+            if self._state_memory_spec is None:
+                raise ValueError("execution planning requires a model state memory specification")
+            hardware = self.profile.hardware
+            if chip.soc != hardware.soc or chip.total_memory_bytes != hardware.memory.total_bytes:
+                raise ValueError("chip profile does not match runtime hardware")
+            telemetry = self.memory_telemetry.snapshot()
+            memory = replace(
+                hardware.memory,
+                available_bytes=telemetry.unified_available_bytes,
+                pressure=MemoryPressure(telemetry.pressure),
+            )
+            return AppleExecutionPlanner().plan(
+                model=self._state_memory_spec,
+                memory=memory,
+                chip=chip,
+                requested_context_tokens=requested_context_tokens,
+                thermal_state=hardware.thermal_state,
+                power_mode=hardware.power_mode,
+                dry_run=True,
+            )
+
+    def execution_plan_preview(self) -> dict[str, object]:
+        """Diagnostic response; never activates a plan or probes a backend."""
+        with self._lock:
+            if self._state_memory_spec is None:
+                return {"available": False, "reason": "model_spec_unavailable", "plan": None}
+            if self._execution_chip_profile is None:
+                return {"available": False, "reason": "chip_profile_unavailable", "plan": None}
+            try:
+                plan = self.preview_execution_plan(
+                    self._execution_chip_profile,
+                    requested_context_tokens=self._configured_context_tokens,
+                )
+            except ValueError:
+                return {"available": False, "reason": "planning_rejected", "plan": None}
+            return {"available": True, "reason": None, "plan": plan.to_dict()}
 
     def apply_pending_runtime_policy(
         self,

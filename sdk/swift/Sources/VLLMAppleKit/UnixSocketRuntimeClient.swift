@@ -82,6 +82,11 @@ public final class UnixSocketRuntimeClient: VLLMAppleRuntimeClient, @unchecked S
         return envelope.profile
     }
 
+    public func executionPlanPreview() async throws -> ExecutionPlanPreviewResult {
+        let result = try await request("/v1/execution-plan/preview", as: ExecutionPlanPreviewResult.self)
+        return try result.validated()
+    }
+
     public func memoryBudget() async throws -> MemoryBudget {
         let envelope = try await request("/v1/runtime", as: UnixRuntimeEnvelope.self)
         try validate(schemaVersion: envelope.schemaVersion)

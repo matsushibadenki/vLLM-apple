@@ -41,6 +41,13 @@ class APITests(unittest.TestCase):
     def test_openai_models_shape(self) -> None:
         self.assertEqual(self.get_json("/v1/models"), {"object": "list", "data": []})
 
+    def test_plan_preview_reports_missing_model_without_activating_policy(self) -> None:
+        result = self.get_json("/v1/execution-plan/preview")
+        self.assertEqual(result["schema_version"], 1)
+        self.assertFalse(result["available"])
+        self.assertEqual(result["reason"], "model_spec_unavailable")
+        self.assertIsNone(result["plan"])
+
     def test_request_id_is_returned_and_log_contains_metadata_only(self) -> None:
         request = urllib.request.Request(
             self.base_url + "/health?ignored=secret",
@@ -132,6 +139,15 @@ class AuthenticatedAPITests(unittest.TestCase):
         )
         with urllib.request.urlopen(request, timeout=2) as response:
             self.assertTrue(json.load(response)["control_ready"])
+
+    def test_preview_requires_authentication(self) -> None:
+        path = self.base_url + "/v1/execution-plan/preview"
+        with self.assertRaises(urllib.error.HTTPError) as raised:
+            urllib.request.urlopen(path, timeout=2)
+        self.assertEqual(raised.exception.code, 401)
+        request = urllib.request.Request(path, headers={"Authorization": f"Bearer {self.token}"})
+        with urllib.request.urlopen(request, timeout=2) as response:
+            self.assertEqual(json.load(response)["reason"], "model_spec_unavailable")
 
     def test_native_v2_tuning_control_requires_token_and_is_strict(self) -> None:
         body = json.dumps({"action": "disable"}).encode()

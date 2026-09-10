@@ -341,6 +341,11 @@ class RuntimeRequestHandler(BaseHTTPRequestHandler):
             self._send(status, self._control_payload({"ready": snapshot.control_ready}))
         elif path == "/v1/runtime":
             self._send(HTTPStatus.OK, self._control_payload(snapshot.to_dict()))
+        elif path == "/v1/execution-plan/preview":
+            self._send(
+                HTTPStatus.OK,
+                self._control_payload(self.server.service.execution_plan_preview()),
+            )
         elif path == "/v1/hardware":
             self._send(
                 HTTPStatus.OK,

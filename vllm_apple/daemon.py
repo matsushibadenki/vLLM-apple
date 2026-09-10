@@ -592,6 +592,11 @@ def serve(
             state_memory_spec=inspected.state_memory_spec if inspected is not None else None,
             configured_context_tokens=max_model_len,
             kv_calibration=calibration_provenance,
+            execution_chip_profile=(
+                detect_apple_chip_profile(hardware, compatibility)
+                if backend_kind == "vllm_metal" and compatibility.compatible
+                else None
+            ),
         )
         if inspected is not None:
             service.record_memory_budget_component(

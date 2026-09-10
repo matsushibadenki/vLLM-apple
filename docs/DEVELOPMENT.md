@@ -60,6 +60,25 @@ probeまたはevent handlerの失敗はmonitor内部でbounded countとして扱
 probe例外・不正値では以前の正常状態を保持せず両値を`unknown`へ更新する。同一unknownは重複通知せず、
 回復時は再通知する。handler失敗時は次回probeで再試行し、停止要求中に完了したprobe結果は破棄する。
 監視間隔は有限の正数のみ受理する。
+Pythonの`RuntimeService.preview_execution_plan(chip)`は最新hardware状態とmemory telemetryをplannerへ
+渡し、dry-run planを返す。model state memory specがない場合やSoC／総memoryが一致しない場合は拒否する。
+このAPIはactive/pending planを変更しない。`GET /v1/execution-plan/preview`は既存control APIと同じ認証を使い、
+`available`、`reason`、`plan`を返す。対応するvLLM-Metal daemonではchip情報を起動時に保持し、診断requestで
+backend probeを行わない。planのcontextは設定済み上限以内に制限する。未設定の場合もHTTP 200で
+`model_spec_unavailable`／`chip_profile_unavailable`、計画拒否時は`planning_rejected`を返す。
+自動再計画・適用は後続実装とする。
+wire応答は`schemas/api/execution-plan-preview-v1.schema.json`で定義する。成功はreasonがnullかつ
+dry-run plan必須、生成不可は定義済みreasonかつplanがnullであり、両形態の混在は拒否する。
+推定peakとmemory ceilingの大小関係はJSON Schemaとは別にplannerとSwift SDKで検証する。
+Swift test resourceの`Fixtures/execution-plan-preview.json`はPython planner由来の共通fixtureとし、
+Python側で現planner出力との一致とSchema適合を確認し、Swift側でdecode・検証を通す。
+Swiftも24文字plan ID、既知backend、空でないprecisionとdecision reasonを要求する。
+Swift SDKの`executionPlanPreview()`はHTTP／Unixソケット両方で利用でき、`ExecutionPlanPreviewResult`を返す。
+`available == false`の場合は`reason`を参照する。成功応答はdry-run、schema、memory上限、phase/batch、
+available/reason/planの整合性を検証する。旧daemonの404は既存のserver errorとして返る。
+独自の`VLLMAppleRuntimeClient`には既定実装があり、新メソッド未実装でも従来どおりコンパイルできる。
+既定値は`available: false`、`reason: client_preview_unsupported`であり、daemonの未設定理由と区別する。
+HTTPの認証header・routeと、Unixソケット経由の取得をテストし、protocol経由でも標準clientの実装を呼ぶことを確認する。
 operating-state更新とevent発行はruntime snapshotと同じlockで直列化し、event発行成功後にprofileを
 置換する。発行失敗時は旧profileを維持するため、monitorの次回試行で同一値の通知が失われない。
 Swift SDKは`RuntimeEvent.operatingState`でcurrent/previous thermal・powerをtyped decodeする。旧daemonでは

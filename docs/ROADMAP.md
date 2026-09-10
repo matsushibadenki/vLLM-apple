@@ -1112,6 +1112,12 @@ Unified Memoryとmemory bandwidthを共有する一つの実行系として管�
 163. `[Done]` RuntimeEventの標準／snake_case decoder互換とwire encode互換を復元し、Unixソケットで未知値後のevent継続受信を検証
 164. `[Done]` thermal/power probe失敗・不正値をunknownへ縮退し、回復通知・handler再試行・停止中probe結果破棄を回帰検証
 165. `[Done]` operating-stateイベントの並行更新順序とsnapshot整合性を保証し、発行失敗後の再試行で通知が失われないことを検証
+166. `[Done]` RuntimeServiceの最新thermal/power・空きmemoryからexecution planをdry-run生成するpreview API（model spec必須、SoC/memory照合、active plan不変）
+167. `[Done]` 認証付きGET /v1/execution-plan/previewとconfigured context上限の適用、対応vLLM-Metal daemonのchip profile接続
+168. `[Done]` Swift SDKのHTTP／UnixソケットexecutionPlanPreview取得とtyped plan、dry-run・schema・memory上限・応答整合性の検証
+169. `[Done]` preview未実装の独自Swift client向け既定実装と、HTTP認証route／Unixソケット取得の回帰テスト
+170. `[Done]` execution-plan-preview-v1 JSON Schemaと成功／生成不可の排他的契約、live応答・認証拒否の回帰検証
+171. `[Done]` Python planner生成の共通preview fixtureをSwift/Pythonで照合し、Swiftのplan ID長・backend・precision・decision reason検証をSchemaへ整合
 
 この順序により、まず推論runtimeの実model安定性を確立し、その境界を壊さずにoptimizerを
 別processとして追加する。構造pruningはquantization、calibration、評価gateの後に着手する。

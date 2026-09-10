@@ -3,6 +3,7 @@ import Foundation
 public protocol VLLMAppleRuntimeClient: Sendable {
     func hardware() async throws -> HardwareInfo
     func runtimeProfile() async throws -> RuntimeProfile
+    func executionPlanPreview() async throws -> ExecutionPlanPreviewResult
     func memoryBudget() async throws -> MemoryBudget
     func kvCalibration() async throws -> KVCalibrationProvenance
     func nativeV2Tuning() async throws -> NativeV2TuningState
@@ -14,6 +15,15 @@ public protocol VLLMAppleRuntimeClient: Sendable {
     func chat(_ request: ChatRequest) async throws -> ChatResponse
     func streamChat(_ request: ChatRequest) -> AsyncThrowingStream<ChatEvent, Error>
     func runtimeEvents(afterEventID: String?) -> AsyncThrowingStream<RuntimeEvent, Error>
+}
+
+public extension VLLMAppleRuntimeClient {
+    /// Existing custom clients can opt into preview support without breaking conformance.
+    func executionPlanPreview() async throws -> ExecutionPlanPreviewResult {
+        ExecutionPlanPreviewResult(
+            schemaVersion: 1, available: false, reason: "client_preview_unsupported", plan: nil
+        )
+    }
 }
 
 public enum RuntimeClientError: Error, Sendable, Equatable {
@@ -89,6 +99,11 @@ public final class HTTPRuntimeClient: VLLMAppleRuntimeClient, @unchecked Sendabl
         let envelope = try await get("v1/runtime", as: RuntimeEnvelope.self)
         try validate(schemaVersion: envelope.schemaVersion)
         return envelope.profile
+    }
+
+    public func executionPlanPreview() async throws -> ExecutionPlanPreviewResult {
+        let result = try await get("v1/execution-plan/preview", as: ExecutionPlanPreviewResult.self)
+        return try result.validated()
     }
 
     public func memoryBudget() async throws -> MemoryBudget {

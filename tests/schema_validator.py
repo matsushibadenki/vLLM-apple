@@ -23,6 +23,7 @@ SUPPORTED_KEYWORDS = {
     "required",
     "title",
     "type",
+    "oneOf",
 }
 
 
@@ -35,6 +36,14 @@ def ensure_supported_schema(schema: dict[str, Any], path: str = "$schema") -> No
     if unsupported:
         names = ", ".join(sorted(unsupported))
         raise ValueError(f"{path}: unsupported JSON Schema keyword(s): {names}")
+    if "oneOf" in schema:
+        alternatives = schema["oneOf"]
+        if not isinstance(alternatives, list) or not alternatives:
+            raise ValueError(f"{path}.oneOf must be a nonempty array")
+        for index, child in enumerate(alternatives):
+            if not isinstance(child, dict):
+                raise ValueError(f"{path}.oneOf entries must be objects")
+            ensure_supported_schema(child, f"{path}.oneOf[{index}]")
     if schema.get("format") not in {None, "date-time"}:
         raise ValueError(f"{path}: unsupported JSON Schema format {schema['format']!r}")
     properties = schema.get("properties", {})
@@ -60,6 +69,16 @@ def validate_instance(instance: Any, schema: dict[str, Any], path: str = "$") ->
 
 
 def _validate(instance: Any, schema: dict[str, Any], path: str) -> None:
+    if "oneOf" in schema:
+        matches = 0
+        for alternative in schema["oneOf"]:
+            try:
+                _validate(instance, alternative, path)
+            except SchemaValidationError:
+                continue
+            matches += 1
+        if matches != 1:
+            raise SchemaValidationError(f"{path}: expected exactly one matching alternative")
     if "const" in schema and not _json_equal(instance, schema["const"]):
         raise SchemaValidationError(f"{path}: expected constant {schema['const']!r}")
     if "enum" in schema and not any(_json_equal(instance, value) for value in schema["enum"]):
