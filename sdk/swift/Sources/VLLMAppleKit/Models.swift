@@ -587,13 +587,48 @@ public struct RuntimeEvent: Codable, Sendable, Equatable {
     public let payload: [String: JSONValue]
 
     enum CodingKeys: String, CodingKey {
-        case schemaVersion = "schema_version"
-        case eventID = "event_id"
+        case schemaVersion
+        case eventID = "eventId"
         case type, timestamp, payload
     }
 }
 
+public struct RuntimeOperatingState: Sendable, Equatable {
+    public let thermalState: ThermalState
+    public let powerMode: PowerMode
+    public let previousThermalState: ThermalState?
+    public let previousPowerMode: PowerMode?
+}
+
 public extension RuntimeEvent {
+    var operatingState: RuntimeOperatingState? {
+        guard type == "runtime.operating_state",
+              case .string(let thermalValue)? = payload["thermal_state"],
+              let thermalState = ThermalState(rawValue: thermalValue),
+              case .string(let powerValue)? = payload["power_mode"],
+              let powerMode = PowerMode(rawValue: powerValue)
+        else { return nil }
+
+        let previousThermalState: ThermalState?
+        if case .string(let value)? = payload["previous_thermal_state"] {
+            previousThermalState = ThermalState(rawValue: value)
+        } else {
+            previousThermalState = nil
+        }
+        let previousPowerMode: PowerMode?
+        if case .string(let value)? = payload["previous_power_mode"] {
+            previousPowerMode = PowerMode(rawValue: value)
+        } else {
+            previousPowerMode = nil
+        }
+        return RuntimeOperatingState(
+            thermalState: thermalState,
+            powerMode: powerMode,
+            previousThermalState: previousThermalState,
+            previousPowerMode: previousPowerMode
+        )
+    }
+
     var startupProgress: StartupProgress? {
         let decoder = JSONDecoder()
         decoder.keyDecodingStrategy = .convertFromSnakeCase

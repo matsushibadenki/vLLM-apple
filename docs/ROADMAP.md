@@ -424,6 +424,7 @@ VLLMAppleKit / Control API
 - `[Later]` continuous memory pressure monitoring
 - `[Done]` thermal/power状態をversioned plan identityとdecision reasonへ固定し、prefill batchを保守的にclampするscheduling foundation
 - `[Done]` 15秒bounded thermal/power monitor、同一状態coalesce、current hardware snapshotとruntime change eventへの反映
+- `[Done]` Swift SDKのtyped operating-state event decodeと未知のcurrent値に対するfail-soft fallback
 - `[Later]` BackendEngine交換契約（vLLM-Metal、Native MLX、Native Metal、Core ML draft、CPU）
 - `[Later]` CPU/Core ML draft + GPU verifyのheterogeneous speculative execution
 - `[Done]` bounded kernel self-test/performance probe contractとprofile単位quarantine registry
@@ -1107,6 +1108,7 @@ Unified Memoryとmemory bandwidthを共有する一つの実行系として管�
 159. `[Done]` NSProcessInfo thermal stateとactive電源系統別power modeの検出、Python profile／Swift SDKの後方互換decode
 160. `[Done]` thermal／powerをplan identityとdecision reasonへ固定し、scheduler safe-point適用可能なprefill batch縮退policyを実装
 161. `[Done]` daemon lifecycleへ停止可能なthermal／power monitorを接続し、重複を除いたbounded state-change eventを公開
+162. `[Done]` `runtime.operating_state`をSwift SDKのtyped payloadへ接続し、production decoder設定で回帰固定
 
 この順序により、まず推論runtimeの実model安定性を確立し、その境界を壊さずにoptimizerを
 別processとして追加する。構造pruningはquantization、calibration、評価gateの後に着手する。

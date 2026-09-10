@@ -90,9 +90,45 @@ import Testing
       "payload": {"state": "ready", "inference_ready": true}
     }
     """.utf8)
-    let event = try JSONDecoder().decode(RuntimeEvent.self, from: data)
+    let decoder = JSONDecoder()
+    decoder.keyDecodingStrategy = .convertFromSnakeCase
+    let event = try decoder.decode(RuntimeEvent.self, from: data)
     #expect(event.eventID == "42")
     #expect(event.payload["state"] == .string("ready"))
+}
+
+@Test func decodesTypedOperatingStateEventAndRejectsUnknownCurrentValues() throws {
+    let data = Data("""
+    {
+      "schema_version": 1,
+      "event_id": "43",
+      "type": "runtime.operating_state",
+      "timestamp": "2026-09-10T00:00:00Z",
+      "payload": {
+        "thermal_state": "fair",
+        "power_mode": "low_power",
+        "previous_thermal_state": "nominal",
+        "previous_power_mode": "automatic"
+      }
+    }
+    """.utf8)
+    let decoder = JSONDecoder()
+    decoder.keyDecodingStrategy = .convertFromSnakeCase
+    let event = try decoder.decode(RuntimeEvent.self, from: data)
+
+    #expect(event.operatingState?.thermalState == .fair)
+    #expect(event.operatingState?.powerMode == .lowPower)
+    #expect(event.operatingState?.previousThermalState == .nominal)
+    #expect(event.operatingState?.previousPowerMode == .automatic)
+
+    let invalid = RuntimeEvent(
+        schemaVersion: 1,
+        eventID: "44",
+        type: "runtime.operating_state",
+        timestamp: "2026-09-10T00:00:01Z",
+        payload: ["thermal_state": .string("future"), "power_mode": .string("automatic")]
+    )
+    #expect(invalid.operatingState == nil)
 }
 
 @Test func decodesStructuredStartupProgressEvent() throws {
@@ -112,7 +148,9 @@ import Testing
       }
     }
     """.utf8)
-    let event = try JSONDecoder().decode(RuntimeEvent.self, from: data)
+    let decoder = JSONDecoder()
+    decoder.keyDecodingStrategy = .convertFromSnakeCase
+    let event = try decoder.decode(RuntimeEvent.self, from: data)
     #expect(event.startupProgress?.stage == "loading_model")
     #expect(event.startupProgress?.percent == 66)
 }
@@ -136,7 +174,9 @@ import Testing
       }
     }
     """.utf8)
-    let event = try JSONDecoder().decode(RuntimeEvent.self, from: data)
+    let decoder = JSONDecoder()
+    decoder.keyDecodingStrategy = .convertFromSnakeCase
+    let event = try decoder.decode(RuntimeEvent.self, from: data)
     #expect(event.runtimeFailure?.code == "backend_readiness_timeout")
     #expect(event.runtimeFailure?.recoverability == .retryable)
     #expect(event.runtimeFailure?.messageKey == "runtime.error.backend_readiness_timeout")
@@ -215,7 +255,9 @@ import Testing
       "payload": {"status": "running", "run_id": 4}
     }
     """.utf8)
-    let event = try JSONDecoder().decode(RuntimeEvent.self, from: eventData)
+    let eventDecoder = JSONDecoder()
+    eventDecoder.keyDecodingStrategy = .convertFromSnakeCase
+    let event = try eventDecoder.decode(RuntimeEvent.self, from: eventData)
     #expect(event.nativeV2Tuning?.status == .running)
     #expect(event.nativeV2Tuning?.runID == 4)
 }
@@ -235,7 +277,9 @@ import Testing
       }
     }
     """.utf8)
-    let event = try JSONDecoder().decode(RuntimeEvent.self, from: data)
+    let decoder = JSONDecoder()
+    decoder.keyDecodingStrategy = .convertFromSnakeCase
+    let event = try decoder.decode(RuntimeEvent.self, from: data)
     #expect(event.contextReevaluation?.status == .reduced)
     #expect(event.contextReevaluation?.configuredContextTokens == 4096)
     #expect(event.contextReevaluation?.effectiveContextTokens == 2048)

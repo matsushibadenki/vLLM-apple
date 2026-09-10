@@ -441,6 +441,8 @@ thermalがfairまたは状態がunknownなら2へ制限する。nominalかつaut
 daemonは15秒間隔のbounded monitorで状態を再取得し、同一値をcoalesceする。変更時はcurrent hardware
 snapshotをatomicに置換して`runtime.operating_state` eventを発行する。monitorはshutdownで停止し、probe失敗を
 control-plane failureへ昇格させない。動的plan再生成はmodel/chip profileを保持するruntimeでのみ後続実装する。
+Swift SDKはstate-change eventをtyped current/previous値として公開する。未知のcurrent enum値ではtyped viewを
+構築せずraw eventを保持し、protocol拡張によってevent stream全体が停止しないようにする。
 
 ---
 

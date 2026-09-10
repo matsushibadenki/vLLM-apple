@@ -57,6 +57,9 @@ safe pointでのみ適用され、active requestの途中では方針を変更�
 daemonは15秒間隔の停止可能なmonitorで両状態を更新する。同一値はcoalesceし、変化時だけ
 `runtime.operating_state` eventを発行してcurrent runtime profileのhardware snapshotへ反映する。
 probeまたはevent handlerの失敗はmonitor内部でbounded countとして扱い、control planeを停止させない。
+Swift SDKは`RuntimeEvent.operatingState`でcurrent/previous thermal・powerをtyped decodeする。旧daemonでは
+event自体が存在しないため影響せず、未知のcurrent enum値を受け取った場合はtyped payloadだけを`nil`にして
+raw event streamは維持する。
 
 scheduler queueは既定最大1,024件で、REALTIME、INTERACTIVE、NORMAL、BACKGROUNDの順にdispatchし、
 同じpriorityでは到着順を保つ。queue tokenはsnapshotへ公開せず、queued、dispatching、activeの件数だけを
