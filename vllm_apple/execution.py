@@ -7,7 +7,7 @@ from enum import Enum
 from typing import Any
 
 from .context import ContextPolicy, recommend_state_context
-from .types import MemoryInfo, MemoryPressure, StateMemorySpec
+from .types import MemoryInfo, MemoryPressure, PowerMode, StateMemorySpec, ThermalState
 
 
 EXECUTION_SCHEMA_VERSION = 1
@@ -116,6 +116,8 @@ class AppleExecutionPlanner:
         memory: MemoryInfo,
         chip: AppleChipProfile,
         requested_context_tokens: int | None = None,
+        thermal_state: ThermalState = ThermalState.UNKNOWN,
+        power_mode: PowerMode = PowerMode.UNKNOWN,
         dry_run: bool = True,
     ) -> AppleExecutionPlan:
         if memory.total_bytes != chip.total_memory_bytes:
@@ -134,8 +136,14 @@ class AppleExecutionPlanner:
 
         backend = self._preferred_backend(chip.backends)
         precision = self._state_precision(memory.pressure, chip.precisions)
-        pressure_batch = 1 if memory.pressure in {MemoryPressure.WARNING, MemoryPressure.CRITICAL} else 4
-        prefill_batch = pressure_batch if backend is not ExecutionBackend.CPU else 1
+        prefill_batch = self._prefill_batch_limit(
+            memory.pressure, thermal_state, power_mode
+        )
+        if backend is ExecutionBackend.CPU:
+            prefill_batch = 1
+        reasons.extend(
+            (f"thermal:{thermal_state.value}", f"power:{power_mode.value}")
+        )
         estimated_peak = model.total_bytes(context_tokens)
         ceiling = recommendation.allocatable_bytes
         while context_tokens > 0 and estimated_peak > ceiling:
@@ -153,6 +161,8 @@ class AppleExecutionPlanner:
             "context_tokens": context_tokens,
             "backend": backend.value,
             "precision": precision,
+            "thermal_state": thermal_state.value,
+            "power_mode": power_mode.value,
         }
         plan_id = hashlib.sha256(
             json.dumps(seed, sort_keys=True, separators=(",", ":")).encode("utf-8")
@@ -191,6 +201,24 @@ class AppleExecutionPlanner:
                 if candidate in precisions:
                     return candidate
         return "fp16" if "fp16" in precisions else precisions[0]
+
+    @staticmethod
+    def _prefill_batch_limit(
+        pressure: MemoryPressure,
+        thermal_state: ThermalState,
+        power_mode: PowerMode,
+    ) -> int:
+        if pressure in {MemoryPressure.WARNING, MemoryPressure.CRITICAL}:
+            return 1
+        if thermal_state in {ThermalState.SERIOUS, ThermalState.CRITICAL}:
+            return 1
+        if power_mode is PowerMode.LOW_POWER:
+            return 1
+        if thermal_state in {ThermalState.FAIR, ThermalState.UNKNOWN}:
+            return 2
+        if power_mode is PowerMode.UNKNOWN:
+            return 2
+        return 4
 
     @staticmethod
     def _chip_dict(chip: AppleChipProfile) -> dict[str, Any]:

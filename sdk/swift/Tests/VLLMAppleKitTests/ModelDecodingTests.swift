@@ -22,6 +22,59 @@ import Testing
     #expect(!health.inferenceReady)
 }
 
+@Test func decodesHardwareThermalAndPowerStateWithLegacyFallback() throws {
+    let current = Data("""
+    {
+      "platform": "Darwin",
+      "architecture": "arm64",
+      "soc": "Apple M4",
+      "physical_cpu_count": 10,
+      "logical_cpu_count": 10,
+      "gpu_core_count": 10,
+      "memory": {
+        "total_bytes": 34359738368,
+        "available_bytes": 17179869184,
+        "process_resident_bytes": 1048576,
+        "pressure": "normal",
+        "source": "sysctl"
+      },
+      "is_apple_silicon": true,
+      "os_version": "26.6.2",
+      "thermal_state": "fair",
+      "power_mode": "low_power"
+    }
+    """.utf8)
+    let legacy = Data("""
+    {
+      "platform": "Darwin",
+      "architecture": "arm64",
+      "soc": "Apple M4",
+      "physical_cpu_count": 10,
+      "logical_cpu_count": 10,
+      "gpu_core_count": 10,
+      "memory": {
+        "total_bytes": 34359738368,
+        "available_bytes": 17179869184,
+        "process_resident_bytes": 1048576,
+        "pressure": "normal",
+        "source": "sysctl"
+      },
+      "is_apple_silicon": true,
+      "os_version": "26.6.2"
+    }
+    """.utf8)
+    let decoder = JSONDecoder()
+    decoder.keyDecodingStrategy = .convertFromSnakeCase
+
+    let detected = try decoder.decode(HardwareInfo.self, from: current)
+    let oldProfile = try decoder.decode(HardwareInfo.self, from: legacy)
+
+    #expect(detected.thermalState == .fair)
+    #expect(detected.powerMode == .lowPower)
+    #expect(oldProfile.thermalState == nil)
+    #expect(oldProfile.powerMode == nil)
+}
+
 @Test func runtimeErrorsExposeLocalizableKeys() {
     #expect(RuntimeClientError.invalidResponse.messageKey == "runtime.error.invalid_response")
     #expect(ManagedRuntimeError.readinessTimedOut.messageKey == "runtime.error.readiness_timed_out")

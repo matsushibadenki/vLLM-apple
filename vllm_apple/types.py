@@ -27,6 +27,21 @@ class MemoryPressure(str, Enum):
     UNKNOWN = "unknown"
 
 
+class ThermalState(str, Enum):
+    NOMINAL = "nominal"
+    FAIR = "fair"
+    SERIOUS = "serious"
+    CRITICAL = "critical"
+    UNKNOWN = "unknown"
+
+
+class PowerMode(str, Enum):
+    AUTOMATIC = "automatic"
+    LOW_POWER = "low_power"
+    HIGH_POWER = "high_power"
+    UNKNOWN = "unknown"
+
+
 class Priority(str, Enum):
     REALTIME = "realtime"
     INTERACTIVE = "interactive"
@@ -71,10 +86,14 @@ class HardwareInfo:
     memory: MemoryInfo
     is_apple_silicon: bool
     os_version: str
+    thermal_state: ThermalState = ThermalState.UNKNOWN
+    power_mode: PowerMode = PowerMode.UNKNOWN
 
     def to_dict(self) -> dict[str, Any]:
         result = asdict(self)
         result["memory"] = self.memory.to_dict()
+        result["thermal_state"] = self.thermal_state.value
+        result["power_mode"] = self.power_mode.value
         return result
 
 

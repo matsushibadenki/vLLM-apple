@@ -15,7 +15,9 @@ from .types import (
     HardwareInfo,
     MemoryInfo,
     MemoryPressure,
+    PowerMode,
     RuntimeProfile,
+    ThermalState,
 )
 from .version import PROFILE_VERSION, __version__
 
@@ -216,7 +218,7 @@ def load_profile(path: Path, *, maximum_bytes: int = MAXIMUM_PROFILE_BYTES) -> R
     if set(payload) != required:
         raise ValueError("invalid runtime profile fields")
     hardware_payload = payload["hardware"]
-    hardware_fields = {
+    base_hardware_fields = {
         "platform",
         "architecture",
         "soc",
@@ -227,7 +229,11 @@ def load_profile(path: Path, *, maximum_bytes: int = MAXIMUM_PROFILE_BYTES) -> R
         "is_apple_silicon",
         "os_version",
     }
-    if not isinstance(hardware_payload, dict) or set(hardware_payload) != hardware_fields:
+    state_hardware_fields = base_hardware_fields | {"thermal_state", "power_mode"}
+    if not isinstance(hardware_payload, dict) or frozenset(hardware_payload) not in {
+        frozenset(base_hardware_fields),
+        frozenset(state_hardware_fields),
+    }:
         raise ValueError("invalid runtime profile hardware")
     memory_payload = hardware_payload["memory"]
     memory_fields = {
@@ -270,6 +276,8 @@ def load_profile(path: Path, *, maximum_bytes: int = MAXIMUM_PROFILE_BYTES) -> R
         memory=memory,
         is_apple_silicon=apple_silicon,
         os_version=_bounded_string(hardware_payload["os_version"], "OS version", maximum=128),
+        thermal_state=ThermalState(hardware_payload.get("thermal_state", "unknown")),
+        power_mode=PowerMode(hardware_payload.get("power_mode", "unknown")),
     )
     context_payload = payload["context"]
     context = None

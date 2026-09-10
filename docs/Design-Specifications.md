@@ -428,6 +428,17 @@ fallback chain
 同じprofileとpolicyからは決定論的なplanを生成し、hard memory ceilingを超えない。
 dry-runとdecision reasonを提供し、未知のcapabilityでは保守的なfallbackを選ぶ。
 
+hardware snapshotはNSProcessInfoのthermal stateとactive power sourceに対応するpower modeを含む。
+thermalは`nominal/fair/serious/critical/unknown`、powerは`automatic/low_power/high_power/unknown`へ
+正規化し、取得不能時は`unknown`とする。保存済み旧profileと旧daemon responseには両fieldがないため、
+Python loaderは`unknown`補完、Swift SDKはoptional decodeで後方互換を保つ。これらはtransient入力であり、
+hardware/model identity fingerprintには結合しない。
+
+plannerはthermal/power値をexecution planの入力としてplan identityとdecision reasonへ固定する。
+memory pressureがwarning/critical、thermalがserious/critical、またはlow-power modeではprefill batchを1、
+thermalがfairまたは状態がunknownなら2へ制限する。nominalかつautomatic/high-powerでのみ通常上限4を許可する。
+適用は既存のscheduler safe pointを通すため、active requestの途中でbatch policyを変更しない。
+
 ---
 
 # 7. Adaptive Compute Scheduler

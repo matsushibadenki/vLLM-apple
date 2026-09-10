@@ -8,7 +8,15 @@ from vllm_apple.execution import (
     AppleExecutionPlanner,
     ExecutionBackend,
 )
-from vllm_apple.types import GIB, MemoryInfo, MemoryPressure, ModelMemorySpec, StateMemorySpec
+from vllm_apple.types import (
+    GIB,
+    MemoryInfo,
+    MemoryPressure,
+    ModelMemorySpec,
+    PowerMode,
+    StateMemorySpec,
+    ThermalState,
+)
 
 
 class StateMemorySpecTests(unittest.TestCase):
@@ -96,6 +104,53 @@ class AppleExecutionPlannerTests(unittest.TestCase):
         )
         self.assertEqual(plan.prefill.batch_size, 1)
         self.assertEqual(plan.decode.state_precision, "int8")
+
+    def test_thermal_and_power_state_conservatively_clamp_prefill_batch(self) -> None:
+        planner = AppleExecutionPlanner()
+        nominal = planner.plan(
+            model=self.model,
+            memory=self.memory,
+            chip=self.chip,
+            thermal_state=ThermalState.NOMINAL,
+            power_mode=PowerMode.AUTOMATIC,
+        )
+        fair = planner.plan(
+            model=self.model,
+            memory=self.memory,
+            chip=self.chip,
+            thermal_state=ThermalState.FAIR,
+            power_mode=PowerMode.AUTOMATIC,
+        )
+        serious = planner.plan(
+            model=self.model,
+            memory=self.memory,
+            chip=self.chip,
+            thermal_state=ThermalState.SERIOUS,
+            power_mode=PowerMode.HIGH_POWER,
+        )
+        low_power = planner.plan(
+            model=self.model,
+            memory=self.memory,
+            chip=self.chip,
+            thermal_state=ThermalState.NOMINAL,
+            power_mode=PowerMode.LOW_POWER,
+        )
+
+        self.assertEqual(nominal.prefill.batch_size, 4)
+        self.assertEqual(fair.prefill.batch_size, 2)
+        self.assertEqual(serious.prefill.batch_size, 1)
+        self.assertEqual(low_power.prefill.batch_size, 1)
+        self.assertEqual(len({nominal.plan_id, fair.plan_id, serious.plan_id}), 3)
+        self.assertIn("thermal:serious", serious.decision_reasons)
+        self.assertIn("power:low_power", low_power.decision_reasons)
+
+    def test_unknown_operating_state_uses_bounded_fallback(self) -> None:
+        plan = AppleExecutionPlanner().plan(
+            model=self.model, memory=self.memory, chip=self.chip
+        )
+        self.assertEqual(plan.prefill.batch_size, 2)
+        self.assertIn("thermal:unknown", plan.decision_reasons)
+        self.assertIn("power:unknown", plan.decision_reasons)
 
     def test_requested_context_is_clamped(self) -> None:
         plan = AppleExecutionPlanner(ContextPolicy(token_block_size=1)).plan(

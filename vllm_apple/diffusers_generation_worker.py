@@ -3,8 +3,6 @@ from __future__ import annotations
 import hashlib
 import importlib
 import argparse
-import ctypes
-import ctypes.util
 import json
 import os
 import platform
@@ -19,7 +17,7 @@ from typing import Callable, Mapping, Protocol
 
 from .generative_collector import GenerationTelemetryEvent
 from .generative_worker_protocol import consume_private_generative_request
-from .hardware import detect_memory
+from .hardware import detect_memory, detect_thermal_state
 
 
 MAX_GENERATED_ARTIFACT_BYTES = 16 * 1024**3
@@ -295,30 +293,7 @@ def _execute_image_request(
 
 
 def _darwin_thermal_state() -> str:
-    if platform.system() != "Darwin":
-        return "unknown"
-    objc_path = ctypes.util.find_library("objc")
-    foundation_path = ctypes.util.find_library("Foundation")
-    if objc_path is None or foundation_path is None:
-        return "unknown"
-    try:
-        ctypes.CDLL(foundation_path)
-        objc = ctypes.CDLL(objc_path)
-        objc.objc_getClass.argtypes = [ctypes.c_char_p]
-        objc.objc_getClass.restype = ctypes.c_void_p
-        objc.sel_registerName.argtypes = [ctypes.c_char_p]
-        objc.sel_registerName.restype = ctypes.c_void_p
-        message = objc.objc_msgSend
-        message.argtypes = [ctypes.c_void_p, ctypes.c_void_p]
-        message.restype = ctypes.c_void_p
-        process_info = message(
-            objc.objc_getClass(b"NSProcessInfo"), objc.sel_registerName(b"processInfo")
-        )
-        message.restype = ctypes.c_long
-        value = int(message(process_info, objc.sel_registerName(b"thermalState")))
-    except (AttributeError, OSError, TypeError, ValueError):
-        return "unknown"
-    return {0: "nominal", 1: "fair", 2: "serious", 3: "critical"}.get(value, "unknown")
+    return detect_thermal_state().value
 
 
 def default_worker_telemetry() -> WorkerTelemetry:

@@ -45,6 +45,16 @@ model profile cacheはhardware、OS、総Unified Memory、GPU core数、model ID
 24桁のfile名に使用し、model名をpathへ露出しない。0700 directoryと0600 profileを使い、最大128件、
 最大512 entryのbounded走査で正規のcurrent-user cache fileだけを古い順に整理する。
 
+`vllm-apple hardware`はmemory情報に加え、NSProcessInfoのthermal stateと、現在使用中のAC/Battery
+power sourceに対応する`pmset -g custom`設定からpower modeを返す。値はthermalの
+`nominal/fair/serious/critical/unknown`とpowerの`automatic/low_power/high_power/unknown`へ正規化する。
+command失敗、oversize出力、未知値は推測せず`unknown`とする。runtime profile loaderは旧hardware field集合を
+引き続き受理して両値を`unknown`へ補い、Swift SDKもoptional fieldとして旧daemonとのdecode互換性を保つ。
+thermal/powerはtransient stateなのでmodel profile cache fingerprintには含めない。
+`AppleExecutionPlanner.plan`へ渡した値はexecution plan IDとdecision reasonには含め、unknown/fair、
+serious/critical、low-powerを段階的なprefill batch上限へ変換する。新しいplanは既存schedulerの
+safe pointでのみ適用され、active requestの途中では方針を変更しない。
+
 scheduler queueは既定最大1,024件で、REALTIME、INTERACTIVE、NORMAL、BACKGROUNDの順にdispatchし、
 同じpriorityでは到着順を保つ。queue tokenはsnapshotへ公開せず、queued、dispatching、activeの件数だけを
 保持する。cancelは待機中requestを除去し、dispatchとの競合中またはadmit済みならreservation登録境界で

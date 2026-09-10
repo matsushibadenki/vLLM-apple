@@ -13,10 +13,35 @@ from vllm_apple.profile import (
     save_cached_profile,
     save_profile,
 )
-from vllm_apple.types import ContextRecommendation, ContextTier, HardwareInfo, MemoryInfo
+from vllm_apple.types import GIB, ContextRecommendation, ContextTier, HardwareInfo, MemoryInfo
 
 
 class ProfileTests(unittest.TestCase):
+    def test_profile_loader_accepts_hardware_without_transient_state_fields(self) -> None:
+        hardware = HardwareInfo(
+            platform="Darwin",
+            architecture="arm64",
+            soc="Apple M4",
+            physical_cpu_count=10,
+            logical_cpu_count=10,
+            gpu_core_count=10,
+            memory=MemoryInfo(32 * GIB, 20 * GIB),
+            is_apple_silicon=True,
+            os_version="test",
+        )
+        profile = build_profile(hardware)
+        with tempfile.TemporaryDirectory() as directory:
+            path = save_profile(profile, Path(directory) / "profile.json")
+            payload = json.loads(path.read_text())
+            payload["hardware"].pop("thermal_state")
+            payload["hardware"].pop("power_mode")
+            path.write_text(json.dumps(payload))
+            path.chmod(0o600)
+            loaded = load_profile(path)
+
+        self.assertEqual(loaded.hardware.thermal_state.value, "unknown")
+        self.assertEqual(loaded.hardware.power_mode.value, "unknown")
+
     def test_profile_is_atomically_saved_with_private_permissions(self) -> None:
         hardware = HardwareInfo(
             platform="Darwin",

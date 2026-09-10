@@ -87,7 +87,7 @@ Graph / Memory Planner + Global Scheduler
 - `[Done]` qualification reportのSwift typed decodeとMac app履歴表示（bounded、破損・oversize・symlink fail-soft）
 - `[Done]` self-hosted qualification成果物をMac SDKのbounded readerで再検証するCI gate
 - `[Done]` self-hosted Apple Silicon runnerで実model 30分qualification workflowを実行
-- `[Later]` thermal stateとpower modeの検出
+- `[Done]` NSProcessInfo thermal stateとactive電源系統のpower mode検出（旧profile/Swift decode互換、unknown fail-soft）
 
 ### Automatic context calculation
 
@@ -422,7 +422,7 @@ VLLMAppleKit / Control API
 - `[Later]` automatic batch sizing
 - `[Later]` adaptive state allocationとage/pressure別precision
 - `[Later]` continuous memory pressure monitoring
-- `[Later]` thermal-aware scheduling foundation
+- `[Done]` thermal/power状態をversioned plan identityとdecision reasonへ固定し、prefill batchを保守的にclampするscheduling foundation
 - `[Later]` BackendEngine交換契約（vLLM-Metal、Native MLX、Native Metal、Core ML draft、CPU）
 - `[Later]` CPU/Core ML draft + GPU verifyのheterogeneous speculative execution
 - `[Done]` bounded kernel self-test/performance probe contractとprofile単位quarantine registry
@@ -1103,6 +1103,8 @@ Unified Memoryとmemory bandwidthを共有する一つの実行系として管�
 156. `[Done]` outer compileを維持したcombined QKV/MLP expansionの512-token sequence chunkingと独立512実機qualification（通常profileと生成hash・最大effective residentが完全一致し昇格見送り）
 157. `[Done]` incremental block load・release barrier・compiled graph rebind・stable weight keyを必須にするweight residency feasibility gate（現MLX-Gen 0.33.1は前三契約がなくfail-close）
 158. `[Later]` MLX-Gen側のblock streaming ABI実装後に行うweight residency profileと512 root再qualification
+159. `[Done]` NSProcessInfo thermal stateとactive電源系統別power modeの検出、Python profile／Swift SDKの後方互換decode
+160. `[Done]` thermal／powerをplan identityとdecision reasonへ固定し、scheduler safe-point適用可能なprefill batch縮退policyを実装
 
 この順序により、まず推論runtimeの実model安定性を確立し、その境界を壊さずにoptimizerを
 別processとして追加する。構造pruningはquantization、calibration、評価gateの後に着手する。

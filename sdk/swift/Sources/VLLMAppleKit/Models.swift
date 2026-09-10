@@ -66,15 +66,27 @@ public struct HardwareInfo: Codable, Sendable, Equatable {
     public let memory: MemoryInfo
     public let isAppleSilicon: Bool
     public let osVersion: String
+    public let thermalState: ThermalState?
+    public let powerMode: PowerMode?
 
     enum CodingKeys: String, CodingKey {
         case platform, architecture, soc, memory
-        case physicalCPUCount = "physical_cpu_count"
-        case logicalCPUCount = "logical_cpu_count"
-        case gpuCoreCount = "gpu_core_count"
-        case isAppleSilicon = "is_apple_silicon"
-        case osVersion = "os_version"
+        case physicalCPUCount = "physicalCpuCount"
+        case logicalCPUCount = "logicalCpuCount"
+        case gpuCoreCount, isAppleSilicon, osVersion, thermalState, powerMode
     }
+
+}
+
+public enum ThermalState: String, Codable, Sendable {
+    case nominal, fair, serious, critical, unknown
+}
+
+public enum PowerMode: String, Codable, Sendable {
+    case automatic
+    case lowPower = "low_power"
+    case highPower = "high_power"
+    case unknown
 }
 
 public struct ContextTier: Codable, Sendable, Equatable {

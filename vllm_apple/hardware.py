@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import ctypes
+import ctypes.util
 import os
 import platform
 import re
@@ -7,7 +9,7 @@ import resource
 import subprocess
 from pathlib import Path
 
-from .types import HardwareInfo, MemoryInfo, MemoryPressure
+from .types import HardwareInfo, MemoryInfo, MemoryPressure, PowerMode, ThermalState
 
 
 def _sysctl(name: str) -> str | None:
@@ -121,6 +123,96 @@ def _process_resident_bytes() -> int:
     return int(usage if platform.system() == "Darwin" else usage * 1024)
 
 
+def _ns_process_info_integer(selector_name: bytes) -> int | None:
+    if platform.system() != "Darwin":
+        return None
+    objc_path = ctypes.util.find_library("objc")
+    foundation_path = ctypes.util.find_library("Foundation")
+    if objc_path is None or foundation_path is None:
+        return None
+    try:
+        ctypes.CDLL(foundation_path)
+        objc = ctypes.CDLL(objc_path)
+        objc.objc_getClass.argtypes = [ctypes.c_char_p]
+        objc.objc_getClass.restype = ctypes.c_void_p
+        objc.sel_registerName.argtypes = [ctypes.c_char_p]
+        objc.sel_registerName.restype = ctypes.c_void_p
+        message = objc.objc_msgSend
+        message.argtypes = [ctypes.c_void_p, ctypes.c_void_p]
+        message.restype = ctypes.c_void_p
+        process_info = message(
+            objc.objc_getClass(b"NSProcessInfo"), objc.sel_registerName(b"processInfo")
+        )
+        message.restype = ctypes.c_long
+        return int(message(process_info, objc.sel_registerName(selector_name)))
+    except (AttributeError, OSError, TypeError, ValueError):
+        return None
+
+
+def detect_thermal_state() -> ThermalState:
+    value = _ns_process_info_integer(b"thermalState")
+    return {
+        0: ThermalState.NOMINAL,
+        1: ThermalState.FAIR,
+        2: ThermalState.SERIOUS,
+        3: ThermalState.CRITICAL,
+    }.get(value, ThermalState.UNKNOWN)
+
+
+def _pmset(arguments: list[str]) -> str | None:
+    try:
+        result = subprocess.run(
+            ["/usr/bin/pmset", *arguments],
+            capture_output=True,
+            check=True,
+            text=True,
+            timeout=1.0,
+        )
+    except (FileNotFoundError, subprocess.SubprocessError):
+        return None
+    if len(result.stdout.encode("utf-8")) > 64 * 1024:
+        return None
+    return result.stdout
+
+
+def _parse_power_mode(power_source: str, custom_settings: str) -> PowerMode:
+    source_match = re.search(r"Now drawing from '([^']+)'", power_source)
+    if source_match is None:
+        return PowerMode.UNKNOWN
+    target = source_match.group(1)
+    sections: dict[str, dict[str, int]] = {}
+    current: str | None = None
+    for line in custom_settings.splitlines():
+        header = re.match(r"^([^:\n]{1,64}):\s*$", line)
+        if header:
+            current = header.group(1).strip()
+            sections[current] = {}
+            continue
+        setting = re.match(r"^\s+([a-z][a-z0-9]*)\s+(-?\d+)\s*$", line)
+        if current is not None and setting:
+            sections[current][setting.group(1)] = int(setting.group(2))
+    settings = sections.get(target)
+    if settings is None:
+        return PowerMode.UNKNOWN
+    if settings.get("lowpowermode") == 1 or settings.get("powermode") == 1:
+        return PowerMode.LOW_POWER
+    if settings.get("powermode") == 2:
+        return PowerMode.HIGH_POWER
+    if settings.get("lowpowermode") == 0 or settings.get("powermode") == 0:
+        return PowerMode.AUTOMATIC
+    return PowerMode.UNKNOWN
+
+
+def detect_power_mode() -> PowerMode:
+    if platform.system() != "Darwin":
+        return PowerMode.UNKNOWN
+    power_source = _pmset(["-g", "ps"])
+    custom_settings = _pmset(["-g", "custom"])
+    if power_source is None or custom_settings is None:
+        return PowerMode.UNKNOWN
+    return _parse_power_mode(power_source, custom_settings)
+
+
 def _pressure(total_bytes: int, available_bytes: int) -> MemoryPressure:
     ratio = available_bytes / total_bytes
     if ratio < 0.08:
@@ -171,6 +263,8 @@ def detect_hardware() -> HardwareInfo:
         memory=detect_memory(),
         is_apple_silicon=apple_silicon,
         os_version=platform.mac_ver()[0] if system == "Darwin" else platform.release(),
+        thermal_state=detect_thermal_state(),
+        power_mode=detect_power_mode(),
     )
 
 
