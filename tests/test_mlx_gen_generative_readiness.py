@@ -34,6 +34,60 @@ class MLXGenGenerativeReadinessTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "only FLUX"):
             select_mlx_gen_qualification_candidate("z-image-turbo-mlx-4bit", 0.25)
 
+    def test_blockwise_profile_selection_is_exclusive_and_flux_only(self) -> None:
+        self.assertEqual(
+            select_mlx_gen_qualification_candidate(
+                "flux2-klein-9b-base", None, blockwise_residency=True
+            ),
+            "flux2-klein-9b-base-blockwise",
+        )
+        with self.assertRaisesRegex(ValueError, "cannot be combined"):
+            select_mlx_gen_qualification_candidate(
+                "flux2-klein-9b-base", 0.25, blockwise_residency=True
+            )
+        with self.assertRaisesRegex(ValueError, "only FLUX"):
+            select_mlx_gen_qualification_candidate(
+                "z-image-turbo-mlx-4bit", None, blockwise_residency=True
+            )
+
+    def test_attention_chunk_profile_selection_is_exact_and_exclusive(self) -> None:
+        self.assertEqual(
+            select_mlx_gen_qualification_candidate(
+                "flux2-klein-9b-base", None, attention_query_chunk_size=512
+            ),
+            "flux2-klein-9b-base-attention-chunked",
+        )
+        with self.assertRaisesRegex(ValueError, "exclusive"):
+            select_mlx_gen_qualification_candidate(
+                "flux2-klein-9b-base", None, attention_query_chunk_size=256
+            )
+        with self.assertRaisesRegex(ValueError, "exclusive"):
+            select_mlx_gen_qualification_candidate(
+                "flux2-klein-9b-base",
+                None,
+                blockwise_residency=True,
+                attention_query_chunk_size=512,
+            )
+
+    def test_mlp_chunk_profile_selection_is_exact_and_exclusive(self) -> None:
+        self.assertEqual(
+            select_mlx_gen_qualification_candidate(
+                "flux2-klein-9b-base", None, mlp_sequence_chunk_size=512
+            ),
+            "flux2-klein-9b-base-mlp-chunked",
+        )
+        with self.assertRaisesRegex(ValueError, "exclusive"):
+            select_mlx_gen_qualification_candidate(
+                "flux2-klein-9b-base", None, mlp_sequence_chunk_size=256
+            )
+        with self.assertRaisesRegex(ValueError, "exclusive"):
+            select_mlx_gen_qualification_candidate(
+                "flux2-klein-9b-base",
+                None,
+                attention_query_chunk_size=512,
+                mlp_sequence_chunk_size=512,
+            )
+
     def test_matching_backend_and_artifact_are_ready_without_loading(self) -> None:
         with TemporaryDirectory() as directory:
             root = Path(directory)
@@ -47,6 +101,15 @@ class MLXGenGenerativeReadinessTests(unittest.TestCase):
         self.assertTrue(report["ready"])
         self.assertFalse(report["imports_backend"])
         self.assertFalse(report["allocates_model_or_metal"])
+        self.assertFalse(report["weight_block_residency"]["eligible"])
+        self.assertEqual(
+            report["weight_block_residency"]["blockers"],
+            [
+                "incremental_block_loader_missing",
+                "block_release_barrier_missing",
+                "compiled_graph_rebind_missing",
+            ],
+        )
 
     def test_old_backend_is_rejected(self) -> None:
         with TemporaryDirectory() as directory:

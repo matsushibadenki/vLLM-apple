@@ -2291,6 +2291,44 @@ chainとして取り直す。1024段だけのcache変更は比較条件を壊す
 独立2 sampleの実測は全pressure normal、thermal fairで合格したが、最大effective residentは
 7,760,992,758 bytesで通常profileとの差が65,154 bytes（0.00084%）に留まった。このためcache cap単独を
 1024へ昇格せず、次の候補はactive transformer attention/MLP chunkingまたはblock単位residencyとする。
+次の`flux2-klein-9b-base-blockwise` profileは、install済みMLX-Gen packageを変更せず、isolated worker内だけで
+outer compiled predictを解除してdouble-stream/single-stream transformer blockの出力を`mx.eval`によりmaterializeし、
+各境界でallocator cacheを解放する。MLXはcompile変換内の`mx.eval`を禁止するため、predict解除もprofile条件に含める。
+patchは例外時も元のclass methodへ戻し、通常workerへ状態を漏らさない。演算とweightは変更しないが、
+lazy graph lifetimeという実行条件が変わるためcandidate IDとrequired strategyを別にし、通常・low-cache reportの
+baseline流用およびlow-cacheとの同時指定を拒否する。512×512・20 steps・独立2 sampleの新しいrootが全pressure
+normalで合格するまで昇格を閉じる。改善が不十分な場合に限りattention queryまたはMLP sequence chunkingを別profile
+として検討し、同様に512 rootから取り直す。
+2026-09-10の初回実行は、既存profileと同じ10 GiB resident見積りに対してdynamic hard ceilingが
+3,748,804,035 bytesだったためmodel load前に拒否した。admission目的で見積りを下げず、Unified Memory回復後に
+同一commandを再実行する。
+memory回復後の512×512・20 steps・独立2 sampleはstrict verificationを通過し、最大effective residentは
+7,761,057,836 bytesだった。通常profileとの差は76 bytes未満であり、low-cache profileより65,078 bytes大きい。
+全sample pressure normal、thermal fair、private出力なしだが、1024へ昇格できる実質的改善ではないためnegative
+qualificationとして完了する。次はfused SDPAのquery軸chunkingを別candidateで512 rootから評価し、それでも改善が
+なければMLP sequence chunkingまたはweight block residencyを検討する。
+512-token query chunkを固定した`flux2-klein-9b-base-attention-chunked`も512×512・20 steps・独立2 sampleと
+strict verificationに合格したが、最大effective residentはblockwiseと同じ7,761,057,836 bytesで、通常profile比
+76 bytes減に留まった。全pressure normal、thermal fair、private出力なしの条件は満たすが昇格しない。
+chunkごとのmaterializeにはouter compile解除が必要なため、生成hashはblockwise profileと一致し、compiledな
+通常・low-cache pairとは異なる。この差をbitwise correctness同一性とは扱わず、独立numeric execution profileとして
+保持する。次の候補はouter compileを維持したままcombined QKV/MLP activationを分割するか、transformer weightを
+より細粒度にstagingする設計とする。
+outer compileを維持する`flux2-klein-9b-base-mlp-chunked`は、double-stream MLPの`linear_in`と
+single-stream統合`to_qkv_mlp_proj`だけをinstance IDで識別し、512-token sequence chunkへ分割する。
+module nestingとquantized weight keyは変更せず、非対象Linearは通常経路を通す。512×512・20 steps・独立2 sampleの
+strict verificationは合格し、全pressure normal、thermal fair、private出力なしだった。生成hashは通常profileとseedごとに
+完全一致した一方、最大effective residentも通常と同じ7,761,057,912 bytesであったため昇格しない。これにより512 peakの
+主要因はcache、block間lazy graph、fused-SDPA query output、combined QKV/MLP projection workspaceのいずれでもないことが
+実測で絞られた。次はcompiled graphが参照中のarrayを解放しない制約を守りつつ、weight keyを変えないblock単位residency
+またはstreaming loadが成立するかを先に設計・検証する。
+現MLX-Gen loaderはprepared shardを`mx.load`で全件mergeし、component全体を`model.update`した後、
+`CompiledPredictCache`がweight arrayを定数として捕捉する。この状態をapplication側monkeypatchだけでblock unloadすると、
+compiled graphのstale array参照または旧array保持を起こすため採用しない。readinessにはweightをloadしない
+`weight_block_residency` feasibility gateを追加し、incremental block loader、block release barrier、compiled graph
+rebind、stable weight keyの4契約をすべて必須とする。現integrationはstable keyだけを満たし、前三契約をexact blocker
+としてfail-closeする。将来MLX-Gen側にstreaming ABIが追加された場合もversion推測で有効化せず、このgateを満たしてから
+別candidate identityと512 rootを作る。
 
 ---
 

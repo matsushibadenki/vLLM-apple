@@ -1,6 +1,6 @@
 # vLLM-Apple Runtime Roadmap
 
-最終更新：2026-09-08
+最終更新：2026-09-10
 
 本ロードマップは、[Design-Specifications.md](Design-Specifications.md)を実装可能な単位へ分解し、現在のコードベースに対する進捗を示す。
 
@@ -19,8 +19,9 @@ prefill/decode別profile、Swift SDK、3言語macOS sample、Gemma実modelの30�
 
 2026-08-30のstatus監査で、後続実装と実機記録が存在した古い`[Next]` 10件を`[Done]`へ更新した。
 現在のactionableな`[Next]`表記は8件、重複参照をまとめた実作業は4件である。いずれも外部環境または
-release資格情報を必要とし、最優先は大容量Apple Siliconでの
-Qwen3.8-Flash-Next text-only qualificationと、専用runnerでのvLLM 0.28.x昇格試験である。
+release資格情報を必要とする。
+外部項目の最優先は大容量Apple SiliconでのQwen3.8-Flash-Next text-only qualificationと、専用runnerでの
+vLLM 0.28.x昇格試験である。
 設計判断は
 [Architecture-Decision-Apple-Execution.md](Architecture-Decision-Apple-Execution.md)に固定する。
 
@@ -1097,7 +1098,11 @@ Unified Memoryとmemory bandwidthを共有する一つの実行系として管�
 151. `[Done]` MLX-Gen形式のZ-Image Turbo 4-bitで512×512・9-stepを独立2回実行するmemory-stability qualification（最大effective resident 5,627,119,126 bytes、全sample pressure normal、thermal fair）
 152. `[Done]` generative subprocessのstderrをdeadlockなしでdrainする4 KiB bounded tailと、秘密情報を含まないstructured worker failure code
 153. `[Done]` 0.25 GB MLX cacheを独立candidate profileとしてplan hashへ結合し、通常baseline流用を拒否する512実機qualification（最大effective resident差65,154 bytes、0.00084%減に留まり1024昇格は見送り）
-154. `[Later]` transformer attention/MLP chunkingまたはblock単位residencyをprofile identityへ結合し、512 rootから取り直す1024 memory optimization
+154. `[Done]` transformer compile解除とblockごとのMLX materialization/cache解放を独立profileへ結合した512実機qualification（最大effective residentは通常profile比76 bytes減に留まり昇格見送り）
+155. `[Done]` fused SDPAの512-token attention query chunkingを独立profileへ結合した512実機qualification（最大effective residentはblockwiseと同値、通常比76 bytes減に留まり昇格見送り）
+156. `[Done]` outer compileを維持したcombined QKV/MLP expansionの512-token sequence chunkingと独立512実機qualification（通常profileと生成hash・最大effective residentが完全一致し昇格見送り）
+157. `[Done]` incremental block load・release barrier・compiled graph rebind・stable weight keyを必須にするweight residency feasibility gate（現MLX-Gen 0.33.1は前三契約がなくfail-close）
+158. `[Later]` MLX-Gen側のblock streaming ABI実装後に行うweight residency profileと512 root再qualification
 
 この順序により、まず推論runtimeの実model安定性を確立し、その境界を壊さずにoptimizerを
 別processとして追加する。構造pruningはquantization、calibration、評価gateの後に着手する。

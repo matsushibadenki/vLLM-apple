@@ -8,7 +8,7 @@ import os
 import platform
 import sys
 import tempfile
-from contextlib import redirect_stdout
+from contextlib import nullcontext, redirect_stdout
 from dataclasses import asdict
 from pathlib import Path
 from typing import Callable, Mapping
@@ -20,6 +20,12 @@ from .diffusers_generation_worker import (
 )
 from .generative_collector import GenerationTelemetryEvent
 from .generative_worker_protocol import consume_private_generative_request
+from .mlx_gen_memory_profile import (
+    MLXGenMemoryProfileError,
+    flux2_attention_query_chunking,
+    flux2_blockwise_residency,
+    flux2_mlp_sequence_chunking,
+)
 
 
 MAX_BACKEND_EVENT_BYTES = 16 * 1024
@@ -27,11 +33,16 @@ MAX_BACKEND_EVENTS = 4096
 _MLX_GEN_RUNTIME_CLASSES = {
     "flux2-klein-9b-base": "MLXGenFlux2KleinBase9B",
     "flux2-klein-9b-base-low-cache": "MLXGenFlux2KleinBase9B",
+    "flux2-klein-9b-base-blockwise": "MLXGenFlux2KleinBase9B",
+    "flux2-klein-9b-base-attention-chunked": "MLXGenFlux2KleinBase9B",
+    "flux2-klein-9b-base-mlp-chunked": "MLXGenFlux2KleinBase9B",
     "z-image-turbo-mlx-4bit": "MLXGenZImageTurbo",
 }
 
 
 def _failure_code(error: BaseException) -> str:
+    if isinstance(error, MLXGenMemoryProfileError):
+        return error.diagnostic_code
     if isinstance(error, MemoryError):
         if str(error) in {
             "Diffusers worker exceeded its memory hard ceiling",
@@ -162,11 +173,23 @@ class LocalMLXGenImageRuntime:
             "--low-ram",
         ])
         backend = self._module_loader("mflux.cli.mlx_gen")
+        if self._candidate_id == "flux2-klein-9b-base-blockwise":
+            memory_profile = flux2_blockwise_residency(self._module_loader)
+        elif self._candidate_id == "flux2-klein-9b-base-attention-chunked":
+            memory_profile = flux2_attention_query_chunking(
+                self._module_loader, chunk_size=512
+            )
+        elif self._candidate_id == "flux2-klein-9b-base-mlp-chunked":
+            memory_profile = flux2_mlp_sequence_chunking(
+                self._module_loader, chunk_size=512
+            )
+        else:
+            memory_profile = nullcontext()
         previous_argv = sys.argv
         sink = _BoundedProgressSink(progress)
         try:
             sys.argv = argv
-            with redirect_stdout(sink):
+            with memory_profile, redirect_stdout(sink):
                 backend.main()
             sink.finish()
             if not output.is_file() or output.is_symlink():

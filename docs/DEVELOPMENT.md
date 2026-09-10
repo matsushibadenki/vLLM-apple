@@ -757,3 +757,103 @@ was 7,760,992,758 bytes, only 65,154 bytes (0.00084%) below the ordinary 512 bas
 therefore does not materially reduce this workload's peak and is not promoted to 768/1024. A future
 optimization must target active transformer attention/MLP or block residency and start a new hashed
 512 root rather than reusing either existing chain.
+
+The next profile targets MLX lazy-graph lifetime without modifying the installed MLX-Gen package.
+`flux2-klein-9b-base-blockwise` temporarily disables the outer compiled predict and wraps the FLUX.2
+double-stream and single-stream block calls inside the isolated worker, materializes every block
+output with `mx.eval`, and clears reusable allocator cache after the boundary. MLX forbids `mx.eval`
+inside `mx.compile`, so both changes are required for the profile to be valid. The original predict
+and block methods are restored even when generation fails. This changes neither model weights nor
+transformer math, but it is still a distinct execution strategy and therefore has its own candidate
+ID and plan hash. It cannot be combined with the low-cache profile in the same qualification axis.
+
+```bash
+.venv-mlx-gen/bin/python -m vllm_apple mlx-gen-image-qualification \
+  models/flux.2-klein-base-9b-4bit \
+  --python .venv-mlx-gen/bin/python \
+  --resident-gib 10 --blockwise-residency \
+  --width 512 --height 512 --steps 20 --samples 2 \
+  --private-root qualification-private/flux2-klein-blockwise-512 \
+  --report qualification-results/flux2-klein-base-9b-4bit-blockwise-512.json
+```
+
+Promotion remains closed until this new 512 root passes strict verification with normal memory
+pressure. Attention-query or MLP sequence chunking is a later fallback only if the block boundary
+does not materially lower effective resident memory.
+
+The first 2026-09-10 launch was rejected before model load because concurrent host use reduced the
+dynamic hard ceiling to 3,748,804,035 bytes, below the unchanged 10 GiB resident estimate. It wrote
+no qualification report. Do not reduce the estimate to force admission; repeat the command only
+after available unified memory recovers.
+
+After memory recovered, an initial implementation failed safely because MLX rejects `mx.eval` from
+inside a function transformation. The corrected profile disables only FLUX.2's outer compiled
+predict while installed, then completed both formal samples. The strictly verified report is
+`qualification-results/flux2-klein-base-9b-4bit-blockwise-512.json`: maximum effective resident was
+7,761,057,836 bytes, just 76 bytes below the ordinary profile and 65,078 bytes above low-cache.
+Median wall time was 247,814.64 ms; both samples had normal pressure and fair thermal state, and no
+private output remained. This profile is not promoted. The next independent root targeted fused-SDPA
+query chunking; deeper MLP sequence chunking was deferred because FLUX.2 combines QKV and MLP
+projection inside each single-stream block.
+
+The second profile fixes a 512-token query chunk into the distinct
+`flux2-klein-9b-base-attention-chunked` identity. It keeps the full key/value sequence for exact
+attention semantics, slices a query-dependent mask when present, and materializes each fused-SDPA
+chunk. It is exclusive with low-cache and blockwise CLI options:
+
+```bash
+.venv-mlx-gen/bin/python -m vllm_apple mlx-gen-image-qualification \
+  models/flux.2-klein-base-9b-4bit \
+  --python .venv-mlx-gen/bin/python \
+  --resident-gib 10 --attention-query-chunk-size 512 \
+  --width 512 --height 512 --steps 20 --samples 2 \
+  --private-root qualification-private/flux2-klein-attention-chunk-512 \
+  --report qualification-results/flux2-klein-base-9b-4bit-attention-chunk-512.json
+```
+
+The report passed strict verification with maximum effective resident 7,761,057,836 bytes, median
+wall time 261,593.39 ms, normal pressure, fair thermal state, and no retained private output. Peak
+memory exactly matched blockwise and was only 76 bytes below ordinary FLUX.2, so it is not promoted.
+Because chunk materialization also requires disabling the outer compile, its output hashes match the
+blockwise profile but differ from the compiled ordinary/low-cache pair. Treat this as a separate
+numeric execution profile rather than bitwise-equivalent evidence. A useful next optimization must
+retain the outer compile while reducing the combined QKV/MLP activation or staging transformer
+weights at a finer residency boundary.
+
+The compiled MLP experiment registers only the expansion `nn.Linear` instances created by FLUX.2:
+the double-stream feed-forward `linear_in` and single-stream combined `to_qkv_mlp_proj`. Their
+Python object IDs are held only for the worker lifetime, so module nesting, quantized weight keys,
+and all unrelated linear layers remain unchanged. Inputs longer than 512 tokens are split on the
+sequence axis and concatenated inside the normal outer compiled graph:
+
+```bash
+.venv-mlx-gen/bin/python -m vllm_apple mlx-gen-image-qualification \
+  models/flux.2-klein-base-9b-4bit \
+  --python .venv-mlx-gen/bin/python \
+  --resident-gib 10 --mlp-sequence-chunk-size 512 \
+  --width 512 --height 512 --steps 20 --samples 2 \
+  --private-root qualification-private/flux2-klein-mlp-chunk-512 \
+  --report qualification-results/flux2-klein-base-9b-4bit-mlp-chunk-512.json
+```
+
+The strictly verified report passed with maximum effective resident 7,761,057,912 bytes and median
+wall time 248,483.98 ms. Both samples had normal pressure, fair thermal state, and no retained private
+output. Peak and per-seed output hashes exactly match the ordinary compiled profile; therefore this
+isolated projection chunking is bitwise-compatible but does not reduce the 512 peak and is not
+promoted. Cache, block, fused-SDPA, and expansion-workspace experiments have now excluded the main
+transient candidates at this resolution. The next feasibility work must target weight residency or
+streaming load without changing installed MLX-Gen weight keys; it must not unload a block while a
+compiled graph may still reference its arrays.
+
+The current MLX-Gen loader cannot safely implement block residency as an application-side patch.
+Prepared shards are merged through `mx.load`, the complete component tree is assigned by
+`model.update`, and `CompiledPredictCache` documents that compiled functions close over weight
+arrays as constants. Releasing or replacing a block before dropping and rebuilding that graph can
+retain stale arrays or execute against invalid state.
+
+Readiness therefore exposes a non-loading `weight_block_residency` feasibility result. Eligibility
+requires all four contracts: incremental block loading, a safe release barrier, compiled-graph
+rebind, and stable weight keys. The current integration reports the first three as exact blockers
+and remains ineligible while preserving the existing stable keys. A future MLX-Gen streaming ABI
+must satisfy this gate before a new candidate or 512 qualification root is added; the application
+must not infer support from version number alone.

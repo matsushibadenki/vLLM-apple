@@ -45,10 +45,13 @@ def components(artifact_gib: int, resident_gib: int) -> tuple[GenerativeArtifact
 
 class GenerativeQualificationTests(unittest.TestCase):
     def test_catalog_contains_requested_image_and_video_candidates(self) -> None:
-        self.assertEqual(len(GENERATIVE_CANDIDATES), 8)
+        self.assertEqual(len(GENERATIVE_CANDIDATES), 11)
         self.assertIn("z-image-turbo-mlx-4bit", GENERATIVE_CANDIDATES)
         self.assertIn("flux2-klein-9b-base", GENERATIVE_CANDIDATES)
         self.assertIn("flux2-klein-9b-base-low-cache", GENERATIVE_CANDIDATES)
+        self.assertIn("flux2-klein-9b-base-blockwise", GENERATIVE_CANDIDATES)
+        self.assertIn("flux2-klein-9b-base-attention-chunked", GENERATIVE_CANDIDATES)
+        self.assertIn("flux2-klein-9b-base-mlp-chunked", GENERATIVE_CANDIDATES)
         self.assertIn("qwen-image-2512", GENERATIVE_CANDIDATES)
         self.assertIn("flux2-dev", GENERATIVE_CANDIDATES)
         self.assertIn("wan2.2-ti2v-5b", GENERATIVE_CANDIDATES)
@@ -74,6 +77,68 @@ class GenerativeQualificationTests(unittest.TestCase):
             )
         self.assertNotEqual(generative_plan_sha256(normal), generative_plan_sha256(low_cache))
         self.assertIn("mlx-cache-limit-250mb", low_cache.candidate.required_strategies)
+
+    def test_blockwise_profile_has_a_distinct_plan_identity(self) -> None:
+        with TemporaryDirectory() as directory:
+            arguments = {
+                "artifact_bytes": 8 * GIB,
+                "estimated_resident_bytes": 18 * GIB,
+                "hardware": hardware(),
+                "target": Path(directory),
+                "quantization": "int4",
+                "components": components(8, 18),
+                "steps": 20,
+            }
+            normal = build_generative_qualification_plan(
+                candidate_id="flux2-klein-9b-base", **arguments
+            )
+            blockwise = build_generative_qualification_plan(
+                candidate_id="flux2-klein-9b-base-blockwise", **arguments
+            )
+        self.assertNotEqual(generative_plan_sha256(normal), generative_plan_sha256(blockwise))
+        self.assertIn(
+            "transformer-block-materialization", blockwise.candidate.required_strategies
+        )
+
+    def test_attention_chunk_profile_has_a_distinct_plan_identity(self) -> None:
+        with TemporaryDirectory() as directory:
+            arguments = {
+                "artifact_bytes": 8 * GIB,
+                "estimated_resident_bytes": 18 * GIB,
+                "hardware": hardware(),
+                "target": Path(directory),
+                "quantization": "int4",
+                "components": components(8, 18),
+                "steps": 20,
+            }
+            normal = build_generative_qualification_plan(
+                candidate_id="flux2-klein-9b-base", **arguments
+            )
+            chunked = build_generative_qualification_plan(
+                candidate_id="flux2-klein-9b-base-attention-chunked", **arguments
+            )
+        self.assertNotEqual(generative_plan_sha256(normal), generative_plan_sha256(chunked))
+        self.assertIn("attention-query-chunk-512", chunked.candidate.required_strategies)
+
+    def test_mlp_chunk_profile_has_a_distinct_plan_identity(self) -> None:
+        with TemporaryDirectory() as directory:
+            arguments = {
+                "artifact_bytes": 8 * GIB,
+                "estimated_resident_bytes": 18 * GIB,
+                "hardware": hardware(),
+                "target": Path(directory),
+                "quantization": "int4",
+                "components": components(8, 18),
+                "steps": 20,
+            }
+            normal = build_generative_qualification_plan(
+                candidate_id="flux2-klein-9b-base", **arguments
+            )
+            chunked = build_generative_qualification_plan(
+                candidate_id="flux2-klein-9b-base-mlp-chunked", **arguments
+            )
+        self.assertNotEqual(generative_plan_sha256(normal), generative_plan_sha256(chunked))
+        self.assertIn("qkv-mlp-sequence-chunk-512", chunked.candidate.required_strategies)
 
     def test_bounded_quantized_plan_passes_load_before_admission(self) -> None:
         with TemporaryDirectory() as directory:

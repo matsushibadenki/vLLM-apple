@@ -7,6 +7,7 @@ import subprocess
 from pathlib import Path
 
 from .generative_artifact_inspection import inspect_generative_artifact
+from .generative_weight_residency import current_mlx_gen_weight_residency_feasibility
 
 
 MINIMUM_MLX_GEN_VERSION = (0, 18, 2)
@@ -16,8 +17,45 @@ FLUX2_LOW_CACHE_LIMIT_GB = 0.25
 
 
 def select_mlx_gen_qualification_candidate(
-    candidate_id: str, cache_limit_gb: float | None
+    candidate_id: str,
+    cache_limit_gb: float | None,
+    *,
+    blockwise_residency: bool = False,
+    attention_query_chunk_size: int | None = None,
+    mlp_sequence_chunk_size: int | None = None,
 ) -> str:
+    if mlp_sequence_chunk_size is not None:
+        if (
+            mlp_sequence_chunk_size != 512
+            or cache_limit_gb is not None
+            or blockwise_residency
+            or attention_query_chunk_size is not None
+            or candidate_id != "flux2-klein-9b-base"
+        ):
+            raise ValueError(
+                "formal MLX-Gen MLP chunk qualification supports only FLUX.2 Klein "
+                "with an exclusive --mlp-sequence-chunk-size 512 profile"
+            )
+        return "flux2-klein-9b-base-mlp-chunked"
+    if attention_query_chunk_size is not None:
+        if (
+            attention_query_chunk_size != 512
+            or cache_limit_gb is not None
+            or blockwise_residency
+            or candidate_id != "flux2-klein-9b-base"
+        ):
+            raise ValueError(
+                "formal MLX-Gen attention chunk qualification supports only FLUX.2 Klein "
+                "with an exclusive --attention-query-chunk-size 512 profile"
+            )
+        return "flux2-klein-9b-base-attention-chunked"
+    if blockwise_residency:
+        if cache_limit_gb is not None or candidate_id != "flux2-klein-9b-base":
+            raise ValueError(
+                "formal MLX-Gen blockwise qualification supports only FLUX.2 Klein "
+                "and cannot be combined with the low-cache profile"
+            )
+        return "flux2-klein-9b-base-blockwise"
     if cache_limit_gb is None:
         return candidate_id
     if (
@@ -98,6 +136,7 @@ def assess_mlx_gen_generative_readiness(
         "issues": issues,
         "imports_backend": False,
         "allocates_model_or_metal": False,
+        "weight_block_residency": current_mlx_gen_weight_residency_feasibility().to_dict(),
     }
 
 

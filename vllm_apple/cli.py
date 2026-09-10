@@ -214,6 +214,21 @@ def build_parser() -> argparse.ArgumentParser:
         type=float,
         help="select the separately hashed FLUX.2 low-cache profile; currently only 0.25",
     )
+    mlx_gen_qualification.add_argument(
+        "--blockwise-residency",
+        action="store_true",
+        help="select the separately hashed FLUX.2 transformer block materialization profile",
+    )
+    mlx_gen_qualification.add_argument(
+        "--attention-query-chunk-size",
+        type=int,
+        help="select the separately hashed FLUX.2 fused-SDPA query chunk profile; only 512",
+    )
+    mlx_gen_qualification.add_argument(
+        "--mlp-sequence-chunk-size",
+        type=int,
+        help="select the separately hashed compiled FLUX.2 QKV/MLP chunk profile; only 512",
+    )
     mlx_gen_qualification.add_argument("--baseline-report", type=Path)
     mlx_gen_qualification.add_argument(
         "--promotion-parent-report",
@@ -729,11 +744,18 @@ def main(argv: list[str] | None = None) -> int:
                 raise ValueError("MLX-Gen backend or artifact did not pass readiness")
             candidate_id = readiness["candidate_id"]
             candidate_id = select_mlx_gen_qualification_candidate(
-                candidate_id, arguments.mlx_cache_limit_gb
+                candidate_id,
+                arguments.mlx_cache_limit_gb,
+                blockwise_residency=arguments.blockwise_residency,
+                attention_query_chunk_size=arguments.attention_query_chunk_size,
+                mlp_sequence_chunk_size=arguments.mlp_sequence_chunk_size,
             )
             if candidate_id not in {
                 "flux2-klein-9b-base",
                 "flux2-klein-9b-base-low-cache",
+                "flux2-klein-9b-base-blockwise",
+                "flux2-klein-9b-base-attention-chunked",
+                "flux2-klein-9b-base-mlp-chunked",
                 "z-image-turbo-mlx-4bit",
             }:
                 raise ValueError("formal MLX-Gen qualification does not support this candidate")
