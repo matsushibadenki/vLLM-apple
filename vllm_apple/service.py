@@ -40,9 +40,11 @@ from .types import (
     GIB,
     MemoryPressure,
     ModelMemorySpec,
+    PowerMode,
     RuntimeProfile,
     RuntimeState,
     StateMemorySpec,
+    ThermalState,
 )
 from .vllm_metal_v2_orchestration import NativeV2IdleTuningCoordinator
 from .vllm_metal_v2_preference import (
@@ -271,6 +273,35 @@ class RuntimeService:
         )
         self.events.publish("runtime.startup_progress", self._startup_progress.to_dict())
         return failure
+
+    def apply_operating_state(
+        self, thermal_state: ThermalState, power_mode: PowerMode
+    ) -> bool:
+        if not isinstance(thermal_state, ThermalState) or not isinstance(power_mode, PowerMode):
+            raise TypeError("operating state values must use the declared enums")
+        with self._lock:
+            previous = self.profile.hardware
+            if (
+                previous.thermal_state is thermal_state
+                and previous.power_mode is power_mode
+            ):
+                return False
+            hardware = replace(
+                previous,
+                thermal_state=thermal_state,
+                power_mode=power_mode,
+            )
+            self.profile = replace(self.profile, hardware=hardware)
+        self.events.publish(
+            "runtime.operating_state",
+            {
+                "thermal_state": thermal_state.value,
+                "power_mode": power_mode.value,
+                "previous_thermal_state": previous.thermal_state.value,
+                "previous_power_mode": previous.power_mode.value,
+            },
+        )
+        return True
 
     def snapshot(self) -> ServiceSnapshot:
         with self._lock:

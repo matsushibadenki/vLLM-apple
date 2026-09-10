@@ -438,6 +438,9 @@ plannerはthermal/power値をexecution planの入力としてplan identityとdec
 memory pressureがwarning/critical、thermalがserious/critical、またはlow-power modeではprefill batchを1、
 thermalがfairまたは状態がunknownなら2へ制限する。nominalかつautomatic/high-powerでのみ通常上限4を許可する。
 適用は既存のscheduler safe pointを通すため、active requestの途中でbatch policyを変更しない。
+daemonは15秒間隔のbounded monitorで状態を再取得し、同一値をcoalesceする。変更時はcurrent hardware
+snapshotをatomicに置換して`runtime.operating_state` eventを発行する。monitorはshutdownで停止し、probe失敗を
+control-plane failureへ昇格させない。動的plan再生成はmodel/chip profileを保持するruntimeでのみ後続実装する。
 
 ---
 

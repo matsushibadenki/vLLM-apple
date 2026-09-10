@@ -40,6 +40,7 @@ from .metal_tuning import (
     load_metal_tuning_report,
 )
 from .memory_pressure import MemoryPressureMonitor
+from .operating_state import OperatingStateMonitor
 from .model import (
     DEFAULT_UNINSPECTED_CONTEXT,
     InspectedModel,
@@ -746,6 +747,13 @@ def serve(
     )
     pressure_monitor_thread.start()
 
+    operating_state_monitor = OperatingStateMonitor(service.apply_operating_state)
+    operating_state_monitor.start()
+    service.events.publish(
+        "runtime.operating_state_monitor",
+        {"status": "active", "interval_seconds": 15},
+    )
+
     native_v2_monitor_lock = threading.Lock()
     native_v2_monitor_holder: list[NativeV2ObservationMonitor] = []
 
@@ -829,6 +837,7 @@ def serve(
         server.serve_forever(poll_interval=0.25)
     finally:
         pressure_monitor_shutdown.set()
+        operating_state_monitor.stop()
         with pressure_monitor_lock:
             for pressure_monitor in pressure_monitor_holder:
                 pressure_monitor.stop()
