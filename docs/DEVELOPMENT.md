@@ -60,6 +60,9 @@ probeまたはevent handlerの失敗はmonitor内部でbounded countとして扱
 Swift SDKは`RuntimeEvent.operatingState`でcurrent/previous thermal・powerをtyped decodeする。旧daemonでは
 event自体が存在しないため影響せず、未知のcurrent enum値を受け取った場合はtyped payloadだけを`nil`にして
 raw event streamは維持する。
+`RuntimeEvent`は標準の`JSONDecoder`とSDKの`convertFromSnakeCase`の両方を受理し、encode時は
+`schema_version`／`event_id`のwire形式を保持する。payload内の未知fieldとnested keyも保持する。
+Unixソケットの統合テストでは未知のthermal値に続く正常eventを受信し、stream継続を確認する。
 
 scheduler queueは既定最大1,024件で、REALTIME、INTERACTIVE、NORMAL、BACKGROUNDの順にdispatchし、
 同じpriorityでは到着順を保つ。queue tokenはsnapshotへ公開せず、queued、dispatching、activeの件数だけを

@@ -131,6 +131,34 @@ import Testing
     #expect(invalid.operatingState == nil)
 }
 
+@Test func runtimeEventPreservesWireFormatAcrossDecoderStrategies() throws {
+    let event = RuntimeEvent(
+        schemaVersion: 1, eventID: "99", type: "runtime.operating_state",
+        timestamp: "2026-09-10T00:00:00Z",
+        payload: [
+            "thermal_state": .string("unknown"),
+            "power_mode": .string("automatic"),
+            "future_field": .object(["nested_key": .bool(true)])
+        ]
+    )
+    for encoding in [JSONEncoder.KeyEncodingStrategy.useDefaultKeys, .convertToSnakeCase] {
+        let encoder = JSONEncoder()
+        encoder.keyEncodingStrategy = encoding
+        let data = try encoder.encode(event)
+        let wire = try #require(JSONSerialization.jsonObject(with: data) as? [String: Any])
+        #expect(wire["schema_version"] as? Int == 1)
+        #expect(wire["event_id"] as? String == "99")
+        for decoding in [JSONDecoder.KeyDecodingStrategy.useDefaultKeys, .convertFromSnakeCase] {
+            let decoder = JSONDecoder()
+            decoder.keyDecodingStrategy = decoding
+            let decoded = try decoder.decode(RuntimeEvent.self, from: data)
+            #expect(decoded == event)
+            #expect(decoded.operatingState?.thermalState == .unknown)
+            #expect(decoded.operatingState?.previousPowerMode == nil)
+        }
+    }
+}
+
 @Test func decodesStructuredStartupProgressEvent() throws {
     let data = Data("""
     {

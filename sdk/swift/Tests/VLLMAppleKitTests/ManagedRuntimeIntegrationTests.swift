@@ -97,7 +97,25 @@ import Testing
                 if not chunk:
                     break
                 received.extend(chunk)
-            connection.sendall(response)
+            if received.startswith(b"GET /v1/events "):
+                events = []
+                for event_id, thermal in [("1", "future"), ("2", "fair")]:
+                    event = json.dumps({
+                        "schema_version": 1,
+                        "event_id": event_id,
+                        "type": "runtime.operating_state",
+                        "timestamp": "2026-09-10T00:00:00Z",
+                        "payload": {"thermal_state": thermal, "power_mode": "low_power"},
+                    })
+                    events.append("data: " + event + "\\n\\n")
+                body = "".join(events).encode()
+                connection.sendall(
+                    b"HTTP/1.1 200 OK\\r\\nContent-Type: text/event-stream\\r\\n"
+                    + b"Content-Length: " + str(len(body)).encode()
+                    + b"\\r\\nConnection: close\\r\\n\\r\\n" + body
+                )
+            else:
+                connection.sendall(response)
     """
     try Data(script.utf8).write(to: executableURL)
     try FileManager.default.setAttributes([.posixPermissions: 0o700], ofItemAtPath: executableURL.path)
@@ -118,6 +136,16 @@ import Testing
         throw error
     }
     #expect(try await runtime.client.health().controlReady)
+    var receivedEvents: [RuntimeEvent] = []
+    let eventClient = await runtime.client
+    for try await event in eventClient.runtimeEvents(afterEventID: nil) {
+        receivedEvents.append(event)
+        if receivedEvents.count == 2 { break }
+    }
+    #expect(receivedEvents.map(\.eventID) == ["1", "2"])
+    #expect(receivedEvents.first?.operatingState == nil)
+    #expect(receivedEvents.last?.operatingState?.thermalState == .fair)
+    #expect(receivedEvents.last?.operatingState?.powerMode == .lowPower)
     try Data().write(to: crashTriggerURL)
 
     let clock = ContinuousClock()

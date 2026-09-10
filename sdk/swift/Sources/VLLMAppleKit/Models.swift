@@ -587,9 +587,36 @@ public struct RuntimeEvent: Codable, Sendable, Equatable {
     public let payload: [String: JSONValue]
 
     enum CodingKeys: String, CodingKey {
-        case schemaVersion
-        case eventID = "eventId"
+        case schemaVersion = "schema_version"
+        case eventID = "event_id"
         case type, timestamp, payload
+    }
+
+    private enum ConvertedKeys: String, CodingKey {
+        case schemaVersion, eventId
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let converted = try decoder.container(keyedBy: ConvertedKeys.self)
+        schemaVersion = try container.decodeIfPresent(Int.self, forKey: .schemaVersion)
+            ?? converted.decode(Int.self, forKey: .schemaVersion)
+        eventID = try container.decodeIfPresent(String.self, forKey: .eventID)
+            ?? converted.decode(String.self, forKey: .eventId)
+        type = try container.decode(String.self, forKey: .type)
+        timestamp = try container.decode(String.self, forKey: .timestamp)
+        payload = try container.decode([String: JSONValue].self, forKey: .payload)
+    }
+
+    public init(
+        schemaVersion: Int, eventID: String, type: String,
+        timestamp: String, payload: [String: JSONValue]
+    ) {
+        self.schemaVersion = schemaVersion
+        self.eventID = eventID
+        self.type = type
+        self.timestamp = timestamp
+        self.payload = payload
     }
 }
 
