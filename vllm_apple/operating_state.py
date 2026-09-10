@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import math
 import threading
 from collections.abc import Callable
 from dataclasses import dataclass
@@ -34,7 +35,7 @@ class OperatingStateMonitor:
         probe: Callable[[], OperatingState] = detect_operating_state,
         interval_seconds: float = 15.0,
     ) -> None:
-        if interval_seconds <= 0 or interval_seconds > 3600:
+        if not math.isfinite(interval_seconds) or interval_seconds <= 0 or interval_seconds > 3600:
             raise ValueError("interval_seconds must be between 0 and 3600")
         self._handler = handler
         self._probe = probe
@@ -65,27 +66,37 @@ class OperatingStateMonitor:
             return self._poll_once_serialized()
 
     def _poll_once_serialized(self) -> OperatingState | None:
+        if self._stop.is_set():
+            return None
+        failed = False
         try:
             state = self._probe()
+            if not isinstance(state, OperatingState) or not (
+                isinstance(state.thermal_state, ThermalState)
+                and isinstance(state.power_mode, PowerMode)
+            ):
+                raise ValueError("invalid operating state probe result")
         except Exception:
+            failed = True
+            state = OperatingState(ThermalState.UNKNOWN, PowerMode.UNKNOWN)
             with self._lock:
-                self._polls += 1
                 self._failures += 1
+        if self._stop.is_set():
             return None
         with self._lock:
             self._polls += 1
             if state == self._last_state:
-                return state
+                return None if failed else state
         try:
             self._handler(state.thermal_state, state.power_mode)
         except Exception:
             with self._lock:
                 self._failures += 1
-            return state
+            return None if failed else state
         with self._lock:
             self._last_state = state
             self._notifications += 1
-        return state
+        return None if failed else state
 
     def _run(self) -> None:
         while not self._stop.is_set():
@@ -96,7 +107,7 @@ class OperatingStateMonitor:
         self._stop.set()
         with self._lock:
             thread = self._thread
-        if thread is not None:
+        if thread is not None and thread is not threading.current_thread():
             thread.join(timeout=min(self._interval_seconds + 1.0, 5.0))
 
     def snapshot(self) -> dict[str, int | float | str | bool | None]:

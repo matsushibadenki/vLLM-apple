@@ -57,6 +57,11 @@ safe pointでのみ適用され、active requestの途中では方針を変更�
 daemonは15秒間隔の停止可能なmonitorで両状態を更新する。同一値はcoalesceし、変化時だけ
 `runtime.operating_state` eventを発行してcurrent runtime profileのhardware snapshotへ反映する。
 probeまたはevent handlerの失敗はmonitor内部でbounded countとして扱い、control planeを停止させない。
+probe例外・不正値では以前の正常状態を保持せず両値を`unknown`へ更新する。同一unknownは重複通知せず、
+回復時は再通知する。handler失敗時は次回probeで再試行し、停止要求中に完了したprobe結果は破棄する。
+監視間隔は有限の正数のみ受理する。
+operating-state更新とevent発行はruntime snapshotと同じlockで直列化し、event発行成功後にprofileを
+置換する。発行失敗時は旧profileを維持するため、monitorの次回試行で同一値の通知が失われない。
 Swift SDKは`RuntimeEvent.operatingState`でcurrent/previous thermal・powerをtyped decodeする。旧daemonでは
 event自体が存在しないため影響せず、未知のcurrent enum値を受け取った場合はtyped payloadだけを`nil`にして
 raw event streamは維持する。

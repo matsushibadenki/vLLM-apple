@@ -1110,6 +1110,8 @@ Unified Memoryとmemory bandwidthを共有する一つの実行系として管�
 161. `[Done]` daemon lifecycleへ停止可能なthermal／power monitorを接続し、重複を除いたbounded state-change eventを公開
 162. `[Done]` `runtime.operating_state`をSwift SDKのtyped payloadへ接続し、production decoder設定で回帰固定
 163. `[Done]` RuntimeEventの標準／snake_case decoder互換とwire encode互換を復元し、Unixソケットで未知値後のevent継続受信を検証
+164. `[Done]` thermal/power probe失敗・不正値をunknownへ縮退し、回復通知・handler再試行・停止中probe結果破棄を回帰検証
+165. `[Done]` operating-stateイベントの並行更新順序とsnapshot整合性を保証し、発行失敗後の再試行で通知が失われないことを検証
 
 この順序により、まず推論runtimeの実model安定性を確立し、その境界を壊さずにoptimizerを
 別processとして追加する。構造pruningはquantization、calibration、評価gateの後に着手する。

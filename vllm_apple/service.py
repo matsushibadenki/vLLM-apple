@@ -291,16 +291,19 @@ class RuntimeService:
                 thermal_state=thermal_state,
                 power_mode=power_mode,
             )
-            self.profile = replace(self.profile, hardware=hardware)
-        self.events.publish(
-            "runtime.operating_state",
-            {
-                "thermal_state": thermal_state.value,
-                "power_mode": power_mode.value,
-                "previous_thermal_state": previous.thermal_state.value,
-                "previous_power_mode": previous.power_mode.value,
-            },
-        )
+            updated_profile = replace(self.profile, hardware=hardware)
+            # Publish while holding the snapshot lock to preserve transition order.
+            # Commit only after publication succeeds so monitor retries remain effective.
+            self.events.publish(
+                "runtime.operating_state",
+                {
+                    "thermal_state": thermal_state.value,
+                    "power_mode": power_mode.value,
+                    "previous_thermal_state": previous.thermal_state.value,
+                    "previous_power_mode": previous.power_mode.value,
+                },
+            )
+            self.profile = updated_profile
         return True
 
     def snapshot(self) -> ServiceSnapshot:
