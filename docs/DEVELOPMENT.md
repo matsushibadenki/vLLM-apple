@@ -28,7 +28,36 @@ payloadはC-orderの全要素を連続してnibble packingし、行ごとのpadd
 戻り値の`reference_values()`はC-orderのflat tupleで、shapeは`geometry`に保持する。
 source/target digestはgeometry-bound plan IDを含み、`verify_source()`にも同じgeometry指定が必要。
 計画の登録だけでは実行を許可せず、組み込みNVFP4 routeを照合する。
-strides、swizzle、2軸block scale、backend接続は未実装。
+`Qwen4MLXCorrectnessConverter.convert_scaled_int8()`はtarget digestを再検証し、CPUでF32へ
+復元して既存MLX correctness converterへ渡す。shapeを保持し、F32範囲外は拒否する。
+予約検査は明示的numeric bufferの分で、Python objectやRSSのhard ceiling保証ではない。
+F32化には丸めがあり、INT8 native演算やruntime model loadを有効化するものではない。
+strides、swizzle、2軸block scale、runtime backend接続は未実装。
+
+実機テストは通常CIではskipし、MLX/NumPy入りの既存環境で明示実行する。
+
+```bash
+VLLM_APPLE_TEST_MLX_NUMERIC=1 .venv-mlx-gen/bin/python -m unittest tests.test_numeric_mlx_device -q
+```
+
+2026-09-12にMLX 0.31.2で762ケース（2軸配置×127 scale設定×3出力dtype）の
+独立scalar期待値とのdigest一致を確認した。34要素・global scale=1のexactな値を使うため、
+一般の丸め誤差や性能の認定ではない。encoded zeroの符号消失と、負の非zero値にzero scaleを
+掛けて生じる負のzeroを区別する。追加packageやmodelのdownloadは不要。
+
+同環境でF32 bridgeを経たF16/BF16/F32の選定境界13ケース（正負）、
+ties-to-even、F16最小subnormal・zeroへのunderflow・最大有限値を確認した。
+correctness converterは非有限sourceを拒否し、出力bitの指数部検査でNaN/Infを拒否する。
+F16/BF16へのoverflowとF32 bridge範囲外も失敗にする。一方、有限値への丸めと
+underflowは現在許可しており、一般の誤差上限保証・全backendでの同一挙動は未認定。
+
+`convert_scaled_int8(..., precision_policy=NumericPrecisionPolicy(...))`で明示的な精度判定を
+有効化する。policy省略時の従来動作は維持する。policyの既定は誤差ゼロ・zero underflow拒否。
+判定式は`abs(output - source) <= max(absolute_tolerance, relative_tolerance * abs(source))`。
+sourceはCPUでscaleを適用したPython浮動小数値であり、数学的な任意精度値ではない。
+F32中間丸めを含めて比較する。非zeroからzeroへのunderflowは明示許可と誤差条件の両方が必要。
+実行前にscalar参照結果を判定し、実行後にMLX出力digestの一致を要求する。
+policyは現在ローカルcorrectness APIのみで、runtime protocol・永続evidenceには未接続。
 
 ## Reproducible setup
 

@@ -791,7 +791,11 @@ NVFP4 → INT8を最初の候補としつつ、FP16/BF16展開、既存MLX量子
 - `[Done]` immutable複数adapter planning registry、完全一致route選択、重複ID・曖昧候補の拒否（組み込みはNVFP4 CPU参照routeのみ）
 - `[Done]` C-order論理shape・単一scale軸のTensorGeometry、行境界を保持するscale index計算、geometry-bound planning ID（1〜8次元、参照上限内）
 - `[Done]` geometry-aware NVFP4→INT8 CPU参照変換・decode、単一scale軸の境界処理、shape/axisを含む入出力digest検証
-- `[Next]` 既存backend consumerへの接続（CPU参照以外の実行kernelは未実装）
+- `[Done]` scale付きINT8から既存MLX correctness converterへのF32参照bridge（shape保持・buffer予約検査・F32 overflow拒否、mock consumer検証）
+- `[Done]` MLX 0.31.2実機bridge検証：E2M1全16コード、有限非負scale全127コード、2通りのscale軸、F32/F16/BF16の762ケースで出力digest一致（小規模・global scale=1）
+- `[Done]` MLX実機のties-to-even・F16 subnormal/underflow・最大有限値検証、F16/BF16 overflowとNaN/Inf入力の拒否（選定境界ケース）
+- `[Done]` opt-in NumericPrecisionPolicy（絶対/相対許容誤差・zero underflow許可）、backend実行前の参照判定と実行後digest照合、MLX実機762ケースの誤差ゼロpolicy検証
+- `[Next]` runtime consumerへの接続と精度policyの実行契約・診断への反映（native INT8演算kernelは未実装）
 - `[Later]` NVFP4 1D／2D block scale、scale layout・swizzle、tensor scale、packed nibble順序を識別するartifact adapter
 - `[Later]` MXFP4／MXFP6／MXFP8、FP8 E4M3／E5M2とvariant、FP16／BF16／FP32、signed/unsigned INT8／INT4／INT2の段階的対応
 - `[Later]` NF4／codebook量子化、groupwise affine、zero-point、double quantization、mixed precision、outlier/residual・sparse表現の拡張adapter
