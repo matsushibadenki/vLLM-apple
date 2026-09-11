@@ -2,11 +2,55 @@ import unittest
 from dataclasses import replace
 
 from vllm_apple.numeric_formats import (
+    ConversionAdapter, ConversionRegistry, DEFAULT_CONVERSION_REGISTRY,
     NumericFormatDescriptor, conversion_plan, convert_nvfp4_to_int8, decode_nvfp4,
 )
 
 
 class NumericFormatTests(unittest.TestCase):
+    def test_registry_is_immutable_and_requires_unambiguous_route(self):
+        original = DEFAULT_CONVERSION_REGISTRY
+        first = original.adapters[0]
+        alternate = replace(first, adapter_id="alternate_cpu_v1")
+        registry = original.register(alternate)
+        source = replace(first.source, elements=16)
+        self.assertEqual(len(original.adapters), 1)
+        with self.assertRaisesRegex(ValueError, "ambiguous"):
+            registry.plan(source)
+        plan = registry.plan(source, adapter_id=alternate.adapter_id)
+        self.assertEqual(plan.adapter, alternate.adapter_id)
+        self.assertEqual(plan.target.elements, 16)
+        self.assertNotEqual(plan.plan_id, conversion_plan(source).plan_id)
+        with self.assertRaisesRegex(ValueError, "duplicate"):
+            registry.register(first)
+        with self.assertRaises(ValueError):
+            ConversionRegistry([first])
+        with self.assertRaises(ValueError):
+            ConversionAdapter("bad-id", first.source, first.target)
+        with self.assertRaises(ValueError):
+            replace(first, source=source)
+
+    def test_registry_exact_target_selection_and_fail_closed(self):
+        first = DEFAULT_CONVERSION_REGISTRY.adapters[0]
+        second = replace(first, adapter_id="other_target_v1",
+                         target=replace(first.target, encoding="test_only_format"))
+        registry = DEFAULT_CONVERSION_REGISTRY.register(second)
+        source = replace(first.source, elements=32)
+        target = replace(second.target, elements=32)
+        self.assertEqual(registry.plan(source, target=target).adapter, second.adapter_id)
+        for kwargs in ({"target": second.target}, {"adapter_id": "missing"},
+                       {"target": target, "adapter_id": first.adapter_id}):
+            with self.assertRaises(ValueError):
+                registry.plan(source, **kwargs)
+        with self.assertRaises(ValueError):
+            registry.plan(replace(source, layout="swizzled"))
+        with self.assertRaises(ValueError):
+            ConversionRegistry().plan(source)
+        # A registered plan alone must not authorize the built-in executor.
+        converted = convert_nvfp4_to_int8(source, bytes(16), bytes([56, 56]), 1)
+        with self.assertRaises(ValueError):
+            replace(converted, plan=registry.plan(source, target=target))
+
     def test_content_binding_and_source_verification(self):
         descriptor = NumericFormatDescriptor("nvfp4_e2m1", 16)
         packed, scales = bytes([0x22] * 8), bytes([56])

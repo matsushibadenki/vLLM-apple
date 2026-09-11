@@ -9,7 +9,14 @@ INT8 payloadはE2M1値の2倍を格納し、target descriptorに0.5倍率を記�
 plan IDは変換条件のidentityでありtensor内容のdigestではない。別途source/target digestでplan、
 payload、block scale、global scaleを結合する。出力構築時にtarget digestを検証し、`verify_source()`は
 元入力から参照変換を再計算して取り違えを検出する。署名や信頼できる出自の証明ではない。
-負のzeroを含む元payloadはsource digestで区別する。汎用registry・高速consumerは後続実装。
+負のzeroを含む元payloadはsource digestで区別する。高速consumerは後続実装。
+
+`ConversionRegistry`は最大256件のimmutableなplanning adapterを明示登録する。
+`ConversionAdapter`のsource/target templateはelements=1とし、計画時に要素数を引き継ぐ。
+要素数以外のdescriptorは完全一致が必要で、未対応routeや曖昧な候補は拒否する。
+複数候補は`target`または`adapter_id`で選択する。`register()`は新しいregistryを返し、
+既存registryは変更しない。既定registryにはNVFP4→scaled INT8のCPU参照routeのみを登録する。
+adapter登録は実行許可や性能認定ではなく、動的plugin importや暗黙fallbackも行わない。
 
 ## Reproducible setup
 

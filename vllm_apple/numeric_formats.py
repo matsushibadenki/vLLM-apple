@@ -4,7 +4,7 @@ from __future__ import annotations
 import hashlib
 import json
 import math
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, replace
 
 MAX_REFERENCE_ELEMENTS = 65_536
 _E2M1_TWICE = (0, 1, 2, 3, 4, 6, 8, 12)
@@ -47,15 +47,74 @@ class ConversionPlan:
         return hashlib.sha256(json.dumps(asdict(self), sort_keys=True).encode()).hexdigest()
 
 
+@dataclass(frozen=True, slots=True)
+class ConversionAdapter:
+    """Exact format templates for planning; registration grants no execution capability.
+
+    Template element counts must be one. All other descriptor fields match exactly.
+    """
+
+    adapter_id: str
+    source: NumericFormatDescriptor
+    target: NumericFormatDescriptor
+
+    def __post_init__(self) -> None:
+        if (not isinstance(self.adapter_id, str) or not 0 < len(self.adapter_id) <= 128
+                or any(c not in "abcdefghijklmnopqrstuvwxyz0123456789_" for c in self.adapter_id)):
+            raise ValueError("invalid adapter identifier")
+        for template in (self.source, self.target):
+            if not isinstance(template, NumericFormatDescriptor) or template.elements != 1:
+                raise ValueError("adapter templates must have one element")
+
+
+@dataclass(frozen=True, slots=True)
+class ConversionRegistry:
+    """Immutable, explicitly supplied planning routes; never loads plugin code."""
+
+    adapters: tuple[ConversionAdapter, ...] = ()
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.adapters, tuple) or len(self.adapters) > 256:
+            raise ValueError("registry requires at most 256 immutable adapter entries")
+        if any(not isinstance(item, ConversionAdapter) for item in self.adapters):
+            raise ValueError("invalid adapter entry")
+        if len({item.adapter_id for item in self.adapters}) != len(self.adapters):
+            raise ValueError("duplicate adapter identifier")
+
+    def register(self, adapter: ConversionAdapter) -> ConversionRegistry:
+        return ConversionRegistry(self.adapters + (adapter,))
+
+    def plan(self, source: NumericFormatDescriptor, *,
+             target: NumericFormatDescriptor | None = None,
+             adapter_id: str | None = None) -> ConversionPlan:
+        if not isinstance(source, NumericFormatDescriptor):
+            raise ValueError("invalid source descriptor")
+        if target is not None and not isinstance(target, NumericFormatDescriptor):
+            raise ValueError("invalid target descriptor")
+        candidates = [
+            ConversionPlan(source, replace(item.target, elements=source.elements), item.adapter_id)
+            for item in self.adapters
+            if replace(source, elements=1) == item.source
+            and (adapter_id is None or adapter_id == item.adapter_id)
+        ]
+        if target is not None:
+            candidates = [plan for plan in candidates if plan.target == target]
+        if not candidates:
+            raise ValueError("unsupported numeric format route")
+        if len(candidates) != 1:
+            raise ValueError("ambiguous numeric format route; specify target or adapter_id")
+        return candidates[0]
+
+
+DEFAULT_CONVERSION_REGISTRY = ConversionRegistry((ConversionAdapter(
+    "nvfp4_int8_cpu_reference_v1", NumericFormatDescriptor("nvfp4_e2m1", 1),
+    NumericFormatDescriptor("scaled_int8", 1, packing="signed_byte", value_multiplier=0.5),
+),))
+
+
 def conversion_plan(source: NumericFormatDescriptor) -> ConversionPlan:
-    """Entry for the sole supported CPU reference conversion."""
-    if (source.encoding, source.block_size, source.packing, source.scale_encoding, source.layout, source.value_multiplier) != (
-        "nvfp4_e2m1", 16, "low_nibble_first", "e4m3fn", "contiguous_1d", 1.0
-    ):
-        raise ValueError("unsupported numeric format variant")
-    return ConversionPlan(source, NumericFormatDescriptor(
-        "scaled_int8", source.elements, packing="signed_byte", value_multiplier=0.5
-    ))
+    """Plan the built-in CPU reference route, preserving the existing API and ID."""
+    return DEFAULT_CONVERSION_REGISTRY.plan(source)
 
 
 def _scale(code: int) -> float:
