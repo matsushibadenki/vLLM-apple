@@ -3,11 +3,92 @@ from dataclasses import replace
 
 from vllm_apple.numeric_formats import (
     ConversionAdapter, ConversionRegistry, DEFAULT_CONVERSION_REGISTRY,
+    TensorGeometry,
     NumericFormatDescriptor, conversion_plan, convert_nvfp4_to_int8, decode_nvfp4,
 )
 
 
 class NumericFormatTests(unittest.TestCase):
+    def test_multidimensional_conversion_and_content_binding(self):
+        descriptor = NumericFormatDescriptor("nvfp4_e2m1", 34)
+        packed = bytes([0x22] * 17)
+        scales = bytes([56, 64, 72, 80])  # 1, 2, 4, 8
+        for geometry, expected in (
+            (TensorGeometry((2, 17), 1), (1,) * 16 + (2,) + (4,) * 16 + (8,)),
+            (TensorGeometry((17, 2), 0), (1, 2) * 16 + (4, 8)),
+        ):
+            converted = convert_nvfp4_to_int8(descriptor, packed, scales, 1, geometry=geometry)
+            self.assertEqual(converted.reference_values(), expected)
+            self.assertEqual(decode_nvfp4(descriptor, packed, scales, 1, geometry=geometry), expected)
+            converted.verify_source(descriptor, packed, scales, 1, geometry=geometry)
+            with self.assertRaises(ValueError):
+                converted.verify_source(descriptor, packed, scales, 1)
+            with self.assertRaises(ValueError):
+                replace(converted, block_scales=bytes([56] * 4))
+        first = convert_nvfp4_to_int8(descriptor, packed, scales, 1,
+                                     geometry=TensorGeometry((2, 17), 1))
+        other = TensorGeometry((17, 2), 0)
+        with self.assertRaises(ValueError):
+            replace(first, plan=replace(first.plan, geometry=other))
+        with self.assertRaises(ValueError):
+            first.verify_source(descriptor, packed, scales, 1, geometry=other)
+
+    def test_geometry_execution_rejects_invalid_scales_and_padding(self):
+        descriptor = NumericFormatDescriptor("nvfp4_e2m1", 3)
+        geometry = TensorGeometry((3, 1), 1)
+        for packed, scales, global_scale in (
+            (bytes([0x22, 0x22]), bytes([56] * 3), 1),
+            (bytes([0x22, 2]), bytes([56]), 1),
+            (bytes([0x22, 2]), bytes([56, 127, 56]), 1),
+            (bytes([0x22, 2]), bytes([56] * 3), float("inf")),
+        ):
+            with self.assertRaises(ValueError):
+                convert_nvfp4_to_int8(descriptor, packed, scales, global_scale, geometry=geometry)
+        result = convert_nvfp4_to_int8(descriptor, bytes([0x22, 2]), bytes([56, 64, 72]), 1,
+                                      geometry=geometry)
+        self.assertEqual(result.reference_values(), (1, 2, 4))
+
+    def test_geometry_scale_mapping_restarts_at_axis_boundaries(self):
+        rows = TensorGeometry((2, 17), scale_axis=1)
+        self.assertEqual(rows.scale_shape, (2, 2))
+        self.assertEqual(rows.scale_count, 4)
+        self.assertEqual([rows.scale_index(i) for i in range(34)],
+                         [0] * 16 + [1] + [2] * 16 + [3])
+        columns = TensorGeometry((17, 2), scale_axis=0)
+        self.assertEqual(columns.scale_shape, (2, 2))
+        self.assertEqual([columns.scale_index(i) for i in range(34)],
+                         [0, 1] * 16 + [2, 3])
+        volume = TensorGeometry((2, 3, 4), scale_axis=1, block_size=2)
+        self.assertEqual(volume.scale_shape, (2, 2, 4))
+        self.assertEqual([volume.scale_index(i) for i in range(24)],
+                         list(range(4)) * 2 + list(range(4, 8))
+                         + list(range(8, 12)) * 2 + list(range(12, 16)))
+
+    def test_tensor_plan_binds_geometry_without_changing_legacy_plan(self):
+        source = NumericFormatDescriptor("nvfp4_e2m1", 32)
+        registry = DEFAULT_CONVERSION_REGISTRY
+        first = registry.plan_tensor(source, TensorGeometry((2, 16), 1))
+        second = registry.plan_tensor(source, TensorGeometry((16, 2), 0))
+        self.assertEqual(first.format_plan, conversion_plan(source))
+        self.assertNotEqual(first.plan_id, second.plan_id)
+        self.assertEqual(first.plan_id, registry.plan_tensor(source, first.geometry).plan_id)
+        for geometry in (TensorGeometry((16,), 0), TensorGeometry((32,), 0, 8)):
+            with self.assertRaises(ValueError):
+                registry.plan_tensor(source, geometry)
+
+    def test_invalid_geometry_is_rejected(self):
+        for shape, axis, block in (((), 0, 16), ([16], 0, 16), ((True,), 0, 16),
+                                   ((0,), 0, 16), ((65537,), 0, 16),
+                                   ((1,) * 9, 0, 16), ((16,), -1, 16),
+                                   ((16,), 1, 16), ((16,), True, 16),
+                                   ((16,), 0, 0), ((16,), 0, True)):
+            with self.subTest(shape=shape, axis=axis, block=block), self.assertRaises(ValueError):
+                TensorGeometry(shape, axis, block)
+        geometry = TensorGeometry((16,), 0)
+        for index in (-1, 16, True, 0.5):
+            with self.assertRaises(ValueError):
+                geometry.scale_index(index)
+
     def test_registry_is_immutable_and_requires_unambiguous_route(self):
         original = DEFAULT_CONVERSION_REGISTRY
         first = original.adapters[0]

@@ -2,7 +2,7 @@
 
 ## Numeric format reference conversion
 
-`numeric_formats.py`はNVFP4のcontiguous 1D・16要素block・low-nibble-first・非負E4M3FN scaleのみを
+`numeric_formats.py`はNVFP4の連続packed payload・16要素block・low-nibble-first・非負E4M3FN scaleを
 参照実装する。最大65,536要素で、全modelの展開やnative kernel実行には使用しない。
 INT8 payloadはE2M1値の2倍を格納し、target descriptorに0.5倍率を記録して元scaleを保持する。
 負のzeroは整数zeroへ統一される。未対応layout、scale異常、payload不足、非zero paddingは拒否する。
@@ -17,6 +17,18 @@ payload、block scale、global scaleを結合する。出力構築時にtarget d
 複数候補は`target`または`adapter_id`で選択する。`register()`は新しいregistryを返し、
 既存registryは変更しない。既定registryにはNVFP4→scaled INT8のCPU参照routeのみを登録する。
 adapter登録は実行許可や性能認定ではなく、動的plugin importや暗黙fallbackも行わない。
+
+`TensorGeometry`はC-orderの論理shape（1〜8次元、最大65,536要素）と非負のscale軸、
+block sizeを明示する。scale shapeは指定軸をceil(axis length / block size)へ置換した
+C-order配置で、blockは各軸境界で再開始する。`scale_index()`でflat要素位置から参照scaleを得る。
+`plan_tensor()`は要素数・block sizeを照合し、shapeと軸を含む別の`TensorConversionPlan` IDを作る。
+既存の1D format plan IDと呼び出し方は変更しない。`decode_nvfp4()`と`convert_nvfp4_to_int8()`に
+`geometry=`を明示すると、単一軸block scaleを使う多次元CPU参照変換を実行する。
+payloadはC-orderの全要素を連続してnibble packingし、行ごとのpaddingは持たない。
+戻り値の`reference_values()`はC-orderのflat tupleで、shapeは`geometry`に保持する。
+source/target digestはgeometry-bound plan IDを含み、`verify_source()`にも同じgeometry指定が必要。
+計画の登録だけでは実行を許可せず、組み込みNVFP4 routeを照合する。
+strides、swizzle、2軸block scale、backend接続は未実装。
 
 ## Reproducible setup
 
