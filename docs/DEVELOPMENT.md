@@ -6,7 +6,10 @@
 参照実装する。最大65,536要素で、全modelの展開やnative kernel実行には使用しない。
 INT8 payloadはE2M1値の2倍を格納し、target descriptorに0.5倍率を記録して元scaleを保持する。
 負のzeroは整数zeroへ統一される。未対応layout、scale異常、payload不足、非zero paddingは拒否する。
-plan IDは変換条件のidentityでありtensor内容のdigestではない。汎用registry・content binding・高速consumerは後続実装。
+plan IDは変換条件のidentityでありtensor内容のdigestではない。別途source/target digestでplan、
+payload、block scale、global scaleを結合する。出力構築時にtarget digestを検証し、`verify_source()`は
+元入力から参照変換を再計算して取り違えを検出する。署名や信頼できる出自の証明ではない。
+負のzeroを含む元payloadはsource digestで区別する。汎用registry・高速consumerは後続実装。
 
 ## Reproducible setup
 

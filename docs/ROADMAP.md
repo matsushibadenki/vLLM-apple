@@ -787,7 +787,8 @@ NVFP4 → INT8を最初の候補としつつ、FP16/BF16展開、既存MLX量子
 仕様は[設計書 §42.1](Design-Specifications.md#421-portable-numeric-format-layer)に定義する。
 
 - `[Done]` versioned NumericFormatDescriptor／ConversionPlanの最小契約とNVFP4 1D・16要素blockのCPU参照decode／scale付きINT8変換（全16値・非負有限scale全127値の数値一致、小規模上限）
-- `[Next]` 複数adapter registry・tensor/scale digest binding・汎用shape/axis descriptorと既存backend consumerへの接続（CPU参照以外の実行kernelは未実装）
+- `[Done]` CPU参照変換のsource/target digest binding（plan・payload・block/global scale）、出力整合性検証と元入力からの再検証
+- `[Next]` 複数adapter registry・汎用shape/axis descriptorと既存backend consumerへの接続（CPU参照以外の実行kernelは未実装）
 - `[Later]` NVFP4 1D／2D block scale、scale layout・swizzle、tensor scale、packed nibble順序を識別するartifact adapter
 - `[Later]` MXFP4／MXFP6／MXFP8、FP8 E4M3／E5M2とvariant、FP16／BF16／FP32、signed/unsigned INT8／INT4／INT2の段階的対応
 - `[Later]` NF4／codebook量子化、groupwise affine、zero-point、double quantization、mixed precision、outlier/residual・sparse表現の拡張adapter

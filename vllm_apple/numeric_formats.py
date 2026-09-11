@@ -48,7 +48,7 @@ class ConversionPlan:
 
 
 def conversion_plan(source: NumericFormatDescriptor) -> ConversionPlan:
-    """Registry entry for the sole qualified reference conversion, not an executor."""
+    """Entry for the sole supported CPU reference conversion."""
     if (source.encoding, source.block_size, source.packing, source.scale_encoding, source.layout, source.value_multiplier) != (
         "nvfp4_e2m1", 16, "low_nibble_first", "e4m3fn", "contiguous_1d", 1.0
     ):
@@ -97,12 +97,49 @@ def decode_nvfp4(
     )
 
 
+def _content_digest(plan, payload, scales, global_scale, role):
+    # Versioned, framed metadata; keep scale sign (including negative zero).
+    metadata = {
+        "version": 1, "role": role, "plan_id": plan.plan_id,
+        "payload_sha256": hashlib.sha256(payload).hexdigest(),
+        "scales_sha256": hashlib.sha256(scales).hexdigest(),
+        "global_scale": float(global_scale).hex(),
+    }
+    return hashlib.sha256(json.dumps(metadata, sort_keys=True).encode()).hexdigest()
+
+
 @dataclass(frozen=True, slots=True)
 class ScaledInt8Tensor:
     plan: ConversionPlan
     payload: bytes
     block_scales: bytes
     global_scale: float
+    source_digest: str
+    target_digest: str
+
+    def __post_init__(self) -> None:
+        if self.plan != conversion_plan(self.plan.source):
+            raise ValueError("unsupported conversion plan")
+        if not isinstance(self.payload, bytes) or len(self.payload) != self.plan.target.elements:
+            raise ValueError("INT8 payload size mismatch")
+        allowed = {value & 255 for magnitude in _E2M1_TWICE for value in (magnitude, -magnitude)}
+        if any(value not in allowed for value in self.payload):
+            raise ValueError("invalid reference INT8 value")
+        _validate_inputs(self.plan.source, bytes((self.plan.source.elements + 1) // 2),
+                         self.block_scales, self.global_scale)
+        if (not isinstance(self.source_digest, str) or len(self.source_digest) != 64
+                or any(char not in "0123456789abcdef" for char in self.source_digest)):
+            raise ValueError("invalid source digest")
+        if self.target_digest != _content_digest(
+            self.plan, self.payload, self.block_scales, self.global_scale, "target"
+        ):
+            raise ValueError("target content digest mismatch")
+
+    def verify_source(self, descriptor, packed, scales, global_scale) -> None:
+        """Check provenance and conversion consistency, not cryptographic authenticity."""
+        expected = convert_nvfp4_to_int8(descriptor, packed, scales, global_scale)
+        if self != expected:
+            raise ValueError("conversion source or output mismatch")
 
     def reference_values(self) -> tuple[float, ...]:
         # Preserve the original scale factors; divide the small integer first to
@@ -123,4 +160,8 @@ def convert_nvfp4_to_int8(
         for code in _codes(packed, descriptor.elements)
     )
     # Signed zero is canonicalized by integer storage; numeric equality only.
-    return ScaledInt8Tensor(plan, payload, scales, global_scale)
+    return ScaledInt8Tensor(
+        plan, payload, scales, global_scale,
+        _content_digest(plan, packed, scales, global_scale, "source"),
+        _content_digest(plan, payload, scales, global_scale, "target"),
+    )
