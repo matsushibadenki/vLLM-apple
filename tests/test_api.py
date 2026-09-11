@@ -3,8 +3,13 @@ import threading
 import unittest
 import urllib.error
 import urllib.request
+import io
+from contextlib import redirect_stdout
+from unittest.mock import patch
 
 from vllm_apple.api import create_server
+from vllm_apple.cli import main
+from vllm_apple.execution_preview_client import fetch_execution_preview
 from vllm_apple.service import RuntimeService
 from vllm_apple.types import MemoryPressure
 
@@ -40,6 +45,22 @@ class APITests(unittest.TestCase):
 
     def test_openai_models_shape(self) -> None:
         self.assertEqual(self.get_json("/v1/models"), {"object": "list", "data": []})
+
+    def test_preview_cli_reads_local_daemon_without_changing_plan(self) -> None:
+        output = io.StringIO()
+        with redirect_stdout(output):
+            status = main(["execution-plan-preview", "--url", self.base_url])
+        self.assertEqual(status, 1)
+        self.assertEqual(json.loads(output.getvalue())["reason"], "model_spec_unavailable")
+        self.assertIsNone(self.server.service.scheduler.execution_plan_snapshot()["active_plan_id"])
+
+    def test_preview_client_rejects_remote_and_invalid_timeout_before_connecting(self) -> None:
+        with patch("http.client.HTTPConnection") as connection:
+            for url, timeout in (("http://example.com", 5), (self.base_url, float("nan")),
+                                 (self.base_url + "/wrong", 5)):
+                with self.assertRaises(ValueError):
+                    fetch_execution_preview(url, timeout=timeout)
+            connection.assert_not_called()
 
     def test_plan_preview_reports_missing_model_without_activating_policy(self) -> None:
         result = self.get_json("/v1/execution-plan/preview")

@@ -18,8 +18,8 @@ Phase 1のcontrol plane、メモリ安全性基盤、AppleExecutionPlanner、Sta
 prefill/decode別profile、Swift SDK、3言語macOS sample、Gemma実modelの30分安定性まで実装済み。
 
 2026-08-30のstatus監査で、後続実装と実機記録が存在した古い`[Next]` 10件を`[Done]`へ更新した。
-現在のactionableな`[Next]`表記は8件、重複参照をまとめた実作業は4件である。いずれも外部環境または
-release資格情報を必要とする。
+従来の外部環境／release資格情報が必要な`[Next]`に加え、2026-09-11に数値形式互換層の
+descriptor・変換契約・CPU参照実装をローカルで進める優先項目として追加した。
 外部項目の最優先は大容量Apple SiliconでのQwen3.8-Flash-Next text-only qualificationと、専用runnerでの
 vLLM 0.28.x昇格試験である。
 設計判断は
@@ -779,6 +779,33 @@ vLLM-Metal対応とは見なさない。
 - `[Later]` topology-aware partitioning
 - `[Later]` node failure recovery
 
+## Cross-Cutting Track — Portable Numeric Formats / Streaming Conversion
+
+NVFP4など実行先が直接扱えない数値形式を、保存形式・runtime表現・演算／累積形式に分離する。
+NVFP4 → INT8を最初の候補としつつ、FP16/BF16展開、既存MLX量子化表現、直接fused演算を比較する。
+「INT8を格納できる」と「対象演算がINT8で高速に動く」は別capabilityとして判定する。
+仕様は[設計書 §42.1](Design-Specifications.md#421-portable-numeric-format-layer)に定義する。
+
+- `[Done]` versioned NumericFormatDescriptor／ConversionPlanの最小契約とNVFP4 1D・16要素blockのCPU参照decode／scale付きINT8変換（全16値・非負有限scale全127値の数値一致、小規模上限）
+- `[Next]` 複数adapter registry・tensor/scale digest binding・汎用shape/axis descriptorと既存backend consumerへの接続（CPU参照以外の実行kernelは未実装）
+- `[Later]` NVFP4 1D／2D block scale、scale layout・swizzle、tensor scale、packed nibble順序を識別するartifact adapter
+- `[Later]` MXFP4／MXFP6／MXFP8、FP8 E4M3／E5M2とvariant、FP16／BF16／FP32、signed/unsigned INT8／INT4／INT2の段階的対応
+- `[Later]` NF4／codebook量子化、groupwise affine、zero-point、double quantization、mixed precision、outlier/residual・sparse表現の拡張adapter
+- `[Later]` Safetensors／GGUF／MLX／Core ML artifactとGPTQ／AWQ／各exporterのmetadata・packing adapter（container、量子化recipe、演算形式を分離）
+- `[Later]` weights／activations／KV・recurrent state／MoE expert／vision・audio・diffusion tensorを同一契約で扱うeligibility matrix
+- `[Later]` CPU vectorized／MLX／Metalのdecode・repack・requantize・layout変換と、tile単位convert + GEMV/GEMM/attention融合
+- `[Later]` bounded tile/chunk streaming、double buffer、prefetch、同期barrier、cancel・失敗時cleanupとUnified Memory hard ceilingへの統合
+- `[Later]` load時変換／初回利用時変換／反復利用cache／毎回fused変換を比較するcost modelとprefill/decode別route選択
+- `[Later]` NVFP4 → scale付きINT8の表現保存経路と一般的な再量子化経路の比較、INT8演算・累積型・scale粒度の対応検証
+- `[Later]` source/scale/layout/kernel/environment digestに結合した変換cache、bounded LRU、単一変換共有、quarantine・rollback
+- `[Later]` chip／OS／toolchain／backend／operator／shape別capability probeとreference fallback、未知recipeは明示unsupported
+- `[Later]` scalar誤差・operator誤差・モデル品質とend-to-end速度／peak memory／帯域／energyを組み合わせたpromotion gate
+- `[Later]` CLI／Swift診断と英語・日本語・简体中文表示（source/runtime/compute形式、route、誤差budget、fallback理由）
+
+範囲は広く定義するが、形式名だけで対応済みとしない。adapterごとにinspect/decode/convert/execute/qualifiedを
+区別し、metadataと参照結果が確認できたvariantから順に有効化する。後半のCPU/GPU/ANE schedulerはこの層の
+変換・同期costをresource ledgerへ取り込み、複数deviceの並列変換／演算を最適化する。
+
 ## Late Phase — CPU / GPU / ANE Heterogeneous Scheduling
 
 AppleExecutionPlannerと既存のglobal schedulerを拡張し、CPU、GPU、ANEを個別backendではなく、
@@ -1118,6 +1145,7 @@ Unified Memoryとmemory bandwidthを共有する一つの実行系として管�
 169. `[Done]` preview未実装の独自Swift client向け既定実装と、HTTP認証route／Unixソケット取得の回帰テスト
 170. `[Done]` execution-plan-preview-v1 JSON Schemaと成功／生成不可の排他的契約、live応答・認証拒否の回帰検証
 171. `[Done]` Python planner生成の共通preview fixtureをSwift/Pythonで照合し、Swiftのplan ID長・backend・precision・decision reason検証をSchemaへ整合
+172. `[Done]` ローカルdaemonのexecution-plan-preview CLI（private token file、1 MiB応答上限、redirect/proxyなし、JSONと終了code）
 
 この順序により、まず推論runtimeの実model安定性を確立し、その境界を壊さずにoptimizerを
 別processとして追加する。構造pruningはquantization、calibration、評価gateの後に着手する。

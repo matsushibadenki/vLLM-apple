@@ -1545,6 +1545,78 @@ dequantize → GEMM/GEMV → bias → activation
 
 ---
 
+## 42.1 Portable Numeric Format Layer
+
+2026-09-11追加要件。NVFP4 → INT8などの変換を個々のmodel loaderへ埋め込まず、Apple Runtime IRと
+AppleExecutionPlannerが共有する数値形式互換層として設計する。この節の新規契約・kernelは計画段階である。
+
+### 抽象化の境界
+
+`NumericFormatDescriptor`はversion、encoding/variant、bit width、signedness、logical shape、physical strides、
+packing/nibble順序・endianness・padding、block/group shapeとaxis、scale型・shape・階層、zero-point、codebook、
+scale方向（scale/inverse scale）、swizzle/layout、特殊値・丸め・飽和規則を記録する。scale等はtensor参照とdigestで
+結合し、descriptorへweight全量を格納しない。回転・permutation・outlier/residual等の補助変換もrecipeに含める。
+
+artifact container reader、量子化recipe interpreter、数値変換adapter、演算backendを分離する。
+SafetensorsやGGUFというcontainer名、GPTQ/AWQというrecipe名を単一dtypeとして扱わない。
+registryは`inspect → reference_decode → convert → execute → qualified`の対応段階を公開し、各variant、
+operator、shape、weight/activation/state用途ごとの可否を示す。未知metadataを既知形式と推測しない。
+
+`ConversionPlan`はsource/runtime/compute/accumulator/output descriptor、変換route、scale処理、
+layout処理、tile/chunk、scratch上限、cache方針、reference、誤差budget、fallback、decision reasonをversion付きで
+固定する。演算側は`ConversionAdapter`のeligibility・memory estimate・convert tile・synchronize・release契約を使う。
+既存のStateMemorySpec、kernel probe、operator dispatcher、plan identityへ接続し、別のdevice選択器を作らない。
+
+### NVFP4を最初の具体例にする
+
+NVFP4ではE2M1値にblock scaleとglobal scaleを適用する。1Dの16要素blockと2Dの16×16 block、
+scaleの配置・padding・swizzle等はexporterのvariantに依存するため、明示metadataから復元する。
+参考：[NVIDIA Transformer Engine NVFP4仕様](https://docs.nvidia.com/deeplearning/transformer-engine-releases/release-2.15/user-guide/features/low_precision_training/nvfp4/nvfp4.html)。
+
+NVFP4 → INT8は単純castとして定義しない。まずpacked値とscaleを参照decodeし、次を候補として比較する。
+
+- E2M1の有限値を2倍した整数をINT8 payloadへ写し、block/global scaleへ1/2を反映する表現保存経路。
+  payloadの対応が正確でも、scale演算・累積・丸め・符号付きzeroまで同一とは限らない。block別scaleを扱える
+  consumerが必要であり、通常のper-channel INT8 kernelへそのまま渡せるとはみなさない。
+- 元の復元値をtargetのgroup/axisへ再量子化するINT8経路。scale粒度変更、clipping、丸めによる追加誤差を測定する。
+- FP16/BF16のtile展開、既存MLX量子化kernel向けrepack、packed sourceを直接読むfused decode + 演算経路。
+
+NVFP4由来の元々の量子化誤差と、変換で加わる誤差を別々に扱う。FP32参照値の保持は小規模fixtureに限定し、
+本番modelは全量FP32/FP16展開を必須にしない。INT8 payloadは4-bit payload比で概ね2倍になるので、
+scale・padding・scratch・cacheを含む実容量でadmission判定する。
+
+### 対応範囲と高速化
+
+FP4/FP6/FP8系、整数低bit系、浮動小数系、codebook系、block/group scaling、mixed precisionをdescriptorで
+表現可能にする。weights、activations、KV/recurrent state、MoE expert、multimodal encoder、diffusionを対象にし、
+動的activation scale更新やstate変換のタイミングも契約化する。training専用機構は推論artifactの解釈に必要な範囲を
+優先し、training全体の互換を暗黙に保証しない。
+
+変換はload時、初回利用時、tile/chunk逐次、演算内融合から選ぶ。prefill/decodeやexpert再利用率に応じて、
+read + unpack + scale + requantize + layout + synchronization + computeの合計costを測定する。
+CPU vectorization、MLX、Metal computeを順次実装し、成立するoperatorでは中間tensorの書戻しを省く。
+double bufferとprefetchはbuffer所有権・completion barrierで管理し、使用中arrayを解放／書換えしない。
+cancel、kernel failure、memory/thermal pressure時は新規prefetchを抑え、既存safe pointでrouteを切り替える。
+
+変換cacheは元artifactとscaleのdigest、descriptor、target/layout、kernel version、chip/OS/backendに結合する。
+再量子化済みtensorをさらに繰り返し量子化せず、常にimmutable sourceから生成する。重複変換を共有し、
+cache・scratch・prefetch枠はUnified Memoryの共通予算で制限する。長期保存はoptimizer artifactのprovenanceを継承する。
+
+native対応は固定表だけに依存しない。格納可能型、load/store、変換命令、算術、dot/matmul、accumulator型、
+operator/shape性能を個別probeする。Appleの公開APIに型が存在しても全chipで高速native演算できるとは判断しない。
+参考：[Apple MTLTensorDataType](https://developer.apple.com/documentation/metal/mtltensordatatype)。
+Core ML/ANEは公開APIで受理されるgraphと精度のみ対象とし、後半の異種schedulerへ変換・同期costを渡す。
+
+### 完了条件
+
+全bit pattern・zero・極値・scale異常・端数block・転置・swizzleをCPU参照で検証し、operatorの最大誤差／相対誤差／
+RMSE、モデルのperplexityまたはtask品質を比較する。exact repackとlossy requantizationは別routeとして記録する。
+cold load、warm reuse、prefill、decodeのTTFT/TPOT/throughput、変換時間、peak memory、帯域、energyを測定し、
+native/既存MLX/floating fallbackとのend-to-end比較で採用を決める。高速化を未計測で保証しない。
+最初の実装順はdescriptorとCPU参照 → NVFP4小規模変換 → 既存backend consumer → streaming/fused → 他形式拡張。
+
+---
+
 # 43. モデルフォーマット
 
 初期：

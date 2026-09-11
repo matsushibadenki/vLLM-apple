@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import http.client
 import json
 import math
 import sys
@@ -12,6 +13,7 @@ from .context import recommend_context
 from .daemon import serve
 from .diffusers_generative_readiness import inspect_diffusers_generative_readiness
 from .execution_profile import detect_apple_chip_profile, save_chip_profile
+from .execution_preview_client import fetch_execution_preview
 from .hardware import detect_hardware
 from .huggingface_metadata import HuggingFaceMetadataError, fetch_hugging_face_metadata
 from .generative_qualification import (
@@ -129,6 +131,10 @@ def build_parser() -> argparse.ArgumentParser:
     commands = parser.add_subparsers(dest="command", required=True)
 
     commands.add_parser("hardware", help="detect Apple hardware and memory")
+    preview = commands.add_parser("execution-plan-preview", help="read the local daemon's dry-run plan")
+    preview.add_argument("--url", default="http://127.0.0.1:8000")
+    preview.add_argument("--session-token-file", type=Path)
+    preview.add_argument("--timeout", type=float, default=5.0)
 
     artifact_admission = commands.add_parser(
         "artifact-admission", help="check memory and disk fit before downloading a model"
@@ -638,6 +644,15 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main(argv: list[str] | None = None) -> int:
     arguments = build_parser().parse_args(argv)
+    if arguments.command == "execution-plan-preview":
+        try:
+            token = _read_private_token(arguments.session_token_file) if arguments.session_token_file else None
+            result = fetch_execution_preview(arguments.url, session_token=token, timeout=arguments.timeout)
+        except (OSError, ValueError, http.client.HTTPException):
+            _json({"error_code": "execution_preview_failed"})
+            return 2
+        _json(result)
+        return 0 if result["available"] else 1
     if arguments.command == "hardware":
         _json(detect_hardware().to_dict())
         return 0

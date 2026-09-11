@@ -1,5 +1,13 @@
 # Development and CI
 
+## Numeric format reference conversion
+
+`numeric_formats.py`はNVFP4のcontiguous 1D・16要素block・low-nibble-first・非負E4M3FN scaleのみを
+参照実装する。最大65,536要素で、全modelの展開やnative kernel実行には使用しない。
+INT8 payloadはE2M1値の2倍を格納し、target descriptorに0.5倍率を記録して元scaleを保持する。
+負のzeroは整数zeroへ統一される。未対応layout、scale異常、payload不足、非zero paddingは拒否する。
+plan IDは変換条件のidentityでありtensor内容のdigestではない。汎用registry・content binding・高速consumerは後続実装。
+
 ## Reproducible setup
 
 control planeのruntimeはdependency-freeである。build backendと開発toolを完全version固定し、既定
@@ -67,6 +75,10 @@ Pythonの`RuntimeService.preview_execution_plan(chip)`は最新hardware状態と
 backend probeを行わない。planのcontextは設定済み上限以内に制限する。未設定の場合もHTTP 200で
 `model_spec_unavailable`／`chip_profile_unavailable`、計画拒否時は`planning_rejected`を返す。
 自動再計画・適用は後続実装とする。
+CLIでも`python3 -m vllm_apple execution-plan-preview --url http://127.0.0.1:8000`で取得できる。
+認証時は`--session-token-file`を指定する。終了codeは0が計画あり、1が生成不可、2が取得失敗。
+接続先はloopbackに限定し、proxy・redirectを使用しない。応答は1 MiB、socket timeoutは既定5秒、
+最大60秒とし、CLIは取得エラーの本文やtokenを出力しない。返却planは診断専用で自動適用しない。
 wire応答は`schemas/api/execution-plan-preview-v1.schema.json`で定義する。成功はreasonがnullかつ
 dry-run plan必須、生成不可は定義済みreasonかつplanがnullであり、両形態の混在は拒否する。
 推定peakとmemory ceilingの大小関係はJSON Schemaとは別にplannerとSwift SDKで検証する。
