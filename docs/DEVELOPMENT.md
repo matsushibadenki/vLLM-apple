@@ -128,6 +128,11 @@ runtime ABIの`load_numeric_streaming`とCLIの`numeric-runtime-load --tile-byte
 claim/consumeとrequest replay保護は通常の`load_numeric`と同じである。2026-09-12に1-byte socket tileと
 2-byte in-process tileでNVFP4→MLX F16常駐、precision digest、unload、artifact consumeを実機確認した。
 
+transportはrequestごとに`_SocketCancellationSignal`を渡し、tile取得時だけ`select`と`MSG_PEEK`でpeer切断を
+確認する。監視threadを作らず、後続frameのbyteを消費せず、readableでもdataが残る接続はcancelしない。
+切断またはsocket errorはcooperative cancellationとなり、stream buffer zeroizeとmemory reservation返却へ進む。
+別接続からの明示cancel commandと長時間job registryは未実装である。
+
 この段階ではartifact JSONのdecode時に全sourceをmaterializeし、MLX array生成にも全F32 sourceを使う。
 したがって、buffer ownershipとadmission/cancelの実行契約は成立しているが、全modelのpeak memory削減、
 非同期prefetch、native INT8 compute、file-backed incremental decodeの性能認定は未完了である。

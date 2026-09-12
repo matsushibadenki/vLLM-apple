@@ -802,7 +802,8 @@ NVFP4 → INT8を最初の候補としつつ、FP16/BF16展開、既存MLX量子
 - `[Done]` private bounded NVFP4 artifact（strict JSON・128 KiB・0600・owner・no-follow・digest/inode/size検証）、runtime `load_numeric`、MLX常駐/unloadまでのsocket実機end-to-end
 - `[Done]` numeric artifactのone-shot claim/consume/quarantine lifecycle、64 KiB以下の安全なsource reader、producer／socket client／MLX worker CLI（生成・load・status・unload・shutdown）
 - `[Done]` digest-bound bounded tile plan、最大2 bufferの明示lease・再利用時zeroize・cooperative cancel/cleanup、buffer/metadata/scratch/destination一括admission、runtime/CLI/MLX streaming load接続
-- `[Next]` file-backed artifactのincremental decodeでcaller所有の全source materializationを除去し、socket切断／明示cancelをstream cancellationへ伝播（native INT8演算kernelは未実装）
+- `[Done]` runtime socketのnon-consuming disconnect probeをstream safe pointへ伝播（監視threadなし、次command dataは消費しない）
+- `[Next]` file-backed artifactのincremental decodeでcaller所有の全source materializationを除去し、明示cancel commandを長時間streamへ伝播（native INT8演算kernelは未実装）
 - `[Later]` NVFP4 1D／2D block scale、scale layout・swizzle、tensor scale、packed nibble順序を識別するartifact adapter
 - `[Later]` MXFP4／MXFP6／MXFP8、FP8 E4M3／E5M2とvariant、FP16／BF16／FP32、signed/unsigned INT8／INT4／INT2の段階的対応
 - `[Later]` NF4／codebook量子化、groupwise affine、zero-point、double quantization、mixed precision、outlier/residual・sparse表現の拡張adapter

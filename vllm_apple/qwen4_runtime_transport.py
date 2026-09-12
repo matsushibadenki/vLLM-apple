@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import math
 import os
+import select
 import socket
 import stat
 import struct
@@ -12,6 +13,28 @@ from .qwen4_runtime_protocol import MAX_RUNTIME_MESSAGE_BYTES, Qwen4RuntimeComma
 
 
 MAX_COMMANDS_PER_CONNECTION = 1024
+
+
+class _SocketCancellationSignal:
+    """Non-consuming disconnect probe evaluated only at backend safe points."""
+
+    def __init__(self, connection: socket.socket) -> None:
+        self.connection = connection
+
+    def is_set(self) -> bool:
+        try:
+            readable, _, exceptional = select.select(
+                [self.connection], [], [self.connection], 0)
+            if exceptional:
+                return True
+            if not readable:
+                return False
+            flags = socket.MSG_PEEK | getattr(socket, "MSG_DONTWAIT", 0)
+            return self.connection.recv(1, flags) == b""
+        except BlockingIOError:
+            return False
+        except OSError:
+            return True
 
 
 def _unique_object(pairs: list[tuple[str, object]]) -> dict[str, object]:
@@ -138,7 +161,8 @@ class Qwen4RuntimeUnixServer:
                 request = receive_qwen4_runtime_frame(connection)
             except EOFError:
                 return
-            response = self.service.handle(request)
+            response = self.service.handle(
+                request, cancellation=_SocketCancellationSignal(connection))
             send_qwen4_runtime_frame(connection, response)
             if request.get("operation") == "shutdown" and response.get("passed") is True:
                 return

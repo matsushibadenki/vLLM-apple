@@ -36,7 +36,9 @@ class FakeStore:
     ):
         self.loads += 1
         self.last_numeric_stream = (
-            tensor, stream_plan, target_dtype, execution_contract, component, scratch_bytes)
+            tensor, stream_plan, target_dtype, execution_contract, component, scratch_bytes,
+            cancellation,
+        )
         handle = f"{self.loads:032x}"
         self.handles.add(handle)
         return handle
@@ -147,7 +149,8 @@ class Qwen4RuntimeProtocolTests(unittest.TestCase):
             buffer_count=2,
             scratch_bytes=7,
         )
-        first = service.handle(request)
+        cancellation = SimpleNamespace(is_set=lambda: False)
+        first = service.handle(request, cancellation=cancellation)
         self.assertTrue(first["passed"])
         self.assertEqual(first["result"]["artifact_state"], "consumed")
         self.assertEqual(service.handle(dict(request)), first)
@@ -155,6 +158,7 @@ class Qwen4RuntimeProtocolTests(unittest.TestCase):
         stream_plan = store.last_numeric_stream[1]
         self.assertEqual(stream_plan.tile_bytes, 1)
         self.assertEqual(stream_plan.active_buffer_count, 1)
+        self.assertIs(store.last_numeric_stream[-1], cancellation)
         for change in (
             {"tile_bytes": 0}, {"tile_bytes": True}, {"buffer_count": 3},
             {"buffer_count": True}, {"extra": 1},

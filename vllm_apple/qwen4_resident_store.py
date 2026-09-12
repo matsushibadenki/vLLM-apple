@@ -15,7 +15,11 @@ from .qwen4_conversion_protocol import _DTYPE_BYTES, _digest
 from .qwen4_tensor_reader import Qwen4TensorReader
 from .numeric_formats import ScaledInt8Tensor
 from .numeric_precision import PrecisionExecutionContract
-from .numeric_streaming import NumericDoubleBufferStream, NumericStreamingPlan
+from .numeric_streaming import (
+    NumericCancellationSignal,
+    NumericDoubleBufferStream,
+    NumericStreamingPlan,
+)
 
 
 MAX_RESIDENT_TENSORS = 4096
@@ -298,7 +302,7 @@ class Qwen4ResidentStore:
         execution_contract: PrecisionExecutionContract,
         component: str = "numeric_compatibility",
         scratch_bytes: int = 0,
-        cancellation: threading.Event | None = None,
+        cancellation: NumericCancellationSignal | None = None,
     ) -> str:
         """Admit an explicitly leased double-buffer stream into a resident backend."""
         with self._lock:

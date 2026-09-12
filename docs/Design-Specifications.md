@@ -1615,6 +1615,8 @@ canonical IDへ結合する。`NumericDoubleBufferStream`は各slotをgeneration
 cleanup自身がtile大の追加allocationを作らない。read-only viewはlease期間内だけ有効で、release後はzero化される。
 memory admissionはtile buffer、metadata、変換scratch、destinationを同時予約し、成功後だけdestinationへ縮小する。
 backend allocation evidenceはstream plan IDへ結合し、通常loadへのstreaming metadata混入も拒否する。
+runtime transportは各tile safe pointでsocketをnon-consuming peekし、peer切断時だけ同じcancellation signalを
+streamへ伝える。次commandが既に届いていても内容を消費せずcancelとは扱わない。
 現段階のbridgeはcaller所有の全`ScaledInt8Tensor`とMLX用F32 sourceをまだ保持するため、全modelのpeak memory削減や
 真のI/O overlapを主張しない。次段階でartifact readerからtileを直接供給し、socket cancellationをsafe pointへ接続する。
 

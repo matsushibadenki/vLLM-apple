@@ -10,7 +10,11 @@ from typing import Protocol
 from .numeric_artifact import NumericArtifactReader
 from .numeric_formats import ScaledInt8Tensor
 from .numeric_precision import PrecisionExecutionContract
-from .numeric_streaming import MAX_NUMERIC_TILE_BYTES, NumericStreamingPlan
+from .numeric_streaming import (
+    MAX_NUMERIC_TILE_BYTES,
+    NumericCancellationSignal,
+    NumericStreamingPlan,
+)
 
 
 QWEN4_RUNTIME_ABI_VERSION = 1
@@ -52,7 +56,7 @@ class Qwen4RuntimeStore(Protocol):
         execution_contract: PrecisionExecutionContract,
         component: str = "numeric_compatibility",
         scratch_bytes: int = 0,
-        cancellation: threading.Event | None = None,
+        cancellation: NumericCancellationSignal | None = None,
     ) -> str: ...
 
     def unload(self, handle: str) -> None: ...
@@ -312,7 +316,12 @@ class Qwen4RuntimeCommandService:
         with self._lock:
             return self._closed
 
-    def handle(self, payload: object) -> dict[str, object]:
+    def handle(
+        self,
+        payload: object,
+        *,
+        cancellation: NumericCancellationSignal | None = None,
+    ) -> dict[str, object]:
         request = parse_qwen4_runtime_request(payload)
         canonical = json.dumps(request, sort_keys=True, separators=(",", ":")).encode()
         with self._lock:
@@ -329,7 +338,7 @@ class Qwen4RuntimeCommandService:
             if self._closed:
                 raise ValueError("Qwen4 runtime session is closed")
             try:
-                result = self._execute(request)
+                result = self._execute(request, cancellation=cancellation)
                 passed = True
                 error_code = None
             except MemoryError:
@@ -354,7 +363,12 @@ class Qwen4RuntimeCommandService:
                 self._cache.popitem(last=False)
             return dict(response)
 
-    def _execute(self, request: dict[str, object]) -> dict[str, object]:
+    def _execute(
+        self,
+        request: dict[str, object],
+        *,
+        cancellation: NumericCancellationSignal | None,
+    ) -> dict[str, object]:
         operation = request["operation"]
         if operation == "load":
             slice_value = request["axis0_slice"]
@@ -392,6 +406,7 @@ class Qwen4RuntimeCommandService:
                     target_dtype=request["target_dtype"],
                     execution_contract=loaded.execution_contract,
                     scratch_bytes=request["scratch_bytes"],
+                    cancellation=cancellation,
                 )
             else:
                 handle = self.store.load_scaled_int8(

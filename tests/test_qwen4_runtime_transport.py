@@ -9,6 +9,7 @@ from tests import test_qwen4_runtime_protocol as protocol_tests
 from vllm_apple.qwen4_runtime_protocol import Qwen4RuntimeCommandService
 from vllm_apple.qwen4_runtime_transport import (
     Qwen4RuntimeUnixServer,
+    _SocketCancellationSignal,
     receive_qwen4_runtime_frame,
     send_qwen4_runtime_frame,
 )
@@ -91,6 +92,19 @@ class Qwen4RuntimeTransportTests(unittest.TestCase):
                 receive_qwen4_runtime_frame(server_socket)
         finally:
             client_socket.close()
+            server_socket.close()
+
+    def test_socket_cancellation_signal_detects_disconnect_without_consuming_data(self) -> None:
+        server_socket, client_socket = socket.socketpair()
+        try:
+            signal = _SocketCancellationSignal(server_socket)
+            self.assertFalse(signal.is_set())
+            client_socket.sendall(b"next")
+            self.assertFalse(signal.is_set())
+            self.assertEqual(server_socket.recv(4), b"next")
+            client_socket.close()
+            self.assertTrue(signal.is_set())
+        finally:
             server_socket.close()
 
 

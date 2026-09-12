@@ -6,6 +6,7 @@ import json
 import math
 import threading
 from dataclasses import asdict, dataclass
+from typing import Protocol
 
 
 MAX_NUMERIC_TILE_BYTES = 8 * 1024 * 1024
@@ -21,6 +22,10 @@ def _zero_buffer(buffer: bytearray) -> None:
 
 class NumericStreamingCancelled(RuntimeError):
     pass
+
+
+class NumericCancellationSignal(Protocol):
+    def is_set(self) -> bool: ...
 
 
 @dataclass(frozen=True, slots=True)
@@ -111,7 +116,7 @@ class NumericDoubleBufferStream:
         plan: NumericStreamingPlan,
         source: bytes,
         *,
-        cancellation: threading.Event | None = None,
+        cancellation: NumericCancellationSignal | None = None,
     ) -> None:
         if not isinstance(plan, NumericStreamingPlan) or not isinstance(source, bytes):
             raise ValueError("numeric stream inputs are invalid")
@@ -119,7 +124,7 @@ class NumericDoubleBufferStream:
             raise ValueError("numeric stream source size mismatch")
         if hashlib.sha256(source).hexdigest() != plan.source_digest:
             raise ValueError("numeric stream source digest mismatch")
-        if cancellation is not None and not isinstance(cancellation, threading.Event):
+        if cancellation is not None and not callable(getattr(cancellation, "is_set", None)):
             raise ValueError("numeric stream cancellation signal is invalid")
         self.plan = plan
         self._source = source
