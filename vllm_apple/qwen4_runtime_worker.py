@@ -14,6 +14,7 @@ from .qwen4_runtime_protocol import (
 )
 from .qwen4_runtime_transport import Qwen4RuntimeUnixServer
 from .qwen4_tensor_reader import Qwen4TensorReader
+from .numeric_artifact import NumericArtifactReader
 
 
 class Qwen4RuntimeWorker:
@@ -28,6 +29,7 @@ class Qwen4RuntimeWorker:
         backend: Qwen4ResidentBackend,
         requested_modes: tuple[str, ...] = ("text",),
         component_limits: dict[str, int] | None = None,
+        numeric_artifact_root: str | Path | None = None,
     ) -> None:
         self.session_id = create_qwen4_runtime_session_id()
         self.session_file = Path(session_file).expanduser().resolve(strict=False)
@@ -43,7 +45,11 @@ class Qwen4RuntimeWorker:
             component_limits=component_limits,
         )
         self.store = Qwen4ResidentStore(reader, admission, backend)
-        self.service = Qwen4RuntimeCommandService(self.session_id, self.store)
+        numeric_reader = (
+            None if numeric_artifact_root is None else NumericArtifactReader(numeric_artifact_root)
+        )
+        self.service = Qwen4RuntimeCommandService(
+            self.session_id, self.store, numeric_artifact_reader=numeric_reader)
         self.server = Qwen4RuntimeUnixServer(socket_path, self.service)
 
     def start(self) -> None:

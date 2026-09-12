@@ -798,7 +798,9 @@ NVFP4 → INT8を最初の候補としつつ、FP16/BF16展開、既存MLX量子
 - `[Done]` version付きprecision policy/実行契約のstrict roundtrip・canonical ID、tensor digest/dtype/policy/bridge結合とMLX correctness呼び出し時の照合
 - `[Done]` 変換evidenceへのprecision checked状態・contract/policy IDとbounded診断出力（tensor名・値・元digest・閾値は非保存、不完全evidence拒否）
 - `[Done]` in-process resident storeのscale付きINT8 load境界、precision契約照合、source/F32 bridge scratch/destination一括admission、unload/quarantine lifecycle統合
-- `[Next]` concrete MLX resident backendとisolated runtime protocolへのnumeric artifact受け渡し（native INT8演算kernelは未実装）
+- `[Done]` concrete MLX numeric resident backend：F32復元・policy参照bit/digest照合・F16/BF16/F32常駐resource・明示解放、実機end-to-end検証
+- `[Done]` private bounded NVFP4 artifact（strict JSON・128 KiB・0600・owner・no-follow・digest/inode/size検証）、runtime `load_numeric`、MLX常駐/unloadまでのsocket実機end-to-end
+- `[Next]` numeric artifactの成功後one-shot consume/quarantineとproducer/client CLI（native INT8演算kernelは未実装）
 - `[Later]` NVFP4 1D／2D block scale、scale layout・swizzle、tensor scale、packed nibble順序を識別するartifact adapter
 - `[Later]` MXFP4／MXFP6／MXFP8、FP8 E4M3／E5M2とvariant、FP16／BF16／FP32、signed/unsigned INT8／INT4／INT2の段階的対応
 - `[Later]` NF4／codebook量子化、groupwise affine、zero-point、double quantization、mixed precision、outlier/residual・sparse表現の拡張adapter

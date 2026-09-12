@@ -6,11 +6,15 @@ import threading
 from collections import OrderedDict
 from typing import Protocol
 
+from .numeric_artifact import NumericArtifactReader
+from .numeric_formats import ScaledInt8Tensor
+from .numeric_precision import PrecisionExecutionContract
+
 
 QWEN4_RUNTIME_ABI_VERSION = 1
 MAX_RUNTIME_MESSAGE_BYTES = 16 * 1024
 MAX_CACHED_RESPONSES = 256
-_OPERATIONS = {"load", "unload", "status", "retry_quarantine", "shutdown"}
+_OPERATIONS = {"load", "load_numeric", "unload", "status", "retry_quarantine", "shutdown"}
 _DTYPES = {"BF16", "F16", "F32"}
 
 
@@ -22,6 +26,16 @@ class Qwen4RuntimeStore(Protocol):
         target_dtype: str,
         scratch_bytes: int = 0,
         axis0_slice: tuple[int, int] | None = None,
+    ) -> str: ...
+
+    def load_scaled_int8(
+        self,
+        tensor: ScaledInt8Tensor,
+        *,
+        target_dtype: str,
+        execution_contract: PrecisionExecutionContract,
+        component: str = "numeric_compatibility",
+        scratch_bytes: int = 0,
     ) -> str: ...
 
     def unload(self, handle: str) -> None: ...
@@ -45,6 +59,32 @@ def _identifier(value: object) -> bool:
     )
 
 
+def _sha256(value: object) -> bool:
+    return (
+        isinstance(value, str)
+        and len(value) == 64
+        and all(character in "0123456789abcdef" for character in value)
+    )
+
+
+def build_qwen4_numeric_runtime_request(
+    *, session_id: str, sequence: int, request_id: str, artifact_name: str,
+    artifact_digest: str, target_dtype: str, scratch_bytes: int = 0,
+) -> dict[str, object]:
+    payload = {
+        "abi_version": QWEN4_RUNTIME_ABI_VERSION,
+        "session_id": session_id,
+        "sequence": sequence,
+        "request_id": request_id,
+        "operation": "load_numeric",
+        "artifact_name": artifact_name,
+        "artifact_digest": artifact_digest,
+        "target_dtype": target_dtype,
+        "scratch_bytes": scratch_bytes,
+    }
+    return parse_qwen4_runtime_request(payload)
+
+
 def parse_qwen4_runtime_request(payload: object) -> dict[str, object]:
     common = {"abi_version", "session_id", "sequence", "request_id", "operation"}
     if not isinstance(payload, dict) or not common.issubset(payload):
@@ -52,6 +92,9 @@ def parse_qwen4_runtime_request(payload: object) -> dict[str, object]:
     operation = payload["operation"]
     fields = {
         "load": common | {"tensor_name", "target_dtype", "scratch_bytes", "axis0_slice"},
+        "load_numeric": common | {
+            "artifact_name", "artifact_digest", "target_dtype", "scratch_bytes"
+        },
         "unload": common | {"handle"},
         "status": common,
         "retry_quarantine": common,
@@ -94,6 +137,23 @@ def parse_qwen4_runtime_request(payload: object) -> dict[str, object]:
             or axis0_slice["count"] <= 0
         ):
             raise ValueError("Qwen4 runtime load slice is invalid")
+    elif operation == "load_numeric":
+        artifact_name = payload["artifact_name"]
+        scratch = payload["scratch_bytes"]
+        if (
+            not isinstance(artifact_name, str)
+            or not 1 <= len(artifact_name) <= 128
+            or artifact_name.startswith(".")
+            or not artifact_name.endswith(".json")
+            or any(not character.isascii()
+                   or not (character.isalnum() or character in "-_.")
+                   for character in artifact_name)
+            or not _sha256(payload["artifact_digest"])
+            or payload["target_dtype"] not in _DTYPES
+            or type(scratch) is not int
+            or scratch < 0
+        ):
+            raise ValueError("Qwen4 runtime numeric load request is invalid")
     elif operation == "unload" and not _identifier(payload["handle"]):
         raise ValueError("Qwen4 runtime unload handle is invalid")
     encoded = json.dumps(payload, sort_keys=True, separators=(",", ":")).encode()
@@ -138,6 +198,12 @@ def parse_qwen4_runtime_response(payload: object) -> dict[str, object]:
     operation = payload["operation"]
     if operation == "load" and (set(result) != {"handle"} or not _identifier(result["handle"])):
         raise ValueError("Qwen4 runtime load response is invalid")
+    if operation == "load_numeric" and (
+        set(result) != {"handle", "artifact_state"}
+        or not _identifier(result["handle"])
+        or result["artifact_state"] not in {"consumed", "quarantined"}
+    ):
+        raise ValueError("Qwen4 runtime numeric load response is invalid")
     if operation == "unload" and result != {"unloaded": True}:
         raise ValueError("Qwen4 runtime unload response is invalid")
     if operation == "retry_quarantine" and (
@@ -176,11 +242,17 @@ def parse_qwen4_runtime_response(payload: object) -> dict[str, object]:
 
 
 class Qwen4RuntimeCommandService:
-    def __init__(self, session_id: str, store: Qwen4RuntimeStore) -> None:
+    def __init__(
+        self,
+        session_id: str,
+        store: Qwen4RuntimeStore,
+        numeric_artifact_reader: NumericArtifactReader | None = None,
+    ) -> None:
         if not _identifier(session_id):
             raise ValueError("Qwen4 runtime session ID is invalid")
         self.session_id = session_id
         self.store = store
+        self.numeric_artifact_reader = numeric_artifact_reader
         self._lock = threading.Lock()
         self._last_sequence = 0
         self._closed = False
@@ -251,6 +323,27 @@ class Qwen4RuntimeCommandService:
             if not _identifier(handle):
                 raise ValueError("Qwen4 runtime store returned an invalid handle")
             return {"handle": handle}
+        if operation == "load_numeric":
+            if self.numeric_artifact_reader is None:
+                raise ValueError("Qwen4 runtime numeric artifact loading is disabled")
+            loaded = self.numeric_artifact_reader.claim(
+                request["artifact_name"], request["artifact_digest"])
+            if loaded.execution_contract.target_dtype != request["target_dtype"]:
+                raise ValueError("Qwen4 runtime numeric target dtype mismatch")
+            handle = self.store.load_scaled_int8(
+                loaded.tensor,
+                target_dtype=request["target_dtype"],
+                execution_contract=loaded.execution_contract,
+                scratch_bytes=request["scratch_bytes"],
+            )
+            if not _identifier(handle):
+                raise ValueError("Qwen4 runtime store returned an invalid numeric handle")
+            artifact_state = "consumed"
+            try:
+                self.numeric_artifact_reader.consume(loaded)
+            except (OSError, ValueError):
+                artifact_state = "quarantined"
+            return {"handle": handle, "artifact_state": artifact_state}
         if operation == "unload":
             self.store.unload(request["handle"])
             return {"unloaded": True}

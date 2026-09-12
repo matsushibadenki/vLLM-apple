@@ -79,7 +79,37 @@ shape・byte数・digest・precision evidenceが一致した場合だけdestinat
 失敗時はresourceを解放し、解放にも失敗した場合は既存quarantineへ移す。
 通常tensorのbackend evidenceにprecision metadataが混入した場合も拒否する。
 store snapshotはtensor名・digest・契約IDを公開せず、component別件数とmemoryのみを維持する。
-現段階はin-process backend ABIまでで、実MLX常駐backendとsocket越しのnumeric artifact搬送は未実装。
+このin-process入口は後述のprivate numeric artifactと`load_numeric` commandから利用する。
+
+`Qwen4MLXNumericResidentBackend`はscale付きINT8専用のconcrete backendで、通常tensor loadは拒否する。
+入力をF32へ逐次復元し、precision policyのtarget bit列を同時生成する。MLXでF16/BF16/F32へ変換後、
+非有限bitを拒否し、shape・byte数と参照digestの一致を確認してから`MLXResidentTensorResource`を返す。
+メモリadmissionはsource、F32 source、destination、digest用target-bit copyを含む。
+resourceの`release()`はMLX arrayへの所有参照を切り、二重解放と異種resourceを拒否する。
+2026-09-12に2×3 NVFP4 fixtureで3 dtypeのstore load→値確認→destinationのみ常駐→unloadを
+MLX 0.31.2実機で確認した。厳密policy違反時に予約が残らないことも確認した。
+native scaled-INT8演算は未実装。
+
+### Private numeric artifact transport
+
+`write_nvfp4_numeric_artifact()`は元のpacked NVFP4、block scale、descriptor、geometry、
+global scale、source/target digest、precision execution contractを1つのJSONへ保存する。
+変換済みpayloadだけを信頼境界の外から渡さず、runtime側でNVFP4→scale付きINT8を再実行する。
+artifactはtensor値を含むため`stores_tensor_values=true`を明示する。
+
+保存先は現在user所有の0700 directory直下、ASCII安全名かつ`.json`、新規fileだけを許可する。
+0600のtemporary fileへ書いてfsync後にhard linkで排他的に公開し、上限は128 KiB。
+`NumericArtifactReader`は設定済みroot直下の名前だけを受け、`O_NOFOLLOW`、owner/mode、通常file、
+size上限、read前後のinode/size、requestのSHA-256を検証する。strict JSONは重複・未知・欠落fieldを拒否し、
+元入力からsource/target digestとprecision contractを再構築する。digestは署名や出自の証明ではない。
+
+runtime ABI v1の追加operation `load_numeric`はartifact名、artifact SHA-256、target dtype、追加scratchを
+16 KiB以下のlocal socket frameで送る。絶対pathやtensor値はframeに含めない。
+`Qwen4RuntimeWorker(..., numeric_artifact_root=...)`を明示した場合だけ有効で、peer UID、session、
+連続sequence、request ID、再送cacheの既存保護を継承する。dtypeとartifact内contractを照合してから
+resident storeへ渡す。成功responseはopaque handleだけで、通常の`unload`/`shutdown`を使用する。
+2026-09-12にprivate artifact→socket→再変換→MLX F16常駐→unloadを実機確認した。
+artifactは現在read-onlyで自動削除されないため、producer側で安全なlifecycle管理が必要。
 
 ## Reproducible setup
 

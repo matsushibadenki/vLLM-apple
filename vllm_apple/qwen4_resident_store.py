@@ -220,8 +220,10 @@ class Qwen4ResidentStore:
             geometry = tensor.geometry
             shape = list(geometry.shape if geometry is not None else (len(tensor.payload),))
             source_bytes = len(tensor.payload) + len(tensor.block_scales)
-            # The declared bridge always materializes one F32 value per element.
-            bridge_scratch = len(tensor.payload) * 4
+            # The declared bridge materializes F32 source values and a target-bit
+            # copy for digest verification before retaining the backend resource.
+            destination_bytes = len(tensor.payload) * _DTYPE_BYTES[target_dtype]
+            bridge_scratch = len(tensor.payload) * 4 + destination_bytes
             reservation = self.admission.reserve(
                 f"numeric:{tensor.target_digest}",
                 {"component": component, "shape": shape},

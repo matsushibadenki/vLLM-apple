@@ -1548,7 +1548,11 @@ dequantize → GEMM/GEMV → bias → activation
 ## 42.1 Portable Numeric Format Layer
 
 2026-09-11追加要件。NVFP4 → INT8などの変換を個々のmodel loaderへ埋め込まず、Apple Runtime IRと
-AppleExecutionPlannerが共有する数値形式互換層として設計する。この節の新規契約・kernelは計画段階である。
+AppleExecutionPlannerが共有する数値形式互換層として設計する。以下の全体像には計画中の契約・kernelも含む。
+2026-09-12時点では、bounded CPU参照変換、単一scale軸geometry、precision契約、MLX correctness bridge、
+in-process resident storeとMLX F16/BF16/F32常駐backendまでを小規模tensorで実装・検証済みである。
+private bounded artifactを使うlocal socket搬送とMLX常駐まで実装済みである。
+native INT8演算、artifactの自動consume、streaming/fused変換、他形式は未実装である。
 
 ### 抽象化の境界
 

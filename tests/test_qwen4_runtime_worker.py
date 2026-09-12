@@ -11,7 +11,7 @@ from vllm_apple.qwen4_shard_stager import stage_qwen4_shards
 
 
 class Qwen4RuntimeWorkerTests(unittest.TestCase):
-    def worker(self, root: Path) -> Qwen4RuntimeWorker:
+    def worker(self, root: Path, *, numeric_artifact_root: Path | None = None) -> Qwen4RuntimeWorker:
         source = loader_tests.Qwen4AdapterLoaderTests().source(root)
         stage = root / "stage"
         stage_qwen4_shards(source, stage, maximum_output_bytes=65536)
@@ -24,6 +24,7 @@ class Qwen4RuntimeWorkerTests(unittest.TestCase):
             maximum_artifact_bytes=65536,
             memory_capacity_bytes=32,
             backend=resident_tests.FakeResidentBackend(),
+            numeric_artifact_root=numeric_artifact_root,
         )
 
     def test_composes_verified_store_and_private_session_credential(self) -> None:
@@ -51,6 +52,19 @@ class Qwen4RuntimeWorkerTests(unittest.TestCase):
             with patch.object(worker.server, "close"):
                 worker.close()
             self.assertEqual(worker.session_file.read_text(), "replacement")
+
+    def test_composes_optional_private_numeric_artifact_reader(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            numeric = root / "numeric"
+            numeric.mkdir(mode=0o700)
+            worker = self.worker(root, numeric_artifact_root=numeric)
+            self.assertEqual(worker.service.numeric_artifact_reader.root, numeric.resolve())
+            numeric.chmod(0o755)
+            other = root / "other"
+            other.mkdir()
+            with self.assertRaisesRegex(ValueError, "private"):
+                self.worker(other, numeric_artifact_root=numeric)
 
     @staticmethod
     def _status(worker: Qwen4RuntimeWorker, sequence: int) -> dict[str, object]:
