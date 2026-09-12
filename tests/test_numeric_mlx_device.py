@@ -6,7 +6,7 @@ import unittest
 
 from vllm_apple.numeric_formats import NumericFormatDescriptor, TensorGeometry, convert_nvfp4_to_int8
 from vllm_apple.qwen4_mlx_conversion_worker import Qwen4MLXCorrectnessConverter
-from vllm_apple.numeric_precision import NumericPrecisionPolicy
+from vllm_apple.numeric_precision import NumericPrecisionPolicy, PrecisionExecutionContract
 
 
 @unittest.skipUnless(os.environ.get("VLLM_APPLE_TEST_MLX_NUMERIC") == "1", "opt-in MLX device test")
@@ -83,7 +83,9 @@ class NumericMLXDeviceTests(unittest.TestCase):
                                        for v in expected)
                         evidence = converter.convert_scaled_int8(tensor, target_dtype=dtype,
                                                                  reserved_bytes=4096,
-                                                                 precision_policy=NumericPrecisionPolicy())
+                                                                 execution_contract=PrecisionExecutionContract(
+                                                                     tensor.target_digest, dtype,
+                                                                     NumericPrecisionPolicy()))
                         self.assertEqual(evidence.backend, "mlx")
                         self.assertEqual(evidence.output_shape, shape)
                         self.assertEqual(evidence.output_bytes, len(raw))

@@ -7,6 +7,8 @@ from pathlib import Path
 from tests import test_qwen4_adapter_loader as loader_tests
 from vllm_apple.qwen4_component_loader import Qwen4MemoryAdmission
 from vllm_apple.qwen4_resident_store import Qwen4ResidentStore, ResidentBackendAllocation
+from vllm_apple.numeric_formats import NumericFormatDescriptor, TensorGeometry, convert_nvfp4_to_int8
+from vllm_apple.numeric_precision import NumericPrecisionPolicy, PrecisionExecutionContract
 from vllm_apple.qwen4_shard_stager import stage_qwen4_shards
 from vllm_apple.qwen4_tensor_reader import Qwen4TensorReader
 
@@ -30,6 +32,23 @@ class FakeResidentBackend:
             output_digest=hashlib.sha256(raw).hexdigest(),
         )
 
+    def load_scaled_int8(self, tensor, *, target_dtype, execution_contract, reserved_bytes):
+        resource = object()
+        self.resources.append(resource)
+        shape = tensor.geometry.shape if tensor.geometry is not None else (len(tensor.payload),)
+        output_bytes = len(tensor.payload) * {"BF16": 2, "F16": 2, "F32": 4}[target_dtype]
+        return ResidentBackendAllocation(
+            resource=resource,
+            backend="test",
+            backend_version="1",
+            output_shape=shape,
+            output_bytes=0 if self.invalid_evidence else output_bytes,
+            output_digest=hashlib.sha256(tensor.payload).hexdigest(),
+            precision_contract_id=execution_contract.contract_id,
+            precision_policy_id=execution_contract.policy.policy_id,
+            precision_checked=True,
+        )
+
     def release(self, resource):
         if self.fail_release:
             raise RuntimeError("release failed")
@@ -37,6 +56,49 @@ class FakeResidentBackend:
 
 
 class Qwen4ResidentStoreTests(unittest.TestCase):
+    @staticmethod
+    def numeric_tensor():
+        return convert_nvfp4_to_int8(
+            NumericFormatDescriptor("nvfp4_e2m1", 3), bytes([0x22, 2]),
+            bytes([56, 64, 72]), 1, geometry=TensorGeometry((3, 1), 1),
+        )
+
+    def test_scaled_int8_residency_retains_only_destination(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            backend = FakeResidentBackend()
+            store, _ = self.fixture(Path(directory), backend)
+            tensor = self.numeric_tensor()
+            contract = PrecisionExecutionContract(
+                tensor.target_digest, "F16", NumericPrecisionPolicy())
+            handle = store.load_scaled_int8(
+                tensor, target_dtype="F16", execution_contract=contract)
+            snapshot = store.snapshot()
+            self.assertEqual(snapshot["memory"]["reserved_bytes"], 6)
+            self.assertEqual(snapshot["resident_components"], {"numeric_compatibility": 1})
+            store.unload(handle)
+            self.assertEqual(store.snapshot()["memory"]["reserved_bytes"], 0)
+            self.assertEqual(backend.resources, [])
+
+    def test_scaled_int8_rejects_mismatch_and_invalid_backend_evidence(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            backend = FakeResidentBackend()
+            store, _ = self.fixture(Path(directory), backend)
+            tensor = self.numeric_tensor()
+            contract = PrecisionExecutionContract(
+                tensor.target_digest, "F16", NumericPrecisionPolicy())
+            for bad in (
+                PrecisionExecutionContract("0" * 64, "F16", contract.policy),
+                PrecisionExecutionContract(tensor.target_digest, "F32", contract.policy),
+            ):
+                with self.assertRaisesRegex(ValueError, "mismatch"):
+                    store.load_scaled_int8(tensor, target_dtype="F16", execution_contract=bad)
+            self.assertEqual(store.snapshot()["memory"]["reserved_bytes"], 0)
+            backend.invalid_evidence = True
+            with self.assertRaisesRegex(ValueError, "evidence"):
+                store.load_scaled_int8(tensor, target_dtype="F16", execution_contract=contract)
+            self.assertEqual(store.snapshot()["memory"]["reserved_bytes"], 0)
+            self.assertEqual(backend.resources, [])
+
     def fixture(self, root: Path, backend: FakeResidentBackend):
         source = loader_tests.Qwen4AdapterLoaderTests().source(root)
         output = root / "output"

@@ -11,7 +11,7 @@ from collections.abc import Iterable
 from .qwen4_conversion_protocol import MAX_CONVERSION_REQUEST_BYTES
 from .qwen4_conversion_worker import ConvertedTensorEvidence, execute_qwen4_conversion_request
 from .numeric_formats import ScaledInt8Tensor, _scale
-from .numeric_precision import NumericPrecisionPolicy
+from .numeric_precision import NumericPrecisionPolicy, PrecisionExecutionContract
 
 
 MAX_CORRECTNESS_TENSOR_BYTES = 16 * 1024 * 1024
@@ -24,6 +24,7 @@ class Qwen4MLXCorrectnessConverter:
     def convert_scaled_int8(
         self, tensor: ScaledInt8Tensor, *, target_dtype: str, reserved_bytes: int,
         precision_policy: NumericPrecisionPolicy | None = None,
+        execution_contract: PrecisionExecutionContract | None = None,
     ) -> ConvertedTensorEvidence:
         """CPU reference dequantization into the existing MLX correctness path.
 
@@ -32,6 +33,13 @@ class Qwen4MLXCorrectnessConverter:
         """
         if not isinstance(tensor, ScaledInt8Tensor):
             raise ValueError("expected validated scaled INT8 tensor")
+        if execution_contract is not None:
+            if (not isinstance(execution_contract, PrecisionExecutionContract)
+                    or execution_contract.tensor_digest != tensor.target_digest
+                    or execution_contract.target_dtype != target_dtype
+                    or (precision_policy is not None and precision_policy != execution_contract.policy)):
+                raise ValueError("precision execution contract mismatch")
+            precision_policy = execution_contract.policy
         if precision_policy is not None and not isinstance(precision_policy, NumericPrecisionPolicy):
             raise ValueError("invalid precision policy")
         if target_dtype not in _DTYPE_BYTES:
@@ -67,7 +75,15 @@ class Qwen4MLXCorrectnessConverter:
         )
         if precision_policy is not None and evidence.output_digest != expected_digest.hexdigest():
             raise ValueError("backend output differs from precision reference")
-        return evidence
+        if precision_policy is None:
+            return evidence
+        return replace(
+            evidence,
+            precision_contract_id=(execution_contract.contract_id
+                                   if execution_contract is not None else None),
+            precision_policy_id=precision_policy.policy_id,
+            precision_checked=True,
+        )
 
     def convert(
         self,

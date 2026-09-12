@@ -1,9 +1,35 @@
 import unittest
+import json
+from dataclasses import replace
 
-from vllm_apple.numeric_precision import NumericPrecisionPolicy
+from vllm_apple.numeric_precision import NumericPrecisionPolicy, PrecisionExecutionContract
 
 
 class NumericPrecisionTests(unittest.TestCase):
+    def test_policy_roundtrip_and_canonical_id(self):
+        policy = NumericPrecisionPolicy(absolute_tolerance=1, relative_tolerance=-0.0)
+        self.assertEqual(policy.policy_id, NumericPrecisionPolicy(absolute_tolerance=1.0).policy_id)
+        self.assertEqual(policy, NumericPrecisionPolicy.from_dict(json.loads(json.dumps(policy.to_dict()))))
+        self.assertNotEqual(policy.policy_id, replace(policy, allow_underflow=True).policy_id)
+        for change in ({"schema_version": True}, {"schema_version": 2}, {"extra": 1},
+                       {"absolute_tolerance": "1"}):
+            with self.assertRaises(ValueError):
+                NumericPrecisionPolicy.from_dict(policy.to_dict() | change)
+        with self.assertRaises(ValueError):
+            NumericPrecisionPolicy.from_dict({})
+
+    def test_contract_binds_tensor_dtype_and_policy(self):
+        contract = PrecisionExecutionContract("a" * 64, "F16", NumericPrecisionPolicy())
+        self.assertEqual(contract, PrecisionExecutionContract.from_dict(
+            json.loads(json.dumps(contract.to_dict()))))
+        for change in ({"tensor_digest": "b" * 64}, {"target_dtype": "F32"},
+                       {"policy": NumericPrecisionPolicy(absolute_tolerance=0.01)}):
+            self.assertNotEqual(contract.contract_id, replace(contract, **change).contract_id)
+        for change in ({"bridge": "unknown"}, {"tensor_digest": "bad"},
+                       {"target_dtype": "INT8"}, {"policy": {}}, {"schema_version": True}):
+            with self.assertRaises(ValueError):
+                PrecisionExecutionContract.from_dict(contract.to_dict() | change)
+
     def test_exact_and_tolerance(self):
         exact = NumericPrecisionPolicy()
         self.assertEqual(exact.checked_bytes(1, "F16"), b"\0\x3c")

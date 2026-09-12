@@ -3,7 +3,7 @@ from __future__ import annotations
 import secrets
 import threading
 from collections.abc import Iterable, Iterator
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import Protocol
 
 from .qwen4_component_loader import (
@@ -13,6 +13,8 @@ from .qwen4_component_loader import (
 )
 from .qwen4_conversion_protocol import _DTYPE_BYTES, _digest
 from .qwen4_tensor_reader import Qwen4TensorReader
+from .numeric_formats import ScaledInt8Tensor
+from .numeric_precision import PrecisionExecutionContract
 
 
 MAX_RESIDENT_TENSORS = 4096
@@ -26,6 +28,9 @@ class ResidentBackendAllocation:
     output_shape: tuple[int, ...]
     output_bytes: int
     output_digest: str
+    precision_contract_id: str | None = None
+    precision_policy_id: str | None = None
+    precision_checked: bool = False
 
 
 class Qwen4ResidentBackend(Protocol):
@@ -36,6 +41,15 @@ class Qwen4ResidentBackend(Protocol):
         source_dtype: str,
         target_dtype: str,
         output_shape: tuple[int, ...],
+        reserved_bytes: int,
+    ) -> ResidentBackendAllocation: ...
+
+    def load_scaled_int8(
+        self,
+        tensor: ScaledInt8Tensor,
+        *,
+        target_dtype: str,
+        execution_contract: PrecisionExecutionContract,
         reserved_bytes: int,
     ) -> ResidentBackendAllocation: ...
 
@@ -135,6 +149,9 @@ class Qwen4ResidentStore:
                     or allocation.output_bytes
                     != _shape_bytes(shape, target_dtype)
                     or not _digest(allocation.output_digest)
+                    or allocation.precision_checked
+                    or allocation.precision_contract_id is not None
+                    or allocation.precision_policy_id is not None
                 ):
                     raise ValueError("Qwen4 resident backend allocation evidence is invalid")
                 retained = self.admission.retain_destination(reservation)
@@ -169,6 +186,92 @@ class Qwen4ResidentStore:
                 close = getattr(chunks, "close", None)
                 if close is not None:
                     close()
+
+    def load_scaled_int8(
+        self,
+        tensor: ScaledInt8Tensor,
+        *,
+        target_dtype: str,
+        execution_contract: PrecisionExecutionContract,
+        component: str = "numeric_compatibility",
+        scratch_bytes: int = 0,
+    ) -> str:
+        """Admit an already validated compatibility tensor into a resident backend."""
+        with self._lock:
+            if len(self._records) >= MAX_RESIDENT_TENSORS:
+                raise MemoryError("Qwen4 resident tensor handle limit reached")
+            if not isinstance(tensor, ScaledInt8Tensor):
+                raise ValueError("Qwen4 resident numeric tensor is invalid")
+            tensor = replace(tensor)
+            if (
+                not isinstance(execution_contract, PrecisionExecutionContract)
+                or execution_contract.tensor_digest != tensor.target_digest
+                or execution_contract.target_dtype != target_dtype
+            ):
+                raise ValueError("Qwen4 resident precision contract mismatch")
+            if (
+                not isinstance(component, str)
+                or not 1 <= len(component) <= 128
+                or any(ord(character) < 0x20 for character in component)
+                or type(scratch_bytes) is not int
+                or scratch_bytes < 0
+            ):
+                raise ValueError("Qwen4 resident numeric load metadata is invalid")
+            geometry = tensor.geometry
+            shape = list(geometry.shape if geometry is not None else (len(tensor.payload),))
+            source_bytes = len(tensor.payload) + len(tensor.block_scales)
+            # The declared bridge always materializes one F32 value per element.
+            bridge_scratch = len(tensor.payload) * 4
+            reservation = self.admission.reserve(
+                f"numeric:{tensor.target_digest}",
+                {"component": component, "shape": shape},
+                target_dtype=target_dtype,
+                source_stream_bytes=source_bytes,
+                scratch_bytes=bridge_scratch + scratch_bytes,
+            )
+            allocation = None
+            try:
+                load_scaled = getattr(self.backend, "load_scaled_int8", None)
+                if load_scaled is None:
+                    raise ValueError("Qwen4 resident backend lacks scaled INT8 support")
+                allocation = load_scaled(
+                    tensor,
+                    target_dtype=target_dtype,
+                    execution_contract=execution_contract,
+                    reserved_bytes=reservation.reserved_bytes,
+                )
+                if (
+                    not isinstance(allocation, ResidentBackendAllocation)
+                    or allocation.output_shape != tuple(shape)
+                    or allocation.output_bytes != reservation.destination_bytes
+                    or not _digest(allocation.output_digest)
+                    or allocation.precision_checked is not True
+                    or allocation.precision_contract_id != execution_contract.contract_id
+                    or allocation.precision_policy_id != execution_contract.policy.policy_id
+                ):
+                    raise ValueError("Qwen4 resident numeric allocation evidence is invalid")
+                retained = self.admission.retain_destination(reservation)
+                handle = secrets.token_hex(16)
+                while handle in self._records:
+                    handle = secrets.token_hex(16)
+                self._records[handle] = _ResidentRecord(
+                    allocation, retained, component, target_dtype
+                )
+                return handle
+            except BaseException as load_error:
+                if allocation is not None:
+                    try:
+                        self.backend.release(allocation.resource)
+                    except BaseException as release_error:
+                        quarantine_handle = secrets.token_hex(16)
+                        self._quarantined[quarantine_handle] = _ResidentRecord(
+                            allocation, reservation, component, target_dtype
+                        )
+                        raise RuntimeError(
+                            "Qwen4 failed resident numeric allocation was quarantined"
+                        ) from release_error
+                self.admission.release(reservation)
+                raise load_error
 
     def unload(self, handle: str) -> None:
         with self._lock:

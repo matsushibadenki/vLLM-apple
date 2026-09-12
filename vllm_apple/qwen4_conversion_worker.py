@@ -21,6 +21,34 @@ class ConvertedTensorEvidence:
     output_shape: tuple[int, ...]
     output_bytes: int
     output_digest: str
+    precision_contract_id: str | None = None
+    precision_policy_id: str | None = None
+    precision_checked: bool = False
+
+    def __post_init__(self) -> None:
+        for value in (self.precision_contract_id, self.precision_policy_id):
+            if value is not None and (
+                not isinstance(value, str)
+                or len(value) != 64
+                or any(character not in "0123456789abcdef" for character in value)
+            ):
+                raise ValueError("converted tensor precision evidence is invalid")
+        if type(self.precision_checked) is not bool:
+            raise ValueError("converted tensor precision state is invalid")
+        if self.precision_checked != (self.precision_policy_id is not None):
+            raise ValueError("converted tensor precision evidence is incomplete")
+        if self.precision_contract_id is not None and not self.precision_checked:
+            raise ValueError("converted tensor precision contract was not checked")
+
+    def precision_diagnostics(self) -> dict[str, object]:
+        """Bounded metadata only; tensor names, values and policy thresholds are omitted."""
+        return {
+            "schema_version": 1,
+            "checked": self.precision_checked,
+            "contract_id": self.precision_contract_id,
+            "policy_id": self.precision_policy_id,
+            "stores_tensor_values": False,
+        }
 
 
 class Qwen4TensorConverter(Protocol):

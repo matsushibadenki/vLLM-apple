@@ -58,6 +58,28 @@ sourceはCPUでscaleを適用したPython浮動小数値であり、数学的な
 F32中間丸めを含めて比較する。非zeroからzeroへのunderflowは明示許可と誤差条件の両方が必要。
 実行前にscalar参照結果を判定し、実行後にMLX出力digestの一致を要求する。
 policyは現在ローカルcorrectness APIのみで、runtime protocol・永続evidenceには未接続。
+`NumericPrecisionPolicy.to_dict()/from_dict()`はversion=1のstrictな保存契約で、未知fieldやversionを拒否する。
+`policy_id`は整数/浮動小数の同値とzeroの符号を正規化する。
+`PrecisionExecutionContract`は変換済みtensorのtarget digest、出力dtype、policy、F32経由RNE方式を
+結合し、`contract_id`を生成する。署名や実行許可ではない。
+`convert_scaled_int8(..., execution_contract=contract)`はtensor/dtypeを照合し契約のpolicyを適用する。
+policyも同時指定する場合は一致が必要。契約のdict保存は可能だが自動保存や診断API公開は未実装。
+
+精度検証に成功した`ConvertedTensorEvidence`は`precision_checked=true`、contract ID、policy IDを
+保持する。`precision_diagnostics()`はversion付き固定fieldでこれらのみを返し、tensor名・値・
+元のtensor digest・policy閾値は含めず、`stores_tensor_values=false`を明示する。
+policy IDなしのchecked状態、未検証のcontract ID、不正なdigestは構築時に拒否する。
+このevidenceはcorrectness converterの戻り値までの接続で、resident runtime statusには未公開。
+
+`Qwen4ResidentStore.load_scaled_int8()`は検証済み`ScaledInt8Tensor`、target dtype、
+`PrecisionExecutionContract`を受けるin-process境界である。tensor target digestとdtypeを照合し、
+source payload/scale、1要素4 byteのF32 bridge scratch、destination、追加scratchをatomicに予約する。
+backendは`load_scaled_int8()`でprecision checked、contract ID、policy IDを含むallocation evidenceを返す。
+shape・byte数・digest・precision evidenceが一致した場合だけdestination予約を常駐化する。
+失敗時はresourceを解放し、解放にも失敗した場合は既存quarantineへ移す。
+通常tensorのbackend evidenceにprecision metadataが混入した場合も拒否する。
+store snapshotはtensor名・digest・契約IDを公開せず、component別件数とmemoryのみを維持する。
+現段階はin-process backend ABIまでで、実MLX常駐backendとsocket越しのnumeric artifact搬送は未実装。
 
 ## Reproducible setup
 
