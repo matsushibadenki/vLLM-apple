@@ -11,6 +11,7 @@ from pathlib import Path
 from .qwen4_runtime_protocol import (
     QWEN4_RUNTIME_ABI_VERSION,
     build_qwen4_numeric_runtime_request,
+    build_qwen4_numeric_streaming_runtime_request,
     parse_qwen4_runtime_response,
 )
 from .qwen4_runtime_transport import receive_qwen4_runtime_frame, send_qwen4_runtime_frame
@@ -67,6 +68,30 @@ class Qwen4RuntimeClient:
     def unload(self, *, sequence: int, handle: str) -> dict[str, object]:
         return self._simple_request(sequence, "unload", handle=handle)
 
+    def load_numeric_streaming(
+        self,
+        *,
+        sequence: int,
+        artifact_name: str,
+        artifact_digest: str,
+        target_dtype: str,
+        tile_bytes: int,
+        buffer_count: int = 2,
+        scratch_bytes: int = 0,
+    ) -> dict[str, object]:
+        request = build_qwen4_numeric_streaming_runtime_request(
+            session_id=self._session_id(),
+            sequence=sequence,
+            request_id=secrets.token_hex(16),
+            artifact_name=artifact_name,
+            artifact_digest=artifact_digest,
+            target_dtype=target_dtype,
+            tile_bytes=tile_bytes,
+            buffer_count=buffer_count,
+            scratch_bytes=scratch_bytes,
+        )
+        return self._request(request)
+
     def status(self, *, sequence: int) -> dict[str, object]:
         return self._simple_request(sequence, "status")
 
@@ -88,12 +113,24 @@ class Qwen4RuntimeClient:
         flags = os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0)
         descriptor = os.open(self.session_file, flags)
         try:
-            info = os.fstat(descriptor)
-            if (not stat.S_ISREG(info.st_mode) or info.st_uid != os.getuid()
-                    or stat.S_IMODE(info.st_mode) & 0o077
-                    or not 1 <= info.st_size <= MAX_SESSION_FILE_BYTES):
+            before = os.fstat(descriptor)
+            if (not stat.S_ISREG(before.st_mode) or before.st_uid != os.getuid()
+                    or stat.S_IMODE(before.st_mode) & 0o077
+                    or not 1 <= before.st_size <= MAX_SESSION_FILE_BYTES):
                 raise ValueError("Qwen4 runtime session file is unsafe")
-            raw = os.read(descriptor, MAX_SESSION_FILE_BYTES + 1)
+            chunks = bytearray()
+            while len(chunks) <= MAX_SESSION_FILE_BYTES:
+                chunk = os.read(
+                    descriptor, min(4096, MAX_SESSION_FILE_BYTES + 1 - len(chunks)))
+                if not chunk:
+                    break
+                chunks.extend(chunk)
+            raw = bytes(chunks)
+            after = os.fstat(descriptor)
+            if (len(raw) != before.st_size
+                    or (before.st_dev, before.st_ino, before.st_size)
+                    != (after.st_dev, after.st_ino, after.st_size)):
+                raise ValueError("Qwen4 runtime session file changed while reading")
         finally:
             os.close(descriptor)
         try:

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import secrets
 import threading
@@ -9,12 +10,16 @@ from typing import Protocol
 from .numeric_artifact import NumericArtifactReader
 from .numeric_formats import ScaledInt8Tensor
 from .numeric_precision import PrecisionExecutionContract
+from .numeric_streaming import MAX_NUMERIC_TILE_BYTES, NumericStreamingPlan
 
 
 QWEN4_RUNTIME_ABI_VERSION = 1
 MAX_RUNTIME_MESSAGE_BYTES = 16 * 1024
 MAX_CACHED_RESPONSES = 256
-_OPERATIONS = {"load", "load_numeric", "unload", "status", "retry_quarantine", "shutdown"}
+_OPERATIONS = {
+    "load", "load_numeric", "load_numeric_streaming", "unload", "status",
+    "retry_quarantine", "shutdown",
+}
 _DTYPES = {"BF16", "F16", "F32"}
 
 
@@ -36,6 +41,18 @@ class Qwen4RuntimeStore(Protocol):
         execution_contract: PrecisionExecutionContract,
         component: str = "numeric_compatibility",
         scratch_bytes: int = 0,
+    ) -> str: ...
+
+    def load_scaled_int8_streaming(
+        self,
+        tensor: ScaledInt8Tensor,
+        *,
+        stream_plan: NumericStreamingPlan,
+        target_dtype: str,
+        execution_contract: PrecisionExecutionContract,
+        component: str = "numeric_compatibility",
+        scratch_bytes: int = 0,
+        cancellation: threading.Event | None = None,
     ) -> str: ...
 
     def unload(self, handle: str) -> None: ...
@@ -85,6 +102,27 @@ def build_qwen4_numeric_runtime_request(
     return parse_qwen4_runtime_request(payload)
 
 
+def build_qwen4_numeric_streaming_runtime_request(
+    *, session_id: str, sequence: int, request_id: str, artifact_name: str,
+    artifact_digest: str, target_dtype: str, tile_bytes: int,
+    buffer_count: int = 2, scratch_bytes: int = 0,
+) -> dict[str, object]:
+    payload = {
+        "abi_version": QWEN4_RUNTIME_ABI_VERSION,
+        "session_id": session_id,
+        "sequence": sequence,
+        "request_id": request_id,
+        "operation": "load_numeric_streaming",
+        "artifact_name": artifact_name,
+        "artifact_digest": artifact_digest,
+        "target_dtype": target_dtype,
+        "tile_bytes": tile_bytes,
+        "buffer_count": buffer_count,
+        "scratch_bytes": scratch_bytes,
+    }
+    return parse_qwen4_runtime_request(payload)
+
+
 def parse_qwen4_runtime_request(payload: object) -> dict[str, object]:
     common = {"abi_version", "session_id", "sequence", "request_id", "operation"}
     if not isinstance(payload, dict) or not common.issubset(payload):
@@ -94,6 +132,10 @@ def parse_qwen4_runtime_request(payload: object) -> dict[str, object]:
         "load": common | {"tensor_name", "target_dtype", "scratch_bytes", "axis0_slice"},
         "load_numeric": common | {
             "artifact_name", "artifact_digest", "target_dtype", "scratch_bytes"
+        },
+        "load_numeric_streaming": common | {
+            "artifact_name", "artifact_digest", "target_dtype", "tile_bytes",
+            "buffer_count", "scratch_bytes",
         },
         "unload": common | {"handle"},
         "status": common,
@@ -137,7 +179,7 @@ def parse_qwen4_runtime_request(payload: object) -> dict[str, object]:
             or axis0_slice["count"] <= 0
         ):
             raise ValueError("Qwen4 runtime load slice is invalid")
-    elif operation == "load_numeric":
+    elif operation in {"load_numeric", "load_numeric_streaming"}:
         artifact_name = payload["artifact_name"]
         scratch = payload["scratch_bytes"]
         if (
@@ -154,6 +196,13 @@ def parse_qwen4_runtime_request(payload: object) -> dict[str, object]:
             or scratch < 0
         ):
             raise ValueError("Qwen4 runtime numeric load request is invalid")
+        if operation == "load_numeric_streaming" and (
+            type(payload["tile_bytes"]) is not int
+            or not 1 <= payload["tile_bytes"] <= MAX_NUMERIC_TILE_BYTES
+            or type(payload["buffer_count"]) is not int
+            or payload["buffer_count"] not in (1, 2)
+        ):
+            raise ValueError("Qwen4 runtime numeric streaming request is invalid")
     elif operation == "unload" and not _identifier(payload["handle"]):
         raise ValueError("Qwen4 runtime unload handle is invalid")
     encoded = json.dumps(payload, sort_keys=True, separators=(",", ":")).encode()
@@ -198,7 +247,7 @@ def parse_qwen4_runtime_response(payload: object) -> dict[str, object]:
     operation = payload["operation"]
     if operation == "load" and (set(result) != {"handle"} or not _identifier(result["handle"])):
         raise ValueError("Qwen4 runtime load response is invalid")
-    if operation == "load_numeric" and (
+    if operation in {"load_numeric", "load_numeric_streaming"} and (
         set(result) != {"handle", "artifact_state"}
         or not _identifier(result["handle"])
         or result["artifact_state"] not in {"consumed", "quarantined"}
@@ -323,19 +372,34 @@ class Qwen4RuntimeCommandService:
             if not _identifier(handle):
                 raise ValueError("Qwen4 runtime store returned an invalid handle")
             return {"handle": handle}
-        if operation == "load_numeric":
+        if operation in {"load_numeric", "load_numeric_streaming"}:
             if self.numeric_artifact_reader is None:
                 raise ValueError("Qwen4 runtime numeric artifact loading is disabled")
             loaded = self.numeric_artifact_reader.claim(
                 request["artifact_name"], request["artifact_digest"])
             if loaded.execution_contract.target_dtype != request["target_dtype"]:
                 raise ValueError("Qwen4 runtime numeric target dtype mismatch")
-            handle = self.store.load_scaled_int8(
-                loaded.tensor,
-                target_dtype=request["target_dtype"],
-                execution_contract=loaded.execution_contract,
-                scratch_bytes=request["scratch_bytes"],
-            )
+            if operation == "load_numeric_streaming":
+                stream_plan = NumericStreamingPlan(
+                    hashlib.sha256(loaded.tensor.payload).hexdigest(),
+                    len(loaded.tensor.payload),
+                    min(request["tile_bytes"], len(loaded.tensor.payload)),
+                    request["buffer_count"],
+                )
+                handle = self.store.load_scaled_int8_streaming(
+                    loaded.tensor,
+                    stream_plan=stream_plan,
+                    target_dtype=request["target_dtype"],
+                    execution_contract=loaded.execution_contract,
+                    scratch_bytes=request["scratch_bytes"],
+                )
+            else:
+                handle = self.store.load_scaled_int8(
+                    loaded.tensor,
+                    target_dtype=request["target_dtype"],
+                    execution_contract=loaded.execution_contract,
+                    scratch_bytes=request["scratch_bytes"],
+                )
             if not _identifier(handle):
                 raise ValueError("Qwen4 runtime store returned an invalid numeric handle")
             artifact_state = "consumed"

@@ -81,6 +81,8 @@ class Qwen4ComponentLoaderTests(unittest.TestCase):
         self.assertEqual(retained.reserved_bytes, 8)
         self.assertEqual(retained.source_stream_bytes, 0)
         self.assertEqual(retained.scratch_bytes, 0)
+        self.assertEqual(retained.stream_tile_bytes, 0)
+        self.assertEqual(retained.stream_buffer_count, 0)
         self.assertEqual(admission.snapshot()["reserved_bytes"], 8)
         with self.assertRaisesRegex(ValueError, "changed"):
             admission.retain_destination(reservation)

@@ -5,7 +5,12 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from vllm_apple.numeric_artifact import NumericArtifactReader, write_nvfp4_numeric_artifact
+from vllm_apple.numeric_artifact import (
+    MAX_NUMERIC_SOURCE_BYTES,
+    NumericArtifactReader,
+    read_numeric_source_file,
+    write_nvfp4_numeric_artifact,
+)
 from vllm_apple.numeric_formats import NumericFormatDescriptor, TensorGeometry
 from vllm_apple.numeric_precision import NumericPrecisionPolicy
 
@@ -102,6 +107,20 @@ class NumericArtifactTests(unittest.TestCase):
             os.symlink(path, link)
             with self.assertRaises(OSError):
                 NumericArtifactReader(root).read(link.name, created.artifact_digest)
+
+    def test_bounded_source_reader_rejects_symlink_and_oversize(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            source = root / "source.bin"
+            source.write_bytes(b"value")
+            self.assertEqual(read_numeric_source_file(source), b"value")
+            link = root / "link.bin"
+            os.symlink(source, link)
+            with self.assertRaises(OSError):
+                read_numeric_source_file(link)
+            source.write_bytes(b"x" * (MAX_NUMERIC_SOURCE_BYTES + 1))
+            with self.assertRaisesRegex(ValueError, "bounded"):
+                read_numeric_source_file(source)
 
 
 if __name__ == "__main__":

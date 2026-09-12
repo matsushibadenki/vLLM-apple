@@ -15,6 +15,7 @@ from .qwen4_conversion_protocol import _DTYPE_BYTES, _digest
 from .qwen4_tensor_reader import Qwen4TensorReader
 from .numeric_formats import ScaledInt8Tensor
 from .numeric_precision import PrecisionExecutionContract
+from .numeric_streaming import NumericDoubleBufferStream, NumericStreamingPlan
 
 
 MAX_RESIDENT_TENSORS = 4096
@@ -31,6 +32,7 @@ class ResidentBackendAllocation:
     precision_contract_id: str | None = None
     precision_policy_id: str | None = None
     precision_checked: bool = False
+    numeric_streaming_plan_id: str | None = None
 
 
 class Qwen4ResidentBackend(Protocol):
@@ -47,6 +49,16 @@ class Qwen4ResidentBackend(Protocol):
     def load_scaled_int8(
         self,
         tensor: ScaledInt8Tensor,
+        *,
+        target_dtype: str,
+        execution_contract: PrecisionExecutionContract,
+        reserved_bytes: int,
+    ) -> ResidentBackendAllocation: ...
+
+    def load_scaled_int8_streaming(
+        self,
+        tensor: ScaledInt8Tensor,
+        stream: NumericDoubleBufferStream,
         *,
         target_dtype: str,
         execution_contract: PrecisionExecutionContract,
@@ -152,6 +164,7 @@ class Qwen4ResidentStore:
                     or allocation.precision_checked
                     or allocation.precision_contract_id is not None
                     or allocation.precision_policy_id is not None
+                    or allocation.numeric_streaming_plan_id is not None
                 ):
                     raise ValueError("Qwen4 resident backend allocation evidence is invalid")
                 retained = self.admission.retain_destination(reservation)
@@ -250,6 +263,7 @@ class Qwen4ResidentStore:
                     or allocation.precision_checked is not True
                     or allocation.precision_contract_id != execution_contract.contract_id
                     or allocation.precision_policy_id != execution_contract.policy.policy_id
+                    or allocation.numeric_streaming_plan_id is not None
                 ):
                     raise ValueError("Qwen4 resident numeric allocation evidence is invalid")
                 retained = self.admission.retain_destination(reservation)
@@ -274,6 +288,111 @@ class Qwen4ResidentStore:
                         ) from release_error
                 self.admission.release(reservation)
                 raise load_error
+
+    def load_scaled_int8_streaming(
+        self,
+        tensor: ScaledInt8Tensor,
+        *,
+        stream_plan: NumericStreamingPlan,
+        target_dtype: str,
+        execution_contract: PrecisionExecutionContract,
+        component: str = "numeric_compatibility",
+        scratch_bytes: int = 0,
+        cancellation: threading.Event | None = None,
+    ) -> str:
+        """Admit an explicitly leased double-buffer stream into a resident backend."""
+        with self._lock:
+            if len(self._records) >= MAX_RESIDENT_TENSORS:
+                raise MemoryError("Qwen4 resident tensor handle limit reached")
+            if not isinstance(tensor, ScaledInt8Tensor):
+                raise ValueError("Qwen4 resident numeric tensor is invalid")
+            tensor = replace(tensor)
+            if (
+                not isinstance(stream_plan, NumericStreamingPlan)
+                or stream_plan.source_bytes != len(tensor.payload)
+                or not isinstance(execution_contract, PrecisionExecutionContract)
+                or execution_contract.tensor_digest != tensor.target_digest
+                or execution_contract.target_dtype != target_dtype
+            ):
+                raise ValueError("Qwen4 resident numeric streaming contract mismatch")
+            if (
+                not isinstance(component, str)
+                or not 1 <= len(component) <= 128
+                or any(ord(character) < 0x20 for character in component)
+                or type(scratch_bytes) is not int
+                or scratch_bytes < 0
+            ):
+                raise ValueError("Qwen4 resident numeric streaming metadata is invalid")
+            geometry = tensor.geometry
+            shape = list(geometry.shape if geometry is not None else (len(tensor.payload),))
+            destination_bytes = len(tensor.payload) * _DTYPE_BYTES[target_dtype]
+            bridge_scratch = len(tensor.payload) * 4 + destination_bytes
+            # This in-process bridge still receives caller-owned bytes. Count the
+            # complete immutable source in addition to the reusable tile buffers;
+            # a future file-backed decoder may replace this ownership term.
+            owned_source_bytes = len(tensor.payload) + len(tensor.block_scales)
+            reservation = self.admission.reserve_numeric_stream(
+                f"numeric:{tensor.target_digest}",
+                {"component": component, "shape": shape},
+                target_dtype=target_dtype,
+                stream_plan=stream_plan,
+                metadata_bytes=owned_source_bytes,
+                scratch_bytes=bridge_scratch + scratch_bytes,
+            )
+            allocation = None
+            stream = None
+            try:
+                stream = NumericDoubleBufferStream(
+                    stream_plan, tensor.payload, cancellation=cancellation
+                )
+                load_streaming = getattr(self.backend, "load_scaled_int8_streaming", None)
+                if load_streaming is None:
+                    raise ValueError("Qwen4 resident backend lacks numeric streaming support")
+                allocation = load_streaming(
+                    tensor,
+                    stream,
+                    target_dtype=target_dtype,
+                    execution_contract=execution_contract,
+                    reserved_bytes=reservation.reserved_bytes,
+                )
+                if (
+                    not isinstance(allocation, ResidentBackendAllocation)
+                    or allocation.output_shape != tuple(shape)
+                    or allocation.output_bytes != reservation.destination_bytes
+                    or not _digest(allocation.output_digest)
+                    or allocation.precision_checked is not True
+                    or allocation.precision_contract_id != execution_contract.contract_id
+                    or allocation.precision_policy_id != execution_contract.policy.policy_id
+                    or allocation.numeric_streaming_plan_id != stream_plan.plan_id
+                    or stream.snapshot()["in_flight_tiles"] != 0
+                    or stream.snapshot()["next_tile_index"] != stream_plan.tile_count
+                ):
+                    raise ValueError("Qwen4 resident numeric streaming evidence is invalid")
+                retained = self.admission.retain_destination(reservation)
+                handle = secrets.token_hex(16)
+                while handle in self._records:
+                    handle = secrets.token_hex(16)
+                self._records[handle] = _ResidentRecord(
+                    allocation, retained, component, target_dtype
+                )
+                return handle
+            except BaseException as load_error:
+                if allocation is not None:
+                    try:
+                        self.backend.release(allocation.resource)
+                    except BaseException as release_error:
+                        quarantine_handle = secrets.token_hex(16)
+                        self._quarantined[quarantine_handle] = _ResidentRecord(
+                            allocation, reservation, component, target_dtype
+                        )
+                        raise RuntimeError(
+                            "Qwen4 failed resident numeric streaming allocation was quarantined"
+                        ) from release_error
+                self.admission.release(reservation)
+                raise load_error
+            finally:
+                if stream is not None:
+                    stream.close()
 
     def unload(self, handle: str) -> None:
         with self._lock:

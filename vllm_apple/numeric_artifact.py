@@ -21,6 +21,7 @@ from .numeric_precision import NumericPrecisionPolicy, PrecisionExecutionContrac
 
 
 MAX_NUMERIC_ARTIFACT_BYTES = 128 * 1024
+MAX_NUMERIC_SOURCE_BYTES = 64 * 1024
 
 
 def _digest(value: object) -> bool:
@@ -59,6 +60,35 @@ class LoadedNumericArtifact:
     artifact_name: str | None = None
     file_identity: tuple[int, int, int] | None = None
     quarantined: bool = False
+
+
+def read_numeric_source_file(path: str | Path) -> bytes:
+    """Read a small, current-user-owned binary input without following symlinks."""
+    source = Path(path).expanduser().absolute()
+    flags = os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0)
+    descriptor_fd = os.open(source, flags)
+    try:
+        before = os.fstat(descriptor_fd)
+        if (not stat.S_ISREG(before.st_mode) or before.st_uid != os.getuid()
+                or not 1 <= before.st_size <= MAX_NUMERIC_SOURCE_BYTES):
+            raise ValueError("numeric source file is unsafe or outside the bounded limit")
+        chunks = bytearray()
+        while len(chunks) <= MAX_NUMERIC_SOURCE_BYTES:
+            chunk = os.read(
+                descriptor_fd,
+                min(64 * 1024, MAX_NUMERIC_SOURCE_BYTES + 1 - len(chunks)),
+            )
+            if not chunk:
+                break
+            chunks.extend(chunk)
+        after = os.fstat(descriptor_fd)
+        if (len(chunks) != before.st_size
+                or (before.st_dev, before.st_ino, before.st_size)
+                != (after.st_dev, after.st_ino, after.st_size)):
+            raise ValueError("numeric source file changed while reading")
+        return bytes(chunks)
+    finally:
+        os.close(descriptor_fd)
 
 
 def encode_nvfp4_numeric_artifact(

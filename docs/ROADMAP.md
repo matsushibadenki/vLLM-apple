@@ -800,14 +800,16 @@ NVFP4 → INT8を最初の候補としつつ、FP16/BF16展開、既存MLX量子
 - `[Done]` in-process resident storeのscale付きINT8 load境界、precision契約照合、source/F32 bridge scratch/destination一括admission、unload/quarantine lifecycle統合
 - `[Done]` concrete MLX numeric resident backend：F32復元・policy参照bit/digest照合・F16/BF16/F32常駐resource・明示解放、実機end-to-end検証
 - `[Done]` private bounded NVFP4 artifact（strict JSON・128 KiB・0600・owner・no-follow・digest/inode/size検証）、runtime `load_numeric`、MLX常駐/unloadまでのsocket実機end-to-end
-- `[Next]` numeric artifactの成功後one-shot consume/quarantineとproducer/client CLI（native INT8演算kernelは未実装）
+- `[Done]` numeric artifactのone-shot claim/consume/quarantine lifecycle、64 KiB以下の安全なsource reader、producer／socket client／MLX worker CLI（生成・load・status・unload・shutdown）
+- `[Done]` digest-bound bounded tile plan、最大2 bufferの明示lease・再利用時zeroize・cooperative cancel/cleanup、buffer/metadata/scratch/destination一括admission、runtime/CLI/MLX streaming load接続
+- `[Next]` file-backed artifactのincremental decodeでcaller所有の全source materializationを除去し、socket切断／明示cancelをstream cancellationへ伝播（native INT8演算kernelは未実装）
 - `[Later]` NVFP4 1D／2D block scale、scale layout・swizzle、tensor scale、packed nibble順序を識別するartifact adapter
 - `[Later]` MXFP4／MXFP6／MXFP8、FP8 E4M3／E5M2とvariant、FP16／BF16／FP32、signed/unsigned INT8／INT4／INT2の段階的対応
 - `[Later]` NF4／codebook量子化、groupwise affine、zero-point、double quantization、mixed precision、outlier/residual・sparse表現の拡張adapter
 - `[Later]` Safetensors／GGUF／MLX／Core ML artifactとGPTQ／AWQ／各exporterのmetadata・packing adapter（container、量子化recipe、演算形式を分離）
 - `[Later]` weights／activations／KV・recurrent state／MoE expert／vision・audio・diffusion tensorを同一契約で扱うeligibility matrix
 - `[Later]` CPU vectorized／MLX／Metalのdecode・repack・requantize・layout変換と、tile単位convert + GEMV/GEMM/attention融合
-- `[Later]` bounded tile/chunk streaming、double buffer、prefetch、同期barrier、cancel・失敗時cleanupとUnified Memory hard ceilingへの統合
+- `[Later]` asynchronous prefetch、backend completion barrier、file/compute overlapとUnified Memory bandwidth ceilingへの統合
 - `[Later]` load時変換／初回利用時変換／反復利用cache／毎回fused変換を比較するcost modelとprefill/decode別route選択
 - `[Later]` NVFP4 → scale付きINT8の表現保存経路と一般的な再量子化経路の比較、INT8演算・累積型・scale粒度の対応検証
 - `[Later]` source/scale/layout/kernel/environment digestに結合した変換cache、bounded LRU、単一変換共有、quarantine・rollback

@@ -1,5 +1,6 @@
 """Opt-in: VLLM_APPLE_TEST_MLX_NUMERIC=1 python -m unittest this.module."""
 import os
+import hashlib
 import socket
 import tempfile
 import threading
@@ -14,6 +15,7 @@ from vllm_apple.numeric_formats import (
 )
 from vllm_apple.numeric_artifact import NumericArtifactReader, write_nvfp4_numeric_artifact
 from vllm_apple.numeric_precision import NumericPrecisionPolicy, PrecisionExecutionContract
+from vllm_apple.numeric_streaming import NumericStreamingPlan
 from vllm_apple.qwen4_component_loader import Qwen4MemoryAdmission
 from vllm_apple.qwen4_mlx_resident_backend import Qwen4MLXNumericResidentBackend
 from vllm_apple.qwen4_resident_store import Qwen4ResidentStore
@@ -21,7 +23,7 @@ from vllm_apple.qwen4_shard_stager import stage_qwen4_shards
 from vllm_apple.qwen4_tensor_reader import Qwen4TensorReader
 from vllm_apple.qwen4_runtime_protocol import (
     Qwen4RuntimeCommandService,
-    build_qwen4_numeric_runtime_request,
+    build_qwen4_numeric_streaming_runtime_request,
 )
 from vllm_apple.qwen4_runtime_transport import (
     Qwen4RuntimeUnixServer,
@@ -56,10 +58,10 @@ class NumericMLXResidentDeviceTests(unittest.TestCase):
             thread = threading.Thread(target=server.serve_connection, args=(server_socket,))
             thread.start()
             try:
-                request = build_qwen4_numeric_runtime_request(
+                request = build_qwen4_numeric_streaming_runtime_request(
                     session_id="a" * 32, sequence=1, request_id="1" * 32,
                     artifact_name="weight.json", artifact_digest=created.artifact_digest,
-                    target_dtype="F16")
+                    target_dtype="F16", tile_bytes=1, buffer_count=2)
                 send_qwen4_runtime_frame(client_socket, request)
                 loaded = receive_qwen4_runtime_frame(client_socket)
                 self.assertTrue(loaded["passed"])
@@ -123,6 +125,19 @@ class NumericMLXResidentDeviceTests(unittest.TestCase):
                         store.unload(handle)
                     self.assertTrue(resource.released)
                     self.assertEqual(store.snapshot()["memory"]["reserved_bytes"], 0)
+
+            streaming_contract = PrecisionExecutionContract(
+                tensor.target_digest, "F16", NumericPrecisionPolicy())
+            streaming_plan = NumericStreamingPlan(
+                hashlib.sha256(tensor.payload).hexdigest(), len(tensor.payload), 2, 2)
+            streaming_handle = store.load_scaled_int8_streaming(
+                tensor,
+                stream_plan=streaming_plan,
+                target_dtype="F16",
+                execution_contract=streaming_contract,
+            )
+            self.assertEqual(store.snapshot()["memory"]["reserved_bytes"], 12)
+            store.unload(streaming_handle)
 
             rounded = convert_nvfp4_to_int8(
                 NumericFormatDescriptor("nvfp4_e2m1", 1), bytes([2]), bytes([56]), 1.0001)

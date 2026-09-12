@@ -6,6 +6,7 @@ from vllm_apple.numeric_precision import NumericPrecisionPolicy, PrecisionExecut
 from vllm_apple.qwen4_runtime_protocol import (
     Qwen4RuntimeCommandService,
     build_qwen4_numeric_runtime_request,
+    build_qwen4_numeric_streaming_runtime_request,
     parse_qwen4_runtime_request,
 )
 
@@ -25,6 +26,17 @@ class FakeStore:
                          component="numeric_compatibility", scratch_bytes=0):
         self.loads += 1
         self.last_numeric = (tensor, target_dtype, execution_contract, component, scratch_bytes)
+        handle = f"{self.loads:032x}"
+        self.handles.add(handle)
+        return handle
+
+    def load_scaled_int8_streaming(
+        self, tensor, *, stream_plan, target_dtype, execution_contract,
+        component="numeric_compatibility", scratch_bytes=0, cancellation=None,
+    ):
+        self.loads += 1
+        self.last_numeric_stream = (
+            tensor, stream_plan, target_dtype, execution_contract, component, scratch_bytes)
         handle = f"{self.loads:032x}"
         self.handles.add(handle)
         return handle
@@ -119,6 +131,36 @@ class Qwen4RuntimeProtocolTests(unittest.TestCase):
         response = Qwen4RuntimeCommandService("a" * 32, store, reader).handle(request)
         self.assertFalse(response["passed"])
         self.assertEqual(consumed, [])
+
+    def test_numeric_streaming_load_is_bounded_replay_safe_and_consumed(self) -> None:
+        tensor, contract, reader = self.numeric_fixture()
+        store = FakeStore()
+        service = Qwen4RuntimeCommandService("a" * 32, store, reader)
+        request = build_qwen4_numeric_streaming_runtime_request(
+            session_id="a" * 32,
+            sequence=1,
+            request_id="1" * 32,
+            artifact_name="weight.json",
+            artifact_digest="b" * 64,
+            target_dtype="F16",
+            tile_bytes=4096,
+            buffer_count=2,
+            scratch_bytes=7,
+        )
+        first = service.handle(request)
+        self.assertTrue(first["passed"])
+        self.assertEqual(first["result"]["artifact_state"], "consumed")
+        self.assertEqual(service.handle(dict(request)), first)
+        self.assertEqual(store.loads, 1)
+        stream_plan = store.last_numeric_stream[1]
+        self.assertEqual(stream_plan.tile_bytes, 1)
+        self.assertEqual(stream_plan.active_buffer_count, 1)
+        for change in (
+            {"tile_bytes": 0}, {"tile_bytes": True}, {"buffer_count": 3},
+            {"buffer_count": True}, {"extra": 1},
+        ):
+            with self.assertRaises(ValueError):
+                parse_qwen4_runtime_request(request | change)
 
     def request(self, sequence, operation, **values):
         return {

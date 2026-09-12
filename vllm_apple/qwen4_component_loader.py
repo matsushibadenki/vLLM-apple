@@ -5,6 +5,7 @@ from collections.abc import Iterator, Mapping
 from contextlib import contextmanager
 from dataclasses import dataclass
 
+from .numeric_streaming import NumericStreamingPlan
 from .qwen4_tensor_reader import Qwen4TensorReader
 
 
@@ -21,6 +22,8 @@ class TensorLoadReservation:
     destination_bytes: int
     scratch_bytes: int
     reserved_bytes: int
+    stream_tile_bytes: int = 0
+    stream_buffer_count: int = 0
 
 
 @dataclass(slots=True)
@@ -114,6 +117,49 @@ class Qwen4MemoryAdmission:
             self._reserved_bytes += reserved_bytes
             self._component_bytes[component] = component_after
             return reservation
+
+    def reserve_numeric_stream(
+        self,
+        tensor_name: str,
+        descriptor: Mapping[str, object],
+        *,
+        target_dtype: str,
+        stream_plan: NumericStreamingPlan,
+        metadata_bytes: int = 0,
+        scratch_bytes: int = 0,
+    ) -> TensorLoadReservation:
+        if not isinstance(stream_plan, NumericStreamingPlan):
+            raise ValueError("Qwen4 numeric stream plan is invalid")
+        if (
+            type(metadata_bytes) is not int
+            or metadata_bytes < 0
+            or type(scratch_bytes) is not int
+            or scratch_bytes < 0
+        ):
+            raise ValueError("Qwen4 numeric stream memory request is invalid")
+        reservation = self.reserve(
+            tensor_name,
+            descriptor,
+            target_dtype=target_dtype,
+            source_stream_bytes=stream_plan.working_set_bytes + metadata_bytes,
+            scratch_bytes=scratch_bytes,
+        )
+        streamed = TensorLoadReservation(
+            reservation.reservation_id,
+            reservation.tensor_name,
+            reservation.component,
+            reservation.source_stream_bytes,
+            reservation.destination_bytes,
+            reservation.scratch_bytes,
+            reservation.reserved_bytes,
+            stream_plan.tile_bytes,
+            stream_plan.active_buffer_count,
+        )
+        with self._lock:
+            if self._reservations.get(reservation.reservation_id) != reservation:
+                raise ValueError("Qwen4 numeric stream reservation changed during creation")
+            self._reservations[reservation.reservation_id] = streamed
+        return streamed
 
     def release(self, reservation: TensorLoadReservation) -> None:
         with self._lock:

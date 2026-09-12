@@ -1551,8 +1551,9 @@ dequantize → GEMM/GEMV → bias → activation
 AppleExecutionPlannerが共有する数値形式互換層として設計する。以下の全体像には計画中の契約・kernelも含む。
 2026-09-12時点では、bounded CPU参照変換、単一scale軸geometry、precision契約、MLX correctness bridge、
 in-process resident storeとMLX F16/BF16/F32常駐backendまでを小規模tensorで実装・検証済みである。
-private bounded artifactを使うlocal socket搬送とMLX常駐まで実装済みである。
-native INT8演算、artifactの自動consume、streaming/fused変換、他形式は未実装である。
+private bounded artifactを使うlocal socket搬送、one-shot claim/consume/quarantine、producer/client/worker CLI、
+最大2 bufferのin-process tile streaming、MLX常駐と明示解放まで実装済みである。native INT8演算、
+file-backed incremental decode、fused変換、他形式は未実装である。
 
 ### 抽象化の境界
 
@@ -1570,6 +1571,12 @@ operator、shape、weight/activation/state用途ごとの可否を示す。未�
 layout処理、tile/chunk、scratch上限、cache方針、reference、誤差budget、fallback、decision reasonをversion付きで
 固定する。演算側は`ConversionAdapter`のeligibility・memory estimate・convert tile・synchronize・release契約を使う。
 既存のStateMemorySpec、kernel probe、operator dispatcher、plan identityへ接続し、別のdevice選択器を作らない。
+
+現在の小規模artifact搬送では、元packed payloadとscaleをcurrent-user private directoryの新規0600 fileへ
+digest-boundで保存する。runtimeは安全な名前だけを受け、no-follow、owner、mode、size、inodeを検査した後、
+load開始前にinboxからquarantineへclaimする。backend常駐が成功した場合だけ同じinodeをconsumeし、digest不一致、
+内容不正、backend失敗、consume失敗は再実行用inboxへ戻さずquarantineに残す。protocolの再送cacheは同一sequenceの
+重複loadを再実行しない。この仕組みはbounded correctness搬送であり、大規模weight streamingの代用ではない。
 
 ### NVFP4を最初の具体例にする
 
@@ -1601,6 +1608,15 @@ read + unpack + scale + requantize + layout + synchronization + computeの合計
 CPU vectorization、MLX、Metal computeを順次実装し、成立するoperatorでは中間tensorの書戻しを省く。
 double bufferとprefetchはbuffer所有権・completion barrierで管理し、使用中arrayを解放／書換えしない。
 cancel、kernel failure、memory/thermal pressure時は新規prefetchを抑え、既存safe pointでrouteを切り替える。
+
+現在の`NumericStreamingPlan`はsource SHA-256、総byte数、最大8 MiBのtile、1または2 buffer、alignmentを
+canonical IDへ結合する。`NumericDoubleBufferStream`は各slotをgeneration付きleaseとして払い出し、未解放slotの
+上書きと3個目のin-flight tileを拒否する。release/cancel/closeでは64 KiB以下の固定zero blockでslotを消去し、
+cleanup自身がtile大の追加allocationを作らない。read-only viewはlease期間内だけ有効で、release後はzero化される。
+memory admissionはtile buffer、metadata、変換scratch、destinationを同時予約し、成功後だけdestinationへ縮小する。
+backend allocation evidenceはstream plan IDへ結合し、通常loadへのstreaming metadata混入も拒否する。
+現段階のbridgeはcaller所有の全`ScaledInt8Tensor`とMLX用F32 sourceをまだ保持するため、全modelのpeak memory削減や
+真のI/O overlapを主張しない。次段階でartifact readerからtileを直接供給し、socket cancellationをsafe pointへ接続する。
 
 変換cacheは元artifactとscaleのdigest、descriptor、target/layout、kernel version、chip/OS/backendに結合する。
 再量子化済みtensorをさらに繰り返し量子化せず、常にimmutable sourceから生成する。重複変換を共有し、

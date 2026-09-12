@@ -9,6 +9,7 @@ from dataclasses import dataclass, replace
 
 from .numeric_formats import ScaledInt8Tensor, _scale
 from .numeric_precision import PrecisionExecutionContract
+from .numeric_streaming import NumericDoubleBufferStream
 from .qwen4_resident_store import ResidentBackendAllocation
 
 
@@ -40,6 +41,59 @@ class Qwen4MLXNumericResidentBackend:
         if not isinstance(tensor, ScaledInt8Tensor):
             raise ValueError("MLX resident numeric tensor is invalid")
         tensor = replace(tensor)
+        return self._load_tiles(
+            tensor,
+            ((0, tensor.payload),),
+            target_dtype=target_dtype,
+            execution_contract=execution_contract,
+            reserved_bytes=reserved_bytes,
+            streaming_plan_id=None,
+        )
+
+    def load_scaled_int8_streaming(
+        self,
+        tensor: ScaledInt8Tensor,
+        stream: NumericDoubleBufferStream,
+        *,
+        target_dtype: str,
+        execution_contract: PrecisionExecutionContract,
+        reserved_bytes: int,
+    ) -> ResidentBackendAllocation:
+        if (
+            not isinstance(tensor, ScaledInt8Tensor)
+            or not isinstance(stream, NumericDoubleBufferStream)
+        ):
+            raise ValueError("MLX resident numeric stream is invalid")
+
+        def tiles():
+            while True:
+                lease = stream.acquire_next()
+                if lease is None:
+                    return
+                try:
+                    yield lease.offset, lease.view()
+                finally:
+                    lease.release()
+
+        return self._load_tiles(
+            replace(tensor),
+            tiles(),
+            target_dtype=target_dtype,
+            execution_contract=execution_contract,
+            reserved_bytes=reserved_bytes,
+            streaming_plan_id=stream.plan.plan_id,
+        )
+
+    def _load_tiles(
+        self,
+        tensor: ScaledInt8Tensor,
+        tiles,
+        *,
+        target_dtype: str,
+        execution_contract: PrecisionExecutionContract,
+        reserved_bytes: int,
+        streaming_plan_id: str | None,
+    ) -> ResidentBackendAllocation:
         if (
             not isinstance(execution_contract, PrecisionExecutionContract)
             or execution_contract.tensor_digest != tensor.target_digest
@@ -66,15 +120,33 @@ class Qwen4MLXNumericResidentBackend:
         source = bytearray(elements * 4)
         expected_digest = hashlib.sha256()
         geometry = tensor.geometry
-        for index, value in enumerate(tensor.payload):
-            scale_index = index // 16 if geometry is None else geometry.scale_index(index)
-            decoded = (value if value < 128 else value - 256) / 2
-            decoded *= _scale(tensor.block_scales[scale_index]) * tensor.global_scale
-            expected_digest.update(execution_contract.policy.checked_bytes(decoded, target_dtype))
-            try:
-                struct.pack_into("<f", source, index * 4, decoded)
-            except (OverflowError, struct.error) as error:
-                raise ValueError("scaled INT8 value exceeds F32 resident bridge range") from error
+        consumed = 0
+        for offset, payload in tiles:
+            if (
+                type(offset) is not int
+                or offset != consumed
+                or not isinstance(payload, (bytes, memoryview))
+            ):
+                raise ValueError("MLX resident numeric tile ordering is invalid")
+            for local_index, value in enumerate(payload):
+                index = offset + local_index
+                if index >= elements:
+                    raise ValueError("MLX resident numeric tile exceeds tensor bounds")
+                scale_index = index // 16 if geometry is None else geometry.scale_index(index)
+                decoded = (value if value < 128 else value - 256) / 2
+                decoded *= _scale(tensor.block_scales[scale_index]) * tensor.global_scale
+                expected_digest.update(
+                    execution_contract.policy.checked_bytes(decoded, target_dtype)
+                )
+                try:
+                    struct.pack_into("<f", source, index * 4, decoded)
+                except (OverflowError, struct.error) as error:
+                    raise ValueError(
+                        "scaled INT8 value exceeds F32 resident bridge range"
+                    ) from error
+            consumed += len(payload)
+        if consumed != elements:
+            raise ValueError("MLX resident numeric stream ended before tensor completion")
 
         shape = geometry.shape if geometry is not None else (elements,)
         array = mx.array(np.frombuffer(source, dtype=np.float32).reshape(shape)).astype(
@@ -101,6 +173,7 @@ class Qwen4MLXNumericResidentBackend:
             precision_contract_id=execution_contract.contract_id,
             precision_policy_id=execution_contract.policy.policy_id,
             precision_checked=True,
+            numeric_streaming_plan_id=streaming_plan_id,
         )
 
     def release(self, resource: object) -> None:

@@ -31,8 +31,8 @@ source/target digestはgeometry-bound plan IDを含み、`verify_source()`にも
 `Qwen4MLXCorrectnessConverter.convert_scaled_int8()`はtarget digestを再検証し、CPUでF32へ
 復元して既存MLX correctness converterへ渡す。shapeを保持し、F32範囲外は拒否する。
 予約検査は明示的numeric bufferの分で、Python objectやRSSのhard ceiling保証ではない。
-F32化には丸めがあり、INT8 native演算やruntime model loadを有効化するものではない。
-strides、swizzle、2軸block scale、runtime backend接続は未実装。
+F32化には丸めがあり、INT8 native演算を有効化するものではない。
+strides、swizzle、2軸block scale、tile streamingは未実装。
 
 実機テストは通常CIではskipし、MLX/NumPy入りの既存環境で明示実行する。
 
@@ -57,13 +57,14 @@ underflowは現在許可しており、一般の誤差上限保証・全backend�
 sourceはCPUでscaleを適用したPython浮動小数値であり、数学的な任意精度値ではない。
 F32中間丸めを含めて比較する。非zeroからzeroへのunderflowは明示許可と誤差条件の両方が必要。
 実行前にscalar参照結果を判定し、実行後にMLX出力digestの一致を要求する。
-policyは現在ローカルcorrectness APIのみで、runtime protocol・永続evidenceには未接続。
+policyはcorrectness API、private numeric artifact、runtime `load_numeric`で同じ契約として照合する。
 `NumericPrecisionPolicy.to_dict()/from_dict()`はversion=1のstrictな保存契約で、未知fieldやversionを拒否する。
 `policy_id`は整数/浮動小数の同値とzeroの符号を正規化する。
 `PrecisionExecutionContract`は変換済みtensorのtarget digest、出力dtype、policy、F32経由RNE方式を
 結合し、`contract_id`を生成する。署名や実行許可ではない。
 `convert_scaled_int8(..., execution_contract=contract)`はtensor/dtypeを照合し契約のpolicyを適用する。
-policyも同時指定する場合は一致が必要。契約のdict保存は可能だが自動保存や診断API公開は未実装。
+policyも同時指定する場合は一致が必要。private numeric artifactは契約を自動保存するが、一般の永続evidenceや
+診断API公開は未実装。
 
 精度検証に成功した`ConvertedTensorEvidence`は`precision_checked=true`、contract ID、policy IDを
 保持する。`precision_diagnostics()`はversion付き固定fieldでこれらのみを返し、tensor名・値・
@@ -99,9 +100,37 @@ artifactはtensor値を含むため`stores_tensor_values=true`を明示する。
 
 保存先は現在user所有の0700 directory直下、ASCII安全名かつ`.json`、新規fileだけを許可する。
 0600のtemporary fileへ書いてfsync後にhard linkで排他的に公開し、上限は128 KiB。
+CLIが読むpacked/scale sourceもcurrent-user所有の通常file、no-follow、各64 KiB以下に制限する。
 `NumericArtifactReader`は設定済みroot直下の名前だけを受け、`O_NOFOLLOW`、owner/mode、通常file、
 size上限、read前後のinode/size、requestのSHA-256を検証する。strict JSONは重複・未知・欠落fieldを拒否し、
 元入力からsource/target digestとprecision contractを再構築する。digestは署名や出自の証明ではない。
+
+`claim()`は検証したartifactをbackend呼び出し前にinboxからprivate `quarantine/`へhard-link + unlinkで移す。
+digest不一致と内容不正もquarantineし、通常の再送候補には残さない。backend常駐が成功すると`consume()`が同じ
+device/inode/sizeを確認して削除する。backendまたはconsume失敗時はquarantineに残し、成功responseは
+`artifact_state=consumed|quarantined`を返す。同一sequence/requestの再送は既存cacheから返し、二重loadしない。
+
+### Numeric tile streaming
+
+`NumericStreamingPlan`はsource digest/size、最大8 MiBのtile、1〜2個のbuffer、alignmentを固定する。
+`NumericDoubleBufferStream.acquire_next()`はgeneration付きleaseを返し、全slotが使用中なら先へ進まず失敗する。
+consumerはlease期間中だけ`view()`を使用し、完了時に`release()`する。release、cancel、closeはbufferを64 KiB以下の
+固定zero blockで上書きし、古いleaseを無効化する。snapshotはplan ID、tile件数、in-flight件数だけを返し値を保存しない。
+
+`Qwen4MemoryAdmission.reserve_numeric_stream()`は有効buffer分、metadata、scratch、destinationをatomicに予約する。
+`Qwen4ResidentStore.load_scaled_int8_streaming()`はcaller所有の全payload/scaleも現在のownership項として計上し、
+MLX backendの全tile消費、全lease解放、stream plan IDとprecision evidenceの一致後だけdestination reservationを保持する。
+backend error、digest不一致、cooperative cancellationではstreamをcloseして予約を返す。resource生成後のcleanup失敗は
+既存resident quarantineへ移す。
+
+runtime ABIの`load_numeric_streaming`とCLIの`numeric-runtime-load --tile-bytes N --buffer-count 1|2`で
+この経路を選択する。`--tile-bytes`は最大値で、tensorが小さい場合は実payload長へ縮小する。artifactのone-shot
+claim/consumeとrequest replay保護は通常の`load_numeric`と同じである。2026-09-12に1-byte socket tileと
+2-byte in-process tileでNVFP4→MLX F16常駐、precision digest、unload、artifact consumeを実機確認した。
+
+この段階ではartifact JSONのdecode時に全sourceをmaterializeし、MLX array生成にも全F32 sourceを使う。
+したがって、buffer ownershipとadmission/cancelの実行契約は成立しているが、全modelのpeak memory削減、
+非同期prefetch、native INT8 compute、file-backed incremental decodeの性能認定は未完了である。
 
 runtime ABI v1の追加operation `load_numeric`はartifact名、artifact SHA-256、target dtype、追加scratchを
 16 KiB以下のlocal socket frameで送る。絶対pathやtensor値はframeに含めない。
@@ -109,7 +138,27 @@ runtime ABI v1の追加operation `load_numeric`はartifact名、artifact SHA-256
 連続sequence、request ID、再送cacheの既存保護を継承する。dtypeとartifact内contractを照合してから
 resident storeへ渡す。成功responseはopaque handleだけで、通常の`unload`/`shutdown`を使用する。
 2026-09-12にprivate artifact→socket→再変換→MLX F16常駐→unloadを実機確認した。
-artifactは現在read-onlyで自動削除されないため、producer側で安全なlifecycle管理が必要。
+同じfixtureでinbox artifactのconsumeと空のquarantineも実機確認した。
+
+CLIはartifact生成、private socket client、MLX resident workerを分離する。`numeric-artifact-create`の既定dtypeは
+誤差ゼロでも成立するF32であり、F16/BF16は許容誤差を明示する。sequenceはsession内で1から単調増加させる。
+
+```bash
+python3 -m vllm_apple numeric-artifact-create \
+  --packed /private/input/weight.nvfp4 --scales /private/input/weight.scales \
+  --output /private/runtime-artifacts/weight.json --shape 4096,16 --scale-axis 1
+
+python3 -m vllm_apple numeric-runtime-load \
+  --socket /private/runtime/runtime.sock --session-file /private/runtime/session.json \
+  --sequence 1 --artifact-name weight.json --artifact-digest ARTIFACT_SHA256 \
+  --target-dtype F32 --tile-bytes 8388608 --buffer-count 2
+
+python3 -m vllm_apple numeric-runtime-unload \
+  --socket /private/runtime/runtime.sock --session-file /private/runtime/session.json \
+  --sequence 2 --handle OPAQUE_HANDLE
+```
+
+参照上限は65,536要素のため、このCLIは小規模検証用でありmodel shard全体には使用しない。
 
 ## Reproducible setup
 

@@ -2,6 +2,7 @@ import hashlib
 import json
 import tempfile
 import unittest
+from dataclasses import replace
 from pathlib import Path
 
 from tests import test_qwen4_adapter_loader as loader_tests
@@ -9,6 +10,7 @@ from vllm_apple.qwen4_component_loader import Qwen4MemoryAdmission
 from vllm_apple.qwen4_resident_store import Qwen4ResidentStore, ResidentBackendAllocation
 from vllm_apple.numeric_formats import NumericFormatDescriptor, TensorGeometry, convert_nvfp4_to_int8
 from vllm_apple.numeric_precision import NumericPrecisionPolicy, PrecisionExecutionContract
+from vllm_apple.numeric_streaming import NumericStreamingCancelled, NumericStreamingPlan
 from vllm_apple.qwen4_shard_stager import stage_qwen4_shards
 from vllm_apple.qwen4_tensor_reader import Qwen4TensorReader
 
@@ -48,6 +50,27 @@ class FakeResidentBackend:
             precision_policy_id=execution_contract.policy.policy_id,
             precision_checked=True,
         )
+
+    def load_scaled_int8_streaming(
+        self, tensor, stream, *, target_dtype, execution_contract, reserved_bytes
+    ):
+        raw = bytearray()
+        while True:
+            lease = stream.acquire_next()
+            if lease is None:
+                break
+            try:
+                raw.extend(lease.read())
+            finally:
+                lease.release()
+        if bytes(raw) != tensor.payload:
+            raise ValueError("streamed payload mismatch")
+        return replace(self.load_scaled_int8(
+            tensor,
+            target_dtype=target_dtype,
+            execution_contract=execution_contract,
+            reserved_bytes=reserved_bytes,
+        ), numeric_streaming_plan_id=stream.plan.plan_id)
 
     def release(self, resource):
         if self.fail_release:
@@ -98,6 +121,49 @@ class Qwen4ResidentStoreTests(unittest.TestCase):
                 store.load_scaled_int8(tensor, target_dtype="F16", execution_contract=contract)
             self.assertEqual(store.snapshot()["memory"]["reserved_bytes"], 0)
             self.assertEqual(backend.resources, [])
+
+    def test_scaled_int8_streaming_counts_buffers_and_retains_only_destination(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            backend = FakeResidentBackend()
+            store, _ = self.fixture(Path(directory), backend)
+            tensor = self.numeric_tensor()
+            contract = PrecisionExecutionContract(
+                tensor.target_digest, "F16", NumericPrecisionPolicy())
+            plan = NumericStreamingPlan(
+                hashlib.sha256(tensor.payload).hexdigest(), len(tensor.payload), 1, 2)
+            handle = store.load_scaled_int8_streaming(
+                tensor,
+                stream_plan=plan,
+                target_dtype="F16",
+                execution_contract=contract,
+            )
+            self.assertEqual(store.snapshot()["memory"]["reserved_bytes"], 6)
+            store.unload(handle)
+            self.assertEqual(store.snapshot()["memory"]["reserved_bytes"], 0)
+
+    def test_scaled_int8_streaming_cancel_releases_reservation(self) -> None:
+        class CancellingBackend(FakeResidentBackend):
+            def load_scaled_int8_streaming(self, tensor, stream, **kwargs):
+                cancellation.set()
+                stream.poll_cancellation()
+
+        with tempfile.TemporaryDirectory() as directory:
+            cancellation = __import__("threading").Event()
+            store, _ = self.fixture(Path(directory), CancellingBackend())
+            tensor = self.numeric_tensor()
+            contract = PrecisionExecutionContract(
+                tensor.target_digest, "F16", NumericPrecisionPolicy())
+            plan = NumericStreamingPlan(
+                hashlib.sha256(tensor.payload).hexdigest(), len(tensor.payload), 1, 2)
+            with self.assertRaises(NumericStreamingCancelled):
+                store.load_scaled_int8_streaming(
+                    tensor,
+                    stream_plan=plan,
+                    target_dtype="F16",
+                    execution_contract=contract,
+                    cancellation=cancellation,
+                )
+            self.assertEqual(store.snapshot()["memory"]["reserved_bytes"], 0)
 
     def fixture(self, root: Path, backend: FakeResidentBackend):
         source = loader_tests.Qwen4AdapterLoaderTests().source(root)

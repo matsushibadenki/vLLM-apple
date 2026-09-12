@@ -60,6 +60,9 @@ from .model_integrity import (
     verify_signed_model_integrity,
 )
 from .model_recommendation import build_model_recommendation
+from .numeric_artifact import read_numeric_source_file, write_nvfp4_numeric_artifact
+from .numeric_formats import NumericFormatDescriptor, TensorGeometry
+from .numeric_precision import NumericPrecisionPolicy
 from .phase_probe import PhaseProbeConfig, PhaseProbeError, run_phase_probe
 from .profile import build_profile, save_profile
 from .qualification import (
@@ -81,6 +84,9 @@ from .qwen4_adapter_loader import inspect_qwen4_adapter_headers
 from .qwen4_conversion_plan import build_qwen4_conversion_plan
 from .qwen4_mlx_fixture import run_qwen4_mlx_fixture
 from .qwen4_load_plan import build_qwen4_component_load_plan
+from .qwen4_mlx_resident_backend import Qwen4MLXNumericResidentBackend
+from .qwen4_runtime_client import Qwen4RuntimeClient
+from .qwen4_runtime_worker import Qwen4RuntimeWorker
 from .qwen4_shard_stager import stage_qwen4_shards, verify_qwen4_stage
 from .qwen4_weight_map import inspect_qwen4_weight_map
 from .qualification_bundle import (
@@ -124,6 +130,24 @@ def _candidate_versions(arguments: argparse.Namespace) -> tuple[str, str, str] |
     if any(values) and not all(values):
         raise ValueError("all candidate stack versions must be provided together")
     return values if all(values) else None
+
+
+def _numeric_shape(value: str) -> tuple[int, ...]:
+    try:
+        shape = tuple(int(item) for item in value.split(","))
+        TensorGeometry(shape, 0)
+    except (TypeError, ValueError) as error:
+        raise argparse.ArgumentTypeError(
+            "shape must be 1..8 comma-separated positive dimensions with at most 65536 elements"
+        ) from error
+    return shape
+
+
+def _add_numeric_runtime_connection_arguments(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument("--socket", required=True, type=Path)
+    parser.add_argument("--session-file", required=True, type=Path)
+    parser.add_argument("--sequence", required=True, type=int)
+    parser.add_argument("--timeout", type=float, default=10.0)
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -575,6 +599,67 @@ def build_parser() -> argparse.ArgumentParser:
     qwen4_load_plan.add_argument("--scratch-bytes-per-tensor", type=int, default=0)
     qwen4_load_plan.add_argument(
         "--mode", action="append", choices=("text", "mtp", "vision"), dest="qwen4_load_modes"
+    )
+    numeric_create = commands.add_parser(
+        "numeric-artifact-create",
+        help="create a private, digest-bound NVFP4 compatibility artifact",
+    )
+    numeric_create.add_argument("--packed", required=True, type=Path)
+    numeric_create.add_argument("--scales", required=True, type=Path)
+    numeric_create.add_argument("--output", required=True, type=Path)
+    numeric_create.add_argument("--shape", required=True, type=_numeric_shape)
+    numeric_create.add_argument("--scale-axis", required=True, type=int)
+    numeric_create.add_argument("--global-scale", type=float, default=1.0)
+    numeric_create.add_argument(
+        "--target-dtype", choices=("BF16", "F16", "F32"), default="F32"
+    )
+    numeric_create.add_argument("--absolute-tolerance", type=float, default=0.0)
+    numeric_create.add_argument("--relative-tolerance", type=float, default=0.0)
+    numeric_create.add_argument("--allow-underflow", action="store_true")
+
+    numeric_load = commands.add_parser(
+        "numeric-runtime-load", help="consume one numeric artifact into the local MLX runtime"
+    )
+    _add_numeric_runtime_connection_arguments(numeric_load)
+    numeric_load.add_argument("--artifact-name", required=True)
+    numeric_load.add_argument("--artifact-digest", required=True)
+    numeric_load.add_argument(
+        "--target-dtype", choices=("BF16", "F16", "F32"), default="F32"
+    )
+    numeric_load.add_argument("--scratch-bytes", type=int, default=0)
+    numeric_load.add_argument(
+        "--tile-bytes",
+        type=int,
+        help="use bounded streaming with this maximum tile size instead of the direct bridge",
+    )
+    numeric_load.add_argument("--buffer-count", type=int, choices=(1, 2), default=2)
+
+    numeric_unload = commands.add_parser(
+        "numeric-runtime-unload", help="release a resident numeric tensor handle"
+    )
+    _add_numeric_runtime_connection_arguments(numeric_unload)
+    numeric_unload.add_argument("--handle", required=True)
+
+    numeric_status = commands.add_parser(
+        "numeric-runtime-status", help="read local numeric runtime residency status"
+    )
+    _add_numeric_runtime_connection_arguments(numeric_status)
+    numeric_shutdown = commands.add_parser(
+        "numeric-runtime-shutdown", help="request an orderly local numeric runtime shutdown"
+    )
+    _add_numeric_runtime_connection_arguments(numeric_shutdown)
+
+    numeric_worker = commands.add_parser(
+        "numeric-runtime-worker", help="serve private one-shot artifacts through an MLX resident store"
+    )
+    numeric_worker.add_argument("--stage", required=True, type=Path)
+    numeric_worker.add_argument("--socket", required=True, type=Path)
+    numeric_worker.add_argument("--session-file", required=True, type=Path)
+    numeric_worker.add_argument("--artifact-root", required=True, type=Path)
+    numeric_worker.add_argument("--maximum-artifact-bytes", required=True, type=int)
+    numeric_worker.add_argument("--memory-capacity-bytes", required=True, type=int)
+    numeric_worker.add_argument(
+        "--mode", action="append", choices=("text", "mtp", "vision"), dest="numeric_modes"
     )
     qualification_bundle = commands.add_parser(
         "qualification-bundle", help="build a bounded, tamper-evident promotion bundle"
@@ -1718,6 +1803,130 @@ def main(argv: list[str] | None = None) -> int:
             _json({"passed": False, "error_code": "qwen4_load_plan_failed", "detail": str(error)})
             return 2
         _json(result)
+        return 0
+    if arguments.command == "numeric-artifact-create":
+        try:
+            geometry = TensorGeometry(arguments.shape, arguments.scale_axis)
+            descriptor = NumericFormatDescriptor("nvfp4_e2m1", geometry.elements)
+            policy = NumericPrecisionPolicy(
+                arguments.absolute_tolerance,
+                arguments.relative_tolerance,
+                arguments.allow_underflow,
+            )
+            loaded = write_nvfp4_numeric_artifact(
+                arguments.output,
+                descriptor,
+                read_numeric_source_file(arguments.packed),
+                read_numeric_source_file(arguments.scales),
+                arguments.global_scale,
+                geometry=geometry,
+                target_dtype=arguments.target_dtype,
+                precision_policy=policy,
+            )
+        except (OSError, ValueError) as error:
+            _json(
+                {
+                    "created": False,
+                    "error_code": "numeric_artifact_creation_failed",
+                    "detail": str(error),
+                }
+            )
+            return 2
+        _json(
+            {
+                "created": True,
+                "artifact_name": loaded.artifact_name,
+                "artifact_digest": loaded.artifact_digest,
+                "source_digest": loaded.tensor.source_digest,
+                "target_digest": loaded.tensor.target_digest,
+                "contract_id": loaded.execution_contract.contract_id,
+                "policy_id": loaded.execution_contract.policy.policy_id,
+                "target_dtype": loaded.execution_contract.target_dtype,
+                "stores_tensor_values": True,
+            }
+        )
+        return 0
+    if arguments.command in {
+        "numeric-runtime-load",
+        "numeric-runtime-unload",
+        "numeric-runtime-status",
+        "numeric-runtime-shutdown",
+    }:
+        try:
+            client = Qwen4RuntimeClient(
+                arguments.socket,
+                arguments.session_file,
+                timeout_seconds=arguments.timeout,
+            )
+            if arguments.command == "numeric-runtime-load":
+                load_arguments = {
+                    "sequence": arguments.sequence,
+                    "artifact_name": arguments.artifact_name,
+                    "artifact_digest": arguments.artifact_digest,
+                    "target_dtype": arguments.target_dtype,
+                    "scratch_bytes": arguments.scratch_bytes,
+                }
+                if arguments.tile_bytes is None:
+                    result = client.load_numeric(**load_arguments)
+                else:
+                    result = client.load_numeric_streaming(
+                        **load_arguments,
+                        tile_bytes=arguments.tile_bytes,
+                        buffer_count=arguments.buffer_count,
+                    )
+            elif arguments.command == "numeric-runtime-unload":
+                result = client.unload(sequence=arguments.sequence, handle=arguments.handle)
+            elif arguments.command == "numeric-runtime-status":
+                result = client.status(sequence=arguments.sequence)
+            else:
+                result = client.shutdown(sequence=arguments.sequence)
+        except (OSError, ValueError) as error:
+            _json(
+                {
+                    "passed": False,
+                    "error_code": "numeric_runtime_request_failed",
+                    "detail": str(error),
+                }
+            )
+            return 2
+        _json(result)
+        return 0 if result["passed"] else 1
+    if arguments.command == "numeric-runtime-worker":
+        worker = None
+        try:
+            worker = Qwen4RuntimeWorker(
+                stage_root=arguments.stage,
+                socket_path=arguments.socket,
+                session_file=arguments.session_file,
+                maximum_artifact_bytes=arguments.maximum_artifact_bytes,
+                memory_capacity_bytes=arguments.memory_capacity_bytes,
+                backend=Qwen4MLXNumericResidentBackend(),
+                requested_modes=tuple(arguments.numeric_modes or ("text",)),
+                numeric_artifact_root=arguments.artifact_root,
+            )
+            worker.start()
+            _json(
+                {
+                    "ready": True,
+                    "socket": str(arguments.socket.expanduser().absolute()),
+                    "session_file": str(arguments.session_file.expanduser().absolute()),
+                    "artifact_root": str(arguments.artifact_root.expanduser().absolute()),
+                }
+            )
+            sys.stdout.flush()
+            worker.serve_until_shutdown()
+        except (ImportError, OSError, RuntimeError, ValueError) as error:
+            _json(
+                {
+                    "ready": False,
+                    "error_code": "numeric_runtime_worker_failed",
+                    "detail": str(error),
+                }
+            )
+            return 2
+        finally:
+            if worker is not None:
+                worker.close()
         return 0
     if arguments.command == "qualification-bundle":
         try:
