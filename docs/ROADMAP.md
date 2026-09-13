@@ -804,7 +804,10 @@ NVFP4 → INT8を最初の候補としつつ、FP16/BF16展開、既存MLX量子
 - `[Done]` digest-bound bounded tile plan、最大2 bufferの明示lease・再利用時zeroize・cooperative cancel/cleanup、buffer/metadata/scratch/destination一括admission、runtime/CLI/MLX streaming load接続
 - `[Done]` runtime socketのnon-consuming disconnect probeをstream safe pointへ伝播（監視threadなし、次command dataは消費しない）
 - `[Done]` private 0600 packed/scale fileのowner・regular file・no-follow・size・SHA-256・inode/mtime再検証、unaligned tile対応NVFP4 incremental decode、全source materializationなしのbounded MLX常駐load
-- `[Next]` JSON artifact claimからpacked/scale file-backed providerへ直接接続する複数file artifact lifecycle/runtime CLIと、明示cancel commandの長時間stream伝播（native INT8演算kernelは未実装）
+- `[Done]` manifest-last生成、3-file one-shot claim/consume/quarantine、runtime自動判別、CLI `--file-backed`によるpacked/scale file-backed provider直接接続
+- `[Done]` request ID指定のout-of-band `cancel` control message、最大8接続の並行Unix socket受付、tile safe pointへのsignal合成、client/CLI cancel入口
+- `[Done]` worker起動時の5分grace・4096 entry上限・identity再検証付きorphan companion quarantine
+- `[Next]` cancel・consume・shutdown競合のsocket負荷試験とorphan回収診断（native INT8演算kernelは未実装）
 - `[Later]` NVFP4 1D／2D block scale、scale layout・swizzle、tensor scale、packed nibble順序を識別するartifact adapter
 - `[Later]` MXFP4／MXFP6／MXFP8、FP8 E4M3／E5M2とvariant、FP16／BF16／FP32、signed/unsigned INT8／INT4／INT2の段階的対応
 - `[Later]` NF4／codebook量子化、groupwise affine、zero-point、double quantization、mixed precision、outlier/residual・sparse表現の拡張adapter
@@ -820,20 +823,22 @@ NVFP4 → INT8を最初の候補としつつ、FP16/BF16展開、既存MLX量子
 - `[Later]` CLI／Swift診断と英語・日本語・简体中文表示（source/runtime/compute形式、route、誤差budget、fallback理由）
 
 範囲は広く定義するが、形式名だけで対応済みとしない。adapterごとにinspect/decode/convert/execute/qualifiedを
-区別し、metadataと参照結果が確認できたvariantから順に有効化する。後半のCPU/GPU/ANE schedulerはこの層の
-変換・同期costをresource ledgerへ取り込み、複数deviceの並列変換／演算を最適化する。
+区別し、metadataと参照結果が確認できたvariantから順に有効化する。CPU/GPU/ANE schedulerは固定した
+後半フェーズへ留めず、必要なcapability・計測・fallback契約が揃った項目から優先度を引き上げる。
+この層の変換・同期costはresource ledgerへ取り込み、複数deviceの並列変換／演算を最適化する。
 
-## Late Phase — CPU / GPU / ANE Heterogeneous Scheduling
+## Adaptive Track — CPU / GPU / ANE Heterogeneous Scheduling
 
 AppleExecutionPlannerと既存のglobal schedulerを拡張し、CPU、GPU、ANEを個別backendではなく、
 Unified Memoryとmemory bandwidthを共有する一つの実行系として管理する。ANEは公開Core ML APIで
 実行可能な固定graph中心の処理だけを対象とし、dynamic LLM decodeを前提にしない。
 
-- `[Later]` CPU、MLX GPU、Native Metal、Core ML/ANEのversioned capability・operator eligibility registry
+- `[Done]` CPU、MLX GPU、Native Metal、Core ML/ANEのprofile-bound versioned capability・operator/phase/precision eligibility registry、sticky quarantine、probe ID binding、bounded fallback decision
+- `[Next]` 公開Core ML APIのANE availability probeと、既存CPU／MLX／Metal probeから実環境registryを構築するcomposition
 - `[Later]` Core ML model compile/loadを隔離するANE backend adapterと、OS／chip／model fingerprint別cache
 - `[Later]` CPU thread、GPU command queue、ANE in-flight task、Unified Memory、memory bandwidthの統合resource ledger
 - `[Later]` operator graphへ依存関係、deadline、phase、precision、fallback、同期costを付与するdispatch contract
-- `[Later]` CPU/GPU/ANE別microbenchmark（latency、throughput、energy、peak memory、同期・変換overhead）
+- `[Next]` CPU/GPU/ANE別microbenchmark（latency、throughput、energy、peak memory、同期・変換overhead）
 - `[Later]` prefill、decode、Vision/Audio encoder、sampling、draft/verify別のend-to-end performance profile
 - `[Later]` scheduler safe pointだけでdevice assignmentを切り替えるadaptive placementとbounded work stealing
 - `[Later]` memory pressure、thermal state、low-power modeに応じたconcurrency／batch／device割当の段階的縮退

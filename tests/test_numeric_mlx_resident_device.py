@@ -14,7 +14,10 @@ from vllm_apple.numeric_formats import (
     convert_nvfp4_to_int8,
 )
 from vllm_apple.numeric_file_stream import NVFP4FileTileProvider
-from vllm_apple.numeric_artifact import NumericArtifactReader, write_nvfp4_numeric_artifact
+from vllm_apple.numeric_artifact import (
+    NumericArtifactReader,
+    write_nvfp4_file_numeric_artifact,
+)
 from vllm_apple.numeric_precision import NumericPrecisionPolicy, PrecisionExecutionContract
 from vllm_apple.numeric_streaming import NumericStreamingPlan
 from vllm_apple.qwen4_component_loader import Qwen4MemoryAdmission
@@ -44,7 +47,7 @@ class NumericMLXResidentDeviceTests(unittest.TestCase):
             stage_qwen4_shards(source, stage, maximum_output_bytes=65536)
             artifacts = root / "numeric"
             artifacts.mkdir(mode=0o700)
-            created = write_nvfp4_numeric_artifact(
+            artifact_name, artifact_digest = write_nvfp4_file_numeric_artifact(
                 artifacts / "weight.json", NumericFormatDescriptor("nvfp4_e2m1", 3),
                 bytes([0xA2, 2]), bytes([56, 64, 72]), 1,
                 geometry=TensorGeometry((3, 1), 1), target_dtype="F16",
@@ -61,13 +64,15 @@ class NumericMLXResidentDeviceTests(unittest.TestCase):
             try:
                 request = build_qwen4_numeric_streaming_runtime_request(
                     session_id="a" * 32, sequence=1, request_id="1" * 32,
-                    artifact_name="weight.json", artifact_digest=created.artifact_digest,
+                    artifact_name=artifact_name, artifact_digest=artifact_digest,
                     target_dtype="F16", tile_bytes=1, buffer_count=2)
                 send_qwen4_runtime_frame(client_socket, request)
                 loaded = receive_qwen4_runtime_frame(client_socket)
                 self.assertTrue(loaded["passed"])
                 self.assertEqual(loaded["result"]["artifact_state"], "consumed")
                 self.assertFalse((artifacts / "weight.json").exists())
+                self.assertFalse((artifacts / "weight.packed").exists())
+                self.assertFalse((artifacts / "weight.scales").exists())
                 self.assertEqual(list((artifacts / "quarantine").iterdir()), [])
                 self.assertEqual(store.snapshot()["resident_tensors"], 1)
                 send_qwen4_runtime_frame(client_socket, {

@@ -7,6 +7,7 @@ import select
 import socket
 import stat
 import struct
+import threading
 from pathlib import Path
 
 from .qwen4_runtime_protocol import MAX_RUNTIME_MESSAGE_BYTES, Qwen4RuntimeCommandService
@@ -132,7 +133,8 @@ class Qwen4RuntimeUnixServer:
                 raise ValueError("Qwen4 runtime bound socket identity is unsafe")
             self._socket_identity = (bound_info.st_dev, bound_info.st_ino)
             os.chmod(self.socket_path, 0o600)
-            listener.listen(1)
+            listener.listen(8)
+            listener.settimeout(0.25)
         except BaseException:
             listener.close()
             self._unlink_owned_socket()
@@ -149,8 +151,27 @@ class Qwen4RuntimeUnixServer:
             connection.close()
 
     def serve_until_shutdown(self) -> None:
+        if self._listener is None:
+            raise RuntimeError("Qwen4 runtime Unix server is not started")
+        workers: set[threading.Thread] = set()
         while not self.service.closed:
-            self.serve_once()
+            workers = {worker for worker in workers if worker.is_alive()}
+            try:
+                connection, _ = self._listener.accept()
+            except TimeoutError:
+                continue
+
+            def serve(accepted: socket.socket = connection) -> None:
+                try:
+                    self.serve_connection(accepted)
+                finally:
+                    accepted.close()
+
+            worker = threading.Thread(target=serve, daemon=False)
+            workers.add(worker)
+            worker.start()
+        for worker in workers:
+            worker.join(timeout=self.connection_timeout_seconds)
 
     def serve_connection(self, connection: socket.socket) -> None:
         if _peer_uid(connection) != os.getuid():

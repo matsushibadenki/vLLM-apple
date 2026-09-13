@@ -48,6 +48,9 @@ class Qwen4RuntimeWorker:
         numeric_reader = (
             None if numeric_artifact_root is None else NumericArtifactReader(numeric_artifact_root)
         )
+        self.recovered_numeric_orphans = (
+            0 if numeric_reader is None else numeric_reader.recover_orphan_bundles()
+        )
         self.service = Qwen4RuntimeCommandService(
             self.session_id, self.store, numeric_artifact_reader=numeric_reader)
         self.server = Qwen4RuntimeUnixServer(socket_path, self.service)

@@ -1553,7 +1553,8 @@ AppleExecutionPlannerが共有する数値形式互換層として設計する�
 in-process resident storeとMLX F16/BF16/F32常駐backendまでを小規模tensorで実装・検証済みである。
 private bounded artifactを使うlocal socket搬送、one-shot claim/consume/quarantine、producer/client/worker CLI、
 最大2 bufferのin-process tile streaming、private packed/scale fileから全sourceを展開しないincremental decode、
-MLX常駐と明示解放まで実装済みである。native INT8演算、複数file artifact lifecycle/runtime搬送、fused変換、
+manifest-lastの複数file artifact lifecycle/runtime搬送、MLX常駐と明示解放まで実装済みである。
+request ID指定の別socket明示cancelまで実装済みである。native INT8演算、orphan cleanup、fused変換、
 他形式は未実装である。
 
 ### 抽象化の境界
@@ -2472,27 +2473,30 @@ distributed KV/state
 
 ---
 
-## Late Phase — CPU / GPU / ANE Heterogeneous Scheduling
+## Adaptive Track — CPU / GPU / ANE Heterogeneous Scheduling
 
-CPU、GPU、ANEの同時利用は後半フェーズで導入する。`AppleExecutionPlanner`をdevice placementの
+CPU、GPU、ANEの同時利用は固定した後半フェーズに置かず、依存するcapability、計測、fallback契約が
+揃った単位から導入する。`AppleExecutionPlanner`をdevice placementの
 唯一の決定点とし、各backendが独自に別deviceへ処理を逃がすことは禁止する。すべてのassignmentは
 versioned execution planへ記録し、active request中は変更せずscheduler safe pointでのみ切り替える。
 
 実装順序：
 
-1. `[Later]` 公開APIだけを使うCore ML/ANE capability probeと固定graph backend adapterを追加する。
-2. `[Later]` CPU thread、GPU command queue、ANE task、Unified Memory、memory bandwidthを同じresource
+1. `[Done]` CPU／MLX GPU／Native Metal／Core ML/ANEを同じprofile-bound契約で表し、operator、phase、
+   precision、probe ID、sticky quarantineによりbounded fallbackを決定するregistryを追加する。
+2. `[Next]` 公開APIだけを使うCore ML/ANE capability probeと固定graph backend adapterを追加する。
+3. `[Later]` CPU thread、GPU command queue、ANE task、Unified Memory、memory bandwidthを同じresource
    ledgerで予約し、overcommitをmodel load前とoperator dispatch前に拒否する。
-3. `[Later]` operator、shape、batch、precision、phaseごとにCPU/GPU/ANEの単独実行を測定する。
+4. `[Next]` operator、shape、batch、precision、phaseごとにCPU/GPU/ANEの単独実行を測定する。
    device間同期、tensor変換、Core ML compile/load時間を必ずend-to-end latencyへ含める。
-4. `[Later]` Vision/Audio encoder、embedding、classifier、background modelなど固定graph化しやすい
+5. `[Later]` Vision/Audio encoder、embedding、classifier、background modelなど固定graph化しやすい
    auxiliary workloadからANE routingを開始する。LLM prefill/decodeはGPU baselineを維持する。
-5. `[Later]` 共有memory bandwidth競合を測定し、単独実行より改善する組み合わせに限ってCPU/GPU/ANE
+6. `[Later]` 共有memory bandwidth競合を測定し、単独実行より改善する組み合わせに限ってCPU/GPU/ANE
    pipeline並列化またはbounded work stealingを有効化する。
-6. `[Later]` CPU/Core ML draft + GPU verifyをcorrectness-neutralなspeculative executionとして評価する。
-7. `[Later]` thermal、memory pressure、low-power modeを入力に、batch、concurrency、device assignmentを
+7. `[Later]` CPU/Core ML draft + GPU verifyをcorrectness-neutralなspeculative executionとして評価する。
+8. `[Later]` thermal、memory pressure、low-power modeを入力に、batch、concurrency、device assignmentを
    段階的に縮退・復元する。既存requestをcancelせず、新規admissionと次のsafe pointへだけ適用する。
-8. `[Later]` hardware、OS、Core ML、MLX、Metal、model、shapeに結び付いたprofileを保存し、期限切れ、
+9. `[Later]` hardware、OS、Core ML、MLX、Metal、model、shapeに結び付いたprofileを保存し、期限切れ、
    quarantine、last-known-good rollbackを既存kernel profileと同じfail-closed policyで管理する。
 
 昇格条件は、backend間のbounded numerical comparisonまたはtask固有quality gateが合格し、代表workloadで

@@ -60,9 +60,17 @@ from .model_integrity import (
     verify_signed_model_integrity,
 )
 from .model_recommendation import build_model_recommendation
-from .numeric_artifact import read_numeric_source_file, write_nvfp4_numeric_artifact
-from .numeric_formats import NumericFormatDescriptor, TensorGeometry
-from .numeric_precision import NumericPrecisionPolicy
+from .numeric_artifact import (
+    read_numeric_source_file,
+    write_nvfp4_file_numeric_artifact,
+    write_nvfp4_numeric_artifact,
+)
+from .numeric_formats import (
+    NumericFormatDescriptor,
+    TensorGeometry,
+    convert_nvfp4_to_int8,
+)
+from .numeric_precision import NumericPrecisionPolicy, PrecisionExecutionContract
 from .phase_probe import PhaseProbeConfig, PhaseProbeError, run_phase_probe
 from .profile import build_profile, save_profile
 from .qualification import (
@@ -616,6 +624,11 @@ def build_parser() -> argparse.ArgumentParser:
     numeric_create.add_argument("--absolute-tolerance", type=float, default=0.0)
     numeric_create.add_argument("--relative-tolerance", type=float, default=0.0)
     numeric_create.add_argument("--allow-underflow", action="store_true")
+    numeric_create.add_argument(
+        "--file-backed",
+        action="store_true",
+        help="write private packed/scales companions for incremental runtime loading",
+    )
 
     numeric_load = commands.add_parser(
         "numeric-runtime-load", help="consume one numeric artifact into the local MLX runtime"
@@ -639,6 +652,12 @@ def build_parser() -> argparse.ArgumentParser:
     )
     _add_numeric_runtime_connection_arguments(numeric_unload)
     numeric_unload.add_argument("--handle", required=True)
+
+    numeric_cancel = commands.add_parser(
+        "numeric-runtime-cancel", help="cancel one active numeric streaming request"
+    )
+    _add_numeric_runtime_connection_arguments(numeric_cancel)
+    numeric_cancel.add_argument("--target-request-id", required=True)
 
     numeric_status = commands.add_parser(
         "numeric-runtime-status", help="read local numeric runtime residency status"
@@ -1813,16 +1832,38 @@ def main(argv: list[str] | None = None) -> int:
                 arguments.relative_tolerance,
                 arguments.allow_underflow,
             )
-            loaded = write_nvfp4_numeric_artifact(
-                arguments.output,
-                descriptor,
-                read_numeric_source_file(arguments.packed),
-                read_numeric_source_file(arguments.scales),
-                arguments.global_scale,
-                geometry=geometry,
-                target_dtype=arguments.target_dtype,
-                precision_policy=policy,
+            packed = read_numeric_source_file(arguments.packed)
+            scales = read_numeric_source_file(arguments.scales)
+            tensor = convert_nvfp4_to_int8(
+                descriptor, packed, scales, arguments.global_scale, geometry=geometry
             )
+            contract = PrecisionExecutionContract(
+                tensor.target_digest, arguments.target_dtype, policy
+            )
+            if arguments.file_backed:
+                artifact_name, artifact_digest = write_nvfp4_file_numeric_artifact(
+                    arguments.output,
+                    descriptor,
+                    packed,
+                    scales,
+                    arguments.global_scale,
+                    geometry=geometry,
+                    target_dtype=arguments.target_dtype,
+                    precision_policy=policy,
+                )
+            else:
+                loaded = write_nvfp4_numeric_artifact(
+                    arguments.output,
+                    descriptor,
+                    packed,
+                    scales,
+                    arguments.global_scale,
+                    geometry=geometry,
+                    target_dtype=arguments.target_dtype,
+                    precision_policy=policy,
+                )
+                artifact_name = loaded.artifact_name
+                artifact_digest = loaded.artifact_digest
         except (OSError, ValueError) as error:
             _json(
                 {
@@ -1835,20 +1876,21 @@ def main(argv: list[str] | None = None) -> int:
         _json(
             {
                 "created": True,
-                "artifact_name": loaded.artifact_name,
-                "artifact_digest": loaded.artifact_digest,
-                "source_digest": loaded.tensor.source_digest,
-                "target_digest": loaded.tensor.target_digest,
-                "contract_id": loaded.execution_contract.contract_id,
-                "policy_id": loaded.execution_contract.policy.policy_id,
-                "target_dtype": loaded.execution_contract.target_dtype,
-                "stores_tensor_values": True,
+                "artifact_name": artifact_name,
+                "artifact_digest": artifact_digest,
+                "source_digest": tensor.source_digest,
+                "target_digest": tensor.target_digest,
+                "contract_id": contract.contract_id,
+                "policy_id": contract.policy.policy_id,
+                "target_dtype": contract.target_dtype,
+                "stores_tensor_values": not arguments.file_backed,
             }
         )
         return 0
     if arguments.command in {
         "numeric-runtime-load",
         "numeric-runtime-unload",
+        "numeric-runtime-cancel",
         "numeric-runtime-status",
         "numeric-runtime-shutdown",
     }:
@@ -1876,6 +1918,11 @@ def main(argv: list[str] | None = None) -> int:
                     )
             elif arguments.command == "numeric-runtime-unload":
                 result = client.unload(sequence=arguments.sequence, handle=arguments.handle)
+            elif arguments.command == "numeric-runtime-cancel":
+                result = client.cancel(
+                    sequence=arguments.sequence,
+                    target_request_id=arguments.target_request_id,
+                )
             elif arguments.command == "numeric-runtime-status":
                 result = client.status(sequence=arguments.sequence)
             else:

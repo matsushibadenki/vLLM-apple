@@ -70,6 +70,32 @@ class NumericCLITests(unittest.TestCase):
             )
             self.assertFalse(output.exists())
 
+    def test_create_file_backed_bundle_for_streaming_runtime(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            root.chmod(0o700)
+            packed = root / "input.bin"
+            scales = root / "input-scales.bin"
+            packed.write_bytes(bytes([0xA2, 0x02]))
+            scales.write_bytes(bytes([56, 64, 72]))
+            stream = io.StringIO()
+            with contextlib.redirect_stdout(stream):
+                result = main([
+                    "numeric-artifact-create",
+                    "--packed", str(packed),
+                    "--scales", str(scales),
+                    "--output", str(root / "weight.json"),
+                    "--shape", "3,1",
+                    "--scale-axis", "1",
+                    "--file-backed",
+                ])
+            report = json.loads(stream.getvalue())
+            self.assertEqual(result, 0)
+            self.assertFalse(report["stores_tensor_values"])
+            self.assertTrue((root / "weight.json").exists())
+            self.assertTrue((root / "weight.packed").exists())
+            self.assertTrue((root / "weight.scales").exists())
+
     @patch("vllm_apple.cli.Qwen4RuntimeClient")
     def test_load_and_unload_forward_bounded_runtime_arguments(self, client_type):
         client = client_type.return_value

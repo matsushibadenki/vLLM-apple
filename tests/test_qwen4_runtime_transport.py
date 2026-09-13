@@ -70,6 +70,9 @@ class Qwen4RuntimeTransportTests(unittest.TestCase):
                 def listen(self, value):
                     calls.append(("listen", value))
 
+                def settimeout(self, value):
+                    calls.append(("settimeout", value))
+
                 def close(self):
                     calls.append(("close", None))
 
@@ -82,7 +85,7 @@ class Qwen4RuntimeTransportTests(unittest.TestCase):
                 chmod.assert_called_once_with(server.socket_path, 0o600)
                 server.close()
             self.assertIn(("bind", str(server.socket_path)), calls)
-            self.assertIn(("listen", 1), calls)
+            self.assertIn(("listen", 8), calls)
 
     def test_rejects_oversized_frame_before_json_allocation(self) -> None:
         server_socket, client_socket = socket.socketpair()

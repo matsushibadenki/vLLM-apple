@@ -68,6 +68,12 @@ class Qwen4RuntimeClient:
     def unload(self, *, sequence: int, handle: str) -> dict[str, object]:
         return self._simple_request(sequence, "unload", handle=handle)
 
+    def cancel(self, *, sequence: int, target_request_id: str) -> dict[str, object]:
+        """Cancel an active request; control messages do not advance command ordering."""
+        return self._simple_request(
+            sequence, "cancel", target_request_id=target_request_id
+        )
+
     def load_numeric_streaming(
         self,
         *,
@@ -78,11 +84,12 @@ class Qwen4RuntimeClient:
         tile_bytes: int,
         buffer_count: int = 2,
         scratch_bytes: int = 0,
+        request_id: str | None = None,
     ) -> dict[str, object]:
         request = build_qwen4_numeric_streaming_runtime_request(
             session_id=self._session_id(),
             sequence=sequence,
-            request_id=secrets.token_hex(16),
+            request_id=secrets.token_hex(16) if request_id is None else request_id,
             artifact_name=artifact_name,
             artifact_digest=artifact_digest,
             target_dtype=target_dtype,

@@ -8,6 +8,14 @@ from .backend_tuning import (
     parse_kernel_tuning_headers,
 )
 from .elastic_memory import ElasticMemoryController, ElasticMemoryDecision
+from .device_capability import (
+    ComputeDevice,
+    DeviceCapability,
+    DeviceCapabilityRegistry,
+    DeviceEligibilityDecision,
+    DeviceEligibilityRequest,
+    device_capability_from_probe,
+)
 from .execution import AppleChipProfile, AppleExecutionPlan, AppleExecutionPlanner
 from .execution_profile import detect_apple_chip_profile, load_chip_profile, save_chip_profile
 from .context_reevaluation import ContextCapacityReevaluator, ContextReevaluationSnapshot
@@ -160,6 +168,11 @@ __all__ = [
     "BackendTuningSnapshot",
     "ContextCapacityReevaluator",
     "ContextReevaluationSnapshot",
+    "ComputeDevice",
+    "DeviceCapability",
+    "DeviceCapabilityRegistry",
+    "DeviceEligibilityDecision",
+    "DeviceEligibilityRequest",
     "ElasticMemoryController",
     "ElasticMemoryDecision",
     "ExecutionPhaseProfiler",
@@ -242,6 +255,7 @@ __all__ = [
     "default_v2_observation_path",
     "default_native_v2_preference_path",
     "detect_apple_chip_profile",
+    "device_capability_from_probe",
     "discover_metal_tuning_report",
     "discover_runtime_versions",
     "inspect_vllm_metal_integration",

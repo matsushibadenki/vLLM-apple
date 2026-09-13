@@ -7,7 +7,7 @@ import threading
 from collections import OrderedDict
 from typing import Protocol
 
-from .numeric_artifact import NumericArtifactReader
+from .numeric_artifact import LoadedFileNumericArtifact, NumericArtifactReader
 from .numeric_formats import ScaledInt8Tensor
 from .numeric_precision import PrecisionExecutionContract
 from .numeric_streaming import (
@@ -22,9 +22,20 @@ MAX_RUNTIME_MESSAGE_BYTES = 16 * 1024
 MAX_CACHED_RESPONSES = 256
 _OPERATIONS = {
     "load", "load_numeric", "load_numeric_streaming", "unload", "status",
-    "retry_quarantine", "shutdown",
+    "retry_quarantine", "cancel", "shutdown",
 }
 _DTYPES = {"BF16", "F16", "F32"}
+
+
+class _CombinedCancellationSignal:
+    def __init__(self, explicit: threading.Event, transport) -> None:
+        self.explicit = explicit
+        self.transport = transport
+
+    def is_set(self) -> bool:
+        return self.explicit.is_set() or (
+            self.transport is not None and self.transport.is_set()
+        )
 
 
 class Qwen4RuntimeStore(Protocol):
@@ -58,6 +69,8 @@ class Qwen4RuntimeStore(Protocol):
         scratch_bytes: int = 0,
         cancellation: NumericCancellationSignal | None = None,
     ) -> str: ...
+
+    def load_nvfp4_file_stream(self, provider, **kwargs: object) -> str: ...
 
     def unload(self, handle: str) -> None: ...
 
@@ -144,6 +157,7 @@ def parse_qwen4_runtime_request(payload: object) -> dict[str, object]:
         "unload": common | {"handle"},
         "status": common,
         "retry_quarantine": common,
+        "cancel": common | {"target_request_id"},
         "shutdown": common,
     }
     if not isinstance(operation, str) or operation not in _OPERATIONS or set(payload) != fields[operation]:
@@ -207,6 +221,8 @@ def parse_qwen4_runtime_request(payload: object) -> dict[str, object]:
             or payload["buffer_count"] not in (1, 2)
         ):
             raise ValueError("Qwen4 runtime numeric streaming request is invalid")
+    elif operation == "cancel" and not _identifier(payload["target_request_id"]):
+        raise ValueError("Qwen4 runtime cancel target is invalid")
     elif operation == "unload" and not _identifier(payload["handle"]):
         raise ValueError("Qwen4 runtime unload handle is invalid")
     encoded = json.dumps(payload, sort_keys=True, separators=(",", ":")).encode()
@@ -259,6 +275,10 @@ def parse_qwen4_runtime_response(payload: object) -> dict[str, object]:
         raise ValueError("Qwen4 runtime numeric load response is invalid")
     if operation == "unload" and result != {"unloaded": True}:
         raise ValueError("Qwen4 runtime unload response is invalid")
+    if operation == "cancel" and (
+        set(result) != {"cancelled"} or not isinstance(result["cancelled"], bool)
+    ):
+        raise ValueError("Qwen4 runtime cancel response is invalid")
     if operation == "retry_quarantine" and (
         set(result) != {"released"}
         or not isinstance(result["released"], int)
@@ -307,6 +327,8 @@ class Qwen4RuntimeCommandService:
         self.store = store
         self.numeric_artifact_reader = numeric_artifact_reader
         self._lock = threading.Lock()
+        self._active_lock = threading.Lock()
+        self._active_cancellations: dict[str, threading.Event] = {}
         self._last_sequence = 0
         self._closed = False
         self._cache: OrderedDict[int, tuple[bytes, dict[str, object]]] = OrderedDict()
@@ -323,6 +345,23 @@ class Qwen4RuntimeCommandService:
         cancellation: NumericCancellationSignal | None = None,
     ) -> dict[str, object]:
         request = parse_qwen4_runtime_request(payload)
+        if request["operation"] == "cancel":
+            if request["session_id"] != self.session_id:
+                raise ValueError("Qwen4 runtime request belongs to another session")
+            with self._active_lock:
+                event = self._active_cancellations.get(request["target_request_id"])
+                if event is not None:
+                    event.set()
+            return parse_qwen4_runtime_response({
+                "abi_version": QWEN4_RUNTIME_ABI_VERSION,
+                "session_id": self.session_id,
+                "sequence": request["sequence"],
+                "request_id": request["request_id"],
+                "operation": "cancel",
+                "passed": True,
+                "result": {"cancelled": event is not None},
+                "error_code": None,
+            })
         canonical = json.dumps(request, sort_keys=True, separators=(",", ":")).encode()
         with self._lock:
             if request["session_id"] != self.session_id:
@@ -337,14 +376,23 @@ class Qwen4RuntimeCommandService:
                 raise ValueError("Qwen4 runtime request sequence is not contiguous")
             if self._closed:
                 raise ValueError("Qwen4 runtime session is closed")
+            local_cancellation = threading.Event()
+            with self._active_lock:
+                self._active_cancellations[request["request_id"]] = local_cancellation
+            combined_cancellation = _CombinedCancellationSignal(
+                local_cancellation, cancellation
+            )
             try:
-                result = self._execute(request, cancellation=cancellation)
+                result = self._execute(request, cancellation=combined_cancellation)
                 passed = True
                 error_code = None
             except MemoryError:
                 result, passed, error_code = {}, False, "memory_admission_rejected"
             except (KeyError, OSError, RuntimeError, ValueError):
                 result, passed, error_code = {}, False, "operation_failed"
+            finally:
+                with self._active_lock:
+                    self._active_cancellations.pop(request["request_id"], None)
             response = parse_qwen4_runtime_response(
                 {
                     "abi_version": QWEN4_RUNTIME_ABI_VERSION,
@@ -392,8 +440,23 @@ class Qwen4RuntimeCommandService:
             loaded = self.numeric_artifact_reader.claim(
                 request["artifact_name"], request["artifact_digest"])
             if loaded.execution_contract.target_dtype != request["target_dtype"]:
+                if isinstance(loaded, LoadedFileNumericArtifact):
+                    loaded.provider.close()
                 raise ValueError("Qwen4 runtime numeric target dtype mismatch")
-            if operation == "load_numeric_streaming":
+            if isinstance(loaded, LoadedFileNumericArtifact):
+                if operation != "load_numeric_streaming":
+                    loaded.provider.close()
+                    raise ValueError("file-backed numeric artifacts require streaming load")
+                handle = self.store.load_nvfp4_file_stream(
+                    loaded.provider,
+                    tile_bytes=request["tile_bytes"],
+                    buffer_count=request["buffer_count"],
+                    target_dtype=request["target_dtype"],
+                    execution_contract=loaded.execution_contract,
+                    scratch_bytes=request["scratch_bytes"],
+                    cancellation=cancellation,
+                )
+            elif operation == "load_numeric_streaming":
                 stream_plan = NumericStreamingPlan(
                     hashlib.sha256(loaded.tensor.payload).hexdigest(),
                     len(loaded.tensor.payload),

@@ -1,4 +1,6 @@
 import unittest
+import threading
+import time
 from types import SimpleNamespace
 
 from vllm_apple.numeric_formats import NumericFormatDescriptor, convert_nvfp4_to_int8
@@ -158,13 +160,59 @@ class Qwen4RuntimeProtocolTests(unittest.TestCase):
         stream_plan = store.last_numeric_stream[1]
         self.assertEqual(stream_plan.tile_bytes, 1)
         self.assertEqual(stream_plan.active_buffer_count, 1)
-        self.assertIs(store.last_numeric_stream[-1], cancellation)
+        self.assertFalse(store.last_numeric_stream[-1].is_set())
         for change in (
             {"tile_bytes": 0}, {"tile_bytes": True}, {"buffer_count": 3},
             {"buffer_count": True}, {"extra": 1},
         ):
             with self.assertRaises(ValueError):
                 parse_qwen4_runtime_request(request | change)
+
+    def test_cancel_interrupts_active_stream_without_advancing_sequence(self) -> None:
+        _, _, reader = self.numeric_fixture()
+        store = FakeStore()
+        started = threading.Event()
+
+        def blocking_stream(*args, cancellation=None, **kwargs):
+            started.set()
+            while not cancellation.is_set():
+                time.sleep(0.001)
+            raise ValueError("cancelled")
+
+        store.load_scaled_int8_streaming = blocking_stream
+        service = Qwen4RuntimeCommandService("a" * 32, store, reader)
+        load = build_qwen4_numeric_streaming_runtime_request(
+            session_id="a" * 32,
+            sequence=1,
+            request_id="1" * 32,
+            artifact_name="weight.json",
+            artifact_digest="b" * 64,
+            target_dtype="F16",
+            tile_bytes=1,
+        )
+        responses = []
+        worker = threading.Thread(target=lambda: responses.append(service.handle(load)))
+        worker.start()
+        self.assertTrue(started.wait(1))
+        cancelled = service.handle({
+            "abi_version": 1,
+            "session_id": "a" * 32,
+            "sequence": 1,
+            "request_id": "2" * 32,
+            "operation": "cancel",
+            "target_request_id": "1" * 32,
+        })
+        worker.join(timeout=1)
+        self.assertTrue(cancelled["result"]["cancelled"])
+        self.assertFalse(responses[0]["passed"])
+        status = service.handle({
+            "abi_version": 1,
+            "session_id": "a" * 32,
+            "sequence": 2,
+            "request_id": "3" * 32,
+            "operation": "status",
+        })
+        self.assertTrue(status["passed"])
 
     def request(self, sequence, operation, **values):
         return {
