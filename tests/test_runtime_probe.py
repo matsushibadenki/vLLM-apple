@@ -151,6 +151,11 @@ class RuntimeProbeCoordinatorTests(unittest.TestCase):
         report = self.coordinator().probe_and_install(runtime, samples=1)
         self.assertTrue(report.dispatcher_applied)
         self.assertEqual(len(report.results), 2)
+        self.assertEqual(len(report.device_capabilities), 2)
+        self.assertEqual(
+            {capability.precisions for capability in report.device_capabilities},
+            {("fp32",)},
+        )
         self.assertEqual(
             runtime.scheduler.choose_backend(ScheduleRequest("matmul", 1, batch_size=8)),
             Backend.MLX_GPU,

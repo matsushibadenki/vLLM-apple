@@ -5,10 +5,16 @@ from vllm_apple.device_capability import (
     DeviceCapability,
     DeviceCapabilityRegistry,
     DeviceEligibilityRequest,
+    compose_device_capability_registry,
     device_capability_from_probe,
 )
 from vllm_apple.execution import ExecutionBackend, WorkloadPhase
-from vllm_apple.kernel_probe import KernelProbeConfig, KernelMeasurement, run_kernel_probe
+from vllm_apple.kernel_probe import (
+    KernelCapabilityRegistry,
+    KernelProbeConfig,
+    KernelMeasurement,
+    run_kernel_probe,
+)
 
 
 class DeviceCapabilityRegistryTests(unittest.TestCase):
@@ -102,6 +108,37 @@ class DeviceCapabilityRegistryTests(unittest.TestCase):
         )
         self.assertEqual(capability.evidence_ids, (result.probe_id,))
         self.assertEqual(capability.status, "available")
+
+    def test_composes_operator_scoped_results_without_backend_overwrite(self):
+        kernel = KernelCapabilityRegistry("m4-test", "macos-test")
+
+        def measurement():
+            return KernelMeasurement("a" * 64, 10)
+
+        for operator in ("matmul", "attention"):
+            kernel.record(run_kernel_probe(
+                KernelProbeConfig(
+                    "m4-test", "macos-test", ExecutionBackend.NATIVE_MLX,
+                    operator, samples=1,
+                ),
+                measurement,
+                measurement,
+            ))
+        registry = compose_device_capability_registry(
+            kernel,
+            backend_versions={ExecutionBackend.NATIVE_MLX: "mlx-1"},
+            phases_by_operator={
+                "matmul": (WorkloadPhase.PREFILL,),
+                "attention": (WorkloadPhase.DECODE,),
+            },
+            precisions_by_operator={"matmul": ("fp16",), "attention": ("fp16",)},
+        )
+        self.assertEqual(len(registry.snapshot()), 2)
+        decision = registry.decide(DeviceEligibilityRequest(
+            "attention", WorkloadPhase.DECODE, "fp16",
+            (ExecutionBackend.NATIVE_MLX,),
+        ))
+        self.assertEqual(decision.selected, ExecutionBackend.NATIVE_MLX)
 
 
 if __name__ == "__main__":

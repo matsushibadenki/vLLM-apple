@@ -834,7 +834,8 @@ Unified Memoryとmemory bandwidthを共有する一つの実行系として管�
 実行可能な固定graph中心の処理だけを対象とし、dynamic LLM decodeを前提にしない。
 
 - `[Done]` CPU、MLX GPU、Native Metal、Core ML/ANEのprofile-bound versioned capability・operator/phase/precision eligibility registry、sticky quarantine、probe ID binding、bounded fallback decision
-- `[Next]` 公開Core ML APIのANE availability probeと、既存CPU／MLX／Metal probeから実環境registryを構築するcomposition
+- `[Done]` 既存kernel probe/cacheからoperator単位のdevice registryを構築するcomposition（MLX/Metal実測precisionをFP32へ限定、vector addをauxiliary phaseへ限定）
+- `[Next]` 公開Core ML APIのANE availability/correctness probeとCPU baseline probeを同じcompositionへ追加
 - `[Later]` Core ML model compile/loadを隔離するANE backend adapterと、OS／chip／model fingerprint別cache
 - `[Later]` CPU thread、GPU command queue、ANE in-flight task、Unified Memory、memory bandwidthの統合resource ledger
 - `[Later]` operator graphへ依存関係、deadline、phase、precision、fallback、同期costを付与するdispatch contract

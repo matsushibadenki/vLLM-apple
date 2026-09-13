@@ -6,7 +6,12 @@ import json
 import subprocess
 from pathlib import Path
 
-from .execution import AppleChipProfile, ExecutionBackend
+from .device_capability import (
+    DeviceCapability,
+    DeviceCapabilityRegistry,
+    compose_device_capability_registry,
+)
+from .execution import AppleChipProfile, ExecutionBackend, WorkloadPhase
 from .kernel_probe import (
     KernelCapabilityRegistry,
     KernelProbeCache,
@@ -26,6 +31,7 @@ class RuntimeProbeReport:
     results: tuple[KernelProbeResult, ...]
     dispatcher_applied: bool
     cache_status: str
+    device_capabilities: tuple[DeviceCapability, ...] = ()
 
     def to_dict(self) -> dict[str, object]:
         return {
@@ -34,6 +40,9 @@ class RuntimeProbeReport:
             "results": [result.to_dict() for result in self.results],
             "dispatcher_applied": self.dispatcher_applied,
             "cache_status": self.cache_status,
+            "device_capabilities": [
+                capability.to_dict() for capability in self.device_capabilities
+            ],
         }
 
 
@@ -93,6 +102,9 @@ class RuntimeProbeCoordinator:
         if cache_path is not None and cache_root is not None:
             raise ValueError("cache_path and cache_root are mutually exclusive")
         self.chip = chip
+        self.toolchain_version = toolchain_version
+        self.mlx_version = mlx_version
+        self.backend_version = backend_version
         self.environment_fingerprint = build_environment_fingerprint(
             platform=f"{chip.platform}-{chip.architecture}",
             os_version=chip.os_version,
@@ -144,12 +156,40 @@ class RuntimeProbeCoordinator:
         else:
             results = list(registry.snapshot())
         applied = service.install_operator_dispatcher(OperatorDispatcher(registry))
+        device_registry = self._compose_device_registry(registry)
         return RuntimeProbeReport(
             hardware_fingerprint=self.chip.hardware_fingerprint,
             environment_fingerprint=self.environment_fingerprint,
             results=tuple(results),
             dispatcher_applied=applied,
             cache_status=cache_status,
+            device_capabilities=device_registry.snapshot(),
+        )
+
+    def _compose_device_registry(
+        self, registry: KernelCapabilityRegistry
+    ) -> DeviceCapabilityRegistry:
+        operators = {result.operator for result in registry.snapshot()}
+        phases = {
+            operator: (
+                (WorkloadPhase.AUXILIARY,)
+                if operator == "vector_add"
+                else (WorkloadPhase.PREFILL, WorkloadPhase.DECODE)
+            )
+            for operator in operators
+        }
+        versions = {
+            ExecutionBackend.NATIVE_MLX: self.mlx_version,
+            ExecutionBackend.NATIVE_METAL: self.toolchain_version,
+            ExecutionBackend.VLLM_METAL: self.backend_version,
+            ExecutionBackend.COREML_DRAFT: self.chip.os_version,
+            ExecutionBackend.CPU: self.chip.os_version,
+        }
+        return compose_device_capability_registry(
+            registry,
+            backend_versions=versions,
+            phases_by_operator=phases,
+            precisions_by_operator={operator: ("fp32",) for operator in operators},
         )
 
     def _run_probes(self, samples: int) -> list[KernelProbeResult]:

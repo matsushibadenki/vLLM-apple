@@ -2484,19 +2484,21 @@ versioned execution planへ記録し、active request中は変更せずscheduler
 
 1. `[Done]` CPU／MLX GPU／Native Metal／Core ML/ANEを同じprofile-bound契約で表し、operator、phase、
    precision、probe ID、sticky quarantineによりbounded fallbackを決定するregistryを追加する。
-2. `[Next]` 公開APIだけを使うCore ML/ANE capability probeと固定graph backend adapterを追加する。
-3. `[Later]` CPU thread、GPU command queue、ANE task、Unified Memory、memory bandwidthを同じresource
+2. `[Done]` 既存kernel probe/cacheをoperator単位でdevice registryへ昇格し、実測していないprecisionや
+   phaseを利用可能としないcompositionを追加する。
+3. `[Next]` 公開APIだけを使うCore ML/ANE capability probeと固定graph backend adapterを追加する。
+4. `[Later]` CPU thread、GPU command queue、ANE task、Unified Memory、memory bandwidthを同じresource
    ledgerで予約し、overcommitをmodel load前とoperator dispatch前に拒否する。
-4. `[Next]` operator、shape、batch、precision、phaseごとにCPU/GPU/ANEの単独実行を測定する。
+5. `[Next]` operator、shape、batch、precision、phaseごとにCPU/GPU/ANEの単独実行を測定する。
    device間同期、tensor変換、Core ML compile/load時間を必ずend-to-end latencyへ含める。
-5. `[Later]` Vision/Audio encoder、embedding、classifier、background modelなど固定graph化しやすい
+6. `[Later]` Vision/Audio encoder、embedding、classifier、background modelなど固定graph化しやすい
    auxiliary workloadからANE routingを開始する。LLM prefill/decodeはGPU baselineを維持する。
-6. `[Later]` 共有memory bandwidth競合を測定し、単独実行より改善する組み合わせに限ってCPU/GPU/ANE
+7. `[Later]` 共有memory bandwidth競合を測定し、単独実行より改善する組み合わせに限ってCPU/GPU/ANE
    pipeline並列化またはbounded work stealingを有効化する。
-7. `[Later]` CPU/Core ML draft + GPU verifyをcorrectness-neutralなspeculative executionとして評価する。
-8. `[Later]` thermal、memory pressure、low-power modeを入力に、batch、concurrency、device assignmentを
+8. `[Later]` CPU/Core ML draft + GPU verifyをcorrectness-neutralなspeculative executionとして評価する。
+9. `[Later]` thermal、memory pressure、low-power modeを入力に、batch、concurrency、device assignmentを
    段階的に縮退・復元する。既存requestをcancelせず、新規admissionと次のsafe pointへだけ適用する。
-9. `[Later]` hardware、OS、Core ML、MLX、Metal、model、shapeに結び付いたprofileを保存し、期限切れ、
+10. `[Later]` hardware、OS、Core ML、MLX、Metal、model、shapeに結び付いたprofileを保存し、期限切れ、
    quarantine、last-known-good rollbackを既存kernel profileと同じfail-closed policyで管理する。
 
 昇格条件は、backend間のbounded numerical comparisonまたはtask固有quality gateが合格し、代表workloadで

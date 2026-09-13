@@ -177,7 +177,7 @@ class DeviceCapabilityRegistry:
             raise ValueError("device registry fingerprints cannot be empty")
         self.hardware_fingerprint = hardware_fingerprint
         self.environment_fingerprint = environment_fingerprint
-        self._entries: dict[ExecutionBackend, DeviceCapability] = {}
+        self._entries: dict[tuple[ExecutionBackend, str], DeviceCapability] = {}
         self._lock = threading.RLock()
 
     def record(self, capability: DeviceCapability) -> None:
@@ -187,8 +187,11 @@ class DeviceCapabilityRegistry:
             or capability.environment_fingerprint != self.environment_fingerprint
         ):
             raise ValueError("device capability does not match registry profile")
+        if len(capability.operators) != 1:
+            raise ValueError("device registry entries require exactly one operator")
+        key = (capability.backend, capability.operators[0])
         with self._lock:
-            existing = self._entries.get(capability.backend)
+            existing = self._entries.get(key)
             if (
                 existing is not None
                 and existing.status == "quarantined"
@@ -197,14 +200,14 @@ class DeviceCapabilityRegistry:
                 raise ValueError("device capability quarantine is sticky")
             if existing is None and len(self._entries) >= MAX_DEVICE_CAPABILITIES:
                 raise ValueError("device capability registry is full")
-            self._entries[capability.backend] = capability
+            self._entries[key] = capability
 
     def decide(self, request: DeviceEligibilityRequest) -> DeviceEligibilityDecision:
         eligible: list[ExecutionBackend] = []
         rejected: list[tuple[ExecutionBackend, str]] = []
         with self._lock:
             for backend in request.candidates:
-                capability = self._entries.get(backend)
+                capability = self._entries.get((backend, request.operator))
                 if capability is None:
                     rejected.append((backend, "unprobed"))
                 elif capability.status != "available":
@@ -225,4 +228,37 @@ class DeviceCapabilityRegistry:
 
     def snapshot(self) -> tuple[DeviceCapability, ...]:
         with self._lock:
-            return tuple(self._entries[key] for key in sorted(self._entries, key=lambda x: x.value))
+            return tuple(
+                self._entries[key]
+                for key in sorted(self._entries, key=lambda value: (value[0].value, value[1]))
+            )
+
+
+def compose_device_capability_registry(
+    kernel_registry,
+    *,
+    backend_versions: dict[ExecutionBackend, str],
+    phases_by_operator: dict[str, tuple[WorkloadPhase, ...]],
+    precisions_by_operator: dict[str, tuple[str, ...]],
+) -> DeviceCapabilityRegistry:
+    """Lift measured kernel results into device placement eligibility."""
+    if not hasattr(kernel_registry, "snapshot"):
+        raise ValueError("kernel capability registry is invalid")
+    registry = DeviceCapabilityRegistry(
+        kernel_registry.hardware_fingerprint,
+        kernel_registry.environment_fingerprint,
+    )
+    for result in kernel_registry.snapshot():
+        version = backend_versions.get(result.backend)
+        phases = phases_by_operator.get(result.operator)
+        precisions = precisions_by_operator.get(result.operator)
+        if version is None or phases is None or precisions is None:
+            raise ValueError("device capability composition metadata is incomplete")
+        registry.record(device_capability_from_probe(
+            result,
+            device=_BACKEND_DEVICE[result.backend],
+            backend_version=version,
+            phases=phases,
+            precisions=precisions,
+        ))
+    return registry

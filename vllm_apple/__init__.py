@@ -14,6 +14,7 @@ from .device_capability import (
     DeviceCapabilityRegistry,
     DeviceEligibilityDecision,
     DeviceEligibilityRequest,
+    compose_device_capability_registry,
     device_capability_from_probe,
 )
 from .execution import AppleChipProfile, AppleExecutionPlan, AppleExecutionPlanner
@@ -240,6 +241,7 @@ __all__ = [
     "__version__",
     "build_environment_fingerprint",
     "classify_runtime_failure",
+    "compose_device_capability_registry",
     "build_mlx_probe_registry",
     "build_model_kernel_shape_profile",
     "build_v2_tuning_profile",
