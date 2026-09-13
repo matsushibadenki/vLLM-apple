@@ -14,6 +14,7 @@ from .qwen4_component_loader import (
 from .qwen4_conversion_protocol import _DTYPE_BYTES, _digest
 from .qwen4_tensor_reader import Qwen4TensorReader
 from .numeric_formats import ScaledInt8Tensor
+from .numeric_file_stream import NVFP4FileTileProvider
 from .numeric_precision import PrecisionExecutionContract
 from .numeric_streaming import (
     NumericCancellationSignal,
@@ -62,6 +63,16 @@ class Qwen4ResidentBackend(Protocol):
     def load_scaled_int8_streaming(
         self,
         tensor: ScaledInt8Tensor,
+        stream: NumericDoubleBufferStream,
+        *,
+        target_dtype: str,
+        execution_contract: PrecisionExecutionContract,
+        reserved_bytes: int,
+    ) -> ResidentBackendAllocation: ...
+
+    def load_nvfp4_file_stream(
+        self,
+        provider: NVFP4FileTileProvider,
         stream: NumericDoubleBufferStream,
         *,
         target_dtype: str,
@@ -397,6 +408,117 @@ class Qwen4ResidentStore:
             finally:
                 if stream is not None:
                     stream.close()
+
+    def load_nvfp4_file_stream(
+        self,
+        provider: NVFP4FileTileProvider,
+        *,
+        tile_bytes: int,
+        target_dtype: str,
+        execution_contract: PrecisionExecutionContract,
+        buffer_count: int = 2,
+        component: str = "numeric_compatibility",
+        scratch_bytes: int = 0,
+        cancellation: NumericCancellationSignal | None = None,
+    ) -> str:
+        """Convert private NVFP4 files incrementally and retain only the output."""
+        with self._lock:
+            reservation = None
+            allocation = None
+            stream = None
+            try:
+                if len(self._records) >= MAX_RESIDENT_TENSORS:
+                    raise MemoryError("Qwen4 resident tensor handle limit reached")
+                if not isinstance(provider, NVFP4FileTileProvider):
+                    raise ValueError("Qwen4 file-backed NVFP4 provider is invalid")
+                if (
+                    not isinstance(execution_contract, PrecisionExecutionContract)
+                    or execution_contract.tensor_digest != provider.target_digest
+                    or execution_contract.target_dtype != target_dtype
+                ):
+                    raise ValueError("Qwen4 file-backed NVFP4 contract mismatch")
+                if (
+                    not isinstance(component, str)
+                    or not 1 <= len(component) <= 128
+                    or any(ord(character) < 0x20 for character in component)
+                    or type(scratch_bytes) is not int
+                    or scratch_bytes < 0
+                ):
+                    raise ValueError("Qwen4 file-backed NVFP4 metadata is invalid")
+                plan = provider.streaming_plan(tile_bytes, buffer_count=buffer_count)
+                elements = provider.descriptor.elements
+                shape = list(
+                    provider.geometry.shape if provider.geometry is not None else (elements,)
+                )
+                destination_bytes = elements * _DTYPE_BYTES[target_dtype]
+                bridge_scratch = elements * 4 + destination_bytes
+                reservation = self.admission.reserve_numeric_stream(
+                    f"numeric:{provider.target_digest}",
+                    {"component": component, "shape": shape},
+                    target_dtype=target_dtype,
+                    stream_plan=plan,
+                    metadata_bytes=0,
+                    scratch_bytes=bridge_scratch + scratch_bytes,
+                )
+                stream = NumericDoubleBufferStream(
+                    plan, provider=provider, cancellation=cancellation
+                )
+                load_file = getattr(self.backend, "load_nvfp4_file_stream", None)
+                if load_file is None:
+                    raise ValueError("Qwen4 resident backend lacks file-backed NVFP4 support")
+                allocation = load_file(
+                    provider,
+                    stream,
+                    target_dtype=target_dtype,
+                    execution_contract=execution_contract,
+                    reserved_bytes=reservation.reserved_bytes,
+                )
+                provider.verify_unchanged()
+                snapshot = stream.snapshot()
+                if (
+                    not isinstance(allocation, ResidentBackendAllocation)
+                    or allocation.output_shape != tuple(shape)
+                    or allocation.output_bytes != reservation.destination_bytes
+                    or not _digest(allocation.output_digest)
+                    or allocation.precision_checked is not True
+                    or allocation.precision_contract_id != execution_contract.contract_id
+                    or allocation.precision_policy_id != execution_contract.policy.policy_id
+                    or allocation.numeric_streaming_plan_id != plan.plan_id
+                    or snapshot["in_flight_tiles"] != 0
+                    or snapshot["next_tile_index"] != plan.tile_count
+                ):
+                    raise ValueError("Qwen4 file-backed NVFP4 allocation evidence is invalid")
+                retained = self.admission.retain_destination(reservation)
+                handle = secrets.token_hex(16)
+                while handle in self._records:
+                    handle = secrets.token_hex(16)
+                self._records[handle] = _ResidentRecord(
+                    allocation, retained, component, target_dtype
+                )
+                return handle
+            except BaseException as load_error:
+                if allocation is not None:
+                    try:
+                        self.backend.release(allocation.resource)
+                    except BaseException as release_error:
+                        if reservation is not None:
+                            quarantine_handle = secrets.token_hex(16)
+                            self._quarantined[quarantine_handle] = _ResidentRecord(
+                                allocation, reservation, component, target_dtype
+                            )
+                        raise RuntimeError(
+                            "Qwen4 failed file-backed allocation was quarantined"
+                        ) from release_error
+                if reservation is not None:
+                    self.admission.release(reservation)
+                raise load_error
+            finally:
+                if stream is not None:
+                    stream.close()
+                else:
+                    close_provider = getattr(provider, "close", None)
+                    if close_provider is not None:
+                        close_provider()
 
     def unload(self, handle: str) -> None:
         with self._lock:

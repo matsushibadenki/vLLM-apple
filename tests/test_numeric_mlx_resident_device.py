@@ -13,6 +13,7 @@ from vllm_apple.numeric_formats import (
     TensorGeometry,
     convert_nvfp4_to_int8,
 )
+from vllm_apple.numeric_file_stream import NVFP4FileTileProvider
 from vllm_apple.numeric_artifact import NumericArtifactReader, write_nvfp4_numeric_artifact
 from vllm_apple.numeric_precision import NumericPrecisionPolicy, PrecisionExecutionContract
 from vllm_apple.numeric_streaming import NumericStreamingPlan
@@ -138,6 +139,42 @@ class NumericMLXResidentDeviceTests(unittest.TestCase):
             )
             self.assertEqual(store.snapshot()["memory"]["reserved_bytes"], 12)
             store.unload(streaming_handle)
+
+            packed_path = root / "weight.nvfp4"
+            scales_path = root / "weight.scales"
+            packed = bytes([0xA2, 0x46, 0xEC])
+            scales = bytes([56, 64])
+            packed_path.write_bytes(packed)
+            scales_path.write_bytes(scales)
+            packed_path.chmod(0o600)
+            scales_path.chmod(0o600)
+            provider = NVFP4FileTileProvider(
+                packed_path,
+                scales_path,
+                NumericFormatDescriptor("nvfp4_e2m1", 6),
+                geometry=TensorGeometry((2, 3), 1),
+                global_scale=1,
+                packed_sha256=hashlib.sha256(packed).hexdigest(),
+                scales_sha256=hashlib.sha256(scales).hexdigest(),
+                scaled_payload_sha256=hashlib.sha256(tensor.payload).hexdigest(),
+                source_digest=tensor.source_digest,
+                target_digest=tensor.target_digest,
+            )
+            file_handle = store.load_nvfp4_file_stream(
+                provider,
+                tile_bytes=2,
+                target_dtype="F16",
+                execution_contract=streaming_contract,
+            )
+            file_resource = store._records[file_handle].allocation.resource
+            inspected = file_resource.array.astype(mx.float32)
+            mx.eval(inspected)
+            self.assertEqual(
+                np.asarray(inspected).tolist(), [[1, -1, 4], [4, -4, -8]]
+            )
+            self.assertEqual(store.snapshot()["memory"]["reserved_bytes"], 12)
+            store.unload(file_handle)
+            self.assertTrue(file_resource.released)
 
             rounded = convert_nvfp4_to_int8(
                 NumericFormatDescriptor("nvfp4_e2m1", 1), bytes([2]), bytes([56]), 1.0001)

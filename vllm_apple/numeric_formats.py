@@ -241,15 +241,41 @@ def decode_nvfp4(
     )
 
 
-def _content_digest(plan, payload, scales, global_scale, role):
+def numeric_content_digest_from_hashes(
+    plan: ConversionPlan | TensorConversionPlan,
+    payload_sha256: str,
+    scales_sha256: str,
+    global_scale: float,
+    role: str,
+) -> str:
+    if not isinstance(plan, (ConversionPlan, TensorConversionPlan)):
+        raise ValueError("invalid numeric content digest plan")
+    for value in (payload_sha256, scales_sha256):
+        if (not isinstance(value, str) or len(value) != 64
+                or any(character not in "0123456789abcdef" for character in value)):
+            raise ValueError("invalid numeric content SHA-256")
+    if role not in {"source", "target"}:
+        raise ValueError("invalid numeric content digest role")
+    if type(global_scale) not in (float, int) or not math.isfinite(global_scale):
+        raise ValueError("invalid numeric content global scale")
     # Versioned, framed metadata; keep scale sign (including negative zero).
     metadata = {
         "version": 1, "role": role, "plan_id": plan.plan_id,
-        "payload_sha256": hashlib.sha256(payload).hexdigest(),
-        "scales_sha256": hashlib.sha256(scales).hexdigest(),
+        "payload_sha256": payload_sha256,
+        "scales_sha256": scales_sha256,
         "global_scale": float(global_scale).hex(),
     }
     return hashlib.sha256(json.dumps(metadata, sort_keys=True).encode()).hexdigest()
+
+
+def _content_digest(plan, payload, scales, global_scale, role):
+    return numeric_content_digest_from_hashes(
+        plan,
+        hashlib.sha256(payload).hexdigest(),
+        hashlib.sha256(scales).hexdigest(),
+        global_scale,
+        role,
+    )
 
 
 @dataclass(frozen=True, slots=True)

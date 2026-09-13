@@ -7,7 +7,8 @@ import math
 import struct
 from dataclasses import dataclass, replace
 
-from .numeric_formats import ScaledInt8Tensor, _scale
+from .numeric_file_stream import NVFP4FileTileProvider
+from .numeric_formats import ScaledInt8Tensor, TensorGeometry, _scale
 from .numeric_precision import PrecisionExecutionContract
 from .numeric_streaming import NumericDoubleBufferStream
 from .qwen4_resident_store import ResidentBackendAllocation
@@ -42,8 +43,15 @@ class Qwen4MLXNumericResidentBackend:
             raise ValueError("MLX resident numeric tensor is invalid")
         tensor = replace(tensor)
         return self._load_tiles(
-            tensor,
             ((0, tensor.payload),),
+            elements=len(tensor.payload),
+            geometry=tensor.geometry,
+            global_scale=tensor.global_scale,
+            tensor_digest=tensor.target_digest,
+            scale_code=lambda index: tensor.block_scales[
+                index // 16 if tensor.geometry is None else tensor.geometry.scale_index(index)
+            ],
+            source_working_bytes=len(tensor.payload) + len(tensor.block_scales),
             target_dtype=target_dtype,
             execution_contract=execution_contract,
             reserved_bytes=reserved_bytes,
@@ -76,19 +84,72 @@ class Qwen4MLXNumericResidentBackend:
                     lease.release()
 
         return self._load_tiles(
-            replace(tensor),
             tiles(),
+            elements=len(tensor.payload),
+            geometry=tensor.geometry,
+            global_scale=tensor.global_scale,
+            tensor_digest=tensor.target_digest,
+            scale_code=lambda index: tensor.block_scales[
+                index // 16 if tensor.geometry is None else tensor.geometry.scale_index(index)
+            ],
+            source_working_bytes=(
+                len(tensor.payload) + len(tensor.block_scales)
+                + stream.plan.working_set_bytes
+            ),
             target_dtype=target_dtype,
             execution_contract=execution_contract,
             reserved_bytes=reserved_bytes,
             streaming_plan_id=stream.plan.plan_id,
         )
 
+    def load_nvfp4_file_stream(
+        self,
+        provider: NVFP4FileTileProvider,
+        stream: NumericDoubleBufferStream,
+        *,
+        target_dtype: str,
+        execution_contract: PrecisionExecutionContract,
+        reserved_bytes: int,
+    ) -> ResidentBackendAllocation:
+        if not isinstance(provider, NVFP4FileTileProvider):
+            raise ValueError("MLX file-backed NVFP4 provider is invalid")
+
+        def tiles():
+            while True:
+                lease = stream.acquire_next()
+                if lease is None:
+                    return
+                try:
+                    yield lease.offset, lease.view()
+                finally:
+                    lease.release()
+
+        allocation = self._load_tiles(
+            tiles(),
+            elements=provider.descriptor.elements,
+            geometry=provider.geometry,
+            global_scale=provider.global_scale,
+            tensor_digest=provider.target_digest,
+            scale_code=provider.scale_code,
+            source_working_bytes=stream.plan.working_set_bytes,
+            target_dtype=target_dtype,
+            execution_contract=execution_contract,
+            reserved_bytes=reserved_bytes,
+            streaming_plan_id=stream.plan.plan_id,
+        )
+        provider.verify_unchanged()
+        return allocation
+
     def _load_tiles(
         self,
-        tensor: ScaledInt8Tensor,
         tiles,
         *,
+        elements: int,
+        geometry: TensorGeometry | None,
+        global_scale: float,
+        tensor_digest: str,
+        scale_code,
+        source_working_bytes: int,
         target_dtype: str,
         execution_contract: PrecisionExecutionContract,
         reserved_bytes: int,
@@ -96,7 +157,7 @@ class Qwen4MLXNumericResidentBackend:
     ) -> ResidentBackendAllocation:
         if (
             not isinstance(execution_contract, PrecisionExecutionContract)
-            or execution_contract.tensor_digest != tensor.target_digest
+            or execution_contract.tensor_digest != tensor_digest
             or execution_contract.target_dtype != target_dtype
         ):
             raise ValueError("MLX resident precision contract mismatch")
@@ -105,12 +166,8 @@ class Qwen4MLXNumericResidentBackend:
         dtype_bytes = {"F16": 2, "BF16": 2, "F32": 4}
         if target_dtype not in dtype_bytes:
             raise ValueError("MLX resident target dtype is unsupported")
-        elements = len(tensor.payload)
         output_bytes = elements * dtype_bytes[target_dtype]
-        required_bytes = (
-            len(tensor.payload) + len(tensor.block_scales)
-            + elements * 4 + output_bytes * 2
-        )
+        required_bytes = source_working_bytes + elements * 4 + output_bytes * 2
         if required_bytes > reserved_bytes:
             raise MemoryError("MLX resident numeric conversion exceeds its reservation")
 
@@ -119,7 +176,6 @@ class Qwen4MLXNumericResidentBackend:
 
         source = bytearray(elements * 4)
         expected_digest = hashlib.sha256()
-        geometry = tensor.geometry
         consumed = 0
         for offset, payload in tiles:
             if (
@@ -132,9 +188,8 @@ class Qwen4MLXNumericResidentBackend:
                 index = offset + local_index
                 if index >= elements:
                     raise ValueError("MLX resident numeric tile exceeds tensor bounds")
-                scale_index = index // 16 if geometry is None else geometry.scale_index(index)
                 decoded = (value if value < 128 else value - 256) / 2
-                decoded *= _scale(tensor.block_scales[scale_index]) * tensor.global_scale
+                decoded *= _scale(scale_code(index)) * global_scale
                 expected_digest.update(
                     execution_contract.policy.checked_bytes(decoded, target_dtype)
                 )

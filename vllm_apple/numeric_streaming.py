@@ -28,6 +28,11 @@ class NumericCancellationSignal(Protocol):
     def is_set(self) -> bool: ...
 
 
+class NumericTileProvider(Protocol):
+    def read_tile(self, index: int, offset: int, length: int) -> bytes: ...
+    def close(self) -> None: ...
+
+
 @dataclass(frozen=True, slots=True)
 class NumericStreamingPlan:
     source_digest: str
@@ -114,20 +119,32 @@ class NumericDoubleBufferStream:
     def __init__(
         self,
         plan: NumericStreamingPlan,
-        source: bytes,
+        source: bytes | None = None,
         *,
+        provider: NumericTileProvider | None = None,
         cancellation: NumericCancellationSignal | None = None,
     ) -> None:
-        if not isinstance(plan, NumericStreamingPlan) or not isinstance(source, bytes):
+        if not isinstance(plan, NumericStreamingPlan):
             raise ValueError("numeric stream inputs are invalid")
-        if len(source) != plan.source_bytes:
-            raise ValueError("numeric stream source size mismatch")
-        if hashlib.sha256(source).hexdigest() != plan.source_digest:
-            raise ValueError("numeric stream source digest mismatch")
+        if (source is None) == (provider is None):
+            raise ValueError("numeric stream requires exactly one source")
+        if source is not None:
+            if not isinstance(source, bytes) or len(source) != plan.source_bytes:
+                raise ValueError("numeric stream source size mismatch")
+            if hashlib.sha256(source).hexdigest() != plan.source_digest:
+                raise ValueError("numeric stream source digest mismatch")
+        if provider is not None and (
+            not callable(getattr(provider, "read_tile", None))
+            or not callable(getattr(provider, "close", None))
+        ):
+            raise ValueError("numeric stream tile provider is invalid")
         if cancellation is not None and not callable(getattr(cancellation, "is_set", None)):
             raise ValueError("numeric stream cancellation signal is invalid")
         self.plan = plan
         self._source = source
+        self._provider = provider
+        self._observed_digest = hashlib.sha256()
+        self._digest_verified = source is not None
         self._cancellation = cancellation
         self._lock = threading.Lock()
         self._buffers = [bytearray(plan.tile_bytes) for _ in range(plan.active_buffer_count)]
@@ -141,6 +158,11 @@ class NumericDoubleBufferStream:
         with self._lock:
             self._check_open_locked()
             if self._next_index >= self.plan.tile_count:
+                if not self._digest_verified:
+                    if self._observed_digest.hexdigest() != self.plan.source_digest:
+                        self._close_locked(cancelled=False)
+                        raise ValueError("numeric stream provider digest mismatch")
+                    self._digest_verified = True
                 return None
             try:
                 slot = self._active.index(False)
@@ -150,7 +172,14 @@ class NumericDoubleBufferStream:
             offset = index * self.plan.tile_bytes
             length = min(self.plan.tile_bytes, self.plan.source_bytes - offset)
             buffer = self._buffers[slot]
-            buffer[:length] = memoryview(self._source)[offset:offset + length]
+            if self._provider is None:
+                payload = memoryview(self._source)[offset:offset + length]
+            else:
+                payload = self._provider.read_tile(index, offset, length)
+                if not isinstance(payload, bytes) or len(payload) != length:
+                    raise ValueError("numeric stream provider returned an invalid tile")
+                self._observed_digest.update(payload)
+            buffer[:length] = payload
             self._generations[slot] += 1
             self._active[slot] = True
             self._next_index += 1
@@ -220,7 +249,10 @@ class NumericDoubleBufferStream:
             _zero_buffer(buffer)
             self._active[index] = False
             self._generations[index] += 1
-        self._source = b""
+        self._source = None
+        if self._provider is not None:
+            self._provider.close()
+            self._provider = None
         self._cancelled = cancelled
         self._closed = True
 

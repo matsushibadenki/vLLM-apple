@@ -2,6 +2,7 @@ import hashlib
 import json
 import tempfile
 import unittest
+import os
 from dataclasses import replace
 from pathlib import Path
 
@@ -9,6 +10,7 @@ from tests import test_qwen4_adapter_loader as loader_tests
 from vllm_apple.qwen4_component_loader import Qwen4MemoryAdmission
 from vllm_apple.qwen4_resident_store import Qwen4ResidentStore, ResidentBackendAllocation
 from vllm_apple.numeric_formats import NumericFormatDescriptor, TensorGeometry, convert_nvfp4_to_int8
+from vllm_apple.numeric_file_stream import NVFP4FileTileProvider
 from vllm_apple.numeric_precision import NumericPrecisionPolicy, PrecisionExecutionContract
 from vllm_apple.numeric_streaming import NumericStreamingCancelled, NumericStreamingPlan
 from vllm_apple.qwen4_shard_stager import stage_qwen4_shards
@@ -71,6 +73,34 @@ class FakeResidentBackend:
             execution_contract=execution_contract,
             reserved_bytes=reserved_bytes,
         ), numeric_streaming_plan_id=stream.plan.plan_id)
+
+    def load_nvfp4_file_stream(
+        self, provider, stream, *, target_dtype, execution_contract, reserved_bytes
+    ):
+        raw = bytearray()
+        while True:
+            lease = stream.acquire_next()
+            if lease is None:
+                break
+            try:
+                raw.extend(lease.read())
+            finally:
+                lease.release()
+        resource = object()
+        self.resources.append(resource)
+        shape = provider.geometry.shape if provider.geometry else (provider.descriptor.elements,)
+        return ResidentBackendAllocation(
+            resource=resource,
+            backend="test",
+            backend_version="1",
+            output_shape=shape,
+            output_bytes=(0 if self.invalid_evidence else len(raw) * {"BF16": 2, "F16": 2, "F32": 4}[target_dtype]),
+            output_digest=hashlib.sha256(raw).hexdigest(),
+            precision_contract_id=execution_contract.contract_id,
+            precision_policy_id=execution_contract.policy.policy_id,
+            precision_checked=True,
+            numeric_streaming_plan_id=stream.plan.plan_id,
+        )
 
     def release(self, resource):
         if self.fail_release:
@@ -163,6 +193,49 @@ class Qwen4ResidentStoreTests(unittest.TestCase):
                     execution_contract=contract,
                     cancellation=cancellation,
                 )
+            self.assertEqual(store.snapshot()["memory"]["reserved_bytes"], 0)
+
+    def test_file_backed_nvfp4_stream_retains_only_destination(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            backend = FakeResidentBackend()
+            store, _ = self.fixture(root, backend)
+            descriptor = NumericFormatDescriptor("nvfp4_e2m1", 3)
+            geometry = TensorGeometry((3, 1), 1)
+            packed = bytes([0x22, 2])
+            scales = bytes([56, 64, 72])
+            tensor = convert_nvfp4_to_int8(
+                descriptor, packed, scales, 1, geometry=geometry
+            )
+            packed_path = root / "numeric.packed"
+            scales_path = root / "numeric.scales"
+            packed_path.write_bytes(packed)
+            scales_path.write_bytes(scales)
+            os.chmod(packed_path, 0o600)
+            os.chmod(scales_path, 0o600)
+            provider = NVFP4FileTileProvider(
+                packed_path,
+                scales_path,
+                descriptor,
+                geometry=geometry,
+                global_scale=1,
+                packed_sha256=hashlib.sha256(packed).hexdigest(),
+                scales_sha256=hashlib.sha256(scales).hexdigest(),
+                scaled_payload_sha256=hashlib.sha256(tensor.payload).hexdigest(),
+                source_digest=tensor.source_digest,
+                target_digest=tensor.target_digest,
+            )
+            contract = PrecisionExecutionContract(
+                tensor.target_digest, "F16", NumericPrecisionPolicy()
+            )
+            handle = store.load_nvfp4_file_stream(
+                provider,
+                tile_bytes=1,
+                target_dtype="F16",
+                execution_contract=contract,
+            )
+            self.assertEqual(store.snapshot()["memory"]["reserved_bytes"], 6)
+            store.unload(handle)
             self.assertEqual(store.snapshot()["memory"]["reserved_bytes"], 0)
 
     def fixture(self, root: Path, backend: FakeResidentBackend):
