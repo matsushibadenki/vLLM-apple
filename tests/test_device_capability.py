@@ -82,7 +82,9 @@ class DeviceCapabilityRegistryTests(unittest.TestCase):
             registry.record(self.capability(ExecutionBackend.CPU, ComputeDevice.CPU))
 
     def test_promotes_existing_kernel_probe_evidence(self):
-        measurement = lambda: KernelMeasurement("a" * 64, 10)
+        def measurement():
+            return KernelMeasurement("a" * 64, 10)
+
         result = run_kernel_probe(
             KernelProbeConfig(
                 "m4-test", "macos-test", ExecutionBackend.NATIVE_MLX, "matmul",
