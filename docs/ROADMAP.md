@@ -867,7 +867,8 @@ Unified Memoryとmemory bandwidthを共有する一つの実行系として管�
 - `[Done]` 管理API応答とplacement CLIの英語・日本語・简体中文diagnostics、stable message key
 - `[Done]` runtime placement event／snapshotのSwift SDK typed model、旧client向け既定値、strict evidence検証と三言語Mac app表示
 - `[Done]` 昇格済みANE routeのtimeout／数値不一致を固定codeへ変換し、probe済みGPUからCPUまで実行するbounded end-to-end fallback contract
-- `[Next]` ANE起動costを償却できるVision/Audio encoder相当の代表fixed graphでCPU／Core ML benchmark、placement昇格、routing end-to-end qualification
+- `[Done]` 1024幅×16層dense+ReLU代表encoderの決定論的generator／CPU reference／integrity-bound Core ML qualification、同一digest benchmarkによるANE placement昇格とruntime fallback
+- `[Next]` Core ML modelをprocess内で保持するpersistent workerと、compile/load・predictionを分離したresource lifecycle最適化
 - `[Later]` shared resource ledger導入後のbounded work stealing
 - `[Later]` memory pressure、thermal state、low-power modeに応じたconcurrency／batch／device割当の段階的縮退
 - `[Later]` Vision/Audio encoderとembedding/classifierから開始するANE routing、GPU LLM pipelineとの非同期連携
@@ -1212,6 +1213,7 @@ Unified Memoryとmemory bandwidthを共有する一つの実行系として管�
 186. `[Done]` MLX FP32 attentionのbounded数値比較と、capability correctness／promotion performanceを分離した実機qualification gate
 187. `[Done]` 現在のM4でCPU／MLX／Metal／Core ML全12 capabilityの3-sample correctness再qualification
 188. `[Done]` accelerator固有workload用bounded CPU referenceとCore ML FP32 digest正規化、実機非改善時CPU維持gate
+189. `[Done]` 1024幅×16層代表encoderのM4実機qualification（CPU 2.052秒、Core ML end-to-end 302ms、ANE kernel 1.36ms、85.3%改善）とplacement適用／CPU fallback
 
 この順序により、まず推論runtimeの実model安定性を確立し、その境界を壊さずにoptimizerを
 別processとして追加する。構造pruningはquantization、calibration、評価gateの後に着手する。

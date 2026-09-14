@@ -165,7 +165,12 @@ jobs:
               elif benchmark_config.backend is ExecutionBackend.NATIVE_METAL:
                   operation = metal.operation(benchmark_config)
               elif benchmark_config.backend is ExecutionBackend.COREML_DRAFT:
-                  operation = coreml.operation(benchmark_config, config.input_values)
+                  operation = coreml.operation(
+                      benchmark_config,
+                      config.input_values,
+                      expected_values=config.expected_values,
+                      maximum_absolute_error=config.maximum_absolute_error,
+                  )
               else:
                   raise SystemExit("unexpected benchmark backend")
               operations[(benchmark_config.backend, benchmark_config.operator)] = operation

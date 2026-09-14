@@ -2538,6 +2538,9 @@ versioned execution planへ記録し、active request中は変更せずscheduler
    probe済みGPU、CPUの順に実行するbounded fallback contractを追加する。
    accelerator固有operatorは同じoperator／phase／precision／shapeを持つbounded CPU referenceを生成し、
    FP32出力を正規化したdigestで比較する。小さすぎて起動costを償却できないgraphはCPU配置を維持する。
+   代表encoderは最大1024幅・16層の決定論的dense+ReLU graphとし、非有限値を避ける正規化weight、
+   integrity-bound compiled model、bounded CPU referenceを共有する。M4実測では1024幅×16層をCore MLへ
+   昇格し、scheduler適用後のANE失敗からCPU fallbackまでend-to-endで確認済みとする。
 21. `[Later]` Vision/Audio encoder、embedding、classifier、background modelなど固定graph化しやすい
    auxiliary workloadからANE routingを開始する。LLM prefill/decodeはGPU baselineを維持する。
 22. `[Later]` 共有memory bandwidth競合を測定し、単独実行より改善する組み合わせに限ってCPU/GPU/ANE

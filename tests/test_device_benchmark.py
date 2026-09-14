@@ -241,6 +241,33 @@ class DeviceBenchmarkTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "unsupported"):
             adapter.operation(wrong_shape)
 
+    def test_coreml_adapter_binds_tolerant_output_to_reference_digest(self):
+        resource = CoreMLFixedGraphResource(
+            "e" * 32, "coreml_fixed_graph@" + "a" * 16, "f" * 24, "a" * 64
+        )
+        backend = Mock(spec=CoreMLFixedGraphBackend)
+        backend.execute.return_value = CoreMLFixedGraphResult(
+            (2.0001, 3.9999), 10, ExecutionBackend.COREML_DRAFT, "f" * 24
+        )
+        adapter = CoreMLFixedGraphBenchmarkAdapter(backend, resource)
+        config = DeviceBenchmarkConfig(
+            resource.operator, ExecutionBackend.COREML_DRAFT,
+            WorkloadPhase.AUXILIARY, "fp32", (2,), 1,
+        )
+        measurement = adapter.measure(
+            config, 0, input_values=(1.0, 2.0), expected_values=(2.0, 4.0),
+            maximum_absolute_error=0.001,
+        )
+        self.assertEqual(
+            measurement.output_digest,
+            hashlib.sha256(b"[2.0,4.0]").hexdigest(),
+        )
+        with self.assertRaisesRegex(ValueError, "output mismatch"):
+            adapter.measure(
+                config, 0, input_values=(1.0, 2.0), expected_values=(2.0, 4.0),
+                maximum_absolute_error=0.00001,
+            )
+
     def test_native_kernel_adapter_captures_kernel_and_end_to_end_time(self):
         native = Mock()
         native.measure_operator.return_value = KernelMeasurement("a" * 64, 10)

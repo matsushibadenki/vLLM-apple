@@ -498,9 +498,14 @@ class CoreMLFixedGraphBenchmarkAdapter:
         self,
         config: DeviceBenchmarkConfig,
         input_values: tuple[float, ...],
+        *,
+        expected_values: tuple[float, ...] | None = None,
+        maximum_absolute_error: float = 0,
     ) -> Callable[[int], DeviceBenchmarkMeasurement]:
         return lambda sample_index: self.measure(
-            config, sample_index, input_values=input_values
+            config, sample_index, input_values=input_values,
+            expected_values=expected_values,
+            maximum_absolute_error=maximum_absolute_error,
         )
 
     def measure(
@@ -509,6 +514,8 @@ class CoreMLFixedGraphBenchmarkAdapter:
         _sample_index: int,
         *,
         input_values: tuple[float, ...],
+        expected_values: tuple[float, ...] | None = None,
+        maximum_absolute_error: float = 0,
     ) -> DeviceBenchmarkMeasurement:
         if (
             config.backend is not ExecutionBackend.COREML_DRAFT
@@ -519,11 +526,32 @@ class CoreMLFixedGraphBenchmarkAdapter:
             or config.dimensions != (len(input_values),)
         ):
             raise ValueError("Core ML benchmark configuration is unsupported")
+        if (
+            not math.isfinite(maximum_absolute_error)
+            or maximum_absolute_error < 0
+            or expected_values is not None
+            and (
+                len(expected_values) != config.dimensions[0]
+                or any(
+                    type(value) not in (int, float) or not math.isfinite(value)
+                    for value in expected_values
+                )
+            )
+        ):
+            raise ValueError("Core ML benchmark reference is invalid")
         started = time.perf_counter_ns()
         result = self.backend.execute(self.resource, input_values)
         total = max(1, time.perf_counter_ns() - started)
         execution = min(total, result.latency_nanoseconds)
         normalized = tuple(float(value) for value in result.values)
+        if expected_values is not None:
+            reference = tuple(float(value) for value in expected_values)
+            if any(
+                abs(expected - actual) > maximum_absolute_error
+                for expected, actual in zip(reference, normalized)
+            ):
+                raise ValueError("Core ML benchmark output mismatch")
+            normalized = reference
         digest = hashlib.sha256(
             json.dumps(normalized, separators=(",", ":")).encode()
         ).hexdigest()
