@@ -1,9 +1,11 @@
+import hashlib
 import json
 import tempfile
 import unittest
 from pathlib import Path
 
 from vllm_apple.device_benchmark import (
+    BoundedCPUReferenceBenchmarkAdapter,
     CoreMLFixedGraphBenchmarkAdapter,
     DeviceBenchmarkConfig,
     DeviceBenchmarkMeasurement,
@@ -213,6 +215,31 @@ class DeviceBenchmarkTests(unittest.TestCase):
         self.assertGreaterEqual(measurement.total_nanoseconds, 1)
         self.assertLessEqual(measurement.execution_nanoseconds, measurement.total_nanoseconds)
         self.assertEqual(measurement.work_items, 2)
+        expected_digest = hashlib.sha256(b"[2.0,4.0]").hexdigest()
+        self.assertEqual(measurement.output_digest, expected_digest)
+
+    def test_bounded_cpu_reference_matches_accelerator_workload_identity(self):
+        operator = "coreml_fixed_graph@" + "a" * 16
+        adapter = BoundedCPUReferenceBenchmarkAdapter(
+            operator,
+            lambda values: tuple(value * 2 for value in values),
+            (1.0, -2.0, 0.5, 4.0),
+        )
+        config = DeviceBenchmarkConfig(
+            operator, ExecutionBackend.CPU, WorkloadPhase.AUXILIARY,
+            "fp32", (4,), 1, samples=3,
+        )
+        first = adapter.operation(config)(0)
+        second = adapter.operation(config)(1)
+        self.assertEqual(first.output_digest, second.output_digest)
+        self.assertEqual(first.work_items, 4)
+
+        wrong_shape = DeviceBenchmarkConfig(
+            operator, ExecutionBackend.CPU, WorkloadPhase.AUXILIARY,
+            "fp32", (8,), 1,
+        )
+        with self.assertRaisesRegex(ValueError, "unsupported"):
+            adapter.operation(wrong_shape)
 
     def test_native_kernel_adapter_captures_kernel_and_end_to_end_time(self):
         native = Mock()

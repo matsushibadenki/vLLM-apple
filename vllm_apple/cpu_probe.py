@@ -30,6 +30,7 @@ class NativeCPUProbeAdapter:
         hardware_fingerprint: str,
         environment_fingerprint: str,
         samples: int = 3,
+        maximum_slowdown_ratio: float = 100,
     ) -> tuple[KernelProbeResult, ...]:
         operations = {
             "vector_add": (
@@ -50,7 +51,7 @@ class NativeCPUProbeAdapter:
                     ExecutionBackend.CPU,
                     operator,
                     samples=samples,
-                    maximum_slowdown_ratio=100,
+                    maximum_slowdown_ratio=maximum_slowdown_ratio,
                 ),
                 lambda reference=reference: _measurement(reference),
                 lambda candidate=candidate: _measurement(candidate),

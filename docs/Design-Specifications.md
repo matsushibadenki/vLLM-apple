@@ -2536,6 +2536,8 @@ versioned execution planへ記録し、active request中は変更せずscheduler
    旧clientではdisabledへ縮退し、placement count、plan ID、shape、改善率の不整合はSDK境界で拒否する。
 20. `[Done]` 昇格済みANE routeのtimeoutと出力不一致を秘密情報を含まない固定codeへ変換し、同一workloadで
    probe済みGPU、CPUの順に実行するbounded fallback contractを追加する。
+   accelerator固有operatorは同じoperator／phase／precision／shapeを持つbounded CPU referenceを生成し、
+   FP32出力を正規化したdigestで比較する。小さすぎて起動costを償却できないgraphはCPU配置を維持する。
 21. `[Later]` Vision/Audio encoder、embedding、classifier、background modelなど固定graph化しやすい
    auxiliary workloadからANE routingを開始する。LLM prefill/decodeはGPU baselineを維持する。
 22. `[Later]` 共有memory bandwidth競合を測定し、単独実行より改善する組み合わせに限ってCPU/GPU/ANE

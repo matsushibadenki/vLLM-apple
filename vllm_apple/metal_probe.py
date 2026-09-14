@@ -285,17 +285,20 @@ class NativeMetalProbeAdapter:
         hardware_fingerprint: str,
         environment_fingerprint: str,
         samples: int = 3,
+        maximum_slowdown_ratio: float = 20,
     ) -> tuple[KernelProbeResult, ...]:
         return (
             self.probe_vector_add(
                 hardware_fingerprint=hardware_fingerprint,
                 environment_fingerprint=environment_fingerprint,
                 samples=samples,
+                maximum_slowdown_ratio=maximum_slowdown_ratio,
             ),
             self.probe_paged_attention(
                 hardware_fingerprint=hardware_fingerprint,
                 environment_fingerprint=environment_fingerprint,
                 samples=samples,
+                maximum_slowdown_ratio=maximum_slowdown_ratio,
             ),
         )
 

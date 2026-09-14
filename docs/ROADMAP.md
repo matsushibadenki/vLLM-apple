@@ -848,8 +848,12 @@ Unified Memoryとmemory bandwidthを共有する一つの実行系として管�
 - `[Done]` deterministic CPU vector add／matmul／KV copy、MLX／Metal probe kernel、loaded Core ML fixed graphを共通schemaへ接続するnative measurement adapter（kernel時間とsubprocess込みend-to-end時間を分離）
 - `[Done]` available・FP32 capabilityだけからCPU/MLX/Metal/Core ML代表shapeを構築するbounded deterministic suite、明示operation map、欠損operation拒否、suite ID
 - `[Done]` 現在のMacでCPU vector add 256要素、8x8 matmul、KV copy 128要素を各3 sample実測し、安定output digestとsuite report生成を確認
+- `[Done]` 現在のM4／macOS 26.6.2／MLX 0.27.1でCPU 3・MLX 6・Metal 2・Core ML/ANE 1 capabilityを各3 sample再qualificationし、12/12 correctness合格（ANE prediction中央値81,291 ns）
 - `[Done]` self-hosted macOS ARM64でCPU 3／MLX 6／Metal 2／Core ML 1 operatorを各3 sample測定し、全probe必須gate、private atomic report、14日artifact retention、fixture/report削除を行うheterogeneous qualification workflow
+- `[Done]` capability correctness probeとend-to-end promotion性能判定を分離し、subprocess起動costだけで正しいGPU kernelをbenchmark前に誤隔離しないqualification gate
 - `[Done]` 同一profile／operator／phase／precision／shape／batchのreportだけを比較し、最低3 sample、output digest一致、peak memory非悪化、cold load償却込み5%以上のend-to-end latency改善を要求するdevice promotion gate
+- `[Done]` accelerator固有operatorへ同一identityの決定論的CPU baselineを供給するbounded reference adapterとFP32 digest正規化
+- `[Done]` M4上の4要素Core ML fixed graphをCPUと各3 sample比較し、出力一致を確認した上で起動cost非改善のためCPU維持（ANE誤昇格なし）
 - `[Next]` Metal deviceへアクセス可能な実行環境でのMLX/Metal/Core ML代表shape実機qualification（energyとpeak memoryは実測sourceがある場合だけ記録）
 - `[Later]` prefill、decode、Vision/Audio encoder、sampling、draft/verify別のend-to-end performance profile
 - `[Done]` promotion winnerのbenchmark report／capability／exact workload identityを結合するversioned device placement plan、probe profile一致検証、active/pending scheduler safe-point適用、reservation plan ID
@@ -863,7 +867,7 @@ Unified Memoryとmemory bandwidthを共有する一つの実行系として管�
 - `[Done]` 管理API応答とplacement CLIの英語・日本語・简体中文diagnostics、stable message key
 - `[Done]` runtime placement event／snapshotのSwift SDK typed model、旧client向け既定値、strict evidence検証と三言語Mac app表示
 - `[Done]` 昇格済みANE routeのtimeout／数値不一致を固定codeへ変換し、probe済みGPUからCPUまで実行するbounded end-to-end fallback contract
-- `[Next]` 実機benchmark reportから昇格したplacementを用いるCPU／GPU／ANE routing end-to-end qualificationとfallback検証
+- `[Next]` ANE起動costを償却できるVision/Audio encoder相当の代表fixed graphでCPU／Core ML benchmark、placement昇格、routing end-to-end qualification
 - `[Later]` shared resource ledger導入後のbounded work stealing
 - `[Later]` memory pressure、thermal state、low-power modeに応じたconcurrency／batch／device割当の段階的縮退
 - `[Later]` Vision/Audio encoderとembedding/classifierから開始するANE routing、GPU LLM pipelineとの非同期連携
@@ -1205,6 +1209,9 @@ Unified Memoryとmemory bandwidthを共有する一つの実行系として管�
 183. `[Done]` 認証付きplacement reload／rollback APIと英語・日本語・简体中文diagnostics
 184. `[Done]` Swift SDKのtyped device placement snapshot／event、旧client互換とMac app三言語diagnostics
 185. `[Done]` promoted ANE routeのtimeout／output mismatchをGPU→CPUへ縮退するbounded runtime fallback検証
+186. `[Done]` MLX FP32 attentionのbounded数値比較と、capability correctness／promotion performanceを分離した実機qualification gate
+187. `[Done]` 現在のM4でCPU／MLX／Metal／Core ML全12 capabilityの3-sample correctness再qualification
+188. `[Done]` accelerator固有workload用bounded CPU referenceとCore ML FP32 digest正規化、実機非改善時CPU維持gate
 
 この順序により、まず推論runtimeの実model安定性を確立し、その境界を壊さずにoptimizerを
 別processとして追加する。構造pruningはquantization、calibration、評価gateの後に着手する。

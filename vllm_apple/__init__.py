@@ -31,6 +31,7 @@ from .device_capability import (
     device_capability_from_probe,
 )
 from .device_benchmark import (
+    BoundedCPUReferenceBenchmarkAdapter,
     DeviceBenchmarkConfig,
     DeviceBenchmarkMeasurement,
     DeviceBenchmarkReport,
@@ -229,6 +230,7 @@ __all__ = [
     "DeviceBenchmarkMeasurement",
     "DeviceBenchmarkReport",
     "DeviceBenchmarkSuite",
+    "BoundedCPUReferenceBenchmarkAdapter",
     "DeviceEligibilityDecision",
     "DeviceEligibilityRequest",
     "DevicePlacementCandidate",

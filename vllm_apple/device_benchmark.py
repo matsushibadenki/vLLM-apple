@@ -418,6 +418,69 @@ class NativeCPUBenchmarkAdapter:
         )
 
 
+class BoundedCPUReferenceBenchmarkAdapter:
+    """CPU baseline for an accelerator's exact, deterministic workload identity."""
+
+    def __init__(
+        self,
+        operator: str,
+        reference: Callable[[tuple[float, ...]], tuple[float, ...]],
+        input_values: tuple[float, ...],
+        *,
+        maximum_values: int = 4096,
+    ) -> None:
+        if (
+            not isinstance(operator, str)
+            or not 1 <= len(operator) <= 128
+            or not callable(reference)
+            or type(maximum_values) is not int
+            or not 1 <= maximum_values <= 4096
+            or not 1 <= len(input_values) <= maximum_values
+            or any(type(value) not in (int, float) or not math.isfinite(value) for value in input_values)
+        ):
+            raise ValueError("invalid bounded CPU reference benchmark")
+        self.operator = operator
+        self.reference = reference
+        self.input_values = tuple(float(value) for value in input_values)
+        self.maximum_values = maximum_values
+
+    def operation(
+        self, config: DeviceBenchmarkConfig
+    ) -> Callable[[int], DeviceBenchmarkMeasurement]:
+        if (
+            config.backend is not ExecutionBackend.CPU
+            or config.operator != self.operator
+            or config.phase is not WorkloadPhase.AUXILIARY
+            or config.precision != "fp32"
+            or config.batch_size != 1
+            or config.dimensions != (len(self.input_values),)
+        ):
+            raise ValueError("CPU reference benchmark configuration is unsupported")
+
+        def measure(_sample_index: int) -> DeviceBenchmarkMeasurement:
+            started = time.perf_counter_ns()
+            output = self.reference(self.input_values)
+            elapsed = max(1, time.perf_counter_ns() - started)
+            if (
+                not isinstance(output, tuple)
+                or not 1 <= len(output) <= self.maximum_values
+                or any(
+                    type(value) not in (int, float) or not math.isfinite(value)
+                    for value in output
+                )
+            ):
+                raise ValueError("CPU reference benchmark returned invalid output")
+            normalized = tuple(float(value) for value in output)
+            digest = hashlib.sha256(
+                json.dumps(normalized, separators=(",", ":")).encode()
+            ).hexdigest()
+            return DeviceBenchmarkMeasurement(
+                elapsed, elapsed, 0, 0, len(normalized), None, None, digest
+            )
+
+        return measure
+
+
 class CoreMLFixedGraphBenchmarkAdapter:
     """Bridge a loaded fixed graph into the common end-to-end benchmark schema."""
 
@@ -460,8 +523,9 @@ class CoreMLFixedGraphBenchmarkAdapter:
         result = self.backend.execute(self.resource, input_values)
         total = max(1, time.perf_counter_ns() - started)
         execution = min(total, result.latency_nanoseconds)
+        normalized = tuple(float(value) for value in result.values)
         digest = hashlib.sha256(
-            json.dumps(result.values, separators=(",", ":")).encode()
+            json.dumps(normalized, separators=(",", ":")).encode()
         ).hexdigest()
         return DeviceBenchmarkMeasurement(
             total,

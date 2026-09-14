@@ -100,7 +100,8 @@ for query_head in range(4):
 outputs.append(gqa)
 elapsed=time.perf_counter_ns()-started
 digest=hashlib.sha256(json.dumps(outputs,separators=(',',':')).encode()).hexdigest()
-print(json.dumps({'output_digest':digest,'latency_nanoseconds':elapsed},separators=(',',':')))
+numeric_values=[value for group in outputs for matrix in (group if group and isinstance(group[0][0],list) else [group]) for row in matrix for value in row]
+print(json.dumps({'output_digest':digest,'latency_nanoseconds':elapsed,'numeric_values':numeric_values},separators=(',',':')))
 """.strip(),
     "paged_attention": """
 import hashlib,json,math,time
@@ -150,7 +151,7 @@ print(json.dumps({'output_digest':digest,'latency_nanoseconds':elapsed},separato
 class NativeMLXProbeAdapter:
     python_executable: Path = Path(sys.executable)
     timeout_seconds: float = 10
-    maximum_output_bytes: int = 4096
+    maximum_output_bytes: int = 16 * 1024
 
     def __post_init__(self) -> None:
         if not math.isfinite(self.timeout_seconds) or self.timeout_seconds <= 0:
@@ -225,6 +226,7 @@ class NativeMLXProbeAdapter:
             operator=operator,
             samples=samples,
             maximum_slowdown_ratio=maximum_slowdown_ratio,
+            maximum_absolute_error=2e-5 if operator == "attention" else None,
         )
         return run_kernel_probe(
             config,
@@ -304,7 +306,16 @@ class NativeMLXProbeAdapter:
         digest = hashlib.sha256(
             json.dumps(outputs, separators=(",", ":")).encode("utf-8")
         ).hexdigest()
-        return KernelMeasurement(digest, elapsed)
+        numeric_values = tuple(
+            value
+            for group in outputs
+            for matrix in (
+                group if group and isinstance(group[0][0], list) else [group]
+            )
+            for row in matrix
+            for value in row
+        )
+        return KernelMeasurement(digest, elapsed, numeric_values)
 
     @staticmethod
     def _baseline_paged_attention() -> KernelMeasurement:
@@ -389,14 +400,19 @@ class NativeMLXProbeAdapter:
         if len(completed.stdout) > self.maximum_output_bytes:
             raise RuntimeError("MLX probe output exceeded its bound")
         payload = json.loads(completed.stdout)
-        if not isinstance(payload, dict) or set(payload) != {
-            "output_digest",
-            "latency_nanoseconds",
-        }:
+        if not isinstance(payload, dict) or set(payload) not in ({
+            "output_digest", "latency_nanoseconds",
+        }, {
+            "output_digest", "latency_nanoseconds", "numeric_values",
+        }):
             raise RuntimeError("MLX probe returned invalid fields")
         return KernelMeasurement(
             output_digest=payload["output_digest"],
             latency_nanoseconds=payload["latency_nanoseconds"],
+            numeric_values=(
+                tuple(payload["numeric_values"])
+                if "numeric_values" in payload else None
+            ),
         )
 
 

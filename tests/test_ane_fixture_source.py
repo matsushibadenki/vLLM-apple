@@ -21,6 +21,7 @@ class ANEFixtureSourceTests(unittest.TestCase):
         source = path.read_text()
         self.assertIn("mlx==0.31.2", source)
         self.assertIn("expected - passed", source)
+        self.assertIn("maximum_slowdown_ratio=10_000", source)
         self.assertIn("run_device_benchmark_suite", source)
         self.assertIn("save_device_benchmark", source)
         self.assertIn("actions/upload-artifact@v4", source)

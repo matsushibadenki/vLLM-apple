@@ -92,6 +92,7 @@ jobs:
                   hardware_fingerprint=hardware,
                   environment_fingerprint=environment,
                   samples=3,
+                  maximum_slowdown_ratio=10_000,
               ):
                   kernel_registry.record(result)
           kernel_registry.record(ane_result)

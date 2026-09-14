@@ -317,6 +317,38 @@ class OperatorDispatchTests(unittest.TestCase):
         self.assertFalse(partial.is_usable(ExecutionBackend.NATIVE_MLX, "matmul"))
         self.assertTrue(partial.is_usable(ExecutionBackend.NATIVE_MLX, "kv_copy"))
 
+    def test_mlx_attention_uses_bounded_fp32_numeric_tolerance(self) -> None:
+        adapter = NativeMLXProbeAdapter()
+        baseline = adapter._baseline_attention()
+        perturbed = tuple(
+            value + (1e-5 if index == 0 else 0)
+            for index, value in enumerate(baseline.numeric_values or ())
+        )
+        candidate = KernelMeasurement("b" * 64, 100, perturbed)
+        with patch.object(NativeMLXProbeAdapter, "_candidate", return_value=candidate):
+            result = adapter._probe(
+                "attention", adapter._baseline_attention,
+                "hardware", "environment", 1, 20,
+            )
+        self.assertTrue(result.passed)
+
+        outside_tolerance = KernelMeasurement(
+            "b" * 64, 100,
+            tuple(
+                value + (3e-5 if index == 0 else 0)
+                for index, value in enumerate(baseline.numeric_values or ())
+            ),
+        )
+        with patch.object(
+            NativeMLXProbeAdapter, "_candidate", return_value=outside_tolerance
+        ):
+            rejected = adapter._probe(
+                "attention", adapter._baseline_attention,
+                "hardware", "environment", 1, 20,
+            )
+        self.assertTrue(rejected.quarantined)
+        self.assertEqual(rejected.reason, "correctness_mismatch")
+
     def test_quarantined_metal_falls_back_to_probed_mlx(self) -> None:
         registry = KernelCapabilityRegistry("hardware", "environment")
         wrong = hashlib.sha256(b"wrong").hexdigest()
