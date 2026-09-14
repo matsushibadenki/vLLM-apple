@@ -3,14 +3,15 @@ from __future__ import annotations
 
 import secrets
 import threading
+from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
 
 from .ane_probe import (
     CoreMLANEModelProbeConfig,
     CoreMLPrediction,
-    run_coreml_prediction,
 )
+from .coreml_worker import CoreMLPersistentWorker
 from .device_capability import (
     ComputeDevice,
     DeviceCapability,
@@ -19,6 +20,7 @@ from .device_capability import (
 )
 from .execution import ExecutionBackend, WorkloadPhase
 from .model_integrity import verify_model_integrity
+from .operator_dispatch import BackendExecutionError
 
 
 MAX_COREML_RESOURCES = 32
@@ -49,11 +51,20 @@ class CoreMLFixedGraphBackend:
         swift_executable: Path = Path("/usr/bin/swift"),
         timeout_seconds: float = 30,
         maximum_output_bytes: int = 128 * 1024,
+        worker_factory: Callable[[CoreMLANEModelProbeConfig], object] | None = None,
     ) -> None:
         self.swift_executable = swift_executable
         self.timeout_seconds = timeout_seconds
         self.maximum_output_bytes = maximum_output_bytes
-        self._resources: dict[str, tuple[CoreMLANEModelProbeConfig, DeviceCapability]] = {}
+        self._worker_factory = worker_factory or (lambda config: CoreMLPersistentWorker(
+            config,
+            swift_executable=self.swift_executable,
+            timeout_seconds=self.timeout_seconds,
+            maximum_output_bytes=self.maximum_output_bytes,
+        ))
+        self._resources: dict[
+            str, tuple[CoreMLANEModelProbeConfig, DeviceCapability, object]
+        ] = {}
         self._lock = threading.RLock()
 
     def load(
@@ -79,7 +90,12 @@ class CoreMLFixedGraphBackend:
             if len(self._resources) >= MAX_COREML_RESOURCES:
                 raise RuntimeError("Core ML resource limit reached")
             resource_id = secrets.token_hex(16)
-            self._resources[resource_id] = (config, capability)
+            worker = self._worker_factory(config)
+            if not callable(getattr(worker, "predict", None)) or not callable(
+                getattr(worker, "close", None)
+            ):
+                raise ValueError("Core ML worker factory returned an invalid worker")
+            self._resources[resource_id] = (config, capability, worker)
         return CoreMLFixedGraphResource(
             resource_id, operator, capability.capability_id, config.model_root_sha256
         )
@@ -93,7 +109,7 @@ class CoreMLFixedGraphBackend:
             entry = self._resources.get(resource.resource_id)
         if entry is None:
             raise RuntimeError("Core ML resource is not loaded")
-        config, capability = entry
+        config, capability, worker = entry
         if (
             resource.operator != capability.operators[0]
             or resource.capability_id != capability.capability_id
@@ -103,13 +119,14 @@ class CoreMLFixedGraphBackend:
         before = verify_model_integrity(config.model_path, config.integrity_manifest_path)
         if before.get("root_sha256") != config.model_root_sha256:
             raise ValueError("Core ML resource integrity digest mismatch")
-        prediction: CoreMLPrediction = run_coreml_prediction(
-            config,
-            input_values,
-            swift_executable=self.swift_executable,
-            timeout_seconds=self.timeout_seconds,
-            maximum_output_bytes=self.maximum_output_bytes,
-        )
+        try:
+            prediction: CoreMLPrediction = worker.predict(input_values)
+        except TimeoutError as error:
+            raise BackendExecutionError("coreml_worker_timeout") from error
+        except RuntimeError as error:
+            raise BackendExecutionError("coreml_worker_failed") from error
+        if not isinstance(prediction, CoreMLPrediction):
+            raise RuntimeError("Core ML worker returned an invalid prediction")
         after = verify_model_integrity(config.model_path, config.integrity_manifest_path)
         if after != before:
             raise ValueError("Core ML resource changed during execution")
@@ -125,7 +142,7 @@ class CoreMLFixedGraphBackend:
             entry = self._resources.get(resource.resource_id)
             if entry is None:
                 raise RuntimeError("Core ML resource is not loaded")
-            config, capability = entry
+            config, capability, worker = entry
             if (
                 resource.operator != capability.operators[0]
                 or resource.capability_id != capability.capability_id
@@ -133,6 +150,7 @@ class CoreMLFixedGraphBackend:
             ):
                 raise ValueError("Core ML resource handle is invalid")
             del self._resources[resource.resource_id]
+        worker.close()
 
     @staticmethod
     def require_auxiliary_dispatch(

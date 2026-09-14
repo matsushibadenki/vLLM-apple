@@ -11,6 +11,7 @@ from typing import TypeVar
 
 from .execution import AppleExecutionPlan, ExecutionBackend, WorkloadPhase
 from .device_placement import DevicePlacementPlan
+from .device_resources import DeviceResourceRequest, UnifiedDeviceResourceLedger
 from .operator_dispatch import (
     OperatorDispatchDecision,
     OperatorDispatcher,
@@ -80,6 +81,7 @@ class Reservation:
     execution_plan_id: str | None = None
     kernel_tuning_id: str | None = None
     device_placement_plan_id: str | None = None
+    device_resource_reservation_id: str | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -265,6 +267,13 @@ class BasicScheduler:
     ) -> None:
         self.hardware = hardware
         self.memory = MemoryAdmissionController(memory_capacity_bytes)
+        self.device_resources = UnifiedDeviceResourceLedger(
+            unified_memory_bytes=memory_capacity_bytes,
+            cpu_threads=max(1, hardware.logical_cpu_count),
+            gpu_command_queues=4 if hardware.is_apple_silicon else 0,
+            ane_tasks=2 if hardware.is_apple_silicon else 0,
+            bandwidth_slots=4 if hardware.is_apple_silicon else 1,
+        )
         self._policy_lock = threading.RLock()
         self._active_plan: AppleExecutionPlan | None = None
         self._pending_plan: AppleExecutionPlan | None = None
@@ -279,6 +288,7 @@ class BasicScheduler:
         decision = self.dispatch_decision(request)
         return {
             ExecutionBackend.CPU: Backend.CPU,
+            ExecutionBackend.VLLM_METAL: Backend.METAL,
             ExecutionBackend.NATIVE_MLX: Backend.MLX_GPU,
             ExecutionBackend.NATIVE_METAL: Backend.METAL,
             ExecutionBackend.COREML_DRAFT: Backend.COREML,
@@ -339,9 +349,29 @@ class BasicScheduler:
                     f"scheduler maintenance is active: {self._maintenance_owner}"
                 )
             self._validate_plan_admission(request)
-            reservation = self.memory.reserve(request, self.choose_backend(request))
+            backend = self.choose_backend(request)
+            reservation = self.memory.reserve(request, backend)
+            execution_backend = {
+                Backend.CPU: ExecutionBackend.CPU,
+                Backend.MLX_GPU: ExecutionBackend.NATIVE_MLX,
+                Backend.METAL: ExecutionBackend.NATIVE_METAL,
+                Backend.COREML: ExecutionBackend.COREML_DRAFT,
+            }.get(backend, ExecutionBackend.CPU)
+            try:
+                device_reservation = self.device_resources.reserve(
+                    DeviceResourceRequest.for_backend(
+                        execution_backend, request.estimated_memory_bytes
+                    )
+                )
+            except BaseException:
+                self.memory.release(reservation.reservation_id)
+                raise
             if self._active_plan is None and self._active_device_placement_plan is None:
-                return reservation
+                return Reservation(
+                    reservation.reservation_id, reservation.bytes, reservation.backend,
+                    reservation.priority, reservation.created_at_monotonic,
+                    device_resource_reservation_id=device_reservation.reservation_id,
+                )
             return Reservation(
                 reservation_id=reservation.reservation_id,
                 bytes=reservation.bytes,
@@ -355,11 +385,16 @@ class BasicScheduler:
                     self._active_device_placement_plan.plan_id
                     if self._active_device_placement_plan is not None else None
                 ),
+                device_resource_reservation_id=device_reservation.reservation_id,
             )
 
     def complete(self, reservation: Reservation) -> None:
         with self._policy_lock:
             self.memory.release(reservation.reservation_id)
+            if reservation.device_resource_reservation_id is not None:
+                self.device_resources.release(
+                    reservation.device_resource_reservation_id
+                )
 
     def submit(self, request: ScheduleRequest) -> str:
         return self._queue.enqueue(request)
@@ -381,6 +416,10 @@ class BasicScheduler:
             if not self._queue.finish_claim(token):
                 self._queued_active.pop(token, None)
                 self.memory.release(reservation.reservation_id)
+                if reservation.device_resource_reservation_id is not None:
+                    self.device_resources.release(
+                        reservation.device_resource_reservation_id
+                    )
                 return None
         return QueuedAdmission(token, request, reservation)
 
@@ -390,6 +429,10 @@ class BasicScheduler:
             if reservation is None:
                 return False
             self.memory.release(reservation.reservation_id)
+            if reservation.device_resource_reservation_id is not None:
+                self.device_resources.release(
+                    reservation.device_resource_reservation_id
+                )
             return True
 
     def cancel(self, token: str) -> bool:

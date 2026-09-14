@@ -26,6 +26,7 @@
     "startup_progress",
     "execution_plan",
     "device_placement",
+    "device_resources",
     "last_error",
     "failure"
   ],
@@ -399,6 +400,50 @@
             "additionalProperties": false
           }
         }
+      },
+      "additionalProperties": false
+    },
+    "device_resources": {
+      "type": "object",
+      "required": ["capacity", "used", "available", "active_reservations"],
+      "properties": {
+        "capacity": {
+          "type": "object",
+          "required": ["unified_memory_bytes", "cpu_threads", "gpu_command_queues", "ane_tasks", "bandwidth_slots"],
+          "properties": {
+            "unified_memory_bytes": {"type": "integer", "minimum": 0},
+            "cpu_threads": {"type": "integer", "minimum": 0},
+            "gpu_command_queues": {"type": "integer", "minimum": 0},
+            "ane_tasks": {"type": "integer", "minimum": 0},
+            "bandwidth_slots": {"type": "integer", "minimum": 0}
+          },
+          "additionalProperties": false
+        },
+        "used": {
+          "type": "object",
+          "required": ["unified_memory_bytes", "cpu_threads", "gpu_command_queues", "ane_tasks", "bandwidth_slots"],
+          "properties": {
+            "unified_memory_bytes": {"type": "integer", "minimum": 0},
+            "cpu_threads": {"type": "integer", "minimum": 0},
+            "gpu_command_queues": {"type": "integer", "minimum": 0},
+            "ane_tasks": {"type": "integer", "minimum": 0},
+            "bandwidth_slots": {"type": "integer", "minimum": 0}
+          },
+          "additionalProperties": false
+        },
+        "available": {
+          "type": "object",
+          "required": ["unified_memory_bytes", "cpu_threads", "gpu_command_queues", "ane_tasks", "bandwidth_slots"],
+          "properties": {
+            "unified_memory_bytes": {"type": "integer", "minimum": 0},
+            "cpu_threads": {"type": "integer", "minimum": 0},
+            "gpu_command_queues": {"type": "integer", "minimum": 0},
+            "ane_tasks": {"type": "integer", "minimum": 0},
+            "bandwidth_slots": {"type": "integer", "minimum": 0}
+          },
+          "additionalProperties": false
+        },
+        "active_reservations": {"type": "integer", "minimum": 0}
       },
       "additionalProperties": false
     }

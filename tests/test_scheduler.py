@@ -10,6 +10,11 @@ from vllm_apple.execution import (
     PhaseExecutionPlan,
     WorkloadPhase,
 )
+from vllm_apple.device_resources import (
+    DeviceResourceCapacityError,
+    UnifiedDeviceResourceLedger,
+)
+from vllm_apple.operator_dispatch import OperatorDispatchDecision
 from vllm_apple.scheduler import (
     BasicScheduler,
     ExecutionPlanAdmissionError,
@@ -148,6 +153,22 @@ class SchedulerTests(unittest.TestCase):
             scheduler.choose_backend(ScheduleRequest("paged_attention", 10)), Backend.METAL
         )
 
+    def test_vllm_metal_dispatch_uses_gpu_backend_and_resource(self) -> None:
+        class VLLMMetalDispatcher:
+            def dispatch(self, request):
+                return OperatorDispatchDecision(
+                    request.operator, ExecutionBackend.VLLM_METAL,
+                    (ExecutionBackend.CPU,), (), (), "test",
+                )
+
+        scheduler = BasicScheduler(hardware(), 100, VLLMMetalDispatcher())
+        reservation = scheduler.admit(ScheduleRequest("paged_attention", 40))
+        self.assertEqual(reservation.backend, Backend.METAL)
+        self.assertEqual(
+            scheduler.device_resources.snapshot()["used"]["gpu_command_queues"], 1
+        )
+        scheduler.complete(reservation)
+
     def test_reservations_never_exceed_capacity(self) -> None:
         scheduler = BasicScheduler(hardware(), 100)
         reservation = scheduler.admit(
@@ -158,8 +179,30 @@ class SchedulerTests(unittest.TestCase):
         self.assertEqual(scheduler.memory.reserved_bytes, 80)
         scheduler.complete(reservation)
         self.assertEqual(scheduler.memory.reserved_bytes, 0)
-        scheduler.complete(reservation)
+
+    def test_device_resource_failure_rolls_back_memory_reservation(self) -> None:
+        scheduler = BasicScheduler(hardware(), 100)
+        scheduler.device_resources = UnifiedDeviceResourceLedger(
+            unified_memory_bytes=100, cpu_threads=1,
+            gpu_command_queues=0, ane_tasks=0, bandwidth_slots=1,
+        )
+        with self.assertRaises(DeviceResourceCapacityError):
+            scheduler.admit(ScheduleRequest("attention", 80))
         self.assertEqual(scheduler.memory.reserved_bytes, 0)
+        self.assertEqual(
+            scheduler.device_resources.snapshot()["active_reservations"], 0
+        )
+
+    def test_completion_releases_unified_device_resources(self) -> None:
+        scheduler = BasicScheduler(hardware(), 100)
+        reservation = scheduler.admit(ScheduleRequest("paged_attention", 40))
+        used = scheduler.device_resources.snapshot()["used"]
+        self.assertEqual(used["gpu_command_queues"], 1)
+        self.assertEqual(used["unified_memory_bytes"], 40)
+        scheduler.complete(reservation)
+        self.assertEqual(
+            scheduler.device_resources.snapshot()["active_reservations"], 0
+        )
 
     def test_plan_changes_are_deferred_and_batch_limits_do_not_mix(self) -> None:
         scheduler = BasicScheduler(hardware(), 500)

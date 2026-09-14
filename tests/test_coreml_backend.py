@@ -1,7 +1,7 @@
 import tempfile
 import unittest
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 from vllm_apple.ane_probe import CoreMLANEModelProbeConfig, CoreMLPrediction
 from vllm_apple.coreml_backend import CoreMLFixedGraphBackend
@@ -11,6 +11,7 @@ from vllm_apple.device_capability import (
     DeviceCapabilityRegistry,
 )
 from vllm_apple.execution import ExecutionBackend, WorkloadPhase
+from vllm_apple.operator_dispatch import BackendExecutionError
 
 
 class CoreMLFixedGraphBackendTests(unittest.TestCase):
@@ -46,12 +47,17 @@ class CoreMLFixedGraphBackendTests(unittest.TestCase):
             "probe_passed",
             ("b" * 24,),
         )
+        self.worker = Mock()
+        self.worker.predict.return_value = CoreMLPrediction((2.0, 4.0), 50)
+        self.backend = CoreMLFixedGraphBackend(
+            worker_factory=lambda _config: self.worker
+        )
 
     def tearDown(self):
         self.temporary_directory.cleanup()
 
     def test_probe_bound_resource_load_execute_dispatch_and_unload(self):
-        backend = CoreMLFixedGraphBackend()
+        backend = self.backend
         evidence = {"root_sha256": self.digest}
         registry = DeviceCapabilityRegistry("m4-test", "environment-test")
         registry.record(self.capability)
@@ -61,15 +67,13 @@ class CoreMLFixedGraphBackendTests(unittest.TestCase):
         ):
             resource = backend.load(self.config, self.capability)
             backend.require_auxiliary_dispatch(registry, resource)
-            with patch(
-                "vllm_apple.coreml_backend.run_coreml_prediction",
-                return_value=CoreMLPrediction((2.0, 4.0), 50),
-            ):
-                result = backend.execute(resource, (1.0, 2.0))
+            result = backend.execute(resource, (1.0, 2.0))
             backend.unload(resource)
         self.assertEqual(result.values, (2.0, 4.0))
         self.assertEqual(result.backend, ExecutionBackend.COREML_DRAFT)
         self.assertEqual(result.capability_id, self.capability.capability_id)
+        self.worker.predict.assert_called_once_with((1.0, 2.0))
+        self.worker.close.assert_called_once_with()
         with self.assertRaisesRegex(RuntimeError, "not loaded"):
             backend.execute(resource, (1.0, 2.0))
 
@@ -105,7 +109,7 @@ class CoreMLFixedGraphBackendTests(unittest.TestCase):
             CoreMLFixedGraphBackend().load(self.config, capability)
 
     def test_dispatch_rejects_resource_from_stale_capability_evidence(self):
-        backend = CoreMLFixedGraphBackend()
+        backend = self.backend
         with patch(
             "vllm_apple.coreml_backend.verify_model_integrity",
             return_value={"root_sha256": self.digest},
@@ -130,7 +134,7 @@ class CoreMLFixedGraphBackendTests(unittest.TestCase):
             backend.require_auxiliary_dispatch(registry, resource)
 
     def test_detects_integrity_change_during_execution(self):
-        backend = CoreMLFixedGraphBackend()
+        backend = self.backend
         evidence = {"root_sha256": self.digest}
         with patch(
             "vllm_apple.coreml_backend.verify_model_integrity",
@@ -142,13 +146,36 @@ class CoreMLFixedGraphBackendTests(unittest.TestCase):
                 "vllm_apple.coreml_backend.verify_model_integrity",
                 side_effect=[evidence, {"root_sha256": self.digest, "changed": True}],
             ),
-            patch(
-                "vllm_apple.coreml_backend.run_coreml_prediction",
-                return_value=CoreMLPrediction((2.0, 4.0), 50),
-            ),
             self.assertRaisesRegex(ValueError, "changed during execution"),
         ):
             backend.execute(resource, (1.0, 2.0))
+
+    def test_reuses_one_worker_for_multiple_predictions(self):
+        evidence = {"root_sha256": self.digest}
+        with patch(
+            "vllm_apple.coreml_backend.verify_model_integrity",
+            return_value=evidence,
+        ):
+            resource = self.backend.load(self.config, self.capability)
+            self.backend.execute(resource, (1.0, 2.0))
+            self.backend.execute(resource, (1.0, 2.0))
+            self.backend.unload(resource)
+        self.assertEqual(self.worker.predict.call_count, 2)
+        self.worker.close.assert_called_once_with()
+
+    def test_worker_timeout_becomes_retryable_fallback_error(self):
+        evidence = {"root_sha256": self.digest}
+        self.worker.predict.side_effect = TimeoutError("private detail")
+        with patch(
+            "vllm_apple.coreml_backend.verify_model_integrity",
+            return_value=evidence,
+        ):
+            resource = self.backend.load(self.config, self.capability)
+            with self.assertRaises(BackendExecutionError) as raised:
+                self.backend.execute(resource, (1.0, 2.0))
+            self.backend.unload(resource)
+        self.assertEqual(raised.exception.error_code, "coreml_worker_timeout")
+        self.assertTrue(raised.exception.retryable)
 
 
 if __name__ == "__main__":

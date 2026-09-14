@@ -111,6 +111,12 @@ class LiveResponseSchemaTests(unittest.TestCase):
         )
         memory = payload["memory_telemetry"]
         self.assertLessEqual(memory["unified_available_bytes"], memory["unified_total_bytes"])
+        resources = payload["device_resources"]
+        for name, capacity in resources["capacity"].items():
+            self.assertEqual(
+                resources["used"][name] + resources["available"][name],
+                capacity,
+            )
 
     def test_live_sse_event_matches_v1_schema(self) -> None:
         response = urllib.request.urlopen(self.base_url + "/v1/events", timeout=2)

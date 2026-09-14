@@ -2498,8 +2498,9 @@ versioned execution planへ記録し、active request中は変更せずscheduler
 7. `[Done]` 合格済みfixed graphだけにresource handleを発行するCore ML backend lifecycleを実装する。
    model digest、capability ID、auxiliary phase、FP32 eligibilityをload時とdispatch直前に照合し、predictionを
    bounded subprocessへ隔離する。実行前後のmodel tree integrityを再検証し、明示unload後の再利用を拒否する。
-8. `[Later]` CPU thread、GPU command queue、ANE task、Unified Memory、memory bandwidthを同じresource
-   ledgerで予約し、overcommitをmodel load前とoperator dispatch前に拒否する。
+8. `[Done]` CPU thread、GPU command queue、ANE task、Unified Memory、memory bandwidthを同じresource
+   ledgerで原子的に予約する。operator admission時のovercommitを部分予約なしで拒否し、既存memory予約を
+   rollbackする。完了・cancel・dispatch競合時に両予約を解放し、capacity／used／availableをruntime APIへ公開する。
 9. `[Done]` operator、shape、batch、precision、phaseとprobe capability IDへ結合した共通microbenchmark schemaを追加する。
    cold load、演算、変換、device同期、end-to-end latency、throughput、peak memory、energyを別fieldで保持し、
    未計測値はゼロにせずunknownとする。bounded sample、output digest安定性、private atomic保存、derived値再計算を必須にする。
@@ -2541,6 +2542,9 @@ versioned execution planへ記録し、active request中は変更せずscheduler
    代表encoderは最大1024幅・16層の決定論的dense+ReLU graphとし、非有限値を避ける正規化weight、
    integrity-bound compiled model、bounded CPU referenceを共有する。M4実測では1024幅×16層をCore MLへ
    昇格し、scheduler適用後のANE失敗からCPU fallbackまでend-to-endで確認済みとする。
+   Core ML resourceはmodelを一度だけloadするpersistent Swift workerを所有し、改行区切りのbounded JSONで
+   predictionを直列化する。read timeout、不正応答、worker終了は固定retryable codeへ変換し、unload時は
+   stdin close、bounded wait、terminate、killの順でprocessを必ず回収する。
 21. `[Later]` Vision/Audio encoder、embedding、classifier、background modelなど固定graph化しやすい
    auxiliary workloadからANE routingを開始する。LLM prefill/decodeはGPU baselineを維持する。
 22. `[Later]` 共有memory bandwidth競合を測定し、単独実行より改善する組み合わせに限ってCPU/GPU/ANE

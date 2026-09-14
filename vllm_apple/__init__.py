@@ -20,6 +20,7 @@ from .coreml_backend import (
     CoreMLFixedGraphResource,
     CoreMLFixedGraphResult,
 )
+from .coreml_worker import CoreMLPersistentWorker
 from .elastic_memory import ElasticMemoryController, ElasticMemoryDecision
 from .device_capability import (
     ComputeDevice,
@@ -60,6 +61,12 @@ from .device_placement import (
     load_device_placement_with_fallback,
     promote_device_placement_plan,
     save_device_placement_plan,
+)
+from .device_resources import (
+    DeviceResourceCapacityError,
+    DeviceResourceRequest,
+    DeviceResourceReservation,
+    UnifiedDeviceResourceLedger,
 )
 from .execution import AppleChipProfile, AppleExecutionPlan, AppleExecutionPlanner
 from .execution_profile import detect_apple_chip_profile, load_chip_profile, save_chip_profile
@@ -220,6 +227,7 @@ __all__ = [
     "CoreMLFixedGraphBackend",
     "CoreMLFixedGraphResource",
     "CoreMLFixedGraphResult",
+    "CoreMLPersistentWorker",
     "CoreMLFixedGraphBenchmarkAdapter",
     "CoreMLPrediction",
     "ContextReevaluationSnapshot",
@@ -237,6 +245,10 @@ __all__ = [
     "DevicePlacementDecision",
     "DevicePlacement",
     "DevicePlacementPlan",
+    "DeviceResourceCapacityError",
+    "DeviceResourceRequest",
+    "DeviceResourceReservation",
+    "UnifiedDeviceResourceLedger",
     "ElasticMemoryController",
     "ElasticMemoryDecision",
     "ExecutionPhaseProfiler",

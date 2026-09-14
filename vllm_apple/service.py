@@ -99,6 +99,7 @@ class ServiceSnapshot:
     elastic_memory: dict[str, int | bool | str | None]
     execution_plan: dict[str, str | int | bool | None]
     device_placement: dict[str, object]
+    device_resources: dict[str, object]
     memory_telemetry: dict[str, int | float | str | None]
     memory_budget: dict[str, object]
     memory_admission: dict[str, int | float | str | None]
@@ -122,6 +123,7 @@ class ServiceSnapshot:
             "elastic_memory": self.elastic_memory,
             "execution_plan": self.execution_plan,
             "device_placement": self.device_placement,
+            "device_resources": self.device_resources,
             "memory_telemetry": self.memory_telemetry,
             "memory_budget": self.memory_budget,
             "memory_admission": self.memory_admission,
@@ -341,6 +343,7 @@ class RuntimeService:
                 ),
                 execution_plan=self.scheduler.execution_plan_snapshot(),
                 device_placement=self.scheduler.device_placement_snapshot(),
+                device_resources=self.scheduler.device_resources.snapshot(),
                 memory_telemetry=telemetry.to_dict(),
                 memory_budget=self.memory_budget.snapshot().to_dict(),
                 memory_admission=self.memory_admission.snapshot().to_dict(),
