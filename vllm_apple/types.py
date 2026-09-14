@@ -53,6 +53,7 @@ class Backend(str, Enum):
     CPU = "cpu"
     MLX_GPU = "mlx_gpu"
     METAL = "metal"
+    COREML = "coreml"
 
 
 @dataclass(frozen=True, slots=True)

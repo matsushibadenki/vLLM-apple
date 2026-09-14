@@ -379,6 +379,9 @@ class RuntimeRequestHandler(BaseHTTPRequestHandler):
         if path == "/v1/native-v2-tuning":
             self._control_native_v2_tuning()
             return
+        if path == "/v1/device-placement":
+            self._control_device_placement()
+            return
         if path != "/v1/chat/completions":
             self._error(HTTPStatus.NOT_FOUND, "not_found", "endpoint not found")
             return
@@ -457,6 +460,33 @@ class RuntimeRequestHandler(BaseHTTPRequestHandler):
             status,
             self._control_payload({"accepted": accepted, "native_v2_tuning": snapshot}),
             error_code=None if accepted else "native_v2_tuning_not_ready",
+        )
+
+    def _control_device_placement(self) -> None:
+        request = self._read_json()
+        if request is None:
+            return
+        action = request.get("action")
+        if set(request) != {"action"} or action not in {"reload", "rollback"}:
+            self._error(
+                HTTPStatus.BAD_REQUEST,
+                "invalid_device_placement_action",
+                "action must be reload or rollback",
+            )
+            return
+        try:
+            accepted, snapshot = self.server.service.control_device_placement(action)
+        except (OSError, ValueError):
+            self._error(
+                HTTPStatus.INTERNAL_SERVER_ERROR,
+                "device_placement_control_failed",
+                "device placement update failed validation",
+            )
+            return
+        self._send(
+            HTTPStatus.OK if accepted else HTTPStatus.CONFLICT,
+            self._control_payload({"accepted": accepted, "device_placement": snapshot}),
+            error_code=None if accepted else "device_placement_not_ready",
         )
 
     def _backend_error(self, error: BackendHTTPError) -> None:

@@ -54,6 +54,7 @@ final class AppModel: ObservableObject {
     @Published private(set) var contextWarning: RuntimeContextReevaluation?
     @Published private(set) var kvCalibration: KVCalibrationProvenance?
     @Published private(set) var nativeV2Tuning: NativeV2TuningState = .idle
+    @Published private(set) var devicePlacement: DevicePlacementState = .disabled
     @Published private(set) var startupProgress: StartupProgress?
     @Published private(set) var qualificationReports: [QualificationReportRecord]
     @Published private(set) var verifiedPromotionReportURLs: Set<URL>
@@ -101,6 +102,7 @@ final class AppModel: ObservableObject {
         contextWarning = nil
         kvCalibration = nil
         nativeV2Tuning = .idle
+        devicePlacement = .disabled
         startupProgress = nil
         reloadQualificationReports()
 
@@ -127,6 +129,7 @@ final class AppModel: ObservableObject {
             let health = try await client.health()
             kvCalibration = try await client.kvCalibration()
             nativeV2Tuning = try await client.nativeV2Tuning()
+            devicePlacement = try await client.devicePlacement()
             apply(health.status)
             beginEventMonitoring(client: client)
         } catch let error as RuntimeResourceError {
@@ -391,6 +394,10 @@ final class AppModel: ObservableObject {
                     }
                     if let tuning = event.nativeV2Tuning {
                         self.nativeV2Tuning = tuning
+                    }
+                    if event.devicePlacement != nil,
+                       let placement = try? await client.devicePlacement() {
+                        self.devicePlacement = placement
                     }
                     if let progress = event.startupProgress {
                         self.startupProgress = progress

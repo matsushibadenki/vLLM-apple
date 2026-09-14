@@ -25,6 +25,7 @@
     "native_v2_tuning",
     "startup_progress",
     "execution_plan",
+    "device_placement",
     "last_error",
     "failure"
   ],
@@ -368,6 +369,36 @@
         "prefill_batch_size": { "type": "integer", "minimum": 0 },
         "decode_batch_size": { "type": "integer", "minimum": 0 },
         "state_precision": { "type": ["string", "null"] }
+      },
+      "additionalProperties": false
+    },
+    "device_placement": {
+      "type": "object",
+      "required": ["enabled", "active_plan_id", "pending_plan_id", "placement_count", "valid_until_unix_seconds", "placements"],
+      "properties": {
+        "enabled": {"type": "boolean"},
+        "active_plan_id": {"type": ["string", "null"], "minLength": 24, "maxLength": 24},
+        "pending_plan_id": {"type": ["string", "null"], "minLength": 24, "maxLength": 24},
+        "placement_count": {"type": "integer", "minimum": 0, "maximum": 64},
+        "valid_until_unix_seconds": {"type": ["integer", "null"], "minimum": 1},
+        "placements": {
+          "type": "array",
+          "maxItems": 64,
+          "items": {
+            "type": "object",
+            "required": ["operator", "phase", "precision", "dimensions", "batch_size", "backend", "improvement_ratio"],
+            "properties": {
+              "operator": {"type": "string", "minLength": 1, "maxLength": 128},
+              "phase": {"enum": ["prefill", "decode", "auxiliary"]},
+              "precision": {"type": "string", "minLength": 1, "maxLength": 128},
+              "dimensions": {"type": "array", "minItems": 1, "maxItems": 8, "items": {"type": "integer", "minimum": 1}},
+              "batch_size": {"type": "integer", "minimum": 1},
+              "backend": {"enum": ["vllm_metal", "native_mlx", "native_metal", "coreml_draft", "cpu"]},
+              "improvement_ratio": {"type": "number", "minimum": 0, "maximum": 1}
+            },
+            "additionalProperties": false
+          }
+        }
       },
       "additionalProperties": false
     }

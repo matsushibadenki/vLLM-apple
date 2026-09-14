@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import heapq
 import threading
+import time
 import uuid
 from collections.abc import Callable
 from dataclasses import dataclass
@@ -9,6 +10,7 @@ from time import monotonic
 from typing import TypeVar
 
 from .execution import AppleExecutionPlan, ExecutionBackend, WorkloadPhase
+from .device_placement import DevicePlacementPlan
 from .operator_dispatch import (
     OperatorDispatchDecision,
     OperatorDispatcher,
@@ -53,12 +55,17 @@ class ScheduleRequest:
     batch_size: int = 1
     phase: WorkloadPhase | None = None
     estimated_context_tokens: int = 0
+    precision: str | None = None
+    dimensions: tuple[int, ...] = ()
 
     def __post_init__(self) -> None:
         if (
             self.estimated_memory_bytes < 0
             or self.batch_size <= 0
             or self.estimated_context_tokens < 0
+            or (self.precision is not None and not self.precision)
+            or len(self.dimensions) > 8
+            or any(value <= 0 for value in self.dimensions)
         ):
             raise ValueError("invalid schedule request")
 
@@ -72,6 +79,7 @@ class Reservation:
     created_at_monotonic: float
     execution_plan_id: str | None = None
     kernel_tuning_id: str | None = None
+    device_placement_plan_id: str | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -260,6 +268,8 @@ class BasicScheduler:
         self._policy_lock = threading.RLock()
         self._active_plan: AppleExecutionPlan | None = None
         self._pending_plan: AppleExecutionPlan | None = None
+        self._active_device_placement_plan: DevicePlacementPlan | None = None
+        self._pending_device_placement_plan: DevicePlacementPlan | None = None
         self._operator_dispatcher = operator_dispatcher
         self._maintenance_owner: str | None = None
         self._queue = PriorityScheduleQueue(maximum_queued_requests)
@@ -271,11 +281,17 @@ class BasicScheduler:
             ExecutionBackend.CPU: Backend.CPU,
             ExecutionBackend.NATIVE_MLX: Backend.MLX_GPU,
             ExecutionBackend.NATIVE_METAL: Backend.METAL,
+            ExecutionBackend.COREML_DRAFT: Backend.COREML,
         }.get(decision.selected, Backend.CPU)
 
     def dispatch_decision(self, request: ScheduleRequest) -> OperatorDispatchDecision:
         operator = request.operator.lower()
         candidates = self._dispatch_candidates(operator, request.batch_size)
+        placement = self._matching_device_placement(request)
+        if placement is not None:
+            candidates = (placement.backend,) + tuple(
+                backend for backend in candidates if backend is not placement.backend
+            )
         if self._operator_dispatcher is not None:
             return self._operator_dispatcher.dispatch(OperatorDispatchRequest(operator, candidates))
         if not self.hardware.is_apple_silicon:
@@ -293,8 +309,11 @@ class BasicScheduler:
         self,
         request: ScheduleRequest,
         operation: Callable[[ExecutionBackend], _SafePointResult],
+        validate: Callable[[_SafePointResult, ExecutionBackend], bool] | None = None,
     ) -> OperatorExecutionResult[_SafePointResult]:
-        return OperatorFallbackExecutor().execute(self.dispatch_decision(request), operation)
+        return OperatorFallbackExecutor().execute(
+            self.dispatch_decision(request), operation, validate
+        )
 
     def _dispatch_candidates(
         self, operator: str, batch_size: int
@@ -321,7 +340,7 @@ class BasicScheduler:
                 )
             self._validate_plan_admission(request)
             reservation = self.memory.reserve(request, self.choose_backend(request))
-            if self._active_plan is None:
+            if self._active_plan is None and self._active_device_placement_plan is None:
                 return reservation
             return Reservation(
                 reservation_id=reservation.reservation_id,
@@ -329,7 +348,13 @@ class BasicScheduler:
                 backend=reservation.backend,
                 priority=reservation.priority,
                 created_at_monotonic=reservation.created_at_monotonic,
-                execution_plan_id=self._active_plan.plan_id,
+                execution_plan_id=(
+                    self._active_plan.plan_id if self._active_plan is not None else None
+                ),
+                device_placement_plan_id=(
+                    self._active_device_placement_plan.plan_id
+                    if self._active_device_placement_plan is not None else None
+                ),
             )
 
     def complete(self, reservation: Reservation) -> None:
@@ -405,6 +430,81 @@ class BasicScheduler:
             self._pending_plan = None
             return PlanApplicationDecision(pending.plan_id, "applied", current_id)
 
+    def request_device_placement_plan(
+        self, plan: DevicePlacementPlan
+    ) -> PlanApplicationDecision:
+        if not isinstance(plan, DevicePlacementPlan):
+            raise ValueError("invalid device placement plan")
+        if int(time.time()) >= plan.valid_until_unix_seconds:
+            raise ValueError("expired device placement plans cannot be activated")
+        with self._policy_lock:
+            if self._operator_dispatcher is None:
+                raise RuntimeError("device placement requires a probe-gated dispatcher")
+            registry = self._operator_dispatcher.registry
+            if (
+                plan.hardware_fingerprint != registry.hardware_fingerprint
+                or plan.environment_fingerprint != registry.environment_fingerprint
+            ):
+                raise ValueError("device placement plan does not match dispatcher profile")
+            current_id = (
+                self._active_device_placement_plan.plan_id
+                if self._active_device_placement_plan else None
+            )
+            if current_id == plan.plan_id:
+                self._pending_device_placement_plan = None
+                return PlanApplicationDecision(plan.plan_id, "ignored", current_id)
+            if self.memory.snapshot()["active_reservations"]:
+                replaced = (
+                    self._pending_device_placement_plan.plan_id
+                    if self._pending_device_placement_plan else None
+                )
+                self._pending_device_placement_plan = plan
+                return PlanApplicationDecision(plan.plan_id, "deferred", replaced)
+            self._active_device_placement_plan = plan
+            self._pending_device_placement_plan = None
+            return PlanApplicationDecision(plan.plan_id, "applied", current_id)
+
+    def apply_pending_device_placement_plan(self) -> PlanApplicationDecision | None:
+        with self._policy_lock:
+            pending = self._pending_device_placement_plan
+            if pending is None:
+                return None
+            if self.memory.snapshot()["active_reservations"]:
+                return PlanApplicationDecision(pending.plan_id, "deferred")
+            current_id = (
+                self._active_device_placement_plan.plan_id
+                if self._active_device_placement_plan else None
+            )
+            self._active_device_placement_plan = pending
+            self._pending_device_placement_plan = None
+            return PlanApplicationDecision(pending.plan_id, "applied", current_id)
+
+    def device_placement_snapshot(self) -> dict[str, object]:
+        with self._policy_lock:
+            active = self._active_device_placement_plan
+            pending = self._pending_device_placement_plan
+            return {
+                "enabled": active is not None,
+                "active_plan_id": active.plan_id if active else None,
+                "pending_plan_id": pending.plan_id if pending else None,
+                "placement_count": len(active.placements) if active else 0,
+                "valid_until_unix_seconds": (
+                    active.valid_until_unix_seconds if active else None
+                ),
+                "placements": [] if active is None else [
+                    {
+                        "operator": value.operator,
+                        "phase": value.phase.value,
+                        "precision": value.precision,
+                        "dimensions": list(value.dimensions),
+                        "batch_size": value.batch_size,
+                        "backend": value.backend.value,
+                        "improvement_ratio": value.improvement_ratio,
+                    }
+                    for value in active.placements
+                ],
+            }
+
     def execution_plan_snapshot(self) -> dict[str, str | int | bool | None]:
         with self._policy_lock:
             plan = self._active_plan
@@ -478,6 +578,24 @@ class BasicScheduler:
             raise ExecutionPlanAdmissionError(
                 f"{phase.value} batch {request.batch_size} exceeds active plan limit {limit}"
             )
+
+    def _matching_device_placement(self, request: ScheduleRequest):
+        plan = self._active_device_placement_plan
+        if plan is None or request.phase is None or request.precision is None:
+            return None
+        operator = request.operator.lower()
+        return next(
+            (
+                placement
+                for placement in plan.placements
+                if placement.operator == operator
+                and placement.phase is request.phase
+                and placement.precision == request.precision
+                and placement.dimensions == request.dimensions
+                and placement.batch_size == request.batch_size
+            ),
+            None,
+        )
 
     @staticmethod
     def _validate_execution_plan(plan: AppleExecutionPlan) -> None:

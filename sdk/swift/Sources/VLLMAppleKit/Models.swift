@@ -254,6 +254,93 @@ public struct NativeV2TuningState: Codable, Sendable, Equatable {
     }
 }
 
+public struct DevicePlacement: Codable, Sendable, Equatable {
+    public let operatorName: String
+    public let phase: String
+    public let precision: String
+    public let dimensions: [Int]
+    public let batchSize: Int
+    public let backend: String
+    public let improvementRatio: Double
+
+    enum CodingKeys: String, CodingKey {
+        case operatorName = "operator"
+        case phase, precision, dimensions, backend
+        case batchSize = "batch_size"
+        case improvementRatio = "improvement_ratio"
+    }
+
+    public var hasValidEvidence: Bool {
+        !operatorName.isEmpty && operatorName.utf8.count <= 128
+            && ["prefill", "decode", "auxiliary"].contains(phase)
+            && !precision.isEmpty && precision.utf8.count <= 128
+            && (1...8).contains(dimensions.count)
+            && dimensions.allSatisfy { $0 > 0 }
+            && batchSize > 0
+            && !backend.isEmpty && backend.utf8.count <= 128
+            && improvementRatio >= 0 && improvementRatio < 1
+    }
+}
+
+public struct DevicePlacementState: Codable, Sendable, Equatable {
+    public let enabled: Bool
+    public let activePlanID: String?
+    public let pendingPlanID: String?
+    public let placementCount: Int
+    public let validUntilUnixSeconds: Int64?
+    public let placements: [DevicePlacement]
+
+    public static let disabled = DevicePlacementState(
+        enabled: false,
+        activePlanID: nil,
+        pendingPlanID: nil,
+        placementCount: 0,
+        validUntilUnixSeconds: nil,
+        placements: []
+    )
+
+    public init(
+        enabled: Bool,
+        activePlanID: String?,
+        pendingPlanID: String?,
+        placementCount: Int,
+        validUntilUnixSeconds: Int64?,
+        placements: [DevicePlacement]
+    ) {
+        self.enabled = enabled
+        self.activePlanID = activePlanID
+        self.pendingPlanID = pendingPlanID
+        self.placementCount = placementCount
+        self.validUntilUnixSeconds = validUntilUnixSeconds
+        self.placements = placements
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case enabled, placements
+        case activePlanID = "active_plan_id"
+        case pendingPlanID = "pending_plan_id"
+        case placementCount = "placement_count"
+        case validUntilUnixSeconds = "valid_until_unix_seconds"
+    }
+
+    public var hasValidEvidence: Bool {
+        let validPlanID: (String?) -> Bool = { value in
+            value == nil || value?.utf8.count == 24
+        }
+        return (0...64).contains(placementCount)
+            && placementCount == placements.count
+            && validPlanID(activePlanID)
+            && validPlanID(pendingPlanID)
+            && (validUntilUnixSeconds == nil || validUntilUnixSeconds! > 0)
+            && placements.allSatisfy(\.hasValidEvidence)
+    }
+}
+
+public struct DevicePlacementUpdate: Sendable, Equatable {
+    public let status: String
+    public let planID: String
+}
+
 public enum ContextReevaluationStatus: String, Codable, Sendable {
     case disabled
     case pending
@@ -628,6 +715,16 @@ public struct RuntimeOperatingState: Sendable, Equatable {
 }
 
 public extension RuntimeEvent {
+    var devicePlacement: DevicePlacementUpdate? {
+        guard type == "runtime.device_placement",
+              case .string(let status)? = payload["status"],
+              ["applied", "deferred"].contains(status),
+              case .string(let planID)? = payload["plan_id"],
+              planID.utf8.count == 24
+        else { return nil }
+        return DevicePlacementUpdate(status: status, planID: planID)
+    }
+
     var operatingState: RuntimeOperatingState? {
         guard type == "runtime.operating_state",
               case .string(let thermalValue)? = payload["thermal_state"],

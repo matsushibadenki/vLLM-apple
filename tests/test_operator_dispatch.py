@@ -102,6 +102,38 @@ class OperatorDispatchTests(unittest.TestCase):
         self.assertEqual(len(raised.exception.attempts), 2)
         self.assertEqual(str(raised.exception), "operator backend fallback exhausted")
 
+    def test_timeout_and_output_mismatch_use_bounded_fallback(self) -> None:
+        decision = OperatorDispatchDecision(
+            "attention",
+            ExecutionBackend.COREML_DRAFT,
+            (ExecutionBackend.NATIVE_MLX, ExecutionBackend.CPU),
+            (),
+            (),
+            "preferred_probe_passed",
+        )
+
+        def operation(backend):
+            if backend is ExecutionBackend.COREML_DRAFT:
+                raise TimeoutError("private implementation detail")
+            if backend is ExecutionBackend.NATIVE_MLX:
+                return "wrong"
+            return "reference"
+
+        result = OperatorFallbackExecutor().execute(
+            decision,
+            operation,
+            lambda value, _backend: value == "reference",
+        )
+        self.assertEqual(result.backend, ExecutionBackend.CPU)
+        self.assertEqual(
+            tuple((attempt.backend, attempt.error_code) for attempt in result.attempts),
+            (
+                (ExecutionBackend.COREML_DRAFT, "backend_timeout"),
+                (ExecutionBackend.NATIVE_MLX, "output_mismatch"),
+                (ExecutionBackend.CPU, None),
+            ),
+        )
+
     def test_metal_probe_is_isolated_and_validates_fixed_output(self) -> None:
         values = [float(value + value) for value in range(64)]
         completed = subprocess.CompletedProcess(

@@ -1,0 +1,201 @@
+name: Core ML ANE fixed-graph qualification
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: apple-silicon-ane-qualification
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  qualify:
+    runs-on: [self-hosted, macOS, ARM64]
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          clean: true
+          persist-credentials: false
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install bounded qualification tooling
+        run: python -m pip install --disable-pip-version-check coremltools==8.1 numpy==1.26.4 mlx==0.31.2
+      - name: Install vLLM-Apple
+        run: python -m pip install --disable-pip-version-check -e .
+      - name: Generate and compile deterministic fixture
+        run: |
+          mkdir -p qualification-private/source qualification-private/compiled
+          chmod 700 qualification-private qualification-private/source qualification-private/compiled
+          python scripts/generate_ane_probe_fixture.py --output qualification-private/source/ANEProbe.mlmodel
+          xcrun coremlcompiler compile qualification-private/source/ANEProbe.mlmodel qualification-private/compiled
+          python -m vllm_apple model-integrity-create qualification-private/compiled/ANEProbe.mlmodelc \
+            --output qualification-private/ane-integrity.json
+      - name: Run digest-bound heterogeneous device qualification
+        run: |
+          python - <<'PY'
+          import json
+          import time
+          from pathlib import Path
+          from vllm_apple.ane_probe import CoreMLANEModelProbe, CoreMLANEModelProbeConfig
+          from vllm_apple.coreml_backend import CoreMLFixedGraphBackend
+          from vllm_apple.cpu_probe import NativeCPUProbeAdapter
+          from vllm_apple.device_benchmark import (
+              CoreMLFixedGraphBenchmarkAdapter,
+              NativeCPUBenchmarkAdapter,
+              NativeKernelBenchmarkAdapter,
+              representative_device_benchmark_configs,
+              run_device_benchmark_suite,
+              save_device_benchmark,
+          )
+          from vllm_apple.device_capability import compose_device_capability_registry
+          from vllm_apple.execution import ExecutionBackend, WorkloadPhase
+          from vllm_apple.kernel_probe import KernelCapabilityRegistry
+          from vllm_apple.metal_probe import NativeMetalProbeAdapter
+          from vllm_apple.mlx_probe import NativeMLXProbeAdapter
+
+          manifest_path = Path("qualification-private/ane-integrity.json")
+          manifest = json.loads(manifest_path.read_text())
+          config = CoreMLANEModelProbeConfig(
+              Path("qualification-private/compiled/ANEProbe.mlmodelc"),
+              manifest_path,
+              manifest["root_sha256"],
+              "input",
+              "output",
+              (1.0, -2.0, 0.5, 4.0),
+              (2.0, -4.0, 1.0, 8.0),
+              1_000_000_000,
+          )
+          hardware = "self-hosted-apple-silicon"
+          environment = "heterogeneous-fixture-v1"
+          ane_result = CoreMLANEModelProbe().probe(
+              config,
+              hardware_fingerprint=hardware,
+              environment_fingerprint=environment,
+              samples=3,
+          )
+          if not ane_result.passed:
+              raise SystemExit("ANE fixed-graph qualification failed")
+
+          kernel_registry = KernelCapabilityRegistry(hardware, environment)
+          adapters = (
+              NativeCPUProbeAdapter(),
+              NativeMLXProbeAdapter(),
+              NativeMetalProbeAdapter(),
+          )
+          for adapter in adapters:
+              for result in adapter.probe_suite(
+                  hardware_fingerprint=hardware,
+                  environment_fingerprint=environment,
+                  samples=3,
+              ):
+                  kernel_registry.record(result)
+          kernel_registry.record(ane_result)
+          expected = {
+              (ExecutionBackend.CPU, operator)
+              for operator in ("vector_add", "matmul", "kv_copy")
+          } | {
+              (ExecutionBackend.NATIVE_MLX, operator)
+              for operator in (
+                  "vector_add", "matmul", "kv_copy", "attention",
+                  "paged_attention", "mla",
+              )
+          } | {
+              (ExecutionBackend.NATIVE_METAL, operator)
+              for operator in ("vector_add", "paged_attention")
+          } | {(ExecutionBackend.COREML_DRAFT, ane_result.operator)}
+          passed = {
+              (result.backend, result.operator)
+              for result in kernel_registry.snapshot()
+              if result.passed
+          }
+          if expected - passed:
+              missing = sorted(f"{backend.value}:{operator}" for backend, operator in expected - passed)
+              raise SystemExit("required device qualification failed: " + ",".join(missing))
+          operators = {result.operator for result in kernel_registry.snapshot()}
+          device_registry = compose_device_capability_registry(
+              kernel_registry,
+              backend_versions={
+                  ExecutionBackend.CPU: "python-3.12",
+                  ExecutionBackend.NATIVE_MLX: "mlx-0.31.2",
+                  ExecutionBackend.NATIVE_METAL: "xcode-runner",
+                  ExecutionBackend.COREML_DRAFT: "coreml-runner",
+              },
+              phases_by_operator={
+                  operator: (
+                      (WorkloadPhase.AUXILIARY,)
+                      if operator == "vector_add" or operator.startswith("coreml_fixed_graph@")
+                      else (WorkloadPhase.PREFILL, WorkloadPhase.DECODE)
+                  )
+                  for operator in operators
+              },
+              precisions_by_operator={operator: ("fp32",) for operator in operators},
+          )
+          coreml_backend = CoreMLFixedGraphBackend()
+          load_started = time.perf_counter_ns()
+          resource = coreml_backend.load(
+              config,
+              next(
+                  value for value in device_registry.snapshot()
+                  if value.backend is ExecutionBackend.COREML_DRAFT
+              ),
+          )
+          coreml_load_nanoseconds = max(1, time.perf_counter_ns() - load_started)
+          operator = resource.operator
+          configs = representative_device_benchmark_configs(
+              device_registry,
+              samples=3,
+              dimension_overrides={operator: (len(config.input_values),)},
+          )
+          cpu = NativeCPUBenchmarkAdapter()
+          mlx = NativeKernelBenchmarkAdapter(adapters[1], ExecutionBackend.NATIVE_MLX)
+          metal = NativeKernelBenchmarkAdapter(adapters[2], ExecutionBackend.NATIVE_METAL)
+          coreml = CoreMLFixedGraphBenchmarkAdapter(coreml_backend, resource)
+          operations = {}
+          for benchmark_config in configs:
+              if benchmark_config.backend is ExecutionBackend.CPU:
+                  operation = cpu.operation(benchmark_config)
+              elif benchmark_config.backend is ExecutionBackend.NATIVE_MLX:
+                  operation = mlx.operation(benchmark_config)
+              elif benchmark_config.backend is ExecutionBackend.NATIVE_METAL:
+                  operation = metal.operation(benchmark_config)
+              elif benchmark_config.backend is ExecutionBackend.COREML_DRAFT:
+                  operation = coreml.operation(benchmark_config, config.input_values)
+              else:
+                  raise SystemExit("unexpected benchmark backend")
+              operations[(benchmark_config.backend, benchmark_config.operator)] = operation
+          try:
+              suite = run_device_benchmark_suite(
+                  device_registry,
+                  configs,
+                  operations,
+                  cold_loads={
+                      (ExecutionBackend.COREML_DRAFT, operator):
+                          lambda: coreml_load_nanoseconds,
+                  },
+              )
+          finally:
+              coreml_backend.unload(resource)
+          output = Path("qualification-reports")
+          output.mkdir(mode=0o700)
+          for index, report in enumerate(suite.reports):
+              save_device_benchmark(report, output / f"{index:02d}-{report.config.backend.value}.json")
+          print(json.dumps({
+              "suite_id": suite.suite_id,
+              "reports": [report.to_dict() for report in suite.reports],
+          }, sort_keys=True))
+          PY
+      - name: Upload non-sensitive benchmark reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: heterogeneous-device-benchmark-reports
+          path: qualification-reports/*.json
+          if-no-files-found: error
+          retention-days: 14
+      - name: Remove private generated fixture
+        if: always()
+        run: rm -rf qualification-private qualification-reports

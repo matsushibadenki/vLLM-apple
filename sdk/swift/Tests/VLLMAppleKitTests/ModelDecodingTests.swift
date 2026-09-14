@@ -97,6 +97,59 @@ import Testing
     #expect(event.payload["state"] == .string("ready"))
 }
 
+@Test func decodesDevicePlacementStateAndTypedEvent() throws {
+    let stateData = Data("""
+    {
+      "enabled": true,
+      "active_plan_id": "0123456789abcdef01234567",
+      "pending_plan_id": null,
+      "placement_count": 1,
+      "valid_until_unix_seconds": 1800000000,
+      "placements": [{
+        "operator": "attention",
+        "phase": "decode",
+        "precision": "int8",
+        "dimensions": [1, 4096],
+        "batch_size": 1,
+        "backend": "coreml_draft",
+        "improvement_ratio": 0.2
+      }]
+    }
+    """.utf8)
+    let state = try JSONDecoder().decode(DevicePlacementState.self, from: stateData)
+    #expect(state.hasValidEvidence)
+    #expect(state.placements.first?.operatorName == "attention")
+    #expect(state.placements.first?.backend == "coreml_draft")
+
+    let event = RuntimeEvent(
+        schemaVersion: 1,
+        eventID: "45",
+        type: "runtime.device_placement",
+        timestamp: "2026-09-14T00:00:00Z",
+        payload: [
+            "status": .string("applied"),
+            "plan_id": .string("0123456789abcdef01234567")
+        ]
+    )
+    #expect(event.devicePlacement?.status == "applied")
+    #expect(event.devicePlacement?.planID == "0123456789abcdef01234567")
+}
+
+@Test func rejectsInconsistentDevicePlacementEvidence() throws {
+    let data = Data("""
+    {
+      "enabled": true,
+      "active_plan_id": "0123456789abcdef01234567",
+      "pending_plan_id": null,
+      "placement_count": 2,
+      "valid_until_unix_seconds": 1800000000,
+      "placements": []
+    }
+    """.utf8)
+    let state = try JSONDecoder().decode(DevicePlacementState.self, from: data)
+    #expect(!state.hasValidEvidence)
+}
+
 @Test func decodesTypedOperatingStateEventAndRejectsUnknownCurrentValues() throws {
     let data = Data("""
     {

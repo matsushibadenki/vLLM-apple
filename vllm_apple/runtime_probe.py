@@ -6,6 +6,13 @@ import json
 import subprocess
 from pathlib import Path
 
+from .ane_probe import (
+    CoreMLANEModelProbe,
+    CoreMLANEModelProbeConfig,
+    CoreMLANESurfaceProbe,
+    CoreMLANESurfaceResult,
+)
+from .cpu_probe import NativeCPUProbeAdapter
 from .device_capability import (
     DeviceCapability,
     DeviceCapabilityRegistry,
@@ -32,6 +39,7 @@ class RuntimeProbeReport:
     dispatcher_applied: bool
     cache_status: str
     device_capabilities: tuple[DeviceCapability, ...] = ()
+    ane_surface: CoreMLANESurfaceResult | None = None
 
     def to_dict(self) -> dict[str, object]:
         return {
@@ -43,6 +51,7 @@ class RuntimeProbeReport:
             "device_capabilities": [
                 capability.to_dict() for capability in self.device_capabilities
             ],
+            "ane_surface": None if self.ane_surface is None else self.ane_surface.to_dict(),
         }
 
 
@@ -96,6 +105,10 @@ class RuntimeProbeCoordinator:
         backend_version: str,
         mlx_adapter: NativeMLXProbeAdapter | None = None,
         metal_adapter: NativeMetalProbeAdapter | None = None,
+        cpu_adapter: NativeCPUProbeAdapter | None = None,
+        ane_surface_probe: CoreMLANESurfaceProbe | None = None,
+        ane_model_probe: CoreMLANEModelProbe | None = None,
+        ane_model_config: CoreMLANEModelProbeConfig | None = None,
         cache_path: Path | None = None,
         cache_root: Path | None = None,
     ) -> None:
@@ -114,6 +127,10 @@ class RuntimeProbeCoordinator:
         )
         self.mlx_adapter = mlx_adapter or NativeMLXProbeAdapter()
         self.metal_adapter = metal_adapter or NativeMetalProbeAdapter()
+        self.cpu_adapter = cpu_adapter or NativeCPUProbeAdapter()
+        self.ane_surface_probe = ane_surface_probe or CoreMLANESurfaceProbe()
+        self.ane_model_probe = ane_model_probe or CoreMLANEModelProbe()
+        self.ane_model_config = ane_model_config
         self.cache_path = cache_path or (
             cache_root
             / f"{chip.hardware_fingerprint}-{self.environment_fingerprint}.json"
@@ -155,6 +172,23 @@ class RuntimeProbeCoordinator:
             results = list(registry.snapshot())
         else:
             results = list(registry.snapshot())
+        ane_surface = self.ane_surface_probe.probe(
+            platform_name=self.chip.platform,
+            architecture=self.chip.architecture,
+        )
+        if (
+            self.ane_model_config is not None
+            and ane_surface.reason == "surface_available_model_probe_required"
+        ):
+            registry.record(self.ane_model_probe.probe(
+                self.ane_model_config,
+                hardware_fingerprint=self.chip.hardware_fingerprint,
+                environment_fingerprint=self.environment_fingerprint,
+                samples=samples,
+            ))
+            results = list(registry.snapshot())
+            if cache is not None:
+                cache.save(registry)
         applied = service.install_operator_dispatcher(OperatorDispatcher(registry))
         device_registry = self._compose_device_registry(registry)
         return RuntimeProbeReport(
@@ -164,6 +198,7 @@ class RuntimeProbeCoordinator:
             dispatcher_applied=applied,
             cache_status=cache_status,
             device_capabilities=device_registry.snapshot(),
+            ane_surface=ane_surface,
         )
 
     def _compose_device_registry(
@@ -173,7 +208,7 @@ class RuntimeProbeCoordinator:
         phases = {
             operator: (
                 (WorkloadPhase.AUXILIARY,)
-                if operator == "vector_add"
+                if operator == "vector_add" or operator.startswith("coreml_fixed_graph@")
                 else (WorkloadPhase.PREFILL, WorkloadPhase.DECODE)
             )
             for operator in operators
@@ -194,6 +229,14 @@ class RuntimeProbeCoordinator:
 
     def _run_probes(self, samples: int) -> list[KernelProbeResult]:
         results: list[KernelProbeResult] = []
+        if ExecutionBackend.CPU in self.chip.backends:
+            results.extend(
+                self.cpu_adapter.probe_suite(
+                    hardware_fingerprint=self.chip.hardware_fingerprint,
+                    environment_fingerprint=self.environment_fingerprint,
+                    samples=samples,
+                )
+            )
         if ExecutionBackend.NATIVE_MLX in self.chip.backends:
             results.extend(
                 self.mlx_adapter.probe_suite(

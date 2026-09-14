@@ -175,6 +175,12 @@ class NativeMLXProbeAdapter:
             maximum_slowdown_ratio,
         )
 
+    def measure_operator(self, operator: str) -> KernelMeasurement:
+        """Measure one supported MLX kernel for a capability-gated benchmark."""
+        if operator not in _MLX_PROGRAMS:
+            raise ValueError("unsupported MLX benchmark operator")
+        return self._candidate(operator)
+
     def probe_suite(
         self,
         *,

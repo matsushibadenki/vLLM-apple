@@ -114,6 +114,7 @@ class OperatorFallbackExecutor:
         self,
         decision: OperatorDispatchDecision,
         operation: Callable[[ExecutionBackend], _ExecutionResult],
+        validate: Callable[[_ExecutionResult, ExecutionBackend], bool] | None = None,
     ) -> OperatorExecutionResult[_ExecutionResult]:
         backends = (decision.selected, *decision.fallback_chain)
         if not backends or len(backends) > len(ExecutionBackend) or len(set(backends)) != len(backends):
@@ -126,6 +127,12 @@ class OperatorFallbackExecutor:
                 attempts.append(BackendExecutionAttempt(backend, "failed", error.error_code))
                 if not error.retryable:
                     raise
+                continue
+            except TimeoutError:
+                attempts.append(BackendExecutionAttempt(backend, "failed", "backend_timeout"))
+                continue
+            if validate is not None and not validate(value, backend):
+                attempts.append(BackendExecutionAttempt(backend, "failed", "output_mismatch"))
                 continue
             attempts.append(BackendExecutionAttempt(backend, "succeeded"))
             return OperatorExecutionResult(value, backend, tuple(attempts))

@@ -18,6 +18,7 @@ from .context_reevaluation import (
     disabled_context_reevaluation_snapshot,
 )
 from .execution import AppleChipProfile, AppleExecutionPlan, AppleExecutionPlanner, WorkloadPhase
+from .device_placement import DevicePlacementPlan
 from .kernel_context import InferenceKernelContext, PagedAttentionKernelSelection
 from .kernel_profile import PagedAttentionShape
 from .metal_probe import MetalThreadConfiguration
@@ -97,6 +98,7 @@ class ServiceSnapshot:
     semantic_cache: dict[str, int | bool]
     elastic_memory: dict[str, int | bool | str | None]
     execution_plan: dict[str, str | int | bool | None]
+    device_placement: dict[str, object]
     memory_telemetry: dict[str, int | float | str | None]
     memory_budget: dict[str, object]
     memory_admission: dict[str, int | float | str | None]
@@ -119,6 +121,7 @@ class ServiceSnapshot:
             "semantic_cache": self.semantic_cache,
             "elastic_memory": self.elastic_memory,
             "execution_plan": self.execution_plan,
+            "device_placement": self.device_placement,
             "memory_telemetry": self.memory_telemetry,
             "memory_budget": self.memory_budget,
             "memory_admission": self.memory_admission,
@@ -152,6 +155,8 @@ class RuntimeService:
         self._last_error: str | None = None
         self._failure: RuntimeFailure | None = None
         self._pending_operator_dispatcher: OperatorDispatcher | None = None
+        self._pending_device_placement_plan: DevicePlacementPlan | None = None
+        self._device_placement_control: Callable[[str], bool] | None = None
         self._active_metal_tuning: MetalTuningReport | None = None
         self._pending_metal_tuning: MetalTuningReport | None = None
         self._tokenizer_fallbacks = 0
@@ -335,6 +340,7 @@ class RuntimeService:
                     else disabled_elastic_memory_snapshot()
                 ),
                 execution_plan=self.scheduler.execution_plan_snapshot(),
+                device_placement=self.scheduler.device_placement_snapshot(),
                 memory_telemetry=telemetry.to_dict(),
                 memory_budget=self.memory_budget.snapshot().to_dict(),
                 memory_admission=self.memory_admission.snapshot().to_dict(),
@@ -638,6 +644,17 @@ class RuntimeService:
                 self.scheduler.install_operator_dispatcher(dispatcher)
                 self.events.publish("runtime.operator_dispatcher", {"status": "applied"})
             with self._lock:
+                placement = self._pending_device_placement_plan
+            if placement is not None:
+                decision = self.scheduler.request_device_placement_plan(placement)
+                with self._lock:
+                    if self._pending_device_placement_plan is placement:
+                        self._pending_device_placement_plan = None
+                self.events.publish(
+                    "runtime.device_placement",
+                    {"status": decision.status, "plan_id": placement.plan_id},
+                )
+            with self._lock:
                 tuning = self._pending_metal_tuning
                 self._pending_metal_tuning = None
                 if tuning is not None:
@@ -688,6 +705,59 @@ class RuntimeService:
             {"status": "applied" if applied else "deferred"},
         )
         return applied
+
+    def install_device_placement_plan(self, plan: DevicePlacementPlan) -> bool:
+        if not isinstance(plan, DevicePlacementPlan):
+            raise ValueError("invalid device placement plan")
+        with self._lock:
+            self._pending_device_placement_plan = plan
+
+        def install() -> None:
+            self.scheduler.request_device_placement_plan(plan)
+            with self._lock:
+                if self._pending_device_placement_plan is plan:
+                    self._pending_device_placement_plan = None
+
+        applied, _ = self.scheduler.at_safe_point(install)
+        self.events.publish(
+            "runtime.device_placement",
+            {"status": "applied" if applied else "deferred", "plan_id": plan.plan_id},
+        )
+        return applied
+
+    def configure_device_placement_control(
+        self, control: Callable[[str], bool]
+    ) -> None:
+        if not callable(control):
+            raise ValueError("device placement control must be callable")
+        with self._lock:
+            self._device_placement_control = control
+
+    def control_device_placement(
+        self, action: str
+    ) -> tuple[bool, dict[str, object]]:
+        if action not in {"reload", "rollback"}:
+            raise ValueError("unsupported device placement action")
+        with self._lock:
+            control = self._device_placement_control
+        accepted = control(action) if control is not None else False
+        messages = {
+            "en": "Device placement update accepted."
+            if accepted else "Device placement update is not available.",
+            "ja": "デバイス配置の更新を受け付けました。"
+            if accepted else "デバイス配置の更新は利用できません。",
+            "zh-Hans": "已接受设备调度更新。"
+            if accepted else "设备调度更新不可用。",
+        }
+        return accepted, {
+            "action": action,
+            "message_key": (
+                "device_placement_update_accepted"
+                if accepted else "device_placement_update_unavailable"
+            ),
+            "messages": messages,
+            **self.scheduler.device_placement_snapshot(),
+        }
 
     def install_metal_tuning(self, report: MetalTuningReport) -> bool:
         with self._lock:

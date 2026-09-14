@@ -50,6 +50,7 @@ private struct UnixRuntimeEnvelope: Decodable {
     let memoryBudget: MemoryBudget
     let kvCalibration: KVCalibrationProvenance
     let nativeV2Tuning: NativeV2TuningState?
+    let devicePlacement: DevicePlacementState?
 }
 
 private struct UnixNativeV2TuningControlRequest: Encodable {
@@ -103,6 +104,14 @@ public final class UnixSocketRuntimeClient: VLLMAppleRuntimeClient, @unchecked S
         let envelope = try await request("/v1/runtime", as: UnixRuntimeEnvelope.self)
         try validate(schemaVersion: envelope.schemaVersion)
         return envelope.nativeV2Tuning ?? .idle
+    }
+
+    public func devicePlacement() async throws -> DevicePlacementState {
+        let envelope = try await request("/v1/runtime", as: UnixRuntimeEnvelope.self)
+        try validate(schemaVersion: envelope.schemaVersion)
+        let placement = envelope.devicePlacement ?? .disabled
+        guard placement.hasValidEvidence else { throw RuntimeClientError.invalidResponse }
+        return placement
     }
 
     public func controlNativeV2Tuning(

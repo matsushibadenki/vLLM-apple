@@ -232,6 +232,34 @@ class AuthenticatedAPITests(unittest.TestCase):
             urllib.request.urlopen(missing_id, timeout=2)
         self.assertEqual(raised.exception.code, 400)
 
+    def test_device_placement_control_requires_auth_and_is_strict(self) -> None:
+        self.service.configure_device_placement_control(lambda action: action == "reload")
+        body = json.dumps({"action": "reload"}).encode()
+        unauthenticated = urllib.request.Request(
+            self.base_url + "/v1/device-placement",
+            data=body,
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        with self.assertRaises(urllib.error.HTTPError) as raised:
+            urllib.request.urlopen(unauthenticated, timeout=2)
+        self.assertEqual(raised.exception.code, 401)
+        authenticated = urllib.request.Request(
+            self.base_url + "/v1/device-placement",
+            data=body,
+            headers={
+                "Authorization": f"Bearer {self.token}",
+                "Content-Type": "application/json",
+            },
+            method="POST",
+        )
+        with urllib.request.urlopen(authenticated, timeout=2) as response:
+            payload = json.load(response)
+        self.assertTrue(payload["accepted"])
+        self.assertEqual(
+            set(payload["device_placement"]["messages"]), {"en", "ja", "zh-Hans"}
+        )
+
     def test_authenticated_runtime_event_stream(self) -> None:
         request = urllib.request.Request(
             self.base_url + "/v1/events",

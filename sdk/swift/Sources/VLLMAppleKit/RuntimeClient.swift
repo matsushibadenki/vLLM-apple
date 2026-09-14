@@ -7,6 +7,7 @@ public protocol VLLMAppleRuntimeClient: Sendable {
     func memoryBudget() async throws -> MemoryBudget
     func kvCalibration() async throws -> KVCalibrationProvenance
     func nativeV2Tuning() async throws -> NativeV2TuningState
+    func devicePlacement() async throws -> DevicePlacementState
     func controlNativeV2Tuning(
         _ action: NativeV2TuningControlAction
     ) async throws -> NativeV2TuningControlResult
@@ -24,6 +25,9 @@ public extension VLLMAppleRuntimeClient {
             schemaVersion: 1, available: false, reason: "client_preview_unsupported", plan: nil
         )
     }
+
+    /// Existing custom clients remain source-compatible with placement-aware SDK releases.
+    func devicePlacement() async throws -> DevicePlacementState { .disabled }
 }
 
 public enum RuntimeClientError: Error, Sendable, Equatable {
@@ -51,6 +55,7 @@ private struct RuntimeEnvelope: Decodable {
     let memoryBudget: MemoryBudget
     let kvCalibration: KVCalibrationProvenance
     let nativeV2Tuning: NativeV2TuningState?
+    let devicePlacement: DevicePlacementState?
 }
 
 private struct ErrorEnvelope: Decodable {
@@ -122,6 +127,14 @@ public final class HTTPRuntimeClient: VLLMAppleRuntimeClient, @unchecked Sendabl
         let envelope = try await get("v1/runtime", as: RuntimeEnvelope.self)
         try validate(schemaVersion: envelope.schemaVersion)
         return envelope.nativeV2Tuning ?? .idle
+    }
+
+    public func devicePlacement() async throws -> DevicePlacementState {
+        let envelope = try await get("v1/runtime", as: RuntimeEnvelope.self)
+        try validate(schemaVersion: envelope.schemaVersion)
+        let placement = envelope.devicePlacement ?? .disabled
+        guard placement.hasValidEvidence else { throw RuntimeClientError.invalidResponse }
+        return placement
     }
 
     public func controlNativeV2Tuning(

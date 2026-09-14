@@ -2486,19 +2486,64 @@ versioned execution planへ記録し、active request中は変更せずscheduler
    precision、probe ID、sticky quarantineによりbounded fallbackを決定するregistryを追加する。
 2. `[Done]` 既存kernel probe/cacheをoperator単位でdevice registryへ昇格し、実測していないprecisionや
    phaseを利用可能としないcompositionを追加する。
-3. `[Next]` 公開APIだけを使うCore ML/ANE capability probeと固定graph backend adapterを追加する。
-4. `[Later]` CPU thread、GPU command queue、ANE task、Unified Memory、memory bandwidthを同じresource
+3. `[Done]` standard libraryだけでCPU vector add、8x8 matmul、KV copyのcorrectnessとlatencyを測定し、
+   CPU fallbackもprofile-bound probe ID必須でdevice registryへ登録する。
+4. `[Done]` 公開Core ML APIで`.cpuAndNeuralEngine`設定surfaceをbounded Swift subprocessから検査し、
+   surface合格だけではexecution capabilityへ昇格しないavailability evidenceを追加する。
+5. `[Done]` digest-bound compiled model、private input、bounded outputで固定graphを`.cpuAndNeuralEngine`実行し、
+   数値一致・latency・実行前後のmodel tree integrityを検証するadapterを追加する。fixture digestをoperatorと
+   probe identityへ含め、合格結果もauxiliary phase／FP32だけへ限定する。
+6. `[Done]` repository-ownedの決定論的`x * 2` Core ML fixture generatorとself-hosted qualificationを追加し、
+   M4実機で生成、compile、tree integrity、3 sample predictionの数値一致を確認する。
+7. `[Done]` 合格済みfixed graphだけにresource handleを発行するCore ML backend lifecycleを実装する。
+   model digest、capability ID、auxiliary phase、FP32 eligibilityをload時とdispatch直前に照合し、predictionを
+   bounded subprocessへ隔離する。実行前後のmodel tree integrityを再検証し、明示unload後の再利用を拒否する。
+8. `[Later]` CPU thread、GPU command queue、ANE task、Unified Memory、memory bandwidthを同じresource
    ledgerで予約し、overcommitをmodel load前とoperator dispatch前に拒否する。
-5. `[Next]` operator、shape、batch、precision、phaseごとにCPU/GPU/ANEの単独実行を測定する。
+9. `[Done]` operator、shape、batch、precision、phaseとprobe capability IDへ結合した共通microbenchmark schemaを追加する。
+   cold load、演算、変換、device同期、end-to-end latency、throughput、peak memory、energyを別fieldで保持し、
+   未計測値はゼロにせずunknownとする。bounded sample、output digest安定性、private atomic保存、derived値再計算を必須にする。
+10. `[Done]` CPU、MLX、Metal、Core MLのnative measurement adapterを接続する。CPUはbounded deterministic kernel、
+   MLX／Metalはprobeと同じ隔離kernel、Core MLはload済みdigest-bound resourceを使い、device kernel時間と
+   subprocess・integrity検証込みend-to-end時間を分離する。
+11. `[Done]` available・FP32 capabilityだけから代表shapeを生成するbounded deterministic suiteを追加する。
+   backend/operatorごとのoperationは明示mapを必須とし、欠損時はfallbackせず拒否する。CPUはvector add、8x8
+   matmul、KV copyを現在のMacで各3 sample実測し、安定output digestとsuite report生成を確認する。
+12. `[Next]` Metal deviceへアクセス可能な環境でMLX、Metal、Core ML代表shapeを実機qualificationする。
    device間同期、tensor変換、Core ML compile/load時間を必ずend-to-end latencyへ含める。
-6. `[Later]` Vision/Audio encoder、embedding、classifier、background modelなど固定graph化しやすい
+   self-hosted macOS ARM64 workflowはCPU 3、MLX 6、Metal 2、Core ML 1 operatorのprobe合格をすべて必須とし、
+   各3 sampleのprivate atomic reportだけを14日artifactとして保存する。fixtureとrunner上のreportは常に削除する。
+13. `[Done]` 同一workload identityのreportだけを比較するpromotion gateを追加する。CPU baselineを必須とし、
+   最低3 sample、output digest一致、既知peak memoryの非悪化、cold load償却込み5%以上のend-to-end latency改善を
+   満たすbackendだけをeligibleにする。欠損energy／memoryをゼロとして扱わない。
+14. `[Done]` promotion winnerをbenchmark report ID、capability ID、exact workload identityとともにversioned
+   device placement planへ結合する。dispatcherのhardware／environment probe profile一致を必須とし、active request中は
+   pendingに保持してscheduler safe pointでのみ適用する。reservationには使用したplacement plan IDを固定する。
+15. `[Done]` placement planをprivate atomic fileへ保存し、全fieldとplan IDを再計算するstrict loader、最大30日TTL、
+   future／expired拒否、current破損時のlast-known-good fallbackを追加する。runtime snapshotにはactive／pending ID、
+   有効期限、最大64件のoperator／shape／backend／改善率だけを公開し、入力やtensor値は含めない。
+16. `[Done]` runtime probeとdispatcher準備後にdaemonがprofile専用current／last-known-goodを自動restoreし、
+   applied／deferred／not-found／rejectedとrollback sourceをbounded eventへ記録する。新plan promotionでは同一profileで
+   未期限切れのcurrentだけをlast-known-goodへ保存し、破損planでrollback slotを上書きしない。
+17. `[Done]` strict qualification reportを入力にCPU baselineと複数candidateを比較し、cold-load償却、改善率、
+   peak memory policy、TTLを指定してcurrent／last-known-goodへatomic promoteする管理CLIを追加する。
+   daemonはSIGHUPのsignal handlerからfile I/Oを専用threadへ分離し、probe準備後だけ同じsafe-point restore経路で
+   再起動なしにreloadする。active request中はdeferredとする。
+18. `[Done]` 認証付き`POST /v1/device-placement`へstrictなreload／rollback actionを追加する。daemonのprofile専用
+   file controlを介してsafe-point適用し、active request中の有効なplanはaccepted/deferredとする。API応答とCLIは
+   stable message keyおよび英語・日本語・简体中文diagnosticsを返す。
+19. `[Done]` runtime placement event／snapshotをSwift SDKのtyped modelへ追加し、Mac appで三言語表示する。
+   旧clientではdisabledへ縮退し、placement count、plan ID、shape、改善率の不整合はSDK境界で拒否する。
+20. `[Done]` 昇格済みANE routeのtimeoutと出力不一致を秘密情報を含まない固定codeへ変換し、同一workloadで
+   probe済みGPU、CPUの順に実行するbounded fallback contractを追加する。
+21. `[Later]` Vision/Audio encoder、embedding、classifier、background modelなど固定graph化しやすい
    auxiliary workloadからANE routingを開始する。LLM prefill/decodeはGPU baselineを維持する。
-7. `[Later]` 共有memory bandwidth競合を測定し、単独実行より改善する組み合わせに限ってCPU/GPU/ANE
+22. `[Later]` 共有memory bandwidth競合を測定し、単独実行より改善する組み合わせに限ってCPU/GPU/ANE
    pipeline並列化またはbounded work stealingを有効化する。
-8. `[Later]` CPU/Core ML draft + GPU verifyをcorrectness-neutralなspeculative executionとして評価する。
-9. `[Later]` thermal、memory pressure、low-power modeを入力に、batch、concurrency、device assignmentを
+23. `[Later]` CPU/Core ML draft + GPU verifyをcorrectness-neutralなspeculative executionとして評価する。
+24. `[Later]` thermal、memory pressure、low-power modeを入力に、batch、concurrency、device assignmentを
    段階的に縮退・復元する。既存requestをcancelせず、新規admissionと次のsafe pointへだけ適用する。
-10. `[Later]` hardware、OS、Core ML、MLX、Metal、model、shapeに結び付いたprofileを保存し、期限切れ、
+25. `[Later]` hardware、OS、Core ML、MLX、Metal、model、shapeに結び付いたprofileを保存し、期限切れ、
    quarantine、last-known-good rollbackを既存kernel profileと同じfail-closed policyで管理する。
 
 昇格条件は、backend間のbounded numerical comparisonまたはtask固有quality gateが合格し、代表workloadで

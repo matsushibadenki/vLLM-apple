@@ -26,6 +26,7 @@ vllm-apple-release-manifest = "vllm_apple.release_manifest:main"
 vllm-apple-diffusers-worker = "vllm_apple.diffusers_generation_worker:main"
 vllm-apple-mflux-worker = "vllm_apple.mflux_generation_worker:main"
 vllm-apple-mlx-gen-worker = "vllm_apple.mlx_gen_generation_worker:main"
+vllm-apple-device-placement = "vllm_apple.device_placement_cli:main"
 
 [tool.setuptools.packages.find]
 include = ["vllm_apple*"]

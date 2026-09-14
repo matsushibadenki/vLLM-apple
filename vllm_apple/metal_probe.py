@@ -251,6 +251,14 @@ class NativeMetalProbeAdapter:
         )
         return run_kernel_probe(config, self._baseline, self._candidate)
 
+    def measure_operator(self, operator: str) -> KernelMeasurement:
+        """Measure one supported Metal kernel for a capability-gated benchmark."""
+        if operator == "vector_add":
+            return self._candidate()
+        if operator == "paged_attention":
+            return self._candidate_paged_attention()
+        raise ValueError("unsupported Metal benchmark operator")
+
     def probe_paged_attention(
         self,
         *,

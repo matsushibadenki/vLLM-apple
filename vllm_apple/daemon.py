@@ -26,6 +26,11 @@ from .backend_memory import (
 from .compat import inspect_backend, inspect_mlx_lm_backend
 from .context import recommend_state_context
 from .execution import AppleChipProfile
+from .device_placement import (
+    default_device_placement_paths,
+    load_device_placement_plan,
+    load_device_placement_with_fallback,
+)
 from .execution_profile import detect_apple_chip_profile
 from .hardware import default_application_support, detect_hardware
 from .kernel_probe import build_environment_fingerprint
@@ -168,6 +173,129 @@ def apply_startup_kv_calibration(
         }
     )
     return calibrated, provenance
+
+
+def restore_startup_device_placement(
+    service: RuntimeService,
+    hardware_fingerprint: str,
+    environment_fingerprint: str,
+    *,
+    application_support: Path | None = None,
+) -> bool:
+    current, last_good = default_device_placement_paths(
+        hardware_fingerprint,
+        environment_fingerprint,
+        application_support=application_support,
+    )
+    try:
+        plan, source = load_device_placement_with_fallback(
+            current,
+            last_good,
+            hardware_fingerprint=hardware_fingerprint,
+            environment_fingerprint=environment_fingerprint,
+        )
+        applied = service.install_device_placement_plan(plan)
+    except FileNotFoundError:
+        service.events.publish(
+            "runtime.device_placement.restore",
+            {"status": "not_found", "source": None, "plan_id": None},
+        )
+        return False
+    except (OSError, ValueError, RuntimeError):
+        service.events.publish(
+            "runtime.device_placement.restore",
+            {"status": "rejected", "source": None, "plan_id": None},
+        )
+        return False
+    service.events.publish(
+        "runtime.device_placement.restore",
+        {
+            "status": "applied" if applied else "deferred",
+            "source": source,
+            "plan_id": plan.plan_id,
+        },
+    )
+    return applied
+
+
+def reload_device_placement_async(
+    service: RuntimeService,
+    identity: tuple[str, str] | None,
+    *,
+    application_support: Path | None = None,
+) -> threading.Thread | None:
+    if identity is None:
+        service.events.publish(
+            "runtime.device_placement.reload",
+            {"status": "unavailable", "reason": "runtime_probe_not_ready"},
+        )
+        return None
+
+    def reload_plan() -> None:
+        restored = restore_startup_device_placement(
+            service,
+            identity[0],
+            identity[1],
+            application_support=application_support,
+        )
+        service.events.publish(
+            "runtime.device_placement.reload",
+            {"status": "accepted" if restored else "not_applied", "reason": None},
+        )
+
+    worker = threading.Thread(
+        target=reload_plan,
+        daemon=True,
+        name="vllm-apple-device-placement-reload",
+    )
+    worker.start()
+    return worker
+
+
+def control_device_placement_files(
+    service: RuntimeService,
+    identity: tuple[str, str],
+    action: str,
+    *,
+    application_support: Path | None = None,
+) -> bool:
+    current, last_good = default_device_placement_paths(
+        identity[0], identity[1], application_support=application_support
+    )
+    try:
+        if action == "reload":
+            plan, source = load_device_placement_with_fallback(
+                current,
+                last_good,
+                hardware_fingerprint=identity[0],
+                environment_fingerprint=identity[1],
+            )
+        elif action == "rollback":
+            plan = load_device_placement_plan(
+                last_good,
+                hardware_fingerprint=identity[0],
+                environment_fingerprint=identity[1],
+            )
+            source = "last_known_good"
+        else:
+            raise ValueError("unsupported device placement control action")
+        applied = service.install_device_placement_plan(plan)
+    except (OSError, ValueError, RuntimeError):
+        service.events.publish(
+            "runtime.device_placement.control",
+            {"action": action, "status": "rejected", "source": None, "plan_id": None},
+        )
+        return False
+    service.events.publish(
+        "runtime.device_placement.control",
+        {
+            "action": action,
+            "status": "applied" if applied else "deferred",
+            "source": source,
+            "plan_id": plan.plan_id,
+        },
+    )
+    return True
 
 
 def install_startup_metal_tuning(
@@ -485,6 +613,7 @@ def serve(
     backend: BackendProcess | None = None
     launch_thread: threading.Thread | None = None
     memory_monitor: MemoryMetricsMonitor | None = None
+    placement_restore_identity: tuple[str, str] | None = None
     if model is not None:
         if model_integrity_manifest is not None:
             if model_integrity_signature is not None:
@@ -667,13 +796,14 @@ def serve(
         if enable_runtime_probes and require_compatible_backend:
             assert chip is not None and versions is not None
             try:
-                probe_report = RuntimeProbeCoordinator(
+                coordinator = RuntimeProbeCoordinator(
                     chip,
                     toolchain_version=versions.toolchain_version,
                     mlx_version=versions.mlx_version,
                     backend_version=versions.backend_version,
                     cache_root=default_application_support() / "profiles" / "kernel",
-                ).probe_and_install(service, samples=1)
+                )
+                probe_report = coordinator.probe_and_install(service, samples=1)
             except Exception:
                 service.events.publish(
                     "runtime.kernel_probe", {"status": "failed", "reason": "coordinator_error"}
@@ -687,6 +817,20 @@ def serve(
                         "quarantined": sum(result.quarantined for result in probe_report.results),
                         "cache_status": probe_report.cache_status,
                     },
+                )
+                restore_startup_device_placement(
+                    service,
+                    chip.hardware_fingerprint,
+                    coordinator.environment_fingerprint,
+                )
+                placement_restore_identity = (
+                    chip.hardware_fingerprint,
+                    coordinator.environment_fingerprint,
+                )
+                service.configure_device_placement_control(
+                    lambda action: control_device_placement_files(
+                        service, placement_restore_identity, action
+                    )
                 )
     else:
         service = RuntimeService()
@@ -838,6 +982,13 @@ def serve(
 
     signal.signal(signal.SIGINT, stop)
     signal.signal(signal.SIGTERM, stop)
+    if hasattr(signal, "SIGHUP"):
+        signal.signal(
+            signal.SIGHUP,
+            lambda _signum, _frame: reload_device_placement_async(
+                service, placement_restore_identity
+            ),
+        )
     try:
         server.serve_forever(poll_interval=0.25)
     finally:

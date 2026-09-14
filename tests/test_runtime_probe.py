@@ -7,6 +7,7 @@ from unittest.mock import patch
 from pathlib import Path
 
 from vllm_apple.execution import AppleChipProfile, ExecutionBackend
+from vllm_apple.ane_probe import CoreMLANESurfaceResult
 from vllm_apple.kernel_probe import KernelMeasurement, KernelProbeConfig, run_kernel_probe
 from vllm_apple.profile import build_profile
 from vllm_apple.runtime_probe import RuntimeProbeCoordinator, discover_runtime_versions
@@ -52,6 +53,31 @@ class FakeMLXAdapter:
                 environment_fingerprint,
                 passing=self.passing,
             ),
+        )
+
+
+class FakeCPUAdapter:
+    def probe_suite(self, *, hardware_fingerprint: str, environment_fingerprint: str, samples: int):
+        return (
+            result(
+                ExecutionBackend.CPU,
+                "matmul",
+                hardware_fingerprint,
+                environment_fingerprint,
+                passing=True,
+            ),
+        )
+
+
+class FakeANESurfaceProbe:
+    def probe(self, *, platform_name: str, architecture: str):
+        return CoreMLANESurfaceResult(
+            platform_name,
+            architecture,
+            True,
+            True,
+            False,
+            "surface_available_model_probe_required",
         )
 
 
@@ -144,17 +170,22 @@ class RuntimeProbeCoordinatorTests(unittest.TestCase):
             backend_version="backend-test",
             mlx_adapter=FakeMLXAdapter(mlx_passing),  # type: ignore[arg-type]
             metal_adapter=FakeMetalAdapter(),  # type: ignore[arg-type]
+            cpu_adapter=FakeCPUAdapter(),  # type: ignore[arg-type]
+            ane_surface_probe=FakeANESurfaceProbe(),  # type: ignore[arg-type]
         )
 
     def test_probe_registry_is_atomically_installed_at_safe_point(self) -> None:
         runtime = service()
         report = self.coordinator().probe_and_install(runtime, samples=1)
         self.assertTrue(report.dispatcher_applied)
-        self.assertEqual(len(report.results), 2)
-        self.assertEqual(len(report.device_capabilities), 2)
+        self.assertEqual(len(report.results), 3)
+        self.assertEqual(len(report.device_capabilities), 3)
         self.assertEqual(
             {capability.precisions for capability in report.device_capabilities},
             {("fp32",)},
+        )
+        self.assertEqual(
+            report.ane_surface.reason, "surface_available_model_probe_required"
         )
         self.assertEqual(
             runtime.scheduler.choose_backend(ScheduleRequest("matmul", 1, batch_size=8)),
@@ -171,6 +202,8 @@ class RuntimeProbeCoordinatorTests(unittest.TestCase):
                 backend_version="backend-test",
                 mlx_adapter=FakeMLXAdapter(),  # type: ignore[arg-type]
                 metal_adapter=FakeMetalAdapter(),  # type: ignore[arg-type]
+                cpu_adapter=FakeCPUAdapter(),  # type: ignore[arg-type]
+                ane_surface_probe=FakeANESurfaceProbe(),  # type: ignore[arg-type]
                 cache_path=cache_path,
             ).probe_and_install(service(), samples=1)
             self.assertEqual(first.cache_status, "miss")
@@ -192,6 +225,8 @@ class RuntimeProbeCoordinatorTests(unittest.TestCase):
                     backend_version="backend-test",
                     mlx_adapter=mlx,  # type: ignore[arg-type]
                     metal_adapter=metal,  # type: ignore[arg-type]
+                    cpu_adapter=FakeCPUAdapter(),  # type: ignore[arg-type]
+                    ane_surface_probe=FakeANESurfaceProbe(),  # type: ignore[arg-type]
                     cache_path=cache_path,
                 ).probe_and_install(service(), samples=1)
             self.assertEqual(second.cache_status, "hit")

@@ -129,6 +129,8 @@ struct ContentView: View {
                 Task { await model.restoreNativeV2Tuning(profileID: profileID) }
             }
 
+            DevicePlacementDiagnostic(state: model.devicePlacement)
+
             if !model.qualificationReports.isEmpty {
                 VStack(alignment: .leading, spacing: DesignTokens.compact) {
                     sectionLabel("sidebar.qualification")
@@ -500,6 +502,51 @@ private struct NativeV2TuningDiagnostic: View {
         case .applied: DesignTokens.success
         case .failed: DesignTokens.warning
         }
+    }
+
+    private func localized(_ key: String) -> String {
+        String(localized: String.LocalizationValue(key), bundle: AppLocalization.bundle)
+    }
+}
+
+private struct DevicePlacementDiagnostic: View {
+    let state: DevicePlacementState
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: DesignTokens.compact) {
+            Text("sidebar.device_placement")
+                .font(.caption2.monospaced().weight(.semibold))
+                .foregroundStyle(DesignTokens.secondaryInk)
+                .textCase(.uppercase)
+                .tracking(0.8)
+            Label(statusKey, systemImage: state.enabled ? "point.3.connected.trianglepath.dotted" : "cpu")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(state.enabled ? DesignTokens.success : DesignTokens.secondaryInk)
+            if state.enabled {
+                Text(
+                    String(
+                        format: localized("device_placement.count"),
+                        Int64(state.placementCount)
+                    )
+                )
+                .font(.caption2)
+                .foregroundStyle(DesignTokens.secondaryInk)
+                if let planID = state.pendingPlanID ?? state.activePlanID {
+                    Text(planID)
+                        .font(.caption2.monospaced())
+                        .foregroundStyle(state.pendingPlanID == nil ? DesignTokens.secondaryInk : DesignTokens.warning)
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                        .help(planID)
+                }
+            }
+        }
+        .accessibilityElement(children: .combine)
+    }
+
+    private var statusKey: LocalizedStringKey {
+        if state.pendingPlanID != nil { return "device_placement.status.pending" }
+        return state.enabled ? "device_placement.status.active" : "device_placement.status.disabled"
     }
 
     private func localized(_ key: String) -> String {
