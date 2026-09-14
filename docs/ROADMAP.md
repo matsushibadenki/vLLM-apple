@@ -17,9 +17,9 @@
 Phase 1のcontrol plane、メモリ安全性基盤、AppleExecutionPlanner、StateMemorySpec、
 prefill/decode別profile、Swift SDK、3言語macOS sample、Gemma実modelの30分安定性まで実装済み。
 
-2026-08-30のstatus監査で、後続実装と実機記録が存在した古い`[Next]` 10件を`[Done]`へ更新した。
-従来の外部環境／release資格情報が必要な`[Next]`に加え、2026-09-11に数値形式互換層の
-descriptor・変換契約・CPU参照実装をローカルで進める優先項目として追加した。
+2026-09-14のstatus監査で、後続実装と実機記録が存在した古い`[Next]`を`[Done]`へ更新した。
+現在ローカルで進める優先項目は、数値形式streaming runtimeのsocket競合負荷試験と、fallback時の
+backend間resource引き継ぎ／実測帯域contention gateである。
 外部項目の最優先は大容量Apple SiliconでのQwen3.8-Flash-Next text-only qualificationと、専用runnerでの
 vLLM 0.28.x昇格試験である。
 設計判断は
@@ -854,7 +854,7 @@ Unified Memoryとmemory bandwidthを共有する一つの実行系として管�
 - `[Done]` 同一profile／operator／phase／precision／shape／batchのreportだけを比較し、最低3 sample、output digest一致、peak memory非悪化、cold load償却込み5%以上のend-to-end latency改善を要求するdevice promotion gate
 - `[Done]` accelerator固有operatorへ同一identityの決定論的CPU baselineを供給するbounded reference adapterとFP32 digest正規化
 - `[Done]` M4上の4要素Core ML fixed graphをCPUと各3 sample比較し、出力一致を確認した上で起動cost非改善のためCPU維持（ANE誤昇格なし）
-- `[Next]` Metal deviceへアクセス可能な実行環境でのMLX/Metal/Core ML代表shape実機qualification（energyとpeak memoryは実測sourceがある場合だけ記録）
+- `[Done]` M4実機でのMLX/Metal/Core ML代表shape qualification（CPU 3・MLX 6・Metal 2・Core ML/ANE 1の12/12 correctness合格。energyとpeak memoryは実測sourceがある場合だけ記録）
 - `[Later]` prefill、decode、Vision/Audio encoder、sampling、draft/verify別のend-to-end performance profile
 - `[Done]` promotion winnerのbenchmark report／capability／exact workload identityを結合するversioned device placement plan、probe profile一致検証、active/pending scheduler safe-point適用、reservation plan ID
 - `[Done]` device placement planのprivate atomic persistence、全field／plan ID再計算、最大30日TTL、future／expired拒否、current破損時last-known-good fallback
@@ -1219,6 +1219,8 @@ Unified Memoryとmemory bandwidthを共有する一つの実行系として管�
 189. `[Done]` 1024幅×16層代表encoderのM4実機qualification（CPU 2.052秒、Core ML end-to-end 302ms、ANE kernel 1.36ms、85.3%改善）とplacement適用／CPU fallback
 190. `[Done]` persistent Core ML worker lifecycleとM4連続5 prediction実測（end-to-end最小0.84ms）、retryable scheduler fallback
 191. `[Done]` CPU／GPU／ANE／Unified Memory／bandwidthの原子的resource ledger、runtime API契約、VLLM Metal配置のGPU resource accounting
+192. `[Next]` numeric streaming runtimeのcancel・consume・shutdown socket競合負荷試験とorphan回収診断
+193. `[Next]` fallback時のbackend間resource引き継ぎと、実測帯域に基づくcontention gate
 
 この順序により、まず推論runtimeの実model安定性を確立し、その境界を壊さずにoptimizerを
 別processとして追加する。構造pruningはquantization、calibration、評価gateの後に着手する。

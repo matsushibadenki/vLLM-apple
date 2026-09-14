@@ -2510,8 +2510,9 @@ versioned execution planへ記録し、active request中は変更せずscheduler
 11. `[Done]` available・FP32 capabilityだけから代表shapeを生成するbounded deterministic suiteを追加する。
    backend/operatorごとのoperationは明示mapを必須とし、欠損時はfallbackせず拒否する。CPUはvector add、8x8
    matmul、KV copyを現在のMacで各3 sample実測し、安定output digestとsuite report生成を確認する。
-12. `[Next]` Metal deviceへアクセス可能な環境でMLX、Metal、Core ML代表shapeを実機qualificationする。
-   device間同期、tensor変換、Core ML compile/load時間を必ずend-to-end latencyへ含める。
+12. `[Done]` M4実機でMLX、Metal、Core ML代表shapeをqualificationし、CPU 3、MLX 6、Metal 2、
+   Core ML 1 capabilityの12/12 correctness合格を確認した。device間同期、tensor変換、Core ML
+   compile/load時間はend-to-end latencyへ含める。
    self-hosted macOS ARM64 workflowはCPU 3、MLX 6、Metal 2、Core ML 1 operatorのprobe合格をすべて必須とし、
    各3 sampleのprivate atomic reportだけを14日artifactとして保存する。fixtureとrunner上のreportは常に削除する。
 13. `[Done]` 同一workload identityのreportだけを比較するpromotion gateを追加する。CPU baselineを必須とし、
