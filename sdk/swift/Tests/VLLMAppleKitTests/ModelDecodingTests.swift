@@ -150,6 +150,48 @@ import Testing
     #expect(!state.hasValidEvidence)
 }
 
+@Test func decodesTypedDeviceContentionControlResult() throws {
+    let data = Data(#"""
+    {
+      "accepted": true,
+      "device_contention": {
+        "contention_profile_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "qualified_contention_pairs": 3,
+        "contention_profile_loaded": true,
+        "messages": {"en":"reloaded","ja":"再読み込み","zh-Hans":"重新加载"}
+      }
+    }
+    """#.utf8)
+    let decoder = JSONDecoder()
+    decoder.keyDecodingStrategy = .convertFromSnakeCase
+    let result = try decoder.decode(DeviceContentionControlResult.self, from: data)
+    #expect(result.accepted)
+    #expect(result.deviceContention.loaded)
+    #expect(result.deviceContention.qualifiedPairs == 3)
+    #expect(result.deviceContention.hasValidEvidence)
+    #expect(DeviceContentionControlAction.reload.rawValue == "reload")
+    #expect(DeviceContentionControlAction.rollback.rawValue == "rollback")
+}
+
+@Test func decodesAndValidatesDeviceContentionEvidence() throws {
+    let decoder = JSONDecoder()
+    let valid = try decoder.decode(DeviceContentionState.self, from: Data("""
+    {
+      "contention_profile_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "qualified_contention_pairs": 3,
+      "contention_profile_loaded": true
+    }
+    """.utf8))
+    #expect(valid.hasValidEvidence)
+    #expect(valid.qualifiedPairs == 3)
+
+    let invalid = DeviceContentionState(
+        profileID: String(repeating: "b", count: 64), qualifiedPairs: 0, loaded: true
+    )
+    #expect(!invalid.hasValidEvidence)
+    #expect(DeviceContentionState.unavailable.hasValidEvidence)
+}
+
 @Test func decodesTypedOperatingStateEventAndRejectsUnknownCurrentValues() throws {
     let data = Data("""
     {

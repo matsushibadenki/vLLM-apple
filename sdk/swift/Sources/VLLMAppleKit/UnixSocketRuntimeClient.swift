@@ -51,11 +51,16 @@ private struct UnixRuntimeEnvelope: Decodable {
     let kvCalibration: KVCalibrationProvenance
     let nativeV2Tuning: NativeV2TuningState?
     let devicePlacement: DevicePlacementState?
+    let deviceResources: DeviceContentionState?
 }
 
 private struct UnixNativeV2TuningControlRequest: Encodable {
     let action: String
     let profileID: String?
+}
+
+private struct UnixDeviceContentionControlRequest: Encodable {
+    let action: DeviceContentionControlAction
 }
 
 public final class UnixSocketRuntimeClient: VLLMAppleRuntimeClient, @unchecked Sendable {
@@ -112,6 +117,28 @@ public final class UnixSocketRuntimeClient: VLLMAppleRuntimeClient, @unchecked S
         let placement = envelope.devicePlacement ?? .disabled
         guard placement.hasValidEvidence else { throw RuntimeClientError.invalidResponse }
         return placement
+    }
+
+    public func deviceContention() async throws -> DeviceContentionState {
+        let envelope = try await request("/v1/runtime", as: UnixRuntimeEnvelope.self)
+        try validate(schemaVersion: envelope.schemaVersion)
+        let contention = envelope.deviceResources ?? .unavailable
+        guard contention.hasValidEvidence else { throw RuntimeClientError.invalidResponse }
+        return contention
+    }
+
+    public func controlDeviceContention(
+        _ action: DeviceContentionControlAction
+    ) async throws -> DeviceContentionControlResult {
+        let body = try makeEncoder().encode(UnixDeviceContentionControlRequest(action: action))
+        let result = try await request(
+            "/v1/device-contention", method: "POST", body: body,
+            as: DeviceContentionControlResult.self
+        )
+        guard result.deviceContention.hasValidEvidence else {
+            throw RuntimeClientError.invalidResponse
+        }
+        return result
     }
 
     public func controlNativeV2Tuning(

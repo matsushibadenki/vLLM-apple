@@ -115,6 +115,7 @@ class OperatorFallbackExecutor:
         decision: OperatorDispatchDecision,
         operation: Callable[[ExecutionBackend], _ExecutionResult],
         validate: Callable[[_ExecutionResult, ExecutionBackend], bool] | None = None,
+        prepare: Callable[[ExecutionBackend], None] | None = None,
     ) -> OperatorExecutionResult[_ExecutionResult]:
         backends = (decision.selected, *decision.fallback_chain)
         if not backends or len(backends) > len(ExecutionBackend) or len(set(backends)) != len(backends):
@@ -122,6 +123,8 @@ class OperatorFallbackExecutor:
         attempts: list[BackendExecutionAttempt] = []
         for backend in backends:
             try:
+                if prepare is not None:
+                    prepare(backend)
                 value = operation(backend)
             except BackendExecutionError as error:
                 attempts.append(BackendExecutionAttempt(backend, "failed", error.error_code))

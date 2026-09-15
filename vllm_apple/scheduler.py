@@ -11,8 +11,14 @@ from typing import TypeVar
 
 from .execution import AppleExecutionPlan, ExecutionBackend, WorkloadPhase
 from .device_placement import DevicePlacementPlan
-from .device_resources import DeviceResourceRequest, UnifiedDeviceResourceLedger
+from .device_resources import (
+    DeviceResourceCapacityError,
+    DeviceResourceRequest,
+    UnifiedDeviceResourceLedger,
+    contention_profile_id,
+)
 from .operator_dispatch import (
+    BackendExecutionError,
     OperatorDispatchDecision,
     OperatorDispatcher,
     OperatorDispatchRequest,
@@ -273,6 +279,9 @@ class BasicScheduler:
             gpu_command_queues=4 if hardware.is_apple_silicon else 0,
             ane_tasks=2 if hardware.is_apple_silicon else 0,
             bandwidth_slots=4 if hardware.is_apple_silicon else 1,
+            contention_profile_id=contention_profile_id(
+                hardware.soc, hardware.os_version, hardware.architecture
+            ),
         )
         self._policy_lock = threading.RLock()
         self._active_plan: AppleExecutionPlan | None = None
@@ -320,9 +329,25 @@ class BasicScheduler:
         request: ScheduleRequest,
         operation: Callable[[ExecutionBackend], _SafePointResult],
         validate: Callable[[_SafePointResult, ExecutionBackend], bool] | None = None,
+        reservation: Reservation | None = None,
     ) -> OperatorExecutionResult[_SafePointResult]:
+        def prepare(backend: ExecutionBackend) -> None:
+            if reservation is None:
+                return
+            resource_id = reservation.device_resource_reservation_id
+            if resource_id is None:
+                raise BackendExecutionError("resource_reservation_missing", retryable=False)
+            try:
+                self.device_resources.transfer(
+                    resource_id,
+                    DeviceResourceRequest.for_backend(backend, reservation.bytes),
+                )
+            except DeviceResourceCapacityError as error:
+                raise BackendExecutionError(
+                    "fallback_resource_unavailable", retryable=True
+                ) from error
         return OperatorFallbackExecutor().execute(
-            self.dispatch_decision(request), operation, validate
+            self.dispatch_decision(request), operation, validate, prepare
         )
 
     def _dispatch_candidates(

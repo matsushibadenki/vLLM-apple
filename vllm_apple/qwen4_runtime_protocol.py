@@ -329,6 +329,10 @@ class Qwen4RuntimeCommandService:
         self._lock = threading.Lock()
         self._active_lock = threading.Lock()
         self._active_cancellations: dict[str, threading.Event] = {}
+        self._numeric_cancel_requests = 0
+        self._numeric_cancel_hits = 0
+        self._numeric_artifacts_consumed = 0
+        self._numeric_artifacts_quarantined = 0
         self._last_sequence = 0
         self._closed = False
         self._cache: OrderedDict[int, tuple[bytes, dict[str, object]]] = OrderedDict()
@@ -349,9 +353,11 @@ class Qwen4RuntimeCommandService:
             if request["session_id"] != self.session_id:
                 raise ValueError("Qwen4 runtime request belongs to another session")
             with self._active_lock:
+                self._numeric_cancel_requests += 1
                 event = self._active_cancellations.get(request["target_request_id"])
                 if event is not None:
                     event.set()
+                    self._numeric_cancel_hits += 1
             return parse_qwen4_runtime_response({
                 "abi_version": QWEN4_RUNTIME_ABI_VERSION,
                 "session_id": self.session_id,
@@ -485,6 +491,11 @@ class Qwen4RuntimeCommandService:
                 self.numeric_artifact_reader.consume(loaded)
             except (OSError, ValueError):
                 artifact_state = "quarantined"
+            with self._active_lock:
+                if artifact_state == "consumed":
+                    self._numeric_artifacts_consumed += 1
+                else:
+                    self._numeric_artifacts_quarantined += 1
             return {"handle": handle, "artifact_state": artifact_state}
         if operation == "unload":
             self.store.unload(request["handle"])
@@ -498,3 +509,14 @@ class Qwen4RuntimeCommandService:
             raise RuntimeError("Qwen4 runtime shutdown retained resources")
         self._closed = True
         return {"shutdown": True}
+
+    def numeric_diagnostics_snapshot(self) -> dict[str, int]:
+        """Return bounded counters without artifact names, tensor values, or request IDs."""
+        with self._active_lock:
+            return {
+                "active_requests": len(self._active_cancellations),
+                "cancel_requests": self._numeric_cancel_requests,
+                "cancel_hits": self._numeric_cancel_hits,
+                "artifacts_consumed": self._numeric_artifacts_consumed,
+                "artifacts_quarantined": self._numeric_artifacts_quarantined,
+            }

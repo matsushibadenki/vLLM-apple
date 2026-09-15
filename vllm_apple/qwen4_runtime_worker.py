@@ -72,6 +72,12 @@ class Qwen4RuntimeWorker:
         self._remove_session_file()
         return snapshot
 
+    def numeric_diagnostics_snapshot(self) -> dict[str, int]:
+        return {
+            "startup_orphans_recovered": self.recovered_numeric_orphans,
+            **self.service.numeric_diagnostics_snapshot(),
+        }
+
     def _write_session_file(self) -> None:
         parent = self.session_file.parent
         parent_info = parent.lstat()

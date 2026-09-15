@@ -55,6 +55,8 @@ final class AppModel: ObservableObject {
     @Published private(set) var kvCalibration: KVCalibrationProvenance?
     @Published private(set) var nativeV2Tuning: NativeV2TuningState = .idle
     @Published private(set) var devicePlacement: DevicePlacementState = .disabled
+    @Published private(set) var deviceContention: DeviceContentionState = .unavailable
+    @Published private(set) var isControllingDeviceContention = false
     @Published private(set) var startupProgress: StartupProgress?
     @Published private(set) var qualificationReports: [QualificationReportRecord]
     @Published private(set) var verifiedPromotionReportURLs: Set<URL>
@@ -103,6 +105,7 @@ final class AppModel: ObservableObject {
         kvCalibration = nil
         nativeV2Tuning = .idle
         devicePlacement = .disabled
+        deviceContention = .unavailable
         startupProgress = nil
         reloadQualificationReports()
 
@@ -130,6 +133,7 @@ final class AppModel: ObservableObject {
             kvCalibration = try await client.kvCalibration()
             nativeV2Tuning = try await client.nativeV2Tuning()
             devicePlacement = try await client.devicePlacement()
+            deviceContention = try await client.deviceContention()
             apply(health.status)
             beginEventMonitoring(client: client)
         } catch let error as RuntimeResourceError {
@@ -226,6 +230,20 @@ final class AppModel: ObservableObject {
         do {
             let result = try await client.restoreNativeV2Tuning(profileID: profileID)
             nativeV2Tuning = result.nativeV2Tuning
+        } catch let error as RuntimeClientError {
+            report(key: error.messageKey, detail: String(describing: error))
+        } catch {
+            report(key: "runtime.error.connection", detail: error.localizedDescription)
+        }
+    }
+
+    func controlDeviceContention(_ action: DeviceContentionControlAction) async {
+        guard let client, !isControllingDeviceContention else { return }
+        isControllingDeviceContention = true
+        defer { isControllingDeviceContention = false }
+        do {
+            let result = try await client.controlDeviceContention(action)
+            deviceContention = result.deviceContention
         } catch let error as RuntimeClientError {
             report(key: error.messageKey, detail: String(describing: error))
         } catch {

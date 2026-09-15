@@ -31,6 +31,12 @@ from .device_placement import (
     load_device_placement_plan,
     load_device_placement_with_fallback,
 )
+from .device_contention import (
+    default_contention_profile_paths,
+    load_contention_profile,
+    load_contention_profile_with_fallback,
+)
+from .device_resources import contention_profile_id
 from .execution_profile import detect_apple_chip_profile
 from .hardware import default_application_support, detect_hardware
 from .kernel_probe import build_environment_fingerprint
@@ -216,6 +222,81 @@ def restore_startup_device_placement(
         },
     )
     return applied
+
+
+def restore_startup_contention_profile(
+    service: RuntimeService,
+    *,
+    application_support: Path | None = None,
+) -> bool:
+    hardware = service.profile.hardware
+    profile_id = contention_profile_id(
+        hardware.soc, hardware.os_version, hardware.architecture
+    )
+    current, last_good = default_contention_profile_paths(
+        profile_id, application_support=application_support
+    )
+    try:
+        profile, source = load_contention_profile_with_fallback(
+            current, last_good, profile_id=profile_id
+        )
+        if not service.install_contention_profile(profile):
+            raise ValueError("contention profile was not fully installed")
+    except FileNotFoundError:
+        service.events.publish("runtime.device_contention.restore", {
+            "status": "not_found", "profile_id": profile_id,
+            "qualified_pairs": 0,
+        })
+        return False
+    except (OSError, ValueError):
+        service.events.publish("runtime.device_contention.restore", {
+            "status": "rejected", "profile_id": profile_id,
+            "qualified_pairs": 0,
+        })
+        return False
+    service.events.publish("runtime.device_contention.restore", {
+        "status": "applied", "profile_id": profile_id,
+        "qualified_pairs": len(profile.evidence), "source": source,
+    })
+    return True
+
+
+def control_device_contention_files(
+    service: RuntimeService,
+    action: str,
+    *,
+    application_support: Path | None = None,
+) -> bool:
+    hardware = service.profile.hardware
+    profile_id = contention_profile_id(
+        hardware.soc, hardware.os_version, hardware.architecture
+    )
+    current, last_good = default_contention_profile_paths(
+        profile_id, application_support=application_support
+    )
+    try:
+        if action == "reload":
+            profile, source = load_contention_profile_with_fallback(
+                current, last_good, profile_id=profile_id
+            )
+        elif action == "rollback":
+            profile = load_contention_profile(last_good, profile_id=profile_id)
+            source = "last_known_good"
+        else:
+            raise ValueError("unsupported device contention action")
+        if not service.install_contention_profile(profile):
+            raise RuntimeError("contention profile safe point unavailable")
+    except (OSError, ValueError, RuntimeError):
+        service.events.publish("runtime.device_contention.control", {
+            "action": action, "status": "rejected", "source": None,
+            "profile_id": profile_id,
+        })
+        return False
+    service.events.publish("runtime.device_contention.control", {
+        "action": action, "status": "applied", "source": source,
+        "profile_id": profile_id,
+    })
+    return True
 
 
 def reload_device_placement_async(
@@ -727,6 +808,10 @@ def serve(
                 else None
             ),
         )
+        restore_startup_contention_profile(service)
+        service.configure_device_contention_control(
+            lambda action: control_device_contention_files(service, action)
+        )
         if inspected is not None:
             service.record_memory_budget_component(
                 "weights",
@@ -834,6 +919,10 @@ def serve(
                 )
     else:
         service = RuntimeService()
+        restore_startup_contention_profile(service)
+        service.configure_device_contention_control(
+            lambda action: control_device_contention_files(service, action)
+        )
     enable_native_v2_idle_tuning = service.configure_native_v2_preference(
         native_v2_preference_path or default_native_v2_preference_path(),
         override_enabled=False if not enable_native_v2_idle_tuning else None,

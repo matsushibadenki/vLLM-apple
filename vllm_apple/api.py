@@ -382,6 +382,9 @@ class RuntimeRequestHandler(BaseHTTPRequestHandler):
         if path == "/v1/device-placement":
             self._control_device_placement()
             return
+        if path == "/v1/device-contention":
+            self._control_device_contention()
+            return
         if path != "/v1/chat/completions":
             self._error(HTTPStatus.NOT_FOUND, "not_found", "endpoint not found")
             return
@@ -487,6 +490,33 @@ class RuntimeRequestHandler(BaseHTTPRequestHandler):
             HTTPStatus.OK if accepted else HTTPStatus.CONFLICT,
             self._control_payload({"accepted": accepted, "device_placement": snapshot}),
             error_code=None if accepted else "device_placement_not_ready",
+        )
+
+    def _control_device_contention(self) -> None:
+        request = self._read_json()
+        if request is None:
+            return
+        action = request.get("action")
+        if set(request) != {"action"} or action not in {"reload", "rollback"}:
+            self._error(
+                HTTPStatus.BAD_REQUEST,
+                "invalid_device_contention_action",
+                "action must be reload or rollback",
+            )
+            return
+        try:
+            accepted, snapshot = self.server.service.control_device_contention(action)
+        except (OSError, ValueError):
+            self._error(
+                HTTPStatus.INTERNAL_SERVER_ERROR,
+                "device_contention_control_failed",
+                "device contention update failed validation",
+            )
+            return
+        self._send(
+            HTTPStatus.OK if accepted else HTTPStatus.CONFLICT,
+            self._control_payload({"accepted": accepted, "device_contention": snapshot}),
+            error_code=None if accepted else "device_contention_not_ready",
         )
 
     def _backend_error(self, error: BackendHTTPError) -> None:

@@ -112,6 +112,10 @@ class LiveResponseSchemaTests(unittest.TestCase):
         memory = payload["memory_telemetry"]
         self.assertLessEqual(memory["unified_available_bytes"], memory["unified_total_bytes"])
         resources = payload["device_resources"]
+        self.assertEqual(
+            resources["contention_profile_loaded"],
+            resources["qualified_contention_pairs"] > 0,
+        )
         for name, capacity in resources["capacity"].items():
             self.assertEqual(
                 resources["used"][name] + resources["available"][name],

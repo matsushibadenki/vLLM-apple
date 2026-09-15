@@ -1,4 +1,5 @@
 import json
+import os
 import tempfile
 import unittest
 from pathlib import Path
@@ -65,6 +66,21 @@ class Qwen4RuntimeWorkerTests(unittest.TestCase):
             other.mkdir()
             with self.assertRaisesRegex(ValueError, "private"):
                 self.worker(other, numeric_artifact_root=numeric)
+
+    def test_reports_bounded_numeric_orphan_recovery_diagnostics(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            numeric = root / "numeric"
+            numeric.mkdir(mode=0o700)
+            orphan = numeric / "stale.packed"
+            orphan.write_bytes(b"x")
+            orphan.chmod(0o600)
+            os.utime(orphan, (1, 1))
+            worker = self.worker(root, numeric_artifact_root=numeric)
+            diagnostics = worker.numeric_diagnostics_snapshot()
+            self.assertEqual(diagnostics["startup_orphans_recovered"], 1)
+            self.assertEqual(diagnostics["active_requests"], 0)
+            self.assertNotIn("artifact_name", diagnostics)
 
     @staticmethod
     def _status(worker: Qwen4RuntimeWorker, sequence: int) -> dict[str, object]:

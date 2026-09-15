@@ -8,6 +8,10 @@ public protocol VLLMAppleRuntimeClient: Sendable {
     func kvCalibration() async throws -> KVCalibrationProvenance
     func nativeV2Tuning() async throws -> NativeV2TuningState
     func devicePlacement() async throws -> DevicePlacementState
+    func deviceContention() async throws -> DeviceContentionState
+    func controlDeviceContention(
+        _ action: DeviceContentionControlAction
+    ) async throws -> DeviceContentionControlResult
     func controlNativeV2Tuning(
         _ action: NativeV2TuningControlAction
     ) async throws -> NativeV2TuningControlResult
@@ -28,6 +32,12 @@ public extension VLLMAppleRuntimeClient {
 
     /// Existing custom clients remain source-compatible with placement-aware SDK releases.
     func devicePlacement() async throws -> DevicePlacementState { .disabled }
+    func deviceContention() async throws -> DeviceContentionState { .unavailable }
+    func controlDeviceContention(
+        _ action: DeviceContentionControlAction
+    ) async throws -> DeviceContentionControlResult {
+        throw RuntimeClientError.invalidResponse
+    }
 }
 
 public enum RuntimeClientError: Error, Sendable, Equatable {
@@ -56,6 +66,7 @@ private struct RuntimeEnvelope: Decodable {
     let kvCalibration: KVCalibrationProvenance
     let nativeV2Tuning: NativeV2TuningState?
     let devicePlacement: DevicePlacementState?
+    let deviceResources: DeviceContentionState?
 }
 
 private struct ErrorEnvelope: Decodable {
@@ -69,6 +80,10 @@ private struct ErrorEnvelope: Decodable {
 private struct NativeV2TuningControlRequest: Encodable {
     let action: String
     let profileID: String?
+}
+
+private struct DeviceContentionControlRequest: Encodable {
+    let action: DeviceContentionControlAction
 }
 
 public final class HTTPRuntimeClient: VLLMAppleRuntimeClient, @unchecked Sendable {
@@ -135,6 +150,28 @@ public final class HTTPRuntimeClient: VLLMAppleRuntimeClient, @unchecked Sendabl
         let placement = envelope.devicePlacement ?? .disabled
         guard placement.hasValidEvidence else { throw RuntimeClientError.invalidResponse }
         return placement
+    }
+
+    public func deviceContention() async throws -> DeviceContentionState {
+        let envelope = try await get("v1/runtime", as: RuntimeEnvelope.self)
+        try validate(schemaVersion: envelope.schemaVersion)
+        let contention = envelope.deviceResources ?? .unavailable
+        guard contention.hasValidEvidence else { throw RuntimeClientError.invalidResponse }
+        return contention
+    }
+
+    public func controlDeviceContention(
+        _ action: DeviceContentionControlAction
+    ) async throws -> DeviceContentionControlResult {
+        let body = try encoder.encode(DeviceContentionControlRequest(action: action))
+        let result = try await send(
+            "v1/device-contention", method: "POST", body: body,
+            as: DeviceContentionControlResult.self
+        )
+        guard result.deviceContention.hasValidEvidence else {
+            throw RuntimeClientError.invalidResponse
+        }
+        return result
     }
 
     public func controlNativeV2Tuning(

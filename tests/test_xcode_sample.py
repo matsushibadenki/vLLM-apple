@@ -188,6 +188,29 @@ class XcodeSampleTests(unittest.TestCase):
                 (Path("samples/VLLMAppleChat/Sources/VLLMAppleChat/Resources") / language).is_dir()
             )
 
+    def test_contention_diagnostics_are_typed_and_localized(self) -> None:
+        models = Path("sdk/swift/Sources/VLLMAppleKit/Models.swift").read_text()
+        client = Path("sdk/swift/Sources/VLLMAppleKit/RuntimeClient.swift").read_text()
+        view = Path(
+            "samples/VLLMAppleChat/Sources/VLLMAppleChat/ContentView.swift"
+        ).read_text()
+        self.assertIn("public struct DeviceContentionState", models)
+        self.assertIn("contentionProfileLoaded", models)
+        self.assertIn("func deviceContention()", client)
+        self.assertIn("DeviceContentionDiagnostic", view)
+        for language in ("en", "ja", "zh-Hans"):
+            localized = Path(
+                f"samples/VLLMAppleChat/Sources/VLLMAppleChat/Resources/"
+                f"{language}.lproj/Localizable.strings"
+            ).read_text()
+            for key in (
+                "sidebar.device_contention",
+                "device_contention.status.active",
+                "device_contention.status.unavailable",
+                "device_contention.count",
+            ):
+                self.assertIn(f'"{key}"', localized)
+
     def test_embed_phase_places_executable_in_app_auxiliary_directory(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

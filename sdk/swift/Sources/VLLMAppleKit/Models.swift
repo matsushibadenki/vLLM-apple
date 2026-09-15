@@ -341,6 +341,64 @@ public struct DevicePlacementUpdate: Sendable, Equatable {
     public let planID: String
 }
 
+public struct DeviceContentionState: Codable, Sendable, Equatable {
+    public let profileID: String?
+    public let qualifiedPairs: Int
+    public let loaded: Bool
+
+    public static let unavailable = DeviceContentionState(
+        profileID: nil, qualifiedPairs: 0, loaded: false
+    )
+
+    public init(profileID: String?, qualifiedPairs: Int, loaded: Bool) {
+        self.profileID = profileID
+        self.qualifiedPairs = qualifiedPairs
+        self.loaded = loaded
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case profileID = "contention_profile_id"
+        case qualifiedPairs = "qualified_contention_pairs"
+        case loaded = "contention_profile_loaded"
+    }
+
+    private enum ConvertedKeys: String, CodingKey {
+        case profileID = "contentionProfileId"
+        case qualifiedPairs = "qualifiedContentionPairs"
+        case loaded = "contentionProfileLoaded"
+    }
+
+    public init(from decoder: Decoder) throws {
+        let raw = try decoder.container(keyedBy: CodingKeys.self)
+        let converted = try decoder.container(keyedBy: ConvertedKeys.self)
+        profileID = try raw.decodeIfPresent(String.self, forKey: .profileID)
+            ?? converted.decodeIfPresent(String.self, forKey: .profileID)
+        qualifiedPairs = try raw.decodeIfPresent(Int.self, forKey: .qualifiedPairs)
+            ?? converted.decode(Int.self, forKey: .qualifiedPairs)
+        loaded = try raw.decodeIfPresent(Bool.self, forKey: .loaded)
+            ?? converted.decode(Bool.self, forKey: .loaded)
+    }
+
+    public var hasValidEvidence: Bool {
+        let validID = profileID.map {
+            $0.utf8.count == 64 && $0.allSatisfy { $0.isHexDigit && !$0.isUppercase }
+        } ?? false
+        return (0...16).contains(qualifiedPairs)
+            && loaded == (qualifiedPairs > 0)
+            && (profileID == nil ? !loaded : validID)
+    }
+}
+
+public enum DeviceContentionControlAction: String, Codable, Sendable {
+    case reload
+    case rollback
+}
+
+public struct DeviceContentionControlResult: Codable, Sendable, Equatable {
+    public let accepted: Bool
+    public let deviceContention: DeviceContentionState
+}
+
 public enum ContextReevaluationStatus: String, Codable, Sendable {
     case disabled
     case pending

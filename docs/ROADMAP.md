@@ -17,9 +17,9 @@
 Phase 1のcontrol plane、メモリ安全性基盤、AppleExecutionPlanner、StateMemorySpec、
 prefill/decode別profile、Swift SDK、3言語macOS sample、Gemma実modelの30分安定性まで実装済み。
 
-2026-09-14のstatus監査で、後続実装と実機記録が存在した古い`[Next]`を`[Done]`へ更新した。
-現在ローカルで進める優先項目は、数値形式streaming runtimeのsocket競合負荷試験と、fallback時の
-backend間resource引き継ぎ／実測帯域contention gateである。
+2026-09-15のstatus監査で、後続実装と実機記録が存在した古い`[Next]`を`[Done]`へ更新した。
+現在ローカルで進める優先項目は、contention profileのreload／rollbackをSwift SDKのtyped操作と
+Mac app三言語UIへ接続し、利用者が再起動なしで安全に管理できるようにすることである。
 外部項目の最優先は大容量Apple SiliconでのQwen3.8-Flash-Next text-only qualificationと、専用runnerでの
 vLLM 0.28.x昇格試験である。
 設計判断は
@@ -807,7 +807,7 @@ NVFP4 → INT8を最初の候補としつつ、FP16/BF16展開、既存MLX量子
 - `[Done]` manifest-last生成、3-file one-shot claim/consume/quarantine、runtime自動判別、CLI `--file-backed`によるpacked/scale file-backed provider直接接続
 - `[Done]` request ID指定のout-of-band `cancel` control message、最大8接続の並行Unix socket受付、tile safe pointへのsignal合成、client/CLI cancel入口
 - `[Done]` worker起動時の5分grace・4096 entry上限・identity再検証付きorphan companion quarantine
-- `[Next]` cancel・consume・shutdown競合のsocket負荷試験とorphan回収診断（native INT8演算kernelは未実装）
+- `[Done]` cancel・consume・shutdownの実socket競合試験、shutdown時active connection即時回収、active/cancel/consume/quarantine/orphanのbounded診断（native INT8演算kernelは未実装）
 - `[Later]` NVFP4 1D／2D block scale、scale layout・swizzle、tensor scale、packed nibble順序を識別するartifact adapter
 - `[Later]` MXFP4／MXFP6／MXFP8、FP8 E4M3／E5M2とvariant、FP16／BF16／FP32、signed/unsigned INT8／INT4／INT2の段階的対応
 - `[Later]` NF4／codebook量子化、groupwise affine、zero-point、double quantization、mixed precision、outlier/residual・sparse表現の拡張adapter
@@ -871,12 +871,18 @@ Unified Memoryとmemory bandwidthを共有する一つの実行系として管�
 - `[Done]` Core ML modelをprocess内で保持するbounded persistent Swift worker、resource load／unload連動、timeout／worker failureのretryable fallback変換
 - `[Done]` M4実機でpersistent workerの連続5 prediction出力一致（load約235ms、end-to-end 0.84–1.41ms、kernel 16–84µs）
 - `[Done]` Core ML/ANE in-flight、CPU thread、GPU command queue、Unified Memory、bandwidth slotを同一admissionで原子的に予約し、失敗時にmemory予約をrollbackするresource ledger
-- `[Next]` fallback時のbackend間resource引き継ぎと、実測帯域に基づくcontention gate
+- `[Done]` fallbackごとのbackend resource原子的引き継ぎと、profile-bound・3 sample以上・出力一致・5%以上の並列改善を必須にするfail-closed contention evidence gate
+- `[Done]` CPU／GPU／ANE逐次・並列medianを測定するbounded contention adapter、private strict profile、digest再計算、hardware一致した全件qualified profileのruntime起動時install
+- `[Done]` M4実機5 sample contention qualification（output digest全一致、CPU+MLX 40.2%、CPU+ANE 22.8%、MLX+ANE 5.53%改善で3/3組を昇格）
+- `[Done]` hardware profile ID別private既定path、daemon startup strict restore、not-found/rejected/applied event、runtimeのprofile ID・認定pair数診断
+- `[Done]` contention runtime診断のstrict typed Swift SDK、旧client unavailable fallback、Mac app英語・日本語・简体中文表示（Swift 33 tests・Mac sample build合格）
+- `[Done]` contention profileのvalid-current-only last-known-good promotion、破損時fallback、safe-point reload／rollback、認証付きstrict管理APIと三言語応答
+- `[Done]` contention reload／rollbackのtyped Swift SDK、strict evidence検証、Mac app英語・日本語・简体中文操作UI
 - `[Later]` shared resource ledger導入後のbounded work stealing
 - `[Later]` memory pressure、thermal state、low-power modeに応じたconcurrency／batch／device割当の段階的縮退
 - `[Later]` Vision/Audio encoderとembedding/classifierから開始するANE routing、GPU LLM pipelineとの非同期連携
 - `[Later]` CPUまたはANE draft + GPU verifyによるheterogeneous speculative execution
-- `[Later]` 並列実行が逐次実行を上回る場合だけ有効化するshared-bandwidth contention gate
+- `[Next]` contention合格済み組み合わせに限定したCPU／GPU／ANE pipeline並列化
 - `[Later]` hardware／OS／model／shape別autotuning profile、期限切れ、quarantine、last-known-good rollback
 - `[Later]` backend別correctness比較、timeout／compile failure／numerical mismatch時のANE → GPU → CPU fallback
 - `[Later]` TTFT、TPOT、tokens/sec、frames/sec、energy/request、peak Unified Memoryを用いたpromotion gate
@@ -1219,8 +1225,15 @@ Unified Memoryとmemory bandwidthを共有する一つの実行系として管�
 189. `[Done]` 1024幅×16層代表encoderのM4実機qualification（CPU 2.052秒、Core ML end-to-end 302ms、ANE kernel 1.36ms、85.3%改善）とplacement適用／CPU fallback
 190. `[Done]` persistent Core ML worker lifecycleとM4連続5 prediction実測（end-to-end最小0.84ms）、retryable scheduler fallback
 191. `[Done]` CPU／GPU／ANE／Unified Memory／bandwidthの原子的resource ledger、runtime API契約、VLLM Metal配置のGPU resource accounting
-192. `[Next]` numeric streaming runtimeのcancel・consume・shutdown socket競合負荷試験とorphan回収診断
-193. `[Next]` fallback時のbackend間resource引き継ぎと、実測帯域に基づくcontention gate
+192. `[Done]` numeric streaming runtimeのcancel・consume・shutdown実socket競合試験、connection即時回収、秘密情報を含まないorphan／lifecycle診断
+193. `[Done]` fallback時のbackend間resource原子的引き継ぎと、profile-bound correctness／5%改善を要求するfail-closed contention evidence gate
+194. `[Done]` CPU／GPU／ANE contention benchmark adapter、private strict profile、hardware-bound runtime起動時自動install
+195. `[Done]` M4実機CPU／MLX GPU／Core ML ANE contention qualification（5 sample、digest全一致、3/3組が5%以上改善）
+196. `[Done]` contention profileのprofile別private既定path、daemon startup fail-closed restore、bounded runtime diagnostics
+197. `[Done]` contention profile runtime診断のstrict typed Swift SDK、旧client fallback、Mac app三言語表示、Swift 33 tests・sample build合格
+198. `[Done]` contention profileのcurrent／last-known-good promotion、safe-point daemon reload／rollback、認証付き三言語管理API
+199. `[Done]` contention reload／rollbackのtyped Swift SDK、strict evidence検証、Mac app三言語操作UI
+200. `[Next]` contention合格済み組み合わせに限定したCPU／GPU／ANE pipeline並列化
 
 この順序により、まず推論runtimeの実model安定性を確立し、その境界を壊さずにoptimizerを
 別processとして追加する。構造pruningはquantization、calibration、評価gateの後に着手する。

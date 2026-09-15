@@ -89,6 +89,42 @@ private final class PreviewURLProtocol: URLProtocol, @unchecked Sendable {
     #expect(result.reason == "chip_profile_unavailable")
 }
 
+private final class DeviceContentionURLProtocol: URLProtocol, @unchecked Sendable {
+    override class func canInit(with request: URLRequest) -> Bool { true }
+    override class func canonicalRequest(for request: URLRequest) -> URLRequest { request }
+    override func startLoading() {
+        let valid = request.url?.path == "/v1/device-contention"
+            && request.httpMethod == "POST"
+            && request.value(forHTTPHeaderField: "Authorization") == "Bearer contention-token"
+            && request.value(forHTTPHeaderField: "Content-Type") == "application/json"
+        let response = HTTPURLResponse(
+            url: request.url!, statusCode: valid ? 200 : 401, httpVersion: "HTTP/1.1",
+            headerFields: ["Content-Type": "application/json"]
+        )!
+        let body = valid
+            ? #"{"accepted":true,"device_contention":{"contention_profile_id":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","qualified_contention_pairs":3,"contention_profile_loaded":true}}"#
+            : #"{"error":{"message":"invalid test request"}}"#
+        client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
+        client?.urlProtocol(self, didLoad: Data(body.utf8))
+        client?.urlProtocolDidFinishLoading(self)
+    }
+    override func stopLoading() {}
+}
+
+@Test func httpDeviceContentionControlUsesAuthenticatedStrictEndpoint() async throws {
+    let configuration = URLSessionConfiguration.ephemeral
+    configuration.protocolClasses = [DeviceContentionURLProtocol.self]
+    let session = URLSession(configuration: configuration)
+    defer { session.invalidateAndCancel() }
+    let client: any VLLMAppleRuntimeClient = HTTPRuntimeClient(
+        baseURL: URL(string: "http://contention.invalid")!, session: session,
+        sessionToken: "contention-token"
+    )
+    let result = try await client.controlDeviceContention(.rollback)
+    #expect(result.accepted)
+    #expect(result.deviceContention.qualifiedPairs == 3)
+}
+
 @Test func executionPreviewDecodesPlanAndRejectsUnsafeContracts() throws {
     let plan: [String: Any] = [
         "schema_version": 1, "plan_id": String(repeating: "a", count: 24), "model_id": "test/model",

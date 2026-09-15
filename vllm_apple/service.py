@@ -19,6 +19,7 @@ from .context_reevaluation import (
 )
 from .execution import AppleChipProfile, AppleExecutionPlan, AppleExecutionPlanner, WorkloadPhase
 from .device_placement import DevicePlacementPlan
+from .device_contention import ContentionProfile, install_contention_profile
 from .kernel_context import InferenceKernelContext, PagedAttentionKernelSelection
 from .kernel_profile import PagedAttentionShape
 from .metal_probe import MetalThreadConfiguration
@@ -148,6 +149,7 @@ class RuntimeService:
         configured_context_tokens: int | None = None,
         kv_calibration: dict[str, int | float | str | bool | None] | None = None,
         execution_chip_profile: AppleChipProfile | None = None,
+        contention_profile: ContentionProfile | None = None,
     ) -> None:
         self._lock = threading.RLock()
         self._execution_chip_profile = execution_chip_profile
@@ -159,6 +161,7 @@ class RuntimeService:
         self._pending_operator_dispatcher: OperatorDispatcher | None = None
         self._pending_device_placement_plan: DevicePlacementPlan | None = None
         self._device_placement_control: Callable[[str], bool] | None = None
+        self._device_contention_control: Callable[[str], bool] | None = None
         self._active_metal_tuning: MetalTuningReport | None = None
         self._pending_metal_tuning: MetalTuningReport | None = None
         self._tokenizer_fallbacks = 0
@@ -184,6 +187,12 @@ class RuntimeService:
             0, telemetry_capacity.unified_available_bytes - emergency_margin
         )
         self.scheduler = BasicScheduler(self.profile.hardware, scheduler_capacity)
+        if contention_profile is not None:
+            installed = install_contention_profile(
+                self.scheduler.device_resources, contention_profile
+            )
+            if installed != len(contention_profile.evidence):
+                raise ValueError("contention profile was not fully qualified")
         self.native_v2_tuning = NativeV2IdleTuningCoordinator(
             self.scheduler,
             publish=self.events.publish,
@@ -452,6 +461,50 @@ class RuntimeService:
                 "single_flight_bypasses": int(backend.get("single_flight_bypasses", 0)),
                 "single_flight_timeouts": int(backend.get("single_flight_timeouts", 0)),
             }
+
+    def install_contention_profile(self, profile: ContentionProfile) -> bool:
+        def install() -> bool:
+            installed = install_contention_profile(
+                self.scheduler.device_resources, profile
+            )
+            return installed == len(profile.evidence)
+
+        applied, result = self.scheduler.at_safe_point(install)
+        return applied and result is True
+
+    def configure_device_contention_control(
+        self, control: Callable[[str], bool]
+    ) -> None:
+        if not callable(control):
+            raise ValueError("device contention control must be callable")
+        with self._lock:
+            self._device_contention_control = control
+
+    def control_device_contention(
+        self, action: str
+    ) -> tuple[bool, dict[str, object]]:
+        if action not in {"reload", "rollback"}:
+            raise ValueError("unsupported device contention action")
+        with self._lock:
+            control = self._device_contention_control
+        accepted = control(action) if control is not None else False
+        messages = {
+            "en": "Device contention profile update accepted."
+            if accepted else "Device contention profile update is not available.",
+            "ja": "デバイス競合profileの更新を受け付けました。"
+            if accepted else "デバイス競合profileの更新は利用できません。",
+            "zh-Hans": "已接受设备争用配置更新。"
+            if accepted else "设备争用配置更新不可用。",
+        }
+        return accepted, {
+            "action": action,
+            "message_key": (
+                "device_contention_update_accepted"
+                if accepted else "device_contention_update_unavailable"
+            ),
+            "messages": messages,
+            **self.scheduler.device_resources.snapshot(),
+        }
 
     def chat_schedule_request(self, request: dict[str, Any]) -> ScheduleRequest:
         raw_batch = request.get("n", 1)

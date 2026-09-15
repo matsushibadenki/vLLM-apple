@@ -130,6 +130,12 @@ struct ContentView: View {
             }
 
             DevicePlacementDiagnostic(state: model.devicePlacement)
+            DeviceContentionDiagnostic(
+                state: model.deviceContention,
+                isControlling: model.isControllingDeviceContention
+            ) { action in
+                Task { await model.controlDeviceContention(action) }
+            }
 
             if !model.qualificationReports.isEmpty {
                 VStack(alignment: .leading, spacing: DesignTokens.compact) {
@@ -547,6 +553,67 @@ private struct DevicePlacementDiagnostic: View {
     private var statusKey: LocalizedStringKey {
         if state.pendingPlanID != nil { return "device_placement.status.pending" }
         return state.enabled ? "device_placement.status.active" : "device_placement.status.disabled"
+    }
+
+    private func localized(_ key: String) -> String {
+        String(localized: String.LocalizationValue(key), bundle: AppLocalization.bundle)
+    }
+}
+
+private struct DeviceContentionDiagnostic: View {
+    let state: DeviceContentionState
+    let isControlling: Bool
+    let onControl: (DeviceContentionControlAction) -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: DesignTokens.compact) {
+            Text("sidebar.device_contention")
+                .font(.caption2.monospaced().weight(.semibold))
+                .foregroundStyle(DesignTokens.secondaryInk)
+                .textCase(.uppercase)
+                .tracking(0.8)
+            Label(
+                state.loaded
+                    ? "device_contention.status.active"
+                    : "device_contention.status.unavailable",
+                systemImage: state.loaded ? "point.3.connected.trianglepath.dotted" : "cpu"
+            )
+            .font(.caption.weight(.semibold))
+            .foregroundStyle(state.loaded ? DesignTokens.success : DesignTokens.secondaryInk)
+            if state.loaded {
+                Text(
+                    String(
+                        format: localized("device_contention.count"),
+                        Int64(state.qualifiedPairs)
+                    )
+                )
+                .font(.caption2)
+                .foregroundStyle(DesignTokens.secondaryInk)
+                .fixedSize(horizontal: false, vertical: true)
+            }
+            if let profileID = state.profileID {
+                Text(profileID)
+                    .font(.caption2.monospaced())
+                    .foregroundStyle(DesignTokens.secondaryInk)
+                    .lineLimit(1)
+                    .truncationMode(.middle)
+                    .help(profileID)
+            }
+            HStack(spacing: DesignTokens.compact) {
+                Button("device_contention.action.reload") { onControl(.reload) }
+                    .buttonStyle(.borderless)
+                    .disabled(isControlling)
+                Button("device_contention.action.rollback") { onControl(.rollback) }
+                    .buttonStyle(.borderless)
+                    .disabled(isControlling)
+                if isControlling {
+                    ProgressView()
+                        .controlSize(.small)
+                        .accessibilityLabel("device_contention.status.updating")
+                }
+            }
+        }
+        .accessibilityElement(children: .contain)
     }
 
     private func localized(_ key: String) -> String {

@@ -2548,8 +2548,16 @@ versioned execution planへ記録し、active request中は変更せずscheduler
    stdin close、bounded wait、terminate、killの順でprocessを必ず回収する。
 21. `[Later]` Vision/Audio encoder、embedding、classifier、background modelなど固定graph化しやすい
    auxiliary workloadからANE routingを開始する。LLM prefill/decodeはGPU baselineを維持する。
-22. `[Later]` 共有memory bandwidth競合を測定し、単独実行より改善する組み合わせに限ってCPU/GPU/ANE
-   pipeline並列化またはbounded work stealingを有効化する。
+22. `[Done]` 共有memory bandwidth競合の代表組み合わせを逐次・並列で測定するbounded adapterとprivate
+   strict profileを追加し、profile-boundで3 sample以上、出力一致、逐次実行比5%以上の改善を満たす
+   evidenceだけをhardware identity一致時にruntime起動時installする。fallback時のresource予約は
+   backendごとに原子的に引き継ぎ、容量不足の候補を実行せず次のbounded fallbackへ進める。
+   M4実機の5 sample qualificationではoutput digestがすべて一致し、CPU+MLX 40.2%、CPU+ANE 22.8%、
+   MLX+ANE 5.53%の逐次比改善で3組すべてを昇格した。profile ID別private既定path、daemon起動時の
+   strict restore、runtime profile ID／認定pair数診断、strict Swift decode、旧client fallback、Mac appの
+   英語・日本語・简体中文表示、valid-current-only last-known-good promotion、safe-point reload／rollback、
+   認証付き三言語管理API、strict evidence検証付きSwift SDK、Mac appの三言語reload／rollback操作まで
+   `[Done]`とする。合格した組み合わせに限るpipeline並列化は`[Next]`、bounded work stealingは`[Later]`とする。
 23. `[Later]` CPU/Core ML draft + GPU verifyをcorrectness-neutralなspeculative executionとして評価する。
 24. `[Later]` thermal、memory pressure、low-power modeを入力に、batch、concurrency、device assignmentを
    段階的に縮退・復元する。既存requestをcancelせず、新規admissionと次のsafe pointへだけ適用する。

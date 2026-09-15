@@ -95,6 +95,9 @@ class Qwen4RuntimeProtocolTests(unittest.TestCase):
         self.assertEqual(store.loads, 1)
         self.assertEqual(store.last_numeric, (
             tensor, "F16", contract, "numeric_compatibility", 7))
+        self.assertEqual(
+            service.numeric_diagnostics_snapshot()["artifacts_consumed"], 1
+        )
         mismatch = build_qwen4_numeric_runtime_request(
             session_id="a" * 32, sequence=2, request_id="2" * 32,
             artifact_name="weight.json", artifact_digest="b" * 64,
@@ -213,6 +216,10 @@ class Qwen4RuntimeProtocolTests(unittest.TestCase):
             "operation": "status",
         })
         self.assertTrue(status["passed"])
+        diagnostics = service.numeric_diagnostics_snapshot()
+        self.assertEqual(diagnostics["active_requests"], 0)
+        self.assertEqual(diagnostics["cancel_requests"], 1)
+        self.assertEqual(diagnostics["cancel_hits"], 1)
 
     def request(self, sequence, operation, **values):
         return {

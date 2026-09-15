@@ -149,9 +149,12 @@ class DevicePlacementPlanTests(unittest.TestCase):
                 raise TimeoutError("coreml prediction deadline")
             return "reference" if backend is ExecutionBackend.CPU else "mismatch"
 
+        reservation = scheduler.admit(request)
         result = scheduler.execute_with_fallback(
-            request, operation, lambda value, _backend: value == "reference"
+            request, operation, lambda value, _backend: value == "reference",
+            reservation=reservation,
         )
+        scheduler.complete(reservation)
         self.assertEqual(result.backend, ExecutionBackend.CPU)
         self.assertEqual(
             invoked,

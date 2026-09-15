@@ -405,7 +405,7 @@
     },
     "device_resources": {
       "type": "object",
-      "required": ["capacity", "used", "available", "active_reservations"],
+      "required": ["capacity", "used", "available", "active_reservations", "contention_profile_id", "qualified_contention_pairs", "contention_profile_loaded"],
       "properties": {
         "capacity": {
           "type": "object",
@@ -443,7 +443,10 @@
           },
           "additionalProperties": false
         },
-        "active_reservations": {"type": "integer", "minimum": 0}
+        "active_reservations": {"type": "integer", "minimum": 0},
+        "contention_profile_id": {"type": "string", "minLength": 64, "maxLength": 64},
+        "qualified_contention_pairs": {"type": "integer", "minimum": 0, "maximum": 16},
+        "contention_profile_loaded": {"type": "boolean"}
       },
       "additionalProperties": false
     }

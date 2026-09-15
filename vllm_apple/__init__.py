@@ -63,10 +63,24 @@ from .device_placement import (
     save_device_placement_plan,
 )
 from .device_resources import (
+    BandwidthContentionEvidence,
     DeviceResourceCapacityError,
     DeviceResourceRequest,
     DeviceResourceReservation,
     UnifiedDeviceResourceLedger,
+    contention_profile_id,
+)
+from .device_contention import (
+    ContentionBenchmarkConfig,
+    ContentionProfile,
+    default_contention_profile_path,
+    default_contention_profile_paths,
+    install_contention_profile,
+    load_contention_profile,
+    load_contention_profile_with_fallback,
+    promote_contention_profile,
+    run_contention_benchmark,
+    save_contention_profile,
 )
 from .execution import AppleChipProfile, AppleExecutionPlan, AppleExecutionPlanner
 from .execution_profile import detect_apple_chip_profile, load_chip_profile, save_chip_profile
@@ -246,9 +260,21 @@ __all__ = [
     "DevicePlacement",
     "DevicePlacementPlan",
     "DeviceResourceCapacityError",
+    "BandwidthContentionEvidence",
+    "ContentionBenchmarkConfig",
+    "ContentionProfile",
+    "default_contention_profile_path",
+    "default_contention_profile_paths",
     "DeviceResourceRequest",
     "DeviceResourceReservation",
     "UnifiedDeviceResourceLedger",
+    "install_contention_profile",
+    "contention_profile_id",
+    "load_contention_profile",
+    "load_contention_profile_with_fallback",
+    "promote_contention_profile",
+    "run_contention_benchmark",
+    "save_contention_profile",
     "ElasticMemoryController",
     "ElasticMemoryDecision",
     "ExecutionPhaseProfiler",

@@ -111,6 +111,9 @@ class Qwen4RuntimeUnixServer:
         self.connection_timeout_seconds = connection_timeout_seconds
         self._listener: socket.socket | None = None
         self._socket_identity: tuple[int, int] | None = None
+        self._connections: set[socket.socket] = set()
+        self._busy_connections: set[socket.socket] = set()
+        self._connections_lock = threading.Lock()
 
     def start(self) -> None:
         if self._listener is not None:
@@ -174,26 +177,58 @@ class Qwen4RuntimeUnixServer:
             worker.join(timeout=self.connection_timeout_seconds)
 
     def serve_connection(self, connection: socket.socket) -> None:
-        if _peer_uid(connection) != os.getuid():
-            raise PermissionError("Qwen4 runtime peer belongs to another user")
-        connection.settimeout(self.connection_timeout_seconds)
-        for _ in range(MAX_COMMANDS_PER_CONNECTION):
-            try:
-                request = receive_qwen4_runtime_frame(connection)
-            except EOFError:
-                return
-            response = self.service.handle(
-                request, cancellation=_SocketCancellationSignal(connection))
-            send_qwen4_runtime_frame(connection, response)
-            if request.get("operation") == "shutdown" and response.get("passed") is True:
-                return
-        raise ValueError("Qwen4 runtime connection command limit reached")
+        with self._connections_lock:
+            self._connections.add(connection)
+        try:
+            if _peer_uid(connection) != os.getuid():
+                raise PermissionError("Qwen4 runtime peer belongs to another user")
+            connection.settimeout(self.connection_timeout_seconds)
+            for _ in range(MAX_COMMANDS_PER_CONNECTION):
+                if self.service.closed:
+                    return
+                try:
+                    request = receive_qwen4_runtime_frame(connection)
+                except (EOFError, OSError):
+                    return
+                with self._connections_lock:
+                    self._busy_connections.add(connection)
+                try:
+                    response = self.service.handle(
+                        request, cancellation=_SocketCancellationSignal(connection))
+                    try:
+                        send_qwen4_runtime_frame(connection, response)
+                    except OSError:
+                        return
+                finally:
+                    with self._connections_lock:
+                        self._busy_connections.discard(connection)
+                if request.get("operation") == "shutdown" and response.get("passed") is True:
+                    self._interrupt_connections(excluding=connection)
+                    return
+            raise ValueError("Qwen4 runtime connection command limit reached")
+        finally:
+            with self._connections_lock:
+                self._connections.discard(connection)
+                self._busy_connections.discard(connection)
 
     def close(self) -> None:
+        self._interrupt_connections()
         if self._listener is not None:
             self._listener.close()
             self._listener = None
         self._unlink_owned_socket()
+
+    def _interrupt_connections(self, *, excluding: socket.socket | None = None) -> None:
+        with self._connections_lock:
+            connections = tuple(
+                connection for connection in self._connections
+                if connection is not excluding and connection not in self._busy_connections
+            )
+        for connection in connections:
+            try:
+                connection.shutdown(socket.SHUT_RDWR)
+            except OSError:
+                pass
 
     def _unlink_owned_socket(self) -> None:
         try:
