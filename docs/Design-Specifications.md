@@ -2557,7 +2557,8 @@ versioned execution planへ記録し、active request中は変更せずscheduler
    strict restore、runtime profile ID／認定pair数診断、strict Swift decode、旧client fallback、Mac appの
    英語・日本語・简体中文表示、valid-current-only last-known-good promotion、safe-point reload／rollback、
    認証付き三言語管理API、strict evidence検証付きSwift SDK、Mac appの三言語reload／rollback操作まで
-   `[Done]`とする。合格した組み合わせに限るpipeline並列化は`[Next]`、bounded work stealingは`[Later]`とする。
+   `[Done]`とする。全device pairの認定とresourceの原子的一括予約を必須にする2〜3 stage bounded pipeline
+   並列化も`[Done]`とし、contention認定、resource上限、request優先度を守るbounded work stealingを`[Next]`とする。
 23. `[Later]` CPU/Core ML draft + GPU verifyをcorrectness-neutralなspeculative executionとして評価する。
 24. `[Later]` thermal、memory pressure、low-power modeを入力に、batch、concurrency、device assignmentを
    段階的に縮退・復元する。既存requestをcancelせず、新規admissionと次のsafe pointへだけ適用する。

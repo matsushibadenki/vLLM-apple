@@ -162,6 +162,53 @@ class UnifiedDeviceResourceLedger:
             self._reservations[reservation_id] = request
             return DeviceResourceReservation(reservation_id, request)
 
+    def reserve_many(
+        self, requests: tuple[DeviceResourceRequest, ...]
+    ) -> tuple[DeviceResourceReservation, ...]:
+        """Atomically reserve a bounded, contention-qualified pipeline group."""
+        if (
+            not 2 <= len(requests) <= 3
+            or any(not isinstance(request, DeviceResourceRequest) for request in requests)
+            or len({request.backend for request in requests}) != len(requests)
+        ):
+            raise ValueError("pipeline requires two or three distinct device backends")
+        combined = {key: 0 for key in self._capacity}
+        for request in requests:
+            combined["unified_memory_bytes"] += request.unified_memory_bytes
+            combined["cpu_threads"] += request.cpu_threads
+            combined["gpu_command_queues"] += request.gpu_command_queues
+            combined["ane_tasks"] += request.ane_tasks
+            combined["bandwidth_slots"] += request.bandwidth_slots
+        with self._lock:
+            active_backends = {value.backend for value in self._reservations.values()}
+            requested_backends = {request.backend for request in requests}
+            all_backends = tuple(active_backends | requested_backends)
+            if any(
+                frozenset((first, second)) not in self._qualified_pairs
+                for index, first in enumerate(all_backends)
+                for second in all_backends[index + 1:]
+            ):
+                raise DeviceResourceCapacityError(
+                    "device resources unavailable: bandwidth_contention_unqualified"
+                )
+            exhausted = tuple(
+                key for key, value in combined.items()
+                if self._used[key] + value > self._capacity[key]
+            )
+            if exhausted:
+                raise DeviceResourceCapacityError(
+                    "device resources unavailable: " + ",".join(exhausted)
+                )
+            reservations = tuple(
+                DeviceResourceReservation(uuid.uuid4().hex, request)
+                for request in requests
+            )
+            for key, value in combined.items():
+                self._used[key] += value
+            for reservation in reservations:
+                self._reservations[reservation.reservation_id] = reservation.request
+            return reservations
+
     def transfer(
         self, reservation_id: str, request: DeviceResourceRequest
     ) -> DeviceResourceReservation:

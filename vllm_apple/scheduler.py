@@ -17,6 +17,11 @@ from .device_resources import (
     UnifiedDeviceResourceLedger,
     contention_profile_id,
 )
+from .device_pipeline import (
+    DevicePipelineExecutor,
+    DevicePipelineResult,
+    DevicePipelineStage,
+)
 from .operator_dispatch import (
     BackendExecutionError,
     OperatorDispatchDecision,
@@ -292,6 +297,13 @@ class BasicScheduler:
         self._maintenance_owner: str | None = None
         self._queue = PriorityScheduleQueue(maximum_queued_requests)
         self._queued_active: dict[str, Reservation] = {}
+        self._device_pipeline = DevicePipelineExecutor(self.device_resources)
+
+    def execute_device_pipeline(
+        self, stages: tuple[DevicePipelineStage[_SafePointResult], ...]
+    ) -> DevicePipelineResult[_SafePointResult]:
+        """Execute a bounded pipeline only when its device pairs are qualified."""
+        return self._device_pipeline.execute(stages)
 
     def choose_backend(self, request: ScheduleRequest) -> Backend:
         decision = self.dispatch_decision(request)

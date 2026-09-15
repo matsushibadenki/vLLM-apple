@@ -70,6 +70,11 @@ from .device_resources import (
     UnifiedDeviceResourceLedger,
     contention_profile_id,
 )
+from .device_pipeline import (
+    DevicePipelineExecutor,
+    DevicePipelineResult,
+    DevicePipelineStage,
+)
 from .device_contention import (
     ContentionBenchmarkConfig,
     ContentionProfile,
@@ -260,6 +265,9 @@ __all__ = [
     "DevicePlacement",
     "DevicePlacementPlan",
     "DeviceResourceCapacityError",
+    "DevicePipelineExecutor",
+    "DevicePipelineResult",
+    "DevicePipelineStage",
     "BandwidthContentionEvidence",
     "ContentionBenchmarkConfig",
     "ContentionProfile",

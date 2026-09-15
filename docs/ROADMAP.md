@@ -878,11 +878,11 @@ Unified Memoryとmemory bandwidthを共有する一つの実行系として管�
 - `[Done]` contention runtime診断のstrict typed Swift SDK、旧client unavailable fallback、Mac app英語・日本語・简体中文表示（Swift 33 tests・Mac sample build合格）
 - `[Done]` contention profileのvalid-current-only last-known-good promotion、破損時fallback、safe-point reload／rollback、認証付きstrict管理APIと三言語応答
 - `[Done]` contention reload／rollbackのtyped Swift SDK、strict evidence検証、Mac app英語・日本語・简体中文操作UI
-- `[Later]` shared resource ledger導入後のbounded work stealing
+- `[Next]` contention認定、resource上限、優先度を守るbounded work stealing
 - `[Later]` memory pressure、thermal state、low-power modeに応じたconcurrency／batch／device割当の段階的縮退
 - `[Later]` Vision/Audio encoderとembedding/classifierから開始するANE routing、GPU LLM pipelineとの非同期連携
 - `[Later]` CPUまたはANE draft + GPU verifyによるheterogeneous speculative execution
-- `[Next]` contention合格済み組み合わせに限定したCPU／GPU／ANE pipeline並列化
+- `[Done]` contention全ペア合格時だけ原子的に一括予約するCPU／GPU／ANE bounded pipeline並列化
 - `[Later]` hardware／OS／model／shape別autotuning profile、期限切れ、quarantine、last-known-good rollback
 - `[Later]` backend別correctness比較、timeout／compile failure／numerical mismatch時のANE → GPU → CPU fallback
 - `[Later]` TTFT、TPOT、tokens/sec、frames/sec、energy/request、peak Unified Memoryを用いたpromotion gate
@@ -1233,7 +1233,8 @@ Unified Memoryとmemory bandwidthを共有する一つの実行系として管�
 197. `[Done]` contention profile runtime診断のstrict typed Swift SDK、旧client fallback、Mac app三言語表示、Swift 33 tests・sample build合格
 198. `[Done]` contention profileのcurrent／last-known-good promotion、safe-point daemon reload／rollback、認証付き三言語管理API
 199. `[Done]` contention reload／rollbackのtyped Swift SDK、strict evidence検証、Mac app三言語操作UI
-200. `[Next]` contention合格済み組み合わせに限定したCPU／GPU／ANE pipeline並列化
+200. `[Done]` contention全ペア合格時だけ原子的に一括予約するCPU／GPU／ANE bounded pipeline並列化
+201. `[Next]` contention認定、resource上限、request優先度を守るbounded work stealing
 
 この順序により、まず推論runtimeの実model安定性を確立し、その境界を壊さずにoptimizerを
 別processとして追加する。構造pruningはquantization、calibration、評価gateの後に着手する。

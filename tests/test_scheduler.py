@@ -11,9 +11,11 @@ from vllm_apple.execution import (
     WorkloadPhase,
 )
 from vllm_apple.device_resources import (
+    BandwidthContentionEvidence,
     DeviceResourceCapacityError,
     UnifiedDeviceResourceLedger,
 )
+from vllm_apple.device_pipeline import DevicePipelineStage
 from vllm_apple.operator_dispatch import OperatorDispatchDecision
 from vllm_apple.scheduler import (
     BasicScheduler,
@@ -65,6 +67,29 @@ def execution_plan(plan_id: str, prefill_batch: int) -> AppleExecutionPlan:
 
 
 class SchedulerTests(unittest.TestCase):
+    def test_executes_only_contention_qualified_device_pipeline(self) -> None:
+        scheduler = BasicScheduler(hardware(), 500)
+        profile_id = scheduler.device_resources.snapshot()["contention_profile_id"]
+        scheduler.device_resources.install_contention_evidence(
+            BandwidthContentionEvidence(
+                profile_id,
+                ExecutionBackend.CPU,
+                ExecutionBackend.NATIVE_MLX,
+                100,
+                90,
+                3,
+                True,
+            )
+        )
+        result = scheduler.execute_device_pipeline((
+            DevicePipelineStage("tokenize", ExecutionBackend.CPU, 10, lambda: "tokens"),
+            DevicePipelineStage(
+                "prefill", ExecutionBackend.NATIVE_MLX, 20, lambda: "hidden-state"
+            ),
+        ))
+        self.assertEqual(result.outputs, ("tokens", "hidden-state"))
+        self.assertEqual(scheduler.device_resources.snapshot()["active_reservations"], 0)
+
     def test_priority_queue_is_fifo_within_each_priority(self) -> None:
         scheduler = BasicScheduler(hardware(), 500)
         background = scheduler.submit(ScheduleRequest("decode", 1, Priority.BACKGROUND))
