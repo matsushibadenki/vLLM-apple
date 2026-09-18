@@ -724,6 +724,7 @@ def build_parser() -> argparse.ArgumentParser:
     server.add_argument("--port", type=int, default=8000)
     server.add_argument("--max-concurrent-requests", type=int, default=32)
     server.add_argument("--backend-executable")
+    server.add_argument("--backend-kind", choices=("vllm_metal", "mlx_lm"), default="vllm_metal")
     server.add_argument("--backend-port", type=int, default=8001)
     server.add_argument("--backend-startup-timeout", type=float, default=600.0)
     server.add_argument("--max-model-len", type=int)
@@ -2036,6 +2037,7 @@ def main(argv: list[str] | None = None) -> int:
                 max_concurrent_requests=arguments.max_concurrent_requests,
                 model=arguments.model,
                 backend_executable=arguments.backend_executable,
+                backend_kind=arguments.backend_kind,
                 backend_port=arguments.backend_port,
                 backend_startup_timeout=arguments.backend_startup_timeout,
                 max_model_len=arguments.max_model_len,

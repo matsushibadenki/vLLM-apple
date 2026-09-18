@@ -6,6 +6,8 @@ import textwrap
 import threading
 import unittest
 import urllib.request
+from unittest.mock import Mock
+from unittest.mock import patch
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
@@ -15,10 +17,12 @@ from vllm_apple.backend import (
     BackendConfig,
     BackendConfigurationError,
     BackendProcess,
+    BackendStartupError,
     OpenAIProxyEngine,
     supports_kernel_tuning_middleware,
 )
 from vllm_apple.compat import inspect_backend
+from vllm_apple.cli import build_parser, main
 from vllm_apple.kernel_context import (
     KERNEL_TUNING_ACCEPTED_HEADER,
     KERNEL_TUNING_CONTEXT_HEADER,
@@ -94,6 +98,29 @@ class FakeVLLMHandler(BaseHTTPRequestHandler):
 
 
 class BackendConfigTests(unittest.TestCase):
+    def test_top_level_serve_forwards_mlx_backend_choice(self) -> None:
+        arguments = build_parser().parse_args([
+            "serve", "models/gemma", "--backend-kind", "mlx_lm",
+            "--backend-executable", "/path/to/mlx_lm.server",
+        ])
+        self.assertEqual(arguments.backend_kind, "mlx_lm")
+        with patch("vllm_apple.cli.serve") as serve:
+            self.assertEqual(main([
+                "serve", "models/gemma", "--backend-kind", "mlx_lm",
+                "--backend-executable", "/path/to/mlx_lm.server",
+            ]), 0)
+        self.assertEqual(serve.call_args.kwargs["backend_kind"], "mlx_lm")
+
+    def test_managed_mlx_models_advertise_loaded_alias_not_unrelated_cache(self) -> None:
+        process = Mock()
+        process.config.backend_kind = "mlx_lm"
+        process.ready = True
+        engine = OpenAIProxyEngine("http://127.0.0.1:1", process)
+        self.assertEqual(engine.models(), [{"id": "default_model", "object": "model"}])
+        process.ready = False
+        with self.assertRaisesRegex(Exception, "managed backend is not ready"):
+            engine.models()
+
     def test_factory_preserves_explicit_mlx_backend_kind(self) -> None:
         from vllm_apple.backend import make_backend_config
 
@@ -243,6 +270,19 @@ class BackendConfigTests(unittest.TestCase):
             finally:
                 process.stop()
             self.assertFalse(process.running)
+
+    def test_managed_process_rejects_occupied_backend_port_before_spawn(self) -> None:
+        listener = ThreadingHTTPServer(("127.0.0.1", 0), FakeVLLMHandler)
+        process = BackendProcess(
+            BackendConfig("test-model", Path("/bin/false"), port=listener.server_port)
+        )
+        try:
+            with self.assertRaises(BackendStartupError) as raised:
+                process.start()
+            self.assertEqual(raised.exception.code, "backend_port_in_use")
+            self.assertFalse(process.running)
+        finally:
+            listener.server_close()
 
 
 class ProxyIntegrationTests(unittest.TestCase):

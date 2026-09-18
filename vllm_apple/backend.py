@@ -4,6 +4,7 @@ import hashlib
 import json
 import os
 import re
+import socket
 import subprocess
 import tempfile
 import threading
@@ -191,6 +192,14 @@ class BackendProcess:
         with self._lock:
             if self._process is not None:
                 raise BackendStartupError("backend process was already started")
+            family = socket.AF_INET6 if self.config.host == "::1" else socket.AF_INET
+            try:
+                with socket.socket(family, socket.SOCK_STREAM) as probe:
+                    probe.bind((self.config.host, self.config.port))
+            except OSError as error:
+                raise BackendStartupError(
+                    "backend port is unavailable", code="backend_port_in_use"
+                ) from error
             environment = os.environ.copy()
             environment["PYTHONUNBUFFERED"] = "1"
             try:
@@ -449,6 +458,11 @@ class OpenAIProxyEngine:
         return BackendHTTPError(error.code, code, message)
 
     def models(self) -> list[dict[str, Any]]:
+        if self.process is not None and self.process.config.backend_kind == "mlx_lm":
+            if not self.process.ready:
+                raise BackendHTTPError(503, "backend_unavailable", "managed backend is not ready")
+            # MLX LM lists cached Hub repositories, not its CLI-loaded local model.
+            return [{"id": "default_model", "object": "model"}]
         try:
             with urllib.request.urlopen(self._request("/v1/models"), timeout=5.0) as response:
                 payload = self._read_json(response)

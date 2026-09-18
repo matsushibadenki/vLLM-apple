@@ -769,7 +769,7 @@ def serve(
             startup_timeout=backend_startup_timeout,
             backend_kind=backend_kind,
         )
-        backend_tuning_enabled = enable_metal_tuning and supports_kernel_tuning_middleware(
+        backend_tuning_enabled = backend_kind == "vllm_metal" and enable_metal_tuning and supports_kernel_tuning_middleware(
             resolved_config.executable
         )
         config = make_backend_config(
@@ -881,7 +881,7 @@ def serve(
                 "runtime.metal_tuning.startup",
                 {"status": "disabled", "reason": "backend_middleware_unsupported"},
             )
-        if enable_runtime_probes and require_compatible_backend:
+        if backend_kind == "vllm_metal" and enable_runtime_probes and require_compatible_backend:
             assert chip is not None and versions is not None
             try:
                 coordinator = RuntimeProbeCoordinator(

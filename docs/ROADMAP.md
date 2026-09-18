@@ -287,6 +287,7 @@ Phase 1を完了とする条件：
 - `[Done]` `vllm-apple serve <model>` だけで実際の対応modelを起動できることを検証する
 - `[Done]` OpenAI互換のnon-streaming/streaming chatが実modelで成功する
 - `[Done]` Swift ManagedRuntimeからGemma 2 2B IT 4-bitのMLX load、UDS streaming chat、shutdown実model E2E
+- `[Done]` MLX backendをトップレベルserveから選択、既存backend portの誤接続拒否、Gemma 2 2B IT 4-bitでnon-stream／SSE実機スモーク、Mac sampleのモデル付き起動設定
 - `[Done]` modelに応じた安全なcontextが自動設定される
 - `[Done]` memory pressure時に新規workloadを抑制し、daemonが異常終了しない
 - `[Done]` backend errorが構造化され、Swift側で復旧可能性を判定できる

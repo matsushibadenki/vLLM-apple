@@ -44,10 +44,11 @@ final class AppModel: ObservableObject {
     private static let maximumResponseCharacters = 131_072
 
     @Published var phase: ConnectionPhase = .disconnected
-    @Published var modelID = "local-model"
+    @Published var modelID: String
     @Published var prompt = ""
     @Published private(set) var messages: [TranscriptMessage] = []
     @Published private(set) var isSending = false
+    @Published private(set) var inferenceReady = false
     @Published private(set) var errorKey: String?
     @Published private(set) var detail = ""
     @Published private(set) var transportLabel = "HTTP · 127.0.0.1:8000"
@@ -69,6 +70,7 @@ final class AppModel: ObservableObject {
     private let qualificationStore: QualificationReportStore
     private let promotionTrustedCAURL: URL?
     private let promotionSignerSHA256: String?
+    private let daemonArguments: [String]
     private var client: (any VLLMAppleRuntimeClient)?
     private var managedRuntime: ManagedRuntime?
     private var eventTask: Task<Void, Never>?
@@ -79,6 +81,25 @@ final class AppModel: ObservableObject {
         environment: [String: String] = ProcessInfo.processInfo.environment,
         qualificationStore: QualificationReportStore = QualificationReportStore()
     ) {
+        let backendKind = environment["VLLM_APPLE_BACKEND_KIND"]
+        let configuredModel = environment["VLLM_APPLE_MODEL_PATH"]?.trimmingCharacters(
+            in: .whitespacesAndNewlines
+        )
+        var arguments: [String] = []
+        if let configuredModel, !configuredModel.isEmpty {
+            arguments.append(configuredModel)
+            if let backendKind, !backendKind.isEmpty {
+                arguments.append(contentsOf: ["--backend-kind", backendKind])
+            }
+            if let executable = environment["VLLM_APPLE_BACKEND_EXECUTABLE"],
+               !executable.isEmpty {
+                arguments.append(contentsOf: ["--backend-executable", executable])
+            }
+        }
+        daemonArguments = arguments
+        modelID = environment["VLLM_APPLE_CHAT_MODEL_ID"] ?? (
+            backendKind == "mlx_lm" ? "default_model" : configuredModel ?? ""
+        )
         let daemonURL = environment["VLLM_APPLE_DAEMON_PATH"].map {
             URL(fileURLWithPath: $0)
         }
@@ -110,6 +131,7 @@ final class AppModel: ObservableObject {
         devicePlacement = .disabled
         deviceContention = .unavailable
         schedulingObservability = .unavailable
+        inferenceReady = false
         startupProgress = nil
         reloadQualificationReports()
 
@@ -121,11 +143,12 @@ final class AppModel: ObservableObject {
                     port: 0,
                     socketPath: resources.socketURL.path,
                     sessionTokenFileURL: resources.sessionTokenURL,
+                    daemonArguments: daemonArguments,
                     restartPolicy: .onFailure(maxAttempts: 2, delay: .seconds(1))
                 )
                 managedRuntime = runtime
                 transportLabel = "UDS · \(resources.socketURL.lastPathComponent)"
-                try await runtime.start(timeout: .seconds(30))
+                try await runtime.start(timeout: .seconds(120))
                 client = await runtime.client
             } else {
                 client = HTTPRuntimeClient(baseURL: URL(string: "http://127.0.0.1:8000")!)
@@ -134,6 +157,7 @@ final class AppModel: ObservableObject {
 
             guard let client else { return }
             let health = try await client.health()
+            inferenceReady = health.inferenceReady
             kvCalibration = try await client.kvCalibration()
             nativeV2Tuning = try await client.nativeV2Tuning()
             devicePlacement = try await client.devicePlacement()
@@ -155,7 +179,7 @@ final class AppModel: ObservableObject {
 
     func send() {
         let cleanPrompt = prompt.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !isSending, phase == .ready, !cleanPrompt.isEmpty else { return }
+        guard !isSending, phase == .ready, inferenceReady, !cleanPrompt.isEmpty else { return }
         guard cleanPrompt.count <= Self.maximumPromptCharacters else {
             report(key: "chat.error.prompt_too_long", detail: "")
             return
@@ -377,6 +401,7 @@ final class AppModel: ObservableObject {
         client = nil
         if clearStatus {
             phase = .disconnected
+            inferenceReady = false
             contextWarning = nil
             kvCalibration = nil
             nativeV2Tuning = .idle
@@ -430,6 +455,9 @@ final class AppModel: ObservableObject {
                     if case .string(let value) = event.payload["state"],
                        let state = RuntimeState(rawValue: value) {
                         self.apply(state)
+                    }
+                    if case .bool(let ready) = event.payload["inference_ready"] {
+                        self.inferenceReady = ready
                     }
                     if let reevaluation = event.contextReevaluation {
                         self.contextWarning = reevaluation.status == .reduced ? reevaluation : nil

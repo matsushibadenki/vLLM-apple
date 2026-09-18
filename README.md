@@ -22,7 +22,9 @@ python3 -m vllm_apple hardware
 python3 -m vllm_apple doctor
 python3 -m vllm_apple context --model-memory-gb 8 --kv-bytes-per-token 524288
 python3 -m vllm_apple serve
-python3 -m vllm_apple serve mlx-community/your-model --max-model-len 8192
+python3 -m vllm_apple serve /absolute/path/to/model --max-model-len 8192
+python3 -m vllm_apple serve /absolute/path/to/MLX-model \
+  --backend-kind mlx_lm --backend-executable /absolute/path/to/mlx_lm.server
 python3 -m vllm_apple serve --socket-path /tmp/vllm-apple.sock \
   --session-token-file /tmp/vllm-apple.token
 ```
@@ -30,7 +32,7 @@ python3 -m vllm_apple serve --socket-path /tmp/vllm-apple.sock \
 サーバーは明示指定しない限り `127.0.0.1` のみにbindします。推論backendが未設定の
 場合もhealth、hardware、runtime profile APIは利用できます。
 
-modelを指定した場合は、別processのvLLM-Metal serverをloopback interface上で起動し、
+modelを指定した場合は、選択したvLLM-MetalまたはMLX LM serverを別processでloopback interface上に起動し、
 OpenAI APIをcontrol daemon経由でproxyします。SSEはresponse全体を保持せず、小さいchunkで
 転送します。`doctor` が互換環境を確認できない場合は起動を拒否します。異なる環境を明示的に
 利用する場合は `--backend-executable /path/to/vllm` を指定してください。
@@ -67,6 +69,29 @@ cd samples/VLLMAppleChat
 swift run
 VLLM_APPLE_DAEMON_PATH=/path/to/vllm-appled swift run
 ```
+
+### 実モデルでチャットを試す
+
+MLX LMの`--model`で起動したモデルは、チャットAPIでは`default_model`として参照します。
+`/v1/models`も管理中のこのaliasだけを返します。モデル未読込時はMacアプリの送信ボタンを無効にします。
+既存のdaemonを使う場合は、別terminalで次を実行してから`swift run`します。
+
+```bash
+python3 -m vllm_apple serve /absolute/path/to/MLX-model \
+  --backend-kind mlx_lm \
+  --backend-executable /absolute/path/to/mlx_lm.server \
+  --max-model-len 4096
+curl http://127.0.0.1:8000/health
+python3 -m vllm_apple.soak --url http://127.0.0.1:8000 \
+  --mode chat-mixed --model default_model --duration 5 --concurrency 1
+cd samples/VLLMAppleChat
+VLLM_APPLE_CHAT_MODEL_ID=default_model swift run
+```
+
+Macアプリにdaemonを起動させる場合は、`VLLM_APPLE_DAEMON_PATH`に実行可能な`vllm-appled`、
+`VLLM_APPLE_MODEL_PATH`にモデルの絶対path、`VLLM_APPLE_BACKEND_KIND=mlx_lm`、
+`VLLM_APPLE_BACKEND_EXECUTABLE`に`mlx_lm.server`の絶対pathを指定します。
+この場合、アプリのモデルIDは既定で`default_model`になり、モデルload完了後に送信できます。
 
 ## 同時負荷とメモリ安定性の検証
 
