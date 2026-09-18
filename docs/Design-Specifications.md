@@ -2558,10 +2558,16 @@ versioned execution planへ記録し、active request中は変更せずscheduler
    英語・日本語・简体中文表示、valid-current-only last-known-good promotion、safe-point reload／rollback、
    認証付き三言語管理API、strict evidence検証付きSwift SDK、Mac appの三言語reload／rollback操作まで
    `[Done]`とする。全device pairの認定とresourceの原子的一括予約を必須にする2〜3 stage bounded pipeline
-   並列化も`[Done]`とし、contention認定、resource上限、request優先度を守るbounded work stealingを`[Next]`とする。
+   並列化も`[Done]`とする。probe承認済みfallbackとcontention認定がある場合だけ優先度queueの先頭を
+   idle backendへ移し、予約失敗時に元のFIFO位置へ戻すbounded work stealingも`[Done]`とする。
+   memory pressure、thermal state、low-power modeに応じた新規admissionの同時数・batch・critical時CPU配置の
+   段階的縮退、稼働中requestを維持したsafe-point回復を`[Done]`とする。device assignment、queue wait、
+   fallback、contention、thermal/power decisionの固定キー・上限付きruntime observabilityとstrict schemaを
+   `[Done]`とする。request ID、入力、operator名、任意のerror文字列を記録しない。typed Swift SDKと
+   Mac app英語・日本語・简体中文diagnosticsを`[Next]`とする。
 23. `[Later]` CPU/Core ML draft + GPU verifyをcorrectness-neutralなspeculative executionとして評価する。
-24. `[Later]` thermal、memory pressure、low-power modeを入力に、batch、concurrency、device assignmentを
-   段階的に縮退・復元する。既存requestをcancelせず、新規admissionと次のsafe pointへだけ適用する。
+24. `[Done]` thermal、memory pressure、low-power modeを入力に、batch、concurrency、device assignmentを
+   段階的に縮退・復元する。既存requestをcancelせず、新規admissionを制限し、緩和は次のsafe pointで適用する。
 25. `[Later]` hardware、OS、Core ML、MLX、Metal、model、shapeに結び付いたprofileを保存し、期限切れ、
    quarantine、last-known-good rollbackを既存kernel profileと同じfail-closed policyで管理する。
 

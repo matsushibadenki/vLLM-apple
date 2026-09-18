@@ -13,11 +13,13 @@ from vllm_apple.execution import (
 from vllm_apple.device_resources import (
     BandwidthContentionEvidence,
     DeviceResourceCapacityError,
+    DeviceResourceRequest,
     UnifiedDeviceResourceLedger,
 )
 from vllm_apple.device_pipeline import DevicePipelineStage
 from vllm_apple.operator_dispatch import OperatorDispatchDecision
 from vllm_apple.scheduler import (
+    AdaptiveScheduleCapacityError,
     BasicScheduler,
     ExecutionPlanAdmissionError,
     MaintenanceInProgressError,
@@ -25,7 +27,9 @@ from vllm_apple.scheduler import (
     ScheduleQueueFullError,
     ScheduleRequest,
 )
-from vllm_apple.types import Backend, HardwareInfo, MemoryInfo, Priority
+from vllm_apple.types import (
+    Backend, HardwareInfo, MemoryInfo, MemoryPressure, PowerMode, Priority, ThermalState,
+)
 
 
 def hardware(apple: bool = True) -> HardwareInfo:
@@ -67,6 +71,123 @@ def execution_plan(plan_id: str, prefill_batch: int) -> AppleExecutionPlan:
 
 
 class SchedulerTests(unittest.TestCase):
+    def test_adaptive_policy_limits_new_work_without_cancelling_active_work(self) -> None:
+        scheduler = BasicScheduler(hardware(), 500)
+        active = scheduler.admit(ScheduleRequest("attention", 10, batch_size=8))
+        self.assertEqual(
+            scheduler.update_adaptive_inputs(pressure=MemoryPressure.WARNING), "applied"
+        )
+        self.assertEqual(scheduler.adaptive_scheduling_snapshot()["level"], 1)
+        with self.assertRaises(AdaptiveScheduleCapacityError):
+            scheduler.execute_device_pipeline((
+                DevicePipelineStage("cpu", ExecutionBackend.CPU, 1, lambda: 1),
+                DevicePipelineStage("gpu", ExecutionBackend.NATIVE_MLX, 1, lambda: 2),
+            ))
+        with self.assertRaisesRegex(ExecutionPlanAdmissionError, "adaptive"):
+            scheduler.admit(ScheduleRequest("attention", 10, batch_size=8))
+        second = scheduler.admit(ScheduleRequest("attention", 10))
+        with self.assertRaises(AdaptiveScheduleCapacityError):
+            scheduler.admit(ScheduleRequest("attention", 10))
+        self.assertEqual(scheduler.memory.reserved_bytes, 20)
+        self.assertEqual(
+            scheduler.update_adaptive_inputs(pressure=MemoryPressure.NORMAL), "deferred"
+        )
+        self.assertEqual(scheduler.adaptive_scheduling_snapshot()["level"], 1)
+        scheduler.complete(second)
+        self.assertEqual(scheduler.adaptive_scheduling_snapshot()["pending_level"], 0)
+        scheduler.complete(active)
+        self.assertEqual(scheduler.adaptive_scheduling_snapshot()["level"], 0)
+
+    def test_critical_state_routes_new_work_to_cpu_and_disables_parallelism(self) -> None:
+        scheduler = BasicScheduler(hardware(), 500)
+        self.assertEqual(
+            scheduler.update_adaptive_inputs(
+                thermal=ThermalState.CRITICAL, power=PowerMode.LOW_POWER
+            ), "applied"
+        )
+        self.assertEqual(scheduler.choose_backend(ScheduleRequest("attention", 10)), Backend.CPU)
+        with self.assertRaisesRegex(ExecutionPlanAdmissionError, "adaptive"):
+            scheduler.admit(ScheduleRequest("attention", 10, batch_size=2))
+        reservation = scheduler.admit(ScheduleRequest("attention", 10))
+        with self.assertRaises(AdaptiveScheduleCapacityError):
+            scheduler.admit(ScheduleRequest("attention", 10))
+        self.assertEqual(
+            scheduler.update_adaptive_inputs(thermal=ThermalState.UNKNOWN), "ignored"
+        )
+        scheduler.complete(reservation)
+        self.assertEqual(
+            scheduler.update_adaptive_inputs(
+                thermal=ThermalState.NOMINAL, power=PowerMode.AUTOMATIC
+            ), "applied"
+        )
+        self.assertEqual(scheduler.adaptive_scheduling_snapshot()["level"], 0)
+
+    def test_work_steal_is_bounded_and_preserves_priority(self) -> None:
+        class ProbedDispatcher:
+            def dispatch(self, request):
+                return OperatorDispatchDecision(
+                    request.operator,
+                    ExecutionBackend.NATIVE_MLX,
+                    (ExecutionBackend.CPU,),
+                    (), (), "preferred_probe_passed",
+                )
+
+        scheduler = BasicScheduler(hardware(), 500, ProbedDispatcher())
+        profile_id = scheduler.device_resources.snapshot()["contention_profile_id"]
+        source = scheduler.device_resources.reserve(
+            DeviceResourceRequest.for_backend(ExecutionBackend.NATIVE_MLX, 10)
+        )
+        background = scheduler.submit(ScheduleRequest("attention", 10, Priority.BACKGROUND))
+        realtime = scheduler.submit(ScheduleRequest("attention", 10, Priority.REALTIME))
+        self.assertIsNone(scheduler.steal_next(ExecutionBackend.CPU))
+        scheduler.device_resources.install_contention_evidence(
+            BandwidthContentionEvidence(
+                profile_id, ExecutionBackend.NATIVE_MLX, ExecutionBackend.CPU,
+                100, 90, 3, True,
+            )
+        )
+        stolen = scheduler.steal_next(ExecutionBackend.CPU)
+        self.assertIsNotNone(stolen)
+        self.assertEqual(stolen.token, realtime)
+        self.assertEqual(stolen.reservation.backend, Backend.CPU)
+        self.assertEqual(scheduler.scheduling_observability_snapshot()["steals"], 1)
+        self.assertIsNone(scheduler.steal_next(ExecutionBackend.CPU))
+        self.assertEqual(scheduler.queue_snapshot()["background"], 1)
+        self.assertTrue(scheduler.complete_queued(realtime))
+        self.assertEqual(scheduler.admit_next(timeout=0).token, background)
+        self.assertTrue(scheduler.complete_queued(background))
+        scheduler.device_resources.release(source.reservation_id)
+
+    def test_work_steal_capacity_failure_restores_fifo_and_memory(self) -> None:
+        class ProbedDispatcher:
+            def dispatch(self, request):
+                return OperatorDispatchDecision(
+                    request.operator, ExecutionBackend.NATIVE_MLX,
+                    (ExecutionBackend.CPU,), (), (), "preferred_probe_passed",
+                )
+
+        scheduler = BasicScheduler(hardware(), 10, ProbedDispatcher())
+        profile_id = scheduler.device_resources.snapshot()["contention_profile_id"]
+        scheduler.device_resources.install_contention_evidence(
+            BandwidthContentionEvidence(
+                profile_id, ExecutionBackend.NATIVE_MLX, ExecutionBackend.CPU,
+                100, 90, 3, True,
+            )
+        )
+        source = scheduler.device_resources.reserve(
+            DeviceResourceRequest.for_backend(ExecutionBackend.NATIVE_MLX, 1)
+        )
+        first = scheduler.submit(ScheduleRequest("attention", 11))
+        second = scheduler.submit(ScheduleRequest("attention", 1))
+        self.assertIsNone(scheduler.steal_next(ExecutionBackend.CPU))
+        self.assertEqual(scheduler.memory.reserved_bytes, 0)
+        self.assertEqual(scheduler.queue_snapshot()["queued"], 2)
+        self.assertEqual(scheduler._queue.peek()[0], first)
+        self.assertTrue(scheduler.cancel(first))
+        self.assertEqual(scheduler.steal_next(ExecutionBackend.CPU).token, second)
+        self.assertTrue(scheduler.complete_queued(second))
+        scheduler.device_resources.release(source.reservation_id)
+
     def test_executes_only_contention_qualified_device_pipeline(self) -> None:
         scheduler = BasicScheduler(hardware(), 500)
         profile_id = scheduler.device_resources.snapshot()["contention_profile_id"]

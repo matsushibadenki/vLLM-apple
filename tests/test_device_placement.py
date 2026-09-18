@@ -157,6 +157,9 @@ class DevicePlacementPlanTests(unittest.TestCase):
         scheduler.complete(reservation)
         self.assertEqual(result.backend, ExecutionBackend.CPU)
         self.assertEqual(
+            scheduler.scheduling_observability_snapshot()["fallback_attempts"], 2
+        )
+        self.assertEqual(
             invoked,
             [
                 ExecutionBackend.COREML_DRAFT,

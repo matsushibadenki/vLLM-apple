@@ -2,15 +2,47 @@ import threading
 import unittest
 
 from tests.test_scheduler import hardware
+from vllm_apple.device_resources import BandwidthContentionEvidence, DeviceResourceRequest
+from vllm_apple.execution import ExecutionBackend
+from vllm_apple.operator_dispatch import OperatorDispatchDecision
 from vllm_apple.scheduler import BasicScheduler, ScheduleRequest
 from vllm_apple.submission import (
     GlobalSubmissionScheduler,
     SubmissionCancelledError,
 )
-from vllm_apple.types import Priority
+from vllm_apple.types import Backend, Priority
 
 
 class GlobalSubmissionSchedulerTests(unittest.TestCase):
+    def test_worker_steals_qualified_head_to_idle_cpu(self) -> None:
+        class ProbedDispatcher:
+            def dispatch(self, request):
+                return OperatorDispatchDecision(
+                    request.operator, ExecutionBackend.NATIVE_MLX,
+                    (ExecutionBackend.CPU,), (), (), "preferred_probe_passed",
+                )
+
+        scheduler = BasicScheduler(hardware(), 100, ProbedDispatcher())
+        profile_id = scheduler.device_resources.snapshot()["contention_profile_id"]
+        scheduler.device_resources.install_contention_evidence(
+            BandwidthContentionEvidence(
+                profile_id, ExecutionBackend.NATIVE_MLX, ExecutionBackend.CPU,
+                100, 90, 3, True,
+            )
+        )
+        source = scheduler.device_resources.reserve(
+            DeviceResourceRequest.for_backend(ExecutionBackend.NATIVE_MLX, 1)
+        )
+        submissions = GlobalSubmissionScheduler(scheduler)
+        handle = submissions.submit(
+            ScheduleRequest("attention", 1),
+            lambda reservation, cancelled: reservation.backend,
+        )
+        submissions.start()
+        self.assertEqual(handle.result(timeout=1), Backend.CPU)
+        self.assertTrue(submissions.shutdown())
+        scheduler.device_resources.release(source.reservation_id)
+
     def test_backend_commands_run_off_the_application_thread_in_priority_order(self) -> None:
         scheduler = BasicScheduler(hardware(), 100)
         submissions = GlobalSubmissionScheduler(scheduler)

@@ -29,8 +29,10 @@ from .operator_dispatch import (
     OperatorDispatchRequest,
     OperatorExecutionResult,
     OperatorFallbackExecutor,
+    OperatorFallbackExhaustedError,
 )
-from .types import Backend, HardwareInfo, Priority
+from .scheduling_observability import SchedulingObservability
+from .types import Backend, HardwareInfo, MemoryPressure, PowerMode, Priority, ThermalState
 
 _SafePointResult = TypeVar("_SafePointResult")
 
@@ -45,6 +47,10 @@ class ExecutionPlanAdmissionError(RuntimeError):
 
 class MaintenanceInProgressError(RuntimeError):
     """Raised while an exclusive idle maintenance operation owns the scheduler."""
+
+
+class AdaptiveScheduleCapacityError(RuntimeError):
+    """Raised when a new request exceeds the current operating-state policy."""
 
 
 class ScheduleQueueFullError(RuntimeError):
@@ -102,6 +108,36 @@ class QueuedAdmission:
     reservation: Reservation
 
 
+@dataclass(frozen=True, slots=True)
+class AdaptiveSchedulingPolicy:
+    pressure: MemoryPressure
+    thermal: ThermalState
+    power: PowerMode
+    level: int
+    maximum_active_requests: int
+    maximum_batch_size: int
+
+    @classmethod
+    def from_inputs(
+        cls, pressure: MemoryPressure, thermal: ThermalState, power: PowerMode
+    ) -> "AdaptiveSchedulingPolicy":
+        if not (
+            isinstance(pressure, MemoryPressure)
+            and isinstance(thermal, ThermalState)
+            and isinstance(power, PowerMode)
+        ):
+            raise ValueError("invalid adaptive scheduling inputs")
+        level = max(
+            {MemoryPressure.CRITICAL: 2, MemoryPressure.WARNING: 1}.get(pressure, 0),
+            {ThermalState.CRITICAL: 2, ThermalState.SERIOUS: 1}.get(thermal, 0),
+            1 if power is PowerMode.LOW_POWER else 0,
+        )
+        return cls(
+            pressure, thermal, power, level,
+            (1024, 2, 1)[level], (2_147_483_647, 4, 1)[level],
+        )
+
+
 class PriorityScheduleQueue:
     _RANK = {
         Priority.REALTIME: 0,
@@ -117,7 +153,9 @@ class PriorityScheduleQueue:
         self._sequence = 0
         self._heap: list[tuple[int, int, str]] = []
         self._requests: dict[str, ScheduleRequest] = {}
+        self._enqueued_ns: dict[str, int] = {}
         self._claimed: set[str] = set()
+        self._claim_entries: dict[str, tuple[int, int, ScheduleRequest]] = {}
         self._condition = threading.Condition()
 
     def enqueue(self, request: ScheduleRequest) -> str:
@@ -128,6 +166,7 @@ class PriorityScheduleQueue:
             sequence = self._sequence
             self._sequence += 1
             self._requests[token] = request
+            self._enqueued_ns[token] = time.monotonic_ns()
             heapq.heappush(self._heap, (self._RANK[request.priority], sequence, token))
             self._condition.notify()
             return token
@@ -135,9 +174,12 @@ class PriorityScheduleQueue:
     def cancel(self, token: str) -> bool:
         with self._condition:
             if self._requests.pop(token, None) is not None:
+                self._enqueued_ns.pop(token, None)
                 return True
             if token in self._claimed:
                 self._claimed.remove(token)
+                self._claim_entries.pop(token, None)
+                self._enqueued_ns.pop(token, None)
                 return True
             return False
 
@@ -146,6 +188,26 @@ class PriorityScheduleQueue:
             if token not in self._claimed:
                 return False
             self._claimed.remove(token)
+            self._claim_entries.pop(token, None)
+            self._enqueued_ns.pop(token, None)
+            return True
+
+    def claimed_wait_nanoseconds(self, token: str) -> int:
+        with self._condition:
+            started = self._enqueued_ns.get(token)
+            return max(0, time.monotonic_ns() - started) if started is not None else 0
+
+    def restore_claim(self, token: str) -> bool:
+        """Return a capacity-blocked claim to its original priority/FIFO position."""
+        with self._condition:
+            entry = self._claim_entries.pop(token, None)
+            if entry is None or token not in self._claimed:
+                return False
+            rank, sequence, request = entry
+            self._claimed.remove(token)
+            self._requests[token] = request
+            heapq.heappush(self._heap, (rank, sequence, token))
+            self._condition.notify()
             return True
 
     def dequeue(self, timeout: float | None = None) -> tuple[str, ScheduleRequest] | None:
@@ -155,10 +217,11 @@ class PriorityScheduleQueue:
         with self._condition:
             while True:
                 while self._heap:
-                    _, _, token = heapq.heappop(self._heap)
+                    rank, sequence, token = heapq.heappop(self._heap)
                     request = self._requests.pop(token, None)
                     if request is not None:
                         self._claimed.add(token)
+                        self._claim_entries[token] = (rank, sequence, request)
                         return token, request
                 if timeout == 0:
                     return None
@@ -166,6 +229,29 @@ class PriorityScheduleQueue:
                 if remaining is not None and remaining <= 0:
                     return None
                 self._condition.wait(remaining)
+
+    def peek(self) -> tuple[str, ScheduleRequest] | None:
+        """Observe only the highest-priority pending request, without reordering it."""
+        with self._condition:
+            while self._heap and self._heap[0][2] not in self._requests:
+                heapq.heappop(self._heap)
+            if not self._heap:
+                return None
+            token = self._heap[0][2]
+            return token, self._requests[token]
+
+    def claim_head(self, token: str) -> tuple[str, ScheduleRequest] | None:
+        """Claim only if the observed request is still the priority head."""
+        with self._condition:
+            while self._heap and self._heap[0][2] not in self._requests:
+                heapq.heappop(self._heap)
+            if not self._heap or self._heap[0][2] != token:
+                return None
+            rank, sequence, _ = heapq.heappop(self._heap)
+            request = self._requests.pop(token)
+            self._claimed.add(token)
+            self._claim_entries[token] = (rank, sequence, request)
+            return token, request
 
     def snapshot(self) -> dict[str, int]:
         with self._condition:
@@ -298,12 +384,110 @@ class BasicScheduler:
         self._queue = PriorityScheduleQueue(maximum_queued_requests)
         self._queued_active: dict[str, Reservation] = {}
         self._device_pipeline = DevicePipelineExecutor(self.device_resources)
+        self._observability = SchedulingObservability()
+        self._adaptive_policy = AdaptiveSchedulingPolicy.from_inputs(
+            hardware.memory.pressure, hardware.thermal_state, hardware.power_mode
+        )
+        self._pending_adaptive_policy: AdaptiveSchedulingPolicy | None = None
+
+    def update_adaptive_inputs(
+        self,
+        *,
+        pressure: MemoryPressure | None = None,
+        thermal: ThermalState | None = None,
+        power: PowerMode | None = None,
+    ) -> str:
+        """Restrict new work immediately; relax only after active work drains."""
+        if pressure is not None and not isinstance(pressure, MemoryPressure):
+            raise ValueError("invalid memory pressure")
+        if thermal is not None and not isinstance(thermal, ThermalState):
+            raise ValueError("invalid thermal state")
+        if power is not None and not isinstance(power, PowerMode):
+            raise ValueError("invalid power mode")
+        with self._policy_lock:
+            current = self._adaptive_policy
+            latest = self._pending_adaptive_policy or current
+            if pressure is MemoryPressure.UNKNOWN:
+                pressure = latest.pressure
+            if thermal is ThermalState.UNKNOWN:
+                thermal = latest.thermal
+            if power is PowerMode.UNKNOWN:
+                power = latest.power
+            proposed = AdaptiveSchedulingPolicy.from_inputs(
+                pressure if pressure is not None else latest.pressure,
+                thermal if thermal is not None else latest.thermal,
+                power if power is not None else latest.power,
+            )
+            if proposed == current:
+                self._pending_adaptive_policy = None
+                self._observability.adaptive_transition("ignored")
+                return "ignored"
+            if proposed.level < current.level and self._has_active_work():
+                self._pending_adaptive_policy = proposed
+                self._observability.adaptive_transition("deferred")
+                return "deferred"
+            self._adaptive_policy = proposed
+            self._pending_adaptive_policy = None
+            self._observability.adaptive_transition("applied")
+            return "applied"
+
+    def apply_pending_adaptive_policy(self) -> str | None:
+        with self._policy_lock:
+            pending = self._pending_adaptive_policy
+            if pending is None:
+                return None
+            if self._has_active_work():
+                return "deferred"
+            self._adaptive_policy = pending
+            self._pending_adaptive_policy = None
+            self._observability.adaptive_transition("applied")
+            return "applied"
+
+    def scheduling_observability_snapshot(self) -> dict[str, object]:
+        return {
+            **self._observability.snapshot(),
+            "adaptive_policy": self.adaptive_scheduling_snapshot(),
+        }
+
+    def _has_active_work(self) -> bool:
+        return bool(
+            self.memory.snapshot()["active_reservations"]
+            or self.device_resources.snapshot()["active_reservations"]
+        )
+
+    def adaptive_scheduling_snapshot(self) -> dict[str, str | int | None]:
+        with self._policy_lock:
+            active = self._adaptive_policy
+            return {
+                "level": active.level,
+                "maximum_active_requests": active.maximum_active_requests,
+                "maximum_batch_size": active.maximum_batch_size,
+                "pressure": active.pressure.value,
+                "thermal": active.thermal.value,
+                "power": active.power.value,
+                "pending_level": (
+                    self._pending_adaptive_policy.level
+                    if self._pending_adaptive_policy is not None else None
+                ),
+            }
 
     def execute_device_pipeline(
         self, stages: tuple[DevicePipelineStage[_SafePointResult], ...]
     ) -> DevicePipelineResult[_SafePointResult]:
         """Execute a bounded pipeline only when its device pairs are qualified."""
-        return self._device_pipeline.execute(stages)
+        with self._policy_lock:
+            if self._adaptive_policy.level > 0:
+                raise AdaptiveScheduleCapacityError(
+                    "parallel device pipeline disabled under adaptive pressure"
+                )
+        try:
+            return self._device_pipeline.execute(stages)
+        except DeviceResourceCapacityError as error:
+            if "contention_unqualified" in str(error):
+                self._observability.contention_rejection()
+            raise
+        finally:
+            self.apply_pending_adaptive_policy()
 
     def choose_backend(self, request: ScheduleRequest) -> Backend:
         decision = self.dispatch_decision(request)
@@ -323,6 +507,8 @@ class BasicScheduler:
             candidates = (placement.backend,) + tuple(
                 backend for backend in candidates if backend is not placement.backend
             )
+        if self._adaptive_policy.level == 2:
+            candidates = (ExecutionBackend.CPU,)
         if self._operator_dispatcher is not None:
             return self._operator_dispatcher.dispatch(OperatorDispatchRequest(operator, candidates))
         if not self.hardware.is_apple_silicon:
@@ -358,9 +544,18 @@ class BasicScheduler:
                 raise BackendExecutionError(
                     "fallback_resource_unavailable", retryable=True
                 ) from error
-        return OperatorFallbackExecutor().execute(
-            self.dispatch_decision(request), operation, validate, prepare
+        try:
+            result = OperatorFallbackExecutor().execute(
+                self.dispatch_decision(request), operation, validate, prepare
+            )
+        except OperatorFallbackExhaustedError as error:
+            self._observability.fallback(len(error.attempts), exhausted=True)
+            raise
+        self._observability.fallback(
+            sum(attempt.status == "failed" for attempt in result.attempts),
+            exhausted=False,
         )
+        return result
 
     def _dispatch_candidates(
         self, operator: str, batch_size: int
@@ -381,28 +576,58 @@ class BasicScheduler:
 
     def admit(self, request: ScheduleRequest) -> Reservation:
         with self._policy_lock:
+            decision = self.dispatch_decision(request)
+            return self._admit_selected(request, decision.selected)
+
+    def _admit_selected(
+        self,
+        request: ScheduleRequest,
+        execution_backend: ExecutionBackend,
+        *,
+        steal_from: ExecutionBackend | None = None,
+    ) -> Reservation:
+        with self._policy_lock:
             if self._maintenance_owner is not None:
                 raise MaintenanceInProgressError(
                     f"scheduler maintenance is active: {self._maintenance_owner}"
                 )
             self._validate_plan_admission(request)
-            backend = self.choose_backend(request)
+            policy = self._adaptive_policy
+            if request.batch_size > policy.maximum_batch_size:
+                raise ExecutionPlanAdmissionError(
+                    "request batch exceeds adaptive scheduling limit"
+                )
+            if (
+                self.memory.snapshot()["active_reservations"]
+                >= policy.maximum_active_requests
+            ):
+                raise AdaptiveScheduleCapacityError(
+                    "adaptive scheduling concurrency limit reached"
+                )
+            backend = {
+                ExecutionBackend.CPU: Backend.CPU,
+                ExecutionBackend.VLLM_METAL: Backend.METAL,
+                ExecutionBackend.NATIVE_MLX: Backend.MLX_GPU,
+                ExecutionBackend.NATIVE_METAL: Backend.METAL,
+                ExecutionBackend.COREML_DRAFT: Backend.COREML,
+            }[execution_backend]
             reservation = self.memory.reserve(request, backend)
-            execution_backend = {
-                Backend.CPU: ExecutionBackend.CPU,
-                Backend.MLX_GPU: ExecutionBackend.NATIVE_MLX,
-                Backend.METAL: ExecutionBackend.NATIVE_METAL,
-                Backend.COREML: ExecutionBackend.COREML_DRAFT,
-            }.get(backend, ExecutionBackend.CPU)
             try:
                 device_reservation = self.device_resources.reserve(
                     DeviceResourceRequest.for_backend(
                         execution_backend, request.estimated_memory_bytes
-                    )
+                    ),
+                    steal_from=steal_from,
                 )
-            except BaseException:
+            except BaseException as error:
                 self.memory.release(reservation.reservation_id)
+                if isinstance(error, DeviceResourceCapacityError) and (
+                    "contention_unqualified" in str(error)
+                    or "work_steal_unqualified_or_busy" in str(error)
+                ):
+                    self._observability.contention_rejection()
                 raise
+            self._observability.assignment(execution_backend)
             if self._active_plan is None and self._active_device_placement_plan is None:
                 return Reservation(
                     reservation.reservation_id, reservation.bytes, reservation.backend,
@@ -432,6 +657,7 @@ class BasicScheduler:
                 self.device_resources.release(
                     reservation.device_resource_reservation_id
                 )
+            self.apply_pending_adaptive_policy()
 
     def submit(self, request: ScheduleRequest) -> str:
         return self._queue.enqueue(request)
@@ -450,6 +676,7 @@ class BasicScheduler:
             raise
         with self._policy_lock:
             self._queued_active[token] = reservation
+            wait_nanoseconds = self._queue.claimed_wait_nanoseconds(token)
             if not self._queue.finish_claim(token):
                 self._queued_active.pop(token, None)
                 self.memory.release(reservation.reservation_id)
@@ -458,7 +685,62 @@ class BasicScheduler:
                         reservation.device_resource_reservation_id
                     )
                 return None
+        self._observability.queue_wait(wait_nanoseconds)
         return QueuedAdmission(token, request, reservation)
+
+    def steal_next(
+        self, target_backend: ExecutionBackend
+    ) -> QueuedAdmission | None:
+        """Steal at most the queue head onto a probed, pair-qualified idle backend.
+
+        No lower-priority request is bypassed. Capacity failure restores the same
+        token and FIFO position, so another worker may still admit it normally.
+        """
+        if not isinstance(target_backend, ExecutionBackend):
+            raise ValueError("invalid work-stealing backend")
+        with self._policy_lock:
+            if (
+                self._maintenance_owner is not None
+                or self._operator_dispatcher is None
+                or self._adaptive_policy.level > 0
+            ):
+                return None
+            head = self._queue.peek()
+            if head is None:
+                return None
+            token, request = head
+            decision = self.dispatch_decision(request)
+            if (
+                target_backend is decision.selected
+                or target_backend not in decision.fallback_chain
+                or not self.device_resources.can_steal(
+                    decision.selected, target_backend
+                )
+            ):
+                return None
+            if self._queue.claim_head(token) is None:
+                return None
+            try:
+                reservation = self._admit_selected(
+                    request, target_backend, steal_from=decision.selected
+                )
+            except (MemoryCapacityError, DeviceResourceCapacityError):
+                self._queue.restore_claim(token)
+                return None
+            except BaseException as error:
+                self._queue.finish_claim(token)
+                if isinstance(error, Exception):
+                    raise QueuedAdmissionError(token, request, error) from error
+                raise
+            self._queued_active[token] = reservation
+            wait_nanoseconds = self._queue.claimed_wait_nanoseconds(token)
+            if not self._queue.finish_claim(token):
+                self._queued_active.pop(token, None)
+                self.complete(reservation)
+                return None
+            self._observability.queue_wait(wait_nanoseconds)
+            self._observability.steal()
+            return QueuedAdmission(token, request, reservation)
 
     def complete_queued(self, token: str) -> bool:
         with self._policy_lock:
@@ -470,6 +752,7 @@ class BasicScheduler:
                 self.device_resources.release(
                     reservation.device_resource_reservation_id
                 )
+            self.apply_pending_adaptive_policy()
             return True
 
     def cancel(self, token: str) -> bool:

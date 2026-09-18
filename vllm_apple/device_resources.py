@@ -130,7 +130,12 @@ class UnifiedDeviceResourceLedger:
         self._qualified_pairs: set[frozenset[ExecutionBackend]] = set()
         self._lock = threading.Lock()
 
-    def reserve(self, request: DeviceResourceRequest) -> DeviceResourceReservation:
+    def reserve(
+        self,
+        request: DeviceResourceRequest,
+        *,
+        steal_from: ExecutionBackend | None = None,
+    ) -> DeviceResourceReservation:
         demand = {
             "unified_memory_bytes": request.unified_memory_bytes,
             "cpu_threads": request.cpu_threads,
@@ -140,6 +145,15 @@ class UnifiedDeviceResourceLedger:
         }
         with self._lock:
             active_backends = {value.backend for value in self._reservations.values()}
+            if steal_from is not None and (
+                not isinstance(steal_from, ExecutionBackend)
+                or steal_from not in active_backends
+                or request.backend in active_backends
+                or frozenset((steal_from, request.backend)) not in self._qualified_pairs
+            ):
+                raise DeviceResourceCapacityError(
+                    "device resources unavailable: work_steal_unqualified_or_busy"
+                )
             if any(
                 active is not request.backend
                 and frozenset((active, request.backend)) not in self._qualified_pairs
@@ -264,6 +278,29 @@ class UnifiedDeviceResourceLedger:
                 evidence.first_backend, evidence.second_backend,
             )))
         return True
+
+    def is_contention_pair_qualified(
+        self, first: ExecutionBackend, second: ExecutionBackend
+    ) -> bool:
+        if not isinstance(first, ExecutionBackend) or not isinstance(second, ExecutionBackend):
+            raise ValueError("invalid contention backend")
+        if first is second:
+            return False
+        with self._lock:
+            return frozenset((first, second)) in self._qualified_pairs
+
+    def can_steal(
+        self, source: ExecutionBackend, target: ExecutionBackend
+    ) -> bool:
+        if not isinstance(source, ExecutionBackend) or not isinstance(target, ExecutionBackend):
+            raise ValueError("invalid work-stealing backend")
+        with self._lock:
+            active = {value.backend for value in self._reservations.values()}
+            return (
+                source in active
+                and target not in active
+                and frozenset((source, target)) in self._qualified_pairs
+            )
 
     def replace_contention_evidence(
         self, evidence: tuple[BandwidthContentionEvidence, ...]

@@ -22,6 +22,7 @@ class OperatingStateMonitorTests(unittest.TestCase):
         sequence = service.events.snapshot()["latest_sequence"]
         monitor.poll_once()
         self.assertEqual(service.snapshot().profile.hardware.thermal_state, ThermalState.SERIOUS)
+        self.assertEqual(service.scheduler.adaptive_scheduling_snapshot()["level"], 1)
         self.assertEqual(service.events.snapshot()["latest_sequence"], sequence + 1)
         self.assertEqual(monitor.snapshot()["notifications"], 1)
 

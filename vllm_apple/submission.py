@@ -5,6 +5,7 @@ from collections.abc import Callable
 from time import monotonic
 from typing import Generic, TypeVar, cast
 
+from .execution import ExecutionBackend
 from .scheduler import BasicScheduler, QueuedAdmissionError, Reservation, ScheduleRequest
 
 _Result = TypeVar("_Result")
@@ -90,6 +91,14 @@ class SubmissionHandle(Generic[_Result]):
 class GlobalSubmissionScheduler:
     """Bounded priority command execution isolated from application threads."""
 
+    _STEAL_TARGETS = (
+        ExecutionBackend.CPU,
+        ExecutionBackend.NATIVE_MLX,
+        ExecutionBackend.NATIVE_METAL,
+        ExecutionBackend.COREML_DRAFT,
+        ExecutionBackend.VLLM_METAL,
+    )
+
     def __init__(self, scheduler: BasicScheduler, *, worker_count: int = 1) -> None:
         if worker_count <= 0 or worker_count > 8:
             raise ValueError("worker_count must be between 1 and 8")
@@ -172,7 +181,13 @@ class GlobalSubmissionScheduler:
                 if self._stopping and not self._commands:
                     return
             try:
-                admitted = self.scheduler.admit_next(timeout=0)
+                admitted = None
+                for target in self._STEAL_TARGETS:
+                    admitted = self.scheduler.steal_next(target)
+                    if admitted is not None:
+                        break
+                if admitted is None:
+                    admitted = self.scheduler.admit_next(timeout=0)
             except QueuedAdmissionError as failure:
                 with self._condition:
                     command = self._commands.pop(failure.token, None)

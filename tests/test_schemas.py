@@ -105,6 +105,9 @@ class LiveResponseSchemaTests(unittest.TestCase):
         payload = self.get_json("/v1/runtime")
         validate_instance(payload, load_schema("api/runtime-v1.schema.json"))
         scheduler = payload["scheduler"]
+        observability = payload["scheduling_observability"]
+        self.assertEqual(len(observability["assignments"]), 5)
+        self.assertEqual(len(observability["queue_wait_buckets"]), 4)
         self.assertEqual(
             scheduler["reserved_bytes"] + scheduler["available_bytes"],
             scheduler["capacity_bytes"],

@@ -878,16 +878,17 @@ Unified Memoryとmemory bandwidthを共有する一つの実行系として管�
 - `[Done]` contention runtime診断のstrict typed Swift SDK、旧client unavailable fallback、Mac app英語・日本語・简体中文表示（Swift 33 tests・Mac sample build合格）
 - `[Done]` contention profileのvalid-current-only last-known-good promotion、破損時fallback、safe-point reload／rollback、認証付きstrict管理APIと三言語応答
 - `[Done]` contention reload／rollbackのtyped Swift SDK、strict evidence検証、Mac app英語・日本語・简体中文操作UI
-- `[Next]` contention認定、resource上限、優先度を守るbounded work stealing
-- `[Later]` memory pressure、thermal state、low-power modeに応じたconcurrency／batch／device割当の段階的縮退
+- `[Done]` probe承認済みfallbackとcontention認定がある場合だけqueue先頭をidle backendへ移すbounded work stealing（resource原子予約、容量不足時FIFO復元）
+- `[Done]` memory pressure、thermal state、low-power modeに応じた新規admissionのconcurrency／batch／device割当の段階的縮退、safe-point回復
 - `[Later]` Vision/Audio encoderとembedding/classifierから開始するANE routing、GPU LLM pipelineとの非同期連携
 - `[Later]` CPUまたはANE draft + GPU verifyによるheterogeneous speculative execution
 - `[Done]` contention全ペア合格時だけ原子的に一括予約するCPU／GPU／ANE bounded pipeline並列化
 - `[Later]` hardware／OS／model／shape別autotuning profile、期限切れ、quarantine、last-known-good rollback
 - `[Later]` backend別correctness比較、timeout／compile failure／numerical mismatch時のANE → GPU → CPU fallback
 - `[Later]` TTFT、TPOT、tokens/sec、frames/sec、energy/request、peak Unified Memoryを用いたpromotion gate
-- `[Later]` device assignment、queue wait、fallback、contention、thermal/power decisionのbounded observability
-- `[Later]` Mac appでの英語、日本語、简体中文diagnosticsと自動／省電力／最高性能policy選択
+- `[Done]` device assignment、queue wait、fallback、contention、thermal/power decisionの固定キー・上限付きruntime observabilityとstrict schema
+- `[Next]` scheduling observabilityのtyped Swift SDKとMac app英語・日本語・简体中文diagnostics
+- `[Later]` Mac appでの自動／省電力／最高性能policy選択
 
 ## Cross-Cutting Work
 
@@ -1234,7 +1235,10 @@ Unified Memoryとmemory bandwidthを共有する一つの実行系として管�
 198. `[Done]` contention profileのcurrent／last-known-good promotion、safe-point daemon reload／rollback、認証付き三言語管理API
 199. `[Done]` contention reload／rollbackのtyped Swift SDK、strict evidence検証、Mac app三言語操作UI
 200. `[Done]` contention全ペア合格時だけ原子的に一括予約するCPU／GPU／ANE bounded pipeline並列化
-201. `[Next]` contention認定、resource上限、request優先度を守るbounded work stealing
+201. `[Done]` probe承認済みfallbackとcontention認定がある場合だけqueue先頭をidle backendへ移すbounded work stealing、容量不足時FIFO復元
+202. `[Done]` memory pressure、thermal state、low-power modeに応じた新規admissionのconcurrency／batch／device割当の段階的縮退、safe-point回復
+203. `[Done]` device assignment、queue wait、fallback、contention、thermal/power decisionの固定キー・上限付きruntime observabilityとstrict schema
+204. `[Next]` scheduling observabilityのtyped Swift SDKとMac app三言語diagnostics
 
 この順序により、まず推論runtimeの実model安定性を確立し、その境界を壊さずにoptimizerを
 別processとして追加する。構造pruningはquantization、calibration、評価gateの後に着手する。

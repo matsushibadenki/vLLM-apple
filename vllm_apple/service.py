@@ -101,6 +101,7 @@ class ServiceSnapshot:
     execution_plan: dict[str, str | int | bool | None]
     device_placement: dict[str, object]
     device_resources: dict[str, object]
+    scheduling_observability: dict[str, object]
     memory_telemetry: dict[str, int | float | str | None]
     memory_budget: dict[str, object]
     memory_admission: dict[str, int | float | str | None]
@@ -125,6 +126,7 @@ class ServiceSnapshot:
             "execution_plan": self.execution_plan,
             "device_placement": self.device_placement,
             "device_resources": self.device_resources,
+            "scheduling_observability": self.scheduling_observability,
             "memory_telemetry": self.memory_telemetry,
             "memory_budget": self.memory_budget,
             "memory_admission": self.memory_admission,
@@ -323,6 +325,9 @@ class RuntimeService:
                 },
             )
             self.profile = updated_profile
+            self.scheduler.update_adaptive_inputs(
+                thermal=thermal_state, power=power_mode
+            )
         return True
 
     def snapshot(self) -> ServiceSnapshot:
@@ -353,6 +358,7 @@ class RuntimeService:
                 execution_plan=self.scheduler.execution_plan_snapshot(),
                 device_placement=self.scheduler.device_placement_snapshot(),
                 device_resources=self.scheduler.device_resources.snapshot(),
+                scheduling_observability=self.scheduler.scheduling_observability_snapshot(),
                 memory_telemetry=telemetry.to_dict(),
                 memory_budget=self.memory_budget.snapshot().to_dict(),
                 memory_admission=self.memory_admission.snapshot().to_dict(),
@@ -985,6 +991,7 @@ class RuntimeService:
     def apply_memory_pressure(self, pressure: MemoryPressure) -> ElasticMemoryDecision | None:
         self.memory_telemetry.update_pressure(pressure)
         self.memory_admission.refresh(self.memory_telemetry.snapshot())
+        self.scheduler.update_adaptive_inputs(pressure=pressure)
         if self.elastic_memory is None:
             self.events.publish(
                 "memory.pressure",
