@@ -52,6 +52,7 @@ private struct UnixRuntimeEnvelope: Decodable {
     let nativeV2Tuning: NativeV2TuningState?
     let devicePlacement: DevicePlacementState?
     let deviceResources: DeviceContentionState?
+    let schedulingObservability: SchedulingObservabilityState?
 }
 
 private struct UnixNativeV2TuningControlRequest: Encodable {
@@ -125,6 +126,16 @@ public final class UnixSocketRuntimeClient: VLLMAppleRuntimeClient, @unchecked S
         let contention = envelope.deviceResources ?? .unavailable
         guard contention.hasValidEvidence else { throw RuntimeClientError.invalidResponse }
         return contention
+    }
+
+    public func schedulingObservability() async throws -> SchedulingObservabilityState {
+        let envelope = try await request("/v1/runtime", as: UnixRuntimeEnvelope.self)
+        try validate(schemaVersion: envelope.schemaVersion)
+        let state = envelope.schedulingObservability ?? .unavailable
+        guard !state.available || state.hasValidEvidence else {
+            throw RuntimeClientError.invalidResponse
+        }
+        return state
     }
 
     public func controlDeviceContention(

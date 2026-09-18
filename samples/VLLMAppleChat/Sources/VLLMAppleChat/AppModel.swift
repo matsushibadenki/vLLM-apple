@@ -56,6 +56,7 @@ final class AppModel: ObservableObject {
     @Published private(set) var nativeV2Tuning: NativeV2TuningState = .idle
     @Published private(set) var devicePlacement: DevicePlacementState = .disabled
     @Published private(set) var deviceContention: DeviceContentionState = .unavailable
+    @Published private(set) var schedulingObservability: SchedulingObservabilityState = .unavailable
     @Published private(set) var isControllingDeviceContention = false
     @Published private(set) var startupProgress: StartupProgress?
     @Published private(set) var qualificationReports: [QualificationReportRecord]
@@ -70,6 +71,7 @@ final class AppModel: ObservableObject {
     private var client: (any VLLMAppleRuntimeClient)?
     private var managedRuntime: ManagedRuntime?
     private var eventTask: Task<Void, Never>?
+    private var diagnosticsTask: Task<Void, Never>?
     private var streamTask: Task<Void, Never>?
 
     init(
@@ -106,6 +108,7 @@ final class AppModel: ObservableObject {
         nativeV2Tuning = .idle
         devicePlacement = .disabled
         deviceContention = .unavailable
+        schedulingObservability = .unavailable
         startupProgress = nil
         reloadQualificationReports()
 
@@ -134,8 +137,10 @@ final class AppModel: ObservableObject {
             nativeV2Tuning = try await client.nativeV2Tuning()
             devicePlacement = try await client.devicePlacement()
             deviceContention = try await client.deviceContention()
+            schedulingObservability = (try? await client.schedulingObservability()) ?? .unavailable
             apply(health.status)
             beginEventMonitoring(client: client)
+            beginDiagnosticsPolling(client: client)
         } catch let error as RuntimeResourceError {
             fail(key: error.messageKey, detail: String(describing: error))
         } catch let error as ManagedRuntimeError {
@@ -347,6 +352,8 @@ final class AppModel: ObservableObject {
         cancelGeneration()
         eventTask?.cancel()
         eventTask = nil
+        diagnosticsTask?.cancel()
+        diagnosticsTask = nil
         if let managedRuntime {
             await managedRuntime.stop()
         }
@@ -357,6 +364,7 @@ final class AppModel: ObservableObject {
             contextWarning = nil
             kvCalibration = nil
             nativeV2Tuning = .idle
+            schedulingObservability = .unavailable
         }
     }
 
@@ -427,6 +435,24 @@ final class AppModel: ObservableObject {
                 self?.phase = .degraded
                 self?.errorKey = "runtime.error.events"
                 self?.detail = error.localizedDescription
+            }
+        }
+    }
+
+    private func beginDiagnosticsPolling(client: any VLLMAppleRuntimeClient) {
+        diagnosticsTask?.cancel()
+        diagnosticsTask = Task { [weak self] in
+            while !Task.isCancelled {
+                do {
+                    try await Task.sleep(for: .seconds(5))
+                    let state = try await client.schedulingObservability()
+                    guard !Task.isCancelled else { return }
+                    self?.schedulingObservability = state
+                } catch is CancellationError {
+                    return
+                } catch {
+                    self?.schedulingObservability = .unavailable
+                }
             }
         }
     }

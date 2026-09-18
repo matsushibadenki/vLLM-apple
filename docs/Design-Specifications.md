@@ -2564,7 +2564,8 @@ versioned execution planへ記録し、active request中は変更せずscheduler
    段階的縮退、稼働中requestを維持したsafe-point回復を`[Done]`とする。device assignment、queue wait、
    fallback、contention、thermal/power decisionの固定キー・上限付きruntime observabilityとstrict schemaを
    `[Done]`とする。request ID、入力、operator名、任意のerror文字列を記録しない。typed Swift SDKと
-   Mac app英語・日本語・简体中文diagnosticsを`[Next]`とする。
+   Mac app英語・日本語・简体中文diagnosticsを`[Done]`とする。次はthermal／memory縮退を
+   ユーザー選択で無効化しない自動／省電力／最高性能policyの管理APIとMac app操作UIを`[Next]`とする。
 23. `[Later]` CPU/Core ML draft + GPU verifyをcorrectness-neutralなspeculative executionとして評価する。
 24. `[Done]` thermal、memory pressure、low-power modeを入力に、batch、concurrency、device assignmentを
    段階的に縮退・復元する。既存requestをcancelせず、新規admissionを制限し、緩和は次のsafe pointで適用する。

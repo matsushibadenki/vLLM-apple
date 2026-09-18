@@ -136,6 +136,7 @@ struct ContentView: View {
             ) { action in
                 Task { await model.controlDeviceContention(action) }
             }
+            SchedulingDiagnostic(state: model.schedulingObservability)
 
             if !model.qualificationReports.isEmpty {
                 VStack(alignment: .leading, spacing: DesignTokens.compact) {
@@ -614,6 +615,67 @@ private struct DeviceContentionDiagnostic: View {
             }
         }
         .accessibilityElement(children: .contain)
+    }
+
+    private func localized(_ key: String) -> String {
+        String(localized: String.LocalizationValue(key), bundle: AppLocalization.bundle)
+    }
+}
+
+private struct SchedulingDiagnostic: View {
+    let state: SchedulingObservabilityState
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: DesignTokens.compact) {
+            Text("sidebar.scheduling_diagnostics")
+                .font(.caption2.monospaced().weight(.semibold))
+                .foregroundStyle(DesignTokens.secondaryInk)
+                .textCase(.uppercase)
+                .tracking(0.8)
+            Label(statusKey, systemImage: state.available ? "gauge.with.dots.needle.50percent" : "chart.bar.xaxis")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(state.available ? DesignTokens.cobalt : DesignTokens.secondaryInk)
+            if state.available {
+                Text(String(
+                    format: localized("scheduling.diagnostics.assignments"),
+                    Int64(state.assignments.cpu),
+                    Int64(state.assignments.vllmMetal + state.assignments.nativeMLX + state.assignments.nativeMetal),
+                    Int64(state.assignments.coreMLDraft)
+                ))
+                Text(String(
+                    format: localized("scheduling.diagnostics.queue_wait"),
+                    Int64(state.queueWaitBuckets.atLeast100ms)
+                ))
+                Text(String(
+                    format: localized("scheduling.diagnostics.fallback"),
+                    Int64(state.fallbackAttempts), Int64(state.contentionRejections)
+                ))
+                if state.adaptivePolicy.level > 0 {
+                    Text(String(
+                        format: localized("scheduling.diagnostics.limits"),
+                        Int64(state.adaptivePolicy.maximumActiveRequests),
+                        Int64(state.adaptivePolicy.maximumBatchSize)
+                    ))
+                }
+                if state.adaptivePolicy.pendingLevel != nil {
+                    Text("scheduling.diagnostics.pending")
+                        .foregroundStyle(DesignTokens.warning)
+                }
+            }
+        }
+        .font(.caption2)
+        .foregroundStyle(DesignTokens.secondaryInk)
+        .fixedSize(horizontal: false, vertical: true)
+        .accessibilityElement(children: .combine)
+    }
+
+    private var statusKey: LocalizedStringKey {
+        guard state.available else { return "scheduling.diagnostics.unavailable" }
+        switch state.adaptivePolicy.level {
+        case 0: return "scheduling.diagnostics.normal"
+        case 1: return "scheduling.diagnostics.reduced"
+        default: return "scheduling.diagnostics.critical"
+        }
     }
 
     private func localized(_ key: String) -> String {

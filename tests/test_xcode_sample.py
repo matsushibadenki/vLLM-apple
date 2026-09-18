@@ -211,6 +211,36 @@ class XcodeSampleTests(unittest.TestCase):
             ):
                 self.assertIn(f'"{key}"', localized)
 
+    def test_scheduling_diagnostics_are_typed_and_localized(self) -> None:
+        source = Path(
+            "sdk/swift/Sources/VLLMAppleKit/SchedulingObservability.swift"
+        ).read_text()
+        client = Path("sdk/swift/Sources/VLLMAppleKit/RuntimeClient.swift").read_text()
+        view = Path(
+            "samples/VLLMAppleChat/Sources/VLLMAppleChat/ContentView.swift"
+        ).read_text()
+        self.assertIn("public struct SchedulingObservabilityState", source)
+        self.assertIn("func schedulingObservability()", client)
+        self.assertIn("SchedulingDiagnostic", view)
+        for language in ("en", "ja", "zh-Hans"):
+            localized = Path(
+                f"samples/VLLMAppleChat/Sources/VLLMAppleChat/Resources/"
+                f"{language}.lproj/Localizable.strings"
+            ).read_text()
+            for key in (
+                "sidebar.scheduling_diagnostics",
+                "scheduling.diagnostics.unavailable",
+                "scheduling.diagnostics.normal",
+                "scheduling.diagnostics.reduced",
+                "scheduling.diagnostics.critical",
+                "scheduling.diagnostics.assignments",
+                "scheduling.diagnostics.queue_wait",
+                "scheduling.diagnostics.fallback",
+                "scheduling.diagnostics.limits",
+                "scheduling.diagnostics.pending",
+            ):
+                self.assertIn(f'"{key}"', localized)
+
     def test_embed_phase_places_executable_in_app_auxiliary_directory(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

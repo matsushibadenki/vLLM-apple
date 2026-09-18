@@ -173,6 +173,62 @@ import Testing
     #expect(DeviceContentionControlAction.rollback.rawValue == "rollback")
 }
 
+@Test func decodesStrictSchedulingObservabilityAndLegacyFallback() throws {
+    let data = Data(#"""
+    {
+      "assignments": {"cpu": 2, "vllm_metal": 0, "native_mlx": 1, "native_metal": 0, "coreml_draft": 0},
+      "queue_wait_buckets": {"under_1ms": 1, "1_to_10ms": 1, "10_to_100ms": 0, "100ms_or_more": 0},
+      "fallback_attempts": 1,
+      "fallback_exhausted": 0,
+      "contention_rejections": 0,
+      "steals": 1,
+      "adaptive_transitions": {"applied": 1, "deferred": 0, "ignored": 0},
+      "adaptive_policy": {
+        "level": 1, "maximum_active_requests": 2, "maximum_batch_size": 4,
+        "pressure": "warning", "thermal": "nominal", "power": "automatic", "pending_level": null
+      }
+    }
+    """#.utf8)
+    let decoder = JSONDecoder()
+    decoder.keyDecodingStrategy = .convertFromSnakeCase
+    let state = try decoder.decode(SchedulingObservabilityState.self, from: data)
+    #expect(state.hasValidEvidence)
+    #expect(state.assignments.total == 3)
+    #expect(state.queueWaitBuckets.from1To10ms == 1)
+    #expect(state.adaptivePolicy.pressure == .warning)
+    #expect(!SchedulingObservabilityState.unavailable.available)
+    var object = try #require(JSONSerialization.jsonObject(with: data) as? [String: Any])
+    object["fallback_attempts"] = -1
+    let invalid = try decoder.decode(
+        SchedulingObservabilityState.self,
+        from: JSONSerialization.data(withJSONObject: object)
+    )
+    #expect(!invalid.hasValidEvidence)
+
+    object["fallback_attempts"] = 1
+    var policy = try #require(object["adaptive_policy"] as? [String: Any])
+    policy["maximum_batch_size"] = 8
+    object["adaptive_policy"] = policy
+    let mismatchedPolicy = try decoder.decode(
+        SchedulingObservabilityState.self,
+        from: JSONSerialization.data(withJSONObject: object)
+    )
+    #expect(!mismatchedPolicy.hasValidEvidence)
+
+    object["adaptive_policy"] = try #require(
+        JSONSerialization.jsonObject(with: data) as? [String: Any]
+    )["adaptive_policy"]
+    var assignments = try #require(object["assignments"] as? [String: Any])
+    assignments.removeValue(forKey: "cpu")
+    object["assignments"] = assignments
+    #expect(throws: Error.self) {
+        try decoder.decode(
+            SchedulingObservabilityState.self,
+            from: JSONSerialization.data(withJSONObject: object)
+        )
+    }
+}
+
 @Test func decodesAndValidatesDeviceContentionEvidence() throws {
     let decoder = JSONDecoder()
     let valid = try decoder.decode(DeviceContentionState.self, from: Data("""

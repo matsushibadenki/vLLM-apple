@@ -887,8 +887,8 @@ Unified Memoryとmemory bandwidthを共有する一つの実行系として管�
 - `[Later]` backend別correctness比較、timeout／compile failure／numerical mismatch時のANE → GPU → CPU fallback
 - `[Later]` TTFT、TPOT、tokens/sec、frames/sec、energy/request、peak Unified Memoryを用いたpromotion gate
 - `[Done]` device assignment、queue wait、fallback、contention、thermal/power decisionの固定キー・上限付きruntime observabilityとstrict schema
-- `[Next]` scheduling observabilityのtyped Swift SDKとMac app英語・日本語・简体中文diagnostics
-- `[Later]` Mac appでの自動／省電力／最高性能policy選択
+- `[Done]` scheduling observabilityのtyped Swift SDK、旧runtime unavailable fallback、Mac app英語・日本語・简体中文diagnostics
+- `[Next]` 安全上のthermal／memory縮退を維持した自動／省電力／最高性能policy選択のruntime管理APIとMac app操作UI
 
 ## Cross-Cutting Work
 
@@ -1238,7 +1238,8 @@ Unified Memoryとmemory bandwidthを共有する一つの実行系として管�
 201. `[Done]` probe承認済みfallbackとcontention認定がある場合だけqueue先頭をidle backendへ移すbounded work stealing、容量不足時FIFO復元
 202. `[Done]` memory pressure、thermal state、low-power modeに応じた新規admissionのconcurrency／batch／device割当の段階的縮退、safe-point回復
 203. `[Done]` device assignment、queue wait、fallback、contention、thermal/power decisionの固定キー・上限付きruntime observabilityとstrict schema
-204. `[Next]` scheduling observabilityのtyped Swift SDKとMac app三言語diagnostics
+204. `[Done]` scheduling observabilityのtyped Swift SDK、旧runtime unavailable fallback、Mac app三言語diagnostics
+205. `[Next]` thermal／memory縮退を優先する自動／省電力／最高性能policy選択のruntime管理APIとMac app操作UI
 
 この順序により、まず推論runtimeの実model安定性を確立し、その境界を壊さずにoptimizerを
 別processとして追加する。構造pruningはquantization、calibration、評価gateの後に着手する。

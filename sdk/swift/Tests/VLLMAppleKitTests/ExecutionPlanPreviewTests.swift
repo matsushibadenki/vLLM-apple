@@ -30,6 +30,7 @@ private struct LegacyClient: VLLMAppleRuntimeClient {
     #expect(!result.available)
     #expect(result.reason == "client_preview_unsupported")
     #expect(result.plan == nil)
+    #expect(!(try await client.schedulingObservability()).available)
 }
 
 private func decodePreview(_ object: [String: Any]) throws -> ExecutionPlanPreviewResult {

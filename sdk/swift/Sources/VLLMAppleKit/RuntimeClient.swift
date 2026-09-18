@@ -9,6 +9,7 @@ public protocol VLLMAppleRuntimeClient: Sendable {
     func nativeV2Tuning() async throws -> NativeV2TuningState
     func devicePlacement() async throws -> DevicePlacementState
     func deviceContention() async throws -> DeviceContentionState
+    func schedulingObservability() async throws -> SchedulingObservabilityState
     func controlDeviceContention(
         _ action: DeviceContentionControlAction
     ) async throws -> DeviceContentionControlResult
@@ -33,6 +34,7 @@ public extension VLLMAppleRuntimeClient {
     /// Existing custom clients remain source-compatible with placement-aware SDK releases.
     func devicePlacement() async throws -> DevicePlacementState { .disabled }
     func deviceContention() async throws -> DeviceContentionState { .unavailable }
+    func schedulingObservability() async throws -> SchedulingObservabilityState { .unavailable }
     func controlDeviceContention(
         _ action: DeviceContentionControlAction
     ) async throws -> DeviceContentionControlResult {
@@ -67,6 +69,7 @@ private struct RuntimeEnvelope: Decodable {
     let nativeV2Tuning: NativeV2TuningState?
     let devicePlacement: DevicePlacementState?
     let deviceResources: DeviceContentionState?
+    let schedulingObservability: SchedulingObservabilityState?
 }
 
 private struct ErrorEnvelope: Decodable {
@@ -158,6 +161,16 @@ public final class HTTPRuntimeClient: VLLMAppleRuntimeClient, @unchecked Sendabl
         let contention = envelope.deviceResources ?? .unavailable
         guard contention.hasValidEvidence else { throw RuntimeClientError.invalidResponse }
         return contention
+    }
+
+    public func schedulingObservability() async throws -> SchedulingObservabilityState {
+        let envelope = try await get("v1/runtime", as: RuntimeEnvelope.self)
+        try validate(schemaVersion: envelope.schemaVersion)
+        let state = envelope.schedulingObservability ?? .unavailable
+        guard !state.available || state.hasValidEvidence else {
+            throw RuntimeClientError.invalidResponse
+        }
+        return state
     }
 
     public func controlDeviceContention(
