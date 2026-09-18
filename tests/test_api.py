@@ -161,6 +161,48 @@ class AuthenticatedAPITests(unittest.TestCase):
         with urllib.request.urlopen(request, timeout=2) as response:
             self.assertTrue(json.load(response)["control_ready"])
 
+    def test_scheduling_preference_requires_auth_and_strict_request(self) -> None:
+        endpoint = self.base_url + "/v1/scheduling-preference"
+        def request(body: dict, *, authenticated: bool = True) -> urllib.request.Request:
+            headers = {"Content-Type": "application/json"}
+            if authenticated:
+                headers["Authorization"] = f"Bearer {self.token}"
+            return urllib.request.Request(
+                endpoint, data=json.dumps(body).encode(), headers=headers, method="POST"
+            )
+
+        with self.assertRaises(urllib.error.HTTPError) as raised:
+            urllib.request.urlopen(request({"preference": "low_power"}, authenticated=False))
+        self.assertEqual(raised.exception.code, 401)
+        for body in ({"preference": "unsafe"}, {"preference": "automatic", "x": 1}, {}):
+            with self.assertRaises(urllib.error.HTTPError) as raised:
+                urllib.request.urlopen(request(body), timeout=2)
+            self.assertEqual(raised.exception.code, 400)
+        with urllib.request.urlopen(request({"preference": "low_power"}), timeout=2) as response:
+            payload = json.load(response)
+        self.assertTrue(payload["accepted"])
+        self.assertEqual(payload["scheduling_observability"]["adaptive_policy"]["level"], 1)
+        with urllib.request.urlopen(request({"preference": "automatic"}), timeout=2) as response:
+            payload = json.load(response)
+        self.assertEqual(payload["scheduling_observability"]["adaptive_policy"]["preference"], "automatic")
+
+    def test_scheduling_preference_reports_persistence_failure(self) -> None:
+        request = urllib.request.Request(
+            self.base_url + "/v1/scheduling-preference",
+            data=json.dumps({"preference": "low_power"}).encode(),
+            headers={"Authorization": f"Bearer {self.token}",
+                     "Content-Type": "application/json"},
+            method="POST",
+        )
+        with patch.object(self.service, "control_scheduling_preference", side_effect=OSError):
+            with self.assertRaises(urllib.error.HTTPError) as raised:
+                urllib.request.urlopen(request, timeout=2)
+        self.assertEqual(raised.exception.code, 500)
+        self.assertEqual(
+            json.load(raised.exception)["error"]["code"],
+            "scheduling_preference_persistence_failed",
+        )
+
     def test_preview_requires_authentication(self) -> None:
         path = self.base_url + "/v1/execution-plan/preview"
         with self.assertRaises(urllib.error.HTTPError) as raised:

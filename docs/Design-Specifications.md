@@ -2564,8 +2564,13 @@ versioned execution planへ記録し、active request中は変更せずscheduler
    段階的縮退、稼働中requestを維持したsafe-point回復を`[Done]`とする。device assignment、queue wait、
    fallback、contention、thermal/power decisionの固定キー・上限付きruntime observabilityとstrict schemaを
    `[Done]`とする。request ID、入力、operator名、任意のerror文字列を記録しない。typed Swift SDKと
-   Mac app英語・日本語・简体中文diagnosticsを`[Done]`とする。次はthermal／memory縮退を
-   ユーザー選択で無効化しない自動／省電力／最高性能policyの管理APIとMac app操作UIを`[Next]`とする。
+   Mac app英語・日本語・简体中文diagnosticsを`[Done]`とする。自動／省電力／最高性能policyの
+   認証付き管理API、typed Swift SDK、Mac app三言語操作UIも`[Done]`とする。最高性能を選んでも
+   thermal／memoryによる縮退は上書きせず、緩和はactive request終了後のsafe pointに限る。
+   選択はowner-onlyのbounded JSONへatomic保存し、daemon起動時に復元する。権限不備、symlink、破損、
+   未知値ではautomaticへfail-closedする。保存に失敗した管理APIは稼働中policyを変更しない。
+   これらの再起動時復元も`[Done]`とする。次はVision/Audio encoderとembedding/classifierのANE
+   routingにcapability／correctness gateを設け、GPU LLM pipelineとの非同期連携を`[Next]`とする。
 23. `[Later]` CPU/Core ML draft + GPU verifyをcorrectness-neutralなspeculative executionとして評価する。
 24. `[Done]` thermal、memory pressure、low-power modeを入力に、batch、concurrency、device assignmentを
    段階的に縮退・復元する。既存requestをcancelせず、新規admissionを制限し、緩和は次のsafe pointで適用する。

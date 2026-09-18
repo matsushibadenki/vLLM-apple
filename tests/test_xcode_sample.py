@@ -221,7 +221,9 @@ class XcodeSampleTests(unittest.TestCase):
         ).read_text()
         self.assertIn("public struct SchedulingObservabilityState", source)
         self.assertIn("func schedulingObservability()", client)
+        self.assertIn("func setSchedulingPreference(", client)
         self.assertIn("SchedulingDiagnostic", view)
+        self.assertIn("scheduling.preference.high_performance", view)
         for language in ("en", "ja", "zh-Hans"):
             localized = Path(
                 f"samples/VLLMAppleChat/Sources/VLLMAppleChat/Resources/"
@@ -238,6 +240,11 @@ class XcodeSampleTests(unittest.TestCase):
                 "scheduling.diagnostics.fallback",
                 "scheduling.diagnostics.limits",
                 "scheduling.diagnostics.pending",
+                "scheduling.preference.title",
+                "scheduling.preference.automatic",
+                "scheduling.preference.low_power",
+                "scheduling.preference.high_performance",
+                "scheduling.preference.safety",
             ):
                 self.assertIn(f'"{key}"', localized)
 

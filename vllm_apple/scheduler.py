@@ -119,7 +119,8 @@ class AdaptiveSchedulingPolicy:
 
     @classmethod
     def from_inputs(
-        cls, pressure: MemoryPressure, thermal: ThermalState, power: PowerMode
+        cls, pressure: MemoryPressure, thermal: ThermalState, power: PowerMode,
+        preference: str = "automatic",
     ) -> "AdaptiveSchedulingPolicy":
         if not (
             isinstance(pressure, MemoryPressure)
@@ -127,10 +128,14 @@ class AdaptiveSchedulingPolicy:
             and isinstance(power, PowerMode)
         ):
             raise ValueError("invalid adaptive scheduling inputs")
+        if preference not in {"automatic", "low_power", "high_performance"}:
+            raise ValueError("invalid scheduling preference")
         level = max(
             {MemoryPressure.CRITICAL: 2, MemoryPressure.WARNING: 1}.get(pressure, 0),
             {ThermalState.CRITICAL: 2, ThermalState.SERIOUS: 1}.get(thermal, 0),
-            1 if power is PowerMode.LOW_POWER else 0,
+            1 if preference == "low_power" or (
+                preference == "automatic" and power is PowerMode.LOW_POWER
+            ) else 0,
         )
         return cls(
             pressure, thermal, power, level,
@@ -385,8 +390,10 @@ class BasicScheduler:
         self._queued_active: dict[str, Reservation] = {}
         self._device_pipeline = DevicePipelineExecutor(self.device_resources)
         self._observability = SchedulingObservability()
+        self._scheduling_preference = "automatic"
         self._adaptive_policy = AdaptiveSchedulingPolicy.from_inputs(
-            hardware.memory.pressure, hardware.thermal_state, hardware.power_mode
+            hardware.memory.pressure, hardware.thermal_state, hardware.power_mode,
+            self._scheduling_preference,
         )
         self._pending_adaptive_policy: AdaptiveSchedulingPolicy | None = None
 
@@ -417,6 +424,7 @@ class BasicScheduler:
                 pressure if pressure is not None else latest.pressure,
                 thermal if thermal is not None else latest.thermal,
                 power if power is not None else latest.power,
+                self._scheduling_preference,
             )
             if proposed == current:
                 self._pending_adaptive_policy = None
@@ -430,6 +438,15 @@ class BasicScheduler:
             self._pending_adaptive_policy = None
             self._observability.adaptive_transition("applied")
             return "applied"
+
+    def set_scheduling_preference(self, preference: str) -> str:
+        if type(preference) is not str or preference not in {
+            "automatic", "low_power", "high_performance"
+        }:
+            raise ValueError("invalid scheduling preference")
+        with self._policy_lock:
+            self._scheduling_preference = preference
+            return self.update_adaptive_inputs()
 
     def apply_pending_adaptive_policy(self) -> str | None:
         with self._policy_lock:
@@ -465,6 +482,7 @@ class BasicScheduler:
                 "pressure": active.pressure.value,
                 "thermal": active.thermal.value,
                 "power": active.power.value,
+                "preference": self._scheduling_preference,
                 "pending_level": (
                     self._pending_adaptive_policy.level
                     if self._pending_adaptive_policy is not None else None

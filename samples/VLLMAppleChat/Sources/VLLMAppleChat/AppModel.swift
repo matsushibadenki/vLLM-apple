@@ -57,6 +57,7 @@ final class AppModel: ObservableObject {
     @Published private(set) var devicePlacement: DevicePlacementState = .disabled
     @Published private(set) var deviceContention: DeviceContentionState = .unavailable
     @Published private(set) var schedulingObservability: SchedulingObservabilityState = .unavailable
+    @Published private(set) var isControllingScheduling = false
     @Published private(set) var isControllingDeviceContention = false
     @Published private(set) var startupProgress: StartupProgress?
     @Published private(set) var qualificationReports: [QualificationReportRecord]
@@ -249,6 +250,21 @@ final class AppModel: ObservableObject {
         do {
             let result = try await client.controlDeviceContention(action)
             deviceContention = result.deviceContention
+        } catch let error as RuntimeClientError {
+            report(key: error.messageKey, detail: String(describing: error))
+        } catch {
+            report(key: "runtime.error.connection", detail: error.localizedDescription)
+        }
+    }
+
+    func setSchedulingPreference(_ preference: SchedulingPreference) async {
+        guard let client, !isControllingScheduling,
+              schedulingObservability.adaptivePolicy.preferenceAvailable else { return }
+        isControllingScheduling = true
+        defer { isControllingScheduling = false }
+        do {
+            let result = try await client.setSchedulingPreference(preference)
+            schedulingObservability = result.schedulingObservability
         } catch let error as RuntimeClientError {
             report(key: error.messageKey, detail: String(describing: error))
         } catch {

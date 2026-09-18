@@ -880,7 +880,7 @@ Unified Memoryとmemory bandwidthを共有する一つの実行系として管�
 - `[Done]` contention reload／rollbackのtyped Swift SDK、strict evidence検証、Mac app英語・日本語・简体中文操作UI
 - `[Done]` probe承認済みfallbackとcontention認定がある場合だけqueue先頭をidle backendへ移すbounded work stealing（resource原子予約、容量不足時FIFO復元）
 - `[Done]` memory pressure、thermal state、low-power modeに応じた新規admissionのconcurrency／batch／device割当の段階的縮退、safe-point回復
-- `[Later]` Vision/Audio encoderとembedding/classifierから開始するANE routing、GPU LLM pipelineとの非同期連携
+- `[Next]` Vision/Audio encoderとembedding/classifierから開始するANE routing、GPU LLM pipelineとの非同期連携
 - `[Later]` CPUまたはANE draft + GPU verifyによるheterogeneous speculative execution
 - `[Done]` contention全ペア合格時だけ原子的に一括予約するCPU／GPU／ANE bounded pipeline並列化
 - `[Later]` hardware／OS／model／shape別autotuning profile、期限切れ、quarantine、last-known-good rollback
@@ -888,7 +888,8 @@ Unified Memoryとmemory bandwidthを共有する一つの実行系として管�
 - `[Later]` TTFT、TPOT、tokens/sec、frames/sec、energy/request、peak Unified Memoryを用いたpromotion gate
 - `[Done]` device assignment、queue wait、fallback、contention、thermal/power decisionの固定キー・上限付きruntime observabilityとstrict schema
 - `[Done]` scheduling observabilityのtyped Swift SDK、旧runtime unavailable fallback、Mac app英語・日本語・简体中文diagnostics
-- `[Next]` 安全上のthermal／memory縮退を維持した自動／省電力／最高性能policy選択のruntime管理APIとMac app操作UI
+- `[Done]` 安全上のthermal／memory縮退を維持した自動／省電力／最高性能policy選択の認証付きruntime管理API、typed Swift SDK、Mac app三言語操作UI（runtime内の選択）
+- `[Done]` scheduling preferenceのprivate・上限付きatomic永続化、daemon再起動時の復元と不正設定時のautomatic fallback
 
 ## Cross-Cutting Work
 
@@ -1239,7 +1240,9 @@ Unified Memoryとmemory bandwidthを共有する一つの実行系として管�
 202. `[Done]` memory pressure、thermal state、low-power modeに応じた新規admissionのconcurrency／batch／device割当の段階的縮退、safe-point回復
 203. `[Done]` device assignment、queue wait、fallback、contention、thermal/power decisionの固定キー・上限付きruntime observabilityとstrict schema
 204. `[Done]` scheduling observabilityのtyped Swift SDK、旧runtime unavailable fallback、Mac app三言語diagnostics
-205. `[Next]` thermal／memory縮退を優先する自動／省電力／最高性能policy選択のruntime管理APIとMac app操作UI
+205. `[Done]` thermal／memory縮退を優先する自動／省電力／最高性能policy選択の認証付きruntime管理API、typed Swift SDK、Mac app三言語操作UI
+206. `[Done]` scheduling preferenceのprivate・上限付きatomic永続化、daemon再起動時の復元と不正設定時のautomatic fallback
+207. `[Next]` Vision/Audio encoderとembedding/classifierを対象にしたANE routingのcapability／correctness gateとGPU LLM pipelineとの非同期連携
 
 この順序により、まず推論runtimeの実model安定性を確立し、その境界を壊さずにoptimizerを
 別processとして追加する。構造pruningはquantization、calibration、評価gateの後に着手する。

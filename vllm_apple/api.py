@@ -385,6 +385,9 @@ class RuntimeRequestHandler(BaseHTTPRequestHandler):
         if path == "/v1/device-contention":
             self._control_device_contention()
             return
+        if path == "/v1/scheduling-preference":
+            self._control_scheduling_preference()
+            return
         if path != "/v1/chat/completions":
             self._error(HTTPStatus.NOT_FOUND, "not_found", "endpoint not found")
             return
@@ -518,6 +521,29 @@ class RuntimeRequestHandler(BaseHTTPRequestHandler):
             self._control_payload({"accepted": accepted, "device_contention": snapshot}),
             error_code=None if accepted else "device_contention_not_ready",
         )
+
+    def _control_scheduling_preference(self) -> None:
+        request = self._read_json()
+        if request is None:
+            return
+        if set(request) != {"preference"} or type(request["preference"]) is not str or (
+            request["preference"] not in {"automatic", "low_power", "high_performance"}
+        ):
+            self._error(
+                HTTPStatus.BAD_REQUEST, "invalid_scheduling_preference",
+                "preference must be automatic, low_power, or high_performance",
+            )
+            return
+        try:
+            result = self.server.service.control_scheduling_preference(request["preference"])
+        except (OSError, ValueError):
+            self._error(
+                HTTPStatus.INTERNAL_SERVER_ERROR,
+                "scheduling_preference_persistence_failed",
+                "scheduling preference could not be persisted",
+            )
+            return
+        self._send(HTTPStatus.OK, self._control_payload(result))
 
     def _backend_error(self, error: BackendHTTPError) -> None:
         try:

@@ -31,6 +31,7 @@ from .operator_dispatch import OperatorDispatcher
 from .profile import build_profile
 from .runtime_errors import RuntimeFailure, classify_runtime_failure
 from .scheduler import BasicScheduler, PlanApplicationDecision, Reservation, ScheduleRequest
+from .scheduling_preference import load_scheduling_preference, save_scheduling_preference
 from .startup_progress import StartupProgress
 from .semantic_cache import SemanticAnchor, SemanticAnchorKind
 from .semantic_state import (
@@ -200,6 +201,7 @@ class RuntimeService:
             publish=self.events.publish,
         )
         self._native_v2_preference_path: Path | None = None
+        self._scheduling_preference_path: Path | None = None
         self._native_v2_restore: Callable[[str], bool] | None = None
         self.memory_budget = UnifiedMemoryBudgetLedger(memory.total_bytes)
         self._state_memory_spec = state_memory_spec or (
@@ -511,6 +513,41 @@ class RuntimeService:
             "messages": messages,
             **self.scheduler.device_resources.snapshot(),
         }
+
+    def control_scheduling_preference(self, preference: str) -> dict[str, object]:
+        with self._lock:
+            if self._scheduling_preference_path is not None:
+                save_scheduling_preference(preference, self._scheduling_preference_path)
+            transition = self.scheduler.set_scheduling_preference(preference)
+            snapshot = self.scheduler.scheduling_observability_snapshot()
+        self.events.publish(
+            "runtime.scheduling_preference",
+            {"status": "updated", "preference": preference, "transition": transition},
+        )
+        return {
+            "accepted": True,
+            "transition": transition,
+            "scheduling_observability": snapshot,
+        }
+
+    def configure_scheduling_preference(self, path: Path) -> str:
+        with self._lock:
+            self._scheduling_preference_path = path
+            status = "default"
+            try:
+                preference = load_scheduling_preference(path)
+                status = "restored"
+            except FileNotFoundError:
+                preference = "automatic"
+            except (OSError, ValueError, UnicodeError):
+                preference = "automatic"
+                status = "invalid"
+            self.scheduler.set_scheduling_preference(preference)
+        self.events.publish(
+            "runtime.scheduling_preference",
+            {"status": status, "preference": preference},
+        )
+        return preference
 
     def chat_schedule_request(self, request: dict[str, Any]) -> ScheduleRequest:
         raw_batch = request.get("n", 1)

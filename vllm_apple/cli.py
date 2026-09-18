@@ -743,6 +743,7 @@ def build_parser() -> argparse.ArgumentParser:
     server.add_argument("--vllm-metal-v2-helper", type=Path)
     server.add_argument("--disable-native-v2-idle-tuning", action="store_true")
     server.add_argument("--native-v2-preference-path", type=Path)
+    server.add_argument("--scheduling-preference-path", type=Path)
     return parser
 
 
@@ -2053,6 +2054,7 @@ def main(argv: list[str] | None = None) -> int:
                 vllm_metal_source_root=arguments.vllm_metal_source_root,
                 vllm_metal_v2_helper=arguments.vllm_metal_v2_helper,
                 native_v2_preference_path=arguments.native_v2_preference_path,
+                scheduling_preference_path=arguments.scheduling_preference_path,
             )
         except (RuntimeError, ValueError) as error:
             print(f"vllm-apple: {error}", file=sys.stderr)

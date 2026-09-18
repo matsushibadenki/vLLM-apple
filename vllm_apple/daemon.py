@@ -76,6 +76,7 @@ from .vllm_metal_v2_adapter import V2MeasurementAdapterError, VLLMMetalV2Measure
 from .vllm_metal_v2_observation import default_v2_observation_path, load_v2_observations
 from .vllm_metal_v2_orchestration import NativeV2ObservationMonitor
 from .vllm_metal_v2_preference import default_native_v2_preference_path
+from .scheduling_preference import default_scheduling_preference_path
 from .vllm_metal_v2_tuning import (
     build_v2_hardware_fingerprint,
     inspect_v2_tuning_quarantine,
@@ -117,6 +118,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--vllm-metal-v2-helper", type=Path)
     parser.add_argument("--disable-native-v2-idle-tuning", action="store_true")
     parser.add_argument("--native-v2-preference-path", type=Path)
+    parser.add_argument("--scheduling-preference-path", type=Path)
     return parser
 
 
@@ -670,6 +672,7 @@ def serve(
     vllm_metal_source_root: Path | None = None,
     vllm_metal_v2_helper: Path | None = None,
     native_v2_preference_path: Path | None = None,
+    scheduling_preference_path: Path | None = None,
 ) -> None:
     if shutdown_grace_period < 0:
         raise ValueError("shutdown grace period cannot be negative")
@@ -927,6 +930,9 @@ def serve(
         native_v2_preference_path or default_native_v2_preference_path(),
         override_enabled=False if not enable_native_v2_idle_tuning else None,
     )
+    service.configure_scheduling_preference(
+        scheduling_preference_path or default_scheduling_preference_path()
+    )
     server = create_server(
         host,
         port,
@@ -1137,6 +1143,7 @@ def main(argv: list[str] | None = None) -> int:
         vllm_metal_source_root=arguments.vllm_metal_source_root,
         vllm_metal_v2_helper=arguments.vllm_metal_v2_helper,
         native_v2_preference_path=arguments.native_v2_preference_path,
+        scheduling_preference_path=arguments.scheduling_preference_path,
     )
     return 0
 

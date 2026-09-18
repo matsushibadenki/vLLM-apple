@@ -71,6 +71,27 @@ def execution_plan(plan_id: str, prefill_batch: int) -> AppleExecutionPlan:
 
 
 class SchedulerTests(unittest.TestCase):
+    def test_preference_never_overrides_thermal_or_memory_safety(self) -> None:
+        scheduler = BasicScheduler(hardware(), 500)
+        self.assertEqual(scheduler.set_scheduling_preference("low_power"), "applied")
+        self.assertEqual(scheduler.adaptive_scheduling_snapshot()["level"], 1)
+        active = scheduler.admit(ScheduleRequest("attention", 10))
+        self.assertEqual(scheduler.set_scheduling_preference("high_performance"), "deferred")
+        self.assertEqual(scheduler.adaptive_scheduling_snapshot()["pending_level"], 0)
+        scheduler.update_adaptive_inputs(thermal=ThermalState.CRITICAL)
+        self.assertEqual(scheduler.adaptive_scheduling_snapshot()["level"], 2)
+        self.assertIsNone(scheduler.adaptive_scheduling_snapshot()["pending_level"])
+        scheduler.complete(active)
+        self.assertEqual(scheduler.adaptive_scheduling_snapshot()["level"], 2)
+        scheduler.update_adaptive_inputs(thermal=ThermalState.NOMINAL)
+        scheduler.update_adaptive_inputs(pressure=MemoryPressure.CRITICAL)
+        self.assertEqual(scheduler.adaptive_scheduling_snapshot()["level"], 2)
+        with self.assertRaises(ValueError):
+            scheduler.set_scheduling_preference("unsafe")
+        self.assertEqual(
+            scheduler.adaptive_scheduling_snapshot()["preference"], "high_performance"
+        )
+
     def test_adaptive_policy_limits_new_work_without_cancelling_active_work(self) -> None:
         scheduler = BasicScheduler(hardware(), 500)
         active = scheduler.admit(ScheduleRequest("attention", 10, batch_size=8))

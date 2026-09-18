@@ -136,7 +136,12 @@ struct ContentView: View {
             ) { action in
                 Task { await model.controlDeviceContention(action) }
             }
-            SchedulingDiagnostic(state: model.schedulingObservability)
+            SchedulingDiagnostic(
+                state: model.schedulingObservability,
+                isControlling: model.isControllingScheduling
+            ) { preference in
+                Task { await model.setSchedulingPreference(preference) }
+            }
 
             if !model.qualificationReports.isEmpty {
                 VStack(alignment: .leading, spacing: DesignTokens.compact) {
@@ -624,6 +629,8 @@ private struct DeviceContentionDiagnostic: View {
 
 private struct SchedulingDiagnostic: View {
     let state: SchedulingObservabilityState
+    let isControlling: Bool
+    let onPreferenceChange: (SchedulingPreference) -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: DesignTokens.compact) {
@@ -636,6 +643,30 @@ private struct SchedulingDiagnostic: View {
                 .font(.caption.weight(.semibold))
                 .foregroundStyle(state.available ? DesignTokens.cobalt : DesignTokens.secondaryInk)
             if state.available {
+                if state.adaptivePolicy.preferenceAvailable {
+                    Text("scheduling.preference.title")
+                        .font(.caption2.weight(.semibold))
+                    Picker(
+                        "scheduling.preference.title",
+                        selection: Binding(
+                            get: { state.adaptivePolicy.preference },
+                            set: onPreferenceChange
+                        )
+                    ) {
+                        Text("scheduling.preference.automatic").tag(SchedulingPreference.automatic)
+                        Text("scheduling.preference.low_power").tag(SchedulingPreference.lowPower)
+                        Text("scheduling.preference.high_performance")
+                            .tag(SchedulingPreference.highPerformance)
+                    }
+                    .labelsHidden()
+                    .pickerStyle(.menu)
+                    .disabled(isControlling)
+                    Text("scheduling.preference.safety")
+                        .foregroundStyle(DesignTokens.secondaryInk)
+                    if isControlling {
+                        ProgressView().controlSize(.small)
+                    }
+                }
                 Text(String(
                     format: localized("scheduling.diagnostics.assignments"),
                     Int64(state.assignments.cpu),
@@ -666,7 +697,7 @@ private struct SchedulingDiagnostic: View {
         .font(.caption2)
         .foregroundStyle(DesignTokens.secondaryInk)
         .fixedSize(horizontal: false, vertical: true)
-        .accessibilityElement(children: .combine)
+        .accessibilityElement(children: .contain)
     }
 
     private var statusKey: LocalizedStringKey {

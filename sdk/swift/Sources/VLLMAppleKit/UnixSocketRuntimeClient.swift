@@ -64,6 +64,10 @@ private struct UnixDeviceContentionControlRequest: Encodable {
     let action: DeviceContentionControlAction
 }
 
+private struct UnixSchedulingPreferenceRequest: Encodable {
+    let preference: SchedulingPreference
+}
+
 public final class UnixSocketRuntimeClient: VLLMAppleRuntimeClient, @unchecked Sendable {
     public let socketPath: String
     private let sessionToken: String?
@@ -136,6 +140,21 @@ public final class UnixSocketRuntimeClient: VLLMAppleRuntimeClient, @unchecked S
             throw RuntimeClientError.invalidResponse
         }
         return state
+    }
+
+    public func setSchedulingPreference(
+        _ preference: SchedulingPreference
+    ) async throws -> SchedulingPreferenceControlResult {
+        let body = try makeEncoder().encode(UnixSchedulingPreferenceRequest(preference: preference))
+        let result = try await request(
+            "/v1/scheduling-preference", method: "POST", body: body,
+            as: SchedulingPreferenceControlResult.self
+        )
+        guard result.hasValidEvidence,
+              result.schedulingObservability.adaptivePolicy.preference == preference else {
+            throw RuntimeClientError.invalidResponse
+        }
+        return result
     }
 
     public func controlDeviceContention(

@@ -221,6 +221,11 @@ from .vllm_metal_v2_preference import (
     load_native_v2_preference,
     save_native_v2_preference,
 )
+from .scheduling_preference import (
+    default_scheduling_preference_path,
+    load_scheduling_preference,
+    save_scheduling_preference,
+)
 from .vllm_metal_v2_adapter import (
     V2MeasurementAdapterError,
     VLLMMetalV2MeasurementAdapter,
@@ -370,6 +375,7 @@ __all__ = [
     "default_metal_tuning_path",
     "default_v2_observation_path",
     "default_native_v2_preference_path",
+    "default_scheduling_preference_path",
     "detect_apple_chip_profile",
     "device_capability_from_probe",
     "discover_metal_tuning_report",
@@ -386,6 +392,7 @@ __all__ = [
     "load_v2_tuning_profile",
     "load_v2_observations",
     "load_native_v2_preference",
+    "load_scheduling_preference",
     "parse_kernel_tuning_headers",
     "promote_device_placement_plan",
     "persist_crash_diagnostic",
@@ -404,6 +411,7 @@ __all__ = [
     "save_metal_tuning_report",
     "save_v2_tuning_profile",
     "save_native_v2_preference",
+    "save_scheduling_preference",
     "semantic_prefix_fingerprint",
     "select_measured_device_backend",
     "tune_metal_shape_profile",

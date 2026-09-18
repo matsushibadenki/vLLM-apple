@@ -10,6 +10,9 @@ public protocol VLLMAppleRuntimeClient: Sendable {
     func devicePlacement() async throws -> DevicePlacementState
     func deviceContention() async throws -> DeviceContentionState
     func schedulingObservability() async throws -> SchedulingObservabilityState
+    func setSchedulingPreference(
+        _ preference: SchedulingPreference
+    ) async throws -> SchedulingPreferenceControlResult
     func controlDeviceContention(
         _ action: DeviceContentionControlAction
     ) async throws -> DeviceContentionControlResult
@@ -35,6 +38,11 @@ public extension VLLMAppleRuntimeClient {
     func devicePlacement() async throws -> DevicePlacementState { .disabled }
     func deviceContention() async throws -> DeviceContentionState { .unavailable }
     func schedulingObservability() async throws -> SchedulingObservabilityState { .unavailable }
+    func setSchedulingPreference(
+        _ preference: SchedulingPreference
+    ) async throws -> SchedulingPreferenceControlResult {
+        throw RuntimeClientError.invalidResponse
+    }
     func controlDeviceContention(
         _ action: DeviceContentionControlAction
     ) async throws -> DeviceContentionControlResult {
@@ -87,6 +95,10 @@ private struct NativeV2TuningControlRequest: Encodable {
 
 private struct DeviceContentionControlRequest: Encodable {
     let action: DeviceContentionControlAction
+}
+
+private struct SchedulingPreferenceRequest: Encodable {
+    let preference: SchedulingPreference
 }
 
 public final class HTTPRuntimeClient: VLLMAppleRuntimeClient, @unchecked Sendable {
@@ -171,6 +183,21 @@ public final class HTTPRuntimeClient: VLLMAppleRuntimeClient, @unchecked Sendabl
             throw RuntimeClientError.invalidResponse
         }
         return state
+    }
+
+    public func setSchedulingPreference(
+        _ preference: SchedulingPreference
+    ) async throws -> SchedulingPreferenceControlResult {
+        let body = try encoder.encode(SchedulingPreferenceRequest(preference: preference))
+        let result = try await send(
+            "v1/scheduling-preference", method: "POST", body: body,
+            as: SchedulingPreferenceControlResult.self
+        )
+        guard result.hasValidEvidence,
+              result.schedulingObservability.adaptivePolicy.preference == preference else {
+            throw RuntimeClientError.invalidResponse
+        }
+        return result
     }
 
     public func controlDeviceContention(

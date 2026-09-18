@@ -447,7 +447,7 @@
         },
         "adaptive_policy": {
           "type": "object",
-          "required": ["level", "maximum_active_requests", "maximum_batch_size", "pressure", "thermal", "power", "pending_level"],
+          "required": ["level", "maximum_active_requests", "maximum_batch_size", "pressure", "thermal", "power", "preference", "pending_level"],
           "properties": {
             "level": {"type": "integer", "minimum": 0, "maximum": 2},
             "maximum_active_requests": {"type": "integer", "minimum": 1},
@@ -455,6 +455,7 @@
             "pressure": {"enum": ["normal", "warning", "critical", "unknown"]},
             "thermal": {"enum": ["nominal", "fair", "serious", "critical", "unknown"]},
             "power": {"enum": ["automatic", "low_power", "high_power", "unknown"]},
+            "preference": {"enum": ["automatic", "low_power", "high_performance"]},
             "pending_level": {"type": ["integer", "null"], "minimum": 0, "maximum": 2}
           },
           "additionalProperties": false

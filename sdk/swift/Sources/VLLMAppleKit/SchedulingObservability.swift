@@ -2,6 +2,12 @@ import Foundation
 
 private let maximumSchedulingCount = 2_147_483_647
 
+public enum SchedulingPreference: String, Codable, Sendable, CaseIterable {
+    case automatic
+    case lowPower = "low_power"
+    case highPerformance = "high_performance"
+}
+
 public struct SchedulingBackendAssignments: Decodable, Sendable, Equatable {
     public let cpu: Int
     public let vllmMetal: Int
@@ -117,17 +123,20 @@ public struct SchedulingAdaptivePolicy: Decodable, Sendable, Equatable {
     public let pressure: MemoryPressure
     public let thermal: ThermalState
     public let power: PowerMode
+    public let preference: SchedulingPreference
+    public let preferenceAvailable: Bool
     public let pendingLevel: Int?
 
     static let unknown = SchedulingAdaptivePolicy(
         level: 0, maximumActiveRequests: 1024, maximumBatchSize: 2_147_483_647,
-        pressure: .unknown, thermal: .unknown, power: .unknown, pendingLevel: nil
+        pressure: .unknown, thermal: .unknown, power: .unknown,
+        preference: .automatic, preferenceAvailable: false, pendingLevel: nil
     )
 
     private init(
         level: Int, maximumActiveRequests: Int, maximumBatchSize: Int,
         pressure: MemoryPressure, thermal: ThermalState, power: PowerMode,
-        pendingLevel: Int?
+        preference: SchedulingPreference, preferenceAvailable: Bool, pendingLevel: Int?
     ) {
         self.level = level
         self.maximumActiveRequests = maximumActiveRequests
@@ -135,7 +144,29 @@ public struct SchedulingAdaptivePolicy: Decodable, Sendable, Equatable {
         self.pressure = pressure
         self.thermal = thermal
         self.power = power
+        self.preference = preference
+        self.preferenceAvailable = preferenceAvailable
         self.pendingLevel = pendingLevel
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case level, maximumActiveRequests, maximumBatchSize, pressure, thermal, power
+        case preference, pendingLevel
+    }
+
+    public init(from decoder: Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        level = try values.decode(Int.self, forKey: .level)
+        maximumActiveRequests = try values.decode(Int.self, forKey: .maximumActiveRequests)
+        maximumBatchSize = try values.decode(Int.self, forKey: .maximumBatchSize)
+        pressure = try values.decode(MemoryPressure.self, forKey: .pressure)
+        thermal = try values.decode(ThermalState.self, forKey: .thermal)
+        power = try values.decode(PowerMode.self, forKey: .power)
+        preferenceAvailable = values.contains(.preference)
+        preference = preferenceAvailable
+            ? try values.decode(SchedulingPreference.self, forKey: .preference)
+            : .automatic
+        pendingLevel = try values.decodeIfPresent(Int.self, forKey: .pendingLevel)
     }
 
     var valid: Bool {
@@ -143,6 +174,18 @@ public struct SchedulingAdaptivePolicy: Decodable, Sendable, Equatable {
             && maximumActiveRequests == [1024, 2, 1][level]
             && maximumBatchSize == [2_147_483_647, 4, 1][level]
             && (pendingLevel == nil || (0..<level).contains(pendingLevel!))
+    }
+}
+
+public struct SchedulingPreferenceControlResult: Decodable, Sendable {
+    public let accepted: Bool
+    public let transition: String
+    public let schedulingObservability: SchedulingObservabilityState
+
+    public var hasValidEvidence: Bool {
+        accepted && ["applied", "deferred", "ignored"].contains(transition)
+            && schedulingObservability.hasValidEvidence
+            && schedulingObservability.adaptivePolicy.preferenceAvailable
     }
 }
 

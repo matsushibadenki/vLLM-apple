@@ -196,8 +196,27 @@ import Testing
     #expect(state.assignments.total == 3)
     #expect(state.queueWaitBuckets.from1To10ms == 1)
     #expect(state.adaptivePolicy.pressure == .warning)
+    #expect(!state.adaptivePolicy.preferenceAvailable)
     #expect(!SchedulingObservabilityState.unavailable.available)
     var object = try #require(JSONSerialization.jsonObject(with: data) as? [String: Any])
+    var preferencePolicy = try #require(object["adaptive_policy"] as? [String: Any])
+    preferencePolicy["preference"] = "high_performance"
+    object["adaptive_policy"] = preferencePolicy
+    let current = try decoder.decode(
+        SchedulingObservabilityState.self,
+        from: JSONSerialization.data(withJSONObject: object)
+    )
+    #expect(current.adaptivePolicy.preferenceAvailable)
+    #expect(current.adaptivePolicy.preference == .highPerformance)
+    #expect(current.hasValidEvidence)
+    let controlData = try JSONSerialization.data(withJSONObject: [
+        "accepted": true,
+        "transition": "deferred",
+        "scheduling_observability": object,
+    ])
+    let control = try decoder.decode(SchedulingPreferenceControlResult.self, from: controlData)
+    #expect(control.hasValidEvidence)
+    object = try #require(JSONSerialization.jsonObject(with: data) as? [String: Any])
     object["fallback_attempts"] = -1
     let invalid = try decoder.decode(
         SchedulingObservabilityState.self,
