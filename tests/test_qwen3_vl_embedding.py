@@ -1,4 +1,5 @@
 import unittest
+from dataclasses import dataclass
 
 from vllm_apple.device_capability import (
     ComputeDevice,
@@ -15,7 +16,10 @@ from vllm_apple.execution import ExecutionBackend, WorkloadPhase
 from vllm_apple.qwen3_vl_ane import Qwen3VLVisionANEAdapterSpec
 from vllm_apple.qwen3_vl_coreml import Qwen3VLCoreMLConversionManifest
 from vllm_apple.qwen3_vl_embedding import (
+    Qwen3VLCoreMLPipelineOutput,
     Qwen3VLANEGPUPipeline,
+    Qwen3VLVisionEmbeddingBundle,
+    build_vllm_metal_qwen3_vl_encode_result,
     validate_qwen3_vl_vision_embeddings,
 )
 
@@ -23,6 +27,12 @@ from vllm_apple.qwen3_vl_embedding import (
 class FakeTensor:
     def __init__(self, shape):
         self.shape = shape
+
+
+@dataclass
+class FakeVLLMMetalResult:
+    hidden_states: object
+    deepstack_visual_embeds: object
 
 
 class Qwen3VLEmbeddingTests(unittest.TestCase):
@@ -138,6 +148,69 @@ class Qwen3VLEmbeddingTests(unittest.TestCase):
                 future.result(timeout=2)
         self.assertEqual(consumed, [])
         self.assertEqual(self.ledger.snapshot()["active_reservations"], 0)
+
+    def test_coreml_output_requires_exact_graph_provenance_and_order(self):
+        graph_id = "e" * 64
+        observed = []
+        with AsyncEncoderLLMPipeline(self.ledger, self.registry) as pipeline:
+            bridge = Qwen3VLANEGPUPipeline(
+                pipeline,
+                source=self.source,
+                conversion=self.conversion,
+                route=self.route,
+                coreml_graph_id=graph_id,
+            )
+            output = Qwen3VLCoreMLPipelineOutput(
+                FakeTensor((4, 24)),
+                (FakeTensor((4, 24)), FakeTensor((4, 24))),
+                (1, 4, 4),
+                graph_id,
+            )
+            result = bridge.submit(
+                grid_thw=(1, 4, 4),
+                encoder_memory_bytes=20,
+                llm_backend=ExecutionBackend.VLLM_METAL,
+                llm_memory_bytes=30,
+                encode=lambda: output,
+                consume=lambda bundle: observed.append(bundle) or "generated",
+            ).result(timeout=2)
+        self.assertEqual(result.output, "generated")
+        self.assertEqual(len(observed[0].deepstack_visual_embeds), 2)
+
+    def test_coreml_output_rejects_missing_or_changed_graph_provenance(self):
+        with AsyncEncoderLLMPipeline(self.ledger, self.registry) as pipeline:
+            bridge = Qwen3VLANEGPUPipeline(
+                pipeline,
+                source=self.source,
+                conversion=self.conversion,
+                route=self.route,
+                coreml_graph_id="e" * 64,
+            )
+            future = bridge.submit(
+                grid_thw=(1, 4, 4),
+                encoder_memory_bytes=20,
+                llm_backend=ExecutionBackend.VLLM_METAL,
+                llm_memory_bytes=30,
+                encode=lambda: (
+                    FakeTensor((4, 24)),
+                    (FakeTensor((4, 24)), FakeTensor((4, 24))),
+                ),
+                consume=lambda bundle: bundle,
+            )
+            with self.assertRaisesRegex(ValueError, "provenance is missing"):
+                future.result(timeout=2)
+
+    def test_builds_exact_vllm_metal_qwen3_vl_result(self):
+        hidden = FakeTensor((4, 24))
+        deepstack = (FakeTensor((4, 24)), FakeTensor((4, 24)))
+        bundle = Qwen3VLVisionEmbeddingBundle(
+            hidden, deepstack, (1, 4, 4), 4, 24, "capability"
+        )
+        result = build_vllm_metal_qwen3_vl_encode_result(
+            bundle, result_type=FakeVLLMMetalResult
+        )
+        self.assertIs(result.hidden_states, hidden)
+        self.assertEqual(tuple(result.deepstack_visual_embeds), deepstack)
 
 
 if __name__ == "__main__":

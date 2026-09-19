@@ -31,6 +31,16 @@ class Qwen3VLVisionEmbeddingBundle:
     capability_id: str
 
 
+@dataclass(frozen=True, slots=True)
+class Qwen3VLCoreMLPipelineOutput:
+    """Ordered numeric outputs produced by one provenance-bound Core ML run."""
+
+    hidden_states: object
+    deepstack_visual_embeds: tuple[object, ...]
+    grid_thw: tuple[int, int, int]
+    graph_id: str
+
+
 def validate_qwen3_vl_vision_embeddings(
     source: Qwen3VLVisionANEAdapterSpec,
     route: ANEAuxiliaryRoute,
@@ -83,6 +93,7 @@ class Qwen3VLANEGPUPipeline(Generic[_Result]):
         source: Qwen3VLVisionANEAdapterSpec,
         conversion: Qwen3VLCoreMLConversionManifest,
         route: ANEAuxiliaryRoute,
+        coreml_graph_id: str | None = None,
     ) -> None:
         if (
             not isinstance(pipeline, AsyncEncoderLLMPipeline)
@@ -94,11 +105,16 @@ class Qwen3VLANEGPUPipeline(Generic[_Result]):
             or conversion.output_shape[-1] != source.output_hidden_size
             or route.operator != source.operator
             or route.precision != conversion.compute_precision
+            or (
+                coreml_graph_id is not None
+                and not _is_sha256(coreml_graph_id)
+            )
         ):
             raise ValueError("Qwen3-VL ANE/GPU pipeline identity does not match")
         self._pipeline = pipeline
         self._source = source
         self._route = route
+        self._coreml_graph_id = coreml_graph_id
 
     def submit(
         self,
@@ -107,7 +123,9 @@ class Qwen3VLANEGPUPipeline(Generic[_Result]):
         encoder_memory_bytes: int,
         llm_backend: ExecutionBackend,
         llm_memory_bytes: int,
-        encode: Callable[[], tuple[object, Sequence[object]]],
+        encode: Callable[
+            [], tuple[object, Sequence[object]] | Qwen3VLCoreMLPipelineOutput
+        ],
         consume: Callable[[Qwen3VLVisionEmbeddingBundle], _Result],
     ) -> Future[EncoderLLMPipelineResult[_Result]]:
         if not callable(encode) or not callable(consume):
@@ -115,9 +133,23 @@ class Qwen3VLANEGPUPipeline(Generic[_Result]):
 
         def checked_encode() -> Qwen3VLVisionEmbeddingBundle:
             result = encode()
-            if not isinstance(result, tuple) or len(result) != 2:
+            if isinstance(result, Qwen3VLCoreMLPipelineOutput):
+                if (
+                    self._coreml_graph_id is None
+                    or result.graph_id != self._coreml_graph_id
+                    or result.grid_thw != grid_thw
+                ):
+                    raise ValueError(
+                        "Qwen3-VL Core ML output provenance does not match"
+                    )
+                hidden_states = result.hidden_states
+                deepstack = result.deepstack_visual_embeds
+            elif self._coreml_graph_id is not None:
+                raise ValueError("Qwen3-VL Core ML output provenance is missing")
+            elif isinstance(result, tuple) and len(result) == 2:
+                hidden_states, deepstack = result
+            else:
                 raise ValueError("Qwen3-VL Core ML encoder returned an invalid result")
-            hidden_states, deepstack = result
             return validate_qwen3_vl_vision_embeddings(
                 self._source,
                 self._route,
@@ -136,6 +168,39 @@ class Qwen3VLANEGPUPipeline(Generic[_Result]):
         )
 
 
+def build_vllm_metal_qwen3_vl_encode_result(
+    bundle: Qwen3VLVisionEmbeddingBundle,
+    *,
+    result_type: type | None = None,
+) -> object:
+    """Create Homebrew vLLM-Metal's exact Qwen3-VL vision result object."""
+    if not isinstance(bundle, Qwen3VLVisionEmbeddingBundle):
+        raise ValueError("Qwen3-VL embedding bundle is invalid")
+    if result_type is None:
+        try:
+            from vllm_metal.multimodal.qwen3_vl import (
+                Qwen3VLVisionEncodeResult as result_type,
+            )
+        except ImportError as error:
+            raise RuntimeError("Homebrew vLLM-Metal Qwen3-VL ABI is unavailable") from error
+    if not isinstance(result_type, type):
+        raise ValueError("Qwen3-VL vLLM-Metal result type is invalid")
+    try:
+        result = result_type(
+            hidden_states=bundle.hidden_states,
+            deepstack_visual_embeds=bundle.deepstack_visual_embeds,
+        )
+    except (TypeError, ValueError) as error:
+        raise RuntimeError("Homebrew vLLM-Metal Qwen3-VL ABI changed") from error
+    if (
+        getattr(result, "hidden_states", None) is not bundle.hidden_states
+        or tuple(getattr(result, "deepstack_visual_embeds", ()))
+        != bundle.deepstack_visual_embeds
+    ):
+        raise RuntimeError("Homebrew vLLM-Metal Qwen3-VL result changed outputs")
+    return result
+
+
 def _tensor_shape(value: object) -> tuple[int, ...]:
     shape = getattr(value, "shape", None)
     if (
@@ -151,3 +216,11 @@ def _tensor_shape(value: object) -> tuple[int, ...]:
     ):
         raise ValueError("Qwen3-VL embedding tensor shape is invalid")
     return normalized
+
+
+def _is_sha256(value: object) -> bool:
+    return (
+        isinstance(value, str)
+        and len(value) == 64
+        and all(character in "0123456789abcdef" for character in value)
+    )

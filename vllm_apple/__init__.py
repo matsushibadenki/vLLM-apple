@@ -215,6 +215,8 @@ from .qwen3_vl_deepstack_coreml import (
 )
 from .qwen3_vl_pipeline_coreml import qualify_qwen3_vl_segment_pipeline_coreml
 from .qwen3_vl_embedding import (
+    build_vllm_metal_qwen3_vl_encode_result,
+    Qwen3VLCoreMLPipelineOutput,
     Qwen3VLANEGPUPipeline,
     Qwen3VLVisionEmbeddingBundle,
     validate_qwen3_vl_vision_embeddings,
@@ -331,6 +333,7 @@ __all__ = [
     "Qwen3VLCoreMLGraphProfile",
     "Qwen3VLCoreMLGraphSpec",
     "Qwen3VLANEGPUPipeline",
+    "Qwen3VLCoreMLPipelineOutput",
     "Qwen3VLVisionEmbeddingBundle",
     "DevicePlacementCandidate",
     "DevicePlacementDecision",
@@ -352,6 +355,7 @@ __all__ = [
     "install_contention_profile",
     "inspect_qwen3_vl_vision_for_ane",
     "build_qwen3_vl_coreml_conversion_plan",
+    "build_vllm_metal_qwen3_vl_encode_result",
     "build_qwen3_vl_coreml_graph_spec",
     "build_qwen3_vl_patch_coreml",
     "build_qwen3_vl_mlp_coreml",
