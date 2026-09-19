@@ -1,5 +1,6 @@
 import json
 import os
+import socket
 import sys
 import tempfile
 import textwrap
@@ -270,6 +271,30 @@ class BackendConfigTests(unittest.TestCase):
             finally:
                 process.stop()
             self.assertFalse(process.running)
+
+    def test_managed_process_allows_port_after_server_active_close(self) -> None:
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as listener:
+            listener.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            listener.bind(("127.0.0.1", 0))
+            listener.listen(1)
+            address = listener.getsockname()
+            with socket.create_connection(address, timeout=2) as client:
+                connection, _ = listener.accept()
+                with connection:
+                    connection.settimeout(2)
+                    # The server closes first, leaving its port in TIME_WAIT.
+                    connection.shutdown(socket.SHUT_WR)
+                    self.assertEqual(client.recv(1), b"")
+                    client.shutdown(socket.SHUT_WR)
+                    self.assertEqual(connection.recv(1), b"")
+        process = BackendProcess(
+            BackendConfig("test-model", Path("/bin/false"), port=address[1])
+        )
+        with patch("vllm_apple.backend.subprocess.Popen", side_effect=OSError("spawn sentinel")) as spawn:
+            with self.assertRaisesRegex(BackendStartupError, "unable to start backend"):
+                process.start()
+            spawn.assert_called_once()
+        self.assertFalse(process.running)
 
     def test_managed_process_rejects_occupied_backend_port_before_spawn(self) -> None:
         listener = ThreadingHTTPServer(("127.0.0.1", 0), FakeVLLMHandler)

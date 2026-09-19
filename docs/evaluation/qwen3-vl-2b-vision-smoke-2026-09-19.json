@@ -1,0 +1,25 @@
+{
+  "backend": "vllm_metal",
+  "backend_version": "0.29.0",
+  "checks": {
+    "english_blue": true,
+    "english_red": true,
+    "japanese_blue": true,
+    "japanese_red": true,
+    "simplified_chinese_blue": true,
+    "simplified_chinese_red": true
+  },
+  "context_tokens": 2048,
+  "match_policy": "trimmed_exact",
+  "metal_memory_fraction": 0.25,
+  "model": "models/Qwen3-VL-2B-Instruct-4bit",
+  "model_revision": "9c4f5209e57b31f4b9dfba735de3fb983739c9cc",
+  "passed": true,
+  "probe": "paired_solid_color_png_v1",
+  "qualification": false,
+  "sample_count": 6,
+  "schema_version": 1,
+  "shutdown_clean": true,
+  "stores_generated_text": false,
+  "stores_images": false
+}

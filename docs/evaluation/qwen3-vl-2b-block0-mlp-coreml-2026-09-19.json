@@ -1,0 +1,29 @@
+{
+  "compute_units": "cpu_and_neural_engine",
+  "graph_id": "67c2fb85c368cc8a50d30908cb3970b65c486d76f9bd50bed8a21aec5e259e13",
+  "grid_thw": [
+    1,
+    16,
+    16
+  ],
+  "input_shape": [
+    256,
+    1024
+  ],
+  "latency_nanoseconds": 2106333,
+  "maximum_absolute_error": 0.0234375,
+  "maximum_scaled_error": 0.004893964110929853,
+  "maximum_scaled_error_limit": 0.01,
+  "output_count": 262144,
+  "output_sha256": "5eb1c388d75e601c305ca7f78172cc42bed277679efff00e20c8956bb60ab677",
+  "output_shape": [
+    256,
+    1024
+  ],
+  "partition": "block-0-mlp-v1",
+  "passed": true,
+  "qualification_input": "repeated_dense_vector_covering_all_1024_input_features",
+  "reference": "fp32_layernorm_linear_gelu_tanh_linear_residual_then_fp16",
+  "schema_version": 1,
+  "scope": "vision_block_0_norm2_mlp_residual_only"
+}

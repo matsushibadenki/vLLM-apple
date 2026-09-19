@@ -1,0 +1,29 @@
+{
+  "compute_units": "cpu_and_neural_engine",
+  "graph_id": "67c2fb85c368cc8a50d30908cb3970b65c486d76f9bd50bed8a21aec5e259e13",
+  "grid_thw": [
+    1,
+    16,
+    16
+  ],
+  "input_shape": [
+    256,
+    1024
+  ],
+  "latency_nanoseconds": 2544083,
+  "maximum_absolute_error": 0.017578125,
+  "maximum_scaled_error": 0.01348876953125,
+  "maximum_scaled_error_limit": 0.03,
+  "output_count": 262144,
+  "output_sha256": "958b643e7d1e1c8801ee552a39ad3e16e2b191a6d3aef5e21ca514343b557e8c",
+  "output_shape": [
+    256,
+    1024
+  ],
+  "partition": "block-0-complete-v1",
+  "passed": true,
+  "qualification_input": "repeated_dense_vector_covering_all_1024_input_features",
+  "reference": "fp32_attention_then_fp16_boundary_then_fp32_mlp_then_fp16",
+  "schema_version": 1,
+  "scope": "vision_block_0_complete_attention_and_mlp_residuals"
+}

@@ -1,0 +1,29 @@
+{
+  "architecture": "arm64",
+  "compiled_file_count": 4,
+  "compiled_sha256": "3017f9c9c179ec3544f19dfed4e99a16e0362e0473d8430c54dba29f0bdd43a4",
+  "compute_precision": "fp16",
+  "compute_units": "cpu_and_neural_engine",
+  "coremlcompiler_version": "3600.25.1",
+  "coremltools_version": "8.1",
+  "input_shape": [
+    1,
+    4
+  ],
+  "minimum_deployment_target": "macOS15",
+  "output_shape": [
+    1,
+    2
+  ],
+  "package_file_count": 2,
+  "package_sha256": "ddbc0b3a663f7cd46c9b564e6278e6e9e0455829b931f542564c2fe9470d0b1d",
+  "passed": true,
+  "platform": "Darwin",
+  "platform_release": "27.0.0",
+  "prediction_latency_nanoseconds": 750458,
+  "prediction_values": [
+    5.125,
+    -0.875
+  ],
+  "schema_version": 1
+}

@@ -71,9 +71,14 @@ from .device_resources import (
     contention_profile_id,
 )
 from .device_pipeline import (
+    ANEAuxiliaryRoute,
+    ANEAuxiliaryWorkload,
+    AsyncEncoderLLMPipeline,
     DevicePipelineExecutor,
     DevicePipelineResult,
     DevicePipelineStage,
+    EncoderLLMPipelineResult,
+    require_ane_auxiliary_route,
 )
 from .device_contention import (
     ContentionBenchmarkConfig,
@@ -162,6 +167,47 @@ from .runtime_errors import (
     classify_runtime_failure,
     persist_crash_diagnostic,
 )
+from .qwen3_vl_ane import (
+    Qwen3VLVisionANEAdapterSpec,
+    inspect_qwen3_vl_vision_for_ane,
+)
+from .qwen3_vl_coreml import (
+    Qwen3VLCoreMLConversionManifest,
+    load_qwen3_vl_coreml_conversion,
+    qualify_qwen3_vl_coreml_conversion,
+    save_qwen3_vl_coreml_conversion,
+)
+from .qwen3_vl_conversion_plan import (
+    Qwen3VLCoreMLConversionPlan,
+    build_qwen3_vl_coreml_conversion_plan,
+)
+from .qwen3_vl_conversion_worker import stage_qwen3_vl_coreml_weights
+from .qwen3_vl_graph_spec import (
+    Qwen3VLCoreMLGraphProfile,
+    Qwen3VLCoreMLGraphSpec,
+    build_qwen3_vl_coreml_graph_spec,
+)
+from .qwen3_vl_patch_coreml import (
+    build_qwen3_vl_patch_coreml,
+    qualify_qwen3_vl_patch_coreml,
+)
+from .qwen3_vl_mlp_coreml import (
+    build_qwen3_vl_mlp_coreml,
+    qualify_qwen3_vl_mlp_coreml,
+)
+from .qwen3_vl_attention_coreml import (
+    build_qwen3_vl_attention_coreml,
+    qualify_qwen3_vl_attention_coreml,
+)
+from .qwen3_vl_block_coreml import (
+    build_qwen3_vl_block_coreml,
+    qualify_qwen3_vl_block_coreml,
+)
+from .qwen3_vl_embedding import (
+    Qwen3VLANEGPUPipeline,
+    Qwen3VLVisionEmbeddingBundle,
+    validate_qwen3_vl_vision_embeddings,
+)
 from .semantic_cache import (
     SemanticAnchor,
     SemanticAnchorCache,
@@ -235,6 +281,9 @@ from .vllm_metal_v2_adapter import (
 )
 
 __all__ = [
+    "ANEAuxiliaryRoute",
+    "ANEAuxiliaryWorkload",
+    "AsyncEncoderLLMPipeline",
     "API_VERSION",
     "SCHEMA_VERSION",
     "AppleChipProfile",
@@ -265,6 +314,13 @@ __all__ = [
     "BoundedCPUReferenceBenchmarkAdapter",
     "DeviceEligibilityDecision",
     "DeviceEligibilityRequest",
+    "Qwen3VLVisionANEAdapterSpec",
+    "Qwen3VLCoreMLConversionManifest",
+    "Qwen3VLCoreMLConversionPlan",
+    "Qwen3VLCoreMLGraphProfile",
+    "Qwen3VLCoreMLGraphSpec",
+    "Qwen3VLANEGPUPipeline",
+    "Qwen3VLVisionEmbeddingBundle",
     "DevicePlacementCandidate",
     "DevicePlacementDecision",
     "DevicePlacement",
@@ -273,6 +329,7 @@ __all__ = [
     "DevicePipelineExecutor",
     "DevicePipelineResult",
     "DevicePipelineStage",
+    "EncoderLLMPipelineResult",
     "BandwidthContentionEvidence",
     "ContentionBenchmarkConfig",
     "ContentionProfile",
@@ -282,12 +339,29 @@ __all__ = [
     "DeviceResourceReservation",
     "UnifiedDeviceResourceLedger",
     "install_contention_profile",
+    "inspect_qwen3_vl_vision_for_ane",
+    "build_qwen3_vl_coreml_conversion_plan",
+    "build_qwen3_vl_coreml_graph_spec",
+    "build_qwen3_vl_patch_coreml",
+    "build_qwen3_vl_mlp_coreml",
+    "build_qwen3_vl_attention_coreml",
+    "build_qwen3_vl_block_coreml",
+    "stage_qwen3_vl_coreml_weights",
+    "load_qwen3_vl_coreml_conversion",
     "contention_profile_id",
     "load_contention_profile",
     "load_contention_profile_with_fallback",
     "promote_contention_profile",
     "run_contention_benchmark",
+    "require_ane_auxiliary_route",
+    "qualify_qwen3_vl_coreml_conversion",
+    "qualify_qwen3_vl_patch_coreml",
+    "qualify_qwen3_vl_mlp_coreml",
+    "qualify_qwen3_vl_attention_coreml",
+    "qualify_qwen3_vl_block_coreml",
     "save_contention_profile",
+    "save_qwen3_vl_coreml_conversion",
+    "validate_qwen3_vl_vision_embeddings",
     "ElasticMemoryController",
     "ElasticMemoryDecision",
     "ExecutionPhaseProfiler",

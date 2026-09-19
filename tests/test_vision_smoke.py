@@ -13,6 +13,15 @@ from vllm_apple.vision_smoke import run_vision_smoke, solid_png
 
 
 class VisionSmokeTests(unittest.TestCase):
+    def test_truncated_stream_cannot_pass_even_with_text_and_usage(self):
+        events = [{"choices": [{"delta": {"content": "red"}}]},
+                  {"usage": {"prompt_tokens": 100, "completion_tokens": 1}}]
+        stream = io.BytesIO(b"".join(b"data: " + json.dumps(e).encode() + b"\n\n" for e in events))
+        with patch("vllm_apple.phase_probe.urllib.request.urlopen", return_value=stream):
+            with self.assertRaises(PhaseProbeError) as raised:
+                measure_stream(PhaseProbeConfig(base_url="http://127.0.0.1:8000", model="vision", hardware_fingerprint="test"), expected_text="red")
+        self.assertEqual(raised.exception.code, "incomplete_stream")
+
     def test_sse_backend_error_is_not_misreported_as_empty_answer(self):
         stream = io.BytesIO(b'data: {"error":{"message":"private backend details"}}\n\ndata: [DONE]\n\n')
         with patch("vllm_apple.phase_probe.urllib.request.urlopen", return_value=stream):

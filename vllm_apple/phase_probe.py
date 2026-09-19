@@ -157,6 +157,7 @@ def measure_stream(
     generated_bytes = 0
     trimmed_digest = _TrimmedTextDigest()
     response_bytes = 0
+    stream_completed = False
     try:
         with urllib.request.urlopen(request, timeout=config.timeout_seconds) as response:
             while True:
@@ -174,6 +175,7 @@ def measure_stream(
                     continue
                 data = line[5:].strip()
                 if data == b"[DONE]":
+                    stream_completed = True
                     completed_ns = time.monotonic_ns()
                     break
                 try:
@@ -215,6 +217,8 @@ def measure_stream(
         if monitor:
             monitor.join(timeout=1)
 
+    if not stream_completed:
+        raise PhaseProbeError("incomplete_stream", "backend stream ended without [DONE]")
     if first_token_ns is None:
         raise PhaseProbeError("first_token_missing", "stream contained no generated token")
     prompt_tokens = _usage_integer(usage, "prompt_tokens")

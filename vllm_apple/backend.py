@@ -195,6 +195,9 @@ class BackendProcess:
             family = socket.AF_INET6 if self.config.host == "::1" else socket.AF_INET
             try:
                 with socket.socket(family, socket.SOCK_STREAM) as probe:
+                    # Match restartable servers: TIME_WAIT is reusable, while
+                    # an active listener must still fail this preflight check.
+                    probe.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
                     probe.bind((self.config.host, self.config.port))
             except OSError as error:
                 raise BackendStartupError(

@@ -39,13 +39,14 @@ non-stream応答とSSE完走を実機確認。`+cpu` suffix自体はMetal利用�
 - `[Done]` Homebrew 0.29.0 / Transformers 5.17.0の30秒text負荷試験（142/142成功、47.832 decode tok/s、平均TTFT 87.699 ms）。証跡: [short report](evaluation/homebrew-029-text-short-2026-09-19.json)。品質試験省略・30分未達のため完全認定ではない。
 - `[Done]` 多言語品質試験の不一致原因を末尾空白・改行と確認。`exact`は維持し、品質smokeは明示的な`trimmed_exact`で前後空白だけを除外。内部空白・追加説明は拒否し、本文非保存のincremental hash比較を維持。Gemmaの英語・日本語・简体中文実SSEで合格、関連20テスト成功。
 - `[Done]` Homebrew 0.29.0 / Transformers 5.17.0、Gemma 2 2B IT 4-bit、context 1024、concurrency 1、`VLLM_METAL_MEMORY_FRACTION=0.25`で30分qualification成功（1800.253秒、6,775/6,775成功、失敗0、3.763 req/s）。3言語`trimmed_exact`、sampling/streaming、正常shutdownが合格。監視対象processのRSS peak増加409,600 bytes、終了時増加0。別途3 sampleのphase probeは42.841 decode tok/s、平均TTFT 91.105 ms。証跡: [30-minute report](evaluation/homebrew-029-text-30min-2026-09-19.json)。KV capacity再評価はunavailableで未検証、画像・音声や全stackの認定へは拡張しない。
-- `[Next]` 画像・音声の実推論確認
+- `[Next]` 画像の長時間安定性と音声の実推論確認
 - `[Done]` Gemma 3 4B IT 4bitの固定revision取得・14ファイル照合、Homebrew 0.29.0でMLX-VLMロード確認。実画像要求はmultimodal encoder adapter未準備でEngineCore停止を再現し、不合格として記録: [attempt](evaluation/gemma-3-4b-it-vision-attempt-2026-09-19.json)。chat templateを備えるだけではbackend画像対応を保証しない。
-- `[Next]` 配布版にforward-ready adapterが存在するモデルfamily（Qwen3-VL等）を先に確認して画像smokeを再実施。
+- `[Done]` 配布版のQwen3-VL adapter登録とforward_readyを先に確認し、Qwen3-VL-2B-Instruct-4bit（revision `9c4f5209e57b31f4b9dfba735de3fb983739c9cc`、16ファイル照合済み）で画像smokeを実測。Homebrew 0.29.0、context 2048、memory fraction 0.25で3言語×赤青の6ケースすべて合格、正常shutdown。証跡: [vision smoke](evaluation/qwen3-vl-2b-vision-smoke-2026-09-19.json)。長時間認定・一般的画像理解能力の認定は含まない。
 - `[Done]` `vision-smoke` CLI: 32x32赤・青PNGをOpenAI image_urlに埋め込み、3言語6ケースを画像付きSSEで検証。同一質問の画像差分を用い、画像・生成本文は非保存。PNG送信・画素・判定の回帰テストを追加。長時間vision認定とは別扱い。
 - `[Done]` text-only qualification runnerによるvision誤認定を起動前に拒否（image-input probeが未実装のため）。
 - `[Done]` ローカルGemma 3 4B PTの実weight headerでvision/projector tensor 439件を確認。Homebrew 0.29.0でMLX-VLMロード成功。`skip_vision=true`だけではweight欠落と判断できない。画像付きchatはtokenizerのchat template未定義によりHTTP 400となり、画像品質は未測定。
-- `[Next]` chat templateを備えたinstruction-tuned画像モデルで`vision-smoke`を実測し、画像入力を伴う長時間qualificationへ接続。音声モデルはローカルmodels一覧には未配置。
+- `[Next]` 合格したQwen3-VLの画像入力を伴う長時間qualificationへ接続。音声モデルはローカルmodels一覧には未配置。
+- `[Done]` phase/vision probeでSSEの`[DONE]`を必須化し、本文とusageがあっても途中切断は不合格とする。関連26テスト成功。
 
 Homebrewの最新版を無条件に実行経路へ昇格させず、次の順序で検証する。
 
@@ -1277,7 +1278,19 @@ Unified Memoryとmemory bandwidthを共有する一つの実行系として管�
 204. `[Done]` scheduling observabilityのtyped Swift SDK、旧runtime unavailable fallback、Mac app三言語diagnostics
 205. `[Done]` thermal／memory縮退を優先する自動／省電力／最高性能policy選択の認証付きruntime管理API、typed Swift SDK、Mac app三言語操作UI
 206. `[Done]` scheduling preferenceのprivate・上限付きatomic永続化、daemon再起動時の復元と不正設定時のautomatic fallback
-207. `[Next]` Vision/Audio encoderとembedding/classifierを対象にしたANE routingのcapability／correctness gateとGPU LLM pipelineとの非同期連携
+207. `[Done]` Vision/Audio encoderとembedding/classifierを用途別に識別し、probe合格済みCore ML capabilityへの完全一致を必須にするANE routing gate。bounded非同期ANE encoder → GPU LLM依存pipeline、stage間の出力順序保証、Unified Memory／device reservation解放、未実測のANE/GPU overlapを有効化しない逐次handoffを実装
+208. `[Done]` Qwen3-VL vision ANE adapterのfail-closed静的admission。固定commit、Qwen3-VL architecture／processor、vision shape、全24 block・patch embedding・merger・3 deep-stack mergerのindexed tensor inventoryをartifact fingerprintへ結合。safetensors headerを実測し、配置済み2B 4-bitモデル内のvision tensor 315件はすべてBF16と確認。モデル全体のMLX affine INT4設定をvision weightのprecisionと誤認せず、Core ML artifactは未変換として維持
+209. `[Done]` Qwen3-VL Core ML変換manifestとpromotion gate。source artifact fingerprint／固定revision／Core ML tree integrity／I/O shape／precision／converter versionを結合し、最大絶対誤差内のCPU／MLX reference一致、反復成功、ANE候補の非劣化を満たす場合だけ用途別DeviceCapabilityを発行。別sourceへのreplay、tree改変、数値不一致、性能劣化はfail-closed
+210. `[Done]` Homebrew vLLM-Metal 0.29.0の実Qwen3-VL ABIに整合するANE → GPU LLM embedding bridge。`image_grid_thw`からspatial merge後token数を再計算し、main hidden statesと全deep-stack出力の件数・shape・hidden幅を検証してから、capability-bound非同期pipelineでGPU callbackへhandoff。不正出力はGPU実行前に拒否し全resourceを解放
+211. `[Done]` Qwen3-VL vision safetensors全315件のheader・dtype・shapeをpayload非materializeで検証するCore ML変換計画。BF16→FP16容量、24 block、patch Conv3DのMLX `OTWCI`→Core ML `OICTW`転置、linear／norm／position embedding、merger／3 deep-stack mergerを分類し、固定grid profileとsource fingerprintへplan IDを結合
+212. `[Done]` planに従うQwen3-VL vision BF16→FP16実変換worker。8 MiB上限のstreaming変換、patch Conv3DのMLX `OTWCI`→Core ML `OICTW`転置、tensorごとのSHA-256、source変更検知、出力容量上限、private directoryとfsync付きatomic publishを実装し、Homebrew vLLM-Metal環境で全tensor出力・数値転置・途中失敗cleanupをfixture検証
+213. `[Done]` staged weight全件のsize／SHA-256／重複／余分なfile／plan replayをfail-closed検証し、固定gridごとのpixel input、main hidden states、全deep-stack output shapeと、patch embedding／position interpolation／RoPE／24層attention・MLP／merger semanticsをsource・plan・weight treeへ結合する再現可能なCore ML graph specification
+214. `[Done]` 推論用Homebrew環境から分離したPython 3.12／Core ML Tools 8.1 converter環境と再利用可能なtoolchain probe。決定的FP16 MIL graphを`.mlpackage`へ生成し、Xcode 27 Core ML compiler 3600.25.1で`.mlmodelc`へcompile、arm64/macOS 27の`.cpuAndNeuralEngine`設定で実predictionが期待値と一致（0.750 ms）。証跡: [toolchain probe](evaluation/coreml-toolchain-probe-2026-09-19.json)。これはtoolchain認定でありQwen3-VL／ANE単独実行の認定ではない
+215. `[Done]` Qwen3-VL-2B実weight 315件／813,914,112 bytesのBF16→FP16 stagingと、1×16×16固定gridのpatch projection＋bilinear position embedding partitionをCore ML Tools 8.1で`.mlpackage`／`.mlmodelc`化。全1,536 weight列を通る決定的sparse入力で262,144出力を照合し、最大scaled error 0.001484（固定上限0.002）、CPU+ANE設定の単発prediction 1.075 msで合格。証跡: [patch partition](evaluation/qwen3-vl-2b-patch-coreml-2026-09-19.json)。Core MLの実device割当やvision tower全体の認定には拡張しない
+216. `[Done]` Qwen3-VL vision block 0の実norm2→1024→4096 MLP→GELU-tanh→4096→1024 projection→residual partitionをCore ML化。全1024入力featureを通るdense入力で262,144出力を照合し、最大scaled error 0.004894（固定上限0.01）、CPU+ANE設定の単発prediction 2.106 msで合格。証跡: [block 0 MLP](evaluation/qwen3-vl-2b-block0-mlp-coreml-2026-09-19.json)。MLP単体の構築可能性確認でありblock全体／promotion認定ではない
+217. `[Done]` Qwen3-VL vision block 0の実norm1→QKV→固定2D RoPE→native scaled-dot-product attention→projection→residual partitionをCore ML化。16 heads×256 tokens×64 head dimensionの262,144出力をdense入力で照合し、最大scaled error 0.002930（固定上限0.02）、CPU+ANE設定の単発prediction 1.840 msで合格。証跡: [block 0 attention](evaluation/qwen3-vl-2b-block0-attention-coreml-2026-09-19.json)。attention単体の構築可能性確認でありblock全体／promotion認定ではない
+218. `[Done]` 合格した固定RoPE attention residualとMLP residualを同一Core ML graphへ直列統合し、Qwen3-VL vision block 0を完成。dense入力の262,144出力で最大scaled error 0.01349（統合用固定上限0.03）、CPU+ANE設定の単発prediction 2.544 msで合格。証跡: [complete block 0](evaluation/qwen3-vl-2b-block0-complete-coreml-2026-09-19.json)。1 blockの認定であり24 block towerへは未拡張
+219. `[Next]` block builderを24層へ一般化し、deep-stack index 5／11／17の中間出力、deep-stack merger、final mergerを含むtower graphを段階的にcompile・数値照合。その後、既存vLLM-Metal adapterへの接続patchとend-to-end latency／memoryを実機qualification。Audio／embedding／classifierは対応artifactごとに独立probeし、合格用途だけ昇格
 
 この順序により、まず推論runtimeの実model安定性を確立し、その境界を壊さずにoptimizerを
 別processとして追加する。構造pruningはquantization、calibration、評価gateの後に着手する。

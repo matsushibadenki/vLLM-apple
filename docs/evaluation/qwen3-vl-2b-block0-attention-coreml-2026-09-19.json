@@ -1,0 +1,29 @@
+{
+  "compute_units": "cpu_and_neural_engine",
+  "graph_id": "67c2fb85c368cc8a50d30908cb3970b65c486d76f9bd50bed8a21aec5e259e13",
+  "grid_thw": [
+    1,
+    16,
+    16
+  ],
+  "input_shape": [
+    256,
+    1024
+  ],
+  "latency_nanoseconds": 1840000,
+  "maximum_absolute_error": 0.0078125,
+  "maximum_scaled_error": 0.0029296875,
+  "maximum_scaled_error_limit": 0.02,
+  "output_count": 262144,
+  "output_sha256": "c4e534f5223543802feec74759766dc9969298a6a805afd2a01afa5736a3ca5e",
+  "output_shape": [
+    256,
+    1024
+  ],
+  "partition": "block-0-attention-v1",
+  "passed": true,
+  "qualification_input": "repeated_dense_vector_covering_all_1024_input_features",
+  "reference": "fp32_layernorm_qkv_fixed_rope_sdpa_projection_residual_then_fp16",
+  "schema_version": 1,
+  "scope": "vision_block_0_norm1_attention_residual_only"
+}

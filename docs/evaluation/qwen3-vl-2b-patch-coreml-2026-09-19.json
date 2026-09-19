@@ -1,0 +1,31 @@
+{
+  "compute_units": "cpu_and_neural_engine",
+  "conversion_plan_id": "103ebdede78c8936b6f3e25378fa3186ee112199e341ec5fc72a7e69f59b8e48",
+  "graph_id": "67c2fb85c368cc8a50d30908cb3970b65c486d76f9bd50bed8a21aec5e259e13",
+  "grid_thw": [
+    1,
+    16,
+    16
+  ],
+  "input_shape": [
+    256,
+    1536
+  ],
+  "latency_nanoseconds": 1075417,
+  "maximum_absolute_error": 0.015625,
+  "maximum_scaled_error": 0.001483679525222552,
+  "maximum_scaled_error_limit": 0.002,
+  "maximum_ulp_error": 3827,
+  "output_count": 262144,
+  "output_shape": [
+    256,
+    1024
+  ],
+  "output_sha256": "be2bc30ddf16bfee60d15bda546bf0c3e14e6dc4154b4c6e619912cbd58b2d39",
+  "partition": "patch-position-v1",
+  "passed": true,
+  "qualification_input": "six_nonzero_values_per_row_covering_all_1536_weight_columns",
+  "schema_version": 1,
+  "scope": "patch_projection_and_fixed_position_embedding_only",
+  "vision_staged_tensor_bytes": 813914112
+}
