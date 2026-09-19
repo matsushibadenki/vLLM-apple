@@ -17,6 +17,17 @@ from vllm_apple.service import RuntimeService
 
 
 class RuntimeFailureTests(unittest.TestCase):
+    def test_backend_environment_errors_are_not_internal_failures(self) -> None:
+        for backend in ("vLLM-Metal", "vllm_metal", "mlx_lm"):
+            with self.subTest(backend=backend):
+                failure = classify_runtime_failure(
+                    RuntimeError(f"incompatible {backend} environment: dependency conflict")
+                )
+                self.assertEqual(failure.code, RuntimeFailureCode.BACKEND_INCOMPATIBLE)
+                self.assertEqual(
+                    failure.recoverability, RuntimeRecoverability.USER_ACTION_REQUIRED
+                )
+
     def test_backend_timeout_is_retryable_and_schema_valid(self) -> None:
         failure = classify_runtime_failure(
             BackendStartupError("timeout detail", code="backend_readiness_timeout")

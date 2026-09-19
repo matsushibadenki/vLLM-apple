@@ -26,11 +26,12 @@ def run_serving_quality_smoke(
         result = measure(
             replace(config, prompt=prompt, maximum_output_tokens=8, samples=1),
             expected_text=expected,
-            expected_match_mode="exact",
+            expected_match_mode="trimmed_exact",
         )
         checks[name] = result.expected_text_matched is True
     return {
         "schema_version": QUALITY_SMOKE_SCHEMA_VERSION,
+        "match_policy": "trimmed_exact",
         "sample_count": len(checks),
         "checks": checks,
         "stores_generated_text": False,

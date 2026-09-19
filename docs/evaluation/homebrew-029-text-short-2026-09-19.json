@@ -1,0 +1,120 @@
+{
+  "backend": "vllm_metal",
+  "backend_versions": {
+    "transformers": "5.17.0",
+    "vllm": "0.29.0+cpu",
+    "vllm_metal": "0.29.0"
+  },
+  "context_reevaluation": {
+    "capacity_context_tokens": null,
+    "configured_context_tokens": 1024,
+    "effective_context_tokens": 1024,
+    "enabled": false,
+    "kv_bytes_per_token": null,
+    "kv_capacity_bytes": null,
+    "passed": true,
+    "reevaluations": 0,
+    "source": null,
+    "status": "unavailable",
+    "weights_bytes": null
+  },
+  "load_seconds": 18.027,
+  "model": "models/gemma-2-2b-it-4bit",
+  "model_memory_fit": {
+    "artifact_bytes": 1470988882,
+    "context_tokens": 1024,
+    "estimated_resident_bytes": 1580040786,
+    "fits": true,
+    "hard_ceiling_bytes": 19752416707
+  },
+  "passed": true,
+  "phase_profile": {
+    "backend": "vllm_metal",
+    "decode": {
+      "duration_ms": 292.691,
+      "output_tokens": 16,
+      "token_intervals": 14,
+      "tokens_per_second": 47.832,
+      "tpot": {
+        "max_ms": 20.923,
+        "mean_ms": 20.907,
+        "p50_upper_bound_ms": 25.0,
+        "p95_upper_bound_ms": 25.0
+      }
+    },
+    "hardware_fingerprint": "d256f0c6194dc23c2d34817f",
+    "model_id": "models/gemma-2-2b-it-4bit",
+    "peak_memory_bytes": 1860386816,
+    "prefill": {
+      "prompt_tokens": 32,
+      "ttft": {
+        "max_ms": 88.578,
+        "mean_ms": 87.699,
+        "p50_upper_bound_ms": 100.0,
+        "p95_upper_bound_ms": 100.0
+      }
+    },
+    "profile_id": "e82964446ff703af8bed7546",
+    "sample_count": 2,
+    "schema_version": 1,
+    "storage": {
+      "latency_bucket_count": 26,
+      "raw_sample_count": 0
+    }
+  },
+  "promotion_probe": {
+    "checks": {
+      "greedy_repeat_equal": true,
+      "sampled_repeat_equal": true,
+      "sampled_stream_equal": true,
+      "stream_completed": true
+    },
+    "determinism_mode": "seeded_sampling",
+    "digests": {
+      "greedy": "a72f0215ec983589f7140253c77d742103fd5bf1210ece94febc2d1562d35e6d",
+      "sampled": "a72f0215ec983589f7140253c77d742103fd5bf1210ece94febc2d1562d35e6d",
+      "sampled_stream": "a72f0215ec983589f7140253c77d742103fd5bf1210ece94febc2d1562d35e6d"
+    },
+    "model": "models/gemma-2-2b-it-4bit",
+    "passed": true,
+    "schema_version": 1,
+    "seed": 1729,
+    "temperature": 0.7
+  },
+  "quality_smoke": null,
+  "requested_modes": [
+    "text"
+  ],
+  "schema_version": 1,
+  "shutdown_clean": true,
+  "soak": {
+    "certification_required": false,
+    "elapsed_seconds": 30.102,
+    "errors": {},
+    "failures": 0,
+    "latency_ms": {
+      "max": 244.957,
+      "mean": 211.969,
+      "p50_upper_bound": 250,
+      "p95_upper_bound": 250
+    },
+    "passed": true,
+    "process_alive": true,
+    "requests": 142,
+    "requests_per_second": 4.717,
+    "rss": {
+      "baseline_bytes": 1860403200,
+      "final_bytes": 1860534272,
+      "growth_bytes": 131072,
+      "limit_bytes": 268435456,
+      "peak_bytes": 1860534272,
+      "peak_growth_bytes": 131072
+    },
+    "stability_window_met": false,
+    "storage": {
+      "error_keys": 0,
+      "latency_buckets": 12
+    },
+    "successes": 142
+  }
+}

@@ -16,6 +16,7 @@ from vllm_apple.phase_probe import (
 
 class UsageStreamHandler(BaseHTTPRequestHandler):
     include_usage = True
+    content_chunks = ("hello",)
 
     def log_message(self, format: str, *args: object) -> None:
         return
@@ -28,7 +29,7 @@ class UsageStreamHandler(BaseHTTPRequestHandler):
             return
         events = [
             {"choices": [{"delta": {"role": "assistant"}}]},
-            {"choices": [{"delta": {"content": "hello"}}]},
+            *({"choices": [{"delta": {"content": chunk}}]} for chunk in self.content_chunks),
         ]
         if self.include_usage:
             events.append(
@@ -49,6 +50,14 @@ class UsageStreamHandler(BaseHTTPRequestHandler):
 
 class MissingUsageStreamHandler(UsageStreamHandler):
     include_usage = False
+
+
+class WhitespaceStreamHandler(UsageStreamHandler):
+    content_chunks = (" \n", "青", " ", "\n")
+
+
+class ExtraTextStreamHandler(UsageStreamHandler):
+    content_chunks = ("青", "\n", "説明")
 
 
 class PhaseProbeTests(unittest.TestCase):
@@ -124,6 +133,20 @@ class PhaseProbeTests(unittest.TestCase):
                 model="test-model",
                 hardware_fingerprint="test-hardware",
             )
+
+    def test_trimmed_exact_stream_ignores_only_surrounding_whitespace(self) -> None:
+        for handler, matches in ((WhitespaceStreamHandler, True), (ExtraTextStreamHandler, False)):
+            with self.subTest(handler=handler.__name__):
+                server = self._server(handler)
+                config = PhaseProbeConfig(
+                    base_url=f"http://127.0.0.1:{server.server_port}",
+                    model="test-model",
+                    hardware_fingerprint="test-hardware",
+                )
+                result = measure_stream(config, expected_text="青", expected_match_mode="trimmed_exact")
+                self.assertEqual(result.expected_text_matched, matches)
+                exact = measure_stream(config, expected_text="青", expected_match_mode="exact")
+                self.assertFalse(exact.expected_text_matched)
 
 
 if __name__ == "__main__":

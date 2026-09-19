@@ -101,6 +101,31 @@ class BackendVersionMatrixTests(unittest.TestCase):
             ["gated_deltanet", "qwen_sparse_attention"],
         )
 
+    def test_metal_available_but_cpu_platform_is_reported(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            executable = Path(directory) / "vllm"
+            executable.write_text("#!/bin/sh\n", encoding="utf-8")
+            os.chmod(executable, 0o700)
+            payload = json.dumps(
+                {
+                    "python": "3.12.4",
+                    "vllm": "0.29.0",
+                    "vllm_metal": "0.29.0",
+                    "transformers": "5.17.0",
+                    "platform_module": "vllm.platforms.cpu",
+                    "platform_class": "CpuPlatform",
+                    "platform_is_cpu": True,
+                    "metal_available": True,
+                    "architecture_features": [],
+                }
+            )
+            with patch(
+                "vllm_apple.compat.subprocess.run",
+                return_value=CompletedProcess([], 0, stdout=payload, stderr=""),
+            ):
+                result = inspect_backend(executable)
+        self.assertIn("vllm_metal_available_but_not_selected", result.issues)
+
     def test_mlx_probe_declares_only_bounded_explicit_features(self) -> None:
         version, features = _decode_mlx_probe(
             json.dumps(

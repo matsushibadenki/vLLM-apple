@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+import base64
 import json
 import subprocess
 import threading
@@ -71,23 +72,56 @@ def run_phase_probe(config: PhaseProbeConfig) -> dict[str, Any]:
     return profiler.snapshot()
 
 
+class _TrimmedTextDigest:
+    """Hash stripped text across chunks without retaining generated text."""
+
+    def __init__(self) -> None:
+        self.digest = hashlib.sha256()
+        self.committed = self.digest.copy()
+        self.started = False
+
+    def update(self, text: str) -> None:
+        for character in text:
+            whitespace = character.isspace()
+            if not self.started and whitespace:
+                continue
+            self.started = True
+            self.digest.update(character.encode("utf-8"))
+            if not whitespace:
+                self.committed = self.digest.copy()
+
+    def matches(self, expected: str) -> bool:
+        return self.committed.digest() == hashlib.sha256(expected.encode("utf-8")).digest()
+
+
 def measure_stream(
     config: PhaseProbeConfig,
     *,
     expected_text: str | None = None,
     expected_match_mode: str = "contains",
+    image_png: bytes | None = None,
 ) -> StreamProbeResult:
+    content: object = config.prompt
+    if image_png is not None:
+        if not isinstance(image_png, bytes) or not image_png.startswith(b"\x89PNG\r\n\x1a\n") or len(image_png) > 1024 * 1024:
+            raise ValueError("image probe requires PNG bytes no larger than 1 MiB")
+        content = [
+            {"type": "text", "text": config.prompt},
+            {"type": "image_url", "image_url": {
+                "url": "data:image/png;base64," + base64.b64encode(image_png).decode("ascii")
+            }},
+        ]
     if expected_text is not None and (
         not expected_text or len(expected_text.encode("utf-8")) > 1024
     ):
         raise ValueError("expected_text must be between 1 byte and 1 KiB")
-    if expected_match_mode not in {"contains", "exact"}:
-        raise ValueError("expected match mode must be contains or exact")
+    if expected_match_mode not in {"contains", "exact", "trimmed_exact"}:
+        raise ValueError("expected match mode must be contains, exact or trimmed_exact")
     base_url = _validated_base_url(config.base_url, allow_remote=config.allow_remote)
     body = json.dumps(
         {
             "model": config.model,
-            "messages": [{"role": "user", "content": config.prompt}],
+            "messages": [{"role": "user", "content": content}],
             "max_tokens": config.maximum_output_tokens,
             "temperature": 0,
             "stream": True,
@@ -121,6 +155,7 @@ def measure_stream(
     match_tail = ""
     generated_digest = hashlib.sha256()
     generated_bytes = 0
+    trimmed_digest = _TrimmedTextDigest()
     response_bytes = 0
     try:
         with urllib.request.urlopen(request, timeout=config.timeout_seconds) as response:
@@ -147,11 +182,17 @@ def measure_stream(
                     raise PhaseProbeError("invalid_sse_json", "backend returned invalid SSE JSON") from error
                 if not isinstance(event, dict):
                     continue
+                if "error" in event:
+                    raise PhaseProbeError(
+                        "backend_stream_error", "backend reported an error in the SSE stream"
+                    )
                 generated = _generated_text(event)
                 if generated and first_token_ns is None:
                     first_token_ns = time.monotonic_ns()
                 answer = _answer_text(event)
                 if expected_text is not None and answer:
+                    if expected_match_mode == "trimmed_exact":
+                        trimmed_digest.update(answer)
                     encoded_answer = answer.encode("utf-8")
                     generated_digest.update(encoded_answer)
                     generated_bytes += len(encoded_answer)
@@ -188,6 +229,8 @@ def measure_stream(
         expected_matched = generated_bytes == len(encoded_expected) and (
             generated_digest.digest() == hashlib.sha256(encoded_expected).digest()
         )
+    if expected_text is not None and expected_match_mode == "trimmed_exact":
+        expected_matched = trimmed_digest.matches(expected_text)
     return StreamProbeResult(
         measurement=PhaseMeasurement(
             started_ns=started_ns,

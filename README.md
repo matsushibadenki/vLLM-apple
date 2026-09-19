@@ -93,7 +93,38 @@ Macアプリにdaemonを起動させる場合は、`VLLM_APPLE_DAEMON_PATH`に�
 `VLLM_APPLE_BACKEND_EXECUTABLE`に`mlx_lm.server`の絶対pathを指定します。
 この場合、アプリのモデルIDは既定で`default_model`になり、モデルload完了後に送信できます。
 
+### Homebrew vLLM-Metal candidateの確認
+
+Homebrew版は固定revisionの認定stackとは別candidateとして扱います。まずMetalが利用可能か、
+vLLMが実際にMetal platformを選択したかを確認してください。
+
+```bash
+python3 -m vllm_apple doctor
+```
+
+`vllm_metal_available_but_not_selected` または `vllm_metal_platform_not_selected` が表示された場合は、
+Homebrew版をvLLM-Metalの実推論経路として昇格させず、`mlx_lm` backendを明示してチャットを実行します。
+Metal platform選択が確認できたcandidateだけを、non-stream、SSE、memory、qualificationの順に検証します。
+
+2026-09-19にHomebrew vLLM / vLLM-Metal 0.29.0、Transformers 5.17.0、tokenizers 0.23.2で
+依存関係チェックとMetal platform初期化を確認しました。`+cpu`というversion suffixはMetal利用不可を意味しません。
+CPUが選択された場合は、GPUアクセス権と`VLLM_LOGGING_LEVEL=DEBUG vllm --version`のplugin例外を確認してください。
+Transformersだけのdowngradeは画像・音声backendの依存関係を壊すため、推奨しません。
+
+Homebrew版と別に、公式install scriptの専用環境がある場合は、候補として明示指定できます。
+GPUが見えないheadless／sandbox環境ではMetal初期化が失敗するため、実機のログインセッションで診断してください。
+
+```bash
+python3 -m vllm_apple doctor \
+  --backend-executable "$HOME/.venv-vllm-metal/bin/vllm"
+```
+
 ## 同時負荷とメモリ安定性の検証
+
+起動済みの画像対応serverには、`python3 -m vllm_apple vision-smoke --url http://127.0.0.1:8000 --model MODEL_ID`
+で画像入力のsmokeを実行できます。32x32の赤・青PNGを同じ質問で送り、英語・日本語・简体中文の6回答を
+前後空白のみ除外して照合します。画像・回答本文はレポートに保存しません。
+これは画像入力経路のsmokeであり、長時間安定性や一般的な画像理解能力の認定ではありません。
 
 `vllm-apple-soak`は、履歴sampleを無制限に保持せず、固定12 latency bucketと最大17 error keyで
 throughput、failure、RSS増加量をJSON出力します。既定ではloopback以外への接続を拒否します。

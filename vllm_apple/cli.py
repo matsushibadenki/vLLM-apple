@@ -10,6 +10,7 @@ from pathlib import Path
 from .artifact_admission import assess_artifact_admission_for_path
 from .compat import assess_candidate_backend, inspect_backend, inspect_mlx_lm_backend
 from .context import recommend_context
+from .vision_smoke import run_vision_smoke
 from .daemon import serve
 from .diffusers_generative_readiness import inspect_diffusers_generative_readiness
 from .execution_profile import detect_apple_chip_profile, save_chip_profile
@@ -295,6 +296,11 @@ def build_parser() -> argparse.ArgumentParser:
 
     doctor = commands.add_parser("doctor", help="inspect the vLLM-Metal environment")
     doctor.add_argument("--backend-executable")
+
+    vision = commands.add_parser("vision-smoke", help="probe a running server with paired PNG images")
+    vision.add_argument("--url", default="http://127.0.0.1:8000")
+    vision.add_argument("--model", required=True)
+    vision.add_argument("--output", type=Path)
 
     inspect = commands.add_parser(
         "inspect-model", help="inspect local metadata and recommend a safe configuration"
@@ -1182,6 +1188,27 @@ def main(argv: list[str] | None = None) -> int:
         report = inspect_backend(arguments.backend_executable)
         _json(report.to_dict())
         return 0 if report.compatible else 1
+    if arguments.command == "vision-smoke":
+        try:
+            result = run_vision_smoke(PhaseProbeConfig(
+                base_url=arguments.url, model=arguments.model,
+                hardware_fingerprint="vision-smoke", samples=1,
+            ))
+            if arguments.output is not None:
+                save_qualification_report(result, arguments.output)
+        except (ValueError, OSError, RuntimeError) as error:
+            result = {"passed": False, "qualification": False,
+                      "model": arguments.model, "error_code": "vision_smoke_failed",
+                      "cause_code": getattr(error, "code", "probe_failed"), "detail": str(error)}
+            if arguments.output is not None:
+                try:
+                    save_qualification_report(result, arguments.output)
+                except OSError:
+                    result["report_saved"] = False
+            _json(result)
+            return 2
+        _json(result)
+        return 0 if result["passed"] else 1
     if arguments.command == "inspect-model":
         try:
             features = frozenset(arguments.features or ())

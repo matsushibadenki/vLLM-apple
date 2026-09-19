@@ -89,6 +89,11 @@ def qualify_model(
     *,
     process_factory: Callable[[BackendConfig], BackendProcess] = BackendProcess,
 ) -> dict[str, object]:
+    if "vision" in config.requested_modes:
+        raise ValueError(
+            "vision qualification requires an image-input probe; "
+            "the current runner sends text-only requests"
+        )
     qualification_hardware = None
     model_memory_fit: dict[str, object] | None = None
     inspected = inspect_model(config.model)

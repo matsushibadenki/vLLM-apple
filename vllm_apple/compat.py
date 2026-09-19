@@ -29,6 +29,10 @@ class BackendCompatibility:
         result = asdict(self)
         result["issues"] = list(self.issues)
         result["architecture_features"] = list(self.architecture_features)
+        if "vllm_metal_available_but_not_selected" in self.issues:
+            result["recommended_action"] = (
+                "use_verified_vllm_metal_candidate_or_select_backend_kind_mlx_lm"
+            )
         return result
 
 
@@ -251,12 +255,14 @@ def inspect_backend(executable: str | Path | None = None) -> BackendCompatibilit
         "v=lambda n: (m.version(n) if any(d.metadata.get('Name','').lower()==n "
         "for d in m.distributions()) else None);"
         "from vllm.platforms import current_platform as p;"
+        "from vllm_metal.platform import MetalPlatform;"
         "f=getattr(vm,'VLLM_APPLE_ARCHITECTURE_FEATURES',());"
         "f=f if isinstance(f,(list,tuple,frozenset)) else ();"
         "print(json.dumps({'python':platform.python_version(),'vllm':v('vllm'),"
         "'vllm_metal':v('vllm-metal'),'transformers':v('transformers'),"
         "'platform_module':type(p).__module__,'platform_class':type(p).__name__,"
-        "'platform_is_cpu':p.is_cpu(),'architecture_features':list(f)}))"
+        "'platform_is_cpu':p.is_cpu(),'metal_available':MetalPlatform.is_available(),"
+        "'architecture_features':list(f)}))"
     )
     try:
         result = subprocess.run(
@@ -268,7 +274,11 @@ def inspect_backend(executable: str | Path | None = None) -> BackendCompatibilit
         )
         if not 1 <= len(result.stdout.encode("utf-8")) <= MAX_MLX_PROBE_OUTPUT_BYTES:
             raise ValueError("backend probe output is outside the bounded limit")
-        payload = json.loads(result.stdout)
+        # vLLM plugins may emit informational log lines during import.  The
+        # probe contract is the final JSON object, so tolerate that preamble
+        # while still keeping the output bounded above.
+        output_lines = [line.strip() for line in result.stdout.splitlines() if line.strip()]
+        payload = json.loads(output_lines[-1] if output_lines else "")
         if not isinstance(payload, dict):
             raise ValueError("backend probe output must be an object")
         architecture_features = _decode_architecture_features(
@@ -312,6 +322,8 @@ def inspect_backend(executable: str | Path | None = None) -> BackendCompatibilit
             platform_is_cpu=payload.get("platform_is_cpu"),
         )
     )
+    if payload.get("metal_available") is True and payload.get("platform_is_cpu") is True:
+        issues.append("vllm_metal_available_but_not_selected")
     return BackendCompatibility(
         executable=str(resolved),
         python_version=python_version or None,

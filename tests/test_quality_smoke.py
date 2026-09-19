@@ -29,7 +29,8 @@ class QualitySmokeTests(unittest.TestCase):
         self.assertEqual(set(report["checks"]), {"english", "japanese", "simplified_chinese"})
         self.assertFalse(report["stores_generated_text"])
         self.assertEqual(len(expected_values), 3)
-        self.assertTrue(all(value[2] == "exact" for value in expected_values))
+        self.assertTrue(all(value[2] == "trimmed_exact" for value in expected_values))
+        self.assertEqual(report["match_policy"], "trimmed_exact")
 
     def test_any_language_failure_fails_closed(self) -> None:
         calls = 0

@@ -19,6 +19,21 @@ from vllm_apple.qualification import (
 from tests.schema_validator import validate_instance
 
 
+class VisionQualificationTests(unittest.TestCase):
+    def test_text_runner_cannot_certify_vision_or_start_backend(self):
+        config = QualificationConfig(
+            model="vision-model", executable=Path("/tmp/vllm"),
+            requested_modes=("text", "vision"),
+        )
+        with patch("vllm_apple.qualification.inspect_model") as inspect, patch(
+            "vllm_apple.qualification.BackendProcess"
+        ) as process:
+            with self.assertRaisesRegex(ValueError, "image-input probe"):
+                qualify_model(config, process_factory=process)
+        inspect.assert_not_called()
+        process.assert_not_called()
+
+
 class FakeBackend:
     def __init__(self, config: object) -> None:
         self.config = config

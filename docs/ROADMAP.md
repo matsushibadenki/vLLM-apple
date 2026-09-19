@@ -21,9 +21,41 @@ prefill/decode別profile、Swift SDK、3言語macOS sample、Gemma実modelの30�
 現在ローカルで進める優先項目は、contention profileのreload／rollbackをSwift SDKのtyped操作と
 Mac app三言語UIへ接続し、利用者が再起動なしで安全に管理できるようにすることである。
 外部項目の最優先は大容量Apple SiliconでのQwen3.8-Flash-Next text-only qualificationと、専用runnerでの
-vLLM 0.28.x昇格試験である。
+vLLM 0.28.x昇格試験である。HomebrewのvLLM-Metal 0.29.xは、固定revisionの認定stackとは別candidateとして
+Metal platform選択を先に確認する。
 設計判断は
 [Architecture-Decision-Apple-Execution.md](Architecture-Decision-Apple-Execution.md)に固定する。
+
+### vLLM-Metal実行経路の昇格手順
+
+2026-09-19: Homebrew 0.29.0でMetalPlatform選択、Gemma 2 2B IT 4-bitのGPUロード、
+non-stream応答とSSE完走を実機確認。`+cpu` suffix自体はMetal利用不可を意味しない。
+一度Transformers 5.12.1 + tokenizers 0.22.2でtext smokeを確認した後、
+画像・音声の依存要件を満たす5.17.0 + 0.23.2へ戻し、pip check成功とMetal選択を確認。
+通常version matrixへの昇格はqualification完了後に判断する。
+
+- `[Done]` Homebrew候補のMetal GPUでGemma non-stream / SSE実応答確認
+- `[Done]` 画像・音声を含むパッケージ依存関係の整合（pip check成功、モデル推論の認定とは別）
+- `[Done]` Homebrew 0.29.0 / Transformers 5.17.0の30秒text負荷試験（142/142成功、47.832 decode tok/s、平均TTFT 87.699 ms）。証跡: [short report](evaluation/homebrew-029-text-short-2026-09-19.json)。品質試験省略・30分未達のため完全認定ではない。
+- `[Done]` 多言語品質試験の不一致原因を末尾空白・改行と確認。`exact`は維持し、品質smokeは明示的な`trimmed_exact`で前後空白だけを除外。内部空白・追加説明は拒否し、本文非保存のincremental hash比較を維持。Gemmaの英語・日本語・简体中文実SSEで合格、関連20テスト成功。
+- `[Done]` Homebrew 0.29.0 / Transformers 5.17.0、Gemma 2 2B IT 4-bit、context 1024、concurrency 1、`VLLM_METAL_MEMORY_FRACTION=0.25`で30分qualification成功（1800.253秒、6,775/6,775成功、失敗0、3.763 req/s）。3言語`trimmed_exact`、sampling/streaming、正常shutdownが合格。監視対象processのRSS peak増加409,600 bytes、終了時増加0。別途3 sampleのphase probeは42.841 decode tok/s、平均TTFT 91.105 ms。証跡: [30-minute report](evaluation/homebrew-029-text-30min-2026-09-19.json)。KV capacity再評価はunavailableで未検証、画像・音声や全stackの認定へは拡張しない。
+- `[Next]` 画像・音声の実推論確認
+- `[Done]` Gemma 3 4B IT 4bitの固定revision取得・14ファイル照合、Homebrew 0.29.0でMLX-VLMロード確認。実画像要求はmultimodal encoder adapter未準備でEngineCore停止を再現し、不合格として記録: [attempt](evaluation/gemma-3-4b-it-vision-attempt-2026-09-19.json)。chat templateを備えるだけではbackend画像対応を保証しない。
+- `[Next]` 配布版にforward-ready adapterが存在するモデルfamily（Qwen3-VL等）を先に確認して画像smokeを再実施。
+- `[Done]` `vision-smoke` CLI: 32x32赤・青PNGをOpenAI image_urlに埋め込み、3言語6ケースを画像付きSSEで検証。同一質問の画像差分を用い、画像・生成本文は非保存。PNG送信・画素・判定の回帰テストを追加。長時間vision認定とは別扱い。
+- `[Done]` text-only qualification runnerによるvision誤認定を起動前に拒否（image-input probeが未実装のため）。
+- `[Done]` ローカルGemma 3 4B PTの実weight headerでvision/projector tensor 439件を確認。Homebrew 0.29.0でMLX-VLMロード成功。`skip_vision=true`だけではweight欠落と判断できない。画像付きchatはtokenizerのchat template未定義によりHTTP 400となり、画像品質は未測定。
+- `[Next]` chat templateを備えたinstruction-tuned画像モデルで`vision-smoke`を実測し、画像入力を伴う長時間qualificationへ接続。音声モデルはローカルmodels一覧には未配置。
+
+Homebrewの最新版を無条件に実行経路へ昇格させず、次の順序で検証する。
+
+1. `[Done]` backend executable、Python、vLLM、vLLM-Metal、Transformersのversionと、Metalが利用可能か、vLLMが実際に選択したplatformを`doctor`で取得する。
+2. `[Next]` platformがCPUの場合は、Metal利用可能性と「未選択」を別々に報告し、推論を開始しない。
+3. `[Next]` 固定revisionの認定stackで、Gemma non-stream、SSE、memory、30分安定性を専用runnerで再検証する。
+4. `[Done]` Homebrew 0.29.0 candidateのGemma smoke・短時間・30分qualificationを独立証跡として保存（上記条件に限定）。
+5. `[Later]` candidateが3回連続で同じ証跡を満たした場合だけ、対応version matrixと標準backendへ昇格する。
+
+この手順により、vLLM-Metalの実装済み機能と、手元のHomebrew版が実際にMetal platformを選択できることを混同しない。
 
 ```text
 Swift / CLI
@@ -177,7 +209,8 @@ Metal向けに独立実装する。外部engineへのruntime依存は追加し�
 - `[Done]` 4KiB単位でflushするSSE token streaming proxy
 - `[Done]` client切断時のupstream stream解放
 - `[Done]` backend terminate、timeout後killによるshutdown
-- `[Done]` 実modelを用いたvLLM-Metal互換性検証
+- `[Done]` 固定revisionの認定stackを用いた実model vLLM-Metal互換性検証
+- `[Next]` Homebrew vLLM-Metal candidateのMetal platform選択と実model smoke
 - `[Done]` graceful request drainを伴うshutdown
 - `[Done]` Unix Domain Socket HTTP transport
 - `[Done]` UDS pathのowner/type検証と0600 permission
@@ -540,6 +573,7 @@ vLLM-Metal対応とは見なさない。
 - `[Done]` 英語・日本語・简体中文の本文非保存semantic smokeとSwift evidence gate
 - `[Done]` incremental hash完全一致と16 MiB SSE上限によるconstant-memory quality判定
 - `[Done]` direct vLLM-Metal qualificationへのarchitecture/memory load前gate統合
+- `[Done]` Homebrew vLLM-Metal candidateの起動前preflightでMetal未選択を拒否する実機確認
 - `[Done]` vLLM-Metal明示architecture feature probeとdaemon/qualification昇格契約
 - `[Done]` 公式Qwen3.8-Flash-Next 48層configでのmetadata/state回帰固定
 - `[Done]` weight取得前の`--model-metadata` backend capability preflight

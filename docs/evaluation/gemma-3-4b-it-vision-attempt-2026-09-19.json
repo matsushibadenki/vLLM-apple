@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "passed": false,
+  "qualification": false,
+  "model_repository": "mlx-community/gemma-3-4b-it-4bit",
+  "revision": "93724907d4ed1745d2fe50baadf3b0b01a65abf2",
+  "verified_remote_files": 14,
+  "backend": "vllm-metal 0.29.0",
+  "context_tokens": 1024,
+  "metal_memory_fraction": 0.25,
+  "model_loaded": true,
+  "completed_image_cases": 0,
+  "engine_error": "Multimodal encoder dispatch requested but adapter is missing or not forward_ready; mm requests cannot run on this configuration.",
+  "server_stopped": true,
+  "stores_images": false,
+  "stores_generated_text": false
+}

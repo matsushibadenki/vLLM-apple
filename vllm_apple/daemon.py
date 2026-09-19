@@ -788,7 +788,18 @@ def serve(
         )
         if require_compatible_backend and not compatibility.compatible:
             issues = ", ".join(compatibility.issues)
-            raise RuntimeError(f"incompatible {backend_kind} environment: {issues}")
+            remediation = ""
+            if backend_kind == "vllm_metal" and (
+                "vllm_metal_platform_not_selected" in compatibility.issues
+                or "vllm_metal_available_but_not_selected" in compatibility.issues
+            ):
+                remediation = (
+                    "; Metal platform was not selected; inspect backend dependency "
+                    "conflicts and plugin initialization logs"
+                )
+            raise RuntimeError(
+                f"incompatible {backend_kind} environment: {issues}{remediation}"
+            )
         if inspected is not None:
             ensure_model_backend_compatible(
                 inspected,

@@ -88,7 +88,11 @@ def classify_runtime_failure(error: BaseException | str) -> RuntimeFailure:
     elif isinstance(error, ExecutionPlanAdmissionError):
         code = RuntimeFailureCode.EXECUTION_PLAN_REJECTED
         recoverability = RuntimeRecoverability.USER_ACTION_REQUIRED
-    elif "incompatible vLLM-Metal environment" in detail:
+    elif any(message in detail for message in (
+        "incompatible vLLM-Metal environment",
+        "incompatible vllm_metal environment",
+        "incompatible mlx_lm environment",
+    )):
         code = RuntimeFailureCode.BACKEND_INCOMPATIBLE
         recoverability = RuntimeRecoverability.USER_ACTION_REQUIRED
     else:
