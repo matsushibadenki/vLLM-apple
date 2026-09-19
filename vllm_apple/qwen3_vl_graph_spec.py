@@ -207,7 +207,10 @@ def _verify_staged_weights(root: Path, records: list, expected_bytes: int) -> st
             raise ValueError("Qwen3-VL staged weight file is invalid")
         descriptor = os.open(path, os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0))
         with os.fdopen(descriptor, "rb") as handle:
-            actual = hashlib.file_digest(handle, "sha256").hexdigest()
+            file_hash = hashlib.sha256()
+            while chunk := handle.read(8 * 1024 * 1024):
+                file_hash.update(chunk)
+            actual = file_hash.hexdigest()
         if actual != digest:
             raise ValueError("Qwen3-VL staged weight digest does not match")
         names.add(name)

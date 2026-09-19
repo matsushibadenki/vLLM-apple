@@ -203,6 +203,10 @@ from .qwen3_vl_block_coreml import (
     build_qwen3_vl_block_coreml,
     qualify_qwen3_vl_block_coreml,
 )
+from .qwen3_vl_tower_coreml import (
+    build_qwen3_vl_tower_blocks_coreml,
+    qualify_qwen3_vl_tower_blocks_coreml,
+)
 from .qwen3_vl_embedding import (
     Qwen3VLANEGPUPipeline,
     Qwen3VLVisionEmbeddingBundle,
@@ -346,6 +350,7 @@ __all__ = [
     "build_qwen3_vl_mlp_coreml",
     "build_qwen3_vl_attention_coreml",
     "build_qwen3_vl_block_coreml",
+    "build_qwen3_vl_tower_blocks_coreml",
     "stage_qwen3_vl_coreml_weights",
     "load_qwen3_vl_coreml_conversion",
     "contention_profile_id",
@@ -359,6 +364,7 @@ __all__ = [
     "qualify_qwen3_vl_mlp_coreml",
     "qualify_qwen3_vl_attention_coreml",
     "qualify_qwen3_vl_block_coreml",
+    "qualify_qwen3_vl_tower_blocks_coreml",
     "save_contention_profile",
     "save_qwen3_vl_coreml_conversion",
     "validate_qwen3_vl_vision_embeddings",

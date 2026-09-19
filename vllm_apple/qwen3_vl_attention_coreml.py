@@ -252,6 +252,14 @@ def _reference(shape, source, nw, nb, qw, qb, pw, pb, cos, sin, numpy):
         dtype=numpy.float32,
     )
     hidden = numpy.tile(vector, (shape[0], 1))
+    return _reference_from_hidden(
+        hidden, source, nw, nb, qw, qb, pw, pb, cos, sin, numpy
+    )
+
+
+def _reference_from_hidden(hidden, source, nw, nb, qw, qb, pw, pb, cos, sin, numpy):
+    shape = hidden.shape
+    hidden = hidden.astype(numpy.float32)
     mean = hidden.mean(axis=-1, keepdims=True)
     variance = ((hidden - mean) ** 2).mean(axis=-1, keepdims=True)
     normalized = (hidden - mean) / numpy.sqrt(variance + numpy.float32(1e-6))
