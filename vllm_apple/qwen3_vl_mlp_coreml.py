@@ -33,9 +33,19 @@ let model = try MLModel(contentsOf: URL(fileURLWithPath: modelPath), configurati
 let input = try MLMultiArray(
     shape: [NSNumber(value: rows), NSNumber(value: columns)], dataType: .float16
 )
-for row in 0..<rows {
-    for column in 0..<columns {
-        input[row * columns + column] = NSNumber(value: Float((column % 31) - 15) / 16.0)
+if CommandLine.arguments.count > 6 {
+    let inputData = try Data(contentsOf: URL(fileURLWithPath: CommandLine.arguments[6]))
+    guard inputData.count == input.count * MemoryLayout<UInt16>.size else {
+        throw NSError(domain: "vllm-apple", code: 3)
+    }
+    inputData.withUnsafeBytes { raw in
+        input.dataPointer.copyMemory(from: raw.baseAddress!, byteCount: inputData.count)
+    }
+} else {
+    for row in 0..<rows {
+        for column in 0..<columns {
+            input[row * columns + column] = NSNumber(value: Float((column % 31) - 15) / 16.0)
+        }
     }
 }
 let provider = try MLDictionaryFeatureProvider(dictionary: [

@@ -1,0 +1,35 @@
+{
+  "block_count": 6,
+  "compute_units": "cpu_and_neural_engine",
+  "deepstack": {
+    "latency_nanoseconds": 11419333,
+    "maximum_absolute_error": 0.0625,
+    "maximum_scaled_error": 0.0087890625,
+    "maximum_scaled_error_limit": 0.04,
+    "output_count": 131072,
+    "output_sha256": "3f84a41807555daa7f50e80140fc3a179d537d1e2e33867e6522933fc2a20dd3",
+    "output_shape": [64, 2048]
+  },
+  "deepstack_layer": 17,
+  "deepstack_position": 2,
+  "graph_id": "67c2fb85c368cc8a50d30908cb3970b65c486d76f9bd50bed8a21aec5e259e13",
+  "grid_thw": [1, 16, 16],
+  "input": {
+    "sha256": "8176c1fa48b428932894527e90d0ee7344f9e7b7172ea9ed4cc176cf267a2465",
+    "shape": [256, 1024],
+    "source": "fp16_reference_after_layer_11"
+  },
+  "main": {
+    "latency_nanoseconds": 15256833,
+    "maximum_absolute_error": 0.0625,
+    "maximum_scaled_error": 0.00830078125,
+    "maximum_scaled_error_limit": 0.03,
+    "output_count": 262144,
+    "output_sha256": "5e065d7735ee3b026aa3b873b9d603cc3239a0808d68e64e3788ecd65932d9de",
+    "output_shape": [256, 1024]
+  },
+  "partition": "tower-blocks-12-17-deepstack-2-v1",
+  "passed": true,
+  "schema_version": 1,
+  "scope": "isolated_fp16_handoff_segment_for_blocks_12_through_17"
+}

@@ -1,0 +1,33 @@
+{
+  "block_count": 6,
+  "compute_units": "cpu_and_neural_engine",
+  "final": {
+    "latency_nanoseconds": 12193750,
+    "maximum_absolute_error": 0.010986328125,
+    "maximum_scaled_error": 0.010986328125,
+    "maximum_scaled_error_limit": 0.04,
+    "output_count": 131072,
+    "output_sha256": "35ebabf0e815379ad46acc77b8855b71cc348a125633dd69726ae7af42ebb01c",
+    "output_shape": [64, 2048]
+  },
+  "graph_id": "67c2fb85c368cc8a50d30908cb3970b65c486d76f9bd50bed8a21aec5e259e13",
+  "grid_thw": [1, 16, 16],
+  "input": {
+    "sha256": "4ff26d656557154eaa88976dcbed9c05aa63471252e2a46b25bb667963321e1e",
+    "shape": [256, 1024],
+    "source": "fp16_reference_after_layer_17"
+  },
+  "main": {
+    "latency_nanoseconds": 16317584,
+    "maximum_absolute_error": 2.0,
+    "maximum_scaled_error": 0.0205078125,
+    "maximum_scaled_error_limit": 0.03,
+    "output_count": 262144,
+    "output_sha256": "57322d958882b76bfe192e041ad2d9042e29d3ffe92e50be63bf291083832705",
+    "output_shape": [256, 1024]
+  },
+  "partition": "tower-blocks-18-23-final-v1",
+  "passed": true,
+  "schema_version": 1,
+  "scope": "isolated_fp16_handoff_segment_for_blocks_18_through_23_and_final_merger"
+}

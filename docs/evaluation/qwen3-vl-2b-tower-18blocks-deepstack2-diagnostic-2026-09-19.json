@@ -1,0 +1,31 @@
+{
+  "block_count": 18,
+  "compute_units": "cpu_and_neural_engine",
+  "deepstack": {
+    "latency_nanoseconds": 27018625,
+    "maximum_absolute_error": 0.03125,
+    "maximum_scaled_error": 0.015625,
+    "maximum_scaled_error_limit": 0.04,
+    "output_count": 131072,
+    "output_sha256": "ba3e78c5c7269b8e00ccd1d166ed07d33ff107499216dbbe6f52777017e3dd99",
+    "passed": true
+  },
+  "deepstack_layer": 17,
+  "deepstack_position": 2,
+  "graph_id": "67c2fb85c368cc8a50d30908cb3970b65c486d76f9bd50bed8a21aec5e259e13",
+  "grid_thw": [1, 16, 16],
+  "main": {
+    "latency_nanoseconds": 31402042,
+    "maximum_absolute_error": 0.21875,
+    "maximum_scaled_error": 0.03118896484375,
+    "maximum_scaled_error_limit": 0.03,
+    "output_count": 262144,
+    "output_sha256": "286a113aed5194d7bb9dc2b174210fea19c024ff43c0af89842c8b22f83265f3",
+    "passed": false
+  },
+  "partition": "tower-blocks-0-17-deepstack-2-v1",
+  "passed": false,
+  "schema_version": 1,
+  "scope": "diagnostic_only_not_promotion_evidence",
+  "stop_reason": "main_scaled_error_exceeded_fixed_limit"
+}

@@ -1,0 +1,29 @@
+{
+  "block_count": 6,
+  "compute_units": "cpu_and_neural_engine",
+  "graph_id": "67c2fb85c368cc8a50d30908cb3970b65c486d76f9bd50bed8a21aec5e259e13",
+  "grid_thw": [
+    1,
+    16,
+    16
+  ],
+  "input_shape": [
+    256,
+    1024
+  ],
+  "latency_nanoseconds": 14480458,
+  "maximum_absolute_error": 0.033203125,
+  "maximum_scaled_error": 0.025544703230653644,
+  "maximum_scaled_error_limit": 0.03,
+  "output_count": 262144,
+  "output_sha256": "12cd94c44daf8c88e38f55c4b77d630abd21a2f8b496aa664986e0ccaa2c1467",
+  "output_shape": [
+    256,
+    1024
+  ],
+  "partition": "tower-blocks-0-5-v1",
+  "passed": true,
+  "qualification_input": "repeated_dense_vector_covering_all_1024_input_features",
+  "schema_version": 1,
+  "scope": "vision_blocks_0_through_5_complete_sequential_graph"
+}

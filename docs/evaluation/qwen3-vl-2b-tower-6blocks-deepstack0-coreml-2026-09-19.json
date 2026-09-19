@@ -1,0 +1,32 @@
+{
+  "block_count": 6,
+  "compute_units": "cpu_and_neural_engine",
+  "deepstack": {
+    "latency_nanoseconds": 11842541,
+    "maximum_absolute_error": 0.01068115234375,
+    "maximum_scaled_error": 0.01068115234375,
+    "maximum_scaled_error_limit": 0.04,
+    "output_count": 131072,
+    "output_sha256": "de0a79061de4945a5ad31849e97e2144621552377fddd813546f6b08facb8257",
+    "output_shape": [64, 2048]
+  },
+  "deepstack_layer": 5,
+  "deepstack_position": 0,
+  "graph_id": "67c2fb85c368cc8a50d30908cb3970b65c486d76f9bd50bed8a21aec5e259e13",
+  "grid_thw": [1, 16, 16],
+  "input_shape": [256, 1024],
+  "main": {
+    "latency_nanoseconds": 13292334,
+    "maximum_absolute_error": 0.033203125,
+    "maximum_scaled_error": 0.025544703230653644,
+    "maximum_scaled_error_limit": 0.03,
+    "output_count": 262144,
+    "output_sha256": "12cd94c44daf8c88e38f55c4b77d630abd21a2f8b496aa664986e0ccaa2c1467",
+    "output_shape": [256, 1024]
+  },
+  "partition": "tower-blocks-0-5-deepstack-0-v1",
+  "passed": true,
+  "qualification_input": "repeated_dense_vector_covering_all_1024_input_features",
+  "schema_version": 1,
+  "scope": "vision_blocks_0_through_5_with_first_deepstack_merger"
+}

@@ -1,0 +1,23 @@
+{
+  "compute_units": "cpu_and_neural_engine",
+  "graph_id": "67c2fb85c368cc8a50d30908cb3970b65c486d76f9bd50bed8a21aec5e259e13",
+  "inference_latency_nanoseconds": 48341917,
+  "observable_output_scaled_error_limit": 0.04,
+  "observable_outputs": [
+    {"kind": "deepstack_0", "maximum_scaled_error": 0.01068115234375},
+    {"kind": "deepstack_1", "maximum_scaled_error": 0.027587890625},
+    {"kind": "deepstack_2", "maximum_scaled_error": 0.015625},
+    {"kind": "final", "maximum_scaled_error": 0.010498046875}
+  ],
+  "partitions": [
+    "tower-blocks-0-5-deepstack-0-v1",
+    "tower-blocks-6-11-deepstack-1-v1",
+    "tower-blocks-12-17-deepstack-2-v1",
+    "tower-blocks-18-23-final-v1"
+  ],
+  "passed": true,
+  "schema_version": 1,
+  "scope": "single_process_direct_mlmultiarray_handoff",
+  "total_with_reference_comparison_nanoseconds": 186682167,
+  "unconsumed_intermediate_main_maximum_scaled_error": 0.04736328125
+}
