@@ -2074,7 +2074,7 @@ vLLM-Metal互換pluginとして成立させる。
 
 ## Phase 2 — Apple Runtime Planner
 
-状態：`[Next]`
+状態：`[Done]`
 
 実装：
 
@@ -2307,7 +2307,13 @@ lateness telemetryを持つbounded schedulerをcallback外へ配置した。orde
 deadline scheduling、backend-neutral ASR worker、bounded transcriptまでを接続し、結果のlanguage、
 時間範囲、confidence、文字数、final markerを検証する。audio encoder出力はaudio digest、
 encoder／feature fingerprint、sample rate、channel、sample範囲へ結合したbounded LRUで再利用し、
-oversize outputを保存しない。実ASR modelは未認定であり、次はspeech-to-speech foundationへ進む。
+oversize outputを保存しない。final ASR transcriptだけをdialogue／speech synthesis backendへ渡す
+speech-to-speech foundationを追加し、言語一致、PCM frame alignment、byte／duration上限と
+real-time factorを検証する。16 kHz mono、20 ms chunk、10秒のstreaming preprocessing／state
+benchmarkでdropout、failure、p50／p95／max latency、RTFを実測した。Phase 5の完了境界は、
+実モデルに依存しないaudio input、state、scheduling、ASR／speech contractsとローカル前処理の
+実測までとする。実ASR／dialogue／TTS modelおよびCore Audio device latencyは未認定であり、
+利用可能なmodelとdeviceを用いる別qualificationなしには昇格しない。
 
 ---
 

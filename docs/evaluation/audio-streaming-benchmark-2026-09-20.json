@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-09-20",
+  "scope": "streaming resampler and log-band feature pipeline benchmark",
+  "input": {
+    "sample_rate": 16000,
+    "channels": 1,
+    "chunk_frames": 320,
+    "chunk_duration_seconds": 0.02,
+    "total_frames": 160000,
+    "audio_duration_seconds": 10,
+    "frame_length": 400,
+    "hop_length": 160,
+    "feature_bands": 20
+  },
+  "thresholds": {
+    "maximum_dropout_ratio": 0,
+    "maximum_p95_latency_seconds": 0.02,
+    "maximum_realtime_factor": 1
+  },
+  "result": {
+    "chunks": 500,
+    "processed_frames": 160000,
+    "dropped_frames": 0,
+    "failures": 0,
+    "dropout_ratio": 0,
+    "p50_latency_seconds": 0.00030375,
+    "p95_latency_seconds": 0.000337125,
+    "maximum_latency_seconds": 0.000759625,
+    "realtime_factor": 0.015372353,
+    "passed": true
+  },
+  "limitations": [
+    "This benchmark covers the local streaming preprocessing and state path, not an ASR or TTS model.",
+    "No microphone, speaker, or Core Audio device latency is included."
+  ]
+}

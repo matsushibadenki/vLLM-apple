@@ -745,8 +745,8 @@ fallback、fusion、stress、および大容量model向け再現可能qualificat
 - `[Done]` admission-controlled REALTIME／INTERACTIVE／BACKGROUND priorityとdeadline scheduler。priority class内EDF、推定実行時間を含むdeadline admission、重複／capacity拒否、cancel、期限切れtaskの非実行、late completion／最大lateness telemetryを実装。audio callback外でlockとtask実行を管理
 - `[Done]` backend-neutral streaming ASR integration contract。ordered PCM→resample→feature→deadline scheduler→ASR backend→bounded transcriptを接続し、empty intermediate chunk、deadline admission failure、期限切れ非実行、language／時間範囲／confidence／文字数／final markerを検証。実ASR modelのqualificationは未実施で昇格しない
 - `[Done]` audio digest、encoder／feature fingerprint、sample rate、channel、sample rangeに結合したbounded thread-safe LRU audio encoder cache。oversize拒否、entry／byte eviction、hit／miss／resident bytes／rejection telemetryを実装
-- `[Next]` speech-to-speech foundation
-- `[Later]` dropout、latency、real-time factor benchmark
+- `[Done]` backend-neutral ASR→dialogue→speech synthesis foundation。final transcriptだけを発話へ進め、dialogue／speech型、言語一致、PCM S16LE frame alignment、byte／duration上限、elapsed timeを検証し、end-to-end latencyとreal-time factorを算出。実dialogue／TTS modelは未認定
+- `[Done]` dropout、latency、real-time factor benchmark。16 kHz mono、20 ms chunk、10秒／500 chunkのstreaming resampler＋log-band feature＋session stateを実測し、dropout 0、failure 0、p50 0.304 ms、p95 0.337 ms、max 0.760 ms、RTF 0.0154で合格。ASR／TTS modelとCore Audio device latencyは対象外。証跡: [Audio streaming benchmark](evaluation/audio-streaming-benchmark-2026-09-20.json)
 
 ## Phase 6 — Video
 
