@@ -20,6 +20,20 @@ from .generative_worker_protocol import (
 from .hardware import detect_hardware
 
 
+def resolve_generative_qualification_mode(
+    plan: GenerativeQualificationPlan, mode: str | None = None
+) -> str:
+    """Select a source-free qualification mode without guessing required inputs."""
+    if mode is not None:
+        if mode not in plan.candidate.modes:
+            raise ValueError("generative mode is not supported by the candidate")
+        return mode
+    preferred = "text-to-video" if plan.candidate.modality == "video" else "text-to-image"
+    if preferred not in plan.candidate.modes:
+        raise ValueError("candidate has no default source-free qualification mode")
+    return preferred
+
+
 def wait_for_memory_pressure_recovery(
     *,
     pressure_probe: Callable[[], str],
@@ -57,6 +71,7 @@ def run_generative_qualification(
     sample_count: int,
     worker_command: tuple[str, ...],
     provenance: GenerativeEvaluationProvenance,
+    mode: str | None = None,
     timeout_seconds: float = 3600.0,
     adapter_factory: Callable[..., SubprocessGenerativeTelemetryAdapter] = (
         SubprocessGenerativeTelemetryAdapter
@@ -69,6 +84,7 @@ def run_generative_qualification(
         raise ValueError("cannot run an ineligible generative qualification plan")
     if not 2 <= sample_count <= 32:
         raise ValueError("memory-stability qualification requires between 2 and 32 samples")
+    qualification_mode = resolve_generative_qualification_mode(plan, mode)
     workspace = Path(workspace_root).expanduser().resolve(strict=True)
     private = Path(private_root).expanduser().resolve()
     if private == workspace or not private.is_relative_to(workspace):
@@ -92,7 +108,7 @@ def run_generative_qualification(
             workspace_root=workspace,
             model_root=model_root,
             output_root=output,
-            mode="text-to-image",
+            mode=qualification_mode,
             prompt=prompt,
             seed=42 + sample_index,
             sample_index=sample_index,

@@ -180,6 +180,25 @@ class GenerativeEvaluationTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "provenance"):
             load_generative_evaluation_report(destination, expected_provenance=other)
 
+    def test_artifact_digest_is_bound_while_legacy_report_remains_loadable(self) -> None:
+        directory, plan = make_plan()
+        self.addCleanup(directory.cleanup)
+        bound = replace(provenance(), artifact_root_sha256="a" * 64)
+        report = evaluate_generative_qualification(plan, (sample(),), bound)
+        destination = Path(directory.name) / "bound.json"
+        save_generative_evaluation_report(report, destination)
+        with self.assertRaisesRegex(ValueError, "provenance"):
+            load_generative_evaluation_report(
+                destination,
+                expected_provenance=replace(bound, artifact_root_sha256="b" * 64),
+            )
+
+        legacy = json.loads(destination.read_text())
+        legacy["provenance"].pop("artifact_root_sha256")
+        destination.write_text(json.dumps(legacy))
+        loaded = load_generative_evaluation_report(destination)
+        self.assertIsNone(loaded.provenance.artifact_root_sha256)
+
 
 if __name__ == "__main__":
     unittest.main()

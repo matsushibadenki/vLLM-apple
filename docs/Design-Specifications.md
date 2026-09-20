@@ -2319,7 +2319,7 @@ benchmarkでdropout、failure、p50／p95／max latency、RTFを実測した。P
 
 ## Phase 6 — Video
 
-状態：`[Later]`
+状態：`[Next]`
 
 実装：
 
@@ -2330,6 +2330,44 @@ temporal cache
 video VLM
 streaming video
 ```
+
+最初の実装境界として、FFmpegのVideoToolbox hardware accelerationを明示するbounded decoderを
+実装した。local regular file、input byte、codec、resolution、frame数、decoded byte、timeoutを
+load前に制限し、短いH.264 fixtureの実機decodeを確認した。さらにraw BGRAをcaptured stdoutや
+frame別heap copyを介さず匿名mmapへ直接decodeし、read-only memoryviewとして渡すGPU staging
+互換経路を実装した。さらにAVAssetReaderが返すVideoToolbox対応CVPixelBufferを
+`alwaysCopiesSampleData=false`で保持し、CVMetalTextureCacheからBGRA8 Metal textureへ直接bindする
+native bridgeを追加した。H.264 fixtureの10/10 frameでhardware decode対応、texture binding、failure 0を
+確認した。presentation timestamp順reorder、bounded queue、最大reorder幅、late drop、cancel、
+backpressure telemetryを持つframe schedulerも実装した。temporal samplerは先頭／末尾、keyframe、
+scene-changeを優先し、残り枠を時間軸上のfarthest-point samplingで決定する。最大frame数と最小間隔を
+守り、入力順に依存しない。frame、patch、embedding、scene artifactはvideo digest、時間範囲、
+transform／model fingerprintへ結合した共通cacheに保存し、global LRUとtier別byte budgetの両方で
+raw frameによるembedding evictionを防ぐ。temporal sampling、frame単位embedding cache、missだけの
+batch encode、時間順復元、language backendを接続するvideo VLM integration contractも実装した。
+encoderのcount、順序、ID、digest、byte数と応答をfail-closedで検証する。streaming inputは
+ordered chunkをprivate 0600 artifactへ逐次spoolし、chunk／total budget、sequence、final SHA-256を
+検証してからdecodeへ公開する。全videoをmemoryへ保持せず、close、digest mismatch、idle reapで
+artifactをunlinkする。さらにpersistent FFmpeg／VideoToolbox workerへcompressed chunkを逐次投入し、
+stdout／stderrを並行drainしてdecoded frameをPTS付きでschedulerへ送るbounded incremental pathを
+追加した。短いMPEG-TS fixtureで10/10 frame、scheduler rejection／late drop 0を確認した。この経路の
+Python scheduler payloadは現在CPU-owned BGRAであり、native zero-copy bridgeとのworker統合は別途必要。
+320×180、30 fps、10秒のVideoToolbox＋mapped staging実測でframes/sec、video seconds/sec、
+retained buffer bytes/video-minute、peak RSSを記録した。特定video VLM modelは未認定である。
+M4/32GB向け動画生成qualificationのbounded profileとrunner mode契約までを実装し、次は
+Wan 2.2 TI2V-5Bの実model qualificationへ進む。local-only worker
+adapterはMPS、batch 1、T2Vだけを許可し、VAE tiling、bounded telemetry、出力shape／frame数、
+private MP4のdigest計算後削除を強制する。I2Vは入力画像をrequest ABIへ安全に追加するまで許可しない。
+量子化artifact readinessはDiffusers source上の`WanPipeline`、artifactのpipeline identityと必須component、
+transformer metadataの4/8-bit宣言を、backend import、weight load、Metal allocationなしで検証する。
+workerはDiffusers 0.34.0の`text_encoder->transformer->vae` residency sequenceを照合し、
+`enable_model_cpu_offload(device="mps")`でmodule単位にMPSへ移す。契約不一致時は全常駐へfallbackしない。
+正式qualification CLIはreadiness、artifact実容量、resident見積り、現在hardwareのload前admissionを
+通過した場合だけlocal-only workerを複数回起動する。sample間はmemory pressureのnormal連続観測を待ち、
+promptと生成物を保存せず、digestとshape、latency、peak resident、pressure、thermalだけをreportへ残す。
+認定前にmodel treeの全regular fileをrace-safeにhashし、path、size、file SHA-256から導出したroot digestを
+provenanceへ結合する。同じartifact byte数と量子化名を持つ別weightへのreport replayは拒否する。
+digest field追加前のv1 reportはlegacy evidenceとして読取可能だが、新しいWan正式認定は必ずdigestを持つ。
 
 初期の動画生成qualification候補は、MacBook Air M4 / 32GBでload前memory admissionを通過する
 構成に限定する。
@@ -2351,6 +2389,10 @@ text encoder、3D VAEのartifact bytesとresident bytesを個別に見積もる�
 frame数、steps、連続生成のうち一軸だけを増やす。reportにはfirst-frame/wall latency、
 peak RSS、memory pressure、thermal state、frames/sec、output metadata、backend/model fingerprint、
 量子化方式、変換元digest、licenseを含める。CIはweightおよび生成動画をartifactとして保存しない。
+
+runnerは候補modalityから入力artifactを必要としない既定modeを決定する。videoは`text-to-video`、
+imageは`text-to-image`とし、明示modeは候補catalogに含まれる場合だけ許可する。これにより
+`image-to-video`を入力画像なしで誤起動せず、非対応modeはworker生成前にfail-closedとする。
 
 実測backendはcontrol processへ直接importせず、shellを介さないsubprocessとして隔離する。共通JSONL
 telemetryは1 event 16 KiB、1 sample 4096 eventを既定上限とし、collectorはevent履歴を保持しない。

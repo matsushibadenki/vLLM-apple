@@ -47,6 +47,59 @@ from .audio_benchmark import (
     AudioBenchmarkReport,
     run_audio_benchmark,
 )
+from .video_decoder import (
+    DecodedVideoFrames,
+    FFmpegVideoToolboxDecoder,
+    MappedDecodedVideoFrames,
+    VideoStreamInfo,
+)
+from .video_metal_bridge import (
+    NativeVideoMetalBridge,
+    VideoMetalBridgeReport,
+)
+from .video_frame_scheduler import (
+    ScheduledVideoFrame,
+    VideoFrameDecision,
+    VideoFrameScheduler,
+    VideoFrameSchedulerSnapshot,
+)
+from .video_temporal_sampler import (
+    TemporalSamplingReport,
+    TemporalVideoFrame,
+    sample_temporal_frames,
+)
+from .video_cache import (
+    VideoArtifactCache,
+    VideoCacheKey,
+    VideoCacheKind,
+    VideoCacheSnapshot,
+    VideoCacheTierSnapshot,
+)
+from .video_vlm import (
+    VideoFrameEmbedding,
+    VideoFrameEncoder,
+    VideoLanguageBackend,
+    VideoVLMIntegrator,
+    VideoVLMRequest,
+    VideoVLMResult,
+    embedding_digest,
+)
+from .video_streaming_input import (
+    FinalizedVideoArtifact,
+    StreamingVideoInputRegistry,
+    StreamingVideoInputSession,
+    StreamingVideoUpdate,
+)
+from .video_streaming_decoder import (
+    IncrementalFFmpegVideoDecoder,
+    StreamingVideoDecoderReport,
+)
+from .video_benchmark import (
+    VideoBenchmarkReport,
+    VideoBenchmarkThresholds,
+    VideoDecodeMeasurement,
+    run_video_benchmark,
+)
 
 from .backend_tuning import (
     BackendKernelTuningAdapter,
@@ -400,6 +453,7 @@ __all__ = [
     "AudioTaskOutcome",
     "audio_feature_fingerprint",
     "run_audio_benchmark",
+    "run_video_benchmark",
     "ASRBackend",
     "ASRSubmission",
     "ASRTranscript",
@@ -407,7 +461,13 @@ __all__ = [
     "CallableASRBackend",
     "DialogueBackend",
     "DialogueResponse",
+    "DecodedVideoFrames",
     "EchoDialogueBackend",
+    "FFmpegVideoToolboxDecoder",
+    "FinalizedVideoArtifact",
+    "IncrementalFFmpegVideoDecoder",
+    "MappedDecodedVideoFrames",
+    "NativeVideoMetalBridge",
     "AudioStreamSnapshot",
     "AudioStreamUpdate",
     "StreamingLinearResampler",
@@ -415,10 +475,16 @@ __all__ = [
     "StreamingAudioSession",
     "StreamingAudioSessionRegistry",
     "StreamingASRIntegrator",
+    "StreamingVideoInputRegistry",
+    "StreamingVideoInputSession",
+    "StreamingVideoUpdate",
+    "StreamingVideoDecoderReport",
     "SpeechSynthesisBackend",
     "SpeechToSpeechPipeline",
     "SpeechToSpeechResult",
     "SynthesizedSpeech",
+    "TemporalSamplingReport",
+    "TemporalVideoFrame",
     "ANEAuxiliaryRoute",
     "ANEAuxiliaryWorkload",
     "AsyncEncoderLLMPipeline",
@@ -572,6 +638,7 @@ __all__ = [
     "SemanticRestoreResult",
     "SemanticStateBackend",
     "SemanticStateCoordinator",
+    "ScheduledVideoFrame",
     "UnifiedMemoryBudgetLedger",
     "V2DispatchConfiguration",
     "V2PagedAttentionFamily",
@@ -603,6 +670,25 @@ __all__ = [
     "VisionImageInput",
     "VisionPreprocessResult",
     "VisionPreprocessSpec",
+    "VideoStreamInfo",
+    "VideoMetalBridgeReport",
+    "VideoFrameDecision",
+    "VideoFrameEmbedding",
+    "VideoFrameEncoder",
+    "VideoFrameScheduler",
+    "VideoFrameSchedulerSnapshot",
+    "VideoArtifactCache",
+    "VideoBenchmarkReport",
+    "VideoBenchmarkThresholds",
+    "VideoCacheKey",
+    "VideoCacheKind",
+    "VideoCacheSnapshot",
+    "VideoCacheTierSnapshot",
+    "VideoDecodeMeasurement",
+    "VideoLanguageBackend",
+    "VideoVLMIntegrator",
+    "VideoVLMRequest",
+    "VideoVLMResult",
     "__version__",
     "build_environment_fingerprint",
     "build_device_placement_plan",
@@ -626,6 +712,7 @@ __all__ = [
     "default_scheduling_preference_path",
     "detect_apple_chip_profile",
     "device_capability_from_probe",
+    "embedding_digest",
     "discover_metal_tuning_report",
     "discover_runtime_versions",
     "inspect_vllm_metal_integration",
@@ -663,6 +750,7 @@ __all__ = [
     "save_metal_shape_benchmark",
     "save_metal_tuning_report",
     "save_v2_tuning_profile",
+    "sample_temporal_frames",
     "save_native_v2_preference",
     "save_scheduling_preference",
     "semantic_prefix_fingerprint",

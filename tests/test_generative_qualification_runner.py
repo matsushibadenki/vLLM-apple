@@ -1,3 +1,4 @@
+import json
 import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -8,6 +9,7 @@ from vllm_apple.generative_qualification import (
     build_generative_qualification_plan,
 )
 from vllm_apple.generative_qualification_runner import (
+    resolve_generative_qualification_mode,
     run_generative_qualification,
     wait_for_memory_pressure_recovery,
 )
@@ -17,11 +19,15 @@ from vllm_apple.types import GIB, HardwareInfo, MemoryInfo
 
 class FakeAdapter:
     calls = 0
+    requests = []
 
     def __init__(self, command, **kwargs):
         self.command = command
         self.index = FakeAdapter.calls
         FakeAdapter.calls += 1
+        request_path = Path(command[command.index("--request") + 1])
+        self.request = json.loads(request_path.read_text())
+        FakeAdapter.requests.append(self.request)
 
     def events(self):
         yield GenerationTelemetryEvent(
@@ -33,9 +39,9 @@ class FakeAdapter:
             8 * GIB,
             "normal",
             "nominal",
-            512,
-            512,
-            1,
+            self.request["width"],
+            self.request["height"],
+            self.request["frames"],
             f"{self.index + 1:064x}",
         )
 
@@ -76,6 +82,7 @@ class GenerativeQualificationRunnerTests(unittest.TestCase):
                 steps=2,
             )
             FakeAdapter.calls = 0
+            FakeAdapter.requests = []
             report_path = root / "reports" / "report.json"
             report = run_generative_qualification(
                 plan,
@@ -99,6 +106,76 @@ class GenerativeQualificationRunnerTests(unittest.TestCase):
             self.assertTrue(report_path.is_file())
             self.assertNotIn("private test prompt", report_path.read_text())
             self.assertFalse(list(private.glob("request-*.json")))
+            self.assertEqual({item["mode"] for item in FakeAdapter.requests}, {"text-to-image"})
+
+    def test_video_plan_defaults_to_text_to_video_with_bounded_profile(self) -> None:
+        with TemporaryDirectory() as directory:
+            root = Path(directory)
+            model = root / "model"
+            private = root / "private"
+            model.mkdir()
+            hardware = HardwareInfo(
+                "Darwin", "arm64", "Apple M4", 10, 10, 10,
+                MemoryInfo(32 * GIB, 28 * GIB), True, "test",
+            )
+            components = (
+                GenerativeArtifactComponent("transformer", "denoiser", 6 * GIB, 12 * GIB),
+                GenerativeArtifactComponent("text", "text_encoder", GIB, 3 * GIB),
+                GenerativeArtifactComponent("vae", "vae", GIB, 3 * GIB),
+            )
+            plan = build_generative_qualification_plan(
+                candidate_id="wan2.2-ti2v-5b",
+                artifact_bytes=8 * GIB,
+                estimated_resident_bytes=18 * GIB,
+                hardware=hardware,
+                target=root,
+                quantization="int4",
+                components=components,
+            )
+            FakeAdapter.calls = 0
+            FakeAdapter.requests = []
+            report = run_generative_qualification(
+                plan,
+                workspace_root=root,
+                model_root=model,
+                private_root=private,
+                report_path=root / "report.json",
+                prompt="A robot walking through a quiet workshop",
+                sample_count=2,
+                worker_command=("python", "-m", "worker"),
+                provenance=GenerativeEvaluationProvenance(
+                    "Darwin", "arm64", "Apple M4", 10, 32 * GIB,
+                    "test", "1.0.0", "test", 8 * GIB, "int4", None, "test/model"
+                ),
+                adapter_factory=FakeAdapter,
+                pressure_probe=lambda: "normal",
+                recovery_poll_seconds=0.001,
+            )
+        self.assertTrue(report.passed)
+        self.assertEqual((report.samples[0].output_width, report.samples[0].output_height), (640, 360))
+        self.assertEqual(report.samples[0].output_frames, 33)
+        self.assertEqual({item["mode"] for item in FakeAdapter.requests}, {"text-to-video"})
+
+    def test_explicit_unsupported_mode_is_rejected(self) -> None:
+        with TemporaryDirectory() as directory:
+            plan = build_generative_qualification_plan(
+                candidate_id="wan2.2-ti2v-5b",
+                artifact_bytes=8 * GIB,
+                estimated_resident_bytes=18 * GIB,
+                hardware=HardwareInfo(
+                    "Darwin", "arm64", "Apple M4", 10, 10, 10,
+                    MemoryInfo(32 * GIB, 28 * GIB), True, "test",
+                ),
+                target=Path(directory),
+                quantization="int4",
+                components=(
+                    GenerativeArtifactComponent("transformer", "denoiser", 6 * GIB, 12 * GIB),
+                    GenerativeArtifactComponent("text", "text_encoder", GIB, 3 * GIB),
+                    GenerativeArtifactComponent("vae", "vae", GIB, 3 * GIB),
+                ),
+            )
+        with self.assertRaisesRegex(ValueError, "not supported"):
+            resolve_generative_qualification_mode(plan, "text-to-image")
 
     def test_memory_recovery_requires_two_consecutive_normal_observations(self) -> None:
         pressures = iter(("warning", "normal", "warning", "normal", "normal"))

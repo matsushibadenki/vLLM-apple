@@ -74,6 +74,7 @@ class GenerativeEvaluationProvenance:
     quantization: str
     license: str | None
     base_model: str | None
+    artifact_root_sha256: str | None = None
 
     def __post_init__(self) -> None:
         strings = (
@@ -96,6 +97,11 @@ class GenerativeEvaluationProvenance:
         for value in (self.license, self.base_model):
             if value is not None and (not value or len(value.encode("utf-8")) > 4096):
                 raise ValueError("generative provenance optional string is invalid")
+        if self.artifact_root_sha256 is not None and (
+            len(self.artifact_root_sha256) != 64
+            or any(character not in "0123456789abcdef" for character in self.artifact_root_sha256)
+        ):
+            raise ValueError("generative provenance artifact digest is invalid")
 
     def to_dict(self) -> dict[str, object]:
         return asdict(self)
@@ -256,11 +262,12 @@ def load_generative_evaluation_report(
         "maximum_peak_rss_bytes", "minimum_frames_per_second", "samples", "issues",
         "stores_prompt", "stores_output", "passed",
     }
-    provenance_keys = {
+    legacy_provenance_keys = {
         "platform", "architecture", "soc", "gpu_core_count", "total_memory_bytes",
         "backend", "backend_version", "artifact_format", "artifact_bytes", "quantization",
         "license", "base_model",
     }
+    provenance_keys = legacy_provenance_keys | {"artifact_root_sha256"}
     sample_keys = {
         "sample_index", "wall_time_ms", "first_output_ms", "peak_rss_bytes",
         "memory_pressure", "thermal_state", "output_width", "output_height", "output_frames",
@@ -269,7 +276,9 @@ def load_generative_evaluation_report(
     if not isinstance(payload, dict) or set(payload) != report_keys or payload["schema_version"] != 1:
         raise ValueError("generative evaluation report schema is invalid")
     provenance_payload = payload["provenance"]
-    if not isinstance(provenance_payload, dict) or set(provenance_payload) != provenance_keys:
+    if not isinstance(provenance_payload, dict) or set(provenance_payload) not in {
+        frozenset(legacy_provenance_keys), frozenset(provenance_keys)
+    }:
         raise ValueError("generative evaluation provenance schema is invalid")
     raw_samples = payload["samples"]
     if not isinstance(raw_samples, list) or any(

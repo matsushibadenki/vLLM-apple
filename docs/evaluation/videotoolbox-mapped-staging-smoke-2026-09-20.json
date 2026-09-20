@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-09-20",
+  "scope": "VideoToolbox anonymous-mmap frame staging smoke",
+  "fixture": {
+    "generated_locally": true,
+    "codec": "h264",
+    "width": 64,
+    "height": 64,
+    "frame_rate": 10,
+    "frames": 10
+  },
+  "result": {
+    "frames": 10,
+    "frame_bytes": 16384,
+    "storage": "anonymous_mmap",
+    "readonly_frame_view": true,
+    "gpu_staging_compatible": true,
+    "hardware_accelerator": "videotoolbox",
+    "elapsed_nanoseconds": 196083166,
+    "passed": true
+  },
+  "limitations": [
+    "This removes captured-stdout and per-frame heap copies but is not a CVPixelBuffer/IOSurface zero-copy path.",
+    "A native Metal consumer must still bind or upload the mapped BGRA storage."
+  ]
+}

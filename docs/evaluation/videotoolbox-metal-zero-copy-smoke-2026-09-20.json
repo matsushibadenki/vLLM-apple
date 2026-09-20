@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-09-20",
+  "scope": "native CVPixelBuffer to Metal texture binding smoke",
+  "fixture": {
+    "generated_locally": true,
+    "codec": "h264",
+    "width": 64,
+    "height": 64,
+    "frame_rate": 10,
+    "maximum_frames": 10
+  },
+  "result": {
+    "hardware_decode_supported": true,
+    "decoded_frames": 10,
+    "texture_bindings": 10,
+    "binding_failures": 0,
+    "pixel_format": "bgra8Unorm",
+    "always_copies_sample_data": false,
+    "passed": true
+  },
+  "limitations": [
+    "This smoke validates decode-surface to Metal-texture binding, not a downstream vision kernel.",
+    "HDR, multi-plane YCbCr, variable-frame-rate, and long-form inputs remain unqualified."
+  ]
+}

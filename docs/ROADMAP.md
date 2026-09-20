@@ -751,16 +751,23 @@ fallback、fusion、stress、および大容量model向け再現可能qualificat
 ## Phase 6 — Video
 
 - `[Done]` 3候補のbounded初期profile catalogと共通load前artifact/Unified Memory admission
-- `[Later]` hardware video decoder integration
-- `[Later]` GPU-accessible bufferへのcopy削減path
-- `[Later]` frame scheduler
-- `[Later]` temporal sampler
-- `[Later]` frame、patch、embedding、scene cache
-- `[Later]` video VLM integration
-- `[Later]` streaming video input
-- `[Later]` frames/sec、seconds-of-video/sec、memory/minute benchmark
-- `[Later]` M4/32GB向け動画生成qualification profile（最初は低解像度、短尺、batch 1、bounded frames/steps）
-- `[Later]` Wan 2.2 TI2V-5Bを優先候補とするT2V/I2V、high-compression VAE、量子化、逐次module residency検証
+- `[Done]` bounded FFmpeg VideoToolbox hardware decoder integration。regular local file、input byte、H.264／HEVC／VP9／AV1 codec、resolution、frame数、decoded byte、timeoutをload前に制限し、明示`-hwaccel videotoolbox`でBGRA frameを取得。64×64 H.264、10 fps、10 frameの実機smokeに合格。証跡: [VideoToolbox decoder smoke](evaluation/videotoolbox-decoder-smoke-2026-09-20.json)
+- `[Done]` VideoToolbox raw BGRAをcaptured stdoutとframe別heap copyを介さず匿名mmapへ直接書き、read-only `memoryview`でframe参照するGPU staging互換copy削減path。64×64 H.264、10 frameの実機smokeに合格。証跡: [mapped staging smoke](evaluation/videotoolbox-mapped-staging-smoke-2026-09-20.json)
+- `[Done]` AVAssetReaderのVideoToolbox対応CVPixelBufferを`alwaysCopiesSampleData=false`で取得し、`CVMetalTextureCacheCreateTextureFromImage`によりBGRA8 Metal textureへ直接bindするnative zero-copy path。hardware decode対応をcodecごとに検証し、64×64 H.264の10/10 frameでbinding failure 0を実証。証跡: [VideoToolbox Metal zero-copy smoke](evaluation/videotoolbox-metal-zero-copy-smoke-2026-09-20.json)
+- `[Done]` presentation timestamp順reorder、bounded queue、最大reorder幅、late-frame drop、duplicate／capacity rejection、cancel、present／drop／最大lateness telemetryを持つframe scheduler。`drain_late`は古いframeを推論前に除外して現在frameまで進める
+- `[Done]` scene-aware deterministic temporal sampler。先頭／末尾、keyframe、scene-change scoreを優先し、残り枠を時間軸上のfarthest-point samplingで補完。最大frame数、最小時間間隔、重複ID、最大input数を検証し、入力順に依存しないselection reportを生成
+- `[Done]` video digest、時間範囲、transform／model fingerprintへ結合したframe／patch／embedding／scene共通cache。global LRUに加えてtier別byte budgetを持ち、raw frameがembeddingを追い出す干渉を防止。oversize拒否、tier clear、hit／miss／eviction／resident telemetryを実装
+- `[Done]` backend-neutral video VLM integration。temporal sampling→frame単位embedding cache lookup→missだけをbatch encode→元の時間順へ復元→language backendを接続し、encoder count／順序／ID／digest／byte数と応答文字数を検証。特定video VLM modelのqualificationは未実施で昇格しない
+- `[Done]` bounded streaming video upload／spool foundation。private 0600 artifactへordered chunkを逐次保存し、全videoをmemoryへ保持せずsequence、chunk数、個別／合計byte、final SHA-256を検証。finalize前artifact非公開、明示close／digest mismatch／idle reapでunlink
+- `[Done]` persistent FFmpeg／VideoToolbox workerへordered compressed chunkを逐次投入し、stdout／stderrを並行drainしてdecoded BGRA frameをPTS付きでframe schedulerへ即時送るbounded incremental path。input byte／frame／stderr／shutdown timeoutを制限。64×64 H.264 MPEG-TSを9 chunkで投入し、10/10 frame、scheduler rejection 0、late drop 0を実証。証跡: [incremental stream smoke](evaluation/videotoolbox-incremental-stream-smoke-2026-09-20.json)
+- `[Done]` frames/sec、seconds-of-video/sec、memory/minute benchmark。320×180 H.264、30 fps、10秒／300 frameをVideoToolbox＋anonymous mmapで実測し、906.3 frames/sec、30.21 video-sec/sec、retained buffer 69.12 MB、414.72 MB/video-minute、peak RSS 35.11 MBで合格。証跡: [VideoToolbox throughput benchmark](evaluation/videotoolbox-throughput-benchmark-2026-09-20.json)
+- `[Done]` M4/32GB向け動画生成qualification profile。Wan 2.2 TI2V-5BをTier Aの640×360・33 frame・20 step・batch 1・量子化必須profileとし、候補modalityからsource-free modeを決定するrunner契約を実装。動画候補は`text-to-video`、画像候補は`text-to-image`を既定とし、非対応modeをworker起動前に拒否する。これはmock telemetryによる契約試験までで、実modelの生成合格を意味しない
+- `[Done]` Wan 2.2 TI2V-5Bのlocal-only Diffusers T2V worker adapter。MPS必須、`local_files_only`、batch 1、640×360・33 frame・20 step request、VAE tiling、CPU-seeded generation、bounded progress telemetry、frame数／shape検証、private MP4のstreaming SHA-256と即時削除を実装。I2Vと実model qualificationは未実施
+- `[Done]` Wan 2.2 TI2V-5Bの量子化artifact load前readiness。Diffusers sourceの`WanPipeline`、local artifactの`WanPipeline` identity、Diffusers形式、denoiser／text encoder／VAE完全性、transformer metadataの4/8-bit宣言をweight import・load・Metal allocationなしで検証する専用CLIを実装
+- `[Done]` Wan 2.2 TI2V-5B workerのmodule residency contract。現行Diffusers 0.34.0の`text_encoder->transformer->vae`順を固定検証し、`enable_model_cpu_offload(device="mps")`で一度に一moduleだけをMPSへ移す。契約欠落時は全module常駐へfallbackせず生成前に拒否
+- `[Done]` Wan 2.2 TI2V-5B正式qualification CLI。artifact readiness、実component容量、指定resident見積り、現在hardware、load前admission、local-only T2V worker、sample間memory recovery、反復実行、private reportを単一fail-closed経路へ統合
+- `[Done]` race-safe model integrity manifestを再利用した生成qualification artifact binding。Wan正式CLIは全regular fileのpath／size／SHA-256からroot digestを計算してreport provenanceへ保存し、同容量・同量子化表記の別artifactへのreport replayを拒否。既存v1 reportはdigestなしのlegacy provenanceとして読取互換を維持
+- `[Next]` 4/8-bit Wan 2.2 TI2V-5B artifactを配置したM4/32GB実機T2V qualification
 - `[Later]` HunyuanVideo 1.5 8.3Bを候補とする480p、step-distilled、SSTA、model offload検証
 - `[Later]` Wan 2.2 A14B量子化版をstretch候補とするT2V/I2V別artifact、dual-expert residency、CPU/SSD offload検証
 - `[Done]` video diffusion pipelineのDiT/expert、text encoder、3D VAE別artifact admissionとconservative resident-memory hard ceiling
@@ -1183,7 +1190,7 @@ Unified Memoryとmemory bandwidthを共有する一つの実行系として管�
 105. `[Next]` 大容量Apple SiliconでQwen text-only実model qualification
 106. `[Later]` Mac companion app
 107. `[Later]` M4/32GB画像生成qualification（FLUX.2 [klein] 9B Base、Qwen-Image-2512、量子化FLUX.2 [dev]）
-108. `[Later]` M4/32GB動画生成qualification（Wan 2.2 TI2V-5B、HunyuanVideo 1.5 8.3B、量子化Wan 2.2 A14B）
+108. `[Next]` M4/32GB動画生成qualification（bounded profile／runner／Wan local-only worker／readiness／module residency／正式CLI／artifact digest bindingは完了。量子化artifactによる実model qualificationが次）
 109. `[Done]` 画像・動画6候補のbounded qualification plan schema、CLI、load前aggregate admission
 110. `[Done]` denoiser、text encoder、VAE別容量証拠とaggregate完全一致によるload前fail-closed gate
 111. `[Done]` 生成本文非保存の実測evidence evaluator、plan binding、private/atomic report保存

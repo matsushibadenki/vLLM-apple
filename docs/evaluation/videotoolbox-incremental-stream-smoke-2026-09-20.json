@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-09-20",
+  "scope": "persistent incremental FFmpeg VideoToolbox decode to frame scheduler smoke",
+  "fixture": {
+    "generated_locally": true,
+    "container": "mpegts",
+    "codec": "h264",
+    "width": 64,
+    "height": 64,
+    "frame_rate": 10,
+    "frames": 10,
+    "chunk_bytes": 1024
+  },
+  "result": {
+    "input_chunks": 9,
+    "input_bytes": 8460,
+    "decoded_frames": 10,
+    "scheduler_rejections": 0,
+    "stderr_truncated": false,
+    "exit_code": 0,
+    "presented_frames": 10,
+    "late_drops": 0,
+    "passed": true
+  },
+  "limitations": [
+    "The incremental path currently emits CPU-owned BGRA frame bytes to the Python scheduler.",
+    "The native CVPixelBuffer-to-Metal zero-copy bridge is qualified separately and is not yet hosted by this persistent stream worker."
+  ]
+}

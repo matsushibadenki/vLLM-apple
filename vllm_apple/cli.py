@@ -13,6 +13,7 @@ from .context import recommend_context
 from .vision_smoke import run_vision_smoke
 from .daemon import serve
 from .diffusers_generative_readiness import inspect_diffusers_generative_readiness
+from .diffusers_video_readiness import inspect_diffusers_video_readiness
 from .execution_profile import detect_apple_chip_profile, save_chip_profile
 from .execution_preview_client import fetch_execution_preview
 from .hardware import detect_hardware
@@ -221,6 +222,34 @@ def build_parser() -> argparse.ArgumentParser:
         help="statically inspect Diffusers pipeline support without model or Metal allocation",
     )
     diffusers_readiness.add_argument("--python", type=Path, default=Path(sys.executable))
+    diffusers_video_readiness = commands.add_parser(
+        "diffusers-video-readiness",
+        help="inspect a local quantized Wan T2V artifact without loading weights",
+    )
+    diffusers_video_readiness.add_argument("--python", type=Path, default=Path(sys.executable))
+    diffusers_video_readiness.add_argument("--model", required=True, type=Path)
+    diffusers_video_qualification = commands.add_parser(
+        "diffusers-video-qualification",
+        help="run repeated local Wan T2V qualification and save private evidence",
+    )
+    diffusers_video_qualification.add_argument("model", type=Path)
+    diffusers_video_qualification.add_argument("--python", required=True, type=Path)
+    video_resident = diffusers_video_qualification.add_mutually_exclusive_group(required=True)
+    video_resident.add_argument("--resident-gib", type=float)
+    video_resident.add_argument("--resident-bytes", type=int)
+    diffusers_video_qualification.add_argument("--samples", type=int, default=2)
+    diffusers_video_qualification.add_argument("--timeout", type=float, default=3600.0)
+    diffusers_video_qualification.add_argument("--recovery-timeout", type=float, default=300.0)
+    diffusers_video_qualification.add_argument("--recovery-poll", type=float, default=5.0)
+    diffusers_video_qualification.add_argument("--workspace-root", type=Path, default=Path("."))
+    diffusers_video_qualification.add_argument(
+        "--private-root", type=Path, default=Path("qualification-private/diffusers-video")
+    )
+    diffusers_video_qualification.add_argument(
+        "--report",
+        type=Path,
+        default=Path("qualification-results/diffusers-video.json"),
+    )
     mflux_readiness = commands.add_parser(
         "mflux-generative-readiness",
         help="statically inspect MFLUX image support without importing it or allocating Metal",
@@ -826,6 +855,108 @@ def main(argv: list[str] | None = None) -> int:
             return 2
         _json(report)
         return 0 if report["ready"] else 1
+    if arguments.command == "diffusers-video-readiness":
+        try:
+            report = inspect_diffusers_video_readiness(
+                arguments.python, model=arguments.model
+            )
+        except (OSError, ValueError) as error:
+            _json(
+                {
+                    "ready": False,
+                    "error_code": "diffusers_video_readiness_failed",
+                    "detail": str(error),
+                }
+            )
+            return 2
+        _json(report)
+        return 0 if report["ready"] else 1
+    if arguments.command == "diffusers-video-qualification":
+        try:
+            readiness = inspect_diffusers_video_readiness(
+                arguments.python, model=arguments.model
+            )
+            if not readiness["ready"]:
+                raise ValueError("Diffusers Wan backend or artifact did not pass readiness")
+            if arguments.resident_bytes is not None:
+                resident_bytes = arguments.resident_bytes
+            else:
+                if not math.isfinite(arguments.resident_gib) or arguments.resident_gib <= 0:
+                    raise ValueError("resident GiB must be finite and positive")
+                resident_bytes = int(arguments.resident_gib * GIB)
+            artifact = readiness["artifact"]
+            bits = artifact.get("quantization", {}).get("bits")
+            quantization = f"int{bits}"
+            hardware = detect_hardware()
+            plan = build_generative_qualification_plan(
+                candidate_id=readiness["candidate_id"],
+                artifact_bytes=artifact["artifact_bytes"],
+                estimated_resident_bytes=resident_bytes,
+                hardware=hardware,
+                target=arguments.model.parent,
+                quantization=quantization,
+                components=qualification_components_from_inspection(
+                    artifact, resident_bytes
+                ),
+                batch_size=1,
+            )
+            if not plan.eligible:
+                admission = plan.artifact_admission
+                raise ValueError(
+                    "load-before-admission rejected: "
+                    f"estimated_resident_bytes={admission.estimated_resident_bytes}, "
+                    f"memory_hard_ceiling_bytes={admission.memory_hard_ceiling_bytes}, "
+                    f"fits_disk={admission.fits_disk}, fits_memory={admission.fits_memory}"
+                )
+            integrity = build_model_integrity_manifest(arguments.model)
+            provenance = GenerativeEvaluationProvenance(
+                hardware.platform,
+                hardware.architecture,
+                hardware.soc,
+                hardware.gpu_core_count,
+                hardware.memory.total_bytes,
+                "diffusers",
+                readiness["diffusers_version"],
+                artifact["artifact_format"],
+                artifact["artifact_bytes"],
+                quantization,
+                artifact.get("license"),
+                artifact.get("base_model"),
+                integrity["root_sha256"],
+            )
+            report = run_generative_qualification(
+                plan,
+                workspace_root=arguments.workspace_root,
+                model_root=arguments.model,
+                private_root=arguments.private_root,
+                report_path=arguments.report,
+                prompt=(
+                    "A small friendly robot walking through a clean workshop, "
+                    "steady camera, soft natural light"
+                ),
+                sample_count=arguments.samples,
+                worker_command=(
+                    str(arguments.python.expanduser().absolute()),
+                    "-m",
+                    "vllm_apple.diffusers_video_generation_worker",
+                ),
+                provenance=provenance,
+                mode="text-to-video",
+                timeout_seconds=arguments.timeout,
+                recovery_timeout_seconds=arguments.recovery_timeout,
+                recovery_poll_seconds=arguments.recovery_poll,
+            )
+        except (OSError, ValueError, RuntimeError) as error:
+            _json(
+                {
+                    "passed": False,
+                    "error_code": "diffusers_video_qualification_failed",
+                    "detail": str(error),
+                }
+            )
+            return 2
+        _json(report.to_dict())
+        return 0 if report.passed else 1
     if arguments.command == "mflux-generative-readiness":
         try:
             report = inspect_mflux_generative_readiness(

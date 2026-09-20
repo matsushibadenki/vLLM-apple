@@ -119,6 +119,7 @@ def inspect_generative_artifact(path: str | Path) -> dict[str, object]:
     sizes, file_count = _bounded_sizes(root)
     model_index = _read_json(root / "model_index.json")
     quantize_config = _read_json(root / "quantize_config.json")
+    transformer_config = _read_json(root / "transformer" / "config.json")
     shard_index = _read_json(root / "model.safetensors.index.json")
     if shard_index is None:
         for component_name in ("transformer", "text_encoder", "vae"):
@@ -139,6 +140,19 @@ def inspect_generative_artifact(path: str | Path) -> dict[str, object]:
             for key in ("bits", "group_size"):
                 if isinstance(config.get(key), int):
                     quantization[key] = config[key]
+    if transformer_config:
+        config = transformer_config.get("quantization_config")
+        if isinstance(config, dict):
+            for key in ("bits", "group_size"):
+                if isinstance(config.get(key), int) and not isinstance(config.get(key), bool):
+                    quantization[key] = config[key]
+            if config.get("load_in_4bit") is True:
+                quantization["bits"] = 4
+            elif config.get("load_in_8bit") is True:
+                quantization["bits"] = 8
+            method = config.get("quant_method")
+            if isinstance(method, str) and 1 <= len(method) <= 128:
+                quantization["method"] = method
     level = shard_metadata.get("quantization_level")
     if isinstance(level, (str, int)) and str(level).isdigit():
         quantization["bits"] = int(level)

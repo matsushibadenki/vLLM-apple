@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-09-20",
+  "scope": "bounded VideoToolbox decode throughput and retained-buffer benchmark",
+  "fixture": {
+    "generated_locally": true,
+    "codec": "h264",
+    "width": 320,
+    "height": 180,
+    "frame_rate": 30,
+    "frames": 300,
+    "video_duration_seconds": 10
+  },
+  "result": {
+    "elapsed_seconds": 0.331030292,
+    "frames_per_second": 906.261473,
+    "video_seconds_per_second": 30.208716,
+    "retained_buffer_bytes": 69120000,
+    "buffer_bytes_per_video_minute": 414720000,
+    "peak_rss_bytes": 35110912,
+    "passed": true
+  },
+  "thresholds": {
+    "minimum_frames_per_second": 1,
+    "minimum_video_seconds_per_second": 1,
+    "maximum_buffer_bytes_per_video_minute": 1073741824
+  },
+  "limitations": [
+    "Memory per minute is the normalized retained BGRA buffer footprint, not a claim that streaming memory must grow linearly.",
+    "The benchmark covers decode and mapped staging, not downstream video VLM inference."
+  ]
+}

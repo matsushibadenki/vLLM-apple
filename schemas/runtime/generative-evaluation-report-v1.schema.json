@@ -27,7 +27,8 @@
         "artifact_bytes": {"type": "integer", "minimum": 1, "maximum": 17592186044416},
         "quantization": {"type": "string", "minLength": 1, "maxLength": 512},
         "license": {"type": ["string", "null"], "minLength": 1, "maxLength": 4096},
-        "base_model": {"type": ["string", "null"], "minLength": 1, "maxLength": 4096}
+        "base_model": {"type": ["string", "null"], "minLength": 1, "maxLength": 4096},
+        "artifact_root_sha256": {"type": ["string", "null"], "minLength": 64, "maxLength": 64}
       }
     },
     "sample_count": {"type": "integer", "minimum": 1, "maximum": 32},

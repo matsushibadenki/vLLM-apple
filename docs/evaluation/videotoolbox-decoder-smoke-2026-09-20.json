@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-09-20",
+  "scope": "bounded FFmpeg VideoToolbox decode smoke",
+  "fixture": {
+    "generated_locally": true,
+    "codec": "h264",
+    "width": 64,
+    "height": 64,
+    "frame_rate": 10,
+    "duration_seconds": 1
+  },
+  "result": {
+    "frames": 10,
+    "pixel_format": "bgra",
+    "hardware_accelerator": "videotoolbox",
+    "decoded_bytes": 163840,
+    "elapsed_nanoseconds": 212633042,
+    "passed": true
+  },
+  "limitations": [
+    "Decoded BGRA frames are copied into CPU-owned bytes in this milestone.",
+    "This smoke test does not qualify long-form, HDR, variable-frame-rate, or corrupted input."
+  ]
+}
