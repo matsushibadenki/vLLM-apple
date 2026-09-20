@@ -33,6 +33,10 @@ def build_qwen3_vl_deepstack_coreml(
     start_layer: int = 0,
     profile_index: int = 0,
     final_merger: bool = False,
+    compute_precision: str = "fp16",
+    fp32_prefix_layers: int = 0,
+    input_precision: str = "fp16",
+    main_output_precision: str = "fp16",
 ) -> dict[str, object]:
     output = destination.expanduser().resolve(strict=False)
     if output.exists() or not output.parent.is_dir():
@@ -48,6 +52,16 @@ def build_qwen3_vl_deepstack_coreml(
         or type(start_layer) is not int
         or type(profile_index) is not int
         or not 0 <= profile_index < len(graph.profiles)
+        or compute_precision not in {"fp16", "fp32"}
+        or type(fp32_prefix_layers) is not int
+        or fp32_prefix_layers < 0
+        or (compute_precision == "fp32" and fp32_prefix_layers)
+        or input_precision not in {"fp16", "fp32"}
+        or main_output_precision not in {"fp16", "fp32"}
+        or (
+            (input_precision == "fp32" or main_output_precision == "fp32")
+            and compute_precision != "fp32"
+        )
     ):
         raise ValueError("Qwen3-VL deep-stack Core ML request is invalid")
     layer_index = (
@@ -73,6 +87,8 @@ def build_qwen3_vl_deepstack_coreml(
         _layer_weights(root, records, layer, np) for layer in range(block_count)
     )
     layers = all_layers[start_layer:]
+    if fp32_prefix_layers > len(layers):
+        raise ValueError("Qwen3-VL FP32 prefix exceeds the segment")
     merger = _merger_weights(
         root, records, None if final_merger else deepstack_position, np
     )
@@ -82,6 +98,28 @@ def build_qwen3_vl_deepstack_coreml(
     merged_tokens = tokens // source.spatial_merge_size**2
     deepstack_shape = (merged_tokens, source.output_hidden_size)
     cos, sin = _fixed_rope(profile.grid_thw, source, np)
+    if compute_precision == "fp32":
+        layers = tuple(
+            {name: value.astype(np.float32) for name, value in weights.items()}
+            for weights in layers
+        )
+        merger = {
+            name: value.astype(np.float32) for name, value in merger.items()
+        }
+        cos = cos.astype(np.float32)
+        sin = sin.astype(np.float32)
+    elif fp32_prefix_layers:
+        layers = tuple(
+            {
+                name: value.astype(np.float32)
+                if index < fp32_prefix_layers
+                else value
+                for name, value in weights.items()
+            }
+            for index, weights in enumerate(layers)
+        )
+        cos_fp32 = cos.astype(np.float32)
+        sin_fp32 = sin.astype(np.float32)
     vector = np.asarray(
         [((index % 31) - 15) / 16 for index in range(source.hidden_size)],
         dtype=np.float32,
@@ -142,16 +180,41 @@ def build_qwen3_vl_deepstack_coreml(
     compiled_root.mkdir(mode=0o700)
     try:
         @mb.program(
-            input_specs=[mb.TensorSpec(shape=main_shape, dtype=types.fp16)],
+            input_specs=[
+                mb.TensorSpec(
+                    shape=main_shape,
+                    dtype=(types.fp16 if input_precision == "fp16" else types.fp32),
+                )
+            ],
             opset_version=ct.target.macOS15,
         )
         def program(hidden_states):
             value = hidden_states
-            for layer, weights in enumerate(layers, start=start_layer):
+            if (
+                (compute_precision == "fp32" or fp32_prefix_layers)
+                and input_precision == "fp16"
+            ):
+                value = mb.cast(x=value, dtype="fp32", name="input_fp32")
+            for offset, (layer, weights) in enumerate(
+                zip(range(start_layer, layer_index + 1), layers, strict=True)
+            ):
+                layer_cos = cos
+                layer_sin = sin
+                if compute_precision == "fp16" and offset < fp32_prefix_layers:
+                    layer_cos = cos_fp32
+                    layer_sin = sin_fp32
                 value = _block_mil(
                     value, weights, layer, tokens, source, graph.head_dimension,
-                    cos, sin, mb, np,
+                    layer_cos, layer_sin, mb, np,
                 )
+                if (
+                    compute_precision == "fp16"
+                    and fp32_prefix_layers
+                    and offset + 1 == fp32_prefix_layers
+                ):
+                    value = mb.cast(
+                        x=value, dtype="fp16", name="fp32_prefix_hidden_states"
+                    )
             norm_input = (
                 value
                 if final_merger
@@ -168,7 +231,7 @@ def build_qwen3_vl_deepstack_coreml(
                 axes=[-1],
                 gamma=merger["norm.weight"],
                 beta=merger["norm.bias"],
-                epsilon=np.float16(1e-6),
+                epsilon=merger["norm.weight"].dtype.type(1e-6),
                 name=f"{merger_kind}_norm",
             )
             merger_input = (
@@ -195,19 +258,43 @@ def build_qwen3_vl_deepstack_coreml(
                 x=activated,
                 weight=merger["linear_fc2.weight"],
                 bias=merger["linear_fc2.bias"],
-                name=merged_output_name,
+                name=(
+                    merged_output_name
+                    if compute_precision == "fp16"
+                    else f"{merged_output_name}_fp32"
+                ),
             )
+            if compute_precision == "fp32":
+                main_output = (
+                    mb.cast(x=value, dtype="fp16", name="tower_hidden_states")
+                    if main_output_precision == "fp16"
+                    else mb.identity(x=value, name="tower_hidden_states")
+                )
+                return (
+                    main_output,
+                    mb.cast(x=merged, dtype="fp16", name=merged_output_name),
+                )
             return mb.identity(x=value, name="tower_hidden_states"), merged
 
         model = ct.convert(
             program,
             convert_to="mlprogram",
-            compute_precision=ct.precision.FLOAT16,
+            compute_precision=(
+                ct.precision.FLOAT16
+                if compute_precision == "fp16" and not fp32_prefix_layers
+                else ct.precision.FLOAT32
+            ),
             minimum_deployment_target=ct.target.macOS15,
         )
+        precision_suffix = ""
+        if compute_precision == "fp32":
+            precision_suffix = "-fp32"
+        elif fp32_prefix_layers:
+            precision_suffix = f"-fp32-prefix-{fp32_prefix_layers}"
         model.user_defined_metadata["vllm-apple.graph-id"] = graph.graph_id
         model.user_defined_metadata["vllm-apple.partition"] = (
-            f"tower-blocks-{start_layer}-{layer_index}-{merger_kind}-v1"
+            f"tower-blocks-{start_layer}-{layer_index}-{merger_kind}"
+            f"{precision_suffix}-v1"
         )
         model.save(str(package))
         completed = subprocess.run(
@@ -234,7 +321,10 @@ def build_qwen3_vl_deepstack_coreml(
         report = {
             "schema_version": 1,
             "graph_id": graph.graph_id,
-            "partition": f"tower-blocks-{start_layer}-{layer_index}-{merger_kind}-v1",
+            "partition": (
+                f"tower-blocks-{start_layer}-{layer_index}-{merger_kind}"
+                f"{precision_suffix}-v1"
+            ),
             "block_count": len(layers),
             "start_layer": start_layer,
             "deepstack_position": deepstack_position,
@@ -245,6 +335,10 @@ def build_qwen3_vl_deepstack_coreml(
             "input_shape": list(main_shape),
             "main_output_shape": list(main_shape),
             "deepstack_output_shape": list(deepstack_shape),
+            "compute_precision": compute_precision,
+            "fp32_prefix_layers": fp32_prefix_layers,
+            "input_precision": input_precision,
+            "main_output_precision": main_output_precision,
             "main_maximum_scaled_error": MAIN_MAXIMUM_SCALED_ERROR,
             "deepstack_maximum_scaled_error": DEEPSTACK_MAXIMUM_SCALED_ERROR,
             "main_reference_sha256": hashlib.sha256(main_reference.tobytes()).hexdigest(),
@@ -278,6 +372,8 @@ def qualify_qwen3_vl_deepstack_coreml(package_root: Path) -> dict[str, object]:
     if (
         report.get("main_maximum_scaled_error") != MAIN_MAXIMUM_SCALED_ERROR
         or report.get("deepstack_maximum_scaled_error") != DEEPSTACK_MAXIMUM_SCALED_ERROR
+        or report.get("input_precision", "fp16") not in {"fp16", "fp32"}
+        or report.get("main_output_precision", "fp16") not in {"fp16", "fp32"}
         or hashlib.sha256(main_reference.read_bytes()).hexdigest()
         != report.get("main_reference_sha256")
         or hashlib.sha256(deepstack_reference.read_bytes()).hexdigest()
@@ -293,7 +389,13 @@ def qualify_qwen3_vl_deepstack_coreml(package_root: Path) -> dict[str, object]:
         raise ValueError("Qwen3-VL deep-stack Core ML artifact is invalid")
     rows, columns = report["input_shape"]
     main = _predict(
-        model, rows, columns, main_reference, "tower_hidden_states", input_file
+        model,
+        rows,
+        columns,
+        main_reference,
+        "tower_hidden_states",
+        input_file,
+        report.get("input_precision", "fp16"),
     )
     deepstack = _predict(
         model,
@@ -302,6 +404,7 @@ def qualify_qwen3_vl_deepstack_coreml(package_root: Path) -> dict[str, object]:
         deepstack_reference,
         report.get("merged_output_name", "deepstack_hidden_states"),
         input_file,
+        report.get("input_precision", "fp16"),
     )
     if (
         main.get("output_count") != rows * columns
@@ -353,7 +456,9 @@ def qualify_qwen3_vl_final_coreml(package_root: Path) -> dict[str, object]:
     }
 
 
-def _predict(model, rows, columns, reference, output_name, input_file=None):
+def _predict(
+    model, rows, columns, reference, output_name, input_file=None, input_precision="fp16"
+):
     arguments = [
         "/usr/bin/swift",
         "-e",
@@ -366,6 +471,7 @@ def _predict(model, rows, columns, reference, output_name, input_file=None):
     ]
     if input_file is not None:
         arguments.append(str(input_file))
+        arguments.append(input_precision)
     completed = subprocess.run(
         arguments,
         stdin=subprocess.DEVNULL,

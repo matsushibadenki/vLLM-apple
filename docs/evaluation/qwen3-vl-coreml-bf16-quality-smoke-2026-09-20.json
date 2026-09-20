@@ -1,0 +1,33 @@
+{
+  "baseline_replay_stable": true,
+  "cases": [
+    {
+      "baseline_sha256": "05202d62473eb60fe18d7a921323d63c6ca52938d55bfac90894e3fd45e143cc",
+      "candidate_sha256": "9571e3ee774dd25c8719304e6c8cbb046415fc9a4d68a8ebd3f885bd46b79f55",
+      "exact_match": false,
+      "generation_tokens": 16,
+      "language": "en"
+    },
+    {
+      "baseline_sha256": "50183489e832de784d82bac482b1844b42679924979997a3ad7e4064452dd608",
+      "candidate_sha256": "50183489e832de784d82bac482b1844b42679924979997a3ad7e4064452dd608",
+      "exact_match": true,
+      "generation_tokens": 15,
+      "language": "ja"
+    },
+    {
+      "baseline_sha256": "0474faf8cd922f5064d076ad028a2ccbca218dbfae234f697ae313d575665407",
+      "candidate_sha256": "0474faf8cd922f5064d076ad028a2ccbca218dbfae234f697ae313d575665407",
+      "exact_match": true,
+      "generation_tokens": 16,
+      "language": "zh-Hans"
+    }
+  ],
+  "coremltools_bf16_mil_type_available": false,
+  "coremltools_version": "8.1",
+  "max_tokens": 16,
+  "passed": false,
+  "schema_version": 1,
+  "scope": "qwen3_vl_coreml_vs_homebrew_mlx_bf16_greedy_quality",
+  "stores_generated_text": false
+}

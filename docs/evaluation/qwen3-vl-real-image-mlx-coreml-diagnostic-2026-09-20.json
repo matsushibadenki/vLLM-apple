@@ -1,0 +1,20 @@
+{
+  "coreml_graph_id": "67c2fb85c368cc8a50d30908cb3970b65c486d76f9bd50bed8a21aec5e259e13",
+  "grid_thw": [1, 16, 16],
+  "mlx_inference_nanoseconds": 312554709,
+  "outputs": [
+    {"name": "final", "maximum_absolute_error": 2.1328125, "maximum_scaled_error": 1.6005859375},
+    {"name": "deepstack_0", "maximum_absolute_error": 0.2734375, "maximum_scaled_error": 0.0966796875},
+    {"name": "deepstack_1", "maximum_absolute_error": 1.4305419921875, "maximum_scaled_error": 1.4305419921875},
+    {"name": "deepstack_2", "maximum_absolute_error": 1.9140625, "maximum_scaled_error": 1.0634765625}
+  ],
+  "passed": false,
+  "patch_position": {
+    "maximum_absolute_error": 0.203125,
+    "maximum_scaled_error": 0.02734375
+  },
+  "pixel_values_shape": [256, 1536],
+  "schema_version": 1,
+  "scope": "same_real_processor_input_mlx_vs_segmented_coreml",
+  "stop_reason": "real_input_numeric_error_exceeds_fixed_qualification_limits"
+}

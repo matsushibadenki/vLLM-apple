@@ -10,6 +10,15 @@ class Qwen3VLPipelineCoreMLTests(unittest.TestCase):
         self.assertIn('index == 3 ? "final_hidden_states"', _PIPELINE_PROGRAM)
         self.assertIn("getrusage(RUSAGE_SELF", _PIPELINE_PROGRAM)
         self.assertIn("output_sha256", _PIPELINE_PROGRAM)
+        self.assertIn('for: "patch_hidden_states"', _PIPELINE_PROGRAM)
+        self.assertIn('"pixel_values": MLFeatureValue', _PIPELINE_PROGRAM)
+
+    def test_pipeline_reuses_models_and_isolates_request_outputs(self):
+        self.assertIn("for path in CommandLine.arguments[16...]", _PIPELINE_PROGRAM)
+        self.assertIn("for (requestIndex, input) in inputs.enumerated()", _PIPELINE_PROGRAM)
+        self.assertIn('"request_\\(requestIndex)"', _PIPELINE_PROGRAM)
+        self.assertIn('"model_load_count"', _PIPELINE_PROGRAM)
+        self.assertIn('"request_count"', _PIPELINE_PROGRAM)
 
 
 if __name__ == "__main__":

@@ -1,0 +1,20 @@
+{
+  "compute_units": "cpu_and_neural_engine",
+  "graph_id": "67c2fb85c368cc8a50d30908cb3970b65c486d76f9bd50bed8a21aec5e259e13",
+  "grid_thw": [1, 16, 16],
+  "image_size": [224, 224],
+  "nonfinite_output_count": 0,
+  "output_shapes": {
+    "deepstack_0": [64, 2048],
+    "deepstack_1": [64, 2048],
+    "deepstack_2": [64, 2048],
+    "final": [64, 2048]
+  },
+  "passed": true,
+  "pixel_values_dtype": "float16",
+  "pixel_values_shape": [256, 1536],
+  "reference_qualified": false,
+  "schema_version": 1,
+  "scope": "real_local_processor_patch_projection_to_24_block_coreml_execution_smoke",
+  "tower_segment_latency_nanoseconds": 50364040
+}

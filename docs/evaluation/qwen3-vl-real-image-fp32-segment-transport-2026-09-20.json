@@ -1,0 +1,24 @@
+{
+  "bf16_source_precision_drift": {
+    "deepstack_0_maximum_scaled_error": 0.05224609375,
+    "deepstack_1_maximum_scaled_error": 1.4324951171875,
+    "deepstack_2_maximum_scaled_error": 1.072265625,
+    "final_maximum_scaled_error": 1.298828125
+  },
+  "compute_units_requested": "cpu_and_neural_engine",
+  "fp32_main_hidden_direct_handoff": true,
+  "graph_id": "67c2fb85c368cc8a50d30908cb3970b65c486d76f9bd50bed8a21aec5e259e13",
+  "maximum_peak_rss_bytes": 1904918528,
+  "mlx_fp32_reference": {
+    "deepstack_0_maximum_scaled_error": 0.0009689922444522381,
+    "deepstack_1_maximum_scaled_error": 0.001953125,
+    "deepstack_2_maximum_scaled_error": 0.001953125,
+    "final_maximum_scaled_error": 0.00244140625,
+    "passed": true
+  },
+  "observable_output_digests_stable": true,
+  "repetitions": 2,
+  "schema_version": 1,
+  "scope": "real_processor_patch_fp16_then_fp32_transformer_segment_transport",
+  "warm_segment_latency_nanoseconds": 171535167
+}

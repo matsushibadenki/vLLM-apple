@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "scope": "qwen3_vl_coreml_consecutive_chat_qualification",
+  "request_count": 3,
+  "labels": ["red", "green", "blue"],
+  "languages": ["en", "ja", "zh-Hans"],
+  "stores_generated_text": false,
+  "coreml_model_load_count": 5,
+  "coreml_artifacts_reused": true,
+  "isolated_transport_directory_count": 3,
+  "coreml_segment_latency_samples_nanoseconds": [241497834, 169360376, 169803126],
+  "task_correct_count": 9,
+  "task_case_count": 9,
+  "exact_match_count": 8,
+  "exact_match_case_count": 9,
+  "exact_match_exception": {
+    "request_index": 1,
+    "label": "green",
+    "language": "zh-Hans",
+    "baseline_task_correct": true,
+    "candidate_task_correct": true
+  },
+  "request_peak_rss_bytes": [2437152768, 2442772480, 2444443648],
+  "request_peak_rss_increment_bytes": [1801912320, 5619712, 1671168],
+  "peak_rss_bytes": 2444443648,
+  "temporary_cleanup_verified": true,
+  "injected_failure": {
+    "after_request_index": 0,
+    "nonzero_exit_verified": true,
+    "temporary_directories_remaining": 0
+  },
+  "passed": true
+}

@@ -214,6 +214,8 @@ from .qwen3_vl_deepstack_coreml import (
     qualify_qwen3_vl_final_coreml,
 )
 from .qwen3_vl_pipeline_coreml import qualify_qwen3_vl_segment_pipeline_coreml
+from .qwen3_vl_pipeline_coreml import export_qwen3_vl_segment_pipeline_coreml
+from .qwen3_vl_transport import load_qwen3_vl_coreml_transport
 from .qwen3_vl_embedding import (
     build_vllm_metal_qwen3_vl_encode_result,
     Qwen3VLCoreMLPipelineOutput,
@@ -381,6 +383,8 @@ __all__ = [
     "qualify_qwen3_vl_deepstack_coreml",
     "qualify_qwen3_vl_final_coreml",
     "qualify_qwen3_vl_segment_pipeline_coreml",
+    "export_qwen3_vl_segment_pipeline_coreml",
+    "load_qwen3_vl_coreml_transport",
     "save_contention_profile",
     "save_qwen3_vl_coreml_conversion",
     "validate_qwen3_vl_vision_embeddings",

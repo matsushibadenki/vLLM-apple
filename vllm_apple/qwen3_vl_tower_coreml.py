@@ -190,9 +190,10 @@ def qualify_qwen3_vl_tower_blocks_coreml(package_root: Path) -> dict[str, object
 
 
 def _block_mil(value, weights, layer, tokens, source, head_dimension, cos, sin, mb, np):
+    scalar = weights["norm1.weight"].dtype.type
     normalized = mb.layer_norm(
         x=value, axes=[-1], gamma=weights["norm1.weight"], beta=weights["norm1.bias"],
-        epsilon=np.float16(1e-6), name=f"block_{layer}_norm1",
+        epsilon=scalar(1e-6), name=f"block_{layer}_norm1",
     )
     qkv = mb.linear(x=normalized, weight=weights["attn.qkv.weight"], bias=weights["attn.qkv.bias"])
     qkv = mb.reshape(x=qkv, shape=[tokens, 3, source.attention_heads, head_dimension])
@@ -214,7 +215,7 @@ def _block_mil(value, weights, layer, tokens, source, head_dimension, cos, sin, 
     attention_hidden = mb.add(x=value, y=projected, name=f"block_{layer}_attention")
     normalized_mlp = mb.layer_norm(
         x=attention_hidden, axes=[-1], gamma=weights["norm2.weight"],
-        beta=weights["norm2.bias"], epsilon=np.float16(1e-6),
+        beta=weights["norm2.bias"], epsilon=scalar(1e-6),
     )
     expanded = mb.linear(
         x=normalized_mlp, weight=weights["mlp.linear_fc1.weight"],
@@ -230,7 +231,9 @@ def _block_mil(value, weights, layer, tokens, source, head_dimension, cos, sin, 
 
 def _rope(value, cos, sin, mb, numpy):
     first, second = mb.split(x=value, num_splits=2, axis=-1)
-    rotated = mb.concat(values=[mb.mul(x=second, y=numpy.float16(-1)), first], axis=-1)
+    rotated = mb.concat(
+        values=[mb.mul(x=second, y=cos.dtype.type(-1)), first], axis=-1
+    )
     return mb.add(x=mb.mul(x=value, y=cos), y=mb.mul(x=rotated, y=sin))
 
 

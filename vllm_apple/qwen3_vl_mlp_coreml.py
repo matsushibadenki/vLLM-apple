@@ -30,16 +30,29 @@ let outputName = CommandLine.arguments.count > 5
 let configuration = MLModelConfiguration()
 configuration.computeUnits = .cpuAndNeuralEngine
 let model = try MLModel(contentsOf: URL(fileURLWithPath: modelPath), configuration: configuration)
+let inputDataType: MLMultiArrayDataType = (
+    CommandLine.arguments.count > 7 && CommandLine.arguments[7] == "fp32"
+) ? .float32 : .float16
 let input = try MLMultiArray(
-    shape: [NSNumber(value: rows), NSNumber(value: columns)], dataType: .float16
+    shape: [NSNumber(value: rows), NSNumber(value: columns)], dataType: inputDataType
 )
 if CommandLine.arguments.count > 6 {
     let inputData = try Data(contentsOf: URL(fileURLWithPath: CommandLine.arguments[6]))
     guard inputData.count == input.count * MemoryLayout<UInt16>.size else {
         throw NSError(domain: "vllm-apple", code: 3)
     }
-    inputData.withUnsafeBytes { raw in
-        input.dataPointer.copyMemory(from: raw.baseAddress!, byteCount: inputData.count)
+    if inputDataType == .float16 {
+        inputData.withUnsafeBytes { raw in
+            input.dataPointer.copyMemory(from: raw.baseAddress!, byteCount: inputData.count)
+        }
+    } else {
+        inputData.withUnsafeBytes { raw in
+            let words = raw.bindMemory(to: UInt16.self)
+            let values = input.dataPointer.assumingMemoryBound(to: Float.self)
+            for index in 0..<input.count {
+                values[index] = Float(Float16(bitPattern: words[index]))
+            }
+        }
     }
 } else {
     for row in 0..<rows {
@@ -55,18 +68,29 @@ let started = DispatchTime.now().uptimeNanoseconds
 let result = try model.prediction(from: provider)
 let elapsed = DispatchTime.now().uptimeNanoseconds - started
 guard let output = result.featureValue(for: outputName)?.multiArrayValue,
-      output.dataType == .float16 else {
+      output.dataType == .float16 || output.dataType == .float32 else {
     throw NSError(domain: "vllm-apple", code: 1)
 }
-let data = Data(bytes: output.dataPointer, count: output.count * MemoryLayout<UInt16>.size)
-guard data.count == reference.count else { throw NSError(domain: "vllm-apple", code: 2) }
-let actualWords = output.dataPointer.assumingMemoryBound(to: UInt16.self)
+let data = Data(
+    bytes: output.dataPointer,
+    count: output.count * (output.dataType == .float16 ? 2 : 4)
+)
+guard reference.count == output.count * MemoryLayout<UInt16>.size else {
+    throw NSError(domain: "vllm-apple", code: 2)
+}
 var maximumAbsoluteError = 0.0
 var maximumScaledError = 0.0
 reference.withUnsafeBytes { raw in
     let expectedWords = raw.bindMemory(to: UInt16.self)
     for index in 0..<output.count {
-        let actual = Double(Float(Float16(bitPattern: actualWords[index])))
+        let actual: Double
+        if output.dataType == .float16 {
+            let actualWords = output.dataPointer.assumingMemoryBound(to: UInt16.self)
+            actual = Double(Float(Float16(bitPattern: actualWords[index])))
+        } else {
+            let actualValues = output.dataPointer.assumingMemoryBound(to: Float.self)
+            actual = Double(actualValues[index])
+        }
         let expected = Double(Float(Float16(bitPattern: expectedWords[index])))
         let difference = abs(actual - expected)
         maximumAbsoluteError = max(maximumAbsoluteError, difference)

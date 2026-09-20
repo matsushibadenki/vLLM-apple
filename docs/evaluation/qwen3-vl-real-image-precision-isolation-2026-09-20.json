@@ -1,0 +1,32 @@
+{
+  "coreml_graph_id": "67c2fb85c368cc8a50d30908cb3970b65c486d76f9bd50bed8a21aec5e259e13",
+  "fp32_patch_compute_changed_output": false,
+  "grid_thw": [
+    1,
+    16,
+    16
+  ],
+  "mlx_bf16_reference": {
+    "final_maximum_scaled_error": 1.6005859375,
+    "patch_maximum_scaled_error": 0.02734375
+  },
+  "mlx_fp16_reference": {
+    "deepstack_0_maximum_scaled_error": 0.083984375,
+    "deepstack_1_maximum_scaled_error": 0.315185546875,
+    "deepstack_2_maximum_scaled_error": 0.34521484375,
+    "final_maximum_scaled_error": 2.05908203125,
+    "patch_maximum_absolute_error": 0.015625,
+    "patch_maximum_scaled_error": 0.0009765625,
+    "patch_passed": true,
+    "patch_scaled_error_limit": 0.002
+  },
+  "next_isolation_boundary": "transformer_block_0_actual_activation",
+  "passed": false,
+  "pixel_values_shape": [
+    256,
+    1536
+  ],
+  "schema_version": 1,
+  "scope": "real_processor_input_precision_and_first_divergence_isolation",
+  "stop_reason": "fp16_matched_patch_passes_but_transformer_outputs_exceed_fixed_limits"
+}

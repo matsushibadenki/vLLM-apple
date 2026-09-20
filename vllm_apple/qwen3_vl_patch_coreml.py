@@ -103,13 +103,18 @@ def build_qwen3_vl_patch_coreml(
     plan: Qwen3VLCoreMLConversionPlan,
     *,
     profile_index: int = 0,
+    compute_precision: str = "fp16",
 ) -> dict[str, object]:
     """Build and compile patch projection plus fixed position embedding."""
     output = destination.expanduser().resolve(strict=False)
     if output.exists() or not output.parent.is_dir():
         raise ValueError("Qwen3-VL patch Core ML destination must be new")
     graph = build_qwen3_vl_coreml_graph_spec(staged_weights, source, plan)
-    if type(profile_index) is not int or not 0 <= profile_index < len(graph.profiles):
+    if (
+        type(profile_index) is not int
+        or not 0 <= profile_index < len(graph.profiles)
+        or compute_precision not in {"fp16", "fp32"}
+    ):
         raise ValueError("Qwen3-VL patch Core ML profile index is invalid")
     try:
         import coremltools as ct
@@ -175,12 +180,21 @@ def build_qwen3_vl_patch_coreml(
         model = ct.convert(
             program,
             convert_to="mlprogram",
-            compute_precision=ct.precision.FLOAT16,
+            compute_precision=(
+                ct.precision.FLOAT16
+                if compute_precision == "fp16"
+                else ct.precision.FLOAT32
+            ),
             minimum_deployment_target=ct.target.macOS15,
         )
         model.short_description = "Qwen3-VL patch and fixed position partition"
         model.user_defined_metadata["vllm-apple.graph-id"] = graph.graph_id
-        model.user_defined_metadata["vllm-apple.partition"] = "patch-position-v1"
+        partition = (
+            "patch-position-v1"
+            if compute_precision == "fp16"
+            else "patch-position-fp32-v1"
+        )
+        model.user_defined_metadata["vllm-apple.partition"] = partition
         model.save(str(package))
         completed = subprocess.run(
             [
@@ -207,13 +221,13 @@ def build_qwen3_vl_patch_coreml(
             "schema_version": 1,
             "graph_id": graph.graph_id,
             "conversion_plan_id": plan.plan_id,
-            "partition": "patch-position-v1",
+            "partition": partition,
             "grid_thw": list(profile.grid_thw),
             "input_name": "pixel_values",
             "input_shape": list(profile.pixel_values_shape),
             "output_name": "patch_hidden_states",
             "output_shape": [profile.pixel_values_shape[0], source.hidden_size],
-            "compute_precision": "fp16",
+            "compute_precision": compute_precision,
             "maximum_scaled_error": PATCH_MAXIMUM_SCALED_ERROR,
             "expected_sparse_input_sha256": expected_digest,
             "sparse_input_reference": reference_name,

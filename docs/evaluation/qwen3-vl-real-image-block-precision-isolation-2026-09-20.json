@@ -1,0 +1,45 @@
+{
+  "all_segment_explicit_fp32": {
+    "deepstack_0_maximum_scaled_error": 0.00439453125,
+    "deepstack_1_maximum_scaled_error": 0.07132243365049362,
+    "deepstack_2_maximum_scaled_error": 0.108642578125,
+    "final_maximum_scaled_error": 0.14453125,
+    "maximum_peak_rss_bytes": 1901248512,
+    "warm_segment_latency_nanoseconds": 167848376
+  },
+  "block_0_actual_activation": {
+    "attention_maximum_scaled_error": 0.013671875,
+    "complete_maximum_scaled_error": 0.02783203125,
+    "mlp_maximum_scaled_error": 0.02587890625
+  },
+  "fixed_limits": {
+    "deepstack": 0.04,
+    "main": 0.03,
+    "patch": 0.002
+  },
+  "fp16_independent_block_maximum_scaled_errors": [
+    0.02783203125,
+    0.01025390625,
+    0.00634765625,
+    0.00634765625,
+    0.0069580078125,
+    0.005859375
+  ],
+  "fp32_first_segment": {
+    "deepstack_0_maximum_scaled_error": 0.00439453125,
+    "deepstack_0_passed": true,
+    "main_maximum_scaled_error": 0.01079734219269103,
+    "main_passed": true
+  },
+  "mixed_precision_first_layer_each_segment": {
+    "deepstack_0_maximum_scaled_error": 0.02685546875,
+    "deepstack_1_maximum_scaled_error": 0.295166015625,
+    "deepstack_2_maximum_scaled_error": 0.2698974609375,
+    "final_maximum_scaled_error": 0.26123046875
+  },
+  "next_isolation_boundary": "fp32_main_hidden_segment_transport",
+  "passed": false,
+  "schema_version": 1,
+  "scope": "real_processor_input_mlx_fp16_vs_coreml_block_and_segment_precision",
+  "stop_reason": "fp16_segment_boundary_reintroduces_accumulated_error"
+}
