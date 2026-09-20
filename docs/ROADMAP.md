@@ -767,7 +767,10 @@ fallback、fusion、stress、および大容量model向け再現可能qualificat
 - `[Done]` Wan 2.2 TI2V-5B workerのmodule residency contract。現行Diffusers 0.34.0の`text_encoder->transformer->vae`順を固定検証し、`enable_model_cpu_offload(device="mps")`で一度に一moduleだけをMPSへ移す。契約欠落時は全module常駐へfallbackせず生成前に拒否
 - `[Done]` Wan 2.2 TI2V-5B正式qualification CLI。artifact readiness、実component容量、指定resident見積り、現在hardware、load前admission、local-only T2V worker、sample間memory recovery、反復実行、private reportを単一fail-closed経路へ統合
 - `[Done]` race-safe model integrity manifestを再利用した生成qualification artifact binding。Wan正式CLIは全regular fileのpath／size／SHA-256からroot digestを計算してreport provenanceへ保存し、同容量・同量子化表記の別artifactへのreport replayを拒否。既存v1 reportはdigestなしのlegacy provenanceとして読取互換を維持
-- `[Next]` 4/8-bit Wan 2.2 TI2V-5B artifactを配置したM4/32GB実機T2V qualification
+- `[Done]` M4/32GB動画試験modelとして`AbstractFramework/wan2.2-ti2v-5b-diffusers-8bit` revision `6875952a110b6bdbcfc00d72b1d89a8e02ab0fc3`を選定。mixed Q8/BF16、MLX-Gen形式、18,189,391,581 bytes（16.94 GiB）、Apache-2.0、非gated。公式Diffusers非量子化版とGGUF版は初回候補から除外。証跡: [Wan video model selection](evaluation/wan-video-model-selection-2026-09-20.json)
+- `[Done]` 選定したWan mixed Q8/BF16 artifactを`models/wan2.2-ti2v-5b-diffusers-8bit`へ配置し、18,189,391,581 bytes、22 files、Q8、MLX-Gen、`WanPipeline`、Apache-2.0、全componentをload前検証。MLX-Gen 0.33.1 capabilityでT2V／first-frame I2Vを確認し、Diffusers workerへの誤接続は形式gateで拒否
+- `[Done]` Wan向けMLX-Gen isolated T2V worker。in-process CLIで640×360・33 frame・20 step、`--low-ram`、inactive denoiser release、bounded JSON progress、MLX allocator peak telemetry、private MP4 digest／削除をqualification contractへ接続
+- `[Next]` 正式qualification CLIをMLX-Gen動画readiness／workerへ接続し、M4/32GB最小profileを実測
 - `[Later]` HunyuanVideo 1.5 8.3Bを候補とする480p、step-distilled、SSTA、model offload検証
 - `[Later]` Wan 2.2 A14B量子化版をstretch候補とするT2V/I2V別artifact、dual-expert residency、CPU/SSD offload検証
 - `[Done]` video diffusion pipelineのDiT/expert、text encoder、3D VAE別artifact admissionとconservative resident-memory hard ceiling

@@ -2369,6 +2369,17 @@ promptと生成物を保存せず、digestとshape、latency、peak resident、p
 provenanceへ結合する。同じartifact byte数と量子化名を持つ別weightへのreport replayは拒否する。
 digest field追加前のv1 reportはlegacy evidenceとして読取可能だが、新しいWan正式認定は必ずdigestを持つ。
 
+最初の実modelは`AbstractFramework/wan2.2-ti2v-5b-diffusers-8bit`の固定revision
+`6875952a110b6bdbcfc00d72b1d89a8e02ab0fc3`とする。これはmixed Q8/BF16のMLX-Gen packageであり、
+配布容量は18,189,391,581 bytes、Apache-2.0、非gatedである。名前に`diffusers`を含むが
+Diffusers `from_pretrained`形式ではないため、既存Diffusers workerへ誤接続してはならない。
+MLX-Gen動画readinessとisolated workerを先に実装し、その後に固定revisionだけを取得する。
+
+選定artifactの配置後検査では18,189,391,581 bytes、22 files、Q8、必須component完備を確認した。
+MLX-Gen 0.33.1はこのlocal pathをWan T2V／first-frame I2Vとして認識する。isolated T2V workerは
+`--low-ram`とinactive denoiser releaseを必須にし、in-process実行によってRSSだけでなくMLX allocator
+peakもhard ceiling判定へ含める。backend JSON progressはbounded sinkへ隔離し、生成MP4はdigest後に削除する。
+
 初期の動画生成qualification候補は、MacBook Air M4 / 32GBでload前memory admissionを通過する
 構成に限定する。
 

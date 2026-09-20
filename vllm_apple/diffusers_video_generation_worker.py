@@ -144,19 +144,40 @@ def execute_diffusers_video_request(
     emit: Callable[[GenerationTelemetryEvent], None],
     clock: Callable[[], float] = time.monotonic,
 ) -> None:
+    execute_local_video_request(
+        request,
+        runtime,
+        expected_runtimes=_VIDEO_PIPELINES,
+        backend_name="Diffusers",
+        telemetry=telemetry,
+        emit=emit,
+        clock=clock,
+    )
+
+
+def execute_local_video_request(
+    request: Mapping[str, object],
+    runtime: DiffusersVideoRuntime,
+    *,
+    expected_runtimes: Mapping[str, str],
+    backend_name: str,
+    telemetry: Callable[[], WorkerTelemetry],
+    emit: Callable[[GenerationTelemetryEvent], None],
+    clock: Callable[[], float] = time.monotonic,
+) -> None:
     candidate_id = request.get("candidate_id")
-    expected_pipeline = _VIDEO_PIPELINES.get(candidate_id)
+    expected_pipeline = expected_runtimes.get(candidate_id)
     if expected_pipeline is None or request.get("modality") != "video":
-        raise ValueError("Diffusers video worker does not support this candidate")
+        raise ValueError(f"{backend_name} video worker does not support this candidate")
     if request.get("mode") != "text-to-video":
-        raise ValueError("Diffusers video worker currently supports text-to-video only")
+        raise ValueError(f"{backend_name} video worker currently supports text-to-video only")
     if request.get("batch_size") != 1:
-        raise ValueError("Diffusers video qualification requires batch size one")
+        raise ValueError(f"{backend_name} video qualification requires batch size one")
     if runtime.pipeline_class != expected_pipeline:
-        raise ValueError("Diffusers video runtime class does not match the candidate")
+        raise ValueError(f"{backend_name} video runtime class does not match the candidate")
     output_root_value = request.get("output_root")
     if not isinstance(output_root_value, str):
-        raise ValueError("Diffusers video worker output root is invalid")
+        raise ValueError(f"{backend_name} video worker output root is invalid")
     output_root = Path(output_root_value).resolve(strict=True)
     started = clock()
 
@@ -186,7 +207,7 @@ def execute_diffusers_video_request(
     expected_shape = (request.get("width"), request.get("height"), request.get("frames"))
     if (output.width, output.height, output.frames) != expected_shape:
         _remove_output_if_owned(output.path, output_root)
-        raise ValueError("Diffusers video worker output shape does not match the request")
+        raise ValueError(f"{backend_name} video worker output shape does not match the request")
     digest = _hash_private_output(output.path, output_root)
     emit(make_event("first_output"))
     emit(make_event("completed", output=output, digest=digest))

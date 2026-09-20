@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "selected": {
+    "repository": "AbstractFramework/wan2.2-ti2v-5b-diffusers-8bit",
+    "revision": "6875952a110b6bdbcfc00d72b1d89a8e02ab0fc3",
+    "artifact_bytes": 18189391581,
+    "artifact_gib": 16.94,
+    "format": "mlx-gen",
+    "quantization": "mixed-q8-bf16",
+    "license": "apache-2.0",
+    "base_model": "Wan-AI/Wan2.2-TI2V-5B-Diffusers",
+    "gated": false,
+    "downloaded": false
+  },
+  "qualification_profile": {
+    "mode": "text-to-video",
+    "width": 640,
+    "height": 360,
+    "frames": 33,
+    "steps": 20,
+    "batch_size": 1
+  },
+  "selection_reasons": [
+    "Apple Silicon native MLX-Gen package",
+    "mixed Q8/BF16 artifact is smaller than the 34.2 GB upstream Diffusers package",
+    "complete transformer, text encoder, tokenizer, scheduler, and VAE layout",
+    "Apache-2.0 and not gated",
+    "fixed immutable Hub revision and file-level LFS digests are available"
+  ],
+  "known_risks": [
+    "The selected artifact is not compatible with Diffusers from_pretrained",
+    "The published 1280x704 17-frame profile reached about 103.7 GiB physical peak on M5 Max",
+    "M4 32GB success at the bounded initial profile is not established",
+    "MLX-Gen video readiness and isolated worker integration must precede download and qualification"
+  ],
+  "rejected_primary_alternatives": [
+    {
+      "repository": "Wan-AI/Wan2.2-TI2V-5B-Diffusers",
+      "reason": "approximately 34.2 GB and unquantized; exceeds the intended M4 32GB artifact profile"
+    },
+    {
+      "repository": "QuantStack/Wan2.2-TI2V-5B-GGUF",
+      "reason": "GGUF is not consumable by the implemented Diffusers or MLX-Gen qualification runtime"
+    },
+    {
+      "repository": "SceneWorks/wan2.2-ti2v-5b-mlx",
+      "reason": "BF16 distribution is substantially larger and quantizes at load rather than shipping the selected bounded q8 package"
+    }
+  ],
+  "sources": [
+    "https://huggingface.co/AbstractFramework/wan2.2-ti2v-5b-diffusers-8bit",
+    "https://huggingface.co/api/models/AbstractFramework/wan2.2-ti2v-5b-diffusers-8bit/revision/6875952a110b6bdbcfc00d72b1d89a8e02ab0fc3",
+    "https://huggingface.co/Wan-AI/Wan2.2-TI2V-5B-Diffusers",
+    "https://huggingface.co/QuantStack/Wan2.2-TI2V-5B-GGUF",
+    "https://huggingface.co/SceneWorks/wan2.2-ti2v-5b-mlx"
+  ]
+}
