@@ -2305,8 +2305,9 @@ telemetryへ記録する。後段にはchunk境界で位相を維持するmulti-
 priority class内EDF、推定実行時間によるdeadline admission、cancel、期限切れtask非実行、
 lateness telemetryを持つbounded schedulerをcallback外へ配置した。ordered PCMからresample、feature、
 deadline scheduling、backend-neutral ASR worker、bounded transcriptまでを接続し、結果のlanguage、
-時間範囲、confidence、文字数、final markerを検証する。実ASR modelは未認定であり、次はaudio
-encoder cacheへ進む。
+時間範囲、confidence、文字数、final markerを検証する。audio encoder出力はaudio digest、
+encoder／feature fingerprint、sample rate、channel、sample範囲へ結合したbounded LRUで再利用し、
+oversize outputを保存しない。実ASR modelは未認定であり、次はspeech-to-speech foundationへ進む。
 
 ---
 

@@ -27,6 +27,12 @@ from .asr_integration import (
     CallableASRBackend,
     StreamingASRIntegrator,
 )
+from .audio_encoder_cache import (
+    AudioEncoderCache,
+    AudioEncoderCacheKey,
+    AudioEncoderCacheSnapshot,
+    audio_feature_fingerprint,
+)
 
 from .backend_tuning import (
     BackendKernelTuningAdapter,
@@ -368,11 +374,15 @@ __all__ = [
     "AudioRingBuffer",
     "AudioRingBufferSnapshot",
     "AudioFeatureFrame",
+    "AudioEncoderCache",
+    "AudioEncoderCacheKey",
+    "AudioEncoderCacheSnapshot",
     "AudioDeadlineScheduler",
     "AudioScheduledTask",
     "AudioSchedulerSnapshot",
     "AudioSchedulingPriority",
     "AudioTaskOutcome",
+    "audio_feature_fingerprint",
     "ASRBackend",
     "ASRSubmission",
     "ASRTranscript",
