@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-09-20",
+  "scope": "bounded MLX vision preprocessing fusion microbenchmark",
+  "input": {
+    "source_shape": [256, 256, 3],
+    "target_shape": [224, 224, 3],
+    "resize": "nearest_neighbor",
+    "patch_size": 16,
+    "patches": 196,
+    "projection_width": 64,
+    "samples": 3
+  },
+  "comparison": "staged materialization after resize, normalize, and patchify versus one lazy MLX graph",
+  "result": {
+    "schema_version": 1,
+    "probe_id": "bc87c32f59814b770372346a",
+    "hardware_fingerprint": "arm64",
+    "environment_fingerprint": "mlx-0.27.1",
+    "backend": "native_mlx",
+    "operator": "fused_vision_preprocess_projection",
+    "samples_completed": 3,
+    "baseline_latency_nanoseconds": 7265417,
+    "candidate_latency_nanoseconds": 6062917,
+    "slowdown_ratio": 0.83449,
+    "maximum_absolute_error": 0.00001,
+    "maximum_slowdown_ratio": 1.25,
+    "passed": true,
+    "quarantined": false,
+    "reason": "passed"
+  },
+  "limitations": [
+    "This is a deterministic microbenchmark and does not qualify a complete vision model.",
+    "The resize implementation measured here is nearest-neighbor and is not a claim about model-specific interpolation semantics."
+  ]
+}

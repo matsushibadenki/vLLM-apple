@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-09-20",
+  "scope": "bounded fused vision preprocessing and projection microbenchmark",
+  "environment_fingerprint": "mlx-0.27.1",
+  "input": {
+    "source_shape_per_image": [256, 256, 3],
+    "target_shape_per_image": [224, 224, 3],
+    "patch_size": 16,
+    "projection_width": 64,
+    "samples_per_batch": 3
+  },
+  "measurements": [
+    {
+      "batch_size": 1,
+      "median_latency_nanoseconds": 3567875,
+      "images_per_second": 280.278877,
+      "maximum_peak_increment_bytes": 2228228,
+      "maximum_memory_per_image_bytes": 2228228,
+      "deterministic": true
+    },
+    {
+      "batch_size": 2,
+      "median_latency_nanoseconds": 3966417,
+      "images_per_second": 504.233418,
+      "maximum_peak_increment_bytes": 4407300,
+      "maximum_memory_per_image_bytes": 2203650,
+      "deterministic": true
+    },
+    {
+      "batch_size": 4,
+      "median_latency_nanoseconds": 4790083,
+      "images_per_second": 835.058599,
+      "maximum_peak_increment_bytes": 8732676,
+      "maximum_memory_per_image_bytes": 2183169,
+      "deterministic": true
+    }
+  ],
+  "passed": true,
+  "limitations": [
+    "MLX allocator peak increment excludes weights and deterministic inputs materialized before the timed region.",
+    "This is an operator microbenchmark and does not qualify end-to-end model image throughput."
+  ]
+}

@@ -2043,7 +2043,7 @@ http://127.0.0.1:8000
 
 ## Phase 1 — 基盤
 
-状態：`[Next]`
+状態：`[Done]`
 
 vLLM-Metal互換pluginとして成立させる。
 
@@ -2270,9 +2270,14 @@ image preprocessing fusion
 
 最初の実装境界として、OpenAI互換inline PNG／JPEGのbounded frontend、固定shapeの
 Resize／Normalize／Patchify前処理、model revisionと前処理・encoder fingerprintに結合した
-容量制限付きLRU encoder cacheを完了した。次は、この共通契約を使うmultimodal batchingを
-実装し、Projectionまで含む融合候補とimage latency／throughput／memory benchmarkで昇格を
-判定する。
+容量制限付きLRU encoder cacheを完了した。さらにmodel revision、前処理、encoder、shapeが
+互換なrequestだけをまとめ、request内画像を分割せず4種類のresource上限を守るmultimodal
+batch plannerを実装した。Resize、Normalize、Patchify、Projectionを単一MLX lazy graphにする
+融合候補は、固定shapeの実機microbenchmarkで段階materialize経路とのcorrectnessと性能gateを
+通過した。さらにbatch 1／2／4について、latency、images/sec、MLX allocator peak memory/imageを
+同一のbounded runnerで計測し、全sampleのdigest安定性を確認した。Phase 4の完了境界は、この
+共通入力・前処理・cache・batch・融合・operator benchmarkまでとする。特定VLMのend-to-end
+昇格は別途model qualificationを必要とし、operator結果だけでは昇格しない。
 
 ---
 

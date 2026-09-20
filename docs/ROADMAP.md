@@ -733,9 +733,9 @@ fallback、fusion、stress、および大容量model向け再現可能qualificat
 - `[Done]` OpenAI互換の複数image input frontend。inline PNG／JPEGだけを受理し、magic byte、個別／合計byte数、画像数、message／part数をload前に検証してremote URLと偽装形式を拒否。Qwen3-VL managed chatも共通parserへ接続
 - `[Done]` model-neutral image preprocessing pipeline。固定shapeのRGB変換、Resize、FP32 Normalize、Patchify、FP16出力を依存注入可能な契約で実装し、不正geometryを実行前に拒否
 - `[Done]` image／model revision／preprocessing／encoder fingerprintに結合した容量・entry数制限付きthread-safe LRU vision encoder cache。oversize outputは保存せず、hit／miss／eviction／resident bytesを観測可能
-- `[Next]` multimodal batching
-- `[Later]` Resize → Normalize → Patchify → Projection fusion
-- `[Later]` image latency、images/sec、memory/image benchmark
+- `[Done]` compatibility key（model revision、preprocessing、encoder、image shape）別のdeterministic multimodal batching。request内の複数画像を分割せず、request／image／patch／encoded byte上限を満たすstable batchを構築し、oversize requestと重複IDを実行前に拒否
+- `[Done]` Resize → Normalize → Patchify → Projectionを単一MLX lazy graphで実行する融合候補。arm64／MLX 0.27.1、256×256 RGB→224×224、patch 16、projection 64、3 sampleで段階materialize比0.834倍、固定誤差1e-5内で合格。model固有interpolationのqualificationではない。証跡: [MLX Vision fusion probe](evaluation/mlx-vision-fusion-probe-2026-09-20.json)
+- `[Done]` image latency、images/sec、memory/image benchmark。MLX allocator peakを用い、batch 1／2／4・各3 sampleで融合前処理＋projectionを測定。中央値3.568／3.966／4.790 ms、280.3／504.2／835.1 images/sec、最大2.228／2.204／2.183 MB/imageで全batchのdigestが安定。end-to-end model qualificationではない。証跡: [MLX Vision benchmark](evaluation/mlx-vision-benchmark-2026-09-20.json)
 
 ## Phase 5 — Audio
 

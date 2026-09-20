@@ -149,6 +149,13 @@ from .metal_tuning import (
 )
 from .mlx_probe import NativeMLXProbeAdapter, build_mlx_probe_registry
 from .mlx_phase3_probe import MLXPhase3ProbeAdapter
+from .mlx_vision_probe import MLXVisionFusionProbeAdapter
+from .mlx_vision_benchmark import (
+    MLXVisionBenchmarkAdapter,
+    VisionBatchBenchmark,
+    VisionBenchmarkMeasurement,
+    VisionBenchmarkReport,
+)
 from .operator_dispatch import (
     OperatorDispatchDecision,
     OperatorDispatcher,
@@ -187,6 +194,13 @@ from .vision_cache import (
     VisionCacheStats,
     VisionEncoderCache,
     preprocessing_fingerprint,
+)
+from .vision_batching import (
+    VisionBatch,
+    VisionBatchCompatibility,
+    VisionBatchLimits,
+    VisionBatchRequest,
+    plan_multimodal_batches,
 )
 from .qwen3_vl_ane import (
     Qwen3VLVisionANEAdapterSpec,
@@ -439,6 +453,8 @@ __all__ = [
     "MetalThreadConfiguration",
     "MetalTuningReport",
     "MLXPhase3ProbeAdapter",
+    "MLXVisionFusionProbeAdapter",
+    "MLXVisionBenchmarkAdapter",
     "MultiModelStressReport",
     "MemoryBudgetComponent",
     "MemoryBudgetSnapshot",
@@ -493,6 +509,13 @@ __all__ = [
     "VLLMMetalV2MeasurementAdapter",
     "VisionCacheKey",
     "VisionCacheStats",
+    "VisionBatch",
+    "VisionBatchCompatibility",
+    "VisionBatchLimits",
+    "VisionBatchRequest",
+    "VisionBatchBenchmark",
+    "VisionBenchmarkMeasurement",
+    "VisionBenchmarkReport",
     "VisionChatInput",
     "VisionEncoderCache",
     "VisionImageInput",
@@ -538,6 +561,7 @@ __all__ = [
     "load_scheduling_preference",
     "parse_kernel_tuning_headers",
     "parse_vision_chat_request",
+    "plan_multimodal_batches",
     "preprocess_vision_image",
     "preprocessing_fingerprint",
     "promote_device_placement_plan",
