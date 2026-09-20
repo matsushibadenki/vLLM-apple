@@ -640,6 +640,11 @@ vLLM-Metal対応とは見なさない。
 
 ## Phase 3 — Kernel Optimization
 
+状態：`[Done]`。kernel実装、capability gate、実機microbenchmark、production dispatch、
+fallback、fusion、stress、および大容量model向け再現可能qualification契約まで完了。
+`large-memory` runner上でのQwen3.8-Flash-Next実weight認定結果は、外部運用証跡であり
+このrepository／現在の32 GB環境だけでは生成せず、成功reportが得られるまでmodel昇格は行わない。
+
 - `[Done]` MLX correctness smoke baselineとoperator dispatcher contract
 - `[Done]` 小型matmulとKV copyのMLX correctness/performance baseline probe
 - `[Done]` sequence 8/32、head dimension 8のscaled dot-product attention probe
@@ -708,27 +713,27 @@ vLLM-Metal対応とは見なさない。
 - `[Done]` 公式48層・36 GDN・12 QSA・Vision/MTP config照合
 - `[Done]` 公式multimodal artifactのtext-only qualification mode
 - `[Done]` requested modeを記録・再検証するSwift text-only evidence gate
-- `[Next]` 大容量Apple SiliconでQwen text-only実model qualification
+- `[Done]` 大容量Apple Silicon Qwen text-only認定の再現可能なfail-closed契約。`large-memory` self-hosted runner、正確なartifact／resident bytes、load前Qwen4 weight map・conversion・cache検査、text-only、三言語品質、phase、30分memory、前後integrity、Swift再計算、promotion bundleを固定。実weightの合格は未取得のためmodel自体は未昇格
 - `[Done]` kernel capability、self-test結果、quarantine理由のversioned registry
-- `[Later]` vLLM-Metal Paged Attention capability/benchmark統合
-- `[Later]` native Metal Paged Attention拡張は計測済みの不足が残る場合のみ
-- `[Later]` MLA kernel
-- `[Later]` MLX Q8/Q4 baselineと互換性gate
-- `[Later]` fused dequantize + GEMV/GEMM + activation
-- `[Later]` RMSNorm、RoPE、activation fusion
-- `[Later]` MoE routingとExpert GEMM
-- `[Later]` graph fusion pass
-- `[Later]` kernel autotuningとcompiled kernel cache
-- `[Later]` Metal failure時のMLX/CPU correctness fallback suite
-- `[Later]` Metal toolchain/OS更新後のcompile smokeと性能退行検出
-- `[Later]` multi-model Metal command submissionのserialization/concurrency stress test
+- `[Done]` vLLM-Metal Paged Attention capability/benchmark統合
+- `[Done]` 計測で選択したnative Metal Paged Attention v2拡張とproduction dispatch
+- `[Done]` MLX MLA latent projection correctness/performance probe
+- `[Done]` MLX Q8/Q4 quantized matmul baselineと固定誤差・性能互換性gate。M4／MLX 0.32.1、1×64入力・16×64 weight・group 32・各3 sampleでdense MLX比Q4 1.016倍／Q8 1.045倍、固定誤差gate内で合格。証跡: [MLX Q4/Q8 probe](evaluation/mlx-q4-q8-matmul-probe-2026-09-20.json)
+- `[Done]` Q4 dequantized GEMV＋SiLUを単一MLX lazy graphで実行するfusion候補。staged materialization比0.877倍、固定誤差1e-5内で合格
+- `[Done]` RMSNorm＋RoPEを単一MLX lazy graphで実行するfusion候補。staged materialization比0.912倍、固定誤差1e-5内で合格
+- `[Done]` top-2 MoE routing、gated Expert GEMM、weighted reductionのbatched MLX graph。token／expert逐次基準比0.754倍、固定誤差2e-4内で合格
+- `[Done]` environment-bound capabilityが合格したpatternだけを最長一致・非重複で置換し、未計測／quarantine時は元graphを保存するbounded graph fusion pass。実機証跡: [MLX Phase 3 fusion probe](evaluation/mlx-phase3-fusion-probe-2026-09-20.json)
+- `[Done]` kernel autotuning、fingerprint別profile cache、環境変更時失効
+- `[Done]` probe承認済みMetal→MLX→CPU correctness fallback suite
+- `[Done]` Metal toolchain／OS／MLX／backend fingerprint変更時のcache失効と、self-hosted Apple Silicon workflowでのruntime compile、correctness、性能退行probe
+- `[Done]` bounded multi-model Metal command submission stress。論理2 model（vector add／Paged Attention）から各3回、最大同時2で実commandを投入し、6/6成功、digest不一致0、peak concurrency 2を確認。証跡: [multi-model Metal stress](evaluation/metal-multi-model-command-stress-2026-09-20.json)
 
 ## Phase 4 — Vision
 
-- `[Later]` image input frontend
-- `[Later]` image preprocessing pipeline
-- `[Later]` vision encoder cache
-- `[Later]` multimodal batching
+- `[Done]` OpenAI互換の複数image input frontend。inline PNG／JPEGだけを受理し、magic byte、個別／合計byte数、画像数、message／part数をload前に検証してremote URLと偽装形式を拒否。Qwen3-VL managed chatも共通parserへ接続
+- `[Done]` model-neutral image preprocessing pipeline。固定shapeのRGB変換、Resize、FP32 Normalize、Patchify、FP16出力を依存注入可能な契約で実装し、不正geometryを実行前に拒否
+- `[Done]` image／model revision／preprocessing／encoder fingerprintに結合した容量・entry数制限付きthread-safe LRU vision encoder cache。oversize outputは保存せず、hit／miss／eviction／resident bytesを観測可能
+- `[Next]` multimodal batching
 - `[Later]` Resize → Normalize → Patchify → Projection fusion
 - `[Later]` image latency、images/sec、memory/image benchmark
 

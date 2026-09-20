@@ -2231,7 +2231,7 @@ versioned plan/event/artifact modelとtransport interfaceだけを公開する�
 
 ## Phase 3 — Kernel Optimization
 
-状態：`[Later]`
+状態：`[Done]`
 
 実装：
 
@@ -2245,11 +2245,19 @@ fusion
 kernel autotuning
 ```
 
+実装完了境界は、MLX correctness baseline、Paged Attention／MLA、vLLM-Metal native v2
+production dispatch、fingerprint別autotuning、Q4／Q8、Q4＋SiLU、RMSNorm＋RoPE、
+top-2 MoE Expert GEMM、capability-gated graph fusion、Metal→MLX→CPU fallback、
+toolchain更新時の再probe、multi-model command stressまでとする。大容量Qwen実weightは
+repository外の`large-memory` self-hosted runnerを必要とするため、load前admission、30分安定性、
+三言語品質、phase profile、前後integrity、Swift evidence再計算を含むworkflowを完了条件とし、
+実report未取得のmodelを昇格しない。
+
 ---
 
 ## Phase 4 — Vision
 
-状態：`[Later]`
+状態：`[Next]`
 
 実装：
 
@@ -2259,6 +2267,12 @@ vision encoder cache
 multimodal batching
 image preprocessing fusion
 ```
+
+最初の実装境界として、OpenAI互換inline PNG／JPEGのbounded frontend、固定shapeの
+Resize／Normalize／Patchify前処理、model revisionと前処理・encoder fingerprintに結合した
+容量制限付きLRU encoder cacheを完了した。次は、この共通契約を使うmultimodal batchingを
+実装し、Projectionまで含む融合候補とimage latency／throughput／memory benchmarkで昇格を
+判定する。
 
 ---
 

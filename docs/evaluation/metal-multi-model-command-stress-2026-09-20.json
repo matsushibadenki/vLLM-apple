@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "scope": "native_metal_multi_model_command_stress",
+  "hardware": "apple-m4",
+  "logical_models": {
+    "model-vector": "vector_add",
+    "model-attention": "paged_attention"
+  },
+  "model_count": 2,
+  "iterations_per_model": 3,
+  "maximum_concurrency": 2,
+  "peak_concurrency": 2,
+  "command_count": 6,
+  "failures": 0,
+  "digest_mismatches": 0,
+  "elapsed_nanoseconds": 4851677084,
+  "passed": true
+}

@@ -111,6 +111,12 @@ from .kernel_profile import (
     PagedAttentionShape,
     build_model_kernel_shape_profile,
 )
+from .kernel_stress import MultiModelStressReport, run_multi_model_command_stress
+from .graph_fusion import (
+    CapabilityGatedGraphFusionPass,
+    FusionRule,
+    GraphFusionResult,
+)
 from .long_context import (
     LongContextEvaluator,
     LongContextObservation,
@@ -142,6 +148,7 @@ from .metal_tuning import (
     tune_metal_shape_profile,
 )
 from .mlx_probe import NativeMLXProbeAdapter, build_mlx_probe_registry
+from .mlx_phase3_probe import MLXPhase3ProbeAdapter
 from .operator_dispatch import (
     OperatorDispatchDecision,
     OperatorDispatcher,
@@ -166,6 +173,20 @@ from .runtime_errors import (
     RuntimeRecoverability,
     classify_runtime_failure,
     persist_crash_diagnostic,
+)
+from .vision_frontend import (
+    VisionChatInput,
+    VisionImageInput,
+    VisionPreprocessResult,
+    VisionPreprocessSpec,
+    parse_vision_chat_request,
+    preprocess_vision_image,
+)
+from .vision_cache import (
+    VisionCacheKey,
+    VisionCacheStats,
+    VisionEncoderCache,
+    preprocessing_fingerprint,
 )
 from .qwen3_vl_ane import (
     Qwen3VLVisionANEAdapterSpec,
@@ -408,12 +429,17 @@ __all__ = [
     "KernelProbeConfig",
     "KernelProbeResult",
     "KernelTuningASGIMiddleware",
+    "CapabilityGatedGraphFusionPass",
+    "FusionRule",
+    "GraphFusionResult",
     "LongContextEvaluator",
     "LongContextObservation",
     "MetalShapeBenchmark",
     "MetalShapeTuningDecision",
     "MetalThreadConfiguration",
     "MetalTuningReport",
+    "MLXPhase3ProbeAdapter",
+    "MultiModelStressReport",
     "MemoryBudgetComponent",
     "MemoryBudgetSnapshot",
     "NativeCPUProbeAdapter",
@@ -465,6 +491,13 @@ __all__ = [
     "V2MeasurementAdapterError",
     "V2IdleTuningSnapshot",
     "VLLMMetalV2MeasurementAdapter",
+    "VisionCacheKey",
+    "VisionCacheStats",
+    "VisionChatInput",
+    "VisionEncoderCache",
+    "VisionImageInput",
+    "VisionPreprocessResult",
+    "VisionPreprocessSpec",
     "__version__",
     "build_environment_fingerprint",
     "build_device_placement_plan",
@@ -504,9 +537,13 @@ __all__ = [
     "load_native_v2_preference",
     "load_scheduling_preference",
     "parse_kernel_tuning_headers",
+    "parse_vision_chat_request",
+    "preprocess_vision_image",
+    "preprocessing_fingerprint",
     "promote_device_placement_plan",
     "persist_crash_diagnostic",
     "run_kernel_probe",
+    "run_multi_model_command_stress",
     "run_coreml_prediction",
     "run_device_microbenchmark",
     "run_device_benchmark_suite",

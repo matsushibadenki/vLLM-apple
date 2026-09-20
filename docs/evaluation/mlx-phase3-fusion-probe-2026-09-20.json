@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "scope": "mlx_phase3_fusion_probe",
+  "hardware_fingerprint": "apple-m4",
+  "environment_fingerprint": "mlx-0.32.1",
+  "samples": 3,
+  "comparison": "staged_materialization_vs_single_lazy_graph",
+  "results": [
+    {
+      "operator": "fused_q4_silu",
+      "probe_id": "dd33eecee2788e226cb83bba",
+      "baseline_latency_nanoseconds": 3177959,
+      "candidate_latency_nanoseconds": 2786792,
+      "slowdown_ratio": 0.876913,
+      "maximum_absolute_error": 0.00001,
+      "passed": true
+    },
+    {
+      "operator": "fused_rmsnorm_rope",
+      "probe_id": "07879921a5df3418e05afc5a",
+      "baseline_latency_nanoseconds": 4056708,
+      "candidate_latency_nanoseconds": 3698917,
+      "slowdown_ratio": 0.911803,
+      "maximum_absolute_error": 0.00001,
+      "passed": true
+    },
+    {
+      "operator": "fused_moe",
+      "probe_id": "43ad34681791f51597e89043",
+      "baseline_latency_nanoseconds": 5546292,
+      "candidate_latency_nanoseconds": 4179958,
+      "slowdown_ratio": 0.753649,
+      "maximum_absolute_error": 0.0002,
+      "passed": true
+    }
+  ],
+  "graph_fusion_requires_matching_capability_evidence": true,
+  "passed": true
+}

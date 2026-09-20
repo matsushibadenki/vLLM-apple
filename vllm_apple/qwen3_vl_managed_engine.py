@@ -1,8 +1,6 @@
 """Managed Qwen3-VL chat delegate for persistent Core ML vision inference."""
 from __future__ import annotations
 
-import base64
-import binascii
 import io
 import shutil
 import tempfile
@@ -15,6 +13,7 @@ from .execution import ExecutionBackend
 from .inference_request import InferenceRequestContext
 from .qwen3_vl_embedding import Qwen3VLANEGPUPipeline
 from .qwen3_vl_persistent_encoder import Qwen3VLPersistentEncoder
+from .vision_frontend import parse_vision_chat_request
 
 
 @dataclass(frozen=True, slots=True)
@@ -187,50 +186,11 @@ def load_qwen3_vl_chat_runtime() -> Qwen3VLChatRuntime:
 
 
 def _parse_chat_request(request: dict[str, Any], model_id: str) -> tuple[str, bytes]:
-    if request.get("model") != model_id or request.get("stream") is True:
-        raise ValueError("unsupported Qwen3-VL chat request")
-    messages = request.get("messages")
-    if not isinstance(messages, list) or not 1 <= len(messages) <= 32:
-        raise ValueError("Qwen3-VL chat messages are invalid")
-    texts: list[str] = []
-    encoded_image = None
-    for message in messages:
-        if not isinstance(message, dict) or message.get("role") not in {"system", "user"}:
-            raise ValueError("Qwen3-VL chat role is unsupported")
-        content = message.get("content")
-        if isinstance(content, str):
-            texts.append(content)
-            continue
-        if not isinstance(content, list):
-            raise ValueError("Qwen3-VL chat content is invalid")
-        for part in content:
-            if not isinstance(part, dict):
-                raise ValueError("Qwen3-VL chat content part is invalid")
-            if part.get("type") == "text" and isinstance(part.get("text"), str):
-                texts.append(part["text"])
-            elif part.get("type") == "image_url" and encoded_image is None:
-                image_url = part.get("image_url")
-                if isinstance(image_url, dict):
-                    encoded_image = image_url.get("url")
-            else:
-                raise ValueError("Qwen3-VL chat content part is unsupported")
-    prompt = "\n".join(text.strip() for text in texts if text.strip())
-    if not prompt or not isinstance(encoded_image, str):
-        raise ValueError("Qwen3-VL chat requires text and one image")
-    prefix = next(
-        (value for value in ("data:image/png;base64,", "data:image/jpeg;base64,")
-         if encoded_image.startswith(value)),
-        None,
-    )
-    if prefix is None:
-        raise ValueError("Qwen3-VL chat image must be an inline PNG or JPEG")
     try:
-        image = base64.b64decode(encoded_image[len(prefix):], validate=True)
-    except (binascii.Error, ValueError) as error:
-        raise ValueError("Qwen3-VL chat image encoding is invalid") from error
-    if not 1 <= len(image) <= 3 * 1024 * 1024:
-        raise ValueError("Qwen3-VL chat image size is invalid")
-    return prompt, image
+        parsed = parse_vision_chat_request(request, model_id, max_images=1)
+    except ValueError as error:
+        raise ValueError(str(error).replace("vision chat", "Qwen3-VL chat")) from error
+    return parsed.prompt, parsed.images[0].data
 
 
 def _max_tokens(request: dict[str, Any]) -> int:

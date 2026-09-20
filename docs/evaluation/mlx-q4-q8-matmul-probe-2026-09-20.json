@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "scope": "mlx_q4_q8_quantized_matmul_probe",
+  "hardware_fingerprint": "apple-m4",
+  "environment_fingerprint": "mlx-0.32.1",
+  "shape": {"rows": 16, "columns": 64, "batch": 1, "group_size": 32},
+  "samples": 3,
+  "dense_mlx_comparison": true,
+  "results": [
+    {
+      "operator": "quantized_matmul_q4",
+      "probe_id": "2cf5fa946aa58d91ccdf9c83",
+      "baseline_latency_nanoseconds": 2352667,
+      "candidate_latency_nanoseconds": 2391334,
+      "slowdown_ratio": 1.016435,
+      "maximum_absolute_error": 0.3,
+      "passed": true
+    },
+    {
+      "operator": "quantized_matmul_q8",
+      "probe_id": "35f42506bebb9d94c8350bb6",
+      "baseline_latency_nanoseconds": 2234875,
+      "candidate_latency_nanoseconds": 2335416,
+      "slowdown_ratio": 1.044987,
+      "maximum_absolute_error": 0.03,
+      "passed": true
+    }
+  ],
+  "passed": true
+}

@@ -23,6 +23,8 @@ _VECTOR_VALUES = tuple(float(value) for value in range(256))
 _MATRIX_SIZE = 16
 _MATRIX_VALUES = tuple(float(value % 7) for value in range(_MATRIX_SIZE**2))
 _KV_VALUES = tuple(float(value % 31) for value in range(512))
+_QUANT_ROWS = 16
+_QUANT_COLUMNS = 64
 _MLX_PROGRAMS = {
     "vector_add": """
 import hashlib,json,time
@@ -144,6 +146,50 @@ elapsed=time.perf_counter_ns()-started
 digest=hashlib.sha256(json.dumps(output,separators=(',',':')).encode()).hexdigest()
 print(json.dumps({'output_digest':digest,'latency_nanoseconds':elapsed},separators=(',',':')))
 """.strip(),
+    "quantized_matmul_q4": """
+import hashlib,json,time
+import mlx.core as mx
+rows,columns,bits=16,64,4
+weights=mx.array([float((row*7+column*3)%31-15)/31 for row in range(rows) for column in range(columns)]).reshape((rows,columns))
+x=mx.array([float((column*5)%17-8)/17 for column in range(columns)]).reshape((1,columns))
+packed,scales,biases=mx.quantize(weights,group_size=32,bits=bits,mode='affine')
+started=time.perf_counter_ns()
+result=mx.quantized_matmul(x,packed,scales,biases,transpose=True,group_size=32,bits=bits,mode='affine')
+mx.eval(result)
+values=[round(float(value),6) for value in result.reshape((-1,)).tolist()]
+elapsed=time.perf_counter_ns()-started
+digest=hashlib.sha256(json.dumps(values,separators=(',',':')).encode()).hexdigest()
+print(json.dumps({'output_digest':digest,'latency_nanoseconds':elapsed,'numeric_values':values},separators=(',',':')))
+""".strip(),
+    "quantized_matmul_q8": """
+import hashlib,json,time
+import mlx.core as mx
+rows,columns,bits=16,64,8
+weights=mx.array([float((row*7+column*3)%31-15)/31 for row in range(rows) for column in range(columns)]).reshape((rows,columns))
+x=mx.array([float((column*5)%17-8)/17 for column in range(columns)]).reshape((1,columns))
+packed,scales,biases=mx.quantize(weights,group_size=32,bits=bits,mode='affine')
+started=time.perf_counter_ns()
+result=mx.quantized_matmul(x,packed,scales,biases,transpose=True,group_size=32,bits=bits,mode='affine')
+mx.eval(result)
+values=[round(float(value),6) for value in result.reshape((-1,)).tolist()]
+elapsed=time.perf_counter_ns()-started
+digest=hashlib.sha256(json.dumps(values,separators=(',',':')).encode()).hexdigest()
+print(json.dumps({'output_digest':digest,'latency_nanoseconds':elapsed,'numeric_values':values},separators=(',',':')))
+""".strip(),
+    "_dense_matmul_quant_shape": """
+import hashlib,json,time
+import mlx.core as mx
+rows,columns=16,64
+weights=mx.array([float((row*7+column*3)%31-15)/31 for row in range(rows) for column in range(columns)]).reshape((rows,columns))
+x=mx.array([float((column*5)%17-8)/17 for column in range(columns)]).reshape((1,columns))
+started=time.perf_counter_ns()
+result=mx.matmul(x,mx.transpose(weights))
+mx.eval(result)
+values=[round(float(value),6) for value in result.reshape((-1,)).tolist()]
+elapsed=time.perf_counter_ns()-started
+digest=hashlib.sha256(json.dumps(values,separators=(',',':')).encode()).hexdigest()
+print(json.dumps({'output_digest':digest,'latency_nanoseconds':elapsed,'numeric_values':values},separators=(',',':')))
+""".strip(),
 }
 
 
@@ -178,9 +224,35 @@ class NativeMLXProbeAdapter:
 
     def measure_operator(self, operator: str) -> KernelMeasurement:
         """Measure one supported MLX kernel for a capability-gated benchmark."""
-        if operator not in _MLX_PROGRAMS:
+        if operator not in _MLX_PROGRAMS or operator.startswith("_"):
             raise ValueError("unsupported MLX benchmark operator")
         return self._candidate(operator)
+
+    def probe_quantized_matmul_suite(
+        self,
+        *,
+        hardware_fingerprint: str,
+        environment_fingerprint: str,
+        samples: int = 3,
+        maximum_slowdown_ratio: float = 2,
+    ) -> tuple[KernelProbeResult, ...]:
+        """Compare Q4/Q8 matmul with dense MLX at an identical bounded shape."""
+        return tuple(
+            run_kernel_probe(
+                KernelProbeConfig(
+                    hardware_fingerprint=hardware_fingerprint,
+                    environment_fingerprint=environment_fingerprint,
+                    backend=ExecutionBackend.NATIVE_MLX,
+                    operator=f"quantized_matmul_q{bits}",
+                    samples=samples,
+                    maximum_slowdown_ratio=maximum_slowdown_ratio,
+                    maximum_absolute_error=0.3 if bits == 4 else 0.03,
+                ),
+                lambda: self._candidate("_dense_matmul_quant_shape"),
+                lambda bits=bits: self._candidate(f"quantized_matmul_q{bits}"),
+            )
+            for bits in (4, 8)
+        )
 
     def probe_suite(
         self,
@@ -226,7 +298,12 @@ class NativeMLXProbeAdapter:
             operator=operator,
             samples=samples,
             maximum_slowdown_ratio=maximum_slowdown_ratio,
-            maximum_absolute_error=2e-5 if operator == "attention" else None,
+            maximum_absolute_error=(
+                0.3 if operator == "quantized_matmul_q4"
+                else 0.03 if operator == "quantized_matmul_q8"
+                else 2e-5 if operator == "attention"
+                else None
+            ),
         )
         return run_kernel_probe(
             config,
@@ -281,6 +358,32 @@ class NativeMLXProbeAdapter:
             json.dumps(output, separators=(",", ":")).encode("utf-8")
         ).hexdigest()
         return KernelMeasurement(digest, elapsed)
+
+    @staticmethod
+    def _baseline_quantized_matmul(bits: int) -> KernelMeasurement:
+        import time
+
+        if bits not in {4, 8}:
+            raise ValueError("quantized matmul baseline supports Q4 or Q8")
+        weights = tuple(
+            float((row * 7 + column * 3) % 31 - 15) / 31
+            for row in range(_QUANT_ROWS)
+            for column in range(_QUANT_COLUMNS)
+        )
+        vector = tuple(
+            float((column * 5) % 17 - 8) / 17
+            for column in range(_QUANT_COLUMNS)
+        )
+        started = time.perf_counter_ns()
+        values = tuple(round(sum(
+            vector[column] * weights[row * _QUANT_COLUMNS + column]
+            for column in range(_QUANT_COLUMNS)
+        ), 6) for row in range(_QUANT_ROWS))
+        elapsed = max(1, time.perf_counter_ns() - started)
+        digest = hashlib.sha256(
+            json.dumps(values, separators=(",", ":")).encode("utf-8")
+        ).hexdigest()
+        return KernelMeasurement(digest, elapsed, values)
 
     @staticmethod
     def _baseline_attention() -> KernelMeasurement:
