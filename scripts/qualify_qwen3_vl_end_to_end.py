@@ -16,16 +16,61 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 
-_PROMPTS = (
-    ("en", "What is the dominant color? Answer with one English color word."),
-    ("ja", "最も目立つ色は何色ですか。日本語の色名を一語で答えてください。"),
-    ("zh-Hans", "最显眼的颜色是什么？请只用一个中文颜色词回答。"),
-)
-_LABELS = {
-    "red": {"en": ("red",), "ja": ("赤",), "zh-Hans": ("红",)},
-    "green": {"en": ("green",), "ja": ("緑",), "zh-Hans": ("绿",)},
-    "blue": {"en": ("blue",), "ja": ("青", "ブルー"), "zh-Hans": ("蓝",)},
+_TASKS = {
+    "dominant_color": {
+        "prompts": (
+            ("en", "What is the dominant color? Answer with one English color word."),
+            ("ja", "最も目立つ色は何色ですか。日本語の色名を一語で答えてください。"),
+            ("zh-Hans", "最显眼的颜色是什么？请只用一个中文颜色词回答。"),
+        ),
+        "labels": {
+            "red": {"en": ("red",), "ja": ("赤",), "zh-Hans": ("红",)},
+            "green": {"en": ("green",), "ja": ("緑",), "zh-Hans": ("绿",)},
+            "blue": {"en": ("blue",), "ja": ("青", "ブルー"), "zh-Hans": ("蓝",)},
+        },
+    },
+    "shape": {
+        "prompts": (
+            ("en", "What is the black shape? Answer with one English shape word."),
+            ("ja", "黒い図形は何ですか。日本語の図形名を一語で答えてください。"),
+            ("zh-Hans", "黑色图形是什么？请只用一个中文形状词回答。"),
+        ),
+        "labels": {
+            "circle": {
+                "en": ("circle",),
+                "ja": ("円", "丸"),
+                "zh-Hans": ("圆",),
+            },
+        },
+    },
+    "object": {
+        "prompts": (
+            ("en", "What object is shown? Answer with one English noun."),
+            ("ja", "描かれている物は何ですか。日本語の名詞を一語で答えてください。"),
+            ("zh-Hans", "图中是什么物体？请只用一个中文名词回答。"),
+        ),
+        "labels": {
+            "house": {
+                "en": ("house", "home"),
+                "ja": ("家", "住宅"),
+                "zh-Hans": ("房子", "房屋", "家"),
+            },
+        },
+    },
+    "ocr": {
+        "prompts": (
+            ("en", "Read the uppercase text. Answer with only the exact Latin letters."),
+            ("ja", "大文字の文字列を読み、同じラテン文字だけで答えてください。"),
+            ("zh-Hans", "读取大写文本，仅用相同的拉丁字母回答。"),
+        ),
+        "labels": {
+            "APPLE": {"en": ("apple",), "ja": ("apple",), "zh-Hans": ("apple",)},
+        },
+    },
 }
+_LABELS = tuple(
+    label for task in _TASKS.values() for label in task["labels"]
+)
 
 
 class _FixedVisionTower:
@@ -51,17 +96,24 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--model", type=Path, required=True)
     parser.add_argument("--image", type=Path, action="append", required=True)
-    parser.add_argument("--label", choices=tuple(_LABELS), action="append", required=True)
+    parser.add_argument("--task", choices=tuple(_TASKS), action="append")
+    parser.add_argument("--label", choices=_LABELS, action="append", required=True)
     parser.add_argument("--patch", type=Path, required=True)
     parser.add_argument("--segment", type=Path, action="append", required=True)
     parser.add_argument("--max-tokens", type=int, default=12)
     parser.add_argument("--inject-failure-after-request", type=int)
     arguments = parser.parse_args()
+    tasks = arguments.task or ["dominant_color"] * len(arguments.image)
     if (
         len(arguments.segment) != 4
         or not 1 <= arguments.max_tokens <= 32
         or len(arguments.image) != len(arguments.label)
+        or len(arguments.image) != len(tasks)
         or not 1 <= len(arguments.image) <= 8
+        or any(
+            label not in _TASKS[task]["labels"]
+            for task, label in zip(tasks, arguments.label, strict=True)
+        )
         or (
             arguments.inject_failure_after_request is not None
             and not 0
@@ -88,8 +140,8 @@ def main() -> int:
     output_root = temporary / "transport"
     output_root.mkdir(mode=0o700)
     requests = []
-    for index, (image_argument, label) in enumerate(
-        zip(arguments.image, arguments.label, strict=True)
+    for index, (image_argument, task, label) in enumerate(
+        zip(arguments.image, tasks, arguments.label, strict=True)
     ):
         image_path = image_argument.expanduser().resolve(strict=True)
         with Image.open(image_path) as opened:
@@ -108,6 +160,7 @@ def main() -> int:
             {
                 "index": index,
                 "image_path": image_path,
+                "task": task,
                 "label": label,
                 "pixels": pixels,
                 "pixel_path": pixel_path,
@@ -129,6 +182,7 @@ def main() -> int:
         previous_peak_rss = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
         try:
             for request in requests:
+                coreml_run = coreml["runs"][request["index"]]
                 mlx_pixels = mx.array(request["pixels"].reshape(256, 1536)).astype(
                     target_dtype
                 )
@@ -141,7 +195,8 @@ def main() -> int:
                 candidate = _load_output(request_root, np, mx)
                 mx.eval(baseline[0], *baseline[1], candidate[0], *candidate[1])
                 cases = []
-                for language, prompt_text in _PROMPTS:
+                task = _TASKS[request["task"]]
+                for language, prompt_text in task["prompts"]:
                     prompt = apply_chat_template(
                         processor, model.config, prompt_text, num_images=1
                     )
@@ -170,7 +225,7 @@ def main() -> int:
                             "latency_nanoseconds": elapsed,
                             "task_correct": any(
                                 expected.casefold() in normalized
-                                for expected in _LABELS[request["label"]][language]
+                                for expected in task["labels"][request["label"]][language]
                             ),
                         }
                     cases.append(
@@ -186,11 +241,21 @@ def main() -> int:
                 request_reports.append(
                     {
                         "index": request["index"],
+                        "task": request["task"],
                         "label": request["label"],
                         "grid_thw": request["grid"],
                         "processor_latency_nanoseconds": request[
                             "processor_latency_nanoseconds"
                         ],
+                        "coreml_io": {
+                            **coreml_run["patch"],
+                            "transport_copy_nanoseconds": coreml_run[
+                                "transport_copy_nanoseconds"
+                            ],
+                            "transport_write_nanoseconds": coreml_run[
+                                "transport_write_nanoseconds"
+                            ],
+                        },
                         "peak_rss_bytes": current_peak_rss,
                         "peak_rss_increment_bytes": max(
                             0, current_peak_rss - previous_peak_rss
@@ -211,6 +276,13 @@ def main() -> int:
             "request_count": len(requests),
             "coreml_model_load_count": coreml["model_load_count"],
             "coreml_artifacts_reused": coreml["model_load_count"] == 5,
+            "coreml_precision_profile": coreml["precision_profile"],
+            "coreml_segment_models_load_nanoseconds": coreml[
+                "segment_models_load_nanoseconds"
+            ],
+            "coreml_patch_model_load_nanoseconds": coreml[
+                "patch_model_load_nanoseconds"
+            ],
             "isolated_transport_directory_count": len(requests),
             "coreml_segment_latency_samples_nanoseconds": coreml[
                 "inference_latency_samples_nanoseconds"

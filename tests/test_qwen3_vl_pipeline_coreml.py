@@ -20,6 +20,12 @@ class Qwen3VLPipelineCoreMLTests(unittest.TestCase):
         self.assertIn('"model_load_count"', _PIPELINE_PROGRAM)
         self.assertIn('"request_count"', _PIPELINE_PROGRAM)
 
+    def test_python_report_binds_the_segment_precision_profile(self):
+        from vllm_apple import qwen3_vl_pipeline_coreml
+
+        source = qwen3_vl_pipeline_coreml.qualify_qwen3_vl_segment_pipeline_coreml
+        self.assertIn("precision_profile", source.__code__.co_varnames)
+
 
 if __name__ == "__main__":
     unittest.main()

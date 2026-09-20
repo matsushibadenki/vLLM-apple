@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "scope": "qwen3_vl_coreml_bounded_minimal_precision_calibration",
+  "baseline_transformer_precision": "mlx_bfloat16",
+  "candidates": [
+    {
+      "name": "four_fp32_prefix_layers",
+      "fp32_transformer_layers": 4,
+      "fp16_transformer_layers": 20,
+      "segment_boundary_precision": "float16",
+      "task_correct_count": 18,
+      "task_case_count": 18,
+      "exact_match_count": 17,
+      "exact_match_case_count": 18,
+      "warm_vision_latency_range_nanoseconds": [57608208, 62711001],
+      "passed": true
+    },
+    {
+      "name": "all_fp16",
+      "fp32_transformer_layers": 0,
+      "fp16_transformer_layers": 24,
+      "segment_boundary_precision": "float16",
+      "task_correct_count": 18,
+      "task_case_count": 18,
+      "exact_match_count": 18,
+      "exact_match_case_count": 18,
+      "coreml_segment_latency_samples_nanoseconds": [55757332, 37503667, 37725583, 36983125, 37955084, 38619584],
+      "warm_vision_latency_mean_nanoseconds": 37757409,
+      "peak_rss_bytes": 2450718720,
+      "temporary_cleanup_verified": true,
+      "passed": true
+    }
+  ],
+  "selected_bounded_profile": "all_fp16",
+  "all_fp32_warm_reference_nanoseconds": 171535000,
+  "selected_warm_latency_reduction_percent": 77.99,
+  "promotion_scope": [
+    "dominant color: red, green, blue",
+    "shape: circle",
+    "object: house",
+    "OCR: APPLE",
+    "languages: en, ja, zh-Hans",
+    "fixed grid: 1x16x16"
+  ],
+  "general_runtime_promotion": false,
+  "general_runtime_block_reason": "Known large BF16 numerical drift outside the bounded semantic calibration",
+  "passed": true
+}

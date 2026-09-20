@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "scope": "qwen3_vl_coreml_device_plan_copy_and_precision_performance",
+  "compute_units": "cpu_and_neural_engine",
+  "available_devices": ["cpu", "gpu", "neural_engine"],
+  "repetitions_per_profile": 5,
+  "profiles": {
+    "all_fp32": {
+      "preferred_operation_counts": {"cpu": 749, "neural_engine": 0, "gpu": 0, "unavailable": 917},
+      "latency_samples_nanoseconds": [4258103917, 167946458, 169126625, 172311459, 171071333],
+      "warm_median_nanoseconds": 170098979,
+      "peak_rss_bytes": 1921220608,
+      "pixel_file_read_nanoseconds": 573875,
+      "pixel_to_multiarray_copy_nanoseconds": 65750,
+      "transport_copy_nanoseconds": 145500,
+      "transport_write_nanoseconds": 2182999
+    },
+    "four_fp32_prefix_layers": {
+      "preferred_operation_counts": {"cpu": 128, "neural_engine": 624, "gpu": 0, "unavailable": 928},
+      "latency_samples_nanoseconds": [564155958, 60339042, 55985916, 57163333, 55855209],
+      "warm_median_nanoseconds": 56574625,
+      "peak_rss_bytes": 496074752,
+      "pixel_file_read_nanoseconds": 100291,
+      "pixel_to_multiarray_copy_nanoseconds": 61750,
+      "transport_copy_nanoseconds": 125585,
+      "transport_write_nanoseconds": 2554960
+    },
+    "all_fp16": {
+      "preferred_operation_counts": {"cpu": 0, "neural_engine": 746, "gpu": 0, "unavailable": 915},
+      "latency_samples_nanoseconds": [46428418, 37509626, 36952917, 35485416, 35437084],
+      "warm_median_nanoseconds": 36219167,
+      "peak_rss_bytes": 235307008,
+      "pixel_file_read_nanoseconds": 101709,
+      "pixel_to_multiarray_copy_nanoseconds": 61084,
+      "transport_copy_nanoseconds": 134751,
+      "transport_write_nanoseconds": 2393251
+    }
+  },
+  "direct_segment_handoff_copy_count": 0,
+  "selected_profile": "all_fp16",
+  "selected_vs_all_fp32_warm_latency_reduction_percent": 78.71,
+  "selected_vs_all_fp32_peak_rss_reduction_percent": 87.75,
+  "device_evidence_kind": "MLComputePlan preferred device per operation",
+  "runtime_hardware_counter_available": false,
+  "passed": true
+}

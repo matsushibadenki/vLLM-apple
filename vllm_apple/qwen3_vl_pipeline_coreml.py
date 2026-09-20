@@ -70,39 +70,56 @@ func peakRSS() -> Int64 {
 let configuration = MLModelConfiguration()
 configuration.computeUnits = .cpuAndNeuralEngine
 var models: [MLModel] = []
+let segmentModelsLoadStarted = DispatchTime.now().uptimeNanoseconds
 for index in 0..<4 {
     models.append(try MLModel(
         contentsOf: URL(fileURLWithPath: CommandLine.arguments[1 + index * 3]),
         configuration: configuration
     ))
 }
+let segmentModelsLoadLatency = DispatchTime.now().uptimeNanoseconds - segmentModelsLoadStarted
 let outputDirectory = CommandLine.arguments.count > 14 && CommandLine.arguments[14] != "-"
     ? CommandLine.arguments[14] : nil
 var inputs: [MLMultiArray] = []
+var patchMetrics: [[String: UInt64]] = []
+var patchModelLoadLatency: UInt64 = 0
 if CommandLine.arguments.count > 16 {
+    let patchModelLoadStarted = DispatchTime.now().uptimeNanoseconds
     let patchModel = try MLModel(
         contentsOf: URL(fileURLWithPath: CommandLine.arguments[15]),
         configuration: configuration
     )
+    patchModelLoadLatency = DispatchTime.now().uptimeNanoseconds - patchModelLoadStarted
     for path in CommandLine.arguments[16...] {
+        let pixelReadStarted = DispatchTime.now().uptimeNanoseconds
         let pixelData = try Data(contentsOf: URL(fileURLWithPath: path))
+        let pixelReadLatency = DispatchTime.now().uptimeNanoseconds - pixelReadStarted
         guard pixelData.count == 256 * 1536 * MemoryLayout<UInt16>.size else {
             throw NSError(domain: "vllm-apple", code: 4)
         }
+        let inputCopyStarted = DispatchTime.now().uptimeNanoseconds
         let pixels = try MLMultiArray(shape: [256, 1536], dataType: .float16)
         pixelData.withUnsafeBytes { raw in
             pixels.dataPointer.copyMemory(from: raw.baseAddress!, byteCount: pixelData.count)
         }
+        let inputCopyLatency = DispatchTime.now().uptimeNanoseconds - inputCopyStarted
         let patchProvider = try MLDictionaryFeatureProvider(dictionary: [
             "pixel_values": MLFeatureValue(multiArray: pixels)
         ])
+        let patchStarted = DispatchTime.now().uptimeNanoseconds
         let patchResult = try patchModel.prediction(from: patchProvider)
+        let patchLatency = DispatchTime.now().uptimeNanoseconds - patchStarted
         guard let patchOutput = patchResult.featureValue(
             for: "patch_hidden_states"
         )?.multiArrayValue else {
             throw NSError(domain: "vllm-apple", code: 5)
         }
         inputs.append(patchOutput)
+        patchMetrics.append([
+            "pixel_file_read_nanoseconds": pixelReadLatency,
+            "pixel_to_multiarray_copy_nanoseconds": inputCopyLatency,
+            "patch_prediction_nanoseconds": patchLatency,
+        ])
     }
 } else {
     let input = try MLMultiArray(shape: [256, 1024], dataType: .float16)
@@ -122,6 +139,8 @@ for (requestIndex, input) in inputs.enumerated() {
   for repetition in 0..<repetitions {
     var current = input
     var stages: [[String: Any]] = []
+    var transportCopyLatency: UInt64 = 0
+    var transportWriteLatency: UInt64 = 0
     let pipelineStarted = DispatchTime.now().uptimeNanoseconds
     for index in 0..<4 {
         let provider = try MLDictionaryFeatureProvider(dictionary: [
@@ -163,14 +182,18 @@ for (requestIndex, input) in inputs.enumerated() {
             }
             let name = index == 3 ? "final.fp16" : "deepstack_\(index).fp16"
             let url = URL(fileURLWithPath: directory).appendingPathComponent(name)
+            let copyStarted = DispatchTime.now().uptimeNanoseconds
             let data = Data(
                 bytes: merged.dataPointer,
                 count: merged.count * MemoryLayout<UInt16>.size
             )
+            transportCopyLatency += DispatchTime.now().uptimeNanoseconds - copyStarted
+            let writeStarted = DispatchTime.now().uptimeNanoseconds
             try data.write(to: url, options: [.atomic])
             try FileManager.default.setAttributes(
                 [.posixPermissions: 0o600], ofItemAtPath: url.path
             )
+            transportWriteLatency += DispatchTime.now().uptimeNanoseconds - writeStarted
         }
         current = main
     }
@@ -179,7 +202,10 @@ for (requestIndex, input) in inputs.enumerated() {
         "request_index": requestIndex,
         "index": repetition,
         "peak_rss_bytes": peakRSS(),
+        "patch": patchMetrics.isEmpty ? [:] : patchMetrics[requestIndex],
         "stages": stages,
+        "transport_copy_nanoseconds": transportCopyLatency,
+        "transport_write_nanoseconds": transportWriteLatency,
         "total_latency_nanoseconds": total,
     ])
   }
@@ -187,7 +213,9 @@ for (requestIndex, input) in inputs.enumerated() {
 let payload: [String: Any] = [
     "compute_units": "cpu_and_neural_engine",
     "model_load_count": CommandLine.arguments.count > 16 ? 5 : 4,
+    "patch_model_load_nanoseconds": patchModelLoadLatency,
     "request_count": inputs.count,
+    "segment_models_load_nanoseconds": segmentModelsLoadLatency,
     "runs": runs,
 ]
 let encoded = try JSONSerialization.data(withJSONObject: payload, options: [.sortedKeys])
@@ -231,6 +259,7 @@ def qualify_qwen3_vl_segment_pipeline_coreml(
     arguments = ["/usr/bin/swift", "-e", _PIPELINE_PROGRAM]
     graph_id = None
     previous_main_precision = None
+    precision_profile = []
     for root_value, partitions in zip(package_roots, expected, strict=True):
         root = root_value.expanduser().resolve(strict=True)
         report = json.loads((root / "report.json").read_bytes())
@@ -253,6 +282,15 @@ def qualify_qwen3_vl_segment_pipeline_coreml(
         ):
             raise ValueError("Qwen3-VL pipeline precision handoff is invalid")
         previous_main_precision = main_output_precision
+        precision_profile.append(
+            {
+                "partition": report["partition"],
+                "compute_precision": report.get("compute_precision", "fp16"),
+                "fp32_prefix_layers": report.get("fp32_prefix_layers", 0),
+                "input_precision": input_precision,
+                "main_output_precision": main_output_precision,
+            }
+        )
         arguments.extend(
             (
                 str((root / report["compiled_model"]).resolve(strict=True)),
@@ -301,7 +339,7 @@ def qualify_qwen3_vl_segment_pipeline_coreml(
         check=False,
         env={"PATH": "/usr/bin:/bin:/usr/sbin:/sbin"},
     )
-    if completed.returncode != 0 or len(completed.stdout) > 16_384:
+    if completed.returncode != 0 or len(completed.stdout) > 131_072:
         raise RuntimeError("Qwen3-VL Core ML pipeline failed: " + completed.stderr[-2048:])
     result = json.loads(completed.stdout)
     runs = result.get("runs")
@@ -317,6 +355,7 @@ def qualify_qwen3_vl_segment_pipeline_coreml(
     for run in runs:
         stages = run.get("stages")
         request_index = run.get("request_index", 0)
+        patch_metrics = run.get("patch", {})
         if (
             not isinstance(stages, list)
             or len(stages) != 4
@@ -324,6 +363,26 @@ def qualify_qwen3_vl_segment_pipeline_coreml(
             or run["peak_rss_bytes"] <= 0
             or type(request_index) is not int
             or not 0 <= request_index < max(1, len(pixel_inputs))
+            or type(run.get("transport_copy_nanoseconds")) is not int
+            or run["transport_copy_nanoseconds"] < 0
+            or type(run.get("transport_write_nanoseconds")) is not int
+            or run["transport_write_nanoseconds"] < 0
+            or not isinstance(patch_metrics, dict)
+            or (
+                pixel_inputs
+                and (
+                    set(patch_metrics)
+                    != {
+                        "pixel_file_read_nanoseconds",
+                        "pixel_to_multiarray_copy_nanoseconds",
+                        "patch_prediction_nanoseconds",
+                    }
+                    or any(
+                        type(value) is not int or value < 0
+                        for value in patch_metrics.values()
+                    )
+                )
+            )
         ):
             raise RuntimeError("Qwen3-VL Core ML pipeline run is invalid")
         for stage in stages:
@@ -356,6 +415,9 @@ def qualify_qwen3_vl_segment_pipeline_coreml(
     return {
         **result,
         "graph_id": graph_id,
+        "precision_profile": precision_profile,
+        "segment_models_load_nanoseconds": result["segment_models_load_nanoseconds"],
+        "patch_model_load_nanoseconds": result["patch_model_load_nanoseconds"],
         "inference_latency_nanoseconds": inference_latencies[-1],
         "inference_latency_samples_nanoseconds": inference_latencies,
         "maximum_peak_rss_bytes": max(run["peak_rss_bytes"] for run in runs),

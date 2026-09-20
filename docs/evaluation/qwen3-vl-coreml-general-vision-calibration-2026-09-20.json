@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "scope": "qwen3_vl_coreml_general_vision_language_calibration",
+  "fixture_profile": {
+    "generator": "scripts/generate_qwen3_vl_calibration_fixtures.py",
+    "image_size": [224, 224],
+    "tasks": [
+      {"task": "shape", "label": "circle"},
+      {"task": "object", "label": "house"},
+      {"task": "ocr", "label": "APPLE"}
+    ]
+  },
+  "languages": ["en", "ja", "zh-Hans"],
+  "stores_generated_text": false,
+  "request_count": 3,
+  "coreml_model_load_count": 5,
+  "coreml_artifacts_reused": true,
+  "isolated_transport_directory_count": 3,
+  "coreml_segment_latency_samples_nanoseconds": [1781548333, 172439916, 174509333],
+  "task_correct_count": 9,
+  "task_case_count": 9,
+  "exact_match_count": 9,
+  "exact_match_case_count": 9,
+  "request_peak_rss_bytes": [2434482176, 2438627328, 2442215424],
+  "request_peak_rss_increment_bytes": [1798111232, 4145152, 3588096],
+  "peak_rss_bytes": 2442215424,
+  "temporary_cleanup_verified": true,
+  "passed": true,
+  "limitations": [
+    "Deterministic synthetic fixtures only",
+    "Fixed 1x16x16 image grid only",
+    "Does not establish open-domain VQA quality"
+  ]
+}
