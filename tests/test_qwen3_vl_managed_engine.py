@@ -1,15 +1,10 @@
 import base64
-import io
 import json
 import threading
 import time
 import unittest
-import urllib.error
 import urllib.request
 from types import SimpleNamespace
-
-import numpy as np
-from PIL import Image
 
 from vllm_apple.api import create_server
 from vllm_apple.inference_request import InferenceRequestContext
@@ -23,9 +18,9 @@ from vllm_apple.service import RuntimeService
 
 
 def png_bytes():
-    output = io.BytesIO()
-    Image.new("RGB", (2, 2), "red").save(output, format="PNG")
-    return output.getvalue()
+    return base64.b64decode(
+        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Y9Z4x8AAAAASUVORK5CYII="
+    )
 
 
 def request_body():
@@ -46,9 +41,38 @@ def request_body():
 class FakeImageProcessor:
     def __call__(self, *, images):
         return {
-            "pixel_values": np.zeros((256, 1536), dtype=np.float16),
-            "image_grid_thw": np.array([[1, 16, 16]]),
+            "pixel_values": FakeArray(size=256 * 1536),
+            "image_grid_thw": FakeArray(values=[1, 16, 16]),
         }
+
+
+class FakeArray:
+    def __init__(self, *, size=0, values=None):
+        self.size = size
+        self.values = values
+
+    def astype(self, dtype):
+        return self
+
+    def reshape(self, *shape):
+        return self
+
+    def tolist(self):
+        return list(self.values)
+
+    def tofile(self, path):
+        path.write_bytes(b"\0" * (self.size * 2))
+
+
+class FakeImage:
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args):
+        return None
+
+    def convert(self, mode):
+        return self
 
 
 class FakeEncoder:
@@ -86,8 +110,8 @@ def delegate(calls):
     processor = SimpleNamespace(image_processor=FakeImageProcessor())
     runtime = Qwen3VLChatRuntime(
         SimpleNamespace(array=lambda value: value),
-        np,
-        Image.open,
+        SimpleNamespace(asarray=lambda value: value, float16="float16"),
+        lambda stream: FakeImage(),
         lambda processor, config, prompt, num_images: f"templated:{prompt}",
         lambda model, processor, prompt, **kwargs: (
             calls.append(("generate", threading.get_ident(), kwargs["max_tokens"]))
