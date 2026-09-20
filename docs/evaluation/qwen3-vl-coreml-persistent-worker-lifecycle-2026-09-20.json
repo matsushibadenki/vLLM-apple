@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "scope": "qwen3_vl_coreml_persistent_worker_lifecycle",
+  "model_load_count": 5,
+  "continuous_prediction_count": 3,
+  "latency_nanoseconds": [52304375, 37516917, 37221375],
+  "peak_rss_bytes": [213843968, 214368256, 214384640],
+  "output_digest_stable": true,
+  "unexpected_restart_count": 0,
+  "graceful_shutdown_clean": true,
+  "running_after_shutdown": false,
+  "failure_injection": {
+    "kind": "worker_process_kill_between_requests",
+    "automatic_restart_count": 1,
+    "output_digest_recovered": true,
+    "shutdown_clean_after_restart": true
+  },
+  "queue": {
+    "kind": "bounded_semaphore",
+    "default_maximum_pending_requests": 8,
+    "maximum_configurable_pending_requests": 64,
+    "serialized_prediction_lock": true
+  },
+  "timeout_behavior": "close worker and fail current request; restart before next request",
+  "passed": true
+}

@@ -216,6 +216,12 @@ from .qwen3_vl_deepstack_coreml import (
 from .qwen3_vl_pipeline_coreml import qualify_qwen3_vl_segment_pipeline_coreml
 from .qwen3_vl_pipeline_coreml import export_qwen3_vl_segment_pipeline_coreml
 from .qwen3_vl_transport import load_qwen3_vl_coreml_transport
+from .qwen3_vl_compute_plan import inspect_qwen3_vl_coreml_compute_plans
+from .qwen3_vl_persistent_worker import Qwen3VLPersistentWorker
+from .qwen3_vl_persistent_encoder import (
+    Qwen3VLPersistentEncoder,
+    publish_qwen3_vl_persistent_transport_manifest,
+)
 from .qwen3_vl_embedding import (
     build_vllm_metal_qwen3_vl_encode_result,
     Qwen3VLCoreMLPipelineOutput,
@@ -337,6 +343,8 @@ __all__ = [
     "Qwen3VLANEGPUPipeline",
     "Qwen3VLCoreMLPipelineOutput",
     "Qwen3VLVisionEmbeddingBundle",
+    "Qwen3VLPersistentEncoder",
+    "Qwen3VLPersistentWorker",
     "DevicePlacementCandidate",
     "DevicePlacementDecision",
     "DevicePlacement",
@@ -356,6 +364,7 @@ __all__ = [
     "UnifiedDeviceResourceLedger",
     "install_contention_profile",
     "inspect_qwen3_vl_vision_for_ane",
+    "inspect_qwen3_vl_coreml_compute_plans",
     "build_qwen3_vl_coreml_conversion_plan",
     "build_vllm_metal_qwen3_vl_encode_result",
     "build_qwen3_vl_coreml_graph_spec",
@@ -385,6 +394,7 @@ __all__ = [
     "qualify_qwen3_vl_segment_pipeline_coreml",
     "export_qwen3_vl_segment_pipeline_coreml",
     "load_qwen3_vl_coreml_transport",
+    "publish_qwen3_vl_persistent_transport_manifest",
     "save_contention_profile",
     "save_qwen3_vl_coreml_conversion",
     "validate_qwen3_vl_vision_embeddings",
