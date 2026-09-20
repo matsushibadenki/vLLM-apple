@@ -167,6 +167,49 @@ class Qwen3VLANEGPUPipeline(Generic[_Result]):
             consume=consume,
         )
 
+    def execute_inline(
+        self,
+        *,
+        grid_thw: tuple[int, int, int],
+        encoder_memory_bytes: int,
+        llm_backend: ExecutionBackend,
+        llm_memory_bytes: int,
+        encode: Callable[
+            [], tuple[object, Sequence[object]] | Qwen3VLCoreMLPipelineOutput
+        ],
+        consume: Callable[[Qwen3VLVisionEmbeddingBundle], _Result],
+    ) -> EncoderLLMPipelineResult[_Result]:
+        """Execute on the caller thread while retaining scheduler reservations."""
+        if not callable(encode) or not callable(consume):
+            raise ValueError("Qwen3-VL encoder and consumer must be callable")
+
+        def checked_encode() -> Qwen3VLVisionEmbeddingBundle:
+            result = encode()
+            if not isinstance(result, Qwen3VLCoreMLPipelineOutput):
+                raise ValueError("Qwen3-VL Core ML output provenance is missing")
+            if (
+                self._coreml_graph_id is None
+                or result.graph_id != self._coreml_graph_id
+                or result.grid_thw != grid_thw
+            ):
+                raise ValueError("Qwen3-VL Core ML output provenance does not match")
+            return validate_qwen3_vl_vision_embeddings(
+                self._source,
+                self._route,
+                grid_thw=grid_thw,
+                hidden_states=result.hidden_states,
+                deepstack_visual_embeds=result.deepstack_visual_embeds,
+            )
+
+        return self._pipeline.execute_inline(
+            self._route,
+            encoder_memory_bytes=encoder_memory_bytes,
+            llm_backend=llm_backend,
+            llm_memory_bytes=llm_memory_bytes,
+            encode=checked_encode,
+            consume=consume,
+        )
+
 
 def build_vllm_metal_qwen3_vl_encode_result(
     bundle: Qwen3VLVisionEmbeddingBundle,

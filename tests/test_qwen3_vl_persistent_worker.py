@@ -1,6 +1,10 @@
 import unittest
+from unittest.mock import Mock, patch
 
-from vllm_apple.qwen3_vl_persistent_worker import _VISION_WORKER_PROGRAM
+from vllm_apple.qwen3_vl_persistent_worker import (
+    Qwen3VLPersistentWorker,
+    _VISION_WORKER_PROGRAM,
+)
 
 
 class Qwen3VLPersistentWorkerTests(unittest.TestCase):
@@ -10,6 +14,17 @@ class Qwen3VLPersistentWorkerTests(unittest.TestCase):
         self.assertIn('operation == "predict"', _VISION_WORKER_PROGRAM)
         self.assertIn('"peak_rss_bytes"', _VISION_WORKER_PROGRAM)
         self.assertIn("autoreleasepool", _VISION_WORKER_PROGRAM)
+
+    def test_invalid_json_stops_worker_before_error(self):
+        worker = object.__new__(Qwen3VLPersistentWorker)
+        worker._timeout = 1
+        worker._process = Mock()
+        worker._process.stdout.readline.return_value = b"not-json\n"
+        worker._stop = Mock()
+        with patch("select.select", return_value=([worker._process.stdout], [], [])):
+            with self.assertRaisesRegex(RuntimeError, "invalid JSON"):
+                worker._read()
+        worker._stop.assert_called_once_with()
 
 
 if __name__ == "__main__":

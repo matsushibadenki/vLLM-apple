@@ -185,6 +185,8 @@ class DevicePipelineTests(unittest.TestCase):
         self.assertEqual(self.ledger.snapshot()["active_reservations"], 0)
 
     def test_async_pipeline_releases_ane_reservation_when_encoder_fails(self):
+        consumed = []
+
         def fail():
             raise RuntimeError("encoder failed")
 
@@ -196,10 +198,67 @@ class DevicePipelineTests(unittest.TestCase):
                 llm_backend=ExecutionBackend.VLLM_METAL,
                 llm_memory_bytes=30,
                 encode=fail,
-                consume=lambda value: value,
+                consume=lambda value: consumed.append(value),
             )
             with self.assertRaisesRegex(RuntimeError, "encoder failed"):
                 future.result(timeout=2)
+        self.assertEqual(consumed, [])
+        self.assertEqual(self.ledger.snapshot()["active_reservations"], 0)
+
+    def test_async_pipeline_rejects_work_beyond_bounded_queue(self):
+        registry, route = self.ane_route()
+        entered = threading.Event()
+        release = threading.Event()
+
+        def block():
+            entered.set()
+            self.assertTrue(release.wait(timeout=2))
+            return "encoded"
+
+        with AsyncEncoderLLMPipeline(
+            self.ledger, registry, maximum_pending=1
+        ) as pipeline:
+            first = pipeline.submit(
+                route,
+                encoder_memory_bytes=20,
+                llm_backend=ExecutionBackend.NATIVE_MLX,
+                llm_memory_bytes=30,
+                encode=block,
+                consume=lambda value: value,
+            )
+            self.assertTrue(entered.wait(timeout=2))
+            with self.assertRaisesRegex(RuntimeError, "queue is full"):
+                pipeline.submit(
+                    route,
+                    encoder_memory_bytes=20,
+                    llm_backend=ExecutionBackend.NATIVE_MLX,
+                    llm_memory_bytes=30,
+                    encode=lambda: "second",
+                    consume=lambda value: value,
+                )
+            release.set()
+            self.assertEqual(first.result(timeout=2).output, "encoded")
+        self.assertEqual(self.ledger.snapshot()["active_reservations"], 0)
+
+    def test_inline_pipeline_keeps_thread_affine_consumer_on_caller(self):
+        registry, route = self.ane_route()
+        caller = threading.get_ident()
+        observed = []
+        with AsyncEncoderLLMPipeline(self.ledger, registry) as pipeline:
+            result = pipeline.execute_inline(
+                route,
+                encoder_memory_bytes=20,
+                llm_backend=ExecutionBackend.NATIVE_MLX,
+                llm_memory_bytes=30,
+                encode=lambda: "encoded",
+                consume=lambda value: observed.append(
+                    (threading.get_ident(), self.ledger.snapshot()["used"].copy())
+                ) or f"{value}-generated",
+            )
+        self.assertEqual(result.output, "encoded-generated")
+        self.assertEqual(observed[0][0], caller)
+        self.assertEqual(observed[0][1]["ane_tasks"], 0)
+        self.assertEqual(observed[0][1]["gpu_command_queues"], 1)
         self.assertEqual(self.ledger.snapshot()["active_reservations"], 0)
 
     def test_async_pipeline_rejects_cpu_as_llm_stage(self):

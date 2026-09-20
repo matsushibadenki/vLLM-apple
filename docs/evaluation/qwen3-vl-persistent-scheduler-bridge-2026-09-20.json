@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "scope": "qwen3_vl_persistent_coreml_homebrew_mlx_scheduler_bridge",
+  "graph_id": "67c2fb85c368cc8a50d30908cb3970b65c486d76f9bd50bed8a21aec5e259e13",
+  "transport": {
+    "manifest_private": true,
+    "worker_digest_reverified": true,
+    "payload_count": 4,
+    "payload_shape": [64, 2048],
+    "payload_dtype": "mlx.core.float16"
+  },
+  "vllm_metal_abi": {
+    "type": "Qwen3VLVisionEncodeResult",
+    "hidden_shape": [64, 2048],
+    "deepstack_count": 3,
+    "deepstack_shapes": [[64, 2048], [64, 2048], [64, 2048]]
+  },
+  "scheduler": {
+    "encoder_backend": "coreml_draft",
+    "llm_backend": "native_mlx",
+    "capability_id": "a9186b4cda8c5cfb88f73489",
+    "encoder_memory_reservation_bytes": 216449024,
+    "llm_memory_reservation_bytes": 1000000000,
+    "resources_after_completion": {
+      "unified_memory_bytes": 0,
+      "cpu_threads": 0,
+      "gpu_command_queues": 0,
+      "ane_tasks": 0,
+      "bandwidth_slots": 0
+    }
+  },
+  "worker_restart_count": 0,
+  "shutdown_clean": true,
+  "passed": true
+}

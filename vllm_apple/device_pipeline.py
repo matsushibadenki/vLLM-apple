@@ -223,6 +223,53 @@ class AsyncEncoderLLMPipeline:
         future.add_done_callback(lambda _future: self._slots.release())
         return future
 
+    def execute_inline(
+        self,
+        route: ANEAuxiliaryRoute,
+        *,
+        encoder_memory_bytes: int,
+        llm_backend: ExecutionBackend,
+        llm_memory_bytes: int,
+        encode: Callable[[], object],
+        consume: Callable[[object], _Result],
+    ) -> EncoderLLMPipelineResult[_Result]:
+        """Run a scheduled request on the caller thread for thread-affine runtimes."""
+        if (
+            not isinstance(route, ANEAuxiliaryRoute)
+            or llm_backend not in self._GPU_BACKENDS
+            or type(encoder_memory_bytes) is not int
+            or type(llm_memory_bytes) is not int
+            or encoder_memory_bytes < 0
+            or llm_memory_bytes < 0
+            or not callable(encode)
+            or not callable(consume)
+        ):
+            raise ValueError("invalid encoder LLM pipeline request")
+        current_route = require_ane_auxiliary_route(
+            self._capability_registry,
+            workload=route.workload,
+            operator=route.operator,
+            precision=route.precision,
+        )
+        if current_route.capability_id != route.capability_id:
+            raise RuntimeError("ANE auxiliary capability evidence is stale")
+        with self._lock:
+            if self._closed:
+                raise RuntimeError("encoder LLM pipeline is closed")
+            if not self._slots.acquire(blocking=False):
+                raise RuntimeError("encoder LLM pipeline queue is full")
+        try:
+            return self._execute(
+                route,
+                encoder_memory_bytes,
+                llm_backend,
+                llm_memory_bytes,
+                encode,
+                consume,
+            )
+        finally:
+            self._slots.release()
+
     def _execute(
         self,
         route: ANEAuxiliaryRoute,

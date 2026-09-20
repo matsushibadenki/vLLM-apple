@@ -14,7 +14,7 @@ from .qwen3_vl_persistent_worker import Qwen3VLPersistentWorker
 from .qwen3_vl_transport import load_qwen3_vl_coreml_transport
 
 
-_OUTPUT_NAMES = ("final", "deepstack_0", "deepstack_1", "deepstack_2")
+_OUTPUT_NAMES = ("deepstack_0", "deepstack_1", "deepstack_2", "final")
 _OUTPUT_BYTES = 64 * 2048 * 2
 
 

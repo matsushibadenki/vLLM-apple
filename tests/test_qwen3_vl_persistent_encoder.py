@@ -24,6 +24,10 @@ class Qwen3VLPersistentEncoderTests(unittest.TestCase):
             )
             self.assertEqual(manifest["graph_id"], "a" * 64)
             self.assertEqual(len(manifest["records"]), 4)
+            self.assertEqual(
+                [record["name"] for record in manifest["records"]],
+                ["deepstack_0", "deepstack_1", "deepstack_2", "final"],
+            )
             self.assertEqual((root / "manifest.json").stat().st_mode & 0o777, 0o600)
 
     def test_digest_mismatch_fails_before_manifest_publish(self):

@@ -154,7 +154,13 @@ class Qwen3VLPersistentWorker:
         if not line or len(line) > 65_536 or not line.endswith(b"\n"):
             self._stop()
             raise RuntimeError("Qwen3-VL persistent worker returned invalid output")
-        payload = json.loads(line)
+        try:
+            payload = json.loads(line)
+        except json.JSONDecodeError as error:
+            self._stop()
+            raise RuntimeError(
+                "Qwen3-VL persistent worker returned invalid JSON"
+            ) from error
         if not isinstance(payload, dict):
             raise RuntimeError("Qwen3-VL persistent worker returned invalid output")
         return payload
@@ -187,8 +193,12 @@ class Qwen3VLPersistentWorker:
                     },
                     separators=(",", ":"),
                 ).encode() + b"\n"
-                self._process.stdin.write(request)
-                self._process.stdin.flush()
+                try:
+                    self._process.stdin.write(request)
+                    self._process.stdin.flush()
+                except (BrokenPipeError, OSError) as error:
+                    self._stop()
+                    raise RuntimeError("Qwen3-VL persistent worker exited") from error
                 payload = self._read()
                 if (
                     payload.get("status") != "ok"

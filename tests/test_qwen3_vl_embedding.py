@@ -200,6 +200,33 @@ class Qwen3VLEmbeddingTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "provenance is missing"):
                 future.result(timeout=2)
 
+    def test_inline_bridge_validates_provenance_and_runs_consumer(self):
+        graph_id = "e" * 64
+        output = Qwen3VLCoreMLPipelineOutput(
+            FakeTensor((4, 24)),
+            (FakeTensor((4, 24)), FakeTensor((4, 24))),
+            (1, 4, 4),
+            graph_id,
+        )
+        with AsyncEncoderLLMPipeline(self.ledger, self.registry) as pipeline:
+            bridge = Qwen3VLANEGPUPipeline(
+                pipeline,
+                source=self.source,
+                conversion=self.conversion,
+                route=self.route,
+                coreml_graph_id=graph_id,
+            )
+            result = bridge.execute_inline(
+                grid_thw=(1, 4, 4),
+                encoder_memory_bytes=20,
+                llm_backend=ExecutionBackend.NATIVE_MLX,
+                llm_memory_bytes=30,
+                encode=lambda: output,
+                consume=lambda bundle: bundle.token_count,
+            )
+        self.assertEqual(result.output, 4)
+        self.assertEqual(self.ledger.snapshot()["active_reservations"], 0)
+
     def test_builds_exact_vllm_metal_qwen3_vl_result(self):
         hidden = FakeTensor((4, 24))
         deepstack = (FakeTensor((4, 24)), FakeTensor((4, 24)))
