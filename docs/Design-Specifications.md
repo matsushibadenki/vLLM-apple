@@ -2283,7 +2283,7 @@ batch plannerを実装した。Resize、Normalize、Patchify、Projectionを単�
 
 ## Phase 5 — Audio
 
-状態：`[Later]`
+状態：`[Next]`
 
 実装：
 
@@ -2295,6 +2295,18 @@ audio ring buffer
 real-time scheduler
 speech-to-speech foundation
 ```
+
+最初の実装境界として、callback側で明示lock、blocking I/O、buffer拡張を行わない
+preallocated SPSC ring bufferを実装した。overflowでは未読音声を上書きせず、新規frameを拒否して
+telemetryへ記録する。後段にはchunk境界で位相を維持するmulti-channel linear resamplerと、
+全波形を保持しないstreaming log-band feature encoderを用意した。chunk sequence、resampler
+位相、feature window、累積frame、named recurrent stateをbounded sessionへ結合し、session数制限、
+明示close、idle reap時のstate消去まで実装した。さらにREALTIME／INTERACTIVE／BACKGROUNDの
+priority class内EDF、推定実行時間によるdeadline admission、cancel、期限切れtask非実行、
+lateness telemetryを持つbounded schedulerをcallback外へ配置した。ordered PCMからresample、feature、
+deadline scheduling、backend-neutral ASR worker、bounded transcriptまでを接続し、結果のlanguage、
+時間範囲、confidence、文字数、final markerを検証する。実ASR modelは未認定であり、次はaudio
+encoder cacheへ進む。
 
 ---
 

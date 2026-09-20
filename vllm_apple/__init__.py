@@ -1,5 +1,33 @@
 """Public package surface for vLLM-Apple."""
 
+from .audio_ring_buffer import AudioRingBuffer, AudioRingBufferSnapshot
+from .audio_preprocessing import (
+    AudioFeatureFrame,
+    StreamingLinearResampler,
+    StreamingLogBandEncoder,
+)
+from .audio_streaming_state import (
+    AudioStreamSnapshot,
+    AudioStreamUpdate,
+    StreamingAudioSession,
+    StreamingAudioSessionRegistry,
+)
+from .audio_deadline_scheduler import (
+    AudioDeadlineScheduler,
+    AudioScheduledTask,
+    AudioSchedulerSnapshot,
+    AudioSchedulingPriority,
+    AudioTaskOutcome,
+)
+from .asr_integration import (
+    ASRBackend,
+    ASRSubmission,
+    ASRTranscript,
+    ASRWorkItem,
+    CallableASRBackend,
+    StreamingASRIntegrator,
+)
+
 from .backend_tuning import (
     BackendKernelTuningAdapter,
     BackendTuningSnapshot,
@@ -337,6 +365,26 @@ from .vllm_metal_v2_adapter import (
 )
 
 __all__ = [
+    "AudioRingBuffer",
+    "AudioRingBufferSnapshot",
+    "AudioFeatureFrame",
+    "AudioDeadlineScheduler",
+    "AudioScheduledTask",
+    "AudioSchedulerSnapshot",
+    "AudioSchedulingPriority",
+    "AudioTaskOutcome",
+    "ASRBackend",
+    "ASRSubmission",
+    "ASRTranscript",
+    "ASRWorkItem",
+    "CallableASRBackend",
+    "AudioStreamSnapshot",
+    "AudioStreamUpdate",
+    "StreamingLinearResampler",
+    "StreamingLogBandEncoder",
+    "StreamingAudioSession",
+    "StreamingAudioSessionRegistry",
+    "StreamingASRIntegrator",
     "ANEAuxiliaryRoute",
     "ANEAuxiliaryWorkload",
     "AsyncEncoderLLMPipeline",

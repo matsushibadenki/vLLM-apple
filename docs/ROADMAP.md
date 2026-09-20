@@ -739,12 +739,12 @@ fallback、fusion、stress、および大容量model向け再現可能qualificat
 
 ## Phase 5 — Audio
 
-- `[Later]` audio ring buffer
-- `[Later]` resamplerとfeature encoder
-- `[Later]` streaming audio state
-- `[Later]` REALTIME priorityとdeadline scheduler
-- `[Later]` ASR integration
-- `[Later]` audio encoder cache
+- `[Done]` fixed-capacity、preallocated、non-blocking SPSC audio ring buffer。interleaved multi-channel wraparound、overflow時の未読sample保護、underrun／overflow／resident frame telemetryを実装し、producer／consumer pathでは明示lockとI/Oを使用しない
+- `[Done]` chunk境界を保持するbounded multi-channel linear resamplerと、全波形を保持しないstreaming log-band feature encoder。連続入力と分割入力の同一性、有限値、retained state上限を検証
+- `[Done]` bounded streaming audio session state。chunk sequence、resampler位相、feature window、累積input／resampled frame、named recurrent stateをsession単位で保持し、欠落／重複chunk、終了後入力、duration／state byte超過を拒否。registryはsession数制限、明示close、idle reapでstateを消去
+- `[Done]` admission-controlled REALTIME／INTERACTIVE／BACKGROUND priorityとdeadline scheduler。priority class内EDF、推定実行時間を含むdeadline admission、重複／capacity拒否、cancel、期限切れtaskの非実行、late completion／最大lateness telemetryを実装。audio callback外でlockとtask実行を管理
+- `[Done]` backend-neutral streaming ASR integration contract。ordered PCM→resample→feature→deadline scheduler→ASR backend→bounded transcriptを接続し、empty intermediate chunk、deadline admission failure、期限切れ非実行、language／時間範囲／confidence／文字数／final markerを検証。実ASR modelのqualificationは未実施で昇格しない
+- `[Next]` audio encoder cache
 - `[Later]` speech-to-speech foundation
 - `[Later]` dropout、latency、real-time factor benchmark
 
