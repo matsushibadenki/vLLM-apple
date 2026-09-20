@@ -8,6 +8,7 @@ import stat
 import threading
 import time
 import uuid
+import select
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from typing import Any
@@ -16,6 +17,11 @@ from .auth import SessionAuthenticator
 from .backend import BackendHTTPError
 from .events import RuntimeEvent, SubscriptionLimitError
 from .memory_admission import MemoryPressureAdmissionError
+from .inference_request import (
+    InferenceEngineBusy,
+    InferenceRequestCancelled,
+    InferenceRequestContext,
+)
 from .scheduler import MaintenanceInProgressError
 from .observability import (
     REQUEST_ID_HEADER,
@@ -28,6 +34,22 @@ from .service import InferenceUnavailableError, RuntimeService
 from .version import API_VERSION, MINIMUM_CLIENT_VERSION, SCHEMA_VERSION, __version__
 
 MAX_REQUEST_BYTES = 4 * 1024 * 1024
+
+
+class _SocketCancellationSignal:
+    """Non-consuming peer-disconnect probe evaluated at engine safe points."""
+
+    def __init__(self, connection: socket.socket) -> None:
+        self._connection = connection
+
+    def is_set(self) -> bool:
+        try:
+            readable, _, _ = select.select((self._connection,), (), (), 0)
+            if not readable:
+                return False
+            return self._connection.recv(1, socket.MSG_PEEK) == b""
+        except (OSError, ValueError):
+            return True
 
 
 def _metadata() -> dict[str, Any]:
@@ -412,8 +434,29 @@ class RuntimeRequestHandler(BaseHTTPRequestHandler):
                 "native v2 tuning is applying at an idle scheduler safe point",
             )
             return
+        request_context = InferenceRequestContext(
+            self._request_id(),
+            time.monotonic() + self.server._socket_timeout,
+            _SocketCancellationSignal(self.connection),
+        )
         try:
-            response = self.server.service.chat_completions(request, reservation)
+            response = self.server.service.chat_completions_with_request_context(
+                request,
+                reservation,
+                request_context,
+            )
+        except InferenceRequestCancelled as error:
+            if request_context.cancellation.is_set():
+                self._record_request(499, error_code="client_disconnected")
+                return
+            self._error(HTTPStatus.REQUEST_TIMEOUT, "request_cancelled", str(error))
+            return
+        except InferenceEngineBusy as error:
+            self._error(HTTPStatus.SERVICE_UNAVAILABLE, "engine_busy", str(error))
+            return
+        except ValueError as error:
+            self._error(HTTPStatus.BAD_REQUEST, "invalid_request", str(error))
+            return
         except InferenceUnavailableError as error:
             self._error(HTTPStatus.SERVICE_UNAVAILABLE, "backend_unavailable", str(error))
             return
@@ -656,12 +699,14 @@ def create_server(
     service: RuntimeService | None = None,
     max_concurrent_requests: int = 32,
     session_token: str | None = None,
+    socket_timeout: float = 30.0,
 ) -> RuntimeHTTPServer:
     return RuntimeHTTPServer(
         (host, port),
         service or RuntimeService(),
         max_concurrent_requests=max_concurrent_requests,
         session_token=session_token,
+        socket_timeout=socket_timeout,
     )
 
 
@@ -670,10 +715,12 @@ def create_unix_server(
     service: RuntimeService,
     max_concurrent_requests: int = 32,
     session_token: str | None = None,
+    socket_timeout: float = 30.0,
 ) -> RuntimeUnixHTTPServer:
     return RuntimeUnixHTTPServer(
         socket_path,
         service,
         max_concurrent_requests=max_concurrent_requests,
         session_token=session_token,
+        socket_timeout=socket_timeout,
     )

@@ -12,6 +12,7 @@ from typing import Generic, TypeVar
 from .device_capability import DeviceCapabilityRegistry, DeviceEligibilityRequest
 from .device_resources import DeviceResourceRequest, UnifiedDeviceResourceLedger
 from .execution import ExecutionBackend, WorkloadPhase
+from .inference_request import InferenceRequestContext
 
 _Result = TypeVar("_Result")
 
@@ -232,6 +233,7 @@ class AsyncEncoderLLMPipeline:
         llm_memory_bytes: int,
         encode: Callable[[], object],
         consume: Callable[[object], _Result],
+        request_context: InferenceRequestContext | None = None,
     ) -> EncoderLLMPipelineResult[_Result]:
         """Run a scheduled request on the caller thread for thread-affine runtimes."""
         if (
@@ -259,16 +261,31 @@ class AsyncEncoderLLMPipeline:
             if not self._slots.acquire(blocking=False):
                 raise RuntimeError("encoder LLM pipeline queue is full")
         try:
+            if request_context is not None:
+                request_context.raise_if_cancelled()
             return self._execute(
                 route,
                 encoder_memory_bytes,
                 llm_backend,
                 llm_memory_bytes,
                 encode,
-                consume,
+                consume if request_context is None else lambda value: self._consume_checked(
+                    request_context, consume, value
+                ),
             )
         finally:
             self._slots.release()
+
+    @staticmethod
+    def _consume_checked(
+        request_context: InferenceRequestContext,
+        consume: Callable[[object], _Result],
+        value: object,
+    ) -> _Result:
+        request_context.raise_if_cancelled()
+        result = consume(value)
+        request_context.raise_if_cancelled()
+        return result
 
     def _execute(
         self,

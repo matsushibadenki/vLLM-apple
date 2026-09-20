@@ -12,6 +12,7 @@ from .device_pipeline import (
     EncoderLLMPipelineResult,
 )
 from .execution import ExecutionBackend
+from .inference_request import InferenceRequestContext
 from .qwen3_vl_ane import Qwen3VLVisionANEAdapterSpec
 from .qwen3_vl_coreml import Qwen3VLCoreMLConversionManifest
 
@@ -178,6 +179,7 @@ class Qwen3VLANEGPUPipeline(Generic[_Result]):
             [], tuple[object, Sequence[object]] | Qwen3VLCoreMLPipelineOutput
         ],
         consume: Callable[[Qwen3VLVisionEmbeddingBundle], _Result],
+        request_context: InferenceRequestContext | None = None,
     ) -> EncoderLLMPipelineResult[_Result]:
         """Execute on the caller thread while retaining scheduler reservations."""
         if not callable(encode) or not callable(consume):
@@ -208,6 +210,7 @@ class Qwen3VLANEGPUPipeline(Generic[_Result]):
             llm_memory_bytes=llm_memory_bytes,
             encode=checked_encode,
             consume=consume,
+            request_context=request_context,
         )
 
 

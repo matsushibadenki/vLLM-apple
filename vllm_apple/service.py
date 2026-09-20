@@ -22,6 +22,7 @@ from .device_placement import DevicePlacementPlan
 from .device_contention import ContentionProfile, install_contention_profile
 from .kernel_context import InferenceKernelContext, PagedAttentionKernelSelection
 from .kernel_profile import PagedAttentionShape
+from .inference_request import InferenceRequestContext
 from .metal_probe import MetalThreadConfiguration
 from .metal_tuning import MetalTuningReport
 from .memory_telemetry import MemoryTelemetrySnapshot, UnifiedMemoryTelemetry
@@ -245,6 +246,7 @@ class RuntimeService:
             "safety_margin_ratio": None,
         }
         self.engine = engine or UnavailableInferenceEngine()
+        self._engine_closed = False
         self.semantic_state = semantic_state
         self.elastic_memory = (
             ElasticMemoryController(semantic_state) if semantic_state is not None else None
@@ -255,6 +257,18 @@ class RuntimeService:
             "runtime.state",
             {"state": self._state.value, "inference_ready": self.engine.ready},
         )
+
+    def close(self) -> bool:
+        """Close an owned inference engine exactly once during daemon shutdown."""
+        with self._lock:
+            if self._engine_closed:
+                return True
+            self._engine_closed = True
+        close = getattr(self.engine, "close", None)
+        if not callable(close):
+            return True
+        result = close()
+        return result is not False
 
     @property
     def state(self) -> RuntimeState:
@@ -982,6 +996,23 @@ class RuntimeService:
             )
 
     def chat_completions(self, request: dict[str, Any], reservation: Reservation) -> dict[str, Any]:
+        return self.chat_completions_with_request_context(request, reservation, None)
+
+    def chat_completions_with_request_context(
+        self,
+        request: dict[str, Any],
+        reservation: Reservation,
+        request_context: InferenceRequestContext | None,
+    ) -> dict[str, Any]:
+        managed_method = getattr(
+            self.engine, "chat_completions_with_request_context", None
+        )
+        if callable(managed_method) and request_context is not None:
+            return managed_method(
+                request,
+                self.inference_kernel_context(reservation),
+                request_context,
+            )
         context_method = getattr(self.engine, "chat_completions_with_context", None)
         if callable(context_method):
             return context_method(request, self.inference_kernel_context(reservation))

@@ -20,6 +20,7 @@ from vllm_apple.device_resources import (
     UnifiedDeviceResourceLedger,
 )
 from vllm_apple.execution import ExecutionBackend, WorkloadPhase
+from vllm_apple.inference_request import InferenceRequestCancelled, InferenceRequestContext
 
 
 class DevicePipelineTests(unittest.TestCase):
@@ -259,6 +260,32 @@ class DevicePipelineTests(unittest.TestCase):
         self.assertEqual(observed[0][0], caller)
         self.assertEqual(observed[0][1]["ane_tasks"], 0)
         self.assertEqual(observed[0][1]["gpu_command_queues"], 1)
+        self.assertEqual(self.ledger.snapshot()["active_reservations"], 0)
+
+    def test_inline_pipeline_checks_cancellation_between_ane_and_gpu(self):
+        registry, route = self.ane_route()
+        cancelled = threading.Event()
+        consumed = []
+
+        def encode():
+            cancelled.set()
+            return "encoded"
+
+        context = InferenceRequestContext(
+            "request-123", time.monotonic() + 2, cancelled
+        )
+        with AsyncEncoderLLMPipeline(self.ledger, registry) as pipeline:
+            with self.assertRaises(InferenceRequestCancelled):
+                pipeline.execute_inline(
+                    route,
+                    encoder_memory_bytes=20,
+                    llm_backend=ExecutionBackend.NATIVE_MLX,
+                    llm_memory_bytes=30,
+                    encode=encode,
+                    consume=lambda value: consumed.append(value),
+                    request_context=context,
+                )
+        self.assertEqual(consumed, [])
         self.assertEqual(self.ledger.snapshot()["active_reservations"], 0)
 
     def test_async_pipeline_rejects_cpu_as_llm_stage(self):

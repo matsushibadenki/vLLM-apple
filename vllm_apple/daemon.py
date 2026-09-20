@@ -1121,6 +1121,7 @@ def serve(
             backend.stop()
         if launch_thread is not None:
             launch_thread.join(timeout=2.0)
+        service.close()
         service.set_state(RuntimeState.STOPPED)
 
 
