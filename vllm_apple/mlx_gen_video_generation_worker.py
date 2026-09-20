@@ -88,11 +88,22 @@ class LocalMLXGenVideoRuntime:
         ]
         backend = self._module_loader("mflux.cli.mlx_gen")
         previous_argv = sys.argv
-        sink = _BoundedProgressSink(progress)
+        sink = _BoundedProgressSink(
+            progress,
+            ignored_prefixes=(
+                "Saving video to:",
+                "Saved video to:",
+                "⚠️  Normalizing Wan q8 runtime-sensitive paths to BF16 at load:",
+            ),
+        )
         try:
             sys.argv = argv
             with redirect_stdout(sink):
-                backend.main()
+                try:
+                    backend.main()
+                except SystemExit as error:
+                    if error.code not in (None, 0):
+                        raise
             sink.finish()
             if not output.is_file() or output.is_symlink():
                 raise RuntimeError("MLX-Gen did not produce the requested local video")
@@ -116,6 +127,7 @@ def execute_mlx_gen_video_request(request, runtime, *, telemetry, emit, clock=No
         "backend_name": "MLX-Gen",
         "telemetry": telemetry,
         "emit": emit,
+        "enforce_memory_ceiling_during_generation": False,
     }
     if clock is not None:
         arguments["clock"] = clock
@@ -147,8 +159,15 @@ def main(argv: list[str] | None = None) -> int:
             emit=emit,
         )
     except (ImportError, MemoryError, OSError, RuntimeError, SystemExit, ValueError) as error:
+        detail = str(error).replace("\n", " ").replace("\r", " ")[:512]
         print(
-            "\n" + json.dumps({"vllm_apple_error_code": _failure_code(error)}),
+            "\n"
+            + json.dumps(
+                {
+                    "vllm_apple_error_code": _failure_code(error),
+                    "vllm_apple_error_detail": detail or type(error).__name__,
+                }
+            ),
             file=sys.stderr,
             flush=True,
         )

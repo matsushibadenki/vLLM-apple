@@ -55,15 +55,19 @@ def _failure_code(error: BaseException) -> str:
     if isinstance(error, OSError):
         return "backend_io_error"
     if isinstance(error, SystemExit):
-        return "backend_system_exit"
+        code = error.code if isinstance(error.code, int) else 1
+        return f"backend_system_exit_{code}"
     if isinstance(error, ValueError):
         return "request_or_output_validation_error"
     return "backend_runtime_error"
 
 
 class _BoundedProgressSink(io.TextIOBase):
-    def __init__(self, progress: Callable[[], None]) -> None:
+    def __init__(
+        self, progress: Callable[[], None], *, ignored_prefixes: tuple[str, ...] = ()
+    ) -> None:
         self._progress = progress
+        self._ignored_prefixes = ignored_prefixes
         self._buffer = ""
         self._events = 0
 
@@ -91,6 +95,8 @@ class _BoundedProgressSink(io.TextIOBase):
 
     def _consume(self, line: str) -> None:
         if not line.strip():
+            return
+        if any(line.startswith(prefix) for prefix in self._ignored_prefixes):
             return
         self._events += 1
         if self._events > MAX_BACKEND_EVENTS:

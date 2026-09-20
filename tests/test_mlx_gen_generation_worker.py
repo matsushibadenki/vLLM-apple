@@ -245,6 +245,15 @@ class MLXGenGenerationWorkerTests(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError, "non-JSON"):
             sink.write("unsafe diagnostic\n")
 
+    def test_progress_sink_allows_only_explicit_video_status_lines(self) -> None:
+        sink = _BoundedProgressSink(
+            lambda: None, ignored_prefixes=("Saving video to:", "Saved video to:")
+        )
+        sink.write("Saving video to: /private/output.mp4\n")
+        sink.write("Saved video to: /private/output.mp4\n")
+        with self.assertRaisesRegex(RuntimeError, "non-JSON"):
+            sink.write("unexpected backend text\n")
+
     def test_failure_code_distinguishes_the_worker_memory_ceiling(self) -> None:
         self.assertEqual(
             _failure_code(MemoryError("Generative worker exceeded its memory hard ceiling")),
@@ -255,6 +264,7 @@ class MLXGenGenerationWorkerTests(unittest.TestCase):
             _failure_code(MLXGenMemoryProfileError("blockwise_materialization_failed")),
             "blockwise_materialization_failed",
         )
+        self.assertEqual(_failure_code(SystemExit(2)), "backend_system_exit_2")
 
 
 if __name__ == "__main__":

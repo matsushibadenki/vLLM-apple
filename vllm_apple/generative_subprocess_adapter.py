@@ -19,6 +19,7 @@ MAX_STDERR_TAIL_BYTES = 4 * 1024
 MAX_COMMAND_ARGUMENTS = 256
 _EVENT_FIELDS = frozenset(field.name for field in fields(GenerationTelemetryEvent))
 _DIAGNOSTIC_FIELD = "vllm_apple_error_code"
+_DIAGNOSTIC_DETAIL_FIELD = "vllm_apple_error_detail"
 
 
 class GenerativeSubprocessAdapterError(RuntimeError):
@@ -117,8 +118,13 @@ class SubprocessGenerativeTelemetryAdapter:
                 yield self._decode_event(bytes(buffer))
             return_code = process.wait(timeout=1)
             if return_code != 0:
-                diagnostic = self._diagnostic_code(bytes(stderr_tail))
-                detail = f": {diagnostic}" if diagnostic is not None else ""
+                diagnostic = self._diagnostic(bytes(stderr_tail))
+                detail = ""
+                if diagnostic is not None:
+                    code, error_detail = diagnostic
+                    detail = f": {code}"
+                    if error_detail is not None:
+                        detail += f" ({error_detail})"
                 raise GenerativeSubprocessAdapterError(
                     f"generative backend exited with status {return_code}{detail}"
                 )
@@ -130,13 +136,17 @@ class SubprocessGenerativeTelemetryAdapter:
                 self._terminate(process)
 
     @staticmethod
-    def _diagnostic_code(raw: bytes) -> str | None:
-        for line in reversed(raw.splitlines()):
+    def _diagnostic(raw: bytes) -> tuple[str, str | None] | None:
+        lines = raw.splitlines()
+        for index in range(len(lines) - 1, -1, -1):
+            line = lines[index]
             try:
                 payload = json.loads(line.decode("utf-8"))
             except (UnicodeDecodeError, json.JSONDecodeError):
                 continue
-            if not isinstance(payload, dict) or set(payload) != {_DIAGNOSTIC_FIELD}:
+            if not isinstance(payload, dict) or not set(payload).issubset(
+                {_DIAGNOSTIC_FIELD, _DIAGNOSTIC_DETAIL_FIELD}
+            ) or _DIAGNOSTIC_FIELD not in payload:
                 continue
             code = payload.get(_DIAGNOSTIC_FIELD)
             if (
@@ -144,8 +154,48 @@ class SubprocessGenerativeTelemetryAdapter:
                 and 1 <= len(code) <= 64
                 and all(character.islower() or character.isdigit() or character == "_" for character in code)
             ):
-                return code
+                detail = payload.get(_DIAGNOSTIC_DETAIL_FIELD)
+                if detail is not None and (
+                    not isinstance(detail, str)
+                    or not 1 <= len(detail.encode("utf-8")) <= 512
+                    or any(not character.isprintable() for character in detail)
+                ):
+                    detail = None
+                if detail in {None, "1", "SystemExit"}:
+                    detail = SubprocessGenerativeTelemetryAdapter._backend_failure_detail(
+                        lines[:index]
+                    ) or detail
+                return code, detail
         return None
+
+    @staticmethod
+    def _backend_failure_detail(lines: Sequence[bytes]) -> str | None:
+        plain_fallback = None
+        for line in reversed(lines):
+            try:
+                decoded = line.decode("utf-8")
+            except (UnicodeDecodeError, json.JSONDecodeError):
+                continue
+            if (
+                plain_fallback is None
+                and 1 <= len(decoded.encode("utf-8")) <= 512
+                and all(character.isprintable() for character in decoded)
+            ):
+                plain_fallback = decoded
+            try:
+                payload = json.loads(decoded)
+            except json.JSONDecodeError:
+                continue
+            if not isinstance(payload, dict) or payload.get("phase") != "failed":
+                continue
+            detail = payload.get("error")
+            if (
+                isinstance(detail, str)
+                and 1 <= len(detail.encode("utf-8")) <= 512
+                and all(character.isprintable() for character in detail)
+            ):
+                return detail
+        return plain_fallback
 
     def _decode_event(self, raw: bytes) -> GenerationTelemetryEvent:
         if not raw or len(raw) > self.max_line_bytes:

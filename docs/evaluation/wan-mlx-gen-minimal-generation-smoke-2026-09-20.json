@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "candidate_id": "wan2.2-ti2v-5b",
+  "model_path": "models/wan2.2-ti2v-5b-diffusers-8bit",
+  "backend": "mlx-gen",
+  "backend_version": "0.33.1",
+  "hardware": "Apple M4 32GB",
+  "profile": {
+    "mode": "text-to-video",
+    "width": 640,
+    "height": 384,
+    "frames": 33,
+    "steps": 20,
+    "fps": 16,
+    "batch_size": 1,
+    "low_ram": true,
+    "release_inactive_denoiser": true,
+    "seed": 42
+  },
+  "output": {
+    "width": 640,
+    "height": 384,
+    "frames": 33,
+    "duration_seconds": 2.0625,
+    "bytes": 213484,
+    "sha256": "884fb057f395093fbde8f4cd2d9560d8e1c9b57f3ddaf262a85de3ff0694607b",
+    "retained": false
+  },
+  "memory_pressure_during_run": "normal",
+  "maximum_thermal_state_observed": "fair",
+  "denoise_steps_completed": 20,
+  "decode_completed": true,
+  "health_validation_completed": true,
+  "passed": true,
+  "qualification_scope": "single direct generation smoke; peak memory and repeated-run stability were not captured"
+}

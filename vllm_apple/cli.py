@@ -25,6 +25,7 @@ from .generative_qualification import (
     list_generative_candidates,
     parse_generative_component,
     promote_generative_chained_resolution_plan,
+    promote_generative_frame_plan,
     promote_generative_resolution_plan,
     promote_generative_sample_count_plan,
 )
@@ -87,6 +88,8 @@ from .mlx_gen_generative_readiness import (
     inspect_mlx_gen_generative_readiness,
     select_mlx_gen_qualification_candidate,
 )
+from .mlx_gen_video_readiness import inspect_mlx_gen_video_readiness
+from .mlx_gen_video_memory import estimate_mlx_gen_video_resident_bytes
 from .qualification_preflight import run_qualification_preflight
 from .qwen4_cache_contract import run_qwen4_cache_fixture
 from .qwen4_adapter_contract import build_qwen4_adapter_contract
@@ -249,6 +252,41 @@ def build_parser() -> argparse.ArgumentParser:
         "--report",
         type=Path,
         default=Path("qualification-results/diffusers-video.json"),
+    )
+    mlx_video_readiness = commands.add_parser(
+        "mlx-gen-video-readiness",
+        help="inspect MLX-Gen and a local quantized Wan artifact without loading weights",
+    )
+    mlx_video_readiness.add_argument("--python", required=True, type=Path)
+    mlx_video_readiness.add_argument("--model", required=True, type=Path)
+    mlx_video_qualification = commands.add_parser(
+        "mlx-gen-video-qualification",
+        help="run repeated local MLX-Gen Wan T2V qualification",
+    )
+    mlx_video_qualification.add_argument("model", type=Path)
+    mlx_video_qualification.add_argument("--python", required=True, type=Path)
+    mlx_video_resident = mlx_video_qualification.add_mutually_exclusive_group(required=True)
+    mlx_video_resident.add_argument("--resident-gib", type=float)
+    mlx_video_resident.add_argument("--resident-bytes", type=int)
+    mlx_video_resident.add_argument(
+        "--resident-auto",
+        action="store_true",
+        help="derive a conservative phase-aware estimate for MLX-Gen --low-ram",
+    )
+    mlx_video_qualification.add_argument("--samples", type=int, default=2)
+    mlx_video_qualification.add_argument("--frames", type=int, default=33)
+    mlx_video_qualification.add_argument("--baseline-report", type=Path)
+    mlx_video_qualification.add_argument("--timeout", type=float, default=3600.0)
+    mlx_video_qualification.add_argument("--recovery-timeout", type=float, default=300.0)
+    mlx_video_qualification.add_argument("--recovery-poll", type=float, default=5.0)
+    mlx_video_qualification.add_argument("--workspace-root", type=Path, default=Path("."))
+    mlx_video_qualification.add_argument(
+        "--private-root", type=Path, default=Path("qualification-private/mlx-gen-video")
+    )
+    mlx_video_qualification.add_argument(
+        "--report",
+        type=Path,
+        default=Path("qualification-results/mlx-gen-video.json"),
     )
     mflux_readiness = commands.add_parser(
         "mflux-generative-readiness",
@@ -871,6 +909,138 @@ def main(argv: list[str] | None = None) -> int:
             return 2
         _json(report)
         return 0 if report["ready"] else 1
+    if arguments.command == "mlx-gen-video-readiness":
+        try:
+            report = inspect_mlx_gen_video_readiness(
+                arguments.python, model=arguments.model
+            )
+        except (OSError, ValueError) as error:
+            _json(
+                {
+                    "ready": False,
+                    "error_code": "mlx_gen_video_readiness_failed",
+                    "detail": str(error),
+                }
+            )
+            return 2
+        _json(report)
+        return 0 if report["ready"] else 1
+    if arguments.command == "mlx-gen-video-qualification":
+        try:
+            readiness = inspect_mlx_gen_video_readiness(
+                arguments.python, model=arguments.model
+            )
+            if not readiness["ready"]:
+                raise ValueError("MLX-Gen Wan backend or artifact did not pass readiness")
+            artifact = readiness["artifact"]
+            if arguments.resident_auto:
+                resident_bytes = estimate_mlx_gen_video_resident_bytes(
+                    artifact, width=640, height=384, frames=arguments.frames
+                )
+            elif arguments.resident_bytes is not None:
+                resident_bytes = arguments.resident_bytes
+            else:
+                if not math.isfinite(arguments.resident_gib) or arguments.resident_gib <= 0:
+                    raise ValueError("resident GiB must be finite and positive")
+                resident_bytes = int(arguments.resident_gib * GIB)
+            hardware = detect_hardware()
+            plan = build_generative_qualification_plan(
+                candidate_id="wan2.2-ti2v-5b",
+                artifact_bytes=artifact["artifact_bytes"],
+                estimated_resident_bytes=resident_bytes,
+                hardware=hardware,
+                target=arguments.model.parent,
+                quantization="int8",
+                components=qualification_components_from_inspection(
+                    artifact, resident_bytes
+                ),
+                frames=arguments.frames,
+                batch_size=1,
+            )
+            integrity = build_model_integrity_manifest(arguments.model)
+            provenance = GenerativeEvaluationProvenance(
+                hardware.platform,
+                hardware.architecture,
+                hardware.soc,
+                hardware.gpu_core_count,
+                hardware.memory.total_bytes,
+                "mlx-gen",
+                readiness["mlx_gen_version"],
+                artifact["artifact_format"],
+                artifact["artifact_bytes"],
+                "int8",
+                artifact.get("license"),
+                artifact.get("base_model"),
+                integrity["root_sha256"],
+            )
+            if not plan.initial_profile:
+                if arguments.baseline_report is None:
+                    raise ValueError("promoted video profile requires --baseline-report")
+                baseline = load_generative_evaluation_report(
+                    arguments.baseline_report, expected_provenance=provenance
+                )
+                if not baseline.passed:
+                    raise ValueError("video promotion baseline did not pass")
+                shapes = {
+                    (sample.output_width, sample.output_height, sample.output_frames)
+                    for sample in baseline.samples
+                }
+                if len(shapes) != 1:
+                    raise ValueError("video promotion baseline shapes are inconsistent")
+                width, height, frames = shapes.pop()
+                plan = promote_generative_frame_plan(
+                    plan,
+                    baseline_candidate_id=baseline.candidate_id,
+                    baseline_plan_sha256=baseline.plan_sha256,
+                    baseline_sample_count=baseline.sample_count,
+                    baseline_width=width,
+                    baseline_height=height,
+                    baseline_frames=frames,
+                    baseline_memory_pressures=tuple(
+                        sample.memory_pressure for sample in baseline.samples
+                    ),
+                )
+            if not plan.eligible:
+                admission = plan.artifact_admission
+                raise ValueError(
+                    "load-before-admission rejected: "
+                    f"estimated_resident_bytes={admission.estimated_resident_bytes}, "
+                    f"memory_hard_ceiling_bytes={admission.memory_hard_ceiling_bytes}, "
+                    f"fits_disk={admission.fits_disk}, fits_memory={admission.fits_memory}"
+                )
+            report = run_generative_qualification(
+                plan,
+                workspace_root=arguments.workspace_root,
+                model_root=arguments.model,
+                private_root=arguments.private_root,
+                report_path=arguments.report,
+                prompt=(
+                    "A small friendly robot walking through a clean workshop, "
+                    "steady camera, soft natural light"
+                ),
+                sample_count=arguments.samples,
+                worker_command=(
+                    str(arguments.python.expanduser().absolute()),
+                    "-m",
+                    "vllm_apple.mlx_gen_video_generation_worker",
+                ),
+                provenance=provenance,
+                mode="text-to-video",
+                timeout_seconds=arguments.timeout,
+                recovery_timeout_seconds=arguments.recovery_timeout,
+                recovery_poll_seconds=arguments.recovery_poll,
+            )
+        except (OSError, ValueError, RuntimeError) as error:
+            _json(
+                {
+                    "passed": False,
+                    "error_code": "mlx_gen_video_qualification_failed",
+                    "detail": str(error),
+                }
+            )
+            return 2
+        _json(report.to_dict())
+        return 0 if report.passed else 1
     if arguments.command == "diffusers-video-qualification":
         try:
             readiness = inspect_diffusers_video_readiness(

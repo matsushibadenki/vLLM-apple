@@ -24,6 +24,7 @@ MAX_GENERATED_ARTIFACT_BYTES = 16 * 1024**3
 _IMAGE_PIPELINES = {
     "flux2-klein-9b-base": "Flux2KleinPipeline",
     "qwen-image-2512": "QwenImagePipeline",
+    "qwen-image-2.1": "QwenImage21Pipeline",
     "flux2-dev": "Flux2Pipeline",
 }
 

@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "candidate_id": "wan2.2-ti2v-5b",
+  "model_path": "models/wan2.2-ti2v-5b-diffusers-8bit",
+  "backend": "mlx-gen",
+  "backend_version": "0.33.1",
+  "artifact_bytes": 18189391581,
+  "estimated_resident_bytes": 18189391581,
+  "hardware": {
+    "soc": "Apple M4",
+    "total_memory_bytes": 34359738368,
+    "available_memory_bytes": 14842986496,
+    "memory_pressure": "normal",
+    "thermal_state": "nominal"
+  },
+  "admission": {
+    "memory_hard_ceiling_bytes": 11887375811,
+    "fits_memory": false,
+    "fits_disk": true,
+    "eligible": false
+  },
+  "weights_loaded": false,
+  "generation_started": false,
+  "passed": false,
+  "outcome": "load-before-admission rejected the run without lowering the conservative resident estimate"
+}

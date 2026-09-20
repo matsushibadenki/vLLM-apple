@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "candidate_id": "qwen-image-2.1",
+  "model_path": "models/Qwen-Image-2.1",
+  "revision": "b3179ad355be050328e483a9dfdd9e60cd62adfa",
+  "artifact_format": "diffusers",
+  "pipeline_class": "QwenImage21Pipeline",
+  "artifact_bytes": 33131616240,
+  "file_count": 27,
+  "components": {
+    "transformer": 14230315061,
+    "text_encoder": 17534409013,
+    "scheduler_and_vae": 1350992076,
+    "processor_and_root": 15900090
+  },
+  "quantization": "none_bfloat16",
+  "license": "qwen-research-non-commercial",
+  "weights_loaded": false,
+  "metal_allocated": false,
+  "current_runtime": {
+    "diffusers": "0.34.0",
+    "transformers": "4.57.6",
+    "required_pipeline_available": false
+  },
+  "issues": [
+    "QwenImage21Pipeline is absent from Diffusers 0.34.0",
+    "the model card requires Transformers 5.17 or newer and development Diffusers",
+    "the placed artifact is unquantized BF16 and exceeds safe full-residency admission on M4 32GB",
+    "the research license permits non-commercial use only"
+  ],
+  "ready_for_generation_qualification": false
+}

@@ -1,0 +1,61 @@
+{
+  "candidate_id": "wan2.2-ti2v-5b",
+  "issues": [],
+  "maximum_peak_rss_bytes": 11533691012,
+  "median_first_output_ms": 987645.2464170001,
+  "median_wall_time_ms": 987657.8217084999,
+  "minimum_frames_per_second": 0.047561233767498795,
+  "modality": "video",
+  "model": "Wan-AI/Wan2.2-TI2V-5B",
+  "passed": true,
+  "plan_sha256": "1544d6a985beb3f4c9617d715777945a7fc7b6cad15da1281f09aee3620c5b22",
+  "provenance": {
+    "architecture": "arm64",
+    "artifact_bytes": 18189391581,
+    "artifact_format": "mlx-gen",
+    "artifact_root_sha256": "f96cab4c60866fed4a43c392b605073266ad7e3e81fd12f508fb471d044013a0",
+    "backend": "mlx-gen",
+    "backend_version": "0.33.1",
+    "base_model": "Wan-AI/Wan2.2-TI2V-5B-Diffusers",
+    "gpu_core_count": 10,
+    "license": "apache-2.0",
+    "platform": "Darwin",
+    "quantization": "int8",
+    "soc": "Apple M4",
+    "total_memory_bytes": 34359738368
+  },
+  "sample_count": 2,
+  "samples": [
+    {
+      "first_output_ms": 945052.119084,
+      "memory_pressure": "normal",
+      "output_frames": 49,
+      "output_height": 384,
+      "output_sha256": "c4e79937e30114a4f6c43eba4f4101d1d8bb6a03abb7a44e1af8272db95becec",
+      "output_width": 640,
+      "peak_rss_bytes": 11533691012,
+      "sample_index": 0,
+      "stores_output": false,
+      "stores_prompt": false,
+      "thermal_state": "fair",
+      "wall_time_ms": 945064.8252920001
+    },
+    {
+      "first_output_ms": 1030238.3737500001,
+      "memory_pressure": "normal",
+      "output_frames": 49,
+      "output_height": 384,
+      "output_sha256": "0e463b557c511875cf529d506e914017b3bed52d85c41d3e688fb23053ffd7f0",
+      "output_width": 640,
+      "peak_rss_bytes": 11533691012,
+      "sample_index": 1,
+      "stores_output": false,
+      "stores_prompt": false,
+      "thermal_state": "fair",
+      "wall_time_ms": 1030250.8181249998
+    }
+  ],
+  "schema_version": 1,
+  "stores_output": false,
+  "stores_prompt": false
+}

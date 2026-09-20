@@ -59,7 +59,7 @@ def sample(index: int = 0, **overrides) -> GenerativeSampleEvidence:
         "memory_pressure": "normal",
         "thermal_state": "nominal",
         "output_width": 640,
-        "output_height": 360,
+        "output_height": 384,
         "output_frames": 33,
         "output_sha256": "a" * 64,
     }

@@ -16,6 +16,7 @@ class DiffusersGenerativeReadinessTests(unittest.TestCase):
                         "Flux2Pipeline",
                         "Flux2KleinPipeline",
                         "QwenImagePipeline",
+                        "QwenImage21Pipeline",
                         "WanPipeline",
                         "WanImageToVideoPipeline",
                         "HunyuanVideo15Pipeline",
@@ -28,7 +29,7 @@ class DiffusersGenerativeReadinessTests(unittest.TestCase):
                 root, version="test", executable="/test/python"
             )
         self.assertTrue(report["ready"])
-        self.assertEqual(len(report["ready_candidates"]), 6)
+        self.assertEqual(len(report["ready_candidates"]), 7)
         self.assertFalse(report["imports_backend"])
         self.assertFalse(report["allocates_model_or_metal"])
 

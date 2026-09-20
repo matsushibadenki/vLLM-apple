@@ -36,7 +36,7 @@ def request(root: Path) -> dict[str, object]:
         "prompt": "test",
         "seed": 9,
         "width": 640,
-        "height": 360,
+        "height": 384,
         "frames": 33,
         "steps": 20,
         "batch_size": 1,

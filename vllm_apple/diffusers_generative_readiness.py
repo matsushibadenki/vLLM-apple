@@ -15,6 +15,7 @@ MAX_TOTAL_SOURCE_BYTES = 32 * 1024 * 1024
 _REQUIRED_PIPELINES = {
     "flux2-klein-9b-base": {"Flux2KleinPipeline"},
     "qwen-image-2512": {"QwenImagePipeline"},
+    "qwen-image-2.1": {"QwenImage21Pipeline"},
     "flux2-dev": {"Flux2Pipeline"},
     "wan2.2-ti2v-5b": {"WanPipeline", "WanImageToVideoPipeline"},
     "hunyuanvideo-1.5-8.3b": {

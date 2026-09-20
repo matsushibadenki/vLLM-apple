@@ -72,6 +72,53 @@ class GenerativeSubprocessAdapterTests(unittest.TestCase):
         ):
             tuple(adapter.events())
 
+        detailed_script = (
+            "import json,sys;"
+            "print(json.dumps({'vllm_apple_error_code':'value_error',"
+            "'vllm_apple_error_detail':'invalid dimensions'}), file=sys.stderr);"
+            "raise SystemExit(1)"
+        )
+        detailed = SubprocessGenerativeTelemetryAdapter(
+            (sys.executable, "-c", detailed_script), timeout_seconds=2
+        )
+        with self.assertRaisesRegex(
+            GenerativeSubprocessAdapterError,
+            r"status 1: value_error \(invalid dimensions\)",
+        ):
+            tuple(detailed.events())
+
+        backend_failure_script = (
+            "import json,sys;"
+            "print(json.dumps({'phase':'failed','error':'missing local shard'}), file=sys.stderr);"
+            "print(json.dumps({'vllm_apple_error_code':'backend_system_exit_1',"
+            "'vllm_apple_error_detail':'1'}), file=sys.stderr);"
+            "raise SystemExit(1)"
+        )
+        backend_failure = SubprocessGenerativeTelemetryAdapter(
+            (sys.executable, "-c", backend_failure_script), timeout_seconds=2
+        )
+        with self.assertRaisesRegex(
+            GenerativeSubprocessAdapterError,
+            r"backend_system_exit_1 \(missing local shard\)",
+        ):
+            tuple(backend_failure.events())
+
+        plain_failure_script = (
+            "import json,sys;"
+            "print('local model is incomplete', file=sys.stderr);"
+            "print(json.dumps({'vllm_apple_error_code':'backend_system_exit_1',"
+            "'vllm_apple_error_detail':'1'}), file=sys.stderr);"
+            "raise SystemExit(1)"
+        )
+        plain_failure = SubprocessGenerativeTelemetryAdapter(
+            (sys.executable, "-c", plain_failure_script), timeout_seconds=2
+        )
+        with self.assertRaisesRegex(
+            GenerativeSubprocessAdapterError,
+            r"backend_system_exit_1 \(local model is incomplete\)",
+        ):
+            tuple(plain_failure.events())
+
     def test_timeout_terminates_worker(self) -> None:
         adapter = SubprocessGenerativeTelemetryAdapter(
             (sys.executable, "-c", "import time; time.sleep(10)"), timeout_seconds=0.05

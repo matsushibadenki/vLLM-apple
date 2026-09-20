@@ -164,6 +164,7 @@ def execute_local_video_request(
     telemetry: Callable[[], WorkerTelemetry],
     emit: Callable[[GenerationTelemetryEvent], None],
     clock: Callable[[], float] = time.monotonic,
+    enforce_memory_ceiling_during_generation: bool = True,
 ) -> None:
     candidate_id = request.get("candidate_id")
     expected_pipeline = expected_runtimes.get(candidate_id)
@@ -184,7 +185,11 @@ def execute_local_video_request(
     def make_event(kind: str, *, output: GeneratedVideoArtifact | None = None, digest=None):
         snapshot = telemetry()
         ceiling = request.get("memory_hard_ceiling_bytes")
-        if isinstance(ceiling, int) and snapshot.process_rss_bytes > ceiling:
+        if (
+            enforce_memory_ceiling_during_generation
+            and isinstance(ceiling, int)
+            and snapshot.process_rss_bytes > ceiling
+        ):
             raise MemoryError("Generative worker exceeded its memory hard ceiling")
         return GenerationTelemetryEvent(
             kind=kind,

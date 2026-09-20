@@ -152,7 +152,7 @@ class GenerativeQualificationRunnerTests(unittest.TestCase):
                 recovery_poll_seconds=0.001,
             )
         self.assertTrue(report.passed)
-        self.assertEqual((report.samples[0].output_width, report.samples[0].output_height), (640, 360))
+        self.assertEqual((report.samples[0].output_width, report.samples[0].output_height), (640, 384))
         self.assertEqual(report.samples[0].output_frames, 33)
         self.assertEqual({item["mode"] for item in FakeAdapter.requests}, {"text-to-video"})
 

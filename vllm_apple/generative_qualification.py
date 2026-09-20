@@ -133,6 +133,19 @@ _CANDIDATES = (
         ("model-offload", "vae-tiling"),
     ),
     GenerativeCandidate(
+        "qwen-image-2.1",
+        "Qwen/Qwen-Image-2.1",
+        "image",
+        "B",
+        ("text-to-image", "image-edit"),
+        512,
+        512,
+        1,
+        50,
+        True,
+        ("sequential-module-residency", "model-offload", "vae-tiling"),
+    ),
+    GenerativeCandidate(
         "flux2-dev",
         "black-forest-labs/FLUX.2-dev",
         "image",
@@ -152,7 +165,7 @@ _CANDIDATES = (
         "A",
         ("text-to-video", "image-to-video"),
         640,
-        360,
+        384,
         33,
         20,
         True,
@@ -492,6 +505,53 @@ def promote_generative_sample_count_plan(
     return replace(
         plan,
         promotion_axis="sample_count_4",
+        baseline_plan_sha256=baseline_plan_sha256,
+        issues=(),
+        eligible=plan.artifact_admission.eligible,
+    )
+
+
+def promote_generative_frame_plan(
+    plan: GenerativeQualificationPlan,
+    *,
+    baseline_candidate_id: str,
+    baseline_plan_sha256: str,
+    baseline_sample_count: int,
+    baseline_width: int,
+    baseline_height: int,
+    baseline_frames: int,
+    baseline_memory_pressures: tuple[str, ...],
+) -> GenerativeQualificationPlan:
+    """Promote a stable video profile by changing only its temporal length."""
+    if plan.candidate.modality != "video" or plan.initial_profile:
+        raise ValueError("generative frame promotion requires a promoted video profile")
+    if (
+        baseline_candidate_id != plan.candidate.candidate_id
+        or len(baseline_plan_sha256) != 64
+        or any(character not in "0123456789abcdef" for character in baseline_plan_sha256)
+        or baseline_sample_count < STABILITY_PROMOTION_SAMPLE_COUNT
+    ):
+        raise ValueError("generative frame baseline identity is invalid")
+    if len(baseline_memory_pressures) != baseline_sample_count or any(
+        pressure != "normal" for pressure in baseline_memory_pressures
+    ):
+        raise ValueError("generative frame promotion requires an all-normal baseline")
+    if (
+        baseline_width != plan.width
+        or baseline_height != plan.height
+        or baseline_frames != plan.candidate.initial_frames
+        or plan.frames <= baseline_frames
+        or plan.frames > baseline_frames * 2
+        or (plan.frames - 1) % 4
+        or plan.steps > plan.candidate.initial_steps
+        or plan.batch_size != 1
+    ):
+        raise ValueError("generative frame promotion is not a bounded single-axis step")
+    if plan.issues != ("initial_profile_limits_exceeded",):
+        raise ValueError("generative plan has non-promotable issues")
+    return replace(
+        plan,
+        promotion_axis="frames",
         baseline_plan_sha256=baseline_plan_sha256,
         issues=(),
         eligible=plan.artifact_admission.eligible,

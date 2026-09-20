@@ -2379,6 +2379,26 @@ MLX-Gen動画readinessとisolated workerを先に実装し、その後に固定r
 MLX-Gen 0.33.1はこのlocal pathをWan T2V／first-frame I2Vとして認識する。isolated T2V workerは
 `--low-ram`とinactive denoiser releaseを必須にし、in-process実行によってRSSだけでなくMLX allocator
 peakもhard ceiling判定へ含める。backend JSON progressはbounded sinkへ隔離し、生成MP4はdigest後に削除する。
+正式MLX-Gen動画CLIはversion 0.33.1以上、console entrypoint、Wan pipeline／base identity、mixed Q8/BF16、
+component完全性をload前に検証し、合格したartifactだけを反復T2V runnerへ渡す。配置artifactはこのgateに合格した。
+実modelの単発smokeでは640×384、33 frame、20 stepをM4/32GBで完走し、memory pressure normal、
+最大thermal fairを確認した。Wanはwidth／heightに32-pixel境界を要求するため、旧640×360 profileは
+640×384へ修正した。low-RAM resident見積りは最大同時常駐phase、1 GiB allocator余裕、decoded videoで
+構成し、共通artifact admissionが別途確保する総Unified Memoryの8% emergency reserveを重複加算しない。
+生成中は上限超過でもtelemetryを完了まで保持し、評価器が実測peakでfail判定する。backendが失敗を
+`SystemExit`へ変換する場合は、stderrの構造化failureまたは直前512-byte短文だけを診断へ取り込む。
+正式2-sample認定では両sampleが640×384・33 frameで完了し、memory pressure normal、thermal fair、
+最大peak RSS 11,298,210,948 bytes、median wall 722.27秒、minimum 0.0438 frames/secを記録した。
+生成物とpromptは保存せず、MP4 digest取得後のprivate output削除も確認した。続く同一profileの
+4-sample stability gateも4/4件で合格し、全件memory pressure normal／thermal fair、最大peak RSS
+11,355,004,900 bytes、peak drift 56,793,952 bytes（最大値比0.50%）、median wall 860.66秒を記録した。
+解像度、steps、batchを固定し、Wanの時間軸境界を満たす49 frameへ一軸だけを拡大した
+2-sample qualificationは2/2件で合格した。最大peak RSSは11,533,691,012 bytesで33-frame
+4-sample最大値比+1.57%、median wallは987.66秒で+14.76%だった。全件memory pressure normal、
+thermal fair、shape 640×384×49、private cleanupを確認した。次は49-frame profileを4-sampleへ昇格する。
+frame-count promotionは4-sample以上かつ全sampleのmemory pressureがnormalである同一artifact reportを
+baselineとして要求する。候補初期profileと同じ幅、高さ、steps、batchを維持し、frame数は直前値の
+2倍以下かつ`frames - 1`が4の倍数でなければload前に拒否する。
 
 初期の動画生成qualification候補は、MacBook Air M4 / 32GBでload前memory admissionを通過する
 構成に限定する。
@@ -2453,6 +2473,13 @@ Tier C: FLUX.2 [dev]
         stretch候補。4-bit級量子化、CPU/SSD offload、chunkingを必須とし、
         非量子化artifactはM4/32GBでload前に拒否
 ```
+
+配置済み`Qwen/Qwen-Image-2.1`は別候補`qwen-image-2.1`として扱う。固定revisionは
+`b3179ad355be050328e483a9dfdd9e60cd62adfa`、Diffusers形式の`QwenImage21Pipeline`で、
+論理artifact容量33,131,616,240 bytes、BF16非量子化である。Qwen Research Licenseにより
+非商用利用に限定される。現行Diffusers 0.34.0にはpipeline classがなく、model cardが要求する
+Transformers 5.17以上にも未到達のため、readinessはfail-closedとする。M4/32GBでの試験は
+対応runtimeを隔離し、量子化またはtext encoder／transformer／VAEの逐次residencyを用意してから行う。
 
 最初の認定profileは512×512、batch 1、単一画像、bounded stepsとし、model、text encoder、
 VAEのartifact bytesとresident bytesを個別に見積もる。合格後だけ768/1024と連続生成へ進む。

@@ -13,6 +13,7 @@ from vllm_apple.generative_qualification import (
     generative_promotion_chain_sha256,
     parse_generative_component,
     promote_generative_chained_resolution_plan,
+    promote_generative_frame_plan,
     promote_generative_resolution_plan,
     promote_generative_sample_count_plan,
 )
@@ -45,7 +46,7 @@ def components(artifact_gib: int, resident_gib: int) -> tuple[GenerativeArtifact
 
 class GenerativeQualificationTests(unittest.TestCase):
     def test_catalog_contains_requested_image_and_video_candidates(self) -> None:
-        self.assertEqual(len(GENERATIVE_CANDIDATES), 11)
+        self.assertEqual(len(GENERATIVE_CANDIDATES), 12)
         self.assertIn("z-image-turbo-mlx-4bit", GENERATIVE_CANDIDATES)
         self.assertIn("flux2-klein-9b-base", GENERATIVE_CANDIDATES)
         self.assertIn("flux2-klein-9b-base-low-cache", GENERATIVE_CANDIDATES)
@@ -53,6 +54,7 @@ class GenerativeQualificationTests(unittest.TestCase):
         self.assertIn("flux2-klein-9b-base-attention-chunked", GENERATIVE_CANDIDATES)
         self.assertIn("flux2-klein-9b-base-mlp-chunked", GENERATIVE_CANDIDATES)
         self.assertIn("qwen-image-2512", GENERATIVE_CANDIDATES)
+        self.assertIn("qwen-image-2.1", GENERATIVE_CANDIDATES)
         self.assertIn("flux2-dev", GENERATIVE_CANDIDATES)
         self.assertIn("wan2.2-ti2v-5b", GENERATIVE_CANDIDATES)
         self.assertIn("hunyuanvideo-1.5-8.3b", GENERATIVE_CANDIDATES)
@@ -197,7 +199,7 @@ class GenerativeQualificationTests(unittest.TestCase):
                 baseline_plan_sha256="a" * 64,
                 baseline_sample_count=2,
                 baseline_width=640,
-                baseline_height=360,
+                baseline_height=384,
                 baseline_frames=33,
                 baseline_memory_pressures=("normal", "normal"),
             )
@@ -242,6 +244,41 @@ class GenerativeQualificationTests(unittest.TestCase):
                 baseline_memory_pressures=("normal", "warning"),
             )
 
+    def test_video_frames_can_be_promoted_from_four_sample_baseline(self) -> None:
+        with TemporaryDirectory() as directory:
+            plan = build_generative_qualification_plan(
+                candidate_id="wan2.2-ti2v-5b",
+                artifact_bytes=8 * GIB,
+                estimated_resident_bytes=12 * GIB,
+                hardware=hardware(),
+                target=Path(directory),
+                quantization="int8",
+                components=components(8, 12),
+                frames=49,
+            )
+        promoted = promote_generative_frame_plan(
+            plan,
+            baseline_candidate_id="wan2.2-ti2v-5b",
+            baseline_plan_sha256="a" * 64,
+            baseline_sample_count=4,
+            baseline_width=640,
+            baseline_height=384,
+            baseline_frames=33,
+            baseline_memory_pressures=("normal",) * 4,
+        )
+        self.assertTrue(promoted.eligible)
+        self.assertEqual(promoted.promotion_axis, "frames")
+        with self.assertRaisesRegex(ValueError, "single-axis"):
+            promote_generative_frame_plan(
+                plan,
+                baseline_candidate_id="wan2.2-ti2v-5b",
+                baseline_plan_sha256="a" * 64,
+                baseline_sample_count=4,
+                baseline_width=640,
+                baseline_height=384,
+                baseline_frames=37,
+                baseline_memory_pressures=("normal",) * 4,
+            )
     def test_same_workload_can_promote_from_two_to_four_samples(self) -> None:
         with TemporaryDirectory() as directory:
             plan = build_generative_qualification_plan(
