@@ -6,6 +6,12 @@ from typing import Generic, Protocol, TypeVar
 
 from .execution import ExecutionBackend, WorkloadPhase
 from .inference_request import InferenceRequestContext
+from .fault_injection import (
+    DeterministicFaultInjector,
+    FaultAction,
+    FaultPoint,
+    InjectedFault,
+)
 
 
 BACKEND_ENGINE_SCHEMA_VERSION = 1
@@ -115,11 +121,17 @@ class BackendEngineResult(Generic[_Result]):
 class BackendEngineRegistry(Generic[_Result]):
     """Owns exchangeable engines and executes only an explicit candidate chain."""
 
-    def __init__(self, engines: tuple[BackendEngine[_Result], ...]) -> None:
+    def __init__(
+        self,
+        engines: tuple[BackendEngine[_Result], ...],
+        *,
+        fault_injector: DeterministicFaultInjector | None = None,
+    ) -> None:
         if (not engines or len(engines) > len(ExecutionBackend)
                 or len({engine.descriptor.backend for engine in engines}) != len(engines)):
             raise ValueError("backend engine registry entries are invalid")
         self._engines = {engine.descriptor.backend: engine for engine in engines}
+        self._fault_injector = fault_injector
 
     def execute(
         self, request: BackendEngineRequest, context: InferenceRequestContext
@@ -136,7 +148,19 @@ class BackendEngineRegistry(Generic[_Result]):
             assert engine is not None
             context.raise_if_cancelled()
             try:
+                if self._fault_injector is not None:
+                    self._fault_injector.hit(FaultPoint.BACKEND_EXECUTE)
                 value = engine.execute(request, context)
+            except InjectedFault as error:
+                if error.action is FaultAction.TIMEOUT:
+                    code, retryable = "injected_backend_timeout", True
+                else:
+                    code = f"injected_backend_{error.action.value}"
+                    retryable = error.action is FaultAction.RETRYABLE
+                attempts.append(BackendEngineAttempt(backend, "failed", code))
+                if not retryable:
+                    raise BackendEngineFailure(code, retryable=False) from error
+                continue
             except BackendEngineFailure as error:
                 attempts.append(BackendEngineAttempt(backend, "failed", error.code))
                 if not error.retryable:
@@ -170,6 +194,8 @@ class BackendEngineRegistry(Generic[_Result]):
         failures = []
         for backend in reversed(tuple(self._engines)):
             try:
+                if self._fault_injector is not None:
+                    self._fault_injector.hit(FaultPoint.BACKEND_STOP)
                 self._engines[backend].stop()
             except Exception as error:  # lifecycle aggregation is intentionally bounded
                 failures.append((backend.value, type(error).__name__))

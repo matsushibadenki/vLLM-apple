@@ -136,6 +136,13 @@ from .backend_engine import (
     BackendEngineRequest,
     BackendEngineResult,
 )
+from .fault_injection import (
+    DeterministicFaultInjector,
+    FaultAction,
+    FaultPoint,
+    FaultRule,
+    InjectedFault,
+)
 from .elastic_memory import ElasticMemoryController, ElasticMemoryDecision
 from .device_capability import (
     ComputeDevice,
@@ -539,9 +546,14 @@ __all__ = [
     "DeviceBenchmarkMeasurement",
     "DeviceBenchmarkReport",
     "DeviceBenchmarkSuite",
+    "DeterministicFaultInjector",
     "BoundedCPUReferenceBenchmarkAdapter",
     "DeviceEligibilityDecision",
     "DeviceEligibilityRequest",
+    "FaultAction",
+    "FaultPoint",
+    "FaultRule",
+    "InjectedFault",
     "Qwen3VLVisionANEAdapterSpec",
     "Qwen3VLCoreMLConversionManifest",
     "Qwen3VLCoreMLConversionPlan",

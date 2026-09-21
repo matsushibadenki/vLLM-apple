@@ -12,6 +12,12 @@ from vllm_apple.backend_engine import (
 )
 from vllm_apple.execution import ExecutionBackend, WorkloadPhase
 from vllm_apple.inference_request import InferenceRequestContext
+from vllm_apple.fault_injection import (
+    DeterministicFaultInjector,
+    FaultAction,
+    FaultPoint,
+    FaultRule,
+)
 
 
 class Engine:
@@ -100,6 +106,35 @@ class BackendEngineTests(unittest.TestCase):
         second.stop = Mock(side_effect=lambda: calls.append("cpu"))
         BackendEngineRegistry((first, second)).stop_all()
         self.assertEqual(calls, ["cpu", "metal"])
+
+    def test_injected_retryable_execution_fault_uses_bounded_fallback(self):
+        injector = DeterministicFaultInjector((
+            FaultRule(FaultPoint.BACKEND_EXECUTE, FaultAction.RETRYABLE),
+        ))
+        metal = Engine(ExecutionBackend.NATIVE_METAL, result="not-run")
+        cpu = Engine(ExecutionBackend.CPU, result="fallback")
+        result = BackendEngineRegistry(
+            (metal, cpu), fault_injector=injector
+        ).execute(
+            self.request((ExecutionBackend.NATIVE_METAL, ExecutionBackend.CPU)),
+            self.context(),
+        )
+        self.assertEqual(result.value, "fallback")
+        self.assertEqual(result.attempts[0].reason, "injected_backend_retryable")
+
+    def test_injected_fatal_execution_fault_does_not_fallback(self):
+        injector = DeterministicFaultInjector((
+            FaultRule(FaultPoint.BACKEND_EXECUTE, FaultAction.FATAL),
+        ))
+        registry = BackendEngineRegistry(
+            (Engine(ExecutionBackend.NATIVE_METAL), Engine(ExecutionBackend.CPU)),
+            fault_injector=injector,
+        )
+        with self.assertRaisesRegex(BackendEngineFailure, "injected_backend_fatal"):
+            registry.execute(
+                self.request((ExecutionBackend.NATIVE_METAL, ExecutionBackend.CPU)),
+                self.context(),
+            )
 
 
 if __name__ == "__main__":

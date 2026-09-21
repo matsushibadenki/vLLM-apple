@@ -12,6 +12,7 @@ from .ane_probe import (
     CoreMLPrediction,
 )
 from .coreml_worker import CoreMLPersistentWorker
+from .coreml_worker_cache import CoreMLWorkerCache, CoreMLWorkerCacheKey
 from .device_capability import (
     ComputeDevice,
     DeviceCapability,
@@ -52,16 +53,38 @@ class CoreMLFixedGraphBackend:
         timeout_seconds: float = 30,
         maximum_output_bytes: int = 128 * 1024,
         worker_factory: Callable[[CoreMLANEModelProbeConfig], object] | None = None,
+        worker_cache: CoreMLWorkerCache | None = None,
+        hardware_fingerprint: str | None = None,
+        os_version: str | None = None,
     ) -> None:
+        if worker_cache is not None and worker_factory is not None:
+            raise ValueError("worker cache and worker factory are mutually exclusive")
+        if worker_cache is not None and (
+            not hardware_fingerprint or not os_version
+        ):
+            raise ValueError("cached Core ML backend requires hardware and OS identity")
         self.swift_executable = swift_executable
         self.timeout_seconds = timeout_seconds
         self.maximum_output_bytes = maximum_output_bytes
-        self._worker_factory = worker_factory or (lambda config: CoreMLPersistentWorker(
-            config,
-            swift_executable=self.swift_executable,
-            timeout_seconds=self.timeout_seconds,
-            maximum_output_bytes=self.maximum_output_bytes,
-        ))
+        self._worker_cache = worker_cache
+        self._hardware_fingerprint = hardware_fingerprint
+        self._os_version = os_version
+        if worker_cache is not None:
+            self._worker_factory = lambda config: worker_cache.acquire(
+                CoreMLWorkerCacheKey.from_config(
+                    config,
+                    hardware_fingerprint=hardware_fingerprint or "",
+                    os_version=os_version or "",
+                ),
+                config,
+            )
+        else:
+            self._worker_factory = worker_factory or (lambda config: CoreMLPersistentWorker(
+                config,
+                swift_executable=self.swift_executable,
+                timeout_seconds=self.timeout_seconds,
+                maximum_output_bytes=self.maximum_output_bytes,
+            ))
         self._resources: dict[
             str, tuple[CoreMLANEModelProbeConfig, DeviceCapability, object]
         ] = {}
@@ -151,6 +174,33 @@ class CoreMLFixedGraphBackend:
                 raise ValueError("Core ML resource handle is invalid")
             del self._resources[resource.resource_id]
         worker.close()
+
+    def close(self) -> None:
+        """Unload every resource and close an owned identity cache exactly once."""
+        with self._lock:
+            resources = tuple(
+                CoreMLFixedGraphResource(
+                    resource_id,
+                    capability.operators[0],
+                    capability.capability_id,
+                    config.model_root_sha256,
+                )
+                for resource_id, (config, capability, _worker)
+                in self._resources.items()
+            )
+        failures: list[str] = []
+        for resource in resources:
+            try:
+                self.unload(resource)
+            except Exception as error:
+                failures.append(type(error).__name__)
+        if self._worker_cache is not None:
+            try:
+                self._worker_cache.close()
+            except Exception as error:
+                failures.append(type(error).__name__)
+        if failures:
+            raise RuntimeError(f"Core ML backend shutdown failures: {failures}")
 
     @staticmethod
     def require_auxiliary_dispatch(

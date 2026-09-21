@@ -78,6 +78,10 @@ class CoreMLWorkerLease:
             self._released = True
             self._cache._release(self.key)
 
+    def close(self) -> None:
+        """Match the backend worker lifecycle while retaining the cached process."""
+        self.release()
+
     def __enter__(self) -> "CoreMLWorkerLease":
         return self
 

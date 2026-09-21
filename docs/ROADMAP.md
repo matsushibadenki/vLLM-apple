@@ -922,7 +922,7 @@ Unified Memoryとmemory bandwidthを共有する一つの実行系として管�
 - `[Done]` repository-owned決定論的`x * 2` Core ML fixture generator、coremltools 8.1／NumPy 1.26.4固定、coremlcompiler・tree integrity・3 sample ANE probe・生成物削除を行うself-hosted workflow
 - `[Done]` M4ローカル実機でfixture生成／compile／`.cpuAndNeuralEngine` prediction 3回の数値一致（中央値約96.5 µs、fixture tree digest binding）
 - `[Done]` probe合格済みmodel digest／capability ID／auxiliary phase／FP32 eligibilityを必須にするCore ML fixed-graph resource load・bounded execute・integrity再検証・明示unloadとscheduler直前dispatch gate
-- `[Done]` Core ML load／predictionをSwift subprocessへ隔離するpersistent ANE worker adapterと、hardware／OS／model tree SHA-256／I/O identity別のbounded process cache。active leaseをevictせず、idle workerだけをLRU回収し、容量超過・identity不一致・active closeをfail-closedにする
+- `[Done]` Core ML load／predictionをSwift subprocessへ隔離するpersistent ANE worker adapterと、hardware／OS／model tree SHA-256／I/O identity別のbounded process cacheをfixed-graph backend lifecycleへ接続。resourceのload／unloadを跨いで同一workerを再利用し、active leaseをevictせず、idle workerだけをLRU回収し、容量超過・identity不一致・active closeをfail-closedにする
 - `[Later]` Core ML compiler出力そのものを再利用する場合の、toolchain／Core ML versionを含むdisk artifact cacheと署名・失効policy
 - `[Done]` CPU thread、GPU command queue、ANE in-flight task、Unified Memory、memory bandwidthを原子的に予約・解放する統合resource ledgerとruntime snapshot
 - `[Done]` backend exchangeのversioned dispatch contract。architecture／precision／phase／operator／isolation、deadline／cancel safe point、retryable bounded fallback、逆順shutdownを共通化
@@ -993,7 +993,8 @@ Unified Memoryとmemory bandwidthを共有する一つの実行系として管�
 - `[Done]` optional native telemetry登録をcontrol readinessから隔離
 - `[Done]` Swift ManagedRuntime restart testを決定的なUDS fault-injection fixtureへ分離
 - `[Done]` host memory pressureから隔離した決定的なmonitor transition回帰fixture
-- `[Later]` fault injection suite
+- `[Done]` 固定enum、最大32 rule、指定hit、one-shot／repeat、saturating不要のbounded counterによる決定論的fault injection基盤。backend executeのretryable／fatal／timeoutとstop回収へ接続し、非機密snapshotとfallback非回帰を実装
+- `[Later]` profile persistence、scheduler admission、worker crash、client切断を横断するplatform-wide fault scenario matrix
 
 ### Security
 

@@ -5,6 +5,7 @@ from unittest.mock import Mock, patch
 
 from vllm_apple.ane_probe import CoreMLANEModelProbeConfig, CoreMLPrediction
 from vllm_apple.coreml_backend import CoreMLFixedGraphBackend
+from vllm_apple.coreml_worker_cache import CoreMLWorkerCache
 from vllm_apple.device_capability import (
     ComputeDevice,
     DeviceCapability,
@@ -176,6 +177,36 @@ class CoreMLFixedGraphBackendTests(unittest.TestCase):
             self.backend.unload(resource)
         self.assertEqual(raised.exception.error_code, "coreml_worker_timeout")
         self.assertTrue(raised.exception.retryable)
+
+    def test_identity_cache_reuses_worker_across_resource_lifetimes(self):
+        created = []
+
+        def factory(_config):
+            worker = Mock()
+            worker.predict.return_value = CoreMLPrediction((2.0, 4.0), 50)
+            created.append(worker)
+            return worker
+
+        cache = CoreMLWorkerCache(2, worker_factory=factory)
+        backend = CoreMLFixedGraphBackend(
+            worker_cache=cache,
+            hardware_fingerprint="m4-test",
+            os_version="macos-test",
+        )
+        evidence = {"root_sha256": self.digest}
+        with patch(
+            "vllm_apple.coreml_backend.verify_model_integrity",
+            return_value=evidence,
+        ):
+            first = backend.load(self.config, self.capability)
+            backend.execute(first, (1.0, 2.0))
+            backend.unload(first)
+            second = backend.load(self.config, self.capability)
+            backend.execute(second, (1.0, 2.0))
+            backend.close()
+        self.assertEqual(len(created), 1)
+        self.assertEqual(created[0].predict.call_count, 2)
+        created[0].close.assert_called_once_with()
 
 
 if __name__ == "__main__":

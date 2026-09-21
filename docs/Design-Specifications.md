@@ -2803,9 +2803,15 @@ versioned execution planへ記録し、active request中は変更せずscheduler
    stdin close、bounded wait、terminate、killの順でprocessを必ず回収する。
    worker cacheはhardware fingerprint、OS version、model tree SHA-256、input／output名、input countを
    cache identityへ結合する。同一identityのleaseだけがpersistent workerを共有し、active leaseはevictしない。
+   fixed-graph backendのresource loadはcache leaseを取得し、unloadはleaseだけを解放するため、resource lifetimeを
+   跨いで同一workerを再利用できる。backend closeは全resourceを逆に解放してからcache processを回収する。
    上限到達時は最古のidle workerだけをcloseして置換し、全entryがactiveの場合、identity不一致、active leaseを
    残したcloseはfail-closedとする。これはprocess内のloaded-model cacheであり、compiler artifactをdisk共有する
    cacheはtoolchain／Core ML version、署名、quarantine、失効契約が揃うまで有効化しない。
+   reliability qualificationでは固定enumのfault point／actionと最大32件のruleだけを許可する決定論的injectorを
+   使用する。指定hit回数、one-shot／repeatを明示し、request ID、入力、model名、任意error文字列は保持しない。
+   backend executeへ注入したretryable／timeoutは通常のbounded fallbackを通し、fatalは即時停止する。
+   stop注入時も全backendの逆順回収を続行してfailure型だけを集約する。
 21. `[Later]` Vision/Audio encoder、embedding、classifier、background modelなど固定graph化しやすい
    auxiliary workloadからANE routingを開始する。LLM prefill/decodeはGPU baselineを維持する。
 22. `[Done]` 共有memory bandwidth競合の代表組み合わせを逐次・並列で測定するbounded adapterとprivate
