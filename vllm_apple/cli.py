@@ -279,6 +279,7 @@ def build_parser() -> argparse.ArgumentParser:
     diffusers_image_qualification.add_argument("--height", type=int, default=512)
     diffusers_image_qualification.add_argument("--steps", type=int, default=20)
     diffusers_image_qualification.add_argument("--samples", type=int, default=2)
+    diffusers_image_qualification.add_argument("--baseline-report", type=Path)
     diffusers_image_qualification.add_argument("--timeout", type=float, default=3600.0)
     diffusers_image_qualification.add_argument("--recovery-timeout", type=float, default=300.0)
     diffusers_image_qualification.add_argument("--recovery-poll", type=float, default=5.0)
@@ -347,6 +348,11 @@ def build_parser() -> argparse.ArgumentParser:
     mlx_video_qualification.add_argument("--samples", type=int, default=2)
     mlx_video_qualification.add_argument("--frames", type=int, default=33)
     mlx_video_qualification.add_argument("--baseline-report", type=Path)
+    mlx_video_qualification.add_argument(
+        "--promotion-parent-report",
+        type=Path,
+        help="stable initial-frame report that authorized the promoted baseline",
+    )
     mlx_video_qualification.add_argument("--timeout", type=float, default=3600.0)
     mlx_video_qualification.add_argument("--recovery-timeout", type=float, default=300.0)
     mlx_video_qualification.add_argument("--recovery-poll", type=float, default=5.0)
@@ -1168,18 +1174,68 @@ def main(argv: list[str] | None = None) -> int:
                 if len(shapes) != 1:
                     raise ValueError("video promotion baseline shapes are inconsistent")
                 width, height, frames = shapes.pop()
-                plan = promote_generative_frame_plan(
-                    plan,
-                    baseline_candidate_id=baseline.candidate_id,
-                    baseline_plan_sha256=baseline.plan_sha256,
-                    baseline_sample_count=baseline.sample_count,
-                    baseline_width=width,
-                    baseline_height=height,
-                    baseline_frames=frames,
-                    baseline_memory_pressures=tuple(
-                        sample.memory_pressure for sample in baseline.samples
-                    ),
+                baseline_evidence = GenerativeBaselineEvidence(
+                    baseline.candidate_id,
+                    baseline.plan_sha256,
+                    baseline.sample_count,
+                    width,
+                    height,
+                    frames,
+                    tuple(sample.memory_pressure for sample in baseline.samples),
                 )
+                if frames == plan.frames:
+                    if arguments.promotion_parent_report is None:
+                        raise ValueError(
+                            "same-frame stability promotion requires "
+                            "--promotion-parent-report"
+                        )
+                    parent = load_generative_evaluation_report(
+                        arguments.promotion_parent_report,
+                        expected_provenance=provenance,
+                    )
+                    if not parent.passed:
+                        raise ValueError("video promotion parent did not pass")
+                    parent_shapes = {
+                        (sample.output_width, sample.output_height, sample.output_frames)
+                        for sample in parent.samples
+                    }
+                    if len(parent_shapes) != 1:
+                        raise ValueError("video promotion parent shapes are inconsistent")
+                    parent_width, parent_height, parent_frames = parent_shapes.pop()
+                    promote_generative_frame_plan(
+                        plan,
+                        baseline_candidate_id=parent.candidate_id,
+                        baseline_plan_sha256=parent.plan_sha256,
+                        baseline_sample_count=parent.sample_count,
+                        baseline_width=parent_width,
+                        baseline_height=parent_height,
+                        baseline_frames=parent_frames,
+                        baseline_memory_pressures=tuple(
+                            sample.memory_pressure for sample in parent.samples
+                        ),
+                    )
+                    plan = promote_generative_sample_count_plan(
+                        plan,
+                        baseline_candidate_id=baseline_evidence.candidate_id,
+                        baseline_plan_sha256=baseline_evidence.plan_sha256,
+                        baseline_sample_count=baseline_evidence.sample_count,
+                        baseline_width=baseline_evidence.width,
+                        baseline_height=baseline_evidence.height,
+                        baseline_frames=baseline_evidence.frames,
+                        baseline_memory_pressures=baseline_evidence.memory_pressures,
+                        target_sample_count=arguments.samples,
+                    )
+                else:
+                    plan = promote_generative_frame_plan(
+                        plan,
+                        baseline_candidate_id=baseline_evidence.candidate_id,
+                        baseline_plan_sha256=baseline_evidence.plan_sha256,
+                        baseline_sample_count=baseline_evidence.sample_count,
+                        baseline_width=baseline_evidence.width,
+                        baseline_height=baseline_evidence.height,
+                        baseline_frames=baseline_evidence.frames,
+                        baseline_memory_pressures=baseline_evidence.memory_pressures,
+                    )
             if not plan.eligible:
                 admission = plan.artifact_admission
                 raise ValueError(
@@ -1246,6 +1302,8 @@ def main(argv: list[str] | None = None) -> int:
                     width=arguments.width,
                     height=arguments.height,
                 )
+            bits = artifact.get("quantization", {}).get("bits")
+            quantization = f"int{bits}" if bits in {4, 8} else "none"
             hardware = detect_hardware()
             plan = build_generative_qualification_plan(
                 candidate_id="qwen-image-2.1",
@@ -1253,7 +1311,7 @@ def main(argv: list[str] | None = None) -> int:
                 estimated_resident_bytes=resident_bytes,
                 hardware=hardware,
                 target=arguments.model.parent,
-                quantization="none",
+                quantization=quantization,
                 components=qualification_components_from_inspection(
                     artifact, resident_bytes
                 ),
@@ -1262,15 +1320,6 @@ def main(argv: list[str] | None = None) -> int:
                 steps=arguments.steps,
                 batch_size=1,
             )
-            if not plan.eligible:
-                admission = plan.artifact_admission
-                raise ValueError(
-                    "load-before-admission rejected: "
-                    f"estimated_resident_bytes={admission.estimated_resident_bytes}, "
-                    f"memory_hard_ceiling_bytes={admission.memory_hard_ceiling_bytes}, "
-                    f"fits_disk={admission.fits_disk}, fits_memory={admission.fits_memory}, "
-                    f"issues={','.join(plan.issues)}"
-                )
             integrity = build_model_integrity_manifest(arguments.model)
             provenance = GenerativeEvaluationProvenance(
                 hardware.platform,
@@ -1282,11 +1331,46 @@ def main(argv: list[str] | None = None) -> int:
                 readiness["diffusers_version"],
                 artifact["artifact_format"],
                 artifact["artifact_bytes"],
-                "none",
+                quantization,
                 artifact.get("license"),
                 artifact.get("base_model"),
                 integrity["root_sha256"],
             )
+            if arguments.baseline_report is not None:
+                baseline = load_generative_evaluation_report(
+                    arguments.baseline_report,
+                    expected_provenance=provenance,
+                )
+                if not baseline.passed:
+                    raise ValueError("generative image baseline did not pass")
+                shapes = {
+                    (sample.output_width, sample.output_height, sample.output_frames)
+                    for sample in baseline.samples
+                }
+                if len(shapes) != 1:
+                    raise ValueError("generative image baseline shapes are inconsistent")
+                baseline_width, baseline_height, baseline_frames = shapes.pop()
+                plan = promote_generative_resolution_plan(
+                    plan,
+                    baseline_candidate_id=baseline.candidate_id,
+                    baseline_plan_sha256=baseline.plan_sha256,
+                    baseline_sample_count=baseline.sample_count,
+                    baseline_width=baseline_width,
+                    baseline_height=baseline_height,
+                    baseline_frames=baseline_frames,
+                    baseline_memory_pressures=tuple(
+                        sample.memory_pressure for sample in baseline.samples
+                    ),
+                )
+            if not plan.eligible:
+                admission = plan.artifact_admission
+                raise ValueError(
+                    "load-before-admission rejected: "
+                    f"estimated_resident_bytes={admission.estimated_resident_bytes}, "
+                    f"memory_hard_ceiling_bytes={admission.memory_hard_ceiling_bytes}, "
+                    f"fits_disk={admission.fits_disk}, fits_memory={admission.fits_memory}, "
+                    f"issues={','.join(plan.issues)}"
+                )
             report = run_generative_qualification(
                 plan,
                 workspace_root=arguments.workspace_root,

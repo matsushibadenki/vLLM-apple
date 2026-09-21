@@ -51,8 +51,8 @@ non-stream応答とSSE完走を実機確認。`+cpu` suffix自体はMetal利用�
 Homebrewの最新版を無条件に実行経路へ昇格させず、次の順序で検証する。
 
 1. `[Done]` backend executable、Python、vLLM、vLLM-Metal、Transformersのversionと、Metalが利用可能か、vLLMが実際に選択したplatformを`doctor`で取得する。
-2. `[Next]` platformがCPUの場合は、Metal利用可能性と「未選択」を別々に報告し、推論を開始しない。
-3. `[Next]` 固定revisionの認定stackで、Gemma non-stream、SSE、memory、30分安定性を専用runnerで再検証する。
+2. `[Done]` platformがCPUの場合は、Metal利用可能性と「未選択」を別々に報告し、推論を開始しない。`doctor`は`metal_available=true`かつCPU platform選択を`vllm_metal_available_but_not_selected`として識別し、managed serveは起動前に拒否する。
+3. `[Done]` 固定revisionの認定stackで、Gemma non-stream、SSE、memory、30分安定性を専用runnerで再検証。Homebrew 0.29.0 / Transformers 5.17.0、Gemma 2 2B IT 4-bitで6,775/6,775成功、失敗0、3言語品質と正常shutdownを確認した。
 4. `[Done]` Homebrew 0.29.0 candidateのGemma smoke・短時間・30分qualificationを独立証跡として保存（上記条件に限定）。
 5. `[Later]` candidateが3回連続で同じ証跡を満たした場合だけ、対応version matrixと標準backendへ昇格する。
 
@@ -164,7 +164,7 @@ Graph / Memory Planner + Global Scheduler
 - `[Done]` application threadからbackend command queueを隔離するglobal submission scheduler
 - `[Later]` prefill、decode、sampling、encoder別のoperator dispatch
 - `[Later]` Vision/Audio encoderのCore ML/ANE routingとGPU LLM pipeline連携
-- `[Later]` profiler実測値によるbackend選択
+- `[Done]` profiler実測値によるbackend選択。同一operator/phase/precision/shape/batchのCPU baselineとaccelerator reportを比較し、digest一致、最低sample数、peak memory非悪化、cold-load償却後5%以上のlatency改善を満たすbackendだけをversioned placement planへ昇格。hardware/environment identity、TTL、quarantine、last-known-good、safe-point reloadまでruntimeに統合済み
 
 ### Edge-native adaptive execution
 
@@ -211,7 +211,7 @@ Metal向けに独立実装する。外部engineへのruntime依存は追加し�
 - `[Done]` client切断時のupstream stream解放
 - `[Done]` backend terminate、timeout後killによるshutdown
 - `[Done]` 固定revisionの認定stackを用いた実model vLLM-Metal互換性検証
-- `[Next]` Homebrew vLLM-Metal candidateのMetal platform選択と実model smoke
+- `[Done]` Homebrew vLLM-Metal candidateのMetal platform選択と実model smoke。0.29.0でMetalPlatform選択、Gemma 2 2B IT 4-bitのnon-stream / SSE、30分qualificationまで確認済み
 - `[Done]` graceful request drainを伴うshutdown
 - `[Done]` Unix Domain Socket HTTP transport
 - `[Done]` UDS pathのowner/type検証と0600 permission
@@ -447,7 +447,7 @@ VLLMAppleKit / Control API
 - `[Done]` bounded SSE phase-profile CLIとusage欠落時のfail-closed検証
 - `[Done]` plannerと既存context、scheduler、elastic memory policyのatomic safe-point接続
 - `[Done]` active/pending execution plan observabilityとphase別batch admission gate
-- `[Later]` CPU GEMM/GEMV micro benchmark
+- `[Done]` CPU GEMM/GEMV micro benchmark。profile-bound FP32 CPU capabilityで64×64×64 GEMMと256×256 GEMVを各7 sample実測し、安定output digest、bounded shape/batch、work-item throughput、private atomic reportを確認。M4でmedian 7,035,792 ns／37.23M work-items/s（GEMM）、1,846,583 ns／35.24M work-items/s（GEMV）。証跡: [CPU GEMM](evaluation/cpu-gemm-fp32-m4-2026-09-21.json)、[CPU GEMV](evaluation/cpu-gemv-fp32-m4-2026-09-21.json)
 - `[Later]` GPU GEMM/GEMV micro benchmark
 - `[Later]` Unified Memory bandwidth測定
 - `[Later]` Metal launch latency測定
@@ -456,7 +456,7 @@ VLLMAppleKit / Control API
 - `[Later]` model、shape、batch、context別kernel profile
 - `[Later]` automatic batch sizing
 - `[Later]` adaptive state allocationとage/pressure別precision
-- `[Later]` continuous memory pressure monitoring
+- `[Done]` continuous memory pressure monitoring。macOS libdispatch memory-pressure sourceでnormal/warning/critical変化をevent-driven取得し、同一状態をcoalesce。daemon起動をブロックしない隔離threadからadmission、scheduler、safe-point elastic cacheとruntime eventへ反映し、source不可時は`vm_stat`系telemetryへfail-softする
 - `[Done]` thermal/power状態をversioned plan identityとdecision reasonへ固定し、prefill batchを保守的にclampするscheduling foundation
 - `[Done]` 15秒bounded thermal/power monitor、同一状態coalesce、current hardware snapshotとruntime change eventへの反映
 - `[Done]` Swift SDKのtyped operating-state event decodeと未知のcurrent値に対するfail-soft fallback
@@ -777,6 +777,7 @@ fallback、fusion、stress、および大容量model向け再現可能qualificat
 - `[Done]` 同一最小profileの4-sample stability gateに合格。4/4件が640×384・33 frameで完了し、生成失敗0、issues 0、全件memory pressure normal／thermal fair、sample間memory recovery、private cleanupを確認。peak RSSは11,298,210,948〜11,355,004,900 bytesでdrift 56,793,952 bytes（最大値比0.50%）、median wall 860.66秒、minimum 0.0367 frames/sec。全seedでdigestが相違し、prompt／動画は非保存。証跡: [Wan MLX-Gen 4-sample stability](evaluation/wan-mlx-gen-640x384-4sample-stability-2026-09-20.json)
 - `[Done]` 動画frame-count promotion契約。CLIの`--frames`と`--baseline-report`を追加し、4-sample以上・全normal・同一artifact provenanceの合格reportを必須化。幅、高さ、steps、batch固定、最大2倍、`frames - 1`の4境界を満たす一軸変更だけをworker起動前に許可する
 - `[Done]` 33→49 frameの一軸promotionを2-sample正式qualificationで実証。2/2件が640×384×49で完了し、issues 0、memory pressure normal、thermal fair、sample間recovery、private cleanup、異なるseedのdigest相違を確認。最大peak RSS 11,533,691,012 bytes（33-frame 4-sample最大比+178,686,112 bytes／+1.57%）、median wall 987.66秒（+126.99秒／+14.76%）。prompt／動画は非保存。証跡: [Wan MLX-Gen 49-frame qualification](evaluation/wan-mlx-gen-640x384-49frames-2sample-2026-09-20.json)
+- `[Done]` promoted videoの同一frame数2→4 sample stability契約。49-frame 2-sample reportだけでなく、それを許可した33-frame 4-sample parent reportも同一provenanceで検証し、frame promotion chainとsample-count promotionの両方をload前に再検証する`--promotion-parent-report`をMLX-Gen video CLIへ追加
 - `[Next]` 49-frame profileを4-sample stability gateへ昇格し、peak RSS drift、memory recovery、生成失敗0を確認してから次の一軸promotionを選定する
 - `[Later]` HunyuanVideo 1.5 8.3Bを候補とする480p、step-distilled、SSTA、model offload検証
 - `[Later]` Wan 2.2 A14B量子化版をstretch候補とするT2V/I2V別artifact、dual-expert residency、CPU/SSD offload検証
@@ -787,14 +788,14 @@ fallback、fusion、stress、および大容量model向け再現可能qualificat
 - `[Done]` workspace-bound one-shot worker request、prompt digest binding、0600 atomic保存、consume後unlink
 - `[Done]` Diffusers sourceのbounded AST scanによる6候補pipeline class readiness gate（backend import/model/Metal allocationなし）
 - `[Later]` MLX、Diffusers、ComfyUI固有workerからqualification sampleを取得するadapter
-- `[Later]` 最小profile合格後だけ解像度、frame数、steps、連続生成を一軸ずつ増やす段階的memory-stability gate
-- `[Later]` model license、量子化方式、変換元digest、workflow provenanceを記録し、CIではweightと生成動画を保存・uploadしないprivacy gate
+- `[Done]` 最小profile合格後だけ解像度、frame数、steps、連続生成を一軸ずつ増やす段階的memory-stability gate。Wanで33-frame 2/4-sample合格後にだけ49-frameを許可し、同形状2→4 sampleはparent promotion chainも再検証する
+- `[Done]` model license、量子化方式、変換元digest、workflow provenanceを記録し、weightと生成動画を保存・uploadしないprivacy gate。Wan実機reportでartifact root digest、backend/version、mixed Q8/BF16、licenseを固定し、prompt/MP4非保存とprivate cleanupを確認
 
 ## Phase 7 — Generative Media
 
 - `[Done]` 3候補のbounded初期profile catalogと共通load前artifact/Unified Memory admission
-- `[Later]` image generation workload
-- `[Later]` M4/32GB向け画像生成qualification profile（最初は512×512、batch 1、単一画像、bounded steps）
+- `[Done]` image generation workload。local-only Diffusers MPS worker、bounded telemetry、private output digest/delete、artifact/provenance gateをQwen-Image-2.1 INT8の実生成で確認
+- `[Done]` M4/32GB向け画像生成qualification profile。512×512、batch 1、20 steps、独立2 sampleをApple M4/32 GiBで実測合格
 - `[Later]` FLUX.2 [klein] 9B Baseを優先候補とする量子化、text encoder分離、VAE tiling、逐次module residency検証
 - `[Done]` MLX-Gen互換Z-Image Turbo 4-bitを優先候補とするbackend readiness、512×512・9 steps実機qualification
 - `[Later]` Qwen-Image-2512を候補とするMPS/MLXまたは対応backendの量子化、offload、peak Unified Memory検証
@@ -807,8 +808,12 @@ fallback、fusion、stress、および大容量model向け再現可能qualificat
 - `[Done]` Qwen-Image-2.1 INT8 conversion plan。source/output分離、既存output拒否、symlink/file-count境界、最大safetensors shard、TorchAO readiness、動的memory ceiling、15% staging込みdisk admissionをweight load前に統合。配置済みartifactは最大shard 9,968,332,504 bytes、変換peak推定28,295,522,836 bytes、必要available memory 31,044,301,905 bytes、必要disk 19,836,642,335 bytes。現状はmemory gateだけで安全停止しoutputは未作成。証跡: [INT8 conversion plan](evaluation/qwen-image-2.1-int8-conversion-plan-2026-09-21.json)
 - `[Done]` Qwen-Image-2.1 INT8 atomic conversion workerと変換後artifact inspector。正式outputと同一filesystemに一意なstagingを作り、Diffusers pipeline-level TorchAO `Int8WeightOnlyConfig`をtransformer/text encoderへ適用してsafetensors保存する。`QwenImage21Pipeline` identity、TorchAO INT8 weight-only metadata、両componentの量子化、artifact root digestを再検査し、全条件合格時だけatomic renameする。変換例外・片側だけの量子化・metadata不一致ではstagingを除去して正式outputを残さない
 - `[Done]` conversion plan合格時だけ隔離runtimeのatomic workerを起動するbounded CLI orchestration。stdout/stderr各64 KiB上限、24時間以内timeout、shellなしargv、独立process group、timeout/oversize時TERM→KILLを実装。実artifactでの確認はdynamic ceiling 15,364,437,443 bytesに対し変換peak 28,295,522,836 bytesだったため`started=false`となり、weight loadもoutput作成も行わなかった
-- `[Done]` transformerとtext encoderを別child process／同一atomic stagingで順番に変換し、各process終了時にOSへmemoryを返すcomponent-streaming INT8 converter。unquantized VAE/processor/schedulerだけをコピーし、component別TorchAO保存後に共通inspectorとdigest gateを通して昇格する。変換peakはpipeline-level 28,295,522,836 bytesから18,157,231,859 bytes、必要available memoryは20,906,010,928 bytesまで低下。証跡: [streaming conversion plan](evaluation/qwen-image-2.1-int8-streaming-conversion-plan-2026-09-21.json)
-- `[Next]` available memory 20,906,010,928 bytes以上かつpressure normalの時にcomponent-streaming INT8変換を一度実行する。現状はdynamic ceiling 14,695,282,115 bytesのため`started=false`でweight load前に停止。変換後artifactの実bytes、scale/metadata、pipeline identity、MPS runtime supportを検査してから、同じ2-sample qualificationでpeak RSS、pressure、thermal、digest一致、private cleanupを確認する。BF16拒否証跡: [Unified Memory preflight](evaluation/qwen-image-2.1-unified-memory-preflight-2026-09-21.json)
+- `[Done]` transformerとtext encoderを別child process／同一atomic stagingで順番に変換し、各process終了時にOSへmemoryを返すcomponent-streaming INT8 converter。safetensors headerから最大tensor working setを検証することで変換peakを11,085,606,043 bytes、必要available memoryを13,834,385,112 bytesへ精密化。unquantized VAE/processor/schedulerだけをコピーし、component別TorchAO保存後に共通inspectorとdigest gateを通して18,516,268,404-byte／26-file artifactへatomic昇格。root digest `dcacfc334ed0821c18a1ff079e37cae9d99de0966c821c508a145134e85f38cf`
+- `[Done]` Qwen-Image-2.1 TorchAO INT8正式2-sample qualification。Apple M4/32 GiB、512×512、20 stepsで2/2生成成功、memory pressure全件normal、thermal fair、最大peak RSS 2,599,387,136 bytes、median wall 216,912 ms。prompt/outputを保存せずprivate directory cleanupを確認。証跡: [INT8 2-sample qualification](evaluation/qwen-image-2.1-torchao-int8-2sample-qualification-2026-09-21.json)
+- `[Done]` Qwen-Image-2.1 INT8 4-sample stability gate。Apple M4/32 GiB、512×512、20 stepsで4/4成功、memory pressure全件normal、thermal fair、最大peak RSS 2,600,943,616 bytes、RSS range 2,228,224 bytes（最小値比約0.086%）、median wall 257,631 ms。4 output digestはすべて異なり、prompt/output非保存とprivate cleanupを確認。証跡: [INT8 4-sample stability](evaluation/qwen-image-2.1-torchao-int8-4sample-stability-2026-09-21.json)
+- `[Done]` Qwen-Image-2.1 INT8の一軸promotion。Apple M4/32 GiB、768×768、20 steps、独立2 sampleで2/2成功、最大peak RSS 2,599,305,216 bytes、median wall 494,727 ms、thermal fair、異なる2 output digest、prompt/output非保存とprivate cleanupを確認。第2 sampleの終了時memory pressureはwarningだったがqualificationの失敗条件には抵触せず、issuesは空。証跡: [INT8 768×768 2-sample promotion](evaluation/qwen-image-2.1-torchao-int8-768-2sample-promotion-2026-09-21.json)
+- `[Done]` 768×768・20 stepsの2-sample baselineをmemory pressure normalの回復状態から再取得。2/2成功、最大peak RSS 2,582,462,464 bytesだったが、再び第2 sample終了時にwarningを再現。warningを含むbaselineからの4-sample昇格はload前に安全停止するため、768×768を安定profileへは昇格せず512×512を認定上限に維持する。証跡: [INT8 768×768 recovery attempt](evaluation/qwen-image-2.1-torchao-int8-768-2sample-recovery-2026-09-21.json)
+- `[Next]` Qwen-Image-2.1 INT8の768×768で連続第2 sampleがmemory pressure warningになる原因を、worker終了後のMPS cache解放、OS回復待ち、component residencyの順で切り分け。評価gateを弱めず、実効memoryを下げる変更と回帰テストが揃った後にだけ再qualificationする
 - `[Later]` FLUX.2 [dev]をstretch候補とする4-bit級量子化、CPU/SSD offload、chunking検証（非量子化weightはM4/32GBでload前にreject）
 - `[Done]` diffusion pipelineのmodel、text encoder、VAE別artifact admissionとconservative resident-memory hard ceiling
 - `[Done]` privacy-preserving画像生成qualification report schemaとdeterministic evaluator（first-output/wall latency、peak RSS、memory pressure、thermal state、output metadata、plan fingerprint）
@@ -820,10 +825,10 @@ fallback、fusion、stress、および大容量model向け再現可能qualificat
 - `[Done]` local-only Diffusers MPS text-to-image runtime、BF16 compute、VAE tiling、step telemetry、one-shot executable
 - `[Later]` Diffusers image-editとWan/HunyuanVideo video worker adapter
 - `[Later]` MLX、ComfyUI固有workerからqualification sampleを取得するadapter
-- `[Later]` 512×512合格後だけ768/1024と連続生成へ進む段階的memory-stability gate
-- `[Later]` model license、gated artifact、quantization provenanceを記録し、CIではweightと生成画像を保存・uploadしないprivacy gate
+- `[Done]` 512×512合格後だけ768/1024と連続生成へ進む段階的memory-stability gate。Qwen-Image-2.1 INT8で512×512・2/4 sample合格後に768×768のみ一軸promotionし、warning再現により4 sample/1024昇格をload前停止
+- `[Done]` model license、gated artifact、quantization provenanceを記録し、weightと生成画像を保存・uploadしないprivacy gate。Qwen-Image-2.1 reportにartifact root digest、TorchAO INT8、backend/version、licenseを固定し、prompt/PNG非保存とprivate cleanupを確認
 - `[Later]` audio and music generation workload
-- `[Later]` video generation workload
+- `[Done]` video generation workload。Wan 2.2 TI2V-5BのMLX-Gen local-only worker、bounded telemetry、T2V qualification、private MP4 digest/delete、33-frame 4-sample stability、49-frame promotionをApple M4/32 GiBで実証
 - `[Later]` latent memory manager
 - `[Later]` temporal/spatial attention state
 - `[Later]` tile、frame chunk、temporal chunk scheduling
@@ -1211,7 +1216,7 @@ Unified Memoryとmemory bandwidthを共有する一つの実行系として管�
 105. `[Next]` 大容量Apple SiliconでQwen text-only実model qualification
 106. `[Later]` Mac companion app
 107. `[Later]` M4/32GB画像生成qualification（FLUX.2 [klein] 9B Base、Qwen-Image-2512、量子化FLUX.2 [dev]）
-108. `[Next]` M4/32GB動画生成qualification（bounded profile／runner／Wan local-only worker／readiness／module residency／正式CLI／artifact digest bindingは完了。量子化artifactによる実model qualificationが次）
+108. `[Done]` M4/32GB動画生成qualification。Wan 2.2 TI2V-5B mixed Q8/BF16の640×384・33 frame・20 stepで2-sampleと4-sample stabilityに合格し、33→49 frame一軸promotionの2-sampleも合格。artifact digest binding、memory recovery、private cleanup、prompt／動画非保存を実機証跡で確認済み
 109. `[Done]` 画像・動画6候補のbounded qualification plan schema、CLI、load前aggregate admission
 110. `[Done]` denoiser、text encoder、VAE別容量証拠とaggregate完全一致によるload前fail-closed gate
 111. `[Done]` 生成本文非保存の実測evidence evaluator、plan binding、private/atomic report保存

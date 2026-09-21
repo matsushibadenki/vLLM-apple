@@ -1,3 +1,5 @@
+import json
+import struct
 import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -26,6 +28,14 @@ def hardware(available_gib: int) -> HardwareInfo:
         "Darwin", "arm64", "Apple M4", 10, 10, 10,
         MemoryInfo(32 * GIB, available_gib * GIB), True, "test",
     )
+
+
+def write_safetensors(path: Path, size: int) -> None:
+    header = json.dumps(
+        {"weight": {"dtype": "U8", "shape": [size], "data_offsets": [0, size]}},
+        separators=(",", ":"),
+    ).encode()
+    path.write_bytes(struct.pack("<Q", len(header)) + header + b"x" * size)
 
 
 class QwenImage21ConversionTests(unittest.TestCase):
@@ -85,7 +95,7 @@ class QwenImage21ConversionTests(unittest.TestCase):
             for name, size in (("transformer", 10), ("text_encoder", 5)):
                 component = source / name
                 component.mkdir(parents=True)
-                component.joinpath("model.safetensors").write_bytes(b"x" * size)
+                write_safetensors(component / "model.safetensors", size)
             with patch("shutil.disk_usage") as disk_usage:
                 disk_usage.return_value.free = 100 * GIB
                 plan = build_qwen_image_21_streaming_conversion_plan(
@@ -94,8 +104,10 @@ class QwenImage21ConversionTests(unittest.TestCase):
                 )
         transformer = plan["phases"][0]
         text_encoder = plan["phases"][1]
-        self.assertEqual(transformer["largest_source_shard_bytes"], 10)
-        self.assertEqual(text_encoder["largest_source_shard_bytes"], 5)
+        self.assertGreater(transformer["largest_source_shard_bytes"], 10)
+        self.assertGreater(text_encoder["largest_source_shard_bytes"], 5)
+        self.assertEqual(transformer["largest_source_tensor_bytes"], 10)
+        self.assertEqual(text_encoder["largest_source_tensor_bytes"], 5)
         self.assertEqual(
             plan["estimated_conversion_peak_bytes"],
             max(item["estimated_peak_bytes"] for item in plan["phases"]),

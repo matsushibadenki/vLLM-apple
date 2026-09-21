@@ -194,6 +194,40 @@ class DeviceBenchmarkTests(unittest.TestCase):
         self.assertIsNone(payload["peak_memory_bytes"])
         self.assertEqual(payload["sample_count"], 2)
 
+    def test_native_cpu_adapter_runs_bounded_gemv(self):
+        config = DeviceBenchmarkConfig(
+            "gemv",
+            ExecutionBackend.CPU,
+            WorkloadPhase.DECODE,
+            "fp32",
+            (64, 64),
+            2,
+            samples=3,
+        )
+        registry = DeviceCapabilityRegistry("m4-test", "environment-test")
+        registry.record(DeviceCapability(
+            ExecutionBackend.CPU,
+            ComputeDevice.CPU,
+            "python-test",
+            "m4-test",
+            "environment-test",
+            ("gemv",),
+            (WorkloadPhase.DECODE,),
+            ("fp32",),
+            "available",
+            "probe_passed",
+            ("e" * 24,),
+        ))
+        report = run_device_microbenchmark(
+            config,
+            registry,
+            NativeCPUBenchmarkAdapter().operation(config),
+        )
+        payload = report.to_dict()
+        self.assertGreater(payload["throughput_work_items_per_second"], 0)
+        self.assertEqual(payload["sample_count"], 3)
+        self.assertEqual(payload["config"]["dimensions"], [64, 64])
+
     def test_coreml_adapter_preserves_end_to_end_and_device_time(self):
         resource = CoreMLFixedGraphResource(
             "e" * 32, "coreml_fixed_graph@" + "a" * 16, "f" * 24, "a" * 64

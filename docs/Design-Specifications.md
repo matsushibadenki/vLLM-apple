@@ -2399,6 +2399,10 @@ thermal fair、shape 640×384×49、private cleanupを確認した。次は49-fr
 frame-count promotionは4-sample以上かつ全sampleのmemory pressureがnormalである同一artifact reportを
 baselineとして要求する。候補初期profileと同じ幅、高さ、steps、batchを維持し、frame数は直前値の
 2倍以下かつ`frames - 1`が4の倍数でなければload前に拒否する。
+昇格済みframe数を2 sampleから4 sampleへ安定性昇格する場合は、同形状の2-sample reportに加えて
+`--promotion-parent-report`で初期frame数の4-sample reportを必須とする。両reportのartifact provenance、
+candidate、shape、all-normal pressureを再検証し、先にframe promotion chain、次にsample-count promotionを
+復元できた場合だけworkerを起動する。
 
 初期の動画生成qualification候補は、MacBook Air M4 / 32GBでload前memory admissionを通過する
 構成に限定する。
@@ -2526,10 +2530,29 @@ admission不合格時は`started=false`を返し、subprocessを作成しない�
 ceiling 15,364,437,443 bytesが変換peak 28,295,522,836 bytesを下回ったため、この経路で安全停止した。
 component-streaming converterではtransformerとtext encoderを別child processで順に変換し、各process終了時に
 allocatorを含むmemoryをOSへ返す。stagingへはVAE、processor、scheduler等の非量子化componentだけを先に
-コピーし、2 componentのINT8 safetensorsを順次追加する。transformer phase peakは18,157,231,859 bytes、
-text encoder phase peakは14,839,002,883 bytesで、全体peakはpipeline-level方式より10,138,290,977 bytes低い。
-8% emergency reserve込みの必要available memoryは20,906,010,928 bytesとなる。2026-09-21の実行確認は
-dynamic ceiling 14,695,282,115 bytesだったため、workerを起動せず`started=false`で停止した。
+コピーし、2 componentのINT8 safetensorsを順次追加する。safetensors headerのshape/dtype/data offsetをbounded
+検査して最大tensor working setを求め、transformer phase peak 8,323,117,083 bytes、text encoder phase peak
+11,085,606,043 bytes、8% emergency reserve込み必要available memory 13,834,385,112 bytesとした。このgateを
+通過して18,516,268,404-byte／26-file artifactへatomic昇格し、両componentのTorchAO INT8 weight-only metadataと
+root digest `dcacfc334ed0821c18a1ff079e37cae9d99de0966c821c508a145134e85f38cf`を確認した。
+Apple M4/32 GiBで512×512、20 steps、独立2 sampleの正式qualificationを実施し、2/2成功、全sample
+memory pressure normal、thermal fair、最大peak RSS 2,599,387,136 bytes、median wall 216,912 msだった。
+生成画像とpromptはreportへ保存せず、private output directoryにfileが残らないことを確認した。
+同一profileの4-sample stability gateでも4/4成功し、全sample memory pressure normal、thermal fair、最大peak
+RSS 2,600,943,616 bytes、peak RSS range 2,228,224 bytes（最小値比約0.086%）、median wall 257,631 msだった。
+4 output digestはすべて異なり、各sampleのseed分離を確認した。次のpromotionは他条件を固定した768×768とする。
+768×768、20 steps、独立2 sampleの一軸promotionは2/2成功し、最大peak RSS
+2,599,305,216 bytes、median wall 494,727 ms、thermal fair、異なる2 output digest、prompt/output非保存と
+private cleanupを確認した。第1 sampleのmemory pressureはnormal、第2 sample終了時はwarningだった。
+evaluatorは両sampleとも有効と判定しissuesも空だが、これを直ち1024×1024昇格の根拠にはせず、同一
+768×768 profileの4-sample stability gateでpressureの再現性とRSS driftを確認する。promotion evaluatorは
+memory pressureがall-normalでないbaselineを拒否するため、このreportをbaselineにした4-sample起動はweight load前に
+`generative resolution promotion requires an all-normal baseline`で安全停止した。したがって、回復後の
+all-normal 2-sample baselineを改めて必須とする。
+回復時のmemory pressure normal、thermal nominalを確認した後の再試験も2/2生成成功し、最大peak RSSは
+2,582,462,464 bytes、median wallは482,200 msだったが、再び第2 sample終了時にmemory pressure warningを
+記録した。このため768×768は現時点でstable profileに昇格せず、512×512を認定上限とする。再試験は
+gate緩和ではなく、MPS cache解放、OS回復待ち、component residencyの実効memory削減を実装・検証した後に限る。
 reportにはwall latency、peak RSS、memory pressure、thermal state、backend/model fingerprint、
 quantization provenance、licenseを含める。CIはweightおよび生成画像をartifactとして保存しない。
 
@@ -2675,6 +2698,9 @@ versioned execution planへ記録し、active request中は変更せずscheduler
 11. `[Done]` available・FP32 capabilityだけから代表shapeを生成するbounded deterministic suiteを追加する。
    backend/operatorごとのoperationは明示mapを必須とし、欠損時はfallbackせず拒否する。CPUはvector add、8x8
    matmul、KV copyを現在のMacで各3 sample実測し、安定output digestとsuite report生成を確認する。
+   decode寄りのGEMVは専用operatorとして追加し、rows/columns、batch、総積和要素数の上限を固定する。
+   Apple M4実機のFP32・7 sampleで64×64×64 GEMMはmedian 7,035,792 ns／37.23M work-items/s、
+   256×256 GEMVはmedian 1,846,583 ns／35.24M work-items/sとなり、全sampleのoutput digest一致を確認した。
 12. `[Done]` M4実機でMLX、Metal、Core ML代表shapeをqualificationし、CPU 3、MLX 6、Metal 2、
    Core ML 1 capabilityの12/12 correctness合格を確認した。device間同期、tensor変換、Core ML
    compile/load時間はend-to-end latencyへ含める。

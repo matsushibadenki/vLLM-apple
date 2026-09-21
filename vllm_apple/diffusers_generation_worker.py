@@ -354,7 +354,17 @@ def main(argv: list[str] | None = None) -> int:
             telemetry=default_worker_telemetry,
             emit=emit,
         )
-    except (ImportError, MemoryError, OSError, RuntimeError, ValueError):
+    except Exception as error:
+        print(
+            json.dumps(
+                {
+                    "vllm_apple_error_code": "diffusers_image_worker_failed",
+                    "vllm_apple_error_detail": f"{type(error).__name__}: {error}"[:512],
+                },
+                sort_keys=True,
+            ),
+            file=sys.stderr,
+        )
         return 1
     return 0
 

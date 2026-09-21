@@ -171,6 +171,84 @@ class DiffusersVideoQualificationCLITests(unittest.TestCase):
         self.assertEqual(code, 2)
         self.assertIn("baseline-report", json.loads(output.getvalue())["detail"])
 
+    def test_mlx_gen_same_frame_stability_binds_promoted_and_parent_reports(self) -> None:
+        with TemporaryDirectory() as directory:
+            root = Path(directory)
+            model = root / "model"
+            model.mkdir()
+            model.joinpath("weight.safetensors").write_bytes(b"test weight")
+            artifact = {
+                "artifact_format": "mlx-gen", "artifact_bytes": 80,
+                "quantization": {"bits": 8}, "license": "apache-2.0",
+                "base_model": "Wan-AI/Wan2.2-TI2V-5B-Diffusers",
+                "components": [
+                    {"name": "transformer", "role": "denoiser", "artifact_bytes": 60},
+                    {"name": "text_encoder", "role": "text_encoder", "artifact_bytes": 10},
+                    {"name": "vae", "role": "vae", "artifact_bytes": 10},
+                ],
+            }
+            readiness = {
+                "ready": True, "candidate_id": "wan2.2-ti2v-5b",
+                "mlx_gen_version": "0.33.1", "artifact": artifact,
+            }
+            machine = HardwareInfo(
+                "Darwin", "arm64", "Apple M4", 10, 10, 10,
+                MemoryInfo(32 * GIB, 28 * GIB), True, "test",
+            )
+            root_sample = SimpleNamespace(
+                output_width=640, output_height=384, output_frames=33,
+                memory_pressure="normal",
+            )
+            promoted_sample = SimpleNamespace(
+                output_width=640, output_height=384, output_frames=49,
+                memory_pressure="normal",
+            )
+            parent = SimpleNamespace(
+                passed=True, candidate_id="wan2.2-ti2v-5b", plan_sha256="a" * 64,
+                sample_count=4, samples=(root_sample,) * 4,
+            )
+            baseline = SimpleNamespace(
+                passed=True, candidate_id="wan2.2-ti2v-5b", plan_sha256="b" * 64,
+                sample_count=2, samples=(promoted_sample,) * 2,
+            )
+            captured = {}
+
+            def run(plan, **_kwargs):
+                captured["plan"] = plan
+                return SimpleNamespace(passed=True, to_dict=lambda: {"passed": True})
+
+            with patch(
+                "vllm_apple.cli.inspect_mlx_gen_video_readiness", return_value=readiness
+            ), patch(
+                "vllm_apple.cli.detect_hardware", return_value=machine
+            ), patch(
+                "vllm_apple.cli.load_generative_evaluation_report",
+                side_effect=(baseline, parent),
+            ), patch(
+                "vllm_apple.cli.run_generative_qualification", side_effect=run
+            ), redirect_stdout(io.StringIO()):
+                code = main([
+                    "mlx-gen-video-qualification", str(model),
+                    "--python", "/test/python", "--resident-gib", "12",
+                    "--frames", "49", "--samples", "4",
+                    "--baseline-report", str(root / "baseline.json"),
+                    "--promotion-parent-report", str(root / "parent.json"),
+                    "--workspace-root", str(root),
+                    "--private-root", str(root / "private"),
+                ])
+        self.assertEqual(code, 0)
+        self.assertEqual(captured["plan"].promotion_axis, "sample_count_4")
+        self.assertEqual(captured["plan"].baseline_plan_sha256, "b" * 64)
+
+    def test_mlx_gen_same_frame_stability_requires_parent_report(self) -> None:
+        parser = __import__("vllm_apple.cli", fromlist=["build_parser"]).build_parser()
+        arguments = parser.parse_args([
+            "mlx-gen-video-qualification", "model", "--python", "/test/python",
+            "--resident-gib", "12", "--frames", "49", "--samples", "4",
+            "--baseline-report", "baseline.json",
+        ])
+        self.assertIsNone(arguments.promotion_parent_report)
+
 
 if __name__ == "__main__":
     unittest.main()

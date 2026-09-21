@@ -1,5 +1,6 @@
 # Isolated Qwen-Image-2.1 runtime. Keep Diffusers pinned to the verified commit.
 torch==2.14.0
+torchvision==0.29.0
 transformers==5.17.0
 diffusers @ https://github.com/huggingface/diffusers/archive/80c7ed262aeffbeb43ef13ae04baeb9b84515a69.tar.gz
 accelerate==1.15.0

@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+import json
 import math
 import os
 import shutil
+import struct
 from pathlib import Path
 
 from .qwen_image_21_residency import build_qwen_image_21_residency_plan
@@ -10,6 +12,24 @@ from .types import HardwareInfo
 
 
 MAX_ARTIFACT_FILES = 4096
+MAX_SAFETENSORS_HEADER_BYTES = 16 * 1024 * 1024
+SAFETENSORS_DTYPE_BYTES = {
+    "BOOL": 1,
+    "U8": 1,
+    "I8": 1,
+    "F8_E4M3": 1,
+    "F8_E5M2": 1,
+    "I16": 2,
+    "U16": 2,
+    "F16": 2,
+    "BF16": 2,
+    "I32": 4,
+    "U32": 4,
+    "F32": 4,
+    "I64": 8,
+    "U64": 8,
+    "F64": 8,
+}
 
 
 def _largest_safetensors_shard(root: Path) -> int:
@@ -29,6 +49,59 @@ def _largest_safetensors_shard(root: Path) -> int:
             largest = max(largest, path.stat(follow_symlinks=False).st_size)
     if largest <= 0:
         raise ValueError("conversion source has no safetensors shards")
+    return largest
+
+
+def _largest_safetensors_tensor(root: Path) -> int:
+    largest = 0
+    count = 0
+    for path in sorted(root.glob("*.safetensors")):
+        count += 1
+        if count > MAX_ARTIFACT_FILES:
+            raise ValueError("artifact file count exceeds bounded limit")
+        if path.is_symlink() or not path.is_file():
+            raise ValueError("conversion source must contain regular safetensors files")
+        file_size = path.stat(follow_symlinks=False).st_size
+        with path.open("rb") as handle:
+            raw_length = handle.read(8)
+            if len(raw_length) != 8:
+                raise ValueError("safetensors header is truncated")
+            header_size = struct.unpack("<Q", raw_length)[0]
+            if not 2 <= header_size <= MAX_SAFETENSORS_HEADER_BYTES:
+                raise ValueError("safetensors header is outside the bounded limit")
+            try:
+                header = json.loads(handle.read(header_size))
+            except (UnicodeDecodeError, json.JSONDecodeError) as error:
+                raise ValueError("safetensors header is invalid") from error
+        if not isinstance(header, dict):
+            raise ValueError("safetensors header root is invalid")
+        data_size = file_size - 8 - header_size
+        for name, metadata in header.items():
+            if name == "__metadata__":
+                continue
+            if not isinstance(metadata, dict):
+                raise ValueError("safetensors tensor metadata is invalid")
+            dtype, shape, offsets = (
+                metadata.get("dtype"),
+                metadata.get("shape"),
+                metadata.get("data_offsets"),
+            )
+            if dtype not in SAFETENSORS_DTYPE_BYTES or not isinstance(shape, list):
+                raise ValueError("safetensors tensor dtype or shape is invalid")
+            if not isinstance(offsets, list) or len(offsets) != 2:
+                raise ValueError("safetensors tensor offsets are invalid")
+            if any(not isinstance(value, int) or value < 0 for value in (*shape, *offsets)):
+                raise ValueError("safetensors tensor dimensions are invalid")
+            tensor_bytes = SAFETENSORS_DTYPE_BYTES[dtype]
+            for dimension in shape:
+                tensor_bytes *= dimension
+            if offsets[1] < offsets[0] or offsets[1] > data_size:
+                raise ValueError("safetensors tensor offsets are outside the file")
+            if offsets[1] - offsets[0] != tensor_bytes:
+                raise ValueError("safetensors tensor byte span does not match metadata")
+            largest = max(largest, tensor_bytes)
+    if largest <= 0:
+        raise ValueError("conversion source has no safetensors tensors")
     return largest
 
 
@@ -120,7 +193,8 @@ def build_qwen_image_21_streaming_conversion_plan(
         source_bytes = component["artifact_bytes"]
         projected_bytes = (source_bytes * 8 + 15) // 16
         largest_shard = _largest_safetensors_shard(source_root / component_name)
-        peak = largest_shard + projected_bytes + allocator_margin
+        largest_tensor = _largest_safetensors_tensor(source_root / component_name)
+        peak = largest_tensor + projected_bytes + allocator_margin
         phases.append(
             {
                 "component": component_name,
@@ -128,6 +202,7 @@ def build_qwen_image_21_streaming_conversion_plan(
                 "source_bytes": source_bytes,
                 "projected_bytes": projected_bytes,
                 "largest_source_shard_bytes": largest_shard,
+                "largest_source_tensor_bytes": largest_tensor,
                 "estimated_peak_bytes": peak,
             }
         )

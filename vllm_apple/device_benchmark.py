@@ -26,6 +26,7 @@ MAX_DEVICE_BENCHMARK_SUITE_REPORTS = 64
 _REPRESENTATIVE_DIMENSIONS = {
     "vector_add": (256,),
     "matmul": (8, 8, 8),
+    "gemv": (64, 64),
     "kv_copy": (128,),
     "attention": (16, 8),
     "paged_attention": (14, 8),
@@ -394,6 +395,24 @@ class NativeCPUBenchmarkAdapter:
                         for row in left
                     )
                 return output, rows * inner * columns * config.batch_size
+        elif config.operator == "gemv" and len(config.dimensions) == 2:
+            rows, columns = config.dimensions
+            if max(config.dimensions) > 512 or rows * columns > 262_144:
+                raise ValueError("CPU matrix-vector benchmark shape is too large")
+            matrix = tuple(
+                tuple(float((row * columns + column) % 13) for column in range(columns))
+                for row in range(rows)
+            )
+            vector = tuple(float(index % 11) for index in range(columns))
+
+            def operation():
+                output = ()
+                for _ in range(config.batch_size):
+                    output = tuple(
+                        sum(value * vector[index] for index, value in enumerate(row))
+                        for row in matrix
+                    )
+                return output, rows * columns * config.batch_size
         elif config.operator == "kv_copy" and len(config.dimensions) == 1:
             count = config.dimensions[0]
             if count > 65_536:
