@@ -119,6 +119,7 @@ class NumericConversionCache:
             size, digest = _file_identity(output)
             if size != manifest["output_bytes"] or digest != manifest["output_sha256"]:
                 raise ValueError("numeric conversion cache output mismatch")
+            os.utime(output, None, follow_symlinks=False)
             return NumericConversionCacheEntry(identity.cache_id, output, size, digest)
         except (OSError, ValueError, KeyError, TypeError, json.JSONDecodeError) as error:
             if entry.exists():

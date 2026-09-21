@@ -81,6 +81,29 @@ class NumericConversionCacheTests(unittest.TestCase):
                 b"converted",
             )
 
+    def test_recent_load_is_retained_by_lru(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory) / "cache"
+            root.mkdir(mode=0o700)
+            cache = NumericConversionCache(
+                root, signing_key=b"k" * 32, maximum_entries=2, maximum_bytes=64
+            )
+            first = cache.get_or_create(
+                identity("a"), lambda path: write_output(path, b"one")
+            )
+            time.sleep(0.002)
+            second = cache.get_or_create(
+                identity("f"), lambda path: write_output(path, b"two")
+            )
+            time.sleep(0.002)
+            cache.load(identity("a"))
+            time.sleep(0.002)
+            cache.get_or_create(
+                identity("1"), lambda path: write_output(path, b"three")
+            )
+            self.assertTrue(first.output_path.exists())
+            self.assertFalse(second.output_path.exists())
+
 
 if __name__ == "__main__":
     unittest.main()

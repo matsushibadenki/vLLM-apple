@@ -905,9 +905,9 @@ NVFP4 → INT8を最初の候補としつつ、FP16/BF16展開、既存MLX量子
 - `[Later]` asynchronous prefetch、backend completion barrier、file/compute overlapとUnified Memory bandwidth ceilingへの統合
 - `[Done]` load時変換／初回利用時変換／反復利用cache／毎回fused変換を比較するcost modelとphase別route選択。conversion、synchronization、反復compute、amortized uses、peak memory、output digestを比較し、memory ceiling内で出力一致する最小amortized latency routeだけを選択する
 - `[Later]` NVFP4 → scale付きINT8の表現保存経路と一般的な再量子化経路の比較、INT8演算・累積型・scale粒度の対応検証
-- `[Later]` source/scale/layout/kernel/environment digestに結合した変換cache、bounded LRU、単一変換共有、quarantine・rollback
+- `[Done]` source／scale／layout／kernel／environment digestに結合した変換cache。HMAC署名、private file、atomic manifest-last publish、64 entry／64 GiB hard ceilingのbounded LRU、同一identityのsingle-flight変換共有、出力再hash、tamper quarantine、明示revoke、変換失敗時rollbackを実装
 - `[Later]` chip／OS／toolchain／backend／operator／shape別capability probeとreference fallback、未知recipeは明示unsupported
-- `[Later]` scalar誤差・operator誤差・モデル品質とend-to-end速度／peak memory／帯域／energyを組み合わせたpromotion gate
+- `[Done]` scalar誤差・operator一致・モデル品質とend-to-end速度／peak memory／throughput／energyを組み合わせたpromotion gate。maximum absolute error、RMSE、operator結果、品質退行上限を順にfail-closed評価し、同一workloadの最低3 sample、digest一致、memory／energy非悪化、5%以上のmedian latency改善を全て満たすrouteだけを昇格する
 - `[Later]` CLI／Swift診断と英語・日本語・简体中文表示（source/runtime/compute形式、route、誤差budget、fallback理由）
 
 範囲は広く定義するが、形式名だけで対応済みとしない。adapterごとにinspect/decode/convert/execute/qualifiedを

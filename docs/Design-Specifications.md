@@ -1709,6 +1709,17 @@ synchronization、compute latency、amortized uses、peak Unified Memory、outpu
 一致し、memory ceiling内かつ全候補のoutput digestが一致する場合だけ、amortized latencyが最小のrouteを決定論的に選ぶ。
 これにより変換単体の速さではなく、read／convert／barrier／反復computeを含む総費用でrouteを選択する。
 
+反復利用する変換結果は`NumericConversionCacheIdentity`へsource、scale、layout、kernel、environmentの各SHA-256を
+結合する。cacheはprivate directory／file、HMAC署名、manifest-last atomic publish、load時の出力再hashを必須とする。
+同一identityの並行requestはsingle-flightで一変換だけを実行し、待機requestはpublish済み結果を再検証して共有する。
+64 entry／64 GiBのhard ceilingをaccess-time LRUで維持し、tamper、inventory failure、明示revoke、LRU evictionは
+理由付きquarantineへ移す。converter失敗時はtemporary entryを削除し、active entryを公開しない。
+
+数値routeの最終昇格は`evaluate_numeric_promotion`で行う。scalar maximum absolute error、RMSE、operator出力一致、
+モデル品質scoreの退行上限を順に検査し、その後に同一hardware／model／phase／workloadのend-to-end profileを比較する。
+双方3 sample以上、output digest一致、peak Unified Memory非悪化、計測済みenergy非悪化、median latencyの既定5%以上改善を
+全て満たした場合だけpromotedとする。どの層で不合格になったかは固定reason codeで返す。
+
 ---
 
 # 43. モデルフォーマット

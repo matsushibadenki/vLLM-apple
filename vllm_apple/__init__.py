@@ -193,6 +193,12 @@ from .numeric_conversion_cache import (
     NumericConversionCacheEntry,
     NumericConversionCacheIdentity,
 )
+from .numeric_promotion import (
+    NumericPromotionDecision,
+    NumericPromotionEvidence,
+    NumericPromotionThresholds,
+    evaluate_numeric_promotion,
+)
 from .fault_injection import (
     DeterministicFaultInjector,
     FaultAction,
@@ -596,6 +602,9 @@ __all__ = [
     "NumericEligibilityMatrix",
     "NumericEligibilityRequest",
     "NumericFormat",
+    "NumericPromotionDecision",
+    "NumericPromotionEvidence",
+    "NumericPromotionThresholds",
     "NumericRouteDecision",
     "NumericRouteProfile",
     "NumericRouteStrategy",
@@ -833,6 +842,7 @@ __all__ = [
     "__version__",
     "build_environment_fingerprint",
     "choose_numeric_route",
+    "evaluate_numeric_promotion",
     "build_device_placement_plan",
     "classify_runtime_failure",
     "compose_device_capability_registry",
