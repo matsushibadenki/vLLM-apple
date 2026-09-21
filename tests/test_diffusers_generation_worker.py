@@ -47,6 +47,26 @@ class DiffusersGenerationWorkerTests(unittest.TestCase):
             snapshot = default_worker_telemetry()
         self.assertEqual(snapshot.process_rss_bytes, 9000)
 
+    def test_default_telemetry_includes_mps_driver_allocation(self) -> None:
+        memory = SimpleNamespace(pressure=SimpleNamespace(value="normal"))
+        torch = SimpleNamespace(mps=SimpleNamespace(
+            current_allocated_memory=lambda: 7000,
+            driver_allocated_memory=lambda: 12000,
+        ))
+        with patch.dict(sys.modules, {"torch": torch}), patch(
+            "vllm_apple.diffusers_generation_worker.resource.getrusage",
+            return_value=SimpleNamespace(ru_maxrss=1000),
+        ), patch(
+            "vllm_apple.diffusers_generation_worker.detect_memory", return_value=memory
+        ), patch(
+            "vllm_apple.diffusers_generation_worker.platform.system", return_value="Darwin"
+        ), patch(
+            "vllm_apple.diffusers_generation_worker._darwin_thermal_state",
+            return_value="nominal",
+        ):
+            snapshot = default_worker_telemetry()
+        self.assertEqual(snapshot.process_rss_bytes, 12000)
+
     def test_image_worker_emits_telemetry_and_removes_private_output(self) -> None:
         with TemporaryDirectory() as directory:
             root = Path(directory)
@@ -224,6 +244,9 @@ class DiffusersGenerationWorkerTests(unittest.TestCase):
             class Pipeline:
                 model_cpu_offload_seq = "text_encoder->transformer->vae"
                 vae = SimpleNamespace(enable_tiling=lambda: calls.setdefault("tiling", True))
+                text_encoder = object()
+                tokenizer = object()
+                _execution_device = "mps"
 
                 @classmethod
                 def from_pretrained(cls, path, **kwargs):
@@ -231,12 +254,20 @@ class DiffusersGenerationWorkerTests(unittest.TestCase):
                     return cls()
 
                 def enable_model_cpu_offload(self, *, device):
-                    calls["offload"] = device
+                    calls.setdefault("offload", []).append(device)
+
+                def encode_prompt(self, **kwargs):
+                    calls["encode_prompt"] = kwargs
+                    return "embeds", "mask", "image-mask"
+
+                def remove_all_hooks(self):
+                    calls["remove_hooks"] = True
 
                 def to(self, device):
                     raise AssertionError("Qwen-Image-2.1 must not use full-pipeline MPS residency")
 
                 def __call__(self, **kwargs):
+                    calls["generate"] = kwargs
                     kwargs["callback_on_step_end"](self, 0, 0, {})
                     return SimpleNamespace(images=[Image()])
 
@@ -262,7 +293,11 @@ class DiffusersGenerationWorkerTests(unittest.TestCase):
                 },
                 lambda: None,
             )
-        self.assertEqual(calls["offload"], "mps")
+        self.assertEqual(calls["offload"], ["mps", "mps"])
+        self.assertEqual(calls["generate"]["prompt_embeds"], "embeds")
+        self.assertEqual(calls["generate"]["prompt_embeds_mask"], "mask")
+        self.assertIsNone(calls["generate"]["prompt"])
+        self.assertTrue(calls["remove_hooks"])
         self.assertTrue(calls["load"][1]["local_files_only"])
         self.assertEqual(artifact.width, 64)
 

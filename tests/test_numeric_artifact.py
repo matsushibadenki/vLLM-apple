@@ -34,6 +34,25 @@ class NumericArtifactTests(unittest.TestCase):
             self.assertEqual(loaded, created)
             self.assertEqual(path.stat().st_mode & 0o777, 0o600)
 
+    def test_roundtrip_preserves_two_axis_scale_and_nibble_order(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            root.chmod(0o700)
+            descriptor = NumericFormatDescriptor(
+                "nvfp4_e2m1", 289, packing="high_nibble_first")
+            geometry = TensorGeometry((17, 17), (0, 1))
+            packed = bytes([0x22] * 144 + [0x20])
+            scales = bytes([56, 64, 72, 80])
+            path = root / "two-axis.json"
+            created = write_nvfp4_numeric_artifact(
+                path, descriptor, packed, scales, 1, geometry=geometry,
+                target_dtype="F16", precision_policy=NumericPrecisionPolicy())
+            loaded = NumericArtifactReader(root).read(path.name, created.artifact_digest)
+            self.assertEqual(loaded.tensor.plan.geometry.scale_axes, (0, 1))
+            self.assertEqual(loaded.tensor.plan.format_plan.source.packing,
+                             "high_nibble_first")
+            self.assertEqual(loaded, created)
+
     def test_claim_removes_inbox_and_consume_removes_quarantine(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

@@ -64,6 +64,35 @@ class NumericFormatTests(unittest.TestCase):
                          list(range(4)) * 2 + list(range(4, 8))
                          + list(range(8, 12)) * 2 + list(range(12, 16)))
 
+    def test_two_dimensional_block_scales(self):
+        geometry = TensorGeometry((17, 17), scale_axis=(0, 1))
+        self.assertEqual(geometry.scale_axes, (0, 1))
+        self.assertEqual(geometry.scale_shape, (2, 2))
+        self.assertEqual(
+            [geometry.scale_index(index) for index in (0, 15, 16, 272, 288)],
+            [0, 0, 1, 2, 3],
+        )
+        descriptor = NumericFormatDescriptor("nvfp4_e2m1", 289)
+        packed = bytes([0x22] * 144 + [2])
+        scales = bytes([56, 64, 72, 80])
+        converted = convert_nvfp4_to_int8(
+            descriptor, packed, scales, 1, geometry=geometry,
+        )
+        self.assertEqual(converted.reference_values(), decode_nvfp4(
+            descriptor, packed, scales, 1, geometry=geometry,
+        ))
+
+    def test_high_nibble_first_conversion_and_padding(self):
+        descriptor = NumericFormatDescriptor(
+            "nvfp4_e2m1", 3, packing="high_nibble_first")
+        converted = convert_nvfp4_to_int8(
+            descriptor, bytes([0x12, 0x30]), bytes([56]), 1)
+        self.assertEqual(converted.reference_values(), (.5, 1, 1.5))
+        self.assertEqual(converted.plan.adapter,
+                         "nvfp4_high_nibble_int8_cpu_reference_v1")
+        with self.assertRaises(ValueError):
+            convert_nvfp4_to_int8(descriptor, bytes([0x12, 0x31]), bytes([56]), 1)
+
     def test_tensor_plan_binds_geometry_without_changing_legacy_plan(self):
         source = NumericFormatDescriptor("nvfp4_e2m1", 32)
         registry = DEFAULT_CONVERSION_REGISTRY
@@ -81,6 +110,9 @@ class NumericFormatTests(unittest.TestCase):
                                    ((0,), 0, 16), ((65537,), 0, 16),
                                    ((1,) * 9, 0, 16), ((16,), -1, 16),
                                    ((16,), 1, 16), ((16,), True, 16),
+                                   ((16,), (), 16), ((16,), (0, 0), 16),
+                                   ((2, 2), (1, 0), 16),
+                                   ((16,), (1,), 16), ((16,), [0], 16),
                                    ((16,), 0, 0), ((16,), 0, True)):
             with self.subTest(shape=shape, axis=axis, block=block), self.assertRaises(ValueError):
                 TensorGeometry(shape, axis, block)
@@ -95,7 +127,7 @@ class NumericFormatTests(unittest.TestCase):
         alternate = replace(first, adapter_id="alternate_cpu_v1")
         registry = original.register(alternate)
         source = replace(first.source, elements=16)
-        self.assertEqual(len(original.adapters), 1)
+        self.assertEqual(len(original.adapters), 2)
         with self.assertRaisesRegex(ValueError, "ambiguous"):
             registry.plan(source)
         plan = registry.plan(source, adapter_id=alternate.adapter_id)

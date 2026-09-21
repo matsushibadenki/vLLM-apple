@@ -1549,13 +1549,14 @@ dequantize → GEMM/GEMV → bias → activation
 
 2026-09-11追加要件。NVFP4 → INT8などの変換を個々のmodel loaderへ埋め込まず、Apple Runtime IRと
 AppleExecutionPlannerが共有する数値形式互換層として設計する。以下の全体像には計画中の契約・kernelも含む。
-2026-09-13時点では、bounded CPU参照変換、単一scale軸geometry、precision契約、MLX correctness bridge、
+2026-09-21時点では、bounded CPU参照変換、単一／複数scale軸geometry、low/high-first nibble順、
+precision契約、MLX correctness bridge、
 in-process resident storeとMLX F16/BF16/F32常駐backendまでを小規模tensorで実装・検証済みである。
 private bounded artifactを使うlocal socket搬送、one-shot claim/consume/quarantine、producer/client/worker CLI、
 最大2 bufferのin-process tile streaming、private packed/scale fileから全sourceを展開しないincremental decode、
 manifest-lastの複数file artifact lifecycle/runtime搬送、MLX常駐と明示解放まで実装済みである。
-request ID指定の別socket明示cancelまで実装済みである。native INT8演算、orphan cleanup、fused変換、
-他形式は未実装である。
+request ID指定の別socket明示cancel、起動時orphan companion quarantineまで実装済みである。
+native INT8演算、exporter固有scale swizzle、fused変換、他形式は未実装である。
 
 ### 抽象化の境界
 
@@ -1585,6 +1586,12 @@ load開始前にinboxからquarantineへclaimする。backend常駐が成功し�
 NVFP4ではE2M1値にblock scaleとglobal scaleを適用する。1Dの16要素blockと2Dの16×16 block、
 scaleの配置・padding・swizzle等はexporterのvariantに依存するため、明示metadataから復元する。
 参考：[NVIDIA Transformer Engine NVFP4仕様](https://docs.nvidia.com/deeplearning/transformer-engine-releases/release-2.15/user-guide/features/low_precision_training/nvfp4/nvfp4.html)。
+
+現在のartifact adapterは、従来の単一axis plan IDを維持しながら`scale_axis`をuniqueな複数axisへ拡張し、
+C-orderの各axisを16要素blockへ写像する。これにより1D blockと16×16の2D blockを同じ境界契約で扱う。
+low-nibble-firstとhigh-nibble-firstは別adapter IDとして選択し、奇数要素時の未使用nibbleも順序別に検証する。
+geometryとnibble順はplan/source/target digestへ結合され、inline artifactとfile-backed incremental decodeの双方で
+roundtrip検証される。任意stride、scale padding、非C-order scale配置、swizzleはまだ推測せずunsupportedとする。
 
 NVFP4 → INT8は単純castとして定義しない。まずpacked値とscaleを参照decodeし、次を候補として比較する。
 
@@ -1782,6 +1789,12 @@ correctnessを性能より優先する。
 のみlistenする。
 
 外部公開は明示設定が必要。
+
+TCP remote modeは`--allow-remote`だけでは有効にならない。非loopback addressへbindする場合は、TLS certificateと
+current-user所有・owner-only・1 MiB以下のprivate key、およびBearer session tokenを同時に必須とする。TLS identityの
+symlink、片側だけの指定、認証なしはmodel inspectionやbackend loadより前に拒否する。server contextはTLS 1.2以上に
+制限し、既存のconstant-time Bearer検証をHTTPS requestにも共通適用する。loopbackとprivate UDSは既存既定値を維持し、
+remote公開へ暗黙昇格しない。
 
 モデルファイル、plugin、custom kernelにはhash検証を導入可能にする。
 
@@ -2015,6 +2028,21 @@ vllm-apple serve mlx-community/Qwen3.8-27B-mxfp4
 
 だけで動かせるようにする。
 
+常駐運用では、macOSのcurrent-user `LaunchAgent`を次の分離した操作で管理する。
+
+```bash
+vllm-apple daemon-install /path/to/model
+vllm-apple daemon-start
+vllm-apple daemon-status
+vllm-apple daemon-stop
+```
+
+`daemon-install`はplistを0600で同一directoryへ一時生成し、fsync後にatomic replaceする。既存定義は
+`--force`なしでは上書きしない。既定transportはowner-only Application Support配下のUDSとsession token fileを
+必ず対にして使用する。start/stop/statusはplistのlabel、owner、regular-file、modeを再検証してから、shellを介さず
+current-userの`gui/<uid>` domainへ`launchctl`を最大10秒で実行する。installとstartを分けることで、生成内容を確認せず
+自動常駐させない。
+
 起動例：
 
 ```text
@@ -2088,11 +2116,11 @@ vLLM-Metal互換pluginとして成立させる。
 [Done] staged long-context evaluation schema and fail-fast memory coordinator
 [Done] tokenizer-aligned retrieval dataset and live backend adapter
 [Done] existing context/scheduler/elastic-memory atomic safe-point integration
-[Later] CPU/GPU profiler
-[Later] kernel benchmark
-[Later] automatic batch
+[Done] CPU reference profiler and profile-bound accelerator benchmark contract
+[Done] kernel self-test / benchmark / quarantine foundation
+[Done] pressure・thermal・power・backend制約に基づくprefill/decode automatic batch sizingとscheduler admission
 [Later] adaptive state allocation
-[Later] memory pressure monitoring
+[Done] event-driven memory pressure monitoring and safe-point propagation
 ```
 
 ---
@@ -2551,8 +2579,19 @@ memory pressureがall-normalでないbaselineを拒否するため、このrepor
 all-normal 2-sample baselineを改めて必須とする。
 回復時のmemory pressure normal、thermal nominalを確認した後の再試験も2/2生成成功し、最大peak RSSは
 2,582,462,464 bytes、median wallは482,200 msだったが、再び第2 sample終了時にmemory pressure warningを
-記録した。このため768×768は現時点でstable profileに昇格せず、512×512を認定上限とする。再試験は
-gate緩和ではなく、MPS cache解放、OS回復待ち、component residencyの実効memory削減を実装・検証した後に限る。
+記録した。このため768×768は現時点でstable profileに昇格せず、512×512を認定上限とする。workerは生成後に
+`pipeline`を破棄して`torch.mps.empty_cache()`を実行し、各sampleは独立processで終了する。runnerも
+次sampleの前にmemory pressure normalを連続観測する。これらを有効にした回復試験でwarningが再現したため、
+再試験はgate緩和や待機の追加ではなく、text encoder解放、transformer/VAE逐次offload境界の実測と
+component residencyの実効memory削減を実装・検証した後に限る。
+worker telemetryのeffective residentはOSのprocess peak、MLX allocator peakに加え、PyTorch MPSの
+`current_allocated_memory()`と`driver_allocated_memory()`の大きい方を含める。これによりMPS側allocationが
+RSSに現れない場合でも共通hard ceilingを適用する。未対応runtimeやprobe例外は他の実測値へfail-softする。
+Qwen-Image-2.1ではpromptをmodel offload下で先にencodeし、embeddingを確定した時点で既存offload hookを外す。
+その後text encoderとtokenizerのpipeline参照を破棄し、GC、MPS synchronize、cache解放を行ってから、残る
+transformerとVAEだけでmodel offload chainを再構成する。解放の前後でbounded progress telemetryを採取し、
+`encode_prompt`またはhook除去APIが固定Diffusers runtimeに存在しない場合は通常pipeline residencyへ暗黙fallbackせず
+生成前に拒否する。この経路の768×768実機再qualificationがall-normalになるまでは512×512を認定上限とする。
 reportにはwall latency、peak RSS、memory pressure、thermal state、backend/model fingerprint、
 quantization provenance、licenseを含める。CIはweightおよび生成画像をartifactとして保存しない。
 

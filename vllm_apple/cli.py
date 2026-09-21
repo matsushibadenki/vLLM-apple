@@ -5,6 +5,7 @@ import http.client
 import json
 import math
 import sys
+from dataclasses import asdict
 from pathlib import Path
 
 from .artifact_admission import assess_artifact_admission_for_path
@@ -12,6 +13,7 @@ from .compat import assess_candidate_backend, inspect_backend, inspect_mlx_lm_ba
 from .context import recommend_context
 from .vision_smoke import run_vision_smoke
 from .daemon import serve
+from .daemon_lifecycle import daemon_status, install_daemon, start_daemon, stop_daemon
 from .diffusers_generative_readiness import inspect_diffusers_generative_readiness
 from .diffusers_video_readiness import inspect_diffusers_video_readiness
 from .execution_profile import detect_apple_chip_profile, save_chip_profile
@@ -871,6 +873,9 @@ def build_parser() -> argparse.ArgumentParser:
     server = commands.add_parser("serve", help="run the local control daemon")
     server.add_argument("model", nargs="?", help="model ID or local model path")
     server.add_argument("--host", default="127.0.0.1")
+    server.add_argument("--allow-remote", action="store_true")
+    server.add_argument("--tls-cert", type=Path)
+    server.add_argument("--tls-key", type=Path)
     server.add_argument("--port", type=int, default=8000)
     server.add_argument("--max-concurrent-requests", type=int, default=32)
     server.add_argument("--backend-executable")
@@ -895,11 +900,42 @@ def build_parser() -> argparse.ArgumentParser:
     server.add_argument("--disable-native-v2-idle-tuning", action="store_true")
     server.add_argument("--native-v2-preference-path", type=Path)
     server.add_argument("--scheduling-preference-path", type=Path)
+    daemon_install = commands.add_parser(
+        "daemon-install", help="install an owner-only per-user launchd service definition")
+    daemon_install.add_argument("model", nargs="?")
+    daemon_install.add_argument("--label", default="io.vllm-apple.daemon")
+    daemon_install.add_argument("--plist", type=Path)
+    daemon_install.add_argument("--serve-argument", action="append", default=[])
+    daemon_install.add_argument("--force", action="store_true")
+    for action in ("start", "stop", "status"):
+        lifecycle = commands.add_parser(
+            f"daemon-{action}", help=f"{action} the per-user vLLM-Apple launchd service")
+        lifecycle.add_argument("--label", default="io.vllm-apple.daemon")
+        lifecycle.add_argument("--plist", type=Path)
     return parser
 
 
 def main(argv: list[str] | None = None) -> int:
     arguments = build_parser().parse_args(argv)
+    if arguments.command in {
+        "daemon-install", "daemon-start", "daemon-stop", "daemon-status"
+    }:
+        try:
+            if arguments.command == "daemon-install":
+                result = install_daemon(
+                    arguments.model, label=arguments.label, plist_path=arguments.plist,
+                    serve_arguments=arguments.serve_argument, force=arguments.force)
+            elif arguments.command == "daemon-start":
+                result = start_daemon(label=arguments.label, plist_path=arguments.plist)
+            elif arguments.command == "daemon-stop":
+                result = stop_daemon(label=arguments.label, plist_path=arguments.plist)
+            else:
+                result = daemon_status(label=arguments.label, plist_path=arguments.plist)
+        except (OSError, RuntimeError, ValueError) as error:
+            _json({"passed": False, "error_code": "daemon_lifecycle_failed", "detail": str(error)})
+            return 2
+        _json({"passed": True, **asdict(result)})
+        return 0 if arguments.command != "daemon-status" or result.running else 1
     if arguments.command == "execution-plan-preview":
         try:
             token = _read_private_token(arguments.session_token_file) if arguments.session_token_file else None
@@ -2724,6 +2760,9 @@ def main(argv: list[str] | None = None) -> int:
         try:
             serve(
                 host=arguments.host,
+                allow_remote=arguments.allow_remote,
+                tls_cert=arguments.tls_cert,
+                tls_key=arguments.tls_key,
                 port=arguments.port,
                 max_concurrent_requests=arguments.max_concurrent_requests,
                 model=arguments.model,

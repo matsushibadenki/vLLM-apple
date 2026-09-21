@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import importlib
 import argparse
+import gc
 import json
 import os
 import platform
@@ -112,18 +113,54 @@ class LocalDiffusersImageRuntime:
             progress()
             generator = torch.Generator(device="cpu").manual_seed(request["seed"])
 
+            generation_prompt = request["prompt"]
+            prompt_arguments = {}
+            if self._candidate_id == "qwen-image-2.1":
+                encode_prompt = getattr(pipeline, "encode_prompt", None)
+                remove_hooks = getattr(pipeline, "remove_all_hooks", None)
+                if not callable(encode_prompt) or not callable(remove_hooks):
+                    raise RuntimeError(
+                        "Qwen-Image-2.1 pipeline lacks the staged text-encoder release contract"
+                    )
+                prompt_embeds, prompt_embeds_mask, _ = encode_prompt(
+                    prompt=generation_prompt,
+                    device=getattr(pipeline, "_execution_device", "mps"),
+                    num_images_per_prompt=request["batch_size"],
+                )
+                progress()
+                remove_hooks()
+                pipeline.text_encoder = None
+                tokenizer = getattr(pipeline, "tokenizer", None)
+                if tokenizer is not None:
+                    pipeline.tokenizer = None
+                gc.collect()
+                mps_synchronize = getattr(getattr(torch, "mps", None), "synchronize", None)
+                if callable(mps_synchronize):
+                    mps_synchronize()
+                mps_empty_cache = getattr(getattr(torch, "mps", None), "empty_cache", None)
+                if callable(mps_empty_cache):
+                    mps_empty_cache()
+                progress()
+                enable_offload(device="mps")
+                generation_prompt = None
+                prompt_arguments = {
+                    "prompt_embeds": prompt_embeds,
+                    "prompt_embeds_mask": prompt_embeds_mask,
+                }
+
             def callback(_pipeline, _step, _timestep, callback_kwargs):
                 progress()
                 return callback_kwargs
 
             result = pipeline(
-                prompt=request["prompt"],
+                prompt=generation_prompt,
                 width=request["width"],
                 height=request["height"],
                 num_inference_steps=request["steps"],
                 num_images_per_prompt=request["batch_size"],
                 generator=generator,
                 callback_on_step_end=callback,
+                **prompt_arguments,
             )
             images = getattr(result, "images", None)
             if not isinstance(images, (list, tuple)) or len(images) != request["batch_size"]:
@@ -325,7 +362,17 @@ def default_worker_telemetry() -> WorkerTelemetry:
             mlx_peak = max(0, int(get_peak_memory()))
         except (RuntimeError, TypeError, ValueError):
             mlx_peak = 0
-    effective_resident = max(1, rss, mlx_peak)
+    mps_allocated = 0
+    torch = sys.modules.get("torch")
+    mps = getattr(torch, "mps", None)
+    for name in ("current_allocated_memory", "driver_allocated_memory"):
+        probe = getattr(mps, name, None)
+        if callable(probe):
+            try:
+                mps_allocated = max(mps_allocated, max(0, int(probe())))
+            except (RuntimeError, TypeError, ValueError):
+                continue
+    effective_resident = max(1, rss, mlx_peak, mps_allocated)
     return WorkerTelemetry(
         effective_resident,
         memory.pressure.value,

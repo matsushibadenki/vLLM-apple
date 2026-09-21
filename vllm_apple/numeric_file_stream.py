@@ -67,7 +67,9 @@ class NVFP4FileTileProvider:
                 raise ValueError("file-backed NVFP4 source hash mismatch")
             if descriptor.elements % 2:
                 last = os.pread(self._packed_fd, 1, self._packed_identity[2] - 1)
-                if len(last) != 1 or last[0] >> 4:
+                padding = ((last[0] >> 4) if descriptor.packing == "low_nibble_first"
+                           else (last[0] & 15)) if len(last) == 1 else 1
+                if padding:
                     raise ValueError("file-backed NVFP4 padding nibble is invalid")
             if (
                 numeric_content_digest_from_hashes(
@@ -118,7 +120,10 @@ class NVFP4FileTileProvider:
         converted = bytes(
             ((-1 if code & 8 else 1) * _E2M1_TWICE[code & 7]) & 255
             for code in (
-                (packed[(element // 2) - first_byte] >> (4 * (element % 2))) & 15
+                (packed[(element // 2) - first_byte] >> (
+                    4 * (element % 2) if self.descriptor.packing == "low_nibble_first"
+                    else 4 * (1 - element % 2)
+                )) & 15
                 for element in range(offset, offset + length)
             )
         )

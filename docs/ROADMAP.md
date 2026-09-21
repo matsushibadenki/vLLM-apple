@@ -149,7 +149,7 @@ Graph / Memory Planner + Global Scheduler
 - `[Done]` `fsync`とatomic replaceによる破損防止
 - `[Done]` profile load、validation、migration
 - `[Done]` hardware/model別profile cache
-- `[Later]` benchmark結果を含むprofile versioning
+- `[Done]` benchmark結果を含むprofile versioning。benchmark report ID、capability ID、hardware/environment fingerprint、exact workload identity、TTLをversioned device-placement planへ結合し、private atomic保存、strict derived-value再計算、last-known-good rollbackとsafe-point適用を実装
 
 ### Basic scheduler
 
@@ -221,7 +221,7 @@ Metal向けに独立実装する。外部engineへのruntime依存は追加し�
 - `[Done]` 最大8 clientのbounded event subscription
 - `[Done]` 遅延subscriberへの`stream.gap`通知
 - `[Done]` `Last-Event-ID`対応SSE runtime event stream
-- `[Later]` remote modeのTLSとauthentication
+- `[Done]` 明示opt-in remote modeのTLSとBearer authentication。非loopback bindは`--allow-remote`、証明書＋owner-only秘密鍵、session tokenがすべて揃う場合だけmodel load/listen前gateを通過し、TLS 1.2以上のserver socketへ昇格する。欠落、片側TLS identity、symlink／公開秘密鍵はfail-closed
 
 ### CLI
 
@@ -235,7 +235,7 @@ Metal向けに独立実装する。外部engineへのruntime依存は追加し�
 - `[Done]` UDS、session token、session token file options
 - `[Done]` automatic model inspectionとrecommended configuration表示
 - `[Done]` structured startup progress
-- `[Later]` daemon install、start、stop、status command
+- `[Done]` macOS per-user launchd向けdaemon install、start、stop、status command。owner-only atomic plist、既存定義の暗黙上書き拒否、認証付きprivate UDS既定値、label/plist ownership検証、shellなし10秒上限のlaunchctl lifecycleを実装
 
 ### Swift SDK and Mac app integration
 
@@ -422,7 +422,7 @@ VLLMAppleKit / Control API
 - `[Later]` structured / unstructured pruning experiment adapter
 - `[Later]` attention head、MLP、layer functional similarity analysis
 - `[Later]` layer bypass、head merge、layer merge candidate generation
-- `[Later]` quality budget超過時のcandidate自動reject
+- `[Done]` quality budget超過時のcandidate自動reject。dataset fingerprintとslice集合の完全一致を前提にperplexity相対劣化をslice別budgetと比較し、`quality_approved=false`のcandidateをrankなし・`quality_gate_failed`で自動除外。合格候補0件ではartifactを選択しない
 - `[Later]` optional LoRA/SFT repair adapterとrepair前後の再評価
 
 ### O4 — Mac companion app
@@ -453,8 +453,8 @@ VLLMAppleKit / Control API
 - `[Later]` Metal launch latency測定
 - `[Later]` Attention throughput測定
 - `[Later]` quantized matmul benchmark
-- `[Later]` model、shape、batch、context別kernel profile
-- `[Later]` automatic batch sizing
+- `[Done]` model、shape、batch、context別kernel profile。model metadataからGQA heads、head dimension、KV dtype、context tier、block数・working setを固定するversioned Paged Attention profile、profile-bound shape benchmark、batchを含むdevice benchmark identity、private/atomic strict loaderとCLIを実装済み
+- `[Done]` automatic phase batch sizing。memory pressure、thermal、power mode、CPU backend制約からprefillを1/2/4、decodeを1へ決定し、plan identityとdecision reasonへ固定してscheduler admissionで超過を拒否する
 - `[Later]` adaptive state allocationとage/pressure別precision
 - `[Done]` continuous memory pressure monitoring。macOS libdispatch memory-pressure sourceでnormal/warning/critical変化をevent-driven取得し、同一状態をcoalesce。daemon起動をブロックしない隔離threadからadmission、scheduler、safe-point elastic cacheとruntime eventへ反映し、source不可時は`vm_stat`系telemetryへfail-softする
 - `[Done]` thermal/power状態をversioned plan identityとdecision reasonへ固定し、prefill batchを保守的にclampするscheduling foundation
@@ -813,7 +813,10 @@ fallback、fusion、stress、および大容量model向け再現可能qualificat
 - `[Done]` Qwen-Image-2.1 INT8 4-sample stability gate。Apple M4/32 GiB、512×512、20 stepsで4/4成功、memory pressure全件normal、thermal fair、最大peak RSS 2,600,943,616 bytes、RSS range 2,228,224 bytes（最小値比約0.086%）、median wall 257,631 ms。4 output digestはすべて異なり、prompt/output非保存とprivate cleanupを確認。証跡: [INT8 4-sample stability](evaluation/qwen-image-2.1-torchao-int8-4sample-stability-2026-09-21.json)
 - `[Done]` Qwen-Image-2.1 INT8の一軸promotion。Apple M4/32 GiB、768×768、20 steps、独立2 sampleで2/2成功、最大peak RSS 2,599,305,216 bytes、median wall 494,727 ms、thermal fair、異なる2 output digest、prompt/output非保存とprivate cleanupを確認。第2 sampleの終了時memory pressureはwarningだったがqualificationの失敗条件には抵触せず、issuesは空。証跡: [INT8 768×768 2-sample promotion](evaluation/qwen-image-2.1-torchao-int8-768-2sample-promotion-2026-09-21.json)
 - `[Done]` 768×768・20 stepsの2-sample baselineをmemory pressure normalの回復状態から再取得。2/2成功、最大peak RSS 2,582,462,464 bytesだったが、再び第2 sample終了時にwarningを再現。warningを含むbaselineからの4-sample昇格はload前に安全停止するため、768×768を安定profileへは昇格せず512×512を認定上限に維持する。証跡: [INT8 768×768 recovery attempt](evaluation/qwen-image-2.1-torchao-int8-768-2sample-recovery-2026-09-21.json)
-- `[Next]` Qwen-Image-2.1 INT8の768×768で連続第2 sampleがmemory pressure warningになる原因を、worker終了後のMPS cache解放、OS回復待ち、component residencyの順で切り分け。評価gateを弱めず、実効memoryを下げる変更と回帰テストが揃った後にだけ再qualificationする
+- `[Done]` Qwen-Image-2.1 INT8の768×768 warning切り分けのうち、workerによる`pipeline`破棄・`torch.mps.empty_cache()`・独立process終了と、runnerによる次sample開始前のnormal連続観測は実装済みであることを確認。その状態でも第2 sample中のwarningが2回再現したため、単純なcache解放漏れ・開始前回復不足は原因候補から除外
+- `[Done]` 生成workerのeffective resident telemetryにPyTorch MPSの`current_allocated_memory` / `driver_allocated_memory`を追加。OS process peakとMLX allocator peakに加え、MPS driver allocationの最大値をhard-ceiling判定へ反映し、probe不可時だけfail-softする
+- `[Done]` Qwen-Image-2.1 INT8の明示的text-encoder phase解放。model offload下でprompt embeddingを先に確定し、hook除去後にtext encoder/tokenizer参照を破棄、GC・MPS synchronize/cache解放後に`transformer->vae` offload chainを再構成する。解放前後を既存bounded telemetryで観測し、API欠落時はfail-closedする回帰テストを追加
+- `[Next]` 上記staged releaseを768×768・20 stepsの独立2 sampleで再qualificationし、MPS allocator peak、全sampleのmemory pressure normal、生成結果、private cleanupを確認する。合格後だけ4-sample stabilityへ昇格する
 - `[Later]` FLUX.2 [dev]をstretch候補とする4-bit級量子化、CPU/SSD offload、chunking検証（非量子化weightはM4/32GBでload前にreject）
 - `[Done]` diffusion pipelineのmodel、text encoder、VAE別artifact admissionとconservative resident-memory hard ceiling
 - `[Done]` privacy-preserving画像生成qualification report schemaとdeterministic evaluator（first-output/wall latency、peak RSS、memory pressure、thermal state、output metadata、plan fingerprint）
@@ -882,7 +885,8 @@ NVFP4 → INT8を最初の候補としつつ、FP16/BF16展開、既存MLX量子
 - `[Done]` request ID指定のout-of-band `cancel` control message、最大8接続の並行Unix socket受付、tile safe pointへのsignal合成、client/CLI cancel入口
 - `[Done]` worker起動時の5分grace・4096 entry上限・identity再検証付きorphan companion quarantine
 - `[Done]` cancel・consume・shutdownの実socket競合試験、shutdown時active connection即時回収、active/cancel/consume/quarantine/orphanのbounded診断（native INT8演算kernelは未実装）
-- `[Later]` NVFP4 1D／2D block scale、scale layout・swizzle、tensor scale、packed nibble順序を識別するartifact adapter
+- `[Done]` NVFP4 1D／2D（複数axis）16要素block scale、tensor global scale、low/high-first packed nibble順序をplan/digestへ結合するartifact adapterとCPU参照・file streaming実行（未知layoutはfail-closed）
+- `[Later]` exporter固有のscale layout・padding・swizzleを明示識別・変換するNVFP4 artifact adapter
 - `[Later]` MXFP4／MXFP6／MXFP8、FP8 E4M3／E5M2とvariant、FP16／BF16／FP32、signed/unsigned INT8／INT4／INT2の段階的対応
 - `[Later]` NF4／codebook量子化、groupwise affine、zero-point、double quantization、mixed precision、outlier/residual・sparse表現の拡張adapter
 - `[Later]` Safetensors／GGUF／MLX／Core ML artifactとGPTQ／AWQ／各exporterのmetadata・packing adapter（container、量子化recipe、演算形式を分離）
@@ -957,8 +961,8 @@ Unified Memoryとmemory bandwidthを共有する一つの実行系として管�
 - `[Next]` Vision/Audio encoderとembedding/classifierから開始するANE routing、GPU LLM pipelineとの非同期連携
 - `[Later]` CPUまたはANE draft + GPU verifyによるheterogeneous speculative execution
 - `[Done]` contention全ペア合格時だけ原子的に一括予約するCPU／GPU／ANE bounded pipeline並列化
-- `[Later]` hardware／OS／model／shape別autotuning profile、期限切れ、quarantine、last-known-good rollback
-- `[Later]` backend別correctness比較、timeout／compile failure／numerical mismatch時のANE → GPU → CPU fallback
+- `[Done]` hardware／OS／model／shape別autotuning profile。model-backed shape、hardware/source/environment fingerprint、private atomic profile、OS/toolchain/MLX変更時の失効、TTL、quarantine、明示的再計測restore、last-known-good rollbackをnative v2 tuningとdevice placementで実装
+- `[Done]` backend別correctness比較、timeout／compile failure／numerical mismatch時のANE → GPU → CPU fallback。同一workloadのCPU reference digestと数値誤差を昇格時に検証し、昇格済みCore ML routeの固定retryable codeからprobe済みGPU、CPUへbounded resource引き継ぎでfallback
 - `[Later]` TTFT、TPOT、tokens/sec、frames/sec、energy/request、peak Unified Memoryを用いたpromotion gate
 - `[Done]` device assignment、queue wait、fallback、contention、thermal/power decisionの固定キー・上限付きruntime observabilityとstrict schema
 - `[Done]` scheduling observabilityのtyped Swift SDK、旧runtime unavailable fallback、Mac app英語・日本語・简体中文diagnostics
@@ -992,7 +996,8 @@ Unified Memoryとmemory bandwidthを共有する一つの実行系として管�
 - `[Done]` UDS permissionとsession authentication
 - `[Done]` model tree全regular fileのstreaming SHA-256 manifest生成・起動前検証（symlink/special file拒否、変更検出、bounded走査）
 - `[Done]` detached CMS trusted manifest署名、trusted CA chain、signer SHA-256 identityのmodel load前検証
-- `[Later]` remote TLS、API key、client identity
+- `[Done]` remote TLSとBearer API session token（非loopbackの明示opt-in、TLS identity・認証必須、秘密鍵安全性検査）
+- `[Later]` optional mTLS client certificate identityと失効・rotation policy
 
 ### Observability
 

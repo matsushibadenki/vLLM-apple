@@ -71,6 +71,27 @@ class NumericFileStreamTests(unittest.TestCase):
                 stream.acquire_next()
             stream.close()
 
+    def test_high_nibble_first_streaming(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            descriptor = NumericFormatDescriptor(
+                "nvfp4_e2m1", 3, packing="high_nibble_first")
+            packed, scales = bytes([0x12, 0x30]), bytes([56])
+            tensor = convert_nvfp4_to_int8(descriptor, packed, scales, 1)
+            packed_path, scales_path = root / "high.packed", root / "high.scales"
+            for path, payload in ((packed_path, packed), (scales_path, scales)):
+                path.write_bytes(payload)
+                path.chmod(0o600)
+            provider = NVFP4FileTileProvider(
+                packed_path, scales_path, descriptor, geometry=None, global_scale=1,
+                packed_sha256=hashlib.sha256(packed).hexdigest(),
+                scales_sha256=hashlib.sha256(scales).hexdigest(),
+                scaled_payload_sha256=hashlib.sha256(tensor.payload).hexdigest(),
+                source_digest=tensor.source_digest, target_digest=tensor.target_digest)
+            self.assertEqual(provider.read_tile(0, 0, 1), tensor.payload[:1])
+            self.assertEqual(provider.read_tile(1, 1, 2), tensor.payload[1:])
+            provider.close()
+
     def test_rejects_symlink_permissions_and_content_bindings(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

@@ -582,8 +582,10 @@ def _decode_numeric_artifact(encoded: bytes, artifact_digest: str) -> LoadedNume
                 "shape", "scale_axis", "block_size", "schema_version"
             }:
                 raise ValueError("invalid geometry fields")
+            scale_axis = geometry_payload["scale_axis"]
             geometry = TensorGeometry(
-                tuple(geometry_payload["shape"]), geometry_payload["scale_axis"],
+                tuple(geometry_payload["shape"]),
+                tuple(scale_axis) if isinstance(scale_axis, list) else scale_axis,
                 geometry_payload["block_size"], geometry_payload["schema_version"])
         packed = base64.b64decode(payload["packed_source_base64"], validate=True)
         scales = base64.b64decode(payload["block_scales_base64"], validate=True)
@@ -657,9 +659,10 @@ def _decode_file_numeric_manifest(payload: dict[str, object]) -> dict[str, objec
                 "shape", "scale_axis", "block_size", "schema_version",
             }:
                 raise ValueError("invalid geometry fields")
+            scale_axis = geometry_payload["scale_axis"]
             geometry = TensorGeometry(
                 tuple(geometry_payload["shape"]),
-                geometry_payload["scale_axis"],
+                tuple(scale_axis) if isinstance(scale_axis, list) else scale_axis,
                 geometry_payload["block_size"],
                 geometry_payload["schema_version"],
             )

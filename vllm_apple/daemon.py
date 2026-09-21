@@ -1,8 +1,12 @@
 from __future__ import annotations
 
 import argparse
+import ipaddress
+import os
 import shutil
 import signal
+import ssl
+import stat
 import threading
 import time
 from dataclasses import replace
@@ -91,6 +95,9 @@ from .vllm_metal_v2_tuning import (
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="vllm-appled")
     parser.add_argument("--host", default="127.0.0.1")
+    parser.add_argument("--allow-remote", action="store_true")
+    parser.add_argument("--tls-cert", type=Path)
+    parser.add_argument("--tls-key", type=Path)
     parser.add_argument("--port", type=int, default=8000)
     parser.add_argument("--max-concurrent-requests", type=int, default=32)
     parser.add_argument("model", nargs="?")
@@ -646,6 +653,9 @@ def build_native_v2_observation_monitor(
 
 def serve(
     host: str = "127.0.0.1",
+    allow_remote: bool = False,
+    tls_cert: Path | None = None,
+    tls_key: Path | None = None,
     port: int = 8000,
     max_concurrent_requests: int = 32,
     model: str | None = None,
@@ -680,6 +690,8 @@ def serve(
         raise ValueError("control and inference backend ports must differ")
     if session_token is not None and session_token_file is not None:
         raise ValueError("session_token and session_token_file are mutually exclusive")
+    if (tls_cert is None) != (tls_key is None):
+        raise ValueError("TLS certificate and private key must be provided together")
     signed_integrity = (
         model_integrity_signature,
         model_integrity_trusted_ca,
@@ -693,6 +705,12 @@ def serve(
         raise ValueError("metal_tuning_report and disabled Metal tuning are mutually exclusive")
     if session_token_file is not None:
         session_token = load_or_create_token_file(Path(session_token_file))
+    remote = not _is_loopback_host(host)
+    if remote and not allow_remote:
+        raise ValueError("non-loopback bind requires --allow-remote")
+    if remote and (tls_cert is None or session_token is None):
+        raise ValueError("remote mode requires TLS and bearer authentication")
+    tls_context = _server_tls_context(tls_cert, tls_key) if tls_cert is not None else None
 
     backend: BackendProcess | None = None
     launch_thread: threading.Thread | None = None
@@ -951,6 +969,8 @@ def serve(
         max_concurrent_requests=max_concurrent_requests,
         session_token=session_token,
     )
+    if tls_context is not None:
+        server.socket = tls_context.wrap_socket(server.socket, server_side=True)
     unix_server = None
     unix_thread = None
     if socket_path is not None:
@@ -1129,6 +1149,9 @@ def main(argv: list[str] | None = None) -> int:
     arguments = build_parser().parse_args(argv)
     serve(
         host=arguments.host,
+        allow_remote=arguments.allow_remote,
+        tls_cert=arguments.tls_cert,
+        tls_key=arguments.tls_key,
         port=arguments.port,
         max_concurrent_requests=arguments.max_concurrent_requests,
         model=arguments.model,
@@ -1158,6 +1181,32 @@ def main(argv: list[str] | None = None) -> int:
         scheduling_preference_path=arguments.scheduling_preference_path,
     )
     return 0
+
+
+def _is_loopback_host(host: str) -> bool:
+    if host == "localhost":
+        return True
+    try:
+        return ipaddress.ip_address(host).is_loopback
+    except ValueError:
+        return False
+
+
+def _server_tls_context(certificate: Path, private_key: Path) -> ssl.SSLContext:
+    certificate = certificate.expanduser().absolute()
+    private_key = private_key.expanduser().absolute()
+    for path, private in ((certificate, False), (private_key, True)):
+        if path.is_symlink():
+            raise ValueError("TLS identity files must not be symlinks")
+        info = path.stat()
+        if (not stat.S_ISREG(info.st_mode) or info.st_uid != os.getuid()
+                or not 1 <= info.st_size <= 1024 * 1024
+                or private and stat.S_IMODE(info.st_mode) & 0o077):
+            raise ValueError("TLS identity file is unsafe")
+    context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+    context.minimum_version = ssl.TLSVersion.TLSv1_2
+    context.load_cert_chain(certificate, private_key)
+    return context
 
 
 if __name__ == "__main__":

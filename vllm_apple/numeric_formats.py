@@ -56,7 +56,7 @@ class TensorGeometry:
     """
 
     shape: tuple[int, ...]
-    scale_axis: int
+    scale_axis: int | tuple[int, ...]
     block_size: int = 16
     schema_version: int = 1
 
@@ -68,8 +68,11 @@ class TensorGeometry:
             raise ValueError("shape must contain 1..8 positive integer dimensions")
         if math.prod(self.shape) > MAX_REFERENCE_ELEMENTS:
             raise ValueError("geometry exceeds reference element limit")
-        if type(self.scale_axis) is not int or not 0 <= self.scale_axis < len(self.shape):
-            raise ValueError("scale axis must be a nonnegative in-range integer")
+        axes = self.scale_axes
+        if (not axes or axes != tuple(sorted(axes)) or len(set(axes)) != len(axes)
+                or any(type(axis) is not int or not 0 <= axis < len(self.shape)
+                       for axis in axes)):
+            raise ValueError("scale axes must be sorted unique nonnegative in-range integers")
         if type(self.block_size) is not int or not 0 < self.block_size <= MAX_REFERENCE_ELEMENTS:
             raise ValueError("invalid geometry block size")
 
@@ -78,9 +81,19 @@ class TensorGeometry:
         return math.prod(self.shape)
 
     @property
+    def scale_axes(self) -> tuple[int, ...]:
+        """Normalized blocked axes while preserving legacy single-axis plan IDs."""
+        if type(self.scale_axis) is int:
+            return (self.scale_axis,)
+        if not isinstance(self.scale_axis, tuple):
+            return ()
+        return self.scale_axis
+
+    @property
     def scale_shape(self) -> tuple[int, ...]:
+        axes = set(self.scale_axes)
         return tuple((size + self.block_size - 1) // self.block_size
-                     if axis == self.scale_axis else size
+                     if axis in axes else size
                      for axis, size in enumerate(self.shape))
 
     @property
@@ -93,7 +106,8 @@ class TensorGeometry:
         coordinates = [0] * len(self.shape)
         for axis in range(len(self.shape) - 1, -1, -1):
             flat_index, coordinates[axis] = divmod(flat_index, self.shape[axis])
-        coordinates[self.scale_axis] //= self.block_size
+        for axis in self.scale_axes:
+            coordinates[axis] //= self.block_size
         index = 0
         for size, coordinate in zip(self.scale_shape, coordinates):
             index = index * size + coordinate
@@ -187,10 +201,19 @@ class ConversionRegistry:
         return candidates[0]
 
 
-DEFAULT_CONVERSION_REGISTRY = ConversionRegistry((ConversionAdapter(
-    "nvfp4_int8_cpu_reference_v1", NumericFormatDescriptor("nvfp4_e2m1", 1),
-    NumericFormatDescriptor("scaled_int8", 1, packing="signed_byte", value_multiplier=0.5),
-),))
+_SCALED_INT8_TEMPLATE = NumericFormatDescriptor(
+    "scaled_int8", 1, packing="signed_byte", value_multiplier=0.5)
+DEFAULT_CONVERSION_REGISTRY = ConversionRegistry((
+    ConversionAdapter(
+        "nvfp4_int8_cpu_reference_v1", NumericFormatDescriptor("nvfp4_e2m1", 1),
+        _SCALED_INT8_TEMPLATE,
+    ),
+    ConversionAdapter(
+        "nvfp4_high_nibble_int8_cpu_reference_v1",
+        NumericFormatDescriptor("nvfp4_e2m1", 1, packing="high_nibble_first"),
+        _SCALED_INT8_TEMPLATE,
+    ),
+))
 
 
 def conversion_plan(source: NumericFormatDescriptor) -> ConversionPlan:
@@ -219,14 +242,19 @@ def _validate_inputs(descriptor, packed, scales, global_scale, geometry=None):
     for code in scales:
         if not math.isfinite(_scale(code) * global_scale * 6):
             raise ValueError("reference scale overflow")
-    if descriptor.elements % 2 and packed[-1] >> 4:
+    if (descriptor.elements % 2
+            and ((packed[-1] >> 4) if descriptor.packing == "low_nibble_first"
+                 else (packed[-1] & 15))):
         raise ValueError("unused padding nibble must be zero")
     return plan
 
 
-def _codes(packed: bytes, elements: int):
+def _codes(packed: bytes, elements: int, packing: str = "low_nibble_first"):
+    if packing not in {"low_nibble_first", "high_nibble_first"}:
+        raise ValueError("unsupported packed nibble order")
     for index in range(elements):
-        yield (packed[index // 2] >> (4 * (index % 2))) & 15
+        shift = 4 * (index % 2) if packing == "low_nibble_first" else 4 * (1 - index % 2)
+        yield (packed[index // 2] >> shift) & 15
 
 
 def decode_nvfp4(
@@ -237,7 +265,7 @@ def decode_nvfp4(
     return tuple(
         math.copysign(_E2M1_TWICE[code & 7] / 2, -1 if code & 8 else 1)
         * _scale(scales[index // 16 if geometry is None else geometry.scale_index(index)]) * global_scale
-        for index, code in enumerate(_codes(packed, descriptor.elements))
+        for index, code in enumerate(_codes(packed, descriptor.elements, descriptor.packing))
     )
 
 
@@ -289,7 +317,9 @@ class ScaledInt8Tensor:
 
     def __post_init__(self) -> None:
         format_plan = self.plan.format_plan if isinstance(self.plan, TensorConversionPlan) else self.plan
-        if not isinstance(format_plan, ConversionPlan) or format_plan != conversion_plan(format_plan.source):
+        if (not isinstance(format_plan, ConversionPlan)
+                or format_plan != DEFAULT_CONVERSION_REGISTRY.plan(
+                    format_plan.source, adapter_id=format_plan.adapter)):
             raise ValueError("unsupported conversion plan")
         if not isinstance(self.payload, bytes) or len(self.payload) != format_plan.target.elements:
             raise ValueError("INT8 payload size mismatch")
@@ -335,7 +365,7 @@ def convert_nvfp4_to_int8(
     plan = _validate_inputs(descriptor, packed, scales, global_scale, geometry)
     payload = bytes(
         ((-1 if code & 8 else 1) * _E2M1_TWICE[code & 7]) & 255
-        for code in _codes(packed, descriptor.elements)
+        for code in _codes(packed, descriptor.elements, descriptor.packing)
     )
     # Signed zero is canonicalized by integer storage; numeric equality only.
     return ScaledInt8Tensor(
