@@ -1795,6 +1795,9 @@ current-user所有・owner-only・1 MiB以下のprivate key、およびBearer se
 symlink、片側だけの指定、認証なしはmodel inspectionやbackend loadより前に拒否する。server contextはTLS 1.2以上に
 制限し、既存のconstant-time Bearer検証をHTTPS requestにも共通適用する。loopbackとprivate UDSは既存既定値を維持し、
 remote公開へ暗黙昇格しない。
+`--tls-client-ca`を明示した場合は、owner検証済みCAをserver contextへ読み込み、TLS handshakeでclient certificateを
+必須化する。mTLSはBearer tokenを置き換えず併用する。subject/SAN別の権限mapping、CRL/OCSP、無停止rotationは
+現段階では未実装であり、単一の信頼CAによる接続identity gateに範囲を限定する。
 
 モデルファイル、plugin、custom kernelにはhash検証を導入可能にする。
 
@@ -2431,6 +2434,10 @@ baselineとして要求する。候補初期profileと同じ幅、高さ、steps
 `--promotion-parent-report`で初期frame数の4-sample reportを必須とする。両reportのartifact provenance、
 candidate、shape、all-normal pressureを再検証し、先にframe promotion chain、次にsample-count promotionを
 復元できた場合だけworkerを起動する。
+さらに安定化済み49-frameから65-frame等へ進む場合は、直前の4-sample reportと初期33-frame
+4-sample root reportを同時に要求する。両方のcandidate、幅、高さ、all-normal pressure、sample数、frame境界を
+検証し、両plan digestからpromotion chain IDを生成する。直前frameの2倍超過、`frames - 1`が4の倍数でない値、
+初期rootの差替えはweight load前に拒否する。
 
 初期の動画生成qualification候補は、MacBook Air M4 / 32GBでload前memory admissionを通過する
 構成に限定する。

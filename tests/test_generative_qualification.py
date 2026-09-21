@@ -13,6 +13,7 @@ from vllm_apple.generative_qualification import (
     generative_promotion_chain_sha256,
     parse_generative_component,
     promote_generative_chained_resolution_plan,
+    promote_generative_chained_frame_plan,
     promote_generative_frame_plan,
     promote_generative_resolution_plan,
     promote_generative_sample_count_plan,
@@ -306,7 +307,6 @@ class GenerativeQualificationTests(unittest.TestCase):
         )
         self.assertTrue(promoted.eligible)
         self.assertEqual(promoted.promotion_axis, "sample_count_4")
-
         with self.assertRaisesRegex(ValueError, "identity"):
             promote_generative_sample_count_plan(
                 plan,
@@ -319,7 +319,6 @@ class GenerativeQualificationTests(unittest.TestCase):
                 baseline_memory_pressures=("normal", "normal"),
                 target_sample_count=4,
             )
-
         with self.assertRaisesRegex(ValueError, "all-normal"):
             promote_generative_sample_count_plan(
                 plan,
@@ -332,6 +331,35 @@ class GenerativeQualificationTests(unittest.TestCase):
                 baseline_memory_pressures=("normal", "warning"),
                 target_sample_count=4,
             )
+
+    def test_second_frame_promotion_binds_stable_and_initial_reports(self) -> None:
+        with TemporaryDirectory() as directory:
+            target = build_generative_qualification_plan(
+                candidate_id="wan2.2-ti2v-5b",
+                artifact_bytes=8 * GIB,
+                estimated_resident_bytes=12 * GIB,
+                hardware=hardware(), target=Path(directory), quantization="int8",
+                components=components(8, 12), frames=65,
+            )
+        initial = GenerativeBaselineEvidence(
+            "wan2.2-ti2v-5b", "a" * 64, 4, 640, 384, 33, ("normal",) * 4)
+        stable = GenerativeBaselineEvidence(
+            "wan2.2-ti2v-5b", "b" * 64, 4, 640, 384, 49, ("normal",) * 4)
+        promoted = promote_generative_chained_frame_plan(
+            target, stability_baseline=stable, initial_baseline=initial)
+        self.assertTrue(promoted.eligible)
+        self.assertEqual(promoted.promotion_axis, "frames")
+        self.assertEqual(
+            promoted.baseline_plan_sha256,
+            generative_promotion_chain_sha256(stable, initial),
+        )
+        warning = GenerativeBaselineEvidence(
+            stable.candidate_id, stable.plan_sha256, 4, 640, 384, 49,
+            ("normal", "normal", "normal", "warning"),
+        )
+        with self.assertRaisesRegex(ValueError, "all-normal"):
+            promote_generative_chained_frame_plan(
+                target, stability_baseline=warning, initial_baseline=initial)
 
     def test_second_resolution_promotion_verifies_the_complete_plan_chain(self) -> None:
         with TemporaryDirectory() as directory:

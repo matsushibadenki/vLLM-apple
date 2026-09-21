@@ -225,9 +225,19 @@ class DiffusersGenerationWorkerTests(unittest.TestCase):
                         "candidate_id": "qwen-image-2512",
                         "model_root": str(model),
                         "output_root": str(output),
+                        "batch_size": 1,
                     },
                     lambda: None,
                 )
+
+    def test_local_runtime_rejects_batch_before_import_or_model_load(self) -> None:
+        runtime = LocalDiffusersImageRuntime(
+            "qwen-image-2.1",
+            module_loader=lambda _name: self.fail("batch gate must precede imports"),
+        )
+        with self.assertRaisesRegex(ValueError, "batch size one"):
+            runtime.generate(
+                {"candidate_id": "qwen-image-2.1", "batch_size": 2}, lambda: None)
 
     def test_qwen_image_21_requires_sequential_mps_offload(self) -> None:
         with TemporaryDirectory() as directory:

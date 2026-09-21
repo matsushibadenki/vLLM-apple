@@ -611,3 +611,56 @@ def promote_generative_chained_resolution_plan(
         issues=(),
         eligible=plan.artifact_admission.eligible,
     )
+
+
+def promote_generative_chained_frame_plan(
+    plan: GenerativeQualificationPlan,
+    *,
+    stability_baseline: GenerativeBaselineEvidence,
+    initial_baseline: GenerativeBaselineEvidence,
+) -> GenerativeQualificationPlan:
+    """Promote temporal length while binding the stable intermediate and root reports."""
+    if (plan.candidate.modality != "video" or plan.initial_profile
+            or plan.issues != ("initial_profile_limits_exceeded",)):
+        raise ValueError("generative plan has non-promotable issues")
+    if any(
+        evidence.candidate_id != plan.candidate.candidate_id
+        for evidence in (stability_baseline, initial_baseline)
+    ):
+        raise ValueError("generative frame promotion chain candidate does not match")
+    if (
+        initial_baseline.width != plan.width
+        or initial_baseline.height != plan.height
+        or initial_baseline.frames != plan.candidate.initial_frames
+        or initial_baseline.sample_count < STABILITY_PROMOTION_SAMPLE_COUNT
+        or stability_baseline.sample_count != STABILITY_PROMOTION_SAMPLE_COUNT
+    ):
+        raise ValueError("generative frame promotion chain shape or sample count is invalid")
+    if any(
+        pressure != "normal"
+        for evidence in (initial_baseline, stability_baseline)
+        for pressure in evidence.memory_pressures
+    ):
+        raise ValueError("generative chained frame promotion requires all-normal baselines")
+    if (
+        stability_baseline.width != initial_baseline.width
+        or stability_baseline.height != initial_baseline.height
+        or stability_baseline.frames <= initial_baseline.frames
+        or stability_baseline.frames > initial_baseline.frames * 2
+        or (stability_baseline.frames - 1) % 4
+        or plan.frames <= stability_baseline.frames
+        or plan.frames > stability_baseline.frames * 2
+        or (plan.frames - 1) % 4
+        or plan.batch_size != 1
+        or plan.steps > plan.candidate.initial_steps
+    ):
+        raise ValueError("generative chained frame promotion is not a bounded step")
+    return replace(
+        plan,
+        promotion_axis="frames",
+        baseline_plan_sha256=generative_promotion_chain_sha256(
+            stability_baseline, initial_baseline
+        ),
+        issues=(),
+        eligible=plan.artifact_admission.eligible,
+    )

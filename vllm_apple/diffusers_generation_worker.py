@@ -75,6 +75,8 @@ class LocalDiffusersImageRuntime:
     ) -> GeneratedImageArtifact:
         if request.get("candidate_id") != self._candidate_id:
             raise ValueError("local Diffusers runtime candidate does not match its request")
+        if request.get("batch_size") != 1:
+            raise ValueError("qualification image worker requires batch size one")
         model_root = Path(str(request["model_root"])).resolve(strict=True)
         output_root = Path(str(request["output_root"])).resolve(strict=True)
         if not model_root.is_dir() or not output_root.is_dir():
@@ -165,8 +167,6 @@ class LocalDiffusersImageRuntime:
             images = getattr(result, "images", None)
             if not isinstance(images, (list, tuple)) or len(images) != request["batch_size"]:
                 raise RuntimeError("Diffusers image pipeline returned an invalid image batch")
-            if request["batch_size"] != 1:
-                raise RuntimeError("qualification image worker requires batch size one")
             descriptor, temporary = tempfile.mkstemp(
                 prefix=f"qualification-{request['sample_index']}-",
                 suffix=".png",

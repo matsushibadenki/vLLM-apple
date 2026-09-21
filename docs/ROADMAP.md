@@ -789,6 +789,7 @@ fallback、fusion、stress、および大容量model向け再現可能qualificat
 - `[Done]` Diffusers sourceのbounded AST scanによる6候補pipeline class readiness gate（backend import/model/Metal allocationなし）
 - `[Later]` MLX、Diffusers、ComfyUI固有workerからqualification sampleを取得するadapter
 - `[Done]` 最小profile合格後だけ解像度、frame数、steps、連続生成を一軸ずつ増やす段階的memory-stability gate。Wanで33-frame 2/4-sample合格後にだけ49-frameを許可し、同形状2→4 sampleはparent promotion chainも再検証する
+- `[Done]` 2段目以降のvideo frame promotion contract。直前の4-sample安定profileと初期4-sample rootをcandidate/shape/all-normal条件で再検証し、両plan digestをchain identityへ結合する。これにより49-frame安定化後の65-frame候補を初期証跡なしでは起動できない
 - `[Done]` model license、量子化方式、変換元digest、workflow provenanceを記録し、weightと生成動画を保存・uploadしないprivacy gate。Wan実機reportでartifact root digest、backend/version、mixed Q8/BF16、licenseを固定し、prompt/MP4非保存とprivate cleanupを確認
 
 ## Phase 7 — Generative Media
@@ -997,7 +998,8 @@ Unified Memoryとmemory bandwidthを共有する一つの実行系として管�
 - `[Done]` model tree全regular fileのstreaming SHA-256 manifest生成・起動前検証（symlink/special file拒否、変更検出、bounded走査）
 - `[Done]` detached CMS trusted manifest署名、trusted CA chain、signer SHA-256 identityのmodel load前検証
 - `[Done]` remote TLSとBearer API session token（非loopbackの明示opt-in、TLS identity・認証必須、秘密鍵安全性検査）
-- `[Later]` optional mTLS client certificate identityと失効・rotation policy
+- `[Done]` optional mTLS client certificate identity gate。owner検証済みclient CA指定時は`CERT_REQUIRED`を設定し、Bearer tokenと併用する
+- `[Later]` mTLS subject/SANのauthorization mapping、証明書失効確認、無停止rotation policy
 
 ### Observability
 

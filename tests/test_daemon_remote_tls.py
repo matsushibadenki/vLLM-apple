@@ -1,5 +1,6 @@
 import tempfile
 import unittest
+import ssl
 from pathlib import Path
 from unittest.mock import Mock, patch
 
@@ -22,6 +23,9 @@ class DaemonRemoteTLSTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "provided together"):
             serve(host="127.0.0.1", tls_cert=Path("certificate.pem"),
                   enable_runtime_probes=False)
+        with self.assertRaisesRegex(ValueError, "client CA"):
+            serve(host="127.0.0.1", tls_client_ca=Path("ca.pem"),
+                  enable_runtime_probes=False)
 
     def test_tls_context_rejects_public_key_and_loads_private_identity(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -40,6 +44,22 @@ class DaemonRemoteTLSTests(unittest.TestCase):
                 self.assertIs(_server_tls_context(certificate, key), context)
             context.load_cert_chain.assert_called_once_with(certificate, key)
             self.assertIsNotNone(context.minimum_version)
+
+    def test_client_ca_enables_required_mutual_tls(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            certificate, key, ca = (
+                root / "certificate.pem", root / "private-key.pem", root / "client-ca.pem")
+            for path in (certificate, key, ca):
+                path.write_text(path.name)
+            key.chmod(0o600)
+            context = Mock()
+            context.minimum_version = None
+            context.verify_mode = None
+            with patch("vllm_apple.daemon.ssl.SSLContext", return_value=context):
+                _server_tls_context(certificate, key, client_ca=ca)
+            context.load_verify_locations.assert_called_once_with(cafile=str(ca))
+            self.assertEqual(context.verify_mode, ssl.CERT_REQUIRED)
 
 
 if __name__ == "__main__":
