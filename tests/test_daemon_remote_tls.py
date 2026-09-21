@@ -26,6 +26,14 @@ class DaemonRemoteTLSTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "client CA"):
             serve(host="127.0.0.1", tls_client_ca=Path("ca.pem"),
                   enable_runtime_probes=False)
+        with self.assertRaisesRegex(ValueError, "client policy"):
+            serve(
+                host="127.0.0.1",
+                tls_cert=Path("certificate.pem"),
+                tls_key=Path("private-key.pem"),
+                tls_client_policy=Path("policy.json"),
+                enable_runtime_probes=False,
+            )
 
     def test_tls_context_rejects_public_key_and_loads_private_identity(self):
         with tempfile.TemporaryDirectory() as directory:

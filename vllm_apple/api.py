@@ -17,6 +17,7 @@ from .auth import SessionAuthenticator
 from .backend import BackendHTTPError
 from .events import RuntimeEvent, SubscriptionLimitError
 from .memory_admission import MemoryPressureAdmissionError
+from .mtls_authorization import ClientCertificatePolicyStore
 from .inference_request import (
     InferenceEngineBusy,
     InferenceRequestCancelled,
@@ -71,11 +72,13 @@ class _BoundedRuntimeServerMixin:
         max_concurrent_requests: int,
         socket_timeout: float,
         session_token: str | None,
+        client_certificate_policy: ClientCertificatePolicyStore | None = None,
     ) -> None:
         if max_concurrent_requests <= 0 or socket_timeout <= 0:
             raise ValueError("server limits must be positive")
         self.service = service
         self.authenticator = SessionAuthenticator(session_token)
+        self.client_certificate_policy = client_certificate_policy
         self._request_slots = threading.BoundedSemaphore(max_concurrent_requests)
         self._socket_timeout = socket_timeout
         self._request_metrics_lock = threading.Lock()
@@ -190,8 +193,12 @@ class RuntimeHTTPServer(_BoundedRuntimeServerMixin, ThreadingHTTPServer):
         max_concurrent_requests: int = 32,
         socket_timeout: float = 30.0,
         session_token: str | None = None,
+        client_certificate_policy: ClientCertificatePolicyStore | None = None,
     ):
-        self._initialize_runtime(service, max_concurrent_requests, socket_timeout, session_token)
+        self._initialize_runtime(
+            service, max_concurrent_requests, socket_timeout, session_token,
+            client_certificate_policy,
+        )
         super().__init__(address, RuntimeRequestHandler)
 
 
@@ -283,6 +290,20 @@ class RuntimeRequestHandler(BaseHTTPRequestHandler):
         return {**_metadata(), **data}
 
     def _authorize(self) -> bool:
+        policy = self.server.client_certificate_policy
+        if policy is not None:
+            peer = getattr(self.connection, "getpeercert", None)
+            try:
+                certificate = peer() if callable(peer) else None
+            except (OSError, ValueError):
+                certificate = None
+            if not policy.authorize(certificate):
+                self._error(
+                    HTTPStatus.FORBIDDEN,
+                    "client_certificate_forbidden",
+                    "client certificate identity is not authorized",
+                )
+                return False
         if self.server.authenticator.authorize(self.headers.get("Authorization")):
             return True
         payload = b'{"error":{"message":"authentication required","type":"vllm_apple_error","param":null,"code":"unauthorized"}}'
@@ -700,6 +721,7 @@ def create_server(
     max_concurrent_requests: int = 32,
     session_token: str | None = None,
     socket_timeout: float = 30.0,
+    client_certificate_policy: ClientCertificatePolicyStore | None = None,
 ) -> RuntimeHTTPServer:
     return RuntimeHTTPServer(
         (host, port),
@@ -707,6 +729,7 @@ def create_server(
         max_concurrent_requests=max_concurrent_requests,
         session_token=session_token,
         socket_timeout=socket_timeout,
+        client_certificate_policy=client_certificate_policy,
     )
 
 

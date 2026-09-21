@@ -143,6 +143,11 @@ from .fault_injection import (
     FaultRule,
     InjectedFault,
 )
+from .mtls_authorization import (
+    ClientCertificatePolicy,
+    ClientCertificatePolicyStore,
+)
+from .process_inference_engine import MainThreadSubprocessInferenceEngine
 from .elastic_memory import ElasticMemoryController, ElasticMemoryDecision
 from .device_capability import (
     ComputeDevice,
@@ -525,6 +530,8 @@ __all__ = [
     "BackendStateReference",
     "BackendTuningSnapshot",
     "ContextCapacityReevaluator",
+    "ClientCertificatePolicy",
+    "ClientCertificatePolicyStore",
     "CoreMLANESurfaceProbe",
     "CoreMLANESurfaceResult",
     "CoreMLANEModelProbe",
@@ -554,6 +561,7 @@ __all__ = [
     "FaultPoint",
     "FaultRule",
     "InjectedFault",
+    "MainThreadSubprocessInferenceEngine",
     "Qwen3VLVisionANEAdapterSpec",
     "Qwen3VLCoreMLConversionManifest",
     "Qwen3VLCoreMLConversionPlan",

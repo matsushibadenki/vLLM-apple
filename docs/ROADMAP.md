@@ -1006,7 +1006,7 @@ Unified Memoryとmemory bandwidthを共有する一つの実行系として管�
 - `[Done]` detached CMS trusted manifest署名、trusted CA chain、signer SHA-256 identityのmodel load前検証
 - `[Done]` remote TLSとBearer API session token（非loopbackの明示opt-in、TLS identity・認証必須、秘密鍵安全性検査）
 - `[Done]` optional mTLS client certificate identity gate。owner検証済みclient CA指定時は`CERT_REQUIRED`を設定し、Bearer tokenと併用する
-- `[Later]` mTLS subject/SANのauthorization mapping、証明書失効確認、無停止rotation policy
+- `[Done]` mTLS subject／SAN authorization mapping、serial revocation、atomic policy file差し替えによる無停止rotation。CA handshakeとBearer tokenへ追加で適用し、owner-only／no-symlink／bounded `O_NOFOLLOW` read、変更中・破損・消失時fail-closed、非機密count snapshotを実装
 
 ### Observability
 
@@ -1367,7 +1367,8 @@ Unified Memoryとmemory bandwidthを共有する一つの実行系として管�
 241. `[Done]` persistent workerのstage順digestを実payloadと再照合し、graph ID／固定grid／shape／dtype／bytesへ束縛した0600 manifestを排他的作成・fsyncするadapterを実装。順序不一致を実機でfail-closed検出してdeep-stack 0／1／2→final順へ修正後、Homebrew MLXでfinal／deep-stack 3本をFP16 `[64,2048]`としてmaterializeし、実`Qwen3VLVisionEncodeResult`を構築。probe済みcapability registry、ANE 216,449,024 bytes予約、MLX GPU 1,000,000,000 bytes予約を通る非同期scheduler routeでCore ML→MLX handoffを完走し、全resource使用量0へ復帰、restart 0、正常shutdownを確認。証跡: [persistent scheduler bridge](evaluation/qwen3-vl-persistent-scheduler-bridge-2026-09-20.json)
 242. `[Done]` persistent scheduler routeの実vision resultをHomebrew Qwen3-VL language generationへ接続。MLXをexecutor threadで実行するとnative runtime終了時にSIGSEGVとなる実機障害を検出し、ANE／GPUの予約と依存順序を維持したcaller-thread実行経路を追加した。赤／緑／青、円、家、OCR `APPLE`の6 requestを順序どおり処理し、英語／日本語／简体中文18/18正答、従来MLX vision baselineとの生成hash 18/18完全一致、restart 0、全resource解放、正常shutdown、一時領域削除を確認。queue saturationはfail-fast、encoder失敗時はGPU callback未実行となる回帰テストも追加。証跡: [persistent scheduled chat quality](evaluation/qwen3-vl-persistent-scheduled-chat-quality-2026-09-20.json)
 243. `[Done]` server統合の安全境界として、非stream chatにもrequest ID、有限deadline、socketのnon-consuming切断signalを持つ`InferenceRequestContext`を追加し、対応engineへkernel contextと共に伝播。persistent ANE→GPU caller-thread schedulerはANE前、ANE完了後／GPU前、GPU完了後のsafe pointでcancel／timeoutを検査し、GPU未実行または結果非公開で全予約を解放する。HTTP timeoutは408、client切断は応答を書き戻さずmetadata-only 499として記録する。daemon停止時はmanaged engineを冪等に一度だけcloseするmodel lifecycleも接続し、実HTTP timeout後のrequest slot回収を含む回帰テストを追加
-244. `[Next]` inline PNG／JPEG、private request workspace、persistent Core ML encoder、scheduler予約内MLX生成、OpenAI互換responseを扱うQwen3-VL managed delegateとbounded model-owner queueまでは実装済み。fake runtimeの実HTTP経路ではowner-thread固定、queue saturation、pending timeout、cleanupを確認した。一方、Homebrew MLX実機qualificationにより、MLXをmain thread以外で初期化すると全request処理後にもSIGSEGVとなることを検出したため、この構成はfail-fast化した。次はHomebrew MLX＋Core ML lifecycle全体を専用processのmain threadへ隔離し、bounded IPC越しに実`/v1/chat/completions`の複数request順序、backpressure、cancel／timeout、client切断cleanupを実証する。一般runtime昇格はopen-domain品質gateまたはBF16相当precisionの実装まで保留
+244. `[Done]` native modelを専用processのmain threadで生成・実行・closeするbounded inference transport。最大64 pending、4 MiB request／16 MiB responseのJSON-lines IPC、親側fail-fast backpressure、子側bounded queue、active cancel／deadline safe point、固定error code、worker exit時pending解放、shutdown→terminate→kill回収を実装。fake native delegateの同一process順序、child main-thread ownership、queue saturation、active cancel後の回復、実`/v1/chat/completions`経路、main-thread cleanupを確認
+245. `[Next]` inline PNG／JPEG、private request workspace、persistent Core ML encoder、scheduler予約内MLX生成、OpenAI互換responseを扱うQwen3-VL managed delegateを上記専用process factoryへ接続し、Homebrew MLX実機の複数request順序、backpressure、cancel／timeout、client切断cleanupをqualificationする。一般runtime昇格はopen-domain品質gateまたはBF16相当precisionの実装まで保留
 
 この順序により、まず推論runtimeの実model安定性を確立し、その境界を壊さずにoptimizerを
 別processとして追加する。構造pruningはquantization、calibration、評価gateの後に着手する。

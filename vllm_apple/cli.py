@@ -878,6 +878,7 @@ def build_parser() -> argparse.ArgumentParser:
     server.add_argument("--tls-cert", type=Path)
     server.add_argument("--tls-key", type=Path)
     server.add_argument("--tls-client-ca", type=Path)
+    server.add_argument("--tls-client-policy", type=Path)
     server.add_argument("--port", type=int, default=8000)
     server.add_argument("--max-concurrent-requests", type=int, default=32)
     server.add_argument("--backend-executable")
@@ -2795,6 +2796,7 @@ def main(argv: list[str] | None = None) -> int:
                 tls_cert=arguments.tls_cert,
                 tls_key=arguments.tls_key,
                 tls_client_ca=arguments.tls_client_ca,
+                tls_client_policy=arguments.tls_client_policy,
                 port=arguments.port,
                 max_concurrent_requests=arguments.max_concurrent_requests,
                 model=arguments.model,

@@ -45,6 +45,7 @@ from .execution_profile import detect_apple_chip_profile
 from .hardware import default_application_support, detect_hardware
 from .kernel_probe import build_environment_fingerprint
 from .kernel_profile import build_model_kernel_shape_profile
+from .mtls_authorization import ClientCertificatePolicyStore
 from .kv_calibration import (
     calibration_report_directory,
     discover_latest_kv_calibration,
@@ -99,6 +100,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--tls-cert", type=Path)
     parser.add_argument("--tls-key", type=Path)
     parser.add_argument("--tls-client-ca", type=Path)
+    parser.add_argument("--tls-client-policy", type=Path)
     parser.add_argument("--port", type=int, default=8000)
     parser.add_argument("--max-concurrent-requests", type=int, default=32)
     parser.add_argument("model", nargs="?")
@@ -658,6 +660,7 @@ def serve(
     tls_cert: Path | None = None,
     tls_key: Path | None = None,
     tls_client_ca: Path | None = None,
+    tls_client_policy: Path | None = None,
     port: int = 8000,
     max_concurrent_requests: int = 32,
     model: str | None = None,
@@ -696,6 +699,8 @@ def serve(
         raise ValueError("TLS certificate and private key must be provided together")
     if tls_client_ca is not None and tls_cert is None:
         raise ValueError("TLS client CA requires a server TLS identity")
+    if tls_client_policy is not None and tls_client_ca is None:
+        raise ValueError("TLS client policy requires a TLS client CA")
     signed_integrity = (
         model_integrity_signature,
         model_integrity_trusted_ca,
@@ -717,6 +722,10 @@ def serve(
     tls_context = (
         _server_tls_context(tls_cert, tls_key, client_ca=tls_client_ca)
         if tls_cert is not None else None
+    )
+    client_certificate_policy = (
+        ClientCertificatePolicyStore(tls_client_policy)
+        if tls_client_policy is not None else None
     )
 
     backend: BackendProcess | None = None
@@ -975,6 +984,7 @@ def serve(
         service,
         max_concurrent_requests=max_concurrent_requests,
         session_token=session_token,
+        client_certificate_policy=client_certificate_policy,
     )
     if tls_context is not None:
         server.socket = tls_context.wrap_socket(server.socket, server_side=True)
@@ -1160,6 +1170,7 @@ def main(argv: list[str] | None = None) -> int:
         tls_cert=arguments.tls_cert,
         tls_key=arguments.tls_key,
         tls_client_ca=arguments.tls_client_ca,
+        tls_client_policy=arguments.tls_client_policy,
         port=arguments.port,
         max_concurrent_requests=arguments.max_concurrent_requests,
         model=arguments.model,

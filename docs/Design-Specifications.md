@@ -1810,8 +1810,13 @@ symlink、片側だけの指定、認証なしはmodel inspectionやbackend load
 制限し、既存のconstant-time Bearer検証をHTTPS requestにも共通適用する。loopbackとprivate UDSは既存既定値を維持し、
 remote公開へ暗黙昇格しない。
 `--tls-client-ca`を明示した場合は、owner検証済みCAをserver contextへ読み込み、TLS handshakeでclient certificateを
-必須化する。mTLSはBearer tokenを置き換えず併用する。subject/SAN別の権限mapping、CRL/OCSP、無停止rotationは
-現段階では未実装であり、単一の信頼CAによる接続identity gateに範囲を限定する。
+必須化する。mTLSはBearer tokenを置き換えず併用する。`--tls-client-policy`はclient CAとの併用を必須とし、
+exact canonical subjectまたは型付きSAN（DNS／email／URI／IP Address）のallowlistに一致し、かつ大文字小文字を
+正規化したserial denylistに該当しないidentityだけを許可する。policyはcurrent-user所有、group/world write禁止、
+symlink禁止、64 KiB以下とし、`O_NOFOLLOW`で開いたdescriptorの前後`fstat`が一致した内容だけを採用する。
+atomic replaceはrequest間に自動reloadされるためlistenerを停止せずrotationできる。変更後の破損・消失・unsafe fileは
+last-known-goodへ戻さず全client certificateをfail-closedにする。公開snapshotはversionと各list件数だけを含む。
+外部CRL／OCSP取得には依存せず、失効は運用者がatomic policyへ反映するserial denylistを権威情報とする。
 
 モデルファイル、plugin、custom kernelにはhash検証を導入可能にする。
 
@@ -2081,6 +2086,13 @@ Thermal       Balanced
 Server running:
 http://127.0.0.1:8000
 ```
+
+native runtimeがprocess main thread ownershipを要求する場合は、control daemon内のowner threadではなく専用model
+processを使用する。子processはfactory、models取得、全request実行、cleanupをmain threadだけで行い、stdin readerは
+cancel flagとbounded queueの更新だけを担当する。IPCは改行区切りJSON、request 4 MiB、response 16 MiB、pending 64件を
+hard limitとする。親はqueue上限で投入前に拒否し、request ID、有限deadline、client cancellationを子のsafe pointへ伝える。
+任意例外本文は境界を越えず固定codeへ変換し、worker exitでは全pending waiterを解放する。停止時はshutdown、bounded wait、
+terminate、killの順で回収する。streamingは途中出力後の安全なbackend fallback契約がないため、現段階では明示unsupportedとする。
 
 ---
 
