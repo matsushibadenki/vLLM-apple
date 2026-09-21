@@ -27,6 +27,9 @@ _IMAGE_PIPELINES = {
     "qwen-image-2.1": "QwenImage21Pipeline",
     "flux2-dev": "Flux2Pipeline",
 }
+_SEQUENTIAL_OFFLOAD_CONTRACTS = {
+    "qwen-image-2.1": "text_encoder->transformer->vae",
+}
 
 
 @dataclass(frozen=True, slots=True)
@@ -92,7 +95,20 @@ class LocalDiffusersImageRuntime:
             vae = getattr(pipeline, "vae", None)
             if vae is not None and hasattr(vae, "enable_tiling"):
                 vae.enable_tiling()
-            pipeline.to("mps")
+            required_sequence = _SEQUENTIAL_OFFLOAD_CONTRACTS.get(self._candidate_id)
+            if required_sequence is None:
+                pipeline.to("mps")
+            else:
+                if getattr(pipeline, "model_cpu_offload_seq", None) != required_sequence:
+                    raise RuntimeError(
+                        "Diffusers image pipeline offload sequence does not match the candidate"
+                    )
+                enable_offload = getattr(pipeline, "enable_model_cpu_offload", None)
+                if not callable(enable_offload):
+                    raise RuntimeError(
+                        "Diffusers image pipeline does not expose model CPU offload"
+                    )
+                enable_offload(device="mps")
             progress()
             generator = torch.Generator(device="cpu").manual_seed(request["seed"])
 

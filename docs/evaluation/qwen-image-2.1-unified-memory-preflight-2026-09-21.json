@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "candidate_id": "qwen-image-2.1",
+  "model_revision": "b3179ad355be050328e483a9dfdd9e60cd62adfa",
+  "profile": {
+    "width": 512,
+    "height": 512,
+    "steps": 20,
+    "batch_size": 1,
+    "samples": 2
+  },
+  "artifact_bytes": 33131616240,
+  "estimated_resident_bytes": 34209552368,
+  "physical_memory_bytes": 34359738368,
+  "emergency_reserve_bytes": 2748779069,
+  "observed_available_bytes": 11497324544,
+  "memory_hard_ceiling_bytes": 8748545475,
+  "fits_disk": true,
+  "fits_memory": false,
+  "weights_loaded": false,
+  "generation_started": false,
+  "passed": false,
+  "outcome": "rejected_before_model_load",
+  "reason": "Diffusers model CPU offload retains non-active weights in CPU memory, which shares physical Unified Memory with MPS on Apple Silicon"
+}

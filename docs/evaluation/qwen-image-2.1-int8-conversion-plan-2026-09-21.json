@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "candidate_id": "qwen-image-2.1",
+  "source": "/Users/Shared/Program/vLLM-apple/models/Qwen-Image-2.1",
+  "output": "/Users/Shared/Program/vLLM-apple/models/Qwen-Image-2.1-torchao-int8",
+  "target_quantization": "int8-weight-only",
+  "largest_source_shard_bytes": 9968332504,
+  "projected_output_weight_bytes": 17249254204,
+  "projected_steady_resident_bytes": 18327190332,
+  "estimated_conversion_peak_bytes": 28295522836,
+  "minimum_available_memory_bytes": 31044301905,
+  "dynamic_memory_ceiling_bytes": 7327512003,
+  "disk_required_bytes": 19836642335,
+  "disk_free_bytes": 226099200000,
+  "conversion_ready": true,
+  "weights_loaded": false,
+  "issues": [
+    "conversion_peak_exceeds_dynamic_memory_ceiling"
+  ],
+  "eligible": false
+}

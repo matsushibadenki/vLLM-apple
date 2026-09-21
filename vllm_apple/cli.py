@@ -90,6 +90,14 @@ from .mlx_gen_generative_readiness import (
 )
 from .mlx_gen_video_readiness import inspect_mlx_gen_video_readiness
 from .mlx_gen_video_memory import estimate_mlx_gen_video_resident_bytes
+from .qwen_image_21_memory import estimate_qwen_image_21_resident_bytes
+from .qwen_image_21_residency import build_qwen_image_21_residency_plan
+from .qwen_image_21_torchao_readiness import inspect_qwen_image_21_torchao_readiness
+from .qwen_image_21_conversion import (
+    build_qwen_image_21_conversion_plan,
+    build_qwen_image_21_streaming_conversion_plan,
+)
+from .qwen_image_21_conversion_subprocess import run_qwen_image_21_conversion_worker
 from .qualification_preflight import run_qualification_preflight
 from .qwen4_cache_contract import run_qwen4_cache_fixture
 from .qwen4_adapter_contract import build_qwen4_adapter_contract
@@ -253,6 +261,69 @@ def build_parser() -> argparse.ArgumentParser:
         type=Path,
         default=Path("qualification-results/diffusers-video.json"),
     )
+    diffusers_image_qualification = commands.add_parser(
+        "diffusers-image-qualification",
+        help="run bounded local Qwen-Image-2.1 qualification and save private evidence",
+    )
+    diffusers_image_qualification.add_argument("model", type=Path)
+    diffusers_image_qualification.add_argument("--python", required=True, type=Path)
+    image_resident = diffusers_image_qualification.add_mutually_exclusive_group(required=True)
+    image_resident.add_argument("--resident-gib", type=float)
+    image_resident.add_argument("--resident-bytes", type=int)
+    image_resident.add_argument(
+        "--resident-auto",
+        action="store_true",
+        help="derive a sequential-phase estimate for Qwen-Image-2.1",
+    )
+    diffusers_image_qualification.add_argument("--width", type=int, default=512)
+    diffusers_image_qualification.add_argument("--height", type=int, default=512)
+    diffusers_image_qualification.add_argument("--steps", type=int, default=20)
+    diffusers_image_qualification.add_argument("--samples", type=int, default=2)
+    diffusers_image_qualification.add_argument("--timeout", type=float, default=3600.0)
+    diffusers_image_qualification.add_argument("--recovery-timeout", type=float, default=300.0)
+    diffusers_image_qualification.add_argument("--recovery-poll", type=float, default=5.0)
+    diffusers_image_qualification.add_argument("--workspace-root", type=Path, default=Path("."))
+    diffusers_image_qualification.add_argument(
+        "--private-root", type=Path, default=Path("qualification-private/diffusers-image")
+    )
+    diffusers_image_qualification.add_argument(
+        "--report",
+        type=Path,
+        default=Path("qualification-results/diffusers-image.json"),
+    )
+    qwen_image_residency = commands.add_parser(
+        "qwen-image-2.1-residency-plan",
+        help="plan a bounded Qwen-Image-2.1 quantized residency target without loading weights",
+    )
+    qwen_image_residency.add_argument("model", type=Path)
+    qwen_image_residency.add_argument("--target-bits", type=int, choices=(4, 8), default=8)
+    qwen_image_torchao = commands.add_parser(
+        "qwen-image-2.1-torchao-readiness",
+        help="probe isolated TorchAO INT8 conversion and MPS runtime readiness",
+    )
+    qwen_image_torchao.add_argument("--python", required=True, type=Path)
+    qwen_image_conversion = commands.add_parser(
+        "qwen-image-2.1-conversion-plan",
+        help="plan a bounded local TorchAO INT8 conversion without loading weights",
+    )
+    qwen_image_conversion.add_argument("model", type=Path)
+    qwen_image_conversion.add_argument("output", type=Path)
+    qwen_image_conversion.add_argument("--python", required=True, type=Path)
+    qwen_image_streaming = commands.add_parser(
+        "qwen-image-2.1-streaming-conversion-plan",
+        help="plan component-streaming TorchAO INT8 conversion without loading weights",
+    )
+    qwen_image_streaming.add_argument("model", type=Path)
+    qwen_image_streaming.add_argument("output", type=Path)
+    qwen_image_streaming.add_argument("--python", required=True, type=Path)
+    qwen_image_convert = commands.add_parser(
+        "qwen-image-2.1-convert",
+        help="admit and atomically convert Qwen-Image-2.1 to TorchAO INT8",
+    )
+    qwen_image_convert.add_argument("model", type=Path)
+    qwen_image_convert.add_argument("output", type=Path)
+    qwen_image_convert.add_argument("--python", required=True, type=Path)
+    qwen_image_convert.add_argument("--timeout", type=float, default=7200.0)
     mlx_video_readiness = commands.add_parser(
         "mlx-gen-video-readiness",
         help="inspect MLX-Gen and a local quantized Wan artifact without loading weights",
@@ -893,6 +964,115 @@ def main(argv: list[str] | None = None) -> int:
             return 2
         _json(report)
         return 0 if report["ready"] else 1
+    if arguments.command == "qwen-image-2.1-residency-plan":
+        try:
+            artifact = inspect_generative_artifact(arguments.model)
+            report = build_qwen_image_21_residency_plan(
+                artifact,
+                detect_hardware(),
+                target_bits=arguments.target_bits,
+            )
+        except (OSError, ValueError) as error:
+            _json(
+                {
+                    "eligible_for_generation": False,
+                    "error_code": "qwen_image_21_residency_plan_failed",
+                    "detail": str(error),
+                }
+            )
+            return 2
+        _json(report)
+        return 0
+    if arguments.command == "qwen-image-2.1-torchao-readiness":
+        try:
+            report = inspect_qwen_image_21_torchao_readiness(arguments.python)
+        except (OSError, ValueError) as error:
+            _json(
+                {
+                    "conversion_ready": False,
+                    "mps_runtime_ready": False,
+                    "error_code": "qwen_image_21_torchao_readiness_failed",
+                    "detail": str(error),
+                }
+            )
+            return 2
+        _json(report)
+        return 0 if report["conversion_ready"] else 1
+    if arguments.command == "qwen-image-2.1-conversion-plan":
+        try:
+            artifact = inspect_generative_artifact(arguments.model)
+            readiness = inspect_qwen_image_21_torchao_readiness(arguments.python)
+            report = build_qwen_image_21_conversion_plan(
+                artifact,
+                detect_hardware(),
+                source=arguments.model,
+                output=arguments.output,
+                conversion_ready=readiness["conversion_ready"],
+            )
+        except (OSError, ValueError) as error:
+            _json(
+                {
+                    "eligible": False,
+                    "error_code": "qwen_image_21_conversion_plan_failed",
+                    "detail": str(error),
+                }
+            )
+            return 2
+        _json(report)
+        return 0 if report["eligible"] else 1
+    if arguments.command == "qwen-image-2.1-streaming-conversion-plan":
+        try:
+            artifact = inspect_generative_artifact(arguments.model)
+            readiness = inspect_qwen_image_21_torchao_readiness(arguments.python)
+            report = build_qwen_image_21_streaming_conversion_plan(
+                artifact,
+                detect_hardware(),
+                source=arguments.model,
+                output=arguments.output,
+                conversion_ready=readiness["conversion_ready"],
+            )
+        except (OSError, ValueError) as error:
+            _json(
+                {
+                    "eligible": False,
+                    "error_code": "qwen_image_21_streaming_conversion_plan_failed",
+                    "detail": str(error),
+                }
+            )
+            return 2
+        _json(report)
+        return 0 if report["eligible"] else 1
+    if arguments.command == "qwen-image-2.1-convert":
+        try:
+            artifact = inspect_generative_artifact(arguments.model)
+            readiness = inspect_qwen_image_21_torchao_readiness(arguments.python)
+            plan = build_qwen_image_21_streaming_conversion_plan(
+                artifact,
+                detect_hardware(),
+                source=arguments.model,
+                output=arguments.output,
+                conversion_ready=readiness["conversion_ready"],
+            )
+            if not plan["eligible"]:
+                _json({"passed": False, "started": False, "plan": plan})
+                return 1
+            report = run_qwen_image_21_conversion_worker(
+                arguments.python,
+                arguments.model,
+                arguments.output,
+                timeout_seconds=arguments.timeout,
+            )
+        except (OSError, ValueError, RuntimeError) as error:
+            _json(
+                {
+                    "passed": False,
+                    "error_code": "qwen_image_21_conversion_failed",
+                    "detail": str(error),
+                }
+            )
+            return 2
+        _json({"passed": True, "started": True, "plan": plan, "conversion": report})
+        return 0
     if arguments.command == "diffusers-video-readiness":
         try:
             report = inspect_diffusers_video_readiness(
@@ -1035,6 +1215,105 @@ def main(argv: list[str] | None = None) -> int:
                 {
                     "passed": False,
                     "error_code": "mlx_gen_video_qualification_failed",
+                    "detail": str(error),
+                }
+            )
+            return 2
+        _json(report.to_dict())
+        return 0 if report.passed else 1
+    if arguments.command == "diffusers-image-qualification":
+        try:
+            readiness = inspect_diffusers_generative_readiness(arguments.python)
+            candidate_readiness = readiness.get("candidates", {}).get("qwen-image-2.1", {})
+            if not candidate_readiness.get("ready"):
+                raise ValueError("Qwen-Image-2.1 Diffusers pipeline did not pass readiness")
+            artifact = inspect_generative_artifact(arguments.model)
+            if artifact.get("artifact_format") != "diffusers":
+                raise ValueError("Qwen-Image-2.1 artifact must use Diffusers format")
+            if artifact.get("pipeline_class") != "QwenImage21Pipeline":
+                raise ValueError("artifact pipeline must be QwenImage21Pipeline")
+            if not artifact.get("inspectable"):
+                raise ValueError("Qwen-Image-2.1 artifact did not pass load-free inspection")
+            if arguments.resident_bytes is not None:
+                resident_bytes = arguments.resident_bytes
+            elif arguments.resident_gib is not None:
+                if not math.isfinite(arguments.resident_gib) or arguments.resident_gib <= 0:
+                    raise ValueError("resident GiB must be finite and positive")
+                resident_bytes = int(arguments.resident_gib * GIB)
+            else:
+                resident_bytes = estimate_qwen_image_21_resident_bytes(
+                    artifact,
+                    width=arguments.width,
+                    height=arguments.height,
+                )
+            hardware = detect_hardware()
+            plan = build_generative_qualification_plan(
+                candidate_id="qwen-image-2.1",
+                artifact_bytes=artifact["artifact_bytes"],
+                estimated_resident_bytes=resident_bytes,
+                hardware=hardware,
+                target=arguments.model.parent,
+                quantization="none",
+                components=qualification_components_from_inspection(
+                    artifact, resident_bytes
+                ),
+                width=arguments.width,
+                height=arguments.height,
+                steps=arguments.steps,
+                batch_size=1,
+            )
+            if not plan.eligible:
+                admission = plan.artifact_admission
+                raise ValueError(
+                    "load-before-admission rejected: "
+                    f"estimated_resident_bytes={admission.estimated_resident_bytes}, "
+                    f"memory_hard_ceiling_bytes={admission.memory_hard_ceiling_bytes}, "
+                    f"fits_disk={admission.fits_disk}, fits_memory={admission.fits_memory}, "
+                    f"issues={','.join(plan.issues)}"
+                )
+            integrity = build_model_integrity_manifest(arguments.model)
+            provenance = GenerativeEvaluationProvenance(
+                hardware.platform,
+                hardware.architecture,
+                hardware.soc,
+                hardware.gpu_core_count,
+                hardware.memory.total_bytes,
+                "diffusers",
+                readiness["diffusers_version"],
+                artifact["artifact_format"],
+                artifact["artifact_bytes"],
+                "none",
+                artifact.get("license"),
+                artifact.get("base_model"),
+                integrity["root_sha256"],
+            )
+            report = run_generative_qualification(
+                plan,
+                workspace_root=arguments.workspace_root,
+                model_root=arguments.model,
+                private_root=arguments.private_root,
+                report_path=arguments.report,
+                prompt=(
+                    "A small friendly robot in a clean workshop, soft natural light, "
+                    "high detail"
+                ),
+                sample_count=arguments.samples,
+                worker_command=(
+                    str(arguments.python.expanduser().absolute()),
+                    "-m",
+                    "vllm_apple.diffusers_generation_worker",
+                ),
+                provenance=provenance,
+                mode="text-to-image",
+                timeout_seconds=arguments.timeout,
+                recovery_timeout_seconds=arguments.recovery_timeout,
+                recovery_poll_seconds=arguments.recovery_poll,
+            )
+        except (OSError, ValueError, RuntimeError) as error:
+            _json(
+                {
+                    "passed": False,
+                    "error_code": "diffusers_image_qualification_failed",
                     "detail": str(error),
                 }
             )

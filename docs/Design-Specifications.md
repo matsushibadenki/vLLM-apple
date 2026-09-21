@@ -2477,12 +2477,59 @@ Tier C: FLUX.2 [dev]
 配置済み`Qwen/Qwen-Image-2.1`は別候補`qwen-image-2.1`として扱う。固定revisionは
 `b3179ad355be050328e483a9dfdd9e60cd62adfa`、Diffusers形式の`QwenImage21Pipeline`で、
 論理artifact容量33,131,616,240 bytes、BF16非量子化である。Qwen Research Licenseにより
-非商用利用に限定される。現行Diffusers 0.34.0にはpipeline classがなく、model cardが要求する
-Transformers 5.17以上にも未到達のため、readinessはfail-closedとする。M4/32GBでの試験は
-対応runtimeを隔離し、量子化またはtext encoder／transformer／VAEの逐次residencyを用意してから行う。
+非商用利用に限定される。公式Hub APIとの照合でlocal／remote SHA一致、非gated、Diffusers、
+BF16 7,115,124,736 parametersを確認した。system runtimeの旧Diffusersではpipeline classが不足するため
+readinessはfail-closedとし、M4/32GBでの試験は対応runtimeを隔離して
+text encoder／transformer／VAEの逐次residencyを用意してから行う。
+隔離runtimeはPython 3.12.9、Torch 2.14.0、Transformers 5.17.0、Diffusers
+0.41.0.dev0 commit `80c7ed262aeffbeb43ef13ae04baeb9b84515a69`へ固定し、load-free source scanで
+`QwenImage21Pipeline`を確認した。全pipelineをMPSへ移す動作は使用せず、text encoder、transformer、
+VAEの順に単一moduleだけをresidentにする契約を実装した。
+workerは固定Diffusers sourceの`model_cpu_offload_seq`が`text_encoder->transformer->vae`と完全一致する
+場合だけ`enable_model_cpu_offload(device="mps")`を使用する。契約不一致やAPI欠落時に全pipelineを
+MPSへ移すfallbackは禁止し、weight load後でもgeneration開始前にfail-closedとする。
 
-最初の認定profileは512×512、batch 1、単一画像、bounded stepsとし、model、text encoder、
-VAEのartifact bytesとresident bytesを個別に見積もる。合格後だけ768/1024と連続生成へ進む。
+専用qualification CLIの最初の認定profileは512×512、batch 1、20 steps、独立2 sampleとする。
+resident estimateはtext encoder、transformer、VAEのartifact bytesを集計する。Diffusersのmodel CPU
+offloadは非active moduleのweightをCPU RAMへ保持し、Apple SiliconではCPUとGPUが同じUnified Memoryを
+共有するため、GPUの同時常駐が3 phaseの最大値でも総memory admissionには全artifact weightを下限として使う。
+この下限へ1 GiB allocator marginとRGBA float working imageを加える。
+この見積りをdynamic Unified Memory ceilingと比較し、pipeline identity、artifact root digestをmodel load前に
+固定する。2026-09-21のpreflightは推定18,612,345,141 bytesに対してceiling 9,576,265,155 bytesだったため、
+weightをloadせず安全停止した。追加検証によりBF16の安全側見積りは34,209,552,368 bytesとなり、
+物理memory 34,359,738,368 bytesに加えて8% emergency reserveを確保できない。したがって通常のCPU offloadで
+BF16正式試験は行わず、量子化artifactまたはCPUにも全weightを保持しないdisk-backed phase loaderを先に用意する。
+その2-sample実測へ合格後だけ768/1024と連続生成へ進む。
+量子化residency plannerはdenoiserとtext encoderをcomponent単位でINT8/INT4へ射影し、VAEとその他の
+componentはBF16を維持する。配置済みartifactのINT8理論値はweight 17,249,254,204 bytes、1 GiB
+allocator marginと512×512 RGBA float working image込みで18,327,190,332 bytesとなり、32 GiB機の
+physical safe ceiling 31,610,959,299 bytes内である。ただしこれはscale/metadata overheadを含まない下限であり、
+変換後artifactの実容量とMPS kernel supportを確認するまでは`eligible_for_generation=false`を維持する。
+INT8 backend候補はTorchAOとし、隔離runtimeへ0.18.0を固定する。readiness probeはDiffusersのpipeline-level
+quantization API、`Int8WeightOnlyConfig`、小型LinearのCPU変換/forward、MPS build/availability、MPS上の
+小型INT8 forwardを個別に記録する。conversion readinessとMPS runtime readinessは同一視しない。
+2026-09-21時点ではCPU変換/forwardは成功したがprobe時のMPS availabilityがfalseだったため、model weightを
+loadせず`conversion_ready=true`、`mps_runtime_ready=false`とした。
+変換planはoutputがsource外かつ未作成であること、source内にsymlinkがないことを確認し、最大safetensors
+shardとINT8 steady residentの合計を変換peakとして扱う。配置済みartifactでは最大shard
+9,968,332,504 bytes、変換peak 28,295,522,836 bytes、8% emergency reserve込みの必要available memory
+31,044,301,905 bytesとなる。出力diskはINT8 projected weightへ15% staging marginを加えた
+19,836,642,335 bytesを要求する。いずれかのgateを満たさない場合はweightをloadせずoutputも作成しない。
+変換workerは正式outputと同じ親directoryへ一意なstaging directoryを作成し、pipeline-level TorchAO
+quantization mappingでtransformerとtext encoderへ`Int8WeightOnlyConfig`を適用する。safe serialization後に
+pipeline class、quantization method/bit/weight-only metadata、量子化済みcomponent集合、artifact root digestを
+再検査する。すべて一致した場合だけdirectoryをatomic renameし、例外または不完全な量子化ではstagingを削除して
+正式outputを残さない。
+CLI orchestrationはconversion planがeligibleの場合だけ隔離runtime workerをshellなしで起動する。workerの
+stdout/stderrは各64 KiBに制限し、timeoutまたは出力超過時は独立process groupへTERM、猶予後にKILLを送る。
+admission不合格時は`started=false`を返し、subprocessを作成しない。2026-09-21の実artifact確認ではdynamic
+ceiling 15,364,437,443 bytesが変換peak 28,295,522,836 bytesを下回ったため、この経路で安全停止した。
+component-streaming converterではtransformerとtext encoderを別child processで順に変換し、各process終了時に
+allocatorを含むmemoryをOSへ返す。stagingへはVAE、processor、scheduler等の非量子化componentだけを先に
+コピーし、2 componentのINT8 safetensorsを順次追加する。transformer phase peakは18,157,231,859 bytes、
+text encoder phase peakは14,839,002,883 bytesで、全体peakはpipeline-level方式より10,138,290,977 bytes低い。
+8% emergency reserve込みの必要available memoryは20,906,010,928 bytesとなる。2026-09-21の実行確認は
+dynamic ceiling 14,695,282,115 bytesだったため、workerを起動せず`started=false`で停止した。
 reportにはwall latency、peak RSS、memory pressure、thermal state、backend/model fingerprint、
 quantization provenance、licenseを含める。CIはweightおよび生成画像をartifactとして保存しない。
 

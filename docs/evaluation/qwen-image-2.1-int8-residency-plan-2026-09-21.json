@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "candidate_id": "qwen-image-2.1",
+  "source_quantization": "bf16",
+  "target_quantization": "int8",
+  "strategy": "quantized-model-cpu-offload",
+  "components": [
+    {
+      "name": "transformer",
+      "role": "denoiser",
+      "source_bytes": 14230315061,
+      "projected_bytes": 7115157531,
+      "target_bits": 8
+    },
+    {
+      "name": "text_encoder",
+      "role": "text_encoder",
+      "source_bytes": 17534409013,
+      "projected_bytes": 8767204507,
+      "target_bits": 8
+    },
+    {
+      "name": "scheduler+vae",
+      "role": "vae",
+      "source_bytes": 1350992076,
+      "projected_bytes": 1350992076,
+      "target_bits": 16
+    },
+    {
+      "name": "processor+root",
+      "role": "other",
+      "source_bytes": 15900090,
+      "projected_bytes": 15900090,
+      "target_bits": 16
+    }
+  ],
+  "projected_weight_bytes": 17249254204,
+  "projected_resident_bytes": 18327190332,
+  "emergency_reserve_bytes": 2748779069,
+  "physical_safe_ceiling_bytes": 31610959299,
+  "dynamic_safe_ceiling_bytes": 7329084867,
+  "fits_physical_memory": true,
+  "fits_current_available_memory": false,
+  "projection_assumptions": {
+    "source_weight_bits": 16,
+    "scale_and_metadata_overhead_included": false,
+    "vae_and_other_components_remain_bits": 16
+  },
+  "conversion_required": true,
+  "post_conversion_measurement_required": true,
+  "runtime_support_verified": false,
+  "eligible_for_generation": false,
+  "next_gate": "produce-and-inspect-quantized-artifact"
+}

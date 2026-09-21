@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "candidate_id": "qwen-image-2.1",
+  "strategy": "component-streaming-int8-weight-only",
+  "source": "/Users/Shared/Program/vLLM-apple/models/Qwen-Image-2.1",
+  "output": "/Users/Shared/Program/vLLM-apple/models/Qwen-Image-2.1-torchao-int8",
+  "phases": [
+    {
+      "component": "transformer",
+      "role": "denoiser",
+      "source_bytes": 14230315061,
+      "projected_bytes": 7115157531,
+      "largest_source_shard_bytes": 9968332504,
+      "estimated_peak_bytes": 18157231859
+    },
+    {
+      "component": "text_encoder",
+      "role": "text_encoder",
+      "source_bytes": 17534409013,
+      "projected_bytes": 8767204507,
+      "largest_source_shard_bytes": 4998056552,
+      "estimated_peak_bytes": 14839002883
+    }
+  ],
+  "estimated_conversion_peak_bytes": 18157231859,
+  "minimum_available_memory_bytes": 20906010928,
+  "dynamic_memory_ceiling_bytes": 14695282115,
+  "projected_output_weight_bytes": 17249254204,
+  "disk_required_bytes": 19836642335,
+  "disk_free_bytes": 228147200000,
+  "conversion_ready": true,
+  "weights_loaded": false,
+  "issues": [
+    "streaming_conversion_peak_exceeds_dynamic_memory_ceiling"
+  ],
+  "eligible": false,
+  "started": false
+}

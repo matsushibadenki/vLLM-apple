@@ -142,7 +142,7 @@ _CANDIDATES = (
         512,
         1,
         50,
-        True,
+        False,
         ("sequential-module-residency", "model-offload", "vae-tiling"),
     ),
     GenerativeCandidate(

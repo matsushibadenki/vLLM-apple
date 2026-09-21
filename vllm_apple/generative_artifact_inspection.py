@@ -108,6 +108,34 @@ def _components(sizes: dict[str, int]) -> list[dict[str, object]]:
     ]
 
 
+def _quantization_from_config(config: dict[str, Any] | None) -> dict[str, object]:
+    if not config:
+        return {}
+    value = config.get("quantization_config")
+    if not isinstance(value, dict):
+        return {}
+    result: dict[str, object] = {}
+    for key in ("bits", "group_size"):
+        if isinstance(value.get(key), int) and not isinstance(value.get(key), bool):
+            result[key] = value[key]
+    if value.get("load_in_4bit") is True:
+        result["bits"] = 4
+    elif value.get("load_in_8bit") is True:
+        result["bits"] = 8
+    method = value.get("quant_method")
+    if isinstance(method, str) and 1 <= len(method) <= 128:
+        result["method"] = method
+    quant_type = value.get("quant_type")
+    if method == "torchao" and isinstance(quant_type, dict):
+        default = quant_type.get("default")
+        if isinstance(default, dict):
+            type_name = default.get("_type")
+            if type_name == "Int8WeightOnlyConfig":
+                result["bits"] = 8
+                result["weight_only"] = True
+    return result
+
+
 def inspect_generative_artifact(path: str | Path) -> dict[str, object]:
     source = Path(path)
     if source.is_symlink():
@@ -120,6 +148,7 @@ def inspect_generative_artifact(path: str | Path) -> dict[str, object]:
     model_index = _read_json(root / "model_index.json")
     quantize_config = _read_json(root / "quantize_config.json")
     transformer_config = _read_json(root / "transformer" / "config.json")
+    text_encoder_config = _read_json(root / "text_encoder" / "config.json")
     shard_index = _read_json(root / "model.safetensors.index.json")
     if shard_index is None:
         for component_name in ("transformer", "text_encoder", "vae"):
@@ -140,19 +169,18 @@ def inspect_generative_artifact(path: str | Path) -> dict[str, object]:
             for key in ("bits", "group_size"):
                 if isinstance(config.get(key), int):
                     quantization[key] = config[key]
-    if transformer_config:
-        config = transformer_config.get("quantization_config")
-        if isinstance(config, dict):
-            for key in ("bits", "group_size"):
-                if isinstance(config.get(key), int) and not isinstance(config.get(key), bool):
-                    quantization[key] = config[key]
-            if config.get("load_in_4bit") is True:
-                quantization["bits"] = 4
-            elif config.get("load_in_8bit") is True:
-                quantization["bits"] = 8
-            method = config.get("quant_method")
-            if isinstance(method, str) and 1 <= len(method) <= 128:
-                quantization["method"] = method
+    quantized_components: list[str] = []
+    for component_name, config in (
+        ("transformer", transformer_config),
+        ("text_encoder", text_encoder_config),
+    ):
+        component_quantization = _quantization_from_config(config)
+        if component_quantization:
+            quantized_components.append(component_name)
+            if not quantization:
+                quantization.update(component_quantization)
+            elif component_quantization != quantization:
+                quantization["mixed"] = True
     level = shard_metadata.get("quantization_level")
     if isinstance(level, (str, int)) and str(level).isdigit():
         quantization["bits"] = int(level)
@@ -193,6 +221,7 @@ def inspect_generative_artifact(path: str | Path) -> dict[str, object]:
         "license": model_card.get("license"),
         "base_model": model_card.get("base_model"),
         "quantization": quantization,
+        "quantized_components": quantized_components,
         "components": components,
         "artifact_bytes": total_bytes,
         "file_count": file_count,

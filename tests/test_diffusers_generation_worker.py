@@ -209,6 +209,63 @@ class DiffusersGenerationWorkerTests(unittest.TestCase):
                     lambda: None,
                 )
 
+    def test_qwen_image_21_requires_sequential_mps_offload(self) -> None:
+        with TemporaryDirectory() as directory:
+            root = Path(directory)
+            model, output = root / "model", root / "output"
+            model.mkdir()
+            output.mkdir()
+            calls = {}
+
+            class Image:
+                def save(self, path, format):
+                    Path(path).write_bytes(b"png")
+
+            class Pipeline:
+                model_cpu_offload_seq = "text_encoder->transformer->vae"
+                vae = SimpleNamespace(enable_tiling=lambda: calls.setdefault("tiling", True))
+
+                @classmethod
+                def from_pretrained(cls, path, **kwargs):
+                    calls["load"] = (path, kwargs)
+                    return cls()
+
+                def enable_model_cpu_offload(self, *, device):
+                    calls["offload"] = device
+
+                def to(self, device):
+                    raise AssertionError("Qwen-Image-2.1 must not use full-pipeline MPS residency")
+
+                def __call__(self, **kwargs):
+                    kwargs["callback_on_step_end"](self, 0, 0, {})
+                    return SimpleNamespace(images=[Image()])
+
+            torch = SimpleNamespace(
+                bfloat16="bf16",
+                backends=SimpleNamespace(mps=SimpleNamespace(is_available=lambda: True)),
+                Generator=lambda device: SimpleNamespace(manual_seed=lambda seed: object()),
+                mps=SimpleNamespace(empty_cache=lambda: None),
+            )
+            runtime = LocalDiffusersImageRuntime(
+                "qwen-image-2.1",
+                module_loader={
+                    "torch": torch,
+                    "diffusers": SimpleNamespace(QwenImage21Pipeline=Pipeline),
+                }.__getitem__,
+            )
+            artifact = runtime.generate(
+                {
+                    "candidate_id": "qwen-image-2.1",
+                    "model_root": str(model), "output_root": str(output),
+                    "prompt": "test", "seed": 1, "width": 64, "height": 64,
+                    "steps": 1, "batch_size": 1, "sample_index": 0,
+                },
+                lambda: None,
+            )
+        self.assertEqual(calls["offload"], "mps")
+        self.assertTrue(calls["load"][1]["local_files_only"])
+        self.assertEqual(artifact.width, 64)
+
 
 if __name__ == "__main__":
     unittest.main()
