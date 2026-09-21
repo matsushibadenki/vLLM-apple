@@ -510,6 +510,43 @@ def promote_generative_sample_count_plan(
     )
 
 
+def promote_generative_chained_sample_count_plan(
+    plan: GenerativeQualificationPlan,
+    *,
+    stability_baseline: GenerativeBaselineEvidence,
+    initial_baseline: GenerativeBaselineEvidence,
+    target_sample_count: int,
+) -> GenerativeQualificationPlan:
+    """Bind a non-initial 2→4 stability promotion to its initial root."""
+    promote_generative_resolution_plan(
+        plan,
+        baseline_candidate_id=initial_baseline.candidate_id,
+        baseline_plan_sha256=initial_baseline.plan_sha256,
+        baseline_sample_count=initial_baseline.sample_count,
+        baseline_width=initial_baseline.width,
+        baseline_height=initial_baseline.height,
+        baseline_frames=initial_baseline.frames,
+        baseline_memory_pressures=initial_baseline.memory_pressures,
+    )
+    promoted = promote_generative_sample_count_plan(
+        plan,
+        baseline_candidate_id=stability_baseline.candidate_id,
+        baseline_plan_sha256=stability_baseline.plan_sha256,
+        baseline_sample_count=stability_baseline.sample_count,
+        baseline_width=stability_baseline.width,
+        baseline_height=stability_baseline.height,
+        baseline_frames=stability_baseline.frames,
+        baseline_memory_pressures=stability_baseline.memory_pressures,
+        target_sample_count=target_sample_count,
+    )
+    return replace(
+        promoted,
+        baseline_plan_sha256=generative_promotion_chain_sha256(
+            stability_baseline, initial_baseline
+        ),
+    )
+
+
 def promote_generative_frame_plan(
     plan: GenerativeQualificationPlan,
     *,

@@ -14,6 +14,7 @@ from vllm_apple.generative_qualification import (
     parse_generative_component,
     promote_generative_chained_frame_plan,
     promote_generative_chained_resolution_plan,
+    promote_generative_chained_sample_count_plan,
     promote_generative_frame_plan,
     promote_generative_resolution_plan,
     promote_generative_sample_count_plan,
@@ -486,6 +487,47 @@ class GenerativeQualificationTests(unittest.TestCase):
                     "a" * 64, 4, 768, ("normal", "normal", "normal", "warning")
                 ),
                 initial_baseline=evidence("c" * 64, 2, 512, ("normal", "normal")),
+            )
+
+    def test_chained_sample_count_binds_initial_root_and_rejects_warning(self) -> None:
+        with TemporaryDirectory() as directory:
+            plan = build_generative_qualification_plan(
+                candidate_id="flux2-klein-9b-base",
+                artifact_bytes=8 * GIB,
+                estimated_resident_bytes=18 * GIB,
+                hardware=hardware(),
+                target=Path(directory),
+                quantization="int4",
+                components=components(8, 18),
+                width=768,
+                height=768,
+                steps=20,
+            )
+        root = GenerativeBaselineEvidence(
+            "flux2-klein-9b-base", "a" * 64, 4, 512, 512, 1, ("normal",) * 4
+        )
+        intermediate = GenerativeBaselineEvidence(
+            "flux2-klein-9b-base", "b" * 64, 2, 768, 768, 1,
+            ("normal", "normal"),
+        )
+        promoted = promote_generative_chained_sample_count_plan(
+            plan, stability_baseline=intermediate,
+            initial_baseline=root, target_sample_count=4,
+        )
+        self.assertEqual(promoted.promotion_axis, "sample_count_4")
+        self.assertEqual(
+            promoted.baseline_plan_sha256,
+            generative_promotion_chain_sha256(intermediate, root),
+        )
+        warning_root = GenerativeBaselineEvidence(
+            root.candidate_id, root.plan_sha256, root.sample_count,
+            root.width, root.height, root.frames,
+            ("normal", "normal", "normal", "warning"),
+        )
+        with self.assertRaisesRegex(ValueError, "all-normal"):
+            promote_generative_chained_sample_count_plan(
+                plan, stability_baseline=intermediate,
+                initial_baseline=warning_root, target_sample_count=4,
             )
 
     def test_component_totals_must_match_aggregate_admission(self) -> None:

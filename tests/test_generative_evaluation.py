@@ -177,7 +177,9 @@ class GenerativeEvaluationTests(unittest.TestCase):
             "Darwin", "arm64", "Apple M4 Max", 40, 128 * GIB,
             "mlx-gen", "0.33.1", "mlx-gen", 8 * GIB, "int4", "other", "test/model"
         )
-        with self.assertRaisesRegex(ValueError, "provenance"):
+        with self.assertRaisesRegex(
+            ValueError, "provenance does not match: gpu_core_count,soc,total_memory_bytes"
+        ):
             load_generative_evaluation_report(destination, expected_provenance=other)
 
     def test_artifact_digest_is_bound_while_legacy_report_remains_loadable(self) -> None:
@@ -187,7 +189,9 @@ class GenerativeEvaluationTests(unittest.TestCase):
         report = evaluate_generative_qualification(plan, (sample(),), bound)
         destination = Path(directory.name) / "bound.json"
         save_generative_evaluation_report(report, destination)
-        with self.assertRaisesRegex(ValueError, "provenance"):
+        with self.assertRaisesRegex(
+            ValueError, "provenance does not match: artifact_root_sha256"
+        ):
             load_generative_evaluation_report(
                 destination,
                 expected_provenance=replace(bound, artifact_root_sha256="b" * 64),

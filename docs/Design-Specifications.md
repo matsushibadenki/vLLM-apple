@@ -3092,6 +3092,14 @@ MFLUX readinessは独立`mflux` wheelだけでなく、`mlx-gen` distribution内
 distribution file listからload-freeで検出し、versionを`mlx-gen-bundled-<version>`として区別する。
 Qwen-Image-2512 image-editではABI v2 sourceをdescriptor readとdigestで再検証し、workerのprivate output rootへ
 0600 PNGとして複製してからMFLUXへ渡す。元入力をbackendへ直接再openさせず、複製は成功・失敗の双方で削除する。
+Qwen-Image-2512の配置MFLUX packageは全体metadataが4-bitでもtext encoderはBF16/F32である。
+28層×466,115,840-byteのweightを全常駐させるとM4/32 GiBのload前admissionを通過しないため、
+indexとsafetensors headerを照合した後、指定tensorのbyte範囲だけを読み1層ずつmaterializeする。
+実機のsynthetic `[1,40]`入力では独立process 2回とも28/28層が完走し、同じ有限出力digest、
+各層normal pressure／nominal thermal、peak MLX 1,576,732,112 bytesを記録した。
+これはtext encoder内部の実行可能性確認であり、prompt品質、embedding handoff、transformer/VAE、
+画像生成の認定とは区別する。後段の分離processへ進む際はprivate embedding/maskのintegrity bindingと
+load前admission、出力非保存、終了時cleanupを必須とする。
 
 Qwen-Image-2.1ではpromptをsequential CPU offload下で先にencodeし、embeddingを確定した時点で既存offload hookを外す。
 その後text encoderとtokenizerのpipeline参照を破棄し、GC、MPS synchronize、cache解放を行ってから、残る
@@ -3137,6 +3145,13 @@ embedding確定後にtext encoderのhook・参照・MPS cacheを解放してか�
 TorchAO materialization用1.5倍余裕を含む768 profile見積りは16,146,610,083 bytesである。しかし約25.8 GB空きの
 direct-component試験でもtext encoder単体load中にworker hard ceilingを超えたため、M4/32GBでの768 profile昇格を停止する。
 次はtext encoder shard単位streaming materialization、またはより大容量Apple Siliconでload peakを実測する。
+その後、text encoderとgenerationを別processに分ける二段実行でこの制約を解消した。M4/32 GiBのTorchAO INT8
+text-to-imageでは512×512・20 step・4 sampleと768×768・20 step・4 sampleがいずれもall-normalで完走し、
+後者の4 digestは相異なり、全phase peakは16,679,387,136 bytesだった。この二段profileに限り768×768を
+stable上限とする。先述のwarningを含む単一process profileおよびimage-editへは認定を拡張しない。
+1024×1024は512初期rootと768安定reportをchain digestで結ぶ昇格経路を実装したが、現時点では推定常駐
+19,028,230,144 bytesがdynamic hard ceiling 13,199,013,315 bytesを超え、load前に停止した。
+したがって1024の出力品質・安定性は未認定である。
 reportにはwall latency、peak RSS、memory pressure、thermal state、backend/model fingerprint、
 quantization provenance、licenseを含める。CIはweightおよび生成画像をartifactとして保存しない。
 

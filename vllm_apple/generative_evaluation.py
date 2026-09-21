@@ -318,7 +318,16 @@ def load_generative_evaluation_report(
     if report.passed != (not report.issues):
         raise ValueError("generative evaluation pass state does not match issues")
     if expected_provenance is not None and report.provenance != expected_provenance:
-        raise ValueError("generative evaluation provenance does not match")
+        actual_fields = asdict(report.provenance)
+        expected_fields = asdict(expected_provenance)
+        mismatch_fields = sorted(
+            name for name in expected_fields
+            if actual_fields[name] != expected_fields[name]
+        )
+        raise ValueError(
+            "generative evaluation provenance does not match: "
+            + ",".join(mismatch_fields)
+        )
     if expected_plan_sha256 is not None and report.plan_sha256 != expected_plan_sha256:
         raise ValueError("generative evaluation plan does not match")
     return report

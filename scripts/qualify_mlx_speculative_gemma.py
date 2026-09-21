@@ -6,6 +6,8 @@ import argparse
 import hashlib
 import importlib.metadata
 import json
+import platform
+import resource
 import statistics
 import sys
 import time
@@ -14,6 +16,10 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from vllm_apple.hardware import detect_hardware  # noqa: E402
+from vllm_apple.heterogeneous_mlx_speculative import (  # noqa: E402
+    greedy_verifier_probe,
+    heterogeneous_greedy_probe,
+)
 from vllm_apple.qualification import save_qualification_report  # noqa: E402
 
 PROMPTS = (
@@ -55,6 +61,7 @@ def main() -> int:
     parser.add_argument("--report", type=Path, required=True)
     parser.add_argument("--max-tokens", type=int, default=24)
     parser.add_argument("--num-draft-tokens", type=int, default=3)
+    parser.add_argument("--heterogeneous", action="store_true")
     arguments = parser.parse_args()
     if not 4 <= arguments.max_tokens <= 64 or not 1 <= arguments.num_draft_tokens <= 8:
         raise ValueError("invalid bounded generation settings")
@@ -70,14 +77,40 @@ def main() -> int:
     from mlx_lm import load, stream_generate
     from mlx_lm.sample_utils import make_sampler
 
-    verifier, tokenizer = load(str(verifier_path), lazy=False)
-    draft, draft_tokenizer = load(str(draft_path), lazy=False)
+    if arguments.heterogeneous:
+        mx.set_default_device(mx.Device(mx.cpu))
+        draft, draft_tokenizer = load(str(draft_path), lazy=False)
+        mx.set_default_device(mx.Device(mx.gpu))
+        verifier, tokenizer = load(str(verifier_path), lazy=False)
+    else:
+        verifier, tokenizer = load(str(verifier_path), lazy=False)
+        draft, draft_tokenizer = load(str(draft_path), lazy=False)
     for prompt in PROMPTS:
         if tokenizer.encode(prompt) != draft_tokenizer.encode(prompt):
             raise RuntimeError("draft and verifier tokenizer IDs differ")
     sampler = make_sampler(temp=0.0)
 
-    def generate(prompt: str, *, speculative: bool) -> tuple[tuple[int, ...], int, int, int, float]:
+    def generate(
+        prompt: str, *, speculative: bool
+    ) -> tuple[tuple[int, ...], int, int, int, float, int]:
+        if arguments.heterogeneous:
+            prompt_ids = tuple(tokenizer.encode(prompt))
+            if speculative:
+                result = heterogeneous_greedy_probe(
+                    prompt_ids, draft, verifier,
+                    maximum_tokens=arguments.max_tokens,
+                    draft_tokens=arguments.num_draft_tokens,
+                )
+            else:
+                result = greedy_verifier_probe(
+                    prompt_ids, verifier, maximum_tokens=arguments.max_tokens,
+                )
+            return (
+                result.token_ids, result.elapsed_nanoseconds,
+                result.accepted_draft_tokens, len(result.token_ids),
+                float(mx.get_peak_memory()) / (1024 ** 3),
+                result.verifier_corrections,
+            )
         mx.synchronize()
         started = time.perf_counter_ns()
         responses = stream_generate(
@@ -103,7 +136,7 @@ def main() -> int:
             raise RuntimeError(
                 f"invalid generated token count: {len(tokens)} (limit {arguments.max_tokens})"
             )
-        return tuple(tokens), elapsed, accepted, len(tokens), peak_memory
+        return tuple(tokens), elapsed, accepted, len(tokens), peak_memory, 0
 
     # Compile/warm both paths outside the measured samples.
     generate(PROMPTS[0], speculative=False)
@@ -126,6 +159,7 @@ def main() -> int:
             "speculative_latency_nanoseconds": speculative[1],
             "token_count": baseline[3],
             "accepted_draft_tokens": speculative[2],
+            "verifier_corrections": speculative[5],
             "output_match": baseline[0] == speculative[0],
             "output_sha256": hashlib.sha256(
                 b"".join(token.to_bytes(8, "big") for token in baseline[0])
@@ -138,8 +172,13 @@ def main() -> int:
     payload = {
         "schema_version": 1,
         "scope": "mlx_native_speculative_gemma_candidate_qualification",
-        "candidate_backend": "native_mlx_gpu_draft_and_verify",
-        "eligible_for_cpu_or_coreml_draft_profile": False,
+        "candidate_backend": (
+            "native_mlx_cpu_draft_gpu_verify" if arguments.heterogeneous
+            else "native_mlx_gpu_draft_and_verify"
+        ),
+        "eligible_for_cpu_or_coreml_draft_profile": arguments.heterogeneous,
+        "draft_device": "cpu" if arguments.heterogeneous else "gpu",
+        "verify_device": "gpu",
         "draft_model": str(draft_path.name),
         "draft_model_revision": arguments.draft_revision,
         "draft_model_license": "gemma",
@@ -160,6 +199,8 @@ def main() -> int:
         "median_improvement_fraction": improvement,
         "outputs_match": outputs_match,
         "maximum_peak_memory_gib": maximum_peak_memory_gib,
+        "process_peak_rss_bytes": resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+        * (1024 if platform.system() == "Linux" else 1),
         "memory_pressure": hardware.memory.pressure.value,
         "thermal_state": hardware.thermal_state.value,
         "soc": hardware.soc,

@@ -33,6 +33,7 @@ from .generative_qualification import (
     parse_generative_component,
     promote_generative_chained_frame_plan,
     promote_generative_chained_resolution_plan,
+    promote_generative_chained_sample_count_plan,
     promote_generative_frame_plan,
     promote_generative_resolution_plan,
     promote_generative_sample_count_plan,
@@ -315,6 +316,7 @@ def build_parser() -> argparse.ArgumentParser:
         help="private PNG/JPEG source required by --mode image-edit",
     )
     diffusers_image_qualification.add_argument("--baseline-report", type=Path)
+    diffusers_image_qualification.add_argument("--promotion-parent-report", type=Path)
     diffusers_image_qualification.add_argument(
         "--two-phase", action="store_true",
         help="run Qwen-Image text encoder and generation in sequential child processes",
@@ -1522,12 +1524,6 @@ def main(argv: list[str] | None = None) -> int:
                 if len(shapes) != 1:
                     raise ValueError("generative image baseline shapes are inconsistent")
                 baseline_width, baseline_height, baseline_frames = shapes.pop()
-                promotion = (
-                    promote_generative_sample_count_plan
-                    if (baseline_width, baseline_height, baseline_frames)
-                    == (plan.width, plan.height, plan.frames)
-                    else promote_generative_resolution_plan
-                )
                 promotion_arguments = {
                     "baseline_candidate_id": baseline.candidate_id,
                     "baseline_plan_sha256": baseline.plan_sha256,
@@ -1539,9 +1535,52 @@ def main(argv: list[str] | None = None) -> int:
                         sample.memory_pressure for sample in baseline.samples
                     ),
                 }
-                if promotion is promote_generative_sample_count_plan:
-                    promotion_arguments["target_sample_count"] = arguments.samples
-                plan = promotion(plan, **promotion_arguments)
+                same_shape = (baseline_width, baseline_height, baseline_frames) == (
+                    plan.width, plan.height, plan.frames
+                )
+                if arguments.promotion_parent_report is not None:
+                    parent = load_generative_evaluation_report(
+                        arguments.promotion_parent_report,
+                        expected_provenance=provenance,
+                    )
+                    if not parent.passed:
+                        raise ValueError("generative promotion parent did not pass")
+                    parent_shapes = {
+                        (sample.output_width, sample.output_height, sample.output_frames)
+                        for sample in parent.samples
+                    }
+                    if len(parent_shapes) != 1:
+                        raise ValueError("generative promotion parent shapes are inconsistent")
+                    parent_width, parent_height, parent_frames = parent_shapes.pop()
+                    parent_evidence = GenerativeBaselineEvidence(
+                        parent.candidate_id, parent.plan_sha256, parent.sample_count,
+                        parent_width, parent_height, parent_frames,
+                        tuple(sample.memory_pressure for sample in parent.samples),
+                    )
+                    baseline_evidence = GenerativeBaselineEvidence(
+                        baseline.candidate_id, baseline.plan_sha256, baseline.sample_count,
+                        baseline_width, baseline_height, baseline_frames,
+                        tuple(sample.memory_pressure for sample in baseline.samples),
+                    )
+                    if same_shape:
+                        plan = promote_generative_chained_sample_count_plan(
+                            plan, stability_baseline=baseline_evidence,
+                            initial_baseline=parent_evidence,
+                            target_sample_count=arguments.samples,
+                        )
+                    else:
+                        plan = promote_generative_chained_resolution_plan(
+                            plan, stability_baseline=baseline_evidence,
+                            initial_baseline=parent_evidence,
+                        )
+                elif same_shape:
+                    raise ValueError(
+                        "same-shape stability promotion requires --promotion-parent-report"
+                    )
+                else:
+                    plan = promote_generative_resolution_plan(plan, **promotion_arguments)
+            elif arguments.promotion_parent_report is not None:
+                raise ValueError("--promotion-parent-report requires --baseline-report")
             if not plan.eligible:
                 admission = plan.artifact_admission
                 raise ValueError(

@@ -8,6 +8,10 @@ from types import SimpleNamespace
 from unittest.mock import patch
 
 from vllm_apple.cli import main
+from vllm_apple.generative_qualification import (
+    GenerativeBaselineEvidence,
+    generative_promotion_chain_sha256,
+)
 from vllm_apple.types import GIB, HardwareInfo, MemoryInfo
 
 
@@ -295,6 +299,14 @@ class DiffusersImageQualificationCLITests(unittest.TestCase):
             passed=True, candidate_id="qwen-image-2.1", plan_sha256="a" * 64,
             sample_count=2, samples=(sample, sample),
         )
+        parent_sample = SimpleNamespace(
+            output_width=512, output_height=512, output_frames=1,
+            memory_pressure="normal",
+        )
+        parent = SimpleNamespace(
+            passed=True, candidate_id="qwen-image-2.1", plan_sha256="b" * 64,
+            sample_count=4, samples=(parent_sample,) * 4,
+        )
         captured = {}
 
         def run(plan, **kwargs):
@@ -318,7 +330,8 @@ class DiffusersImageQualificationCLITests(unittest.TestCase):
             ), patch(
                 "vllm_apple.cli.detect_hardware", return_value=hardware,
             ), patch(
-                "vllm_apple.cli.load_generative_evaluation_report", return_value=baseline,
+                "vllm_apple.cli.load_generative_evaluation_report",
+                side_effect=(baseline, parent),
             ), patch(
                 "vllm_apple.cli.run_generative_qualification", side_effect=run,
             ), redirect_stdout(io.StringIO()):
@@ -327,11 +340,24 @@ class DiffusersImageQualificationCLITests(unittest.TestCase):
                     "--python", "/test/python", "--resident-auto", "--two-phase",
                     "--width", "768", "--height", "768", "--samples", "4",
                     "--baseline-report", str(root / "baseline.json"),
+                    "--promotion-parent-report", str(root / "parent.json"),
                     "--workspace-root", str(root),
                     "--private-root", str(root / "private"),
                     "--report", str(root / "report.json"),
                 ])
         self.assertEqual(code, 0)
         self.assertEqual(captured["plan"].promotion_axis, "sample_count_4")
-        self.assertEqual(captured["plan"].baseline_plan_sha256, "a" * 64)
+        self.assertEqual(
+            captured["plan"].baseline_plan_sha256,
+            generative_promotion_chain_sha256(
+                GenerativeBaselineEvidence(
+                    "qwen-image-2.1", "a" * 64, 2, 768, 768, 1,
+                    ("normal", "normal"),
+                ),
+                GenerativeBaselineEvidence(
+                    "qwen-image-2.1", "b" * 64, 4, 512, 512, 1,
+                    ("normal",) * 4,
+                ),
+            ),
+        )
         self.assertIsNotNone(captured["kwargs"]["phase_encoder_command"])
