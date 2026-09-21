@@ -289,6 +289,13 @@ BackendEngine
 各backendはcapability、version、対応model architecture、precision、phase、fallback理由を
 機械可読に返す。未対応機能を暗黙に別方式へ変更せず、plannerが明示的にfallbackを選ぶ。
 
+実装済み`BackendEngineDescriptor`はbackend enum、version、model architecture、precision、phase、operator、
+isolation方式をversion付きで固定する。`BackendEngineRegistry`はrequestの明示candidate順だけを評価し、未登録、
+未ready、architecture／precision／phase／operator不一致を理由付きattemptとして拒否する。実行前後には共通の
+`InferenceRequestContext`でdeadline／cancel safe pointを検査し、retryableと宣言されたbackend failureだけを次候補へ
+fallbackする。non-retryable failureはCPUへ暗黙退避しない。shutdownは逆登録順で全engineへ伝播し、失敗をboundedに
+集約する。次段階では既存production process adapterをこのregistryのcomposition rootへ直接接続する。
+
 ---
 
 # 5. Apple Runtime IR
@@ -749,6 +756,13 @@ Recommended context:
 ```
 
 とする。
+
+ロード後はbackendが報告した実KV capacityと設定上限の小さい方をhard ceilingとする。直近最大64件の
+admitted context workloadだけをbounded履歴として保持し、拒否requestは学習しない。thermal stateがfairの
+場合はceilingの75〜87.5%、seriousは50〜75%、criticalは50%へ16-token block単位で縮退する。履歴需要へ
+25%の余裕を加えた値を各範囲内で採用し、nominal復帰時はhard ceilingまで回復する。unknownは既存clientとの
+互換性を保つため追加縮退せず、memory admissionの別gateで保守的に扱う。effective contextの変化は
+`runtime.context_reevaluation`へ非機密snapshotとして発行する。
 
 ---
 
@@ -2427,6 +2441,10 @@ component完全性をload前に検証し、合格したartifactだけを反復T2
 2-sample qualificationは2/2件で合格した。最大peak RSSは11,533,691,012 bytesで33-frame
 4-sample最大値比+1.57%、median wallは987.66秒で+14.76%だった。全件memory pressure normal、
 thermal fair、shape 640×384×49、private cleanupを確認した。次は49-frame profileを4-sampleへ昇格する。
+続く49-frame 4-sample stabilityも4/4件で合格した。全件memory pressure normal／thermal fair、最大peak RSS
+11,533,691,012 bytes、4 sampleのRSS range 0、median wall 1,098,215 ms、minimum 0.04197 frames/sec、
+4 output digest distinct、prompt/output非保存、private cleanupを確認した。これにより次の一軸候補を65 frameとし、
+33-frame rootと49-frame stable reportを結合するchained promotionでのみ2-sample評価を許可する。
 frame-count promotionは4-sample以上かつ全sampleのmemory pressureがnormalである同一artifact reportを
 baselineとして要求する。候補初期profileと同じ幅、高さ、steps、batchを維持し、frame数は直前値の
 2倍以下かつ`frames - 1`が4の倍数でなければload前に拒否する。
@@ -2783,6 +2801,11 @@ versioned execution planへ記録し、active request中は変更せずscheduler
    Core ML resourceはmodelを一度だけloadするpersistent Swift workerを所有し、改行区切りのbounded JSONで
    predictionを直列化する。read timeout、不正応答、worker終了は固定retryable codeへ変換し、unload時は
    stdin close、bounded wait、terminate、killの順でprocessを必ず回収する。
+   worker cacheはhardware fingerprint、OS version、model tree SHA-256、input／output名、input countを
+   cache identityへ結合する。同一identityのleaseだけがpersistent workerを共有し、active leaseはevictしない。
+   上限到達時は最古のidle workerだけをcloseして置換し、全entryがactiveの場合、identity不一致、active leaseを
+   残したcloseはfail-closedとする。これはprocess内のloaded-model cacheであり、compiler artifactをdisk共有する
+   cacheはtoolchain／Core ML version、署名、quarantine、失効契約が揃うまで有効化しない。
 21. `[Later]` Vision/Audio encoder、embedding、classifier、background modelなど固定graph化しやすい
    auxiliary workloadからANE routingを開始する。LLM prefill/decodeはGPU baselineを維持する。
 22. `[Done]` 共有memory bandwidth競合の代表組み合わせを逐次・並列で測定するbounded adapterとprivate

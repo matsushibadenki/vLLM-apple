@@ -5,6 +5,7 @@ from vllm_apple.memory_admission import MemoryPressureAdmissionError
 from vllm_apple.scheduler import ScheduleRequest
 from vllm_apple.service import RuntimeService
 from vllm_apple.types import ModelMemorySpec
+from vllm_apple.types import PowerMode, ThermalState
 
 
 class ContextCapacityReevaluatorTests(unittest.TestCase):
@@ -61,6 +62,38 @@ class ContextCapacityReevaluatorTests(unittest.TestCase):
             self.assertEqual(event.payload["effective_context_tokens"], 2_000)
         finally:
             subscription.close()
+
+    def test_workload_history_and_thermal_state_bound_dynamic_context(self) -> None:
+        reevaluator = ContextCapacityReevaluator(4096, 100, 1_000)
+        reevaluator.update(500_000, source="vllm")
+        reevaluator.observe_workload(1024)
+        reevaluator.update_thermal_state(ThermalState.FAIR)
+        snapshot = reevaluator.snapshot()
+        self.assertEqual(snapshot.status, "dynamic_reduced")
+        self.assertEqual(snapshot.effective_context_tokens, 3072)
+        reevaluator.observe_workload(3000)
+        self.assertEqual(reevaluator.snapshot().effective_context_tokens, 3584)
+        reevaluator.update_thermal_state(ThermalState.CRITICAL)
+        self.assertEqual(reevaluator.snapshot().effective_context_tokens, 2048)
+        reevaluator.update_thermal_state(ThermalState.NOMINAL)
+        self.assertEqual(reevaluator.snapshot().effective_context_tokens, 4096)
+
+    def test_runtime_operating_state_updates_context_ceiling(self) -> None:
+        service = RuntimeService(
+            model_memory_spec=ModelMemorySpec("model", 1_000, 100),
+            configured_context_tokens=4096,
+        )
+        service.record_kv_cache_memory(10_000, 500_000, source="vllm")
+        service.apply_operating_state(ThermalState.CRITICAL, PowerMode.AUTOMATIC)
+        with self.assertRaisesRegex(
+            MemoryPressureAdmissionError, "backend_context_capacity_exceeded"
+        ):
+            service.admit_schedule(
+                ScheduleRequest("decode", 0, estimated_context_tokens=2049)
+            )
+        self.assertEqual(
+            service.snapshot().context_reevaluation["effective_context_tokens"], 2048
+        )
 
 
 if __name__ == "__main__":

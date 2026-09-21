@@ -139,7 +139,7 @@ Graph / Memory Planner + Global Scheduler
 - `[Done]` MLA latent KV、state-space recurrent/conv state、hybrid layer構成固有のstate memory計算
 - `[Done]` 未cache Hugging Face modelのweightを取得しないbounded metadata fetchとrevision binding
 - `[Done]` model load前後でのcontext再評価
-- `[Later]` workload履歴とthermal状態を用いた動的context調整
+- `[Done]` 最大64件のadmitted workload履歴とthermal状態を用いた動的context調整。実KV capacity／設定上限を超えず、fairは75〜87.5%、seriousは50〜75%、criticalは50%へ16-token単位で縮退し、nominal復帰時は安全上限まで回復。拒否requestは履歴へ混入させず、変更をruntime eventへ公開
 
 ### Runtime profile
 
@@ -460,7 +460,8 @@ VLLMAppleKit / Control API
 - `[Done]` thermal/power状態をversioned plan identityとdecision reasonへ固定し、prefill batchを保守的にclampするscheduling foundation
 - `[Done]` 15秒bounded thermal/power monitor、同一状態coalesce、current hardware snapshotとruntime change eventへの反映
 - `[Done]` Swift SDKのtyped operating-state event decodeと未知のcurrent値に対するfail-soft fallback
-- `[Later]` BackendEngine交換契約（vLLM-Metal、Native MLX、Native Metal、Core ML draft、CPU）
+- `[Done]` versioned BackendEngine交換契約。vLLM-Metal、Native MLX、Native Metal、Core ML draft、CPUを共通enumで扱い、version、architecture、precision、phase、operator、isolation、ready/lifecycle、request deadline/cancel safe point、retryable fallback attemptをfail-closed registryへ統合
+- `[Later]` 各production backend processをBackendEngine registryへ直接登録するcomposition rootと段階的切替
 - `[Later]` CPU/Core ML draft + GPU verifyのheterogeneous speculative execution
 - `[Done]` bounded kernel self-test/performance probe contractとprofile単位quarantine registry
 - `[Done]` hardware、OS、toolchain、MLX、backend versionを束ねるenvironment fingerprint
@@ -778,7 +779,8 @@ fallback、fusion、stress、および大容量model向け再現可能qualificat
 - `[Done]` 動画frame-count promotion契約。CLIの`--frames`と`--baseline-report`を追加し、4-sample以上・全normal・同一artifact provenanceの合格reportを必須化。幅、高さ、steps、batch固定、最大2倍、`frames - 1`の4境界を満たす一軸変更だけをworker起動前に許可する
 - `[Done]` 33→49 frameの一軸promotionを2-sample正式qualificationで実証。2/2件が640×384×49で完了し、issues 0、memory pressure normal、thermal fair、sample間recovery、private cleanup、異なるseedのdigest相違を確認。最大peak RSS 11,533,691,012 bytes（33-frame 4-sample最大比+178,686,112 bytes／+1.57%）、median wall 987.66秒（+126.99秒／+14.76%）。prompt／動画は非保存。証跡: [Wan MLX-Gen 49-frame qualification](evaluation/wan-mlx-gen-640x384-49frames-2sample-2026-09-20.json)
 - `[Done]` promoted videoの同一frame数2→4 sample stability契約。49-frame 2-sample reportだけでなく、それを許可した33-frame 4-sample parent reportも同一provenanceで検証し、frame promotion chainとsample-count promotionの両方をload前に再検証する`--promotion-parent-report`をMLX-Gen video CLIへ追加
-- `[Next]` 49-frame profileを4-sample stability gateへ昇格し、peak RSS drift、memory recovery、生成失敗0を確認してから次の一軸promotionを選定する
+- `[Done]` Wan 49-frame profileの4-sample stability gate。Apple M4/32 GiB、640×384、49 frame、20 stepsで4/4成功、失敗0、全件memory pressure normal／thermal fair、最大peak RSS 11,533,691,012 bytes、RSS range 0、median wall 1,098,215 ms、4 digest distinct、prompt/output非保存、private cleanupを確認。証跡: [49-frame 4-sample stability](evaluation/wan-mlx-gen-640x384-49frames-4sample-stability-2026-09-21.json)
+- `[Next]` 33-frame root＋49-frame 4-sampleのchained promotion contractで、他条件を固定した65-frame・2-sampleを一軸評価する。全件normalの場合だけ4-sample安定化へ進む
 - `[Later]` HunyuanVideo 1.5 8.3Bを候補とする480p、step-distilled、SSTA、model offload検証
 - `[Later]` Wan 2.2 A14B量子化版をstretch候補とするT2V/I2V別artifact、dual-expert residency、CPU/SSD offload検証
 - `[Done]` video diffusion pipelineのDiT/expert、text encoder、3D VAE別artifact admissionとconservative resident-memory hard ceiling
@@ -920,9 +922,11 @@ Unified Memoryとmemory bandwidthを共有する一つの実行系として管�
 - `[Done]` repository-owned決定論的`x * 2` Core ML fixture generator、coremltools 8.1／NumPy 1.26.4固定、coremlcompiler・tree integrity・3 sample ANE probe・生成物削除を行うself-hosted workflow
 - `[Done]` M4ローカル実機でfixture生成／compile／`.cpuAndNeuralEngine` prediction 3回の数値一致（中央値約96.5 µs、fixture tree digest binding）
 - `[Done]` probe合格済みmodel digest／capability ID／auxiliary phase／FP32 eligibilityを必須にするCore ML fixed-graph resource load・bounded execute・integrity再検証・明示unloadとscheduler直前dispatch gate
-- `[Later]` Core ML model compile/loadを隔離するANE backend adapterと、OS／chip／model fingerprint別cache
+- `[Done]` Core ML load／predictionをSwift subprocessへ隔離するpersistent ANE worker adapterと、hardware／OS／model tree SHA-256／I/O identity別のbounded process cache。active leaseをevictせず、idle workerだけをLRU回収し、容量超過・identity不一致・active closeをfail-closedにする
+- `[Later]` Core ML compiler出力そのものを再利用する場合の、toolchain／Core ML versionを含むdisk artifact cacheと署名・失効policy
 - `[Done]` CPU thread、GPU command queue、ANE in-flight task、Unified Memory、memory bandwidthを原子的に予約・解放する統合resource ledgerとruntime snapshot
-- `[Later]` operator graphへ依存関係、deadline、phase、precision、fallback、同期costを付与するdispatch contract
+- `[Done]` backend exchangeのversioned dispatch contract。architecture／precision／phase／operator／isolation、deadline／cancel safe point、retryable bounded fallback、逆順shutdownを共通化
+- `[Later]` operator graphの依存関係とdevice間同期costを含むproduction composition rootへの共通dispatch contract接続
 - `[Done]` probe済みcapabilityに限定したCPU/GPU/ANE共通bounded microbenchmark schemaとrunner（cold load、execution、変換、同期、throughput、peak memory、energyのunknown保持、output digest安定性）およびprivate atomic report・strict再計算loader
 - `[Done]` deterministic CPU vector add／matmul／KV copy、MLX／Metal probe kernel、loaded Core ML fixed graphを共通schemaへ接続するnative measurement adapter（kernel時間とsubprocess込みend-to-end時間を分離）
 - `[Done]` available・FP32 capabilityだけからCPU/MLX/Metal/Core ML代表shapeを構築するbounded deterministic suite、明示operation map、欠損operation拒否、suite ID
@@ -948,6 +952,8 @@ Unified Memoryとmemory bandwidthを共有する一つの実行系として管�
 - `[Done]` 昇格済みANE routeのtimeout／数値不一致を固定codeへ変換し、probe済みGPUからCPUまで実行するbounded end-to-end fallback contract
 - `[Done]` 1024幅×16層dense+ReLU代表encoderの決定論的generator／CPU reference／integrity-bound Core ML qualification、同一digest benchmarkによるANE placement昇格とruntime fallback
 - `[Done]` Core ML modelをprocess内で保持するbounded persistent Swift worker、resource load／unload連動、timeout／worker failureのretryable fallback変換
+- `[Done]` hardware／OS／model tree SHA-256／I/O identityに結合したbounded Core ML worker cache。同一identityはpersistent workerを共有し、active lease保護、idle-only LRU eviction、厳密なclose accountingを実装
+- `[Later]` Core ML compiler artifactのdisk再利用を行う場合のtoolchain／Core ML version binding、署名、quarantine、失効
 - `[Done]` M4実機でpersistent workerの連続5 prediction出力一致（load約235ms、end-to-end 0.84–1.41ms、kernel 16–84µs）
 - `[Done]` Core ML/ANE in-flight、CPU thread、GPU command queue、Unified Memory、bandwidth slotを同一admissionで原子的に予約し、失敗時にmemory予約をrollbackするresource ledger
 - `[Done]` fallbackごとのbackend resource原子的引き継ぎと、profile-bound・3 sample以上・出力一致・5%以上の並列改善を必須にするfail-closed contention evidence gate

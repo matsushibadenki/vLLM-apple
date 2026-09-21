@@ -122,6 +122,20 @@ from .coreml_backend import (
     CoreMLFixedGraphResult,
 )
 from .coreml_worker import CoreMLPersistentWorker
+from .coreml_worker_cache import (
+    CoreMLWorkerCache,
+    CoreMLWorkerCacheKey,
+    CoreMLWorkerLease,
+)
+from .backend_engine import (
+    BackendEngine,
+    BackendEngineAttempt,
+    BackendEngineDescriptor,
+    BackendEngineFailure,
+    BackendEngineRegistry,
+    BackendEngineRequest,
+    BackendEngineResult,
+)
 from .elastic_memory import ElasticMemoryController, ElasticMemoryDecision
 from .device_capability import (
     ComputeDevice,
@@ -494,6 +508,13 @@ __all__ = [
     "AppleExecutionPlan",
     "AppleExecutionPlanner",
     "BackendKernelTuningAdapter",
+    "BackendEngine",
+    "BackendEngineAttempt",
+    "BackendEngineDescriptor",
+    "BackendEngineFailure",
+    "BackendEngineRegistry",
+    "BackendEngineRequest",
+    "BackendEngineResult",
     "BackendStateReference",
     "BackendTuningSnapshot",
     "ContextCapacityReevaluator",
@@ -505,6 +526,9 @@ __all__ = [
     "CoreMLFixedGraphResource",
     "CoreMLFixedGraphResult",
     "CoreMLPersistentWorker",
+    "CoreMLWorkerCache",
+    "CoreMLWorkerCacheKey",
+    "CoreMLWorkerLease",
     "CoreMLFixedGraphBenchmarkAdapter",
     "CoreMLPrediction",
     "ContextReevaluationSnapshot",

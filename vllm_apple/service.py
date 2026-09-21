@@ -344,6 +344,12 @@ class RuntimeService:
             self.scheduler.update_adaptive_inputs(
                 thermal=thermal_state, power=power_mode
             )
+            if self.context_reevaluator is not None:
+                if self.context_reevaluator.update_thermal_state(thermal_state):
+                    self.events.publish(
+                        "runtime.context_reevaluation",
+                        self.context_reevaluator.snapshot().to_dict(),
+                    )
         return True
 
     def snapshot(self) -> ServiceSnapshot:
@@ -683,6 +689,14 @@ class RuntimeService:
             )
             raise
         reservation = self.scheduler.admit(admission_request)
+        if self.context_reevaluator is not None and request.estimated_context_tokens > 0:
+            if self.context_reevaluator.observe_workload(
+                request.estimated_context_tokens
+            ):
+                self.events.publish(
+                    "runtime.context_reevaluation",
+                    self.context_reevaluator.snapshot().to_dict(),
+                )
         with self._lock:
             tuning_id = (
                 self._active_metal_tuning.tuning_id

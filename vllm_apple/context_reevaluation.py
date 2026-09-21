@@ -1,7 +1,10 @@
 from __future__ import annotations
 
 import threading
+from collections import deque
 from dataclasses import asdict, dataclass
+
+from .types import ThermalState
 
 
 @dataclass(frozen=True, slots=True)
@@ -39,7 +42,27 @@ class ContextCapacityReevaluator:
         self._capacity_tokens: int | None = None
         self._source: str | None = None
         self._reevaluations = 0
+        self._thermal_state = ThermalState.UNKNOWN
+        self._workload_tokens: deque[int] = deque(maxlen=64)
         self._lock = threading.Lock()
+
+    def observe_workload(self, context_tokens: int) -> bool:
+        """Record bounded admitted demand used by the thermal context policy."""
+        if type(context_tokens) is not int or context_tokens <= 0:
+            raise ValueError("invalid context workload sample")
+        with self._lock:
+            previous = self._effective_tokens_locked()
+            self._workload_tokens.append(min(context_tokens, self._configured))
+            return previous != self._effective_tokens_locked()
+
+    def update_thermal_state(self, thermal_state: ThermalState) -> bool:
+        if not isinstance(thermal_state, ThermalState):
+            raise TypeError("thermal state must use the declared enum")
+        with self._lock:
+            if thermal_state is self._thermal_state:
+                return False
+            self._thermal_state = thermal_state
+            return True
 
     def update(self, capacity_bytes: int, *, source: str) -> bool:
         if capacity_bytes < 0 or not source:
@@ -56,14 +79,13 @@ class ContextCapacityReevaluator:
     def snapshot(self) -> ContextReevaluationSnapshot:
         with self._lock:
             capacity_tokens = self._capacity_tokens
-            effective = (
-                min(self._configured, capacity_tokens)
-                if capacity_tokens is not None
-                else self._configured
-            )
+            effective = self._effective_tokens_locked()
+            base = min(self._configured, capacity_tokens) if capacity_tokens is not None else self._configured
             status = (
                 "pending"
                 if capacity_tokens is None
+                else "dynamic_reduced"
+                if effective < base
                 else "reduced"
                 if capacity_tokens < self._configured
                 else "sufficient"
@@ -80,6 +102,25 @@ class ContextCapacityReevaluator:
                 self._source,
                 self._reevaluations,
             )
+
+    def _effective_tokens_locked(self) -> int:
+        base = (
+            min(self._configured, self._capacity_tokens)
+            if self._capacity_tokens is not None
+            else self._configured
+        )
+        if self._thermal_state in {ThermalState.NOMINAL, ThermalState.UNKNOWN}:
+            return base
+        upper_ratio, lower_ratio = {
+            ThermalState.FAIR: ((7, 8), (3, 4)),
+            ThermalState.SERIOUS: ((3, 4), (1, 2)),
+            ThermalState.CRITICAL: ((1, 2), (1, 2)),
+        }[self._thermal_state]
+        upper = base * upper_ratio[0] // upper_ratio[1]
+        lower = base * lower_ratio[0] // lower_ratio[1]
+        demand = max(self._workload_tokens, default=upper)
+        target = max(lower, min(upper, (demand * 5 + 3) // 4))
+        return max(1, target // 16 * 16)
 
 
 def disabled_context_reevaluation_snapshot() -> dict[str, int | str | bool | None]:
