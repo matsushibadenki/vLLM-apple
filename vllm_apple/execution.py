@@ -9,7 +9,6 @@ from typing import Any
 from .context import ContextPolicy, recommend_state_context
 from .types import MemoryInfo, MemoryPressure, PowerMode, StateMemorySpec, ThermalState
 
-
 EXECUTION_SCHEMA_VERSION = 1
 
 

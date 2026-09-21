@@ -13,7 +13,6 @@ from .execution import AppleChipProfile, ExecutionBackend
 from .hardware import default_application_support, detect_hardware
 from .types import HardwareInfo
 
-
 CHIP_PROFILE_VERSION = 1
 
 

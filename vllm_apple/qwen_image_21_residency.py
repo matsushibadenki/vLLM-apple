@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from .types import GIB, HardwareInfo
 
-
 QUANTIZABLE_ROLES = frozenset({"denoiser", "text_encoder"})
 
 

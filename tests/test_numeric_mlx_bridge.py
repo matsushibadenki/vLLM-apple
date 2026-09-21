@@ -5,10 +5,12 @@ from dataclasses import replace
 from unittest.mock import patch
 
 from vllm_apple.numeric_formats import (
-    NumericFormatDescriptor, TensorGeometry, convert_nvfp4_to_int8,
+    NumericFormatDescriptor,
+    TensorGeometry,
+    convert_nvfp4_to_int8,
 )
-from vllm_apple.qwen4_mlx_conversion_worker import Qwen4MLXCorrectnessConverter
 from vllm_apple.numeric_precision import NumericPrecisionPolicy, PrecisionExecutionContract
+from vllm_apple.qwen4_mlx_conversion_worker import Qwen4MLXCorrectnessConverter
 
 
 class NumericMLXBridgeTests(unittest.TestCase):

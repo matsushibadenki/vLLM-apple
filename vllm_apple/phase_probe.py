@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-import hashlib
 import base64
+import hashlib
 import json
 import subprocess
 import threading
@@ -13,7 +13,6 @@ from typing import Any
 
 from .phase_profile import ExecutionPhaseProfiler, PhaseMeasurement
 from .soak import _validated_base_url
-
 
 MAX_SSE_LINE_BYTES = 1024 * 1024
 MAX_SSE_RESPONSE_BYTES = 16 * 1024 * 1024

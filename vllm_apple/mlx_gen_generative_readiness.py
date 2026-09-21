@@ -9,7 +9,6 @@ from pathlib import Path
 from .generative_artifact_inspection import inspect_generative_artifact
 from .generative_weight_residency import current_mlx_gen_weight_residency_feasibility
 
-
 MINIMUM_MLX_GEN_VERSION = (0, 18, 2)
 MINIMUM_Z_IMAGE_VERSION = (0, 33, 1)
 MAX_PROBE_OUTPUT_BYTES = 16 * 1024

@@ -16,7 +16,6 @@ from .device_selection import DevicePlacementDecision
 from .execution import ExecutionBackend, WorkloadPhase
 from .hardware import default_application_support
 
-
 DEVICE_PLACEMENT_SCHEMA_VERSION = 1
 MAX_DEVICE_PLACEMENTS = 64
 MAX_DEVICE_PLACEMENT_BYTES = 256 * 1024

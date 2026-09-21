@@ -7,9 +7,9 @@ from pathlib import Path
 from .compat import (
     BackendCompatibility,
     MLXBackendCompatibility,
+    assess_candidate_backend,
     inspect_backend,
     inspect_mlx_lm_backend,
-    assess_candidate_backend,
 )
 from .hardware import detect_hardware
 from .model import (

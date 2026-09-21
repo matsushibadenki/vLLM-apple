@@ -14,7 +14,6 @@ from .audio_preprocessing import (
     StreamingLogBandEncoder,
 )
 
-
 _STATE_NAME = re.compile(r"[a-z][a-z0-9_.-]{0,63}\Z")
 
 

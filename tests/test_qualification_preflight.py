@@ -7,8 +7,8 @@ from unittest.mock import patch
 
 from tests.schema_validator import validate_instance
 from vllm_apple.compat import BackendCompatibility, MLXBackendCompatibility
-from vllm_apple.qualification_preflight import run_qualification_preflight
 from vllm_apple.model import InspectedModel, ModelArchitectureCapability
+from vllm_apple.qualification_preflight import run_qualification_preflight
 from vllm_apple.types import HardwareInfo, MemoryInfo, MemoryPressure, ModelMemorySpec
 
 

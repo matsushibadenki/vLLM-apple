@@ -1,5 +1,5 @@
-import unittest
 import plistlib
+import unittest
 
 from vllm_apple.backend_memory import (
     MAX_METRICS_BYTES,

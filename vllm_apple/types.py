@@ -4,7 +4,6 @@ from dataclasses import asdict, dataclass, field
 from enum import Enum
 from typing import Any, Mapping
 
-
 GIB = 1024**3
 MIB = 1024**2
 

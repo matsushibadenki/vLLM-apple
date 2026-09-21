@@ -16,7 +16,6 @@ from .kernel_probe import (
     run_kernel_probe,
 )
 
-
 _COMMON_RESULT = """
 values=[round(float(value),6) for value in result.reshape((-1,)).tolist()]
 elapsed=time.perf_counter_ns()-started

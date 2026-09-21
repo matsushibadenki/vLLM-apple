@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "scope": "qwen_image_2_1_int8_image_edit_runtime_memory_stop",
+  "candidate_id": "qwen-image-2.1",
+  "mode": "image-edit",
+  "profile": {
+    "width": 512,
+    "height": 512,
+    "steps": 20,
+    "samples_requested": 2,
+    "batch_size": 1
+  },
+  "artifact": "models/Qwen-Image-2.1-torchao-int8",
+  "estimated_resident_bytes": 16141367203,
+  "available_bytes_at_admission": 21692121088,
+  "memory_hard_ceiling_bytes": 18943342019,
+  "fits_memory_at_admission": true,
+  "worker_started": true,
+  "weights_loaded": true,
+  "samples_completed": 0,
+  "passed": false,
+  "error_code": "runtime_memory_hard_ceiling_exceeded",
+  "effective_resident_bytes_lower_bound": 18943342020,
+  "input_cleanup_verified": true,
+  "output_cleanup_verified": true,
+  "memory_pressure_after_exit": "normal",
+  "available_bytes_after_exit": 27148664832,
+  "stores_prompt": false,
+  "stores_input": false,
+  "stores_output": false,
+  "retry_performed": false,
+  "next_action": "stream text-encoder shards or qualify on larger-memory Apple Silicon"
+}

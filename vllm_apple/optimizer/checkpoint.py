@@ -1,8 +1,8 @@
 from __future__ import annotations
 
+import fcntl
 import hashlib
 import json
-import fcntl
 import os
 import stat
 import tempfile
@@ -15,7 +15,6 @@ from typing import Mapping, Sequence
 
 from .safety import validate_immutable_output_path
 from .types import OPTIMIZER_SCHEMA_VERSION
-
 
 MAX_CHECKPOINT_BYTES = 64 * 1024
 

@@ -3,16 +3,15 @@ from __future__ import annotations
 import hashlib
 import importlib.metadata
 import json
-import sys
 import struct
-from dataclasses import replace
+import sys
 from collections.abc import Iterable
+from dataclasses import replace
 
-from .qwen4_conversion_protocol import MAX_CONVERSION_REQUEST_BYTES
-from .qwen4_conversion_worker import ConvertedTensorEvidence, execute_qwen4_conversion_request
 from .numeric_formats import ScaledInt8Tensor, _scale
 from .numeric_precision import NumericPrecisionPolicy, PrecisionExecutionContract
-
+from .qwen4_conversion_protocol import MAX_CONVERSION_REQUEST_BYTES
+from .qwen4_conversion_worker import ConvertedTensorEvidence, execute_qwen4_conversion_request
 
 MAX_CORRECTNESS_TENSOR_BYTES = 16 * 1024 * 1024
 _DTYPE_BYTES = {"BF16": 2, "F16": 2, "F32": 4}

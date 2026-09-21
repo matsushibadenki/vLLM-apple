@@ -3,7 +3,6 @@ from __future__ import annotations
 import math
 from collections.abc import Sequence
 
-
 MAX_REFERENCE_WIDTH = 4096
 MAX_REFERENCE_TOKENS = 8192
 

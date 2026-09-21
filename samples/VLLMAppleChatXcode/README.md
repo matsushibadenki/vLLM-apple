@@ -20,6 +20,20 @@ The app sandbox is disabled because the sample launches a separately signed loca
 Production distributions should sign the app and daemon with the same team, retain hardened runtime, and notarize the final
 application. The later signed-daemon roadmap item covers creation of that standalone distribution artifact.
 
+## App Sandbox client target
+
+`VLLMAppleChatSandbox` is a separate hardened-runtime target with App Sandbox enabled. It never resolves, embeds, or launches
+`vllm-appled`; it connects as a network client to an independently managed daemon at `127.0.0.1:8000`. Its entitlements are
+limited to outbound networking, user-selected read-only files, and app-scoped bookmarks. Start a trusted local daemon before
+launching this target, then build it with:
+
+```bash
+xcodebuild -project VLLMAppleChat.xcodeproj -scheme VLLMAppleChatSandbox build
+```
+
+The sandbox target is suitable for signing and notarization exercises without granting model-directory access or process
+execution to the GUI. The bundled-daemon target remains the integration distribution for managed local execution.
+
 ## Unsigned release candidate
 
 On an Apple Silicon Mac, install the locked packaging dependency and create a self-contained app archive:

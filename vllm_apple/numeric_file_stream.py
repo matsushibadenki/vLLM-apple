@@ -9,15 +9,14 @@ from pathlib import Path
 
 from .numeric_formats import (
     _E2M1_TWICE,
-    _scale,
     DEFAULT_CONVERSION_REGISTRY,
     NumericFormatDescriptor,
     TensorGeometry,
+    _scale,
     conversion_plan,
     numeric_content_digest_from_hashes,
 )
 from .numeric_streaming import NumericStreamingPlan
-
 
 _HASH_CHUNK_BYTES = 1024 * 1024
 

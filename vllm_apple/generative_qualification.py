@@ -1,13 +1,12 @@
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass, replace
 import hashlib
 import json
+from dataclasses import asdict, dataclass, replace
 from pathlib import Path
 
 from .artifact_admission import ArtifactAdmission, assess_artifact_admission_for_path
 from .types import HardwareInfo
-
 
 GENERATIVE_QUALIFICATION_SCHEMA_VERSION = 1
 MAX_DIMENSION = 4096
@@ -124,7 +123,7 @@ _CANDIDATES = (
         "Qwen/Qwen-Image-2512",
         "image",
         "B",
-        ("text-to-image",),
+        ("text-to-image", "image-edit"),
         512,
         512,
         1,

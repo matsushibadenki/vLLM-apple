@@ -8,7 +8,6 @@ from dataclasses import dataclass
 from .numeric_streaming import NumericStreamingPlan
 from .qwen4_tensor_reader import Qwen4TensorReader
 
-
 MAX_ACTIVE_TENSOR_LOADS = 1024
 _TARGET_DTYPE_BYTES = {"BF16": 2, "F16": 2, "F32": 4}
 

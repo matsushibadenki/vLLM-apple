@@ -1,0 +1,34 @@
+{
+  "cpu_evidence_sha256": [
+    "9dc1234c4211f761b4d5ab456a742de5efacebae867d050ca79761aa6b5fd38e",
+    "e52ff49f690f7b6ceb3c28cbc905dacf35c76ee7be9e81347a097e2e0637ab8a"
+  ],
+  "hardware_fingerprint": "63209210cd91bd8ea96036c2",
+  "metal_evidence_sha256": "15c05761188b365d1a507e68c112ae3576c33009da3564453602cd3e70a5d9f1",
+  "phases": [
+    {
+      "attention_median_nanoseconds": 1291416,
+      "cpu_median_nanoseconds": 7035792,
+      "cpu_operator": "matmul",
+      "metal_median_nanoseconds": 199458,
+      "metal_operator": "gpu_gemm",
+      "metal_speedup": 35.27455404145233,
+      "phase": "prefill",
+      "recommended_backend": "native_metal",
+      "unified_memory_bandwidth_bytes_per_second": 37789182234.10995
+    },
+    {
+      "attention_median_nanoseconds": 1291416,
+      "cpu_median_nanoseconds": 1846583,
+      "cpu_operator": "gemv",
+      "metal_median_nanoseconds": 224500,
+      "metal_operator": "gpu_gemv",
+      "metal_speedup": 8.225314031180401,
+      "phase": "decode",
+      "recommended_backend": "native_metal",
+      "unified_memory_bandwidth_bytes_per_second": 37789182234.10995
+    }
+  ],
+  "profile_id": "bbd02dd2540c5956b098bed0ccf6f5ab909ec53241bc2ea355c4b38eb3de1511",
+  "schema_version": 1
+}

@@ -4,9 +4,13 @@ import os
 import struct
 import unittest
 
-from vllm_apple.numeric_formats import NumericFormatDescriptor, TensorGeometry, convert_nvfp4_to_int8
-from vllm_apple.qwen4_mlx_conversion_worker import Qwen4MLXCorrectnessConverter
+from vllm_apple.numeric_formats import (
+    NumericFormatDescriptor,
+    TensorGeometry,
+    convert_nvfp4_to_int8,
+)
 from vllm_apple.numeric_precision import NumericPrecisionPolicy, PrecisionExecutionContract
+from vllm_apple.qwen4_mlx_conversion_worker import Qwen4MLXCorrectnessConverter
 
 
 @unittest.skipUnless(os.environ.get("VLLM_APPLE_TEST_MLX_NUMERIC") == "1", "opt-in MLX device test")

@@ -11,7 +11,6 @@ from .long_context import LongContextEvaluationError, LongContextObservation
 from .phase_probe import MAX_PROMPT_BYTES, PhaseProbeConfig, PhaseProbeError, measure_stream
 from .soak import _validated_base_url
 
-
 MAX_TOKENIZE_RESPONSE_BYTES = 32 * 1024 * 1024
 FILLER = "The archival record contains ordinary neutral context. "
 

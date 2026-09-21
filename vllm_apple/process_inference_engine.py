@@ -2,7 +2,9 @@
 from __future__ import annotations
 
 import json
+import os
 import re
+import stat
 import subprocess
 import threading
 import uuid
@@ -15,7 +17,6 @@ from .inference_request import (
     InferenceRequestCancelled,
     InferenceRequestContext,
 )
-
 
 MAX_PROCESS_MESSAGE_BYTES = 4 * 1024 * 1024
 MAX_PROCESS_RESPONSE_BYTES = 16 * 1024 * 1024
@@ -48,12 +49,7 @@ class MainThreadSubprocessInferenceEngine:
                 or not 0 < startup_timeout_seconds <= 1800
                 or not 0 < shutdown_timeout_seconds <= 60):
             raise ValueError("invalid subprocess inference engine configuration")
-        try:
-            executable = python_executable.expanduser().resolve(strict=True)
-        except OSError as error:
-            raise ValueError("subprocess inference Python is unavailable") from error
-        if not executable.is_file():
-            raise ValueError("subprocess inference Python is unsafe")
+        executable = _validated_python_executable(python_executable)
         command = [
             str(executable), "-m", "vllm_apple.main_thread_process_worker",
             "--factory", factory,
@@ -269,3 +265,24 @@ class MainThreadSubprocessInferenceEngine:
         for item in pending:
             item.error_code = code
             item.done.set()
+
+
+def _validated_python_executable(path: Path) -> Path:
+    """Validate an interpreter without resolving away its venv entry point."""
+    candidate = path.expanduser().absolute()
+    try:
+        link_info = candidate.lstat()
+        resolved = candidate.resolve(strict=True)
+        target_info = resolved.stat()
+    except OSError as error:
+        raise ValueError("subprocess inference Python is unavailable") from error
+    if (
+        not (stat.S_ISREG(link_info.st_mode) or stat.S_ISLNK(link_info.st_mode))
+        or link_info.st_uid != os.getuid()
+        or not stat.S_ISREG(target_info.st_mode)
+        or target_info.st_uid != os.getuid()
+        or stat.S_IMODE(target_info.st_mode) & 0o022
+        or not os.access(resolved, os.X_OK)
+    ):
+        raise ValueError("subprocess inference Python is unsafe")
+    return candidate

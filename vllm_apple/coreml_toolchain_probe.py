@@ -11,7 +11,6 @@ import subprocess
 import tempfile
 from pathlib import Path
 
-
 _PREDICTION_PROGRAM = r'''
 import CoreML
 import Foundation

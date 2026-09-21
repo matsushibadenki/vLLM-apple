@@ -10,7 +10,6 @@ from pathlib import Path
 from .qwen4_conversion_plan import build_qwen4_conversion_plan
 from .qwen4_weight_map import _bounded_index
 
-
 COPY_CHUNK_BYTES = 8 * 1024 * 1024
 MAX_STAGE_FILES = 512
 CHECKPOINT_NAME = ".qwen4-stage-checkpoint.json"

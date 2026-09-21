@@ -9,7 +9,6 @@ from dataclasses import dataclass
 from enum import IntEnum
 from typing import Callable, Generic, TypeVar
 
-
 T = TypeVar("T")
 R = TypeVar("R")
 

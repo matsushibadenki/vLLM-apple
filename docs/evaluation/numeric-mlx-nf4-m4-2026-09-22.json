@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "hardware": {
+    "soc": "Apple M4",
+    "memory_bytes": 34359738368,
+    "available_bytes_after": 18346098688,
+    "memory_pressure_after": "normal",
+    "thermal_state_after": "nominal"
+  },
+  "runtime": {
+    "mlx": "0.27.1",
+    "numpy": "1.25.2"
+  },
+  "operation": "nf4_encode_65536",
+  "samples": 7,
+  "numpy_nanoseconds": [
+    15113042,
+    10038250,
+    6859416,
+    6313250,
+    6345375,
+    15441417,
+    9645250
+  ],
+  "mlx_nanoseconds": [
+    9452583,
+    12437500,
+    12457416,
+    12667292,
+    13215500,
+    6916084,
+    15818292
+  ],
+  "numpy_median_nanoseconds": 9645250,
+  "mlx_median_nanoseconds": 12457416,
+  "mlx_speedup_over_numpy": 0.7742576791206138,
+  "output_sha256": "4bd4a182d597cd9357731272cbd8a7f54b7e4b68607567eb0c6ad3b25a80efe7",
+  "digest_match": true,
+  "promotion_threshold": 1.05,
+  "promotion_passed": false,
+  "decision": "retain_numpy_cpu_route"
+}

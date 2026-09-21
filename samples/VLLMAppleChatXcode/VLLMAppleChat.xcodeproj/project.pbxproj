@@ -7,13 +7,20 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		10993695FD1478DC451F4349 /* VLLMAppleChatApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7BAD43D99D057321DC1C94A5 /* VLLMAppleChatApp.swift */; };
+		1593E6DCA24FBF66E1910810 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B7A68CB4A9B477C83CDD6B2 /* ContentView.swift */; };
+		1699EB9D113596551B604587 /* AppLocalization.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05F32CC4C813F200B036E937 /* AppLocalization.swift */; };
 		394C7F4D26A05481F2B536F2 /* AppLocalization.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05F32CC4C813F200B036E937 /* AppLocalization.swift */; };
 		4893BC4391A06438EBEC73D6 /* VLLMAppleChatApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7BAD43D99D057321DC1C94A5 /* VLLMAppleChatApp.swift */; };
+		580236AE3AD3F793992D28B8 /* AppModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 415FD12D568058EA0F73B502 /* AppModel.swift */; };
 		681D2BCCE0A2050EC9644D19 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B7A68CB4A9B477C83CDD6B2 /* ContentView.swift */; };
 		69D20229B828431AB1CF963D /* VLLMAppleKit in Frameworks */ = {isa = PBXBuildFile; productRef = 71D2402A0BC62F08BEA74A59 /* VLLMAppleKit */; };
 		6DB05EEFF5AD2AF4F4E041C2 /* AppModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 415FD12D568058EA0F73B502 /* AppModel.swift */; };
+		717E0642267ABCF113FFF676 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = B91E3D95AE628BBC06883BDB /* Localizable.strings */; };
 		7F36A5B81721FE0B19859232 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = B91E3D95AE628BBC06883BDB /* Localizable.strings */; };
 		8AA10C5D63F5779C2771C2A5 /* DesignTokens.swift in Sources */ = {isa = PBXBuildFile; fileRef = 783B41031C9B58D4D7AF966C /* DesignTokens.swift */; };
+		E050C8500290D97D1B676902 /* VLLMAppleKit in Frameworks */ = {isa = PBXBuildFile; productRef = ABEE9833A7FA330022B16F98 /* VLLMAppleKit */; };
+		E4985A92C81580B32A65E44C /* DesignTokens.swift in Sources */ = {isa = PBXBuildFile; fileRef = 783B41031C9B58D4D7AF966C /* DesignTokens.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -26,6 +33,7 @@
 		AE83E352B4A0F62971726176 /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/Localizable.strings"; sourceTree = "<group>"; };
 		B2C48229FC9EBC5F7A3EFDC4 /* VLLMAppleChat.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = VLLMAppleChat.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		C95D6246B073CC35427FED55 /* swift */ = {isa = PBXFileReference; lastKnownFileType = folder; name = swift; path = ../../sdk/swift; sourceTree = SOURCE_ROOT; };
+		E134AE1D77DAC4B7346215AF /* VLLMAppleChatSandbox.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = VLLMAppleChatSandbox.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		F16135F73F8BDB90C9D01A8C /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -35,6 +43,14 @@
 			buildActionMask = 2147483647;
 			files = (
 				69D20229B828431AB1CF963D /* VLLMAppleKit in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B6EF5BFA731252112EE06FD2 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E050C8500290D97D1B676902 /* VLLMAppleKit in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -78,6 +94,7 @@
 			isa = PBXGroup;
 			children = (
 				B2C48229FC9EBC5F7A3EFDC4 /* VLLMAppleChat.app */,
+				E134AE1D77DAC4B7346215AF /* VLLMAppleChatSandbox.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -136,6 +153,26 @@
 			productReference = B2C48229FC9EBC5F7A3EFDC4 /* VLLMAppleChat.app */;
 			productType = "com.apple.product-type.application";
 		};
+		D9EC24D80079F05C44E3E47D /* VLLMAppleChatSandbox */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 5286DE513FFFE57AFC267ABE /* Build configuration list for PBXNativeTarget "VLLMAppleChatSandbox" */;
+			buildPhases = (
+				B89FE63105B38A912E553F30 /* Sources */,
+				826329D39DC40F412F728D9D /* Resources */,
+				B6EF5BFA731252112EE06FD2 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = VLLMAppleChatSandbox;
+			packageProductDependencies = (
+				ABEE9833A7FA330022B16F98 /* VLLMAppleKit */,
+			);
+			productName = VLLMAppleChatSandbox;
+			productReference = E134AE1D77DAC4B7346215AF /* VLLMAppleChatSandbox.app */;
+			productType = "com.apple.product-type.application";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -167,11 +204,20 @@
 			projectRoot = "";
 			targets = (
 				2355CFE3C7779EDDA9D368B0 /* VLLMAppleChat */,
+				D9EC24D80079F05C44E3E47D /* VLLMAppleChatSandbox */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		826329D39DC40F412F728D9D /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				717E0642267ABCF113FFF676 /* Localizable.strings in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		FECE2853F33C736F805048B6 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -214,6 +260,18 @@
 				681D2BCCE0A2050EC9644D19 /* ContentView.swift in Sources */,
 				8AA10C5D63F5779C2771C2A5 /* DesignTokens.swift in Sources */,
 				4893BC4391A06438EBEC73D6 /* VLLMAppleChatApp.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B89FE63105B38A912E553F30 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1699EB9D113596551B604587 /* AppLocalization.swift in Sources */,
+				580236AE3AD3F793992D28B8 /* AppModel.swift in Sources */,
+				1593E6DCA24FBF66E1910810 /* ContentView.swift in Sources */,
+				E4985A92C81580B32A65E44C /* DesignTokens.swift in Sources */,
+				10993695FD1478DC451F4349 /* VLLMAppleChatApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -331,6 +389,29 @@
 			};
 			name = Debug;
 		};
+		525C7CD7412589CF65DA00F0 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = VLLMAppleChatSandbox.entitlements;
+				COMBINE_HIDPI_IMAGES = YES;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "dev.vllm-apple.chat.sandbox";
+				PRODUCT_NAME = VLLMAppleChatSandbox;
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = VLLM_APPLE_SANDBOX_CLIENT;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Release;
+		};
 		90CDBF2E627D8DA2FCA94A31 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -394,6 +475,29 @@
 			};
 			name = Debug;
 		};
+		D32D5946E8529D23604DA74E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = VLLMAppleChatSandbox.entitlements;
+				COMBINE_HIDPI_IMAGES = YES;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "dev.vllm-apple.chat.sandbox";
+				PRODUCT_NAME = VLLMAppleChatSandbox;
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = VLLM_APPLE_SANDBOX_CLIENT;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -402,6 +506,15 @@
 			buildConfigurations = (
 				46B9230B1B403F5762B698BF /* Debug */,
 				209E9D3D3C9718C51D3EEFF0 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		5286DE513FFFE57AFC267ABE /* Build configuration list for PBXNativeTarget "VLLMAppleChatSandbox" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D32D5946E8529D23604DA74E /* Debug */,
+				525C7CD7412589CF65DA00F0 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
@@ -426,6 +539,10 @@
 
 /* Begin XCSwiftPackageProductDependency section */
 		71D2402A0BC62F08BEA74A59 /* VLLMAppleKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = VLLMAppleKit;
+		};
+		ABEE9833A7FA330022B16F98 /* VLLMAppleKit */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = VLLMAppleKit;
 		};

@@ -16,7 +16,6 @@ from .numeric_streaming import (
     NumericStreamingPlan,
 )
 
-
 QWEN4_RUNTIME_ABI_VERSION = 1
 MAX_RUNTIME_MESSAGE_BYTES = 16 * 1024
 MAX_CACHED_RESPONSES = 256

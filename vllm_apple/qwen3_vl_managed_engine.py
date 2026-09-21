@@ -179,8 +179,8 @@ def load_qwen3_vl_chat_runtime() -> Qwen3VLChatRuntime:
     """Load optional Homebrew MLX dependencies only inside the model owner."""
     import mlx.core as mx
     import numpy as np
-    from PIL import Image
     from mlx_vlm import apply_chat_template, generate
+    from PIL import Image
 
     return Qwen3VLChatRuntime(mx, np, Image.open, apply_chat_template, generate)
 

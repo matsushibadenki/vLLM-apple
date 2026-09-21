@@ -70,13 +70,13 @@ class DiffusersVideoGenerationWorkerTests(unittest.TestCase):
         self.assertEqual(events[-1].output_frames, 33)
         self.assertEqual(len(events[-1].output_sha256), 64)
 
-    def test_worker_rejects_i2v_and_batch_before_generation(self) -> None:
+    def test_worker_rejects_unknown_mode_and_batch_before_generation(self) -> None:
         with TemporaryDirectory() as directory:
             root = Path(directory)
             (root / "output").mkdir()
             payload = request(root)
-            payload["mode"] = "image-to-video"
-            with self.assertRaisesRegex(ValueError, "text-to-video only"):
+            payload["mode"] = "audio-to-video"
+            with self.assertRaisesRegex(ValueError, "does not support"):
                 execute_diffusers_video_request(
                     payload,
                     FakeRuntime(root / "output" / "sample.mp4"),
@@ -92,6 +92,27 @@ class DiffusersVideoGenerationWorkerTests(unittest.TestCase):
                     telemetry=lambda: WorkerTelemetry(1024, "normal", "nominal"),
                     emit=lambda event: None,
                 )
+
+    def test_hunyuan_image_to_video_route_uses_mode_specific_pipeline(self) -> None:
+        with TemporaryDirectory() as directory:
+            root = Path(directory)
+            output_root = root / "output"
+            output_root.mkdir()
+            payload = request(root)
+            payload.update({
+                "candidate_id": "hunyuanvideo-1.5-8.3b",
+                "mode": "image-to-video",
+            })
+            runtime = FakeRuntime(output_root / "sample.mp4")
+            runtime.pipeline_class = "HunyuanVideo15ImageToVideoPipeline"
+            events = []
+            execute_diffusers_video_request(
+                payload,
+                runtime,
+                telemetry=lambda: WorkerTelemetry(1024, "normal", "nominal"),
+                emit=events.append,
+            )
+        self.assertEqual(events[-1].kind, "completed")
 
     def test_local_runtime_is_local_only_mps_tiled_and_bounded(self) -> None:
         with TemporaryDirectory() as directory:

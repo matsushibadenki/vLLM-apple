@@ -8,7 +8,6 @@ import io
 from dataclasses import dataclass
 from typing import Any, Callable
 
-
 _IMAGE_PREFIXES = {
     "data:image/png;base64,": ("image/png", b"\x89PNG\r\n\x1a\n"),
     "data:image/jpeg;base64,": ("image/jpeg", b"\xff\xd8\xff"),

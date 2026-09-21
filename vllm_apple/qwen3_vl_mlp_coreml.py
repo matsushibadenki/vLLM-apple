@@ -13,7 +13,6 @@ from .qwen3_vl_ane import Qwen3VLVisionANEAdapterSpec
 from .qwen3_vl_conversion_plan import Qwen3VLCoreMLConversionPlan
 from .qwen3_vl_graph_spec import build_qwen3_vl_coreml_graph_spec
 
-
 MLP_MAXIMUM_SCALED_ERROR = 1e-2
 
 _PREDICTION_PROGRAM = r'''

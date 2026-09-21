@@ -12,7 +12,6 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Sequence
 
-
 DEFAULT_DAEMON_LABEL = "io.vllm-apple.daemon"
 MAX_DAEMON_PLIST_BYTES = 128 * 1024
 _LABEL = re.compile(r"[A-Za-z0-9][A-Za-z0-9.-]{0,127}\Z")

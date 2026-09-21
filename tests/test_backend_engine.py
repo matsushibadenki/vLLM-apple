@@ -1,6 +1,6 @@
-import unittest
 import threading
 import time
+import unittest
 from dataclasses import replace
 from unittest.mock import Mock
 
@@ -11,13 +11,13 @@ from vllm_apple.backend_engine import (
     BackendEngineRequest,
 )
 from vllm_apple.execution import ExecutionBackend, WorkloadPhase
-from vllm_apple.inference_request import InferenceRequestContext
 from vllm_apple.fault_injection import (
     DeterministicFaultInjector,
     FaultAction,
     FaultPoint,
     FaultRule,
 )
+from vllm_apple.inference_request import InferenceRequestContext
 
 
 class Engine:

@@ -12,7 +12,6 @@ from tests.schema_validator import (
 from vllm_apple.api import create_server
 from vllm_apple.service import RuntimeService
 
-
 SCHEMA_ROOT = Path("schemas")
 
 

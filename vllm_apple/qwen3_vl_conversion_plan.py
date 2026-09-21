@@ -11,7 +11,6 @@ from pathlib import Path
 from .qwen3_vl_ane import Qwen3VLVisionANEAdapterSpec, _read_json, _regular_file_size
 from .qwen4_adapter_loader import _inspect_header
 
-
 _BLOCK = re.compile(
     r"^vision_tower\.blocks\.(\d+)\."
     r"(attn\.(?:qkv|proj)|mlp\.linear_fc[12]|norm[12])\.(weight|bias)$"

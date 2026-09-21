@@ -10,7 +10,6 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any, Callable, Sequence
 
-
 LONG_CONTEXT_SCHEMA_VERSION = 1
 MAX_CONTEXT_STAGES = 16
 MAX_CONTEXT_TOKENS = 1_000_000

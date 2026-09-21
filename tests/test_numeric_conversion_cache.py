@@ -1,9 +1,9 @@
 import os
-from pathlib import Path
 import tempfile
 import threading
 import time
 import unittest
+from pathlib import Path
 
 from vllm_apple.numeric_conversion_cache import (
     NumericConversionCache,

@@ -8,7 +8,6 @@ import subprocess
 import threading
 from pathlib import Path
 
-
 _VISION_WORKER_PROGRAM = r'''
 import CoreML
 import CryptoKit

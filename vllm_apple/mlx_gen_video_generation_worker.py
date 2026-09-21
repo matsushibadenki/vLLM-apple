@@ -22,7 +22,6 @@ from .generative_collector import GenerationTelemetryEvent
 from .generative_worker_protocol import consume_private_generative_request
 from .mlx_gen_generation_worker import _BoundedProgressSink, _failure_code
 
-
 _MLX_GEN_VIDEO_RUNTIMES = {"wan2.2-ti2v-5b": "MLXGenWanTI2V5B"}
 
 

@@ -8,6 +8,7 @@ from io import StringIO
 from pathlib import Path
 
 from tests.schema_validator import validate_instance
+from vllm_apple.cli import main
 from vllm_apple.model_integrity import (
     ModelIntegrityError,
     build_model_integrity_manifest,
@@ -16,7 +17,6 @@ from vllm_apple.model_integrity import (
     verify_model_integrity,
     verify_signed_model_integrity,
 )
-from vllm_apple.cli import main
 
 
 class ModelIntegrityTests(unittest.TestCase):

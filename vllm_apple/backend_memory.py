@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-import math
 import json
+import math
 import plistlib
 import re
 import subprocess

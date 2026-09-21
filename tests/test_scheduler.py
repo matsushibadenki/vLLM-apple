@@ -1,22 +1,22 @@
-import unittest
-from dataclasses import replace
 import threading
 import time
+import unittest
+from dataclasses import replace
 from unittest.mock import patch
 
-from vllm_apple.execution import (
-    AppleExecutionPlan,
-    ExecutionBackend,
-    PhaseExecutionPlan,
-    WorkloadPhase,
-)
+from vllm_apple.device_pipeline import DevicePipelineStage
 from vllm_apple.device_resources import (
     BandwidthContentionEvidence,
     DeviceResourceCapacityError,
     DeviceResourceRequest,
     UnifiedDeviceResourceLedger,
 )
-from vllm_apple.device_pipeline import DevicePipelineStage
+from vllm_apple.execution import (
+    AppleExecutionPlan,
+    ExecutionBackend,
+    PhaseExecutionPlan,
+    WorkloadPhase,
+)
 from vllm_apple.operator_dispatch import OperatorDispatchDecision
 from vllm_apple.scheduler import (
     AdaptiveScheduleCapacityError,
@@ -28,7 +28,13 @@ from vllm_apple.scheduler import (
     ScheduleRequest,
 )
 from vllm_apple.types import (
-    Backend, HardwareInfo, MemoryInfo, MemoryPressure, PowerMode, Priority, ThermalState,
+    Backend,
+    HardwareInfo,
+    MemoryInfo,
+    MemoryPressure,
+    PowerMode,
+    Priority,
+    ThermalState,
 )
 
 

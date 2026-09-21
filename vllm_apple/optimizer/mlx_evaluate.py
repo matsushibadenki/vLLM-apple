@@ -15,7 +15,6 @@ from ..model import inspect_model
 from .adapters import fingerprint_model_snapshot
 from .evaluation import MAX_EVALUATION_SLICES, PerplexityEvaluationReport, PerplexitySlice
 
-
 MAX_DATASET_BYTES = 16 * 1024 * 1024
 MAX_LINE_BYTES = 72 * 1024
 MAX_TEXT_BYTES = 64 * 1024

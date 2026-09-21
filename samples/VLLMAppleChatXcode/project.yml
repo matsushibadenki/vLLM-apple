@@ -31,3 +31,23 @@ targets:
         script: |
           "${SRCROOT}/Scripts/embed-daemon.sh"
         basedOnDependencyAnalysis: false
+  VLLMAppleChatSandbox:
+    type: application
+    platform: macOS
+    sources:
+      - path: ../VLLMAppleChat/Sources/VLLMAppleChat
+    dependencies:
+      - package: VLLMAppleKit
+        product: VLLMAppleKit
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: dev.vllm-apple.chat.sandbox
+        PRODUCT_NAME: VLLMAppleChatSandbox
+        GENERATE_INFOPLIST_FILE: NO
+        INFOPLIST_FILE: Info.plist
+        CODE_SIGN_ENTITLEMENTS: VLLMAppleChatSandbox.entitlements
+        ENABLE_APP_SANDBOX: YES
+        ENABLE_HARDENED_RUNTIME: YES
+        SWIFT_ACTIVE_COMPILATION_CONDITIONS: VLLM_APPLE_SANDBOX_CLIENT
+        SWIFT_VERSION: "6.0"
+        MACOSX_DEPLOYMENT_TARGET: "13.0"

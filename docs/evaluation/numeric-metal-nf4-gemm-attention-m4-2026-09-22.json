@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "passed": true,
+  "device": "Apple M4",
+  "sample_count": 7,
+  "correctness": {
+    "nf4_gemm_cpu_reference_match": true,
+    "nf4_attention_cpu_reference_match": true
+  },
+  "comparisons": [
+    {
+      "operation": "nf4_gemm",
+      "fused_median_nanoseconds": 182416,
+      "decode_then_execute_median_nanoseconds": 163167,
+      "fused_speedup": 0.8944799809227302,
+      "promoted": false
+    },
+    {
+      "operation": "nf4_attention",
+      "fused_median_nanoseconds": 2125833,
+      "decode_then_execute_median_nanoseconds": 422667,
+      "fused_speedup": 0.1988204121381129,
+      "promoted": false
+    }
+  ],
+  "benchmark_report_id": "63f25d9d26618e98613b764468dd0585224561d29a88442ba92618098b8f82f5",
+  "decision": "Keep decode-then-execute as the qualified route; both naive fused kernels are correct but slower."
+}

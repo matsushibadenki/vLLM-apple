@@ -8,7 +8,6 @@ from typing import Any
 
 from .model import inspect_model_architecture
 
-
 MAX_CACHE_TOKENS = 16_777_216
 MAX_ADVANCE_TOKENS = 8192
 _DIGEST_PATTERN = re.compile(r"^[0-9a-f]{64}$")

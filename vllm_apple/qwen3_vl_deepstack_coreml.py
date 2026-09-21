@@ -18,7 +18,6 @@ from .qwen3_vl_graph_spec import build_qwen3_vl_coreml_graph_spec
 from .qwen3_vl_mlp_coreml import _PREDICTION_PROGRAM
 from .qwen3_vl_tower_coreml import _block_mil, _layer_weights
 
-
 MAIN_MAXIMUM_SCALED_ERROR = 3e-2
 DEEPSTACK_MAXIMUM_SCALED_ERROR = 4e-2
 

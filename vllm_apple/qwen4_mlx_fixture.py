@@ -11,7 +11,6 @@ from .qwen4_reference import (
     qwen4_qsa_select_tokens_reference,
 )
 
-
 MAX_FIXTURE_OUTPUT_BYTES = 16 * 1024
 FIXTURE_TOLERANCE = 2e-5
 

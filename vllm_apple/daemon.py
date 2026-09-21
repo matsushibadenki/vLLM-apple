@@ -23,40 +23,38 @@ from .backend import (
 from .backend_memory import (
     IOGPUMemoryAdapter,
     KVCacheCapacityResolver,
-    MLXMemoryMetricsAdapter,
     MemoryMetricsMonitor,
+    MLXMemoryMetricsAdapter,
     VLLMMemoryMetricsAdapter,
 )
 from .compat import inspect_backend, inspect_mlx_lm_backend
 from .context import recommend_state_context
-from .execution import AppleChipProfile
-from .device_placement import (
-    default_device_placement_paths,
-    load_device_placement_plan,
-    load_device_placement_with_fallback,
-)
 from .device_contention import (
     default_contention_profile_paths,
     load_contention_profile,
     load_contention_profile_with_fallback,
 )
+from .device_placement import (
+    default_device_placement_paths,
+    load_device_placement_plan,
+    load_device_placement_with_fallback,
+)
 from .device_resources import contention_profile_id
+from .execution import AppleChipProfile
 from .execution_profile import detect_apple_chip_profile
 from .hardware import default_application_support, detect_hardware
 from .kernel_probe import build_environment_fingerprint
 from .kernel_profile import build_model_kernel_shape_profile
-from .mtls_authorization import ClientCertificatePolicyStore
 from .kv_calibration import (
     calibration_report_directory,
     discover_latest_kv_calibration,
 )
+from .memory_pressure import MemoryPressureMonitor
 from .metal_tuning import (
     MetalTuningReport,
     discover_metal_tuning_report,
     load_metal_tuning_report,
 )
-from .memory_pressure import MemoryPressureMonitor
-from .operating_state import OperatingStateMonitor
 from .model import (
     DEFAULT_UNINSPECTED_CONTEXT,
     InspectedModel,
@@ -67,13 +65,17 @@ from .model import (
     inspect_model,
 )
 from .model_integrity import verify_model_integrity, verify_signed_model_integrity
+from .mtls_authorization import ClientCertificatePolicyStore
+from .operating_state import OperatingStateMonitor
+from .optimizer.daemon_controller import OptimizerDaemonController
 from .profile import build_profile
+from .runtime_errors import classify_runtime_failure, persist_crash_diagnostic
 from .runtime_probe import (
     RuntimeEnvironmentVersions,
     RuntimeProbeCoordinator,
     discover_runtime_versions,
 )
-from .runtime_errors import classify_runtime_failure, persist_crash_diagnostic
+from .scheduling_preference import default_scheduling_preference_path
 from .service import RuntimeService
 from .types import RuntimeState
 from .vllm_metal_integration import inspect_vllm_metal_integration
@@ -81,15 +83,14 @@ from .vllm_metal_v2_adapter import V2MeasurementAdapterError, VLLMMetalV2Measure
 from .vllm_metal_v2_observation import default_v2_observation_path, load_v2_observations
 from .vllm_metal_v2_orchestration import NativeV2ObservationMonitor
 from .vllm_metal_v2_preference import default_native_v2_preference_path
-from .scheduling_preference import default_scheduling_preference_path
 from .vllm_metal_v2_tuning import (
+    VLLMMetalV2TuningProfile,
     build_v2_hardware_fingerprint,
     inspect_v2_tuning_quarantine,
     quarantine_v2_tuning_profile,
     restore_quarantined_v2_profile,
     save_v2_tuning_profile,
     tune_v2_observed_shapes,
-    VLLMMetalV2TuningProfile,
 )
 
 
@@ -129,6 +130,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--disable-native-v2-idle-tuning", action="store_true")
     parser.add_argument("--native-v2-preference-path", type=Path)
     parser.add_argument("--scheduling-preference-path", type=Path)
+    parser.add_argument("--optimizer-model-root", type=Path, action="append", default=[])
+    parser.add_argument("--optimizer-output-root", type=Path, action="append", default=[])
     return parser
 
 
@@ -688,6 +691,8 @@ def serve(
     vllm_metal_v2_helper: Path | None = None,
     native_v2_preference_path: Path | None = None,
     scheduling_preference_path: Path | None = None,
+    optimizer_model_roots: tuple[Path, ...] = (),
+    optimizer_output_roots: tuple[Path, ...] = (),
 ) -> None:
     if shutdown_grace_period < 0:
         raise ValueError("shutdown grace period cannot be negative")
@@ -719,6 +724,15 @@ def serve(
         raise ValueError("non-loopback bind requires --allow-remote")
     if remote and (tls_cert is None or session_token is None):
         raise ValueError("remote mode requires TLS and bearer authentication")
+    if bool(optimizer_model_roots) != bool(optimizer_output_roots):
+        raise ValueError("optimizer model and output roots must be configured together")
+    if remote and optimizer_model_roots:
+        raise ValueError("optimizer control is restricted to loopback servers")
+    optimizer_controller = (
+        OptimizerDaemonController(optimizer_model_roots, optimizer_output_roots)
+        if optimizer_model_roots
+        else None
+    )
     tls_context = (
         _server_tls_context(tls_cert, tls_key, client_ca=tls_client_ca)
         if tls_cert is not None else None
@@ -985,6 +999,7 @@ def serve(
         max_concurrent_requests=max_concurrent_requests,
         session_token=session_token,
         client_certificate_policy=client_certificate_policy,
+        optimizer_controller=optimizer_controller,
     )
     if tls_context is not None:
         server.socket = tls_context.wrap_socket(server.socket, server_side=True)
@@ -998,6 +1013,7 @@ def serve(
             service,
             max_concurrent_requests=max_concurrent_requests,
             session_token=session_token,
+            optimizer_controller=optimizer_controller,
         )
         unix_thread = threading.Thread(
             target=unix_server.serve_forever,
@@ -1198,6 +1214,8 @@ def main(argv: list[str] | None = None) -> int:
         vllm_metal_v2_helper=arguments.vllm_metal_v2_helper,
         native_v2_preference_path=arguments.native_v2_preference_path,
         scheduling_preference_path=arguments.scheduling_preference_path,
+        optimizer_model_roots=tuple(arguments.optimizer_model_root),
+        optimizer_output_roots=tuple(arguments.optimizer_output_root),
     )
     return 0
 

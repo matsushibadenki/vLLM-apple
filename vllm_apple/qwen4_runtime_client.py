@@ -16,7 +16,6 @@ from .qwen4_runtime_protocol import (
 )
 from .qwen4_runtime_transport import receive_qwen4_runtime_frame, send_qwen4_runtime_frame
 
-
 MAX_SESSION_FILE_BYTES = 4096
 
 

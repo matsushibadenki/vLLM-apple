@@ -24,8 +24,8 @@ from vllm_apple.operator_dispatch import (
     OperatorDispatchDecision,
     OperatorDispatcher,
     OperatorDispatchRequest,
-    OperatorFallbackExhaustedError,
     OperatorFallbackExecutor,
+    OperatorFallbackExhaustedError,
 )
 from vllm_apple.scheduler import BasicScheduler, ScheduleRequest
 from vllm_apple.types import Backend

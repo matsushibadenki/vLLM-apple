@@ -12,15 +12,14 @@ import time
 from dataclasses import asdict, dataclass, replace
 from pathlib import Path
 
+from .numeric_file_stream import NVFP4FileTileProvider
 from .numeric_formats import (
     NumericFormatDescriptor,
     ScaledInt8Tensor,
     TensorGeometry,
     convert_nvfp4_to_int8,
 )
-from .numeric_file_stream import NVFP4FileTileProvider
 from .numeric_precision import NumericPrecisionPolicy, PrecisionExecutionContract
-
 
 MAX_NUMERIC_ARTIFACT_BYTES = 128 * 1024
 MAX_NUMERIC_SOURCE_BYTES = 64 * 1024

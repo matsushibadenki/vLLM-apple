@@ -1,9 +1,9 @@
+import io
 import json
 import threading
 import unittest
 import urllib.error
 import urllib.request
-import io
 from contextlib import redirect_stdout
 from unittest.mock import patch
 

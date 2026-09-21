@@ -2,8 +2,8 @@ import unittest
 from unittest.mock import Mock, patch
 
 from vllm_apple.qwen3_vl_persistent_worker import (
-    Qwen3VLPersistentWorker,
     _VISION_WORKER_PROGRAM,
+    Qwen3VLPersistentWorker,
 )
 
 

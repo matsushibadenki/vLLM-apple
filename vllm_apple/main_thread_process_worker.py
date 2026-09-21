@@ -17,7 +17,6 @@ from typing import Any
 from .inference_request import InferenceRequestCancelled, InferenceRequestContext
 from .process_inference_engine import MAX_PROCESS_MESSAGE_BYTES
 
-
 _FACTORY = re.compile(r"[A-Za-z_][A-Za-z0-9_.]*:[A-Za-z_][A-Za-z0-9_]*\Z")
 _IDENTIFIER = re.compile(r"[0-9a-f]{32}\Z")
 _WRITE_LOCK = threading.Lock()

@@ -1,19 +1,18 @@
 """Bounded, signed and single-flight cache for numeric conversions."""
 from __future__ import annotations
 
-from collections.abc import Callable
-from dataclasses import asdict, dataclass
 import hashlib
 import hmac
 import json
 import os
-from pathlib import Path
 import secrets
 import shutil
 import stat
 import tempfile
 import threading
-
+from collections.abc import Callable
+from dataclasses import asdict, dataclass
+from pathlib import Path
 
 MAX_CONVERSION_CACHE_ENTRIES = 64
 MAX_CONVERSION_CACHE_BYTES = 64 * 1024**3

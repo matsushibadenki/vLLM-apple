@@ -17,7 +17,6 @@ from .model import (
     inspect_model_architecture,
 )
 
-
 HUGGING_FACE_HOST = "huggingface.co"
 MAX_MODEL_IDENTIFIER_BYTES = 512
 MAX_REVISION_BYTES = 256

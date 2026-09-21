@@ -10,7 +10,6 @@ from pathlib import Path
 from .qwen_image_21_residency import build_qwen_image_21_residency_plan
 from .types import HardwareInfo
 
-
 MAX_ARTIFACT_FILES = 4096
 MAX_SAFETENSORS_HEADER_BYTES = 16 * 1024 * 1024
 SAFETENSORS_DTYPE_BYTES = {

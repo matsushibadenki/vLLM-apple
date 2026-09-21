@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "scope": "qwen_image_2_1_int8_image_edit_condition256_memory_stop",
+  "candidate_id": "qwen-image-2.1",
+  "mode": "image-edit",
+  "profile": {
+    "output_width": 512,
+    "output_height": 512,
+    "condition_encoder_resolution": 256,
+    "steps": 20,
+    "samples_requested": 2,
+    "batch_size": 1
+  },
+  "text_encoder_strategy": "sequential_cpu_offload",
+  "text_encoder_probe_peak_effective_resident_bytes": 19373211648,
+  "worker_started": true,
+  "samples_completed": 0,
+  "effective_resident_bytes": 26672431104,
+  "memory_hard_ceiling_bytes": 19440973251,
+  "passed": false,
+  "error_code": "runtime_memory_hard_ceiling_exceeded",
+  "input_cleanup_verified": true,
+  "output_cleanup_verified": true,
+  "stores_prompt": false,
+  "stores_input": false,
+  "stores_output": false,
+  "next_estimated_resident_bytes": 27746172928,
+  "retry_performed": false,
+  "next_action": "require at least the empirical peak plus 1 GiB admission margin, or use larger-memory Apple Silicon"
+}

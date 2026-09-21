@@ -2,8 +2,10 @@ import json
 import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from unittest.mock import patch
 
 from vllm_apple.generative_collector import GenerationTelemetryEvent
+from vllm_apple.generative_evaluation import GenerativeEvaluationProvenance
 from vllm_apple.generative_qualification import (
     GenerativeArtifactComponent,
     build_generative_qualification_plan,
@@ -13,7 +15,6 @@ from vllm_apple.generative_qualification_runner import (
     run_generative_qualification,
     wait_for_memory_pressure_recovery,
 )
-from vllm_apple.generative_evaluation import GenerativeEvaluationProvenance
 from vllm_apple.types import GIB, HardwareInfo, MemoryInfo
 
 
@@ -47,6 +48,84 @@ class FakeAdapter:
 
 
 class GenerativeQualificationRunnerTests(unittest.TestCase):
+    def test_two_phase_waits_for_encoder_before_generation(self) -> None:
+        with TemporaryDirectory() as directory:
+            root = Path(directory)
+            model = root / "model"
+            model.mkdir()
+            hardware = HardwareInfo(
+                "Darwin", "arm64", "Apple M4", 10, 10, 10,
+                MemoryInfo(32 * GIB, 28 * GIB), True, "test",
+            )
+            plan = build_generative_qualification_plan(
+                candidate_id="qwen-image-2.1", artifact_bytes=8 * GIB,
+                estimated_resident_bytes=16 * GIB, hardware=hardware,
+                target=root, quantization="int8",
+                components=(
+                    GenerativeArtifactComponent("transformer", "denoiser", 6 * GIB, 10 * GIB),
+                    GenerativeArtifactComponent("text", "text_encoder", GIB, 4 * GIB),
+                    GenerativeArtifactComponent("vae", "vae", GIB, 2 * GIB),
+                ), width=512, height=512, steps=1,
+            )
+            order = []
+
+            class Process:
+                pid = 12345
+
+                def __init__(self, command, **kwargs):
+                    self.command = command
+                    self.stdout = kwargs["stdout"]
+                    order.append("encoder-start")
+
+                def wait(self, timeout):
+                    handoff = Path(self.command[self.command.index("--handoff-root") + 1])
+                    (handoff / "prompt-embeddings.json").write_text("stub")
+                    self.stdout.write(json.dumps({
+                        "schema_version": 1,
+                        "phase": "text_encoder",
+                        "elapsed_ms": 5.0,
+                        "peak_rss_bytes": 9 * GIB,
+                        "memory_pressure": "normal",
+                        "thermal_state": "nominal",
+                    }).encode())
+                    self.stdout.flush()
+                    order.append("encoder-exit")
+                    return 0
+
+            class Adapter(FakeAdapter):
+                def __init__(self, command, **kwargs):
+                    order.append("generation-start")
+                    self.assert_handoff(command)
+                    super().__init__(command, **kwargs)
+
+                @staticmethod
+                def assert_handoff(command):
+                    assert "--phase-handoff" in command
+                    assert Path(command[command.index("--phase-handoff") + 1]).is_file()
+
+            FakeAdapter.calls = 0
+            FakeAdapter.requests = []
+            with patch(
+                "vllm_apple.generative_qualification_runner.subprocess.Popen",
+                side_effect=Process,
+            ):
+                report = run_generative_qualification(
+                    plan, workspace_root=root, model_root=model,
+                    private_root=root / "private", report_path=root / "report.json",
+                    prompt="private test prompt", sample_count=2,
+                    worker_command=("python", "-m", "worker"),
+                    phase_encoder_command=("python", "-m", "encoder"),
+                    provenance=GenerativeEvaluationProvenance(
+                        "Darwin", "arm64", "Apple M4", 10, 32 * GIB,
+                        "test", "1.0.0", "test", 8 * GIB, "int8", None, "test/model",
+                    ), adapter_factory=Adapter, pressure_probe=lambda: "normal",
+                    recovery_poll_seconds=0.001,
+                )
+            self.assertTrue(report.passed)
+            self.assertEqual(report.maximum_peak_rss_bytes, 9 * GIB)
+            self.assertEqual(order, ["encoder-start", "encoder-exit", "generation-start"] * 2)
+            self.assertFalse(list((root / "private").glob("handoff-*")))
+
     def test_two_samples_are_collected_and_private_report_is_saved(self) -> None:
         with TemporaryDirectory() as directory:
             root = Path(directory)

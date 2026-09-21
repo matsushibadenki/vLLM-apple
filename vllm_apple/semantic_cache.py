@@ -6,7 +6,6 @@ from collections import OrderedDict
 from dataclasses import dataclass
 from enum import Enum
 
-
 MAX_ANCHOR_ENTRIES = 4_096
 MAX_ANCHOR_STATE_BYTES = 1 << 40
 MAX_PREFIX_TOKENS = 1_048_576

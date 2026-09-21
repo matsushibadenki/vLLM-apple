@@ -3,8 +3,8 @@ import time
 import unittest
 
 from vllm_apple.backend_composition import (
-    BackendRegistryInferenceEngine,
     BackendEngineRegistration,
+    BackendRegistryInferenceEngine,
     ManagedInferenceBackendEngine,
     ProductionBackendComposition,
 )
@@ -14,7 +14,7 @@ from vllm_apple.backend_engine import (
     BackendEngineRequest,
 )
 from vllm_apple.execution import ExecutionBackend, WorkloadPhase
-from vllm_apple.inference_request import InferenceRequestContext
+from vllm_apple.inference_request import InferenceEngineBusy, InferenceRequestContext
 
 
 class Engine:
@@ -35,6 +35,11 @@ class Engine:
 
     def diagnostics(self):
         return {"engine": self.name}
+
+
+class BusyEngine(Engine):
+    def chat_completions_with_request_context(self, request, kernel, context):
+        raise InferenceEngineBusy("full")
 
 
 def descriptor(backend):
@@ -134,6 +139,26 @@ class BackendCompositionTests(unittest.TestCase):
         with self.assertRaisesRegex(BackendEngineFailure, "invalid_backend_result"):
             adapter.execute(request((ExecutionBackend.CPU,), {"messages": []}), context())
         adapter.stop()
+
+    def test_request_backpressure_is_not_collapsed_into_backend_failure(self):
+        calls = []
+        composition = ProductionBackendComposition((
+            BackendEngineRegistration(
+                descriptor(ExecutionBackend.NATIVE_MLX),
+                lambda: BusyEngine("mlx", calls),
+            ),
+        ))
+        facade = BackendRegistryInferenceEngine(
+            composition,
+            model_architecture="qwen",
+            precision="fp16",
+            candidates=(ExecutionBackend.NATIVE_MLX,),
+        )
+        with self.assertRaises(InferenceEngineBusy):
+            facade.chat_completions_with_request_context(
+                {"messages": []}, None, context()
+            )
+        self.assertTrue(facade.close())
 
 
 if __name__ == "__main__":

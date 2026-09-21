@@ -4,7 +4,6 @@ from dataclasses import asdict, dataclass, field
 from enum import Enum
 from typing import Any, Mapping
 
-
 OPTIMIZER_SCHEMA_VERSION = 1
 
 

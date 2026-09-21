@@ -1,5 +1,5 @@
-import unittest
 import json
+import unittest
 from dataclasses import replace
 
 from vllm_apple.numeric_precision import NumericPrecisionPolicy, PrecisionExecutionContract

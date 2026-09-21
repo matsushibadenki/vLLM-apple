@@ -7,44 +7,44 @@ from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import Any, BinaryIO, Protocol
 
-from .elastic_memory import (
-    ElasticMemoryController,
-    ElasticMemoryDecision,
-    disabled_elastic_memory_snapshot,
-)
 from .adaptive_state_allocation import (
     AdaptiveStateBackend,
     AdaptiveStateCoordinator,
     AdaptiveStateDecision,
 )
-from .events import EventBus
 from .context_reevaluation import (
     ContextCapacityReevaluator,
     disabled_context_reevaluation_snapshot,
 )
-from .execution import AppleChipProfile, AppleExecutionPlan, AppleExecutionPlanner, WorkloadPhase
-from .device_placement import DevicePlacementPlan
 from .device_contention import ContentionProfile, install_contention_profile
+from .device_placement import DevicePlacementPlan
+from .elastic_memory import (
+    ElasticMemoryController,
+    ElasticMemoryDecision,
+    disabled_elastic_memory_snapshot,
+)
+from .events import EventBus
+from .execution import AppleChipProfile, AppleExecutionPlan, AppleExecutionPlanner, WorkloadPhase
+from .inference_request import InferenceRequestContext
 from .kernel_context import InferenceKernelContext, PagedAttentionKernelSelection
 from .kernel_profile import PagedAttentionShape
-from .inference_request import InferenceRequestContext
-from .metal_probe import MetalThreadConfiguration
-from .metal_tuning import MetalTuningReport
-from .memory_telemetry import MemoryTelemetrySnapshot, UnifiedMemoryTelemetry
 from .memory_admission import MemoryPressureAdmissionError, MemoryPressureAdmissionGate
 from .memory_budget import MemoryBudgetSnapshot, UnifiedMemoryBudgetLedger
+from .memory_telemetry import MemoryTelemetrySnapshot, UnifiedMemoryTelemetry
+from .metal_probe import MetalThreadConfiguration
+from .metal_tuning import MetalTuningReport
 from .operator_dispatch import OperatorDispatcher
 from .profile import build_profile
 from .runtime_errors import RuntimeFailure, classify_runtime_failure
 from .scheduler import BasicScheduler, PlanApplicationDecision, Reservation, ScheduleRequest
 from .scheduling_preference import load_scheduling_preference, save_scheduling_preference
-from .startup_progress import StartupProgress
 from .semantic_cache import SemanticAnchor, SemanticAnchorKind
 from .semantic_state import (
     SemanticRestoreResult,
     SemanticStateCoordinator,
     disabled_semantic_state_snapshot,
 )
+from .startup_progress import StartupProgress
 from .types import (
     GIB,
     MemoryPressure,

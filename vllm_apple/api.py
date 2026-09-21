@@ -1,29 +1,29 @@
 from __future__ import annotations
 
+import base64
 import json
 import os
+import select
 import socket
 import socketserver
 import stat
 import threading
 import time
 import uuid
-import select
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-from typing import Any
+from typing import Any, Protocol
 
 from .auth import SessionAuthenticator
 from .backend import BackendHTTPError
 from .events import RuntimeEvent, SubscriptionLimitError
-from .memory_admission import MemoryPressureAdmissionError
-from .mtls_authorization import ClientCertificatePolicyStore
 from .inference_request import (
     InferenceEngineBusy,
     InferenceRequestCancelled,
     InferenceRequestContext,
 )
-from .scheduler import MaintenanceInProgressError
+from .memory_admission import MemoryPressureAdmissionError
+from .mtls_authorization import ClientCertificatePolicyStore
 from .observability import (
     REQUEST_ID_HEADER,
     RequestLogRecord,
@@ -31,10 +31,16 @@ from .observability import (
     request_scope,
     resolve_request_id,
 )
+from .scheduler import MaintenanceInProgressError
 from .service import InferenceUnavailableError, RuntimeService
 from .version import API_VERSION, MINIMUM_CLIENT_VERSION, SCHEMA_VERSION, __version__
 
 MAX_REQUEST_BYTES = 4 * 1024 * 1024
+MAX_OPTIMIZER_REQUEST_BYTES = 1 * 1024 * 1024
+
+
+class OptimizerController(Protocol):
+    def handle(self, operation: str, payload: bytes) -> bytes: ...
 
 
 class _SocketCancellationSignal:
@@ -73,12 +79,14 @@ class _BoundedRuntimeServerMixin:
         socket_timeout: float,
         session_token: str | None,
         client_certificate_policy: ClientCertificatePolicyStore | None = None,
+        optimizer_controller: OptimizerController | None = None,
     ) -> None:
         if max_concurrent_requests <= 0 or socket_timeout <= 0:
             raise ValueError("server limits must be positive")
         self.service = service
         self.authenticator = SessionAuthenticator(session_token)
         self.client_certificate_policy = client_certificate_policy
+        self.optimizer_controller = optimizer_controller
         self._request_slots = threading.BoundedSemaphore(max_concurrent_requests)
         self._socket_timeout = socket_timeout
         self._request_metrics_lock = threading.Lock()
@@ -194,10 +202,12 @@ class RuntimeHTTPServer(_BoundedRuntimeServerMixin, ThreadingHTTPServer):
         socket_timeout: float = 30.0,
         session_token: str | None = None,
         client_certificate_policy: ClientCertificatePolicyStore | None = None,
+        optimizer_controller: OptimizerController | None = None,
     ):
         self._initialize_runtime(
             service, max_concurrent_requests, socket_timeout, session_token,
             client_certificate_policy,
+            optimizer_controller,
         )
         super().__init__(address, RuntimeRequestHandler)
 
@@ -216,6 +226,7 @@ class RuntimeUnixHTTPServer(
         max_concurrent_requests: int = 32,
         socket_timeout: float = 30.0,
         session_token: str | None = None,
+        optimizer_controller: OptimizerController | None = None,
     ):
         self.socket_path = socket_path
         if len(os.fsencode(socket_path)) >= 104:
@@ -229,7 +240,10 @@ class RuntimeUnixHTTPServer(
             if not stat.S_ISSOCK(path_stat.st_mode) or path_stat.st_uid != os.getuid():
                 raise ValueError("refusing to replace a non-socket or foreign-owned UDS path")
             os.unlink(socket_path)
-        self._initialize_runtime(service, max_concurrent_requests, socket_timeout, session_token)
+        self._initialize_runtime(
+            service, max_concurrent_requests, socket_timeout, session_token,
+            optimizer_controller=optimizer_controller,
+        )
         super().__init__(socket_path, RuntimeRequestHandler)
         os.chmod(socket_path, 0o600)
 
@@ -332,7 +346,7 @@ class RuntimeRequestHandler(BaseHTTPRequestHandler):
             error_code=code,
         )
 
-    def _read_json(self) -> dict[str, Any] | None:
+    def _read_json(self, maximum_bytes: int = MAX_REQUEST_BYTES) -> dict[str, Any] | None:
         content_length = self.headers.get("Content-Length")
         if content_length is None:
             self._error(
@@ -344,7 +358,7 @@ class RuntimeRequestHandler(BaseHTTPRequestHandler):
         except ValueError:
             self._error(HTTPStatus.BAD_REQUEST, "invalid_content_length", "invalid Content-Length")
             return None
-        if length < 0 or length > MAX_REQUEST_BYTES:
+        if length < 0 or length > maximum_bytes:
             self._error(
                 HTTPStatus.REQUEST_ENTITY_TOO_LARGE, "request_too_large", "request is too large"
             )
@@ -431,6 +445,9 @@ class RuntimeRequestHandler(BaseHTTPRequestHandler):
         if path == "/v1/scheduling-preference":
             self._control_scheduling_preference()
             return
+        if path == "/v1/optimizer":
+            self._control_optimizer()
+            return
         if path != "/v1/chat/completions":
             self._error(HTTPStatus.NOT_FOUND, "not_found", "endpoint not found")
             return
@@ -491,6 +508,54 @@ class RuntimeRequestHandler(BaseHTTPRequestHandler):
         response.setdefault("created", int(time.time()))
         response.setdefault("runtime_ms", round((time.monotonic() - started) * 1000, 3))
         self._send(HTTPStatus.OK, response)
+
+    def _control_optimizer(self) -> None:
+        controller = self.server.optimizer_controller
+        if controller is None:
+            self._error(
+                HTTPStatus.SERVICE_UNAVAILABLE,
+                "optimizer_unavailable",
+                "optimizer daemon control is not configured",
+            )
+            return
+        request = self._read_json(MAX_OPTIMIZER_REQUEST_BYTES)
+        if request is None:
+            return
+        if set(request) != {"schema_version", "request_id", "operation", "payload"}:
+            self._error(HTTPStatus.BAD_REQUEST, "invalid_optimizer_request", "invalid fields")
+            return
+        try:
+            request_id = str(uuid.UUID(request["request_id"]))
+            if request["schema_version"] != 1 or request_id != request["request_id"]:
+                raise ValueError
+            operation = request["operation"]
+            if not isinstance(operation, str) or operation not in {
+                "plan", "execute", "resume", "cancel", "pause", "continue", "status"
+            }:
+                raise ValueError
+            payload_value = request["payload"]
+            payload = b"" if payload_value is None else base64.b64decode(
+                payload_value, validate=True
+            )
+            if len(payload) > MAX_OPTIMIZER_REQUEST_BYTES:
+                raise ValueError
+            result = controller.handle(operation, payload)
+            if len(result) > MAX_OPTIMIZER_REQUEST_BYTES:
+                raise ValueError
+        except (TypeError, ValueError) as error:
+            self._error(
+                HTTPStatus.BAD_REQUEST,
+                "invalid_optimizer_request",
+                str(error) or "invalid optimizer request",
+            )
+            return
+        self._send(HTTPStatus.OK, {
+            "schema_version": 1,
+            "request_id": request_id,
+            "succeeded": True,
+            "payload": base64.b64encode(result).decode("ascii"),
+            "error_code": None,
+        })
 
     def _control_native_v2_tuning(self) -> None:
         request = self._read_json()
@@ -722,6 +787,7 @@ def create_server(
     session_token: str | None = None,
     socket_timeout: float = 30.0,
     client_certificate_policy: ClientCertificatePolicyStore | None = None,
+    optimizer_controller: OptimizerController | None = None,
 ) -> RuntimeHTTPServer:
     return RuntimeHTTPServer(
         (host, port),
@@ -730,6 +796,7 @@ def create_server(
         session_token=session_token,
         socket_timeout=socket_timeout,
         client_certificate_policy=client_certificate_policy,
+        optimizer_controller=optimizer_controller,
     )
 
 
@@ -739,6 +806,7 @@ def create_unix_server(
     max_concurrent_requests: int = 32,
     session_token: str | None = None,
     socket_timeout: float = 30.0,
+    optimizer_controller: OptimizerController | None = None,
 ) -> RuntimeUnixHTTPServer:
     return RuntimeUnixHTTPServer(
         socket_path,
@@ -746,4 +814,5 @@ def create_unix_server(
         max_concurrent_requests=max_concurrent_requests,
         session_token=session_token,
         socket_timeout=socket_timeout,
+        optimizer_controller=optimizer_controller,
     )

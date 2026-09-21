@@ -1,14 +1,20 @@
 import base64
-import json
 import io
+import json
 import struct
+import tempfile
 import unittest
 import zlib
-import tempfile
 from pathlib import Path
 from unittest.mock import patch
 
-from vllm_apple.phase_probe import PhaseProbeConfig, PhaseMeasurement, StreamProbeResult, PhaseProbeError, measure_stream
+from vllm_apple.phase_probe import (
+    PhaseMeasurement,
+    PhaseProbeConfig,
+    PhaseProbeError,
+    StreamProbeResult,
+    measure_stream,
+)
 from vllm_apple.vision_smoke import run_vision_smoke, solid_png
 
 

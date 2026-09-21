@@ -3,7 +3,6 @@ from __future__ import annotations
 import threading
 from dataclasses import asdict, dataclass
 
-
 COMPONENT_NAMES = (
     "weights",
     "kv",

@@ -1,18 +1,22 @@
 import hashlib
 import json
+import os
 import tempfile
 import unittest
-import os
 from dataclasses import replace
 from pathlib import Path
 
 from tests import test_qwen4_adapter_loader as loader_tests
-from vllm_apple.qwen4_component_loader import Qwen4MemoryAdmission
-from vllm_apple.qwen4_resident_store import Qwen4ResidentStore, ResidentBackendAllocation
-from vllm_apple.numeric_formats import NumericFormatDescriptor, TensorGeometry, convert_nvfp4_to_int8
 from vllm_apple.numeric_file_stream import NVFP4FileTileProvider
+from vllm_apple.numeric_formats import (
+    NumericFormatDescriptor,
+    TensorGeometry,
+    convert_nvfp4_to_int8,
+)
 from vllm_apple.numeric_precision import NumericPrecisionPolicy, PrecisionExecutionContract
 from vllm_apple.numeric_streaming import NumericStreamingCancelled, NumericStreamingPlan
+from vllm_apple.qwen4_component_loader import Qwen4MemoryAdmission
+from vllm_apple.qwen4_resident_store import Qwen4ResidentStore, ResidentBackendAllocation
 from vllm_apple.qwen4_shard_stager import stage_qwen4_shards
 from vllm_apple.qwen4_tensor_reader import Qwen4TensorReader
 

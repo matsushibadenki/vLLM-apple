@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "candidate_id": "qwen-image-2512",
+  "backend": "mflux",
+  "backend_version": "mlx-gen-bundled-0.33.1",
+  "artifact": {
+    "path": "models/Qwen-Image-2512-4bit",
+    "format": "mflux",
+    "bytes": 25907123451,
+    "files": 21,
+    "quantization": "int4",
+    "base_model": "Qwen/Qwen-Image-2512",
+    "license": "apache-2.0",
+    "load_free_ready": true
+  },
+  "profile": {
+    "width": 512,
+    "height": 512,
+    "steps": 20,
+    "samples": 2,
+    "batch_size": 1
+  },
+  "estimated_resident_bytes": 27917287424,
+  "memory_hard_ceiling_bytes": 12494910915,
+  "fits_disk": true,
+  "fits_memory": false,
+  "worker_started": false,
+  "weights_loaded": false,
+  "passed": false,
+  "error_code": "load_before_admission_rejected"
+}

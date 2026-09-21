@@ -6,8 +6,8 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any, Iterator
 
-from .version import SCHEMA_VERSION
 from .observability import current_request_id
+from .version import SCHEMA_VERSION
 
 
 class SubscriptionLimitError(RuntimeError):

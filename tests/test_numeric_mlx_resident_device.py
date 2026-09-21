@@ -1,6 +1,6 @@
 """Opt-in: VLLM_APPLE_TEST_MLX_NUMERIC=1 python -m unittest this.module."""
-import os
 import hashlib
+import os
 import socket
 import tempfile
 import threading
@@ -8,23 +8,21 @@ import unittest
 from pathlib import Path
 
 from tests import test_qwen4_adapter_loader as loader_tests
+from vllm_apple.numeric_artifact import (
+    NumericArtifactReader,
+    write_nvfp4_file_numeric_artifact,
+)
+from vllm_apple.numeric_file_stream import NVFP4FileTileProvider
 from vllm_apple.numeric_formats import (
     NumericFormatDescriptor,
     TensorGeometry,
     convert_nvfp4_to_int8,
-)
-from vllm_apple.numeric_file_stream import NVFP4FileTileProvider
-from vllm_apple.numeric_artifact import (
-    NumericArtifactReader,
-    write_nvfp4_file_numeric_artifact,
 )
 from vllm_apple.numeric_precision import NumericPrecisionPolicy, PrecisionExecutionContract
 from vllm_apple.numeric_streaming import NumericStreamingPlan
 from vllm_apple.qwen4_component_loader import Qwen4MemoryAdmission
 from vllm_apple.qwen4_mlx_resident_backend import Qwen4MLXNumericResidentBackend
 from vllm_apple.qwen4_resident_store import Qwen4ResidentStore
-from vllm_apple.qwen4_shard_stager import stage_qwen4_shards
-from vllm_apple.qwen4_tensor_reader import Qwen4TensorReader
 from vllm_apple.qwen4_runtime_protocol import (
     Qwen4RuntimeCommandService,
     build_qwen4_numeric_streaming_runtime_request,
@@ -34,6 +32,8 @@ from vllm_apple.qwen4_runtime_transport import (
     receive_qwen4_runtime_frame,
     send_qwen4_runtime_frame,
 )
+from vllm_apple.qwen4_shard_stager import stage_qwen4_shards
+from vllm_apple.qwen4_tensor_reader import Qwen4TensorReader
 
 
 @unittest.skipUnless(os.environ.get("VLLM_APPLE_TEST_MLX_NUMERIC") == "1", "opt-in MLX device test")

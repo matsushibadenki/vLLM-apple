@@ -5,7 +5,6 @@ import threading
 from dataclasses import dataclass
 from enum import Enum
 
-
 MAX_FAULT_RULES = 32
 
 

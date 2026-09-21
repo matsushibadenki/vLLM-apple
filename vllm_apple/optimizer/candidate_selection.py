@@ -6,7 +6,6 @@ from datetime import datetime, timezone
 
 from .types import OPTIMIZER_SCHEMA_VERSION
 
-
 MAX_SELECTION_CANDIDATES = 64
 
 

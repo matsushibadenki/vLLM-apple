@@ -1,0 +1,69 @@
+{
+  "device": "Apple M4",
+  "passed": true,
+  "report_id": "1fb387b69666624d338ffd37563b05370ea58f722fb2815da84b8e8ba28a37d3",
+  "reports": [
+    {
+      "bandwidth_bytes_per_second": 51143860.69244922,
+      "bytes": 66048,
+      "median_nanoseconds": 1291416,
+      "nanoseconds": [1293500, 1291416, 1360625, 1343917, 849042, 847334, 905041],
+      "operator": "attention",
+      "output_digest": "ac8ef0816b07807728454b30f8ecaee42962580f6cbfd993da1a63b9e44019c5",
+      "throughput_work_items_per_second": 811958346.4971783,
+      "work_items": 1048576
+    },
+    {
+      "bandwidth_bytes_per_second": 246427819.39054838,
+      "bytes": 49152,
+      "median_nanoseconds": 199458,
+      "nanoseconds": [212292, 216959, 199458, 210875, 198500, 197042, 197875],
+      "operator": "gpu_gemm",
+      "output_digest": "bfc50727aa99966f8556b09b958e278b94ee6a541a7b1113367f335f850f8c0a",
+      "throughput_work_items_per_second": 1314281703.416258,
+      "work_items": 262144
+    },
+    {
+      "bandwidth_bytes_per_second": 1172240534.5211582,
+      "bytes": 263168,
+      "median_nanoseconds": 224500,
+      "nanoseconds": [283750, 255042, 224708, 223875, 224500, 223083, 223208],
+      "operator": "gpu_gemv",
+      "output_digest": "a8496ba4ef8766ffbfe0dea6630ad03216b78e694195b05904dc677942392c97",
+      "throughput_work_items_per_second": 291919821.8262806,
+      "work_items": 65536
+    },
+    {
+      "bandwidth_bytes_per_second": 110994688.73071504,
+      "bytes": 24576,
+      "median_nanoseconds": 221416,
+      "nanoseconds": [265125, 217084, 214417, 224375, 221416, 229084, 198041],
+      "operator": "int8_matmul",
+      "output_digest": "9f14025af0065b30e47e23ebb3b491d39ae8ed17d33739e5ff3827ffb3634953",
+      "throughput_work_items_per_second": 1183943346.4609604,
+      "work_items": 262144
+    },
+    {
+      "bandwidth_bytes_per_second": null,
+      "bytes": 0,
+      "median_nanoseconds": 178208,
+      "nanoseconds": [187000, 187417, 177667, 176208, 174625, 182000, 178208],
+      "operator": "metal_launch",
+      "output_digest": "d85d221313125192ae4194f0940958cc1368a858b3d35328c283e4bbba83d7d7",
+      "throughput_work_items_per_second": 5611.420362722212,
+      "work_items": 1
+    },
+    {
+      "bandwidth_bytes_per_second": 37789182234.10995,
+      "bytes": 67108864,
+      "median_nanoseconds": 1775875,
+      "nanoseconds": [1477459, 1471209, 1775875, 1580792, 1777167, 1820792, 1821792],
+      "operator": "unified_memory_copy",
+      "output_digest": "b757e8e7fa88c9f31f557d8c740492c1f14cb31b28b50140aaba801af5fe8930",
+      "throughput_work_items_per_second": 4723647779.263743,
+      "work_items": 8388608
+    }
+  ],
+  "sample_count": 7,
+  "schema_version": 1
+}

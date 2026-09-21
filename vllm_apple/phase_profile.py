@@ -7,7 +7,6 @@ import threading
 from dataclasses import dataclass
 from typing import Any
 
-
 PHASE_PROFILE_SCHEMA_VERSION = 1
 LATENCY_BUCKETS_NS = tuple(
     value * 1_000_000 for value in (1, 2, 5, 10, 25, 50, 100, 250, 500, 1_000, 2_500, 5_000)

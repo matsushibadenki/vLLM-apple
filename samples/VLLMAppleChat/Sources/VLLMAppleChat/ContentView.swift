@@ -143,6 +143,10 @@ struct ContentView: View {
                 Task { await model.setSchedulingPreference(preference) }
             }
 
+            if let diagnostic = model.numericRouteDiagnostic {
+                NumericRouteDiagnosticView(diagnostic: diagnostic)
+            }
+
             if !model.qualificationReports.isEmpty {
                 VStack(alignment: .leading, spacing: DesignTokens.compact) {
                     sectionLabel("sidebar.qualification")
@@ -630,6 +634,44 @@ private struct DeviceContentionDiagnostic: View {
     }
 }
 
+private struct NumericRouteDiagnosticView: View {
+    let diagnostic: NumericRouteDiagnostic
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: DesignTokens.compact) {
+            Text("sidebar.numeric_route")
+                .font(.caption2.monospaced().weight(.semibold))
+                .foregroundStyle(DesignTokens.secondaryInk)
+                .textCase(.uppercase)
+                .tracking(0.8)
+            Label("numeric_route.status.ready", systemImage: "arrow.triangle.branch")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(DesignTokens.success)
+            Text("\(diagnostic.sourceFormat.rawValue) → \(diagnostic.runtimeFormat.rawValue) → \(diagnostic.computeFormat.rawValue)")
+                .font(.caption2.monospaced())
+                .lineLimit(2)
+            Text(String(
+                format: localized("numeric_route.error_budget"),
+                diagnostic.errorBudget.maximumAbsoluteError,
+                diagnostic.errorBudget.maximumRMSE
+            ))
+            .font(.caption2)
+            .foregroundStyle(DesignTokens.secondaryInk)
+            if let reason = diagnostic.fallbackReason {
+                Text(String(format: localized("numeric_route.fallback"), reason))
+                    .font(.caption2)
+                    .foregroundStyle(DesignTokens.warning)
+                    .lineLimit(2)
+            }
+        }
+        .accessibilityElement(children: .combine)
+    }
+
+    private func localized(_ key: String) -> String {
+        String(localized: String.LocalizationValue(key), bundle: AppLocalization.bundle)
+    }
+}
+
 private struct SchedulingDiagnostic: View {
     let state: SchedulingObservabilityState
     let isControlling: Bool
@@ -653,7 +695,7 @@ private struct SchedulingDiagnostic: View {
                         "scheduling.preference.title",
                         selection: Binding(
                             get: { state.adaptivePolicy.preference },
-                            set: onPreferenceChange
+                            set: { preference in onPreferenceChange(preference) }
                         )
                     ) {
                         Text("scheduling.preference.automatic").tag(SchedulingPreference.automatic)

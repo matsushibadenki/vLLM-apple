@@ -27,7 +27,6 @@ from .mlx_gen_memory_profile import (
     flux2_mlp_sequence_chunking,
 )
 
-
 MAX_BACKEND_EVENT_BYTES = 16 * 1024
 MAX_BACKEND_EVENTS = 4096
 _MLX_GEN_RUNTIME_CLASSES = {

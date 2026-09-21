@@ -3,7 +3,6 @@ from __future__ import annotations
 
 import math
 
-
 MAX_ENCODER_WIDTH = 1024
 MAX_ENCODER_LAYERS = 16
 

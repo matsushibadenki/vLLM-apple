@@ -4,6 +4,8 @@ import unittest
 from pathlib import Path
 
 from tests.schema_validator import validate_instance
+from tests.test_scheduler import execution_plan
+from vllm_apple.scheduler import ScheduleRequest
 from vllm_apple.semantic_cache import (
     SemanticAnchor,
     SemanticAnchorCache,
@@ -11,11 +13,8 @@ from vllm_apple.semantic_cache import (
     semantic_prefix_fingerprint,
 )
 from vllm_apple.semantic_state import BackendStateReference, SemanticStateCoordinator
-from vllm_apple.scheduler import ScheduleRequest
-from tests.test_scheduler import execution_plan
 from vllm_apple.service import RuntimeService
 from vllm_apple.types import MemoryPressure
-
 
 SESSION = "a" * 64
 

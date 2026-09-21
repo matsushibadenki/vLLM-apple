@@ -14,7 +14,6 @@ from datetime import datetime, timezone
 from pathlib import Path, PurePosixPath
 from typing import BinaryIO
 
-
 SCHEMA_VERSION = 1
 MAX_ARCHIVE_BYTES = 512 * 1024 * 1024
 MAX_ENTRY_COUNT = 4096

@@ -1,6 +1,6 @@
+import ssl
 import tempfile
 import unittest
-import ssl
 from pathlib import Path
 from unittest.mock import Mock, patch
 

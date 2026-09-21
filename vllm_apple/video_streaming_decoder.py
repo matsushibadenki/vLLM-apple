@@ -9,7 +9,6 @@ from pathlib import Path
 
 from .video_frame_scheduler import ScheduledVideoFrame, VideoFrameDecision, VideoFrameScheduler
 
-
 _INPUT_FORMATS = frozenset({"mpegts", "h264", "hevc"})
 
 

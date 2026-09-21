@@ -6,6 +6,14 @@ from collections.abc import Iterable, Iterator
 from dataclasses import dataclass, replace
 from typing import Protocol
 
+from .numeric_file_stream import NVFP4FileTileProvider
+from .numeric_formats import ScaledInt8Tensor
+from .numeric_precision import PrecisionExecutionContract
+from .numeric_streaming import (
+    NumericCancellationSignal,
+    NumericDoubleBufferStream,
+    NumericStreamingPlan,
+)
 from .qwen4_component_loader import (
     Qwen4ComponentLoader,
     Qwen4MemoryAdmission,
@@ -13,15 +21,6 @@ from .qwen4_component_loader import (
 )
 from .qwen4_conversion_protocol import _DTYPE_BYTES, _digest
 from .qwen4_tensor_reader import Qwen4TensorReader
-from .numeric_formats import ScaledInt8Tensor
-from .numeric_file_stream import NVFP4FileTileProvider
-from .numeric_precision import PrecisionExecutionContract
-from .numeric_streaming import (
-    NumericCancellationSignal,
-    NumericDoubleBufferStream,
-    NumericStreamingPlan,
-)
-
 
 MAX_RESIDENT_TENSORS = 4096
 

@@ -1,8 +1,8 @@
 """Scalar reference precision policy for the F32-mediated correctness bridge."""
-import math
-import struct
 import hashlib
 import json
+import math
+import struct
 from dataclasses import dataclass
 
 

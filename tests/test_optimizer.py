@@ -14,10 +14,10 @@ from pathlib import Path
 from tests.schema_validator import SchemaValidationError, validate_instance
 from vllm_apple.model import InspectedModel
 from vllm_apple.optimizer import (
+    AdapterRegistry,
     ArtifactManifest,
     ArtifactTransaction,
     ArtifactValidationError,
-    AdapterRegistry,
     CalibrationManifest,
     CancellationToken,
     CheckpointError,
@@ -28,30 +28,32 @@ from vllm_apple.optimizer import (
     GenerationEvaluationReport,
     GenerationSampleResult,
     IsolatedConversionWorker,
-    MLXOptimizationAdapter,
     MLXExportReport,
+    MLXOptimizationAdapter,
     OptimizationObjective,
+    OptimizationPathError,
     OptimizationPerformanceProfile,
+    OptimizerErrorCode,
+    OptimizerEventBus,
+    OptimizerEventJournal,
+    OptimizerFailure,
+    OptimizerState,
+    PauseToken,
     PerplexityEvaluationReport,
     PerplexitySlice,
-    OptimizerErrorCode,
-    OptimizationPathError,
-    OptimizerFailure,
-    OptimizerEventBus,
-    OptimizerState,
     QualityBudget,
-    compare_perplexity_reports,
-    compare_generation_reports,
     Recoverability,
     ResourceBudget,
     ResumeAction,
     build_dry_run_plan,
+    compare_generation_reports,
+    compare_perplexity_reports,
     decide_resume,
     execution_fingerprint,
     generation_token_fingerprint,
-    profile_optimizer_io,
     persist_artifact_manifest,
     persist_evaluation_report,
+    profile_optimizer_io,
     validate_immutable_output_path,
 )
 from vllm_apple.optimizer.cli import main as optimizer_main
@@ -172,6 +174,61 @@ class OptimizerFoundationTests(unittest.TestCase):
         validate_instance(latest.to_dict(), schema("optimizer-event-v1.schema.json"))
         with self.assertRaises(ValueError):
             bus.publish("plan", "bad", OptimizerState.RUNNING, float("nan"), "bad")
+
+    def test_optimizer_event_journal_is_private_bounded_jsonl(self) -> None:
+        with tempfile.TemporaryDirectory(dir="/tmp") as directory:
+            root = Path(directory)
+            root.chmod(0o700)
+            path = root / "events.jsonl"
+            journal = OptimizerEventJournal(str(path), maximum_bytes=1024)
+            journal.publish("plan", "prepare", OptimizerState.READY, 0.0, "ready")
+            journal.publish("plan", "convert", OptimizerState.RUNNING, 0.5, "running")
+            journal.close()
+            self.assertEqual(path.stat().st_mode & 0o777, 0o600)
+            records = [json.loads(line) for line in path.read_text().splitlines()]
+            self.assertEqual([record["stage"] for record in records], ["prepare", "convert"])
+            with self.assertRaises(FileExistsError):
+                OptimizerEventJournal(str(path))
+
+    def test_worker_cooperatively_pauses_and_resumes_process_group(self) -> None:
+        with tempfile.TemporaryDirectory(dir="/tmp") as directory:
+            root = Path(directory)
+            source = root / "source"
+            source.mkdir()
+            pause = PauseToken()
+            bus = OptimizerEventBus()
+            result: list[object] = []
+
+            def run() -> None:
+                result.append(
+                    IsolatedConversionWorker(events=bus, poll_interval=0.01).run(
+                        plan_id="pause-plan",
+                        source=source,
+                        output=root / "artifact",
+                        command=(
+                            sys.executable,
+                            "-c",
+                            "import time;from pathlib import Path;time.sleep(.4);Path('file').write_text('ok')",
+                        ),
+                        maximum_output_bytes=1024,
+                        pause=pause,
+                    )
+                )
+
+            thread = threading.Thread(target=run)
+            thread.start()
+            time.sleep(0.08)
+            pause.pause()
+            deadline = time.monotonic() + 2
+            while time.monotonic() < deadline and not any(
+                event.state == OptimizerState.PAUSED for event in bus.snapshot()
+            ):
+                time.sleep(0.01)
+            self.assertTrue(any(event.state == OptimizerState.PAUSED for event in bus.snapshot()))
+            pause.resume()
+            thread.join(timeout=3)
+            self.assertFalse(thread.is_alive())
+            self.assertEqual(result[0].state, OptimizerState.COMPLETED)
 
     def test_artifact_manifest_records_provenance_and_matches_schema(self) -> None:
         manifest = ArtifactManifest(

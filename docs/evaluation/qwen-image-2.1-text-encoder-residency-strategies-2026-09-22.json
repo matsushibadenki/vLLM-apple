@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "scope": "qwen_image_2_1_text_encoder_residency_strategies",
+  "artifact": "models/Qwen-Image-2.1-torchao-int8/text_encoder",
+  "prompt_tokens": 16,
+  "embedding_shape": [1, 16, 4096],
+  "stores_prompt": false,
+  "stores_embedding": false,
+  "strategies": [
+    {
+      "name": "safetensors_direct_mps",
+      "peak_effective_resident_bytes": 25371983872,
+      "peak_rss_bytes": 10740744192,
+      "cleanup_mps_current_allocated_bytes": 1280,
+      "cleanup_mps_driver_allocated_bytes": 10104684544,
+      "eligible": false,
+      "reason": "driver allocation and retained cache exceed the bounded profile"
+    },
+    {
+      "name": "safetensors_isolated_cpu",
+      "peak_effective_resident_bytes": 22871130112,
+      "peak_rss_bytes": 22871490560,
+      "cleanup_mps_current_allocated_bytes": 0,
+      "cleanup_mps_driver_allocated_bytes": 475136,
+      "eligible": false,
+      "reason": "CPU quantized forward materialization exceeds the bounded profile"
+    },
+    {
+      "name": "safetensors_sequential_mps",
+      "peak_effective_resident_bytes": 17904156672,
+      "peak_rss_bytes": 712065024,
+      "cleanup_mps_current_allocated_bytes": 1280,
+      "cleanup_mps_driver_allocated_bytes": 86720512,
+      "eligible": true,
+      "reason": "lowest measured peak with bounded post-encode allocation"
+    }
+  ],
+  "selected_strategy": "safetensors_sequential_mps",
+  "passed": true
+}

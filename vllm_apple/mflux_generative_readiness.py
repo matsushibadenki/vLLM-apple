@@ -8,7 +8,6 @@ from pathlib import Path
 
 from .generative_artifact_inspection import inspect_generative_artifact
 
-
 MAX_PROBE_OUTPUT_BYTES = 16 * 1024
 MAX_SOURCE_FILE_BYTES = 2 * 1024 * 1024
 MAX_SOURCE_FILES = 2048
@@ -100,8 +99,12 @@ def inspect_mflux_generative_readiness(
         raise ValueError("MFLUX Python executable is not executable")
     script = (
         "import importlib.metadata as m,json;"
-        "d=m.distribution('mflux');"
-        "print(json.dumps({'version':d.version,'source_root':str(d.locate_file('mflux'))}))"
+        "ds=[(str(d.metadata.get('Name','')).lower(),d) for d in m.distributions() "
+        "if str(d.metadata.get('Name','')).lower() in ('mflux','mlx-gen') "
+        "and any(str(f).startswith('mflux/') for f in d.files or ())];"
+        "n,d=ds[0];"
+        "print(json.dumps({'version':(('mlx-gen-bundled-' if n=='mlx-gen' else '')+d.version),"
+        "'source_root':str(d.locate_file('mflux'))}))"
     )
     try:
         result = subprocess.run(

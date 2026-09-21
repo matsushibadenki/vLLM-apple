@@ -1,0 +1,128 @@
+{
+  "compiled_models": [
+    "patch/compiled/qwen3_vl_patch.mlmodelc",
+    "segment-0-5/compiled/qwen3_vl_deepstack.mlmodelc",
+    "segment-6-11/compiled/qwen3_vl_deepstack.mlmodelc",
+    "segment-12-17/compiled/qwen3_vl_deepstack.mlmodelc",
+    "segment-18-23/compiled/qwen3_vl_deepstack.mlmodelc"
+  ],
+  "conversion_plan_id": "103ebdede78c8936b6f3e25378fa3186ee112199e341ec5fc72a7e69f59b8e48",
+  "graph_id": "67c2fb85c368cc8a50d30908cb3970b65c486d76f9bd50bed8a21aec5e259e13",
+  "grid_thw": [
+    1,
+    16,
+    16
+  ],
+  "model_revision": "9c4f5209e57b31f4b9dfba735de3fb983739c9cc",
+  "partitions": [
+    "patch-position-v1",
+    "tower-blocks-0-5-deepstack-0-v1",
+    "tower-blocks-6-11-deepstack-1-v1",
+    "tower-blocks-12-17-deepstack-2-v1",
+    "tower-blocks-18-23-final-v1"
+  ],
+  "passed": true,
+  "precision": "fp16",
+  "qualifications": [
+    {
+      "compute_units": "cpu_and_neural_engine",
+      "graph_id": "67c2fb85c368cc8a50d30908cb3970b65c486d76f9bd50bed8a21aec5e259e13",
+      "grid_thw": [
+        1,
+        16,
+        16
+      ],
+      "latency_nanoseconds": 2044417,
+      "maximum_absolute_error": 0.015625,
+      "maximum_scaled_error": 0.001483679525222552,
+      "maximum_ulp_error": 3827,
+      "output_count": 262144,
+      "output_sha256": "be2bc30ddf16bfee60d15bda546bf0c3e14e6dc4154b4c6e619912cbd58b2d39",
+      "partition": "patch-position-v1",
+      "passed": true
+    },
+    {
+      "deepstack": {
+        "compute_units": "cpu_and_neural_engine",
+        "latency_nanoseconds": 12507833,
+        "maximum_absolute_error": 0.01043701171875,
+        "maximum_scaled_error": 0.01043701171875,
+        "output_count": 131072,
+        "output_sha256": "de0a79061de4945a5ad31849e97e2144621552377fddd813546f6b08facb8257"
+      },
+      "main": {
+        "compute_units": "cpu_and_neural_engine",
+        "latency_nanoseconds": 11358541,
+        "maximum_absolute_error": 0.03515625,
+        "maximum_scaled_error": 0.027047332832456798,
+        "output_count": 262144,
+        "output_sha256": "12cd94c44daf8c88e38f55c4b77d630abd21a2f8b496aa664986e0ccaa2c1467"
+      },
+      "partition": "tower-blocks-0-5-deepstack-0-v1",
+      "passed": true
+    },
+    {
+      "deepstack": {
+        "compute_units": "cpu_and_neural_engine",
+        "latency_nanoseconds": 12302959,
+        "maximum_absolute_error": 0.03515625,
+        "maximum_scaled_error": 0.022705078125,
+        "output_count": 131072,
+        "output_sha256": "5df9e8581cda4d6f8abaf3fa84e695f7058e8f6e65654613c90dea7cb385b12a"
+      },
+      "main": {
+        "compute_units": "cpu_and_neural_engine",
+        "latency_nanoseconds": 13512542,
+        "maximum_absolute_error": 0.01171875,
+        "maximum_scaled_error": 0.01171875,
+        "output_count": 262144,
+        "output_sha256": "a65f02a7c0a1db08f2c0f6a13f0bd8129be364f70b3b68577ba7d057b0bee19b"
+      },
+      "partition": "tower-blocks-6-11-deepstack-1-v1",
+      "passed": true
+    },
+    {
+      "deepstack": {
+        "compute_units": "cpu_and_neural_engine",
+        "latency_nanoseconds": 11175917,
+        "maximum_absolute_error": 0.0625,
+        "maximum_scaled_error": 0.0087890625,
+        "output_count": 131072,
+        "output_sha256": "d237b5be7e35950a6a6a54ca67727eb7b1fa21139c718bdb820ee1b3f443b04a"
+      },
+      "main": {
+        "compute_units": "cpu_and_neural_engine",
+        "latency_nanoseconds": 11578750,
+        "maximum_absolute_error": 0.0625,
+        "maximum_scaled_error": 0.00830078125,
+        "output_count": 262144,
+        "output_sha256": "d22a549f50d3ea721282cf9eb80b75434292242516042f1f168e848cf2ede182"
+      },
+      "partition": "tower-blocks-12-17-deepstack-2-v1",
+      "passed": true
+    },
+    {
+      "deepstack": {
+        "compute_units": "cpu_and_neural_engine",
+        "latency_nanoseconds": 11224375,
+        "maximum_absolute_error": 0.011474609375,
+        "maximum_scaled_error": 0.011474609375,
+        "output_count": 131072,
+        "output_sha256": "03f58055cfb9d59013578d9867c5619c306ba45aaeecbd68cc1dad26037abba3"
+      },
+      "main": {
+        "compute_units": "cpu_and_neural_engine",
+        "latency_nanoseconds": 13065959,
+        "maximum_absolute_error": 3,
+        "maximum_scaled_error": 0.0234375,
+        "output_count": 262144,
+        "output_sha256": "c9f029b73d94576b82fb5f6219b6b5f8cb476ddf9f1964e1f9934cab907ad5dd"
+      },
+      "partition": "tower-blocks-18-23-final-v1",
+      "passed": true
+    }
+  ],
+  "schema_version": 1,
+  "scope": "qwen3_vl_coreml_runtime_profile",
+  "source_artifact_fingerprint": "1cd6a209bcc343ab63f38fe4813b958a9e27004e4f6f3aab58170f2127242357"
+}

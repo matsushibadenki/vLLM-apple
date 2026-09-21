@@ -20,10 +20,9 @@ from .mlx_evaluate import (
     MAX_LINE_BYTES,
     MAX_TEXT_BYTES,
     _self_peak_rss_bytes,
-    _validated_dataset_path,
     _validate_limit,
+    _validated_dataset_path,
 )
-
 
 MAX_GENERATION_SAMPLES = 64
 MAX_EXPECTATIONS = 16

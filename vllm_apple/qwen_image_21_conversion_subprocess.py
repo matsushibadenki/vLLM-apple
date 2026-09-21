@@ -9,7 +9,6 @@ import time
 from pathlib import Path
 from typing import Sequence
 
-
 MAX_CONVERSION_OUTPUT_BYTES = 64 * 1024
 
 

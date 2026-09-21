@@ -6,6 +6,7 @@ let package = Package(
     platforms: [.macOS(.v13)],
     products: [
         .library(name: "VLLMAppleKit", targets: ["VLLMAppleKit"]),
+        .library(name: "VLLMAppleKitObjC", type: .dynamic, targets: ["VLLMAppleKitObjC"]),
         .executable(
             name: "VLLMAppleQualificationCheck",
             targets: ["VLLMAppleQualificationCheck"]
@@ -17,12 +18,13 @@ let package = Package(
     ],
     targets: [
         .target(name: "VLLMAppleKit"),
+        .target(name: "VLLMAppleKitObjC", dependencies: ["VLLMAppleKit"]),
         .executableTarget(
             name: "VLLMAppleQualificationCheck",
             dependencies: ["VLLMAppleKit"]
         ),
         .executableTarget(name: "VLLMAppleModelE2E", dependencies: ["VLLMAppleKit"]),
-        .testTarget(name: "VLLMAppleKitTests", dependencies: ["VLLMAppleKit"],
+        .testTarget(name: "VLLMAppleKitTests", dependencies: ["VLLMAppleKit", "VLLMAppleKitObjC"],
                     resources: [.copy("Fixtures")])
     ]
 )

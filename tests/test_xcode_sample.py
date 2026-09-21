@@ -1,11 +1,10 @@
-import os
 import base64
+import os
 import stat
 import subprocess
 import tempfile
 import unittest
 from pathlib import Path
-
 
 SAMPLE = Path("samples/VLLMAppleChatXcode")
 PACKAGE_SCRIPT = Path("scripts/build_mac_integration_package.sh")

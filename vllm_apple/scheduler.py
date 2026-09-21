@@ -9,7 +9,11 @@ from dataclasses import dataclass
 from time import monotonic
 from typing import TypeVar
 
-from .execution import AppleExecutionPlan, ExecutionBackend, WorkloadPhase
+from .device_pipeline import (
+    DevicePipelineExecutor,
+    DevicePipelineResult,
+    DevicePipelineStage,
+)
 from .device_placement import DevicePlacementPlan
 from .device_resources import (
     DeviceResourceCapacityError,
@@ -17,11 +21,7 @@ from .device_resources import (
     UnifiedDeviceResourceLedger,
     contention_profile_id,
 )
-from .device_pipeline import (
-    DevicePipelineExecutor,
-    DevicePipelineResult,
-    DevicePipelineStage,
-)
+from .execution import AppleExecutionPlan, ExecutionBackend, WorkloadPhase
 from .operator_dispatch import (
     BackendExecutionError,
     OperatorDispatchDecision,

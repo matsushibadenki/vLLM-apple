@@ -7,7 +7,6 @@ from typing import Any
 
 from .generative_qualification import GenerativeArtifactComponent
 
-
 MAX_METADATA_BYTES = 4 * 1024 * 1024
 MAX_FILES = 4096
 IGNORED_DIRECTORIES = frozenset({".git", ".cache", "__pycache__"})

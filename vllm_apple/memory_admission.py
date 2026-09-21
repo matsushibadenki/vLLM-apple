@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import threading
 import time
-from dataclasses import asdict, dataclass
 from collections.abc import Callable
+from dataclasses import asdict, dataclass
 
 from .memory_budget import MemoryBudgetSnapshot
 from .memory_telemetry import MemoryTelemetrySnapshot

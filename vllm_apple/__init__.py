@@ -1,164 +1,9 @@
 """Public package surface for vLLM-Apple."""
 
-from .audio_ring_buffer import AudioRingBuffer, AudioRingBufferSnapshot
-from .audio_preprocessing import (
-    AudioFeatureFrame,
-    StreamingLinearResampler,
-    StreamingLogBandEncoder,
-)
-from .audio_streaming_state import (
-    AudioStreamSnapshot,
-    AudioStreamUpdate,
-    StreamingAudioSession,
-    StreamingAudioSessionRegistry,
-)
-from .audio_deadline_scheduler import (
-    AudioDeadlineScheduler,
-    AudioScheduledTask,
-    AudioSchedulerSnapshot,
-    AudioSchedulingPriority,
-    AudioTaskOutcome,
-)
-from .asr_integration import (
-    ASRBackend,
-    ASRSubmission,
-    ASRTranscript,
-    ASRWorkItem,
-    CallableASRBackend,
-    StreamingASRIntegrator,
-)
-from .audio_encoder_cache import (
-    AudioEncoderCache,
-    AudioEncoderCacheKey,
-    AudioEncoderCacheSnapshot,
-    audio_feature_fingerprint,
-)
-from .speech_to_speech import (
-    DialogueBackend,
-    DialogueResponse,
-    EchoDialogueBackend,
-    SpeechSynthesisBackend,
-    SpeechToSpeechPipeline,
-    SpeechToSpeechResult,
-    SynthesizedSpeech,
-)
-from .audio_benchmark import (
-    AudioBenchmarkConfig,
-    AudioBenchmarkReport,
-    run_audio_benchmark,
-)
-from .video_decoder import (
-    DecodedVideoFrames,
-    FFmpegVideoToolboxDecoder,
-    MappedDecodedVideoFrames,
-    VideoStreamInfo,
-)
-from .video_metal_bridge import (
-    NativeVideoMetalBridge,
-    VideoMetalBridgeReport,
-)
-from .video_frame_scheduler import (
-    ScheduledVideoFrame,
-    VideoFrameDecision,
-    VideoFrameScheduler,
-    VideoFrameSchedulerSnapshot,
-)
-from .video_temporal_sampler import (
-    TemporalSamplingReport,
-    TemporalVideoFrame,
-    sample_temporal_frames,
-)
-from .video_cache import (
-    VideoArtifactCache,
-    VideoCacheKey,
-    VideoCacheKind,
-    VideoCacheSnapshot,
-    VideoCacheTierSnapshot,
-)
-from .video_vlm import (
-    VideoFrameEmbedding,
-    VideoFrameEncoder,
-    VideoLanguageBackend,
-    VideoVLMIntegrator,
-    VideoVLMRequest,
-    VideoVLMResult,
-    embedding_digest,
-)
-from .video_streaming_input import (
-    FinalizedVideoArtifact,
-    StreamingVideoInputRegistry,
-    StreamingVideoInputSession,
-    StreamingVideoUpdate,
-)
-from .video_streaming_decoder import (
-    IncrementalFFmpegVideoDecoder,
-    StreamingVideoDecoderReport,
-)
-from .video_benchmark import (
-    VideoBenchmarkReport,
-    VideoBenchmarkThresholds,
-    VideoDecodeMeasurement,
-    run_video_benchmark,
-)
-
-from .backend_tuning import (
-    BackendKernelTuningAdapter,
-    BackendTuningSnapshot,
-    KernelTuningASGIMiddleware,
-    PagedAttentionKernelInvoker,
-    parse_kernel_tuning_headers,
-)
-from .ane_probe import (
-    CoreMLANEModelProbe,
-    CoreMLANEModelProbeConfig,
-    CoreMLANESurfaceProbe,
-    CoreMLANESurfaceResult,
-    CoreMLPrediction,
-    run_coreml_prediction,
-)
-from .coreml_backend import (
-    CoreMLFixedGraphBackend,
-    CoreMLFixedGraphResource,
-    CoreMLFixedGraphResult,
-)
-from .coreml_worker import CoreMLPersistentWorker
-from .coreml_worker_cache import (
-    CoreMLWorkerCache,
-    CoreMLWorkerCacheKey,
-    CoreMLWorkerLease,
-)
-from .coreml_artifact_cache import (
-    CoreMLArtifactCache,
-    CoreMLArtifactCacheEntry,
-    CoreMLArtifactCacheIdentity,
-)
-from .backend_engine import (
-    BackendEngine,
-    BackendEngineAttempt,
-    BackendEngineDescriptor,
-    BackendEngineFailure,
-    BackendEngineRegistry,
-    BackendEngineRequest,
-    BackendEngineResult,
-)
-from .backend_composition import (
-    BackendRegistryInferenceEngine,
-    BackendEngineRegistration,
-    ManagedInferenceBackendEngine,
-    ProductionBackendComposition,
-)
-from .operator_graph_dispatch import (
-    OperatorGraphDispatcher,
-    OperatorGraphNode,
-    OperatorGraphResult,
-)
-from .workload_performance import (
-    EndToEndPerformanceProfile,
-    EndToEndPerformanceSample,
-    EndToEndPhase,
-    EndToEndPromotionDecision,
-    build_end_to_end_performance_profile,
-    evaluate_end_to_end_promotion,
+from .activation_statistics import (
+    ActivationStatisticsSnapshot,
+    ActivationStatisticsStream,
+    OnlineActivationStatistics,
 )
 from .adaptive_state_allocation import (
     AdaptiveStateAction,
@@ -171,47 +16,116 @@ from .adaptive_state_allocation import (
     AdaptiveStateRecord,
     AdaptiveStateTransaction,
 )
-from .measured_state_backend import (
-    MeasuredStateBackendAdapter,
-    StatePrecisionGate,
-    StatePrecisionMeasurement,
+from .ane_probe import (
+    CoreMLANEModelProbe,
+    CoreMLANEModelProbeConfig,
+    CoreMLANESurfaceProbe,
+    CoreMLANESurfaceResult,
+    CoreMLPrediction,
+    run_coreml_prediction,
 )
-from .numeric_routing import (
-    NumericCapability,
-    NumericEligibilityDecision,
-    NumericEligibilityMatrix,
-    NumericEligibilityRequest,
-    NumericFormat,
-    NumericRouteDecision,
-    NumericRouteProfile,
-    NumericRouteStrategy,
-    NumericTensorRole,
-    choose_numeric_route,
+from .asr_integration import (
+    ASRBackend,
+    ASRSubmission,
+    ASRTranscript,
+    ASRWorkItem,
+    CallableASRBackend,
+    StreamingASRIntegrator,
 )
-from .numeric_conversion_cache import (
-    NumericConversionCache,
-    NumericConversionCacheEntry,
-    NumericConversionCacheIdentity,
+from .audio_benchmark import (
+    AudioBenchmarkConfig,
+    AudioBenchmarkReport,
+    run_audio_benchmark,
 )
-from .numeric_promotion import (
-    NumericPromotionDecision,
-    NumericPromotionEvidence,
-    NumericPromotionThresholds,
-    evaluate_numeric_promotion,
+from .audio_deadline_scheduler import (
+    AudioDeadlineScheduler,
+    AudioScheduledTask,
+    AudioSchedulerSnapshot,
+    AudioSchedulingPriority,
+    AudioTaskOutcome,
 )
-from .fault_injection import (
-    DeterministicFaultInjector,
-    FaultAction,
-    FaultPoint,
-    FaultRule,
-    InjectedFault,
+from .audio_encoder_cache import (
+    AudioEncoderCache,
+    AudioEncoderCacheKey,
+    AudioEncoderCacheSnapshot,
+    audio_feature_fingerprint,
 )
-from .mtls_authorization import (
-    ClientCertificatePolicy,
-    ClientCertificatePolicyStore,
+from .audio_generation import (
+    AudioGenerationBackend,
+    AudioGenerationKind,
+    AudioGenerationQualificationReport,
+    AudioGenerationRequest,
+    AudioWorkerTelemetry,
+    qualify_audio_generation,
 )
-from .process_inference_engine import MainThreadSubprocessInferenceEngine
-from .elastic_memory import ElasticMemoryController, ElasticMemoryDecision
+from .audio_preprocessing import (
+    AudioFeatureFrame,
+    StreamingLinearResampler,
+    StreamingLogBandEncoder,
+)
+from .audio_ring_buffer import AudioRingBuffer, AudioRingBufferSnapshot
+from .audio_streaming_state import (
+    AudioStreamSnapshot,
+    AudioStreamUpdate,
+    StreamingAudioSession,
+    StreamingAudioSessionRegistry,
+)
+from .backend_composition import (
+    BackendEngineRegistration,
+    BackendRegistryInferenceEngine,
+    ManagedInferenceBackendEngine,
+    ProductionBackendComposition,
+)
+from .backend_engine import (
+    BackendEngine,
+    BackendEngineAttempt,
+    BackendEngineDescriptor,
+    BackendEngineFailure,
+    BackendEngineRegistry,
+    BackendEngineRequest,
+    BackendEngineResult,
+)
+from .backend_tuning import (
+    BackendKernelTuningAdapter,
+    BackendTuningSnapshot,
+    KernelTuningASGIMiddleware,
+    PagedAttentionKernelInvoker,
+    parse_kernel_tuning_headers,
+)
+from .context_reevaluation import ContextCapacityReevaluator, ContextReevaluationSnapshot
+from .coreml_artifact_cache import (
+    CoreMLArtifactCache,
+    CoreMLArtifactCacheEntry,
+    CoreMLArtifactCacheIdentity,
+)
+from .coreml_backend import (
+    CoreMLFixedGraphBackend,
+    CoreMLFixedGraphResource,
+    CoreMLFixedGraphResult,
+)
+from .coreml_worker import CoreMLPersistentWorker
+from .coreml_worker_cache import (
+    CoreMLWorkerCache,
+    CoreMLWorkerCacheKey,
+    CoreMLWorkerLease,
+)
+from .cpu_probe import NativeCPUProbeAdapter
+from .device_benchmark import (
+    BoundedCPUReferenceBenchmarkAdapter,
+    CoreMLFixedGraphBenchmarkAdapter,
+    DeviceBenchmarkConfig,
+    DeviceBenchmarkMeasurement,
+    DeviceBenchmarkReport,
+    DeviceBenchmarkSuite,
+    NativeCPUBenchmarkAdapter,
+    NativeKernelBenchmarkAdapter,
+    load_device_benchmark,
+    load_profile_device_benchmark,
+    representative_device_benchmark_configs,
+    run_device_benchmark_suite,
+    run_device_microbenchmark,
+    save_device_benchmark,
+)
 from .device_capability import (
     ComputeDevice,
     DeviceCapability,
@@ -221,26 +135,27 @@ from .device_capability import (
     compose_device_capability_registry,
     device_capability_from_probe,
 )
-from .device_benchmark import (
-    BoundedCPUReferenceBenchmarkAdapter,
-    DeviceBenchmarkConfig,
-    DeviceBenchmarkMeasurement,
-    DeviceBenchmarkReport,
-    DeviceBenchmarkSuite,
-    CoreMLFixedGraphBenchmarkAdapter,
-    NativeCPUBenchmarkAdapter,
-    NativeKernelBenchmarkAdapter,
-    representative_device_benchmark_configs,
-    run_device_benchmark_suite,
-    load_device_benchmark,
-    load_profile_device_benchmark,
-    run_device_microbenchmark,
-    save_device_benchmark,
+from .device_contention import (
+    ContentionBenchmarkConfig,
+    ContentionProfile,
+    default_contention_profile_path,
+    default_contention_profile_paths,
+    install_contention_profile,
+    load_contention_profile,
+    load_contention_profile_with_fallback,
+    promote_contention_profile,
+    run_contention_benchmark,
+    save_contention_profile,
 )
-from .device_selection import (
-    DevicePlacementCandidate,
-    DevicePlacementDecision,
-    select_measured_device_backend,
+from .device_pipeline import (
+    ANEAuxiliaryRoute,
+    ANEAuxiliaryWorkload,
+    AsyncEncoderLLMPipeline,
+    DevicePipelineExecutor,
+    DevicePipelineResult,
+    DevicePipelineStage,
+    EncoderLLMPipelineResult,
+    require_ane_auxiliary_route,
 )
 from .device_placement import (
     DevicePlacement,
@@ -260,32 +175,86 @@ from .device_resources import (
     UnifiedDeviceResourceLedger,
     contention_profile_id,
 )
-from .device_pipeline import (
-    ANEAuxiliaryRoute,
-    ANEAuxiliaryWorkload,
-    AsyncEncoderLLMPipeline,
-    DevicePipelineExecutor,
-    DevicePipelineResult,
-    DevicePipelineStage,
-    EncoderLLMPipelineResult,
-    require_ane_auxiliary_route,
+from .device_selection import (
+    DevicePlacementCandidate,
+    DevicePlacementDecision,
+    select_measured_device_backend,
 )
-from .device_contention import (
-    ContentionBenchmarkConfig,
-    ContentionProfile,
-    default_contention_profile_path,
-    default_contention_profile_paths,
-    install_contention_profile,
-    load_contention_profile,
-    load_contention_profile_with_fallback,
-    promote_contention_profile,
-    run_contention_benchmark,
-    save_contention_profile,
-)
+from .elastic_memory import ElasticMemoryController, ElasticMemoryDecision
 from .execution import AppleChipProfile, AppleExecutionPlan, AppleExecutionPlanner
 from .execution_profile import detect_apple_chip_profile, load_chip_profile, save_chip_profile
-from .context_reevaluation import ContextCapacityReevaluator, ContextReevaluationSnapshot
-from .cpu_probe import NativeCPUProbeAdapter
+from .expert_predictor import (
+    CorrectnessNeutralExpertPredictor,
+    ExpertPrefetchHint,
+)
+from .expert_residency import (
+    ExpertKey,
+    ExpertLease,
+    ExpertResidencyBackend,
+    ExpertResidencyManager,
+    ExpertResource,
+)
+from .expert_selection_telemetry import (
+    ExpertSelectionSample,
+    ExpertSelectionTelemetry,
+)
+from .expert_ssd_tier import (
+    ExpertSSDStore,
+    ExpertSSDValue,
+)
+from .fast_load_artifact import (
+    FastLoadArtifact,
+    FastLoadSourceTensor,
+    FastLoadTensorEntry,
+    KernelCompatibility,
+    KernelCompatibilityIndex,
+    build_fast_load_artifact,
+    load_fast_load_artifact,
+)
+from .fault_injection import (
+    DeterministicFaultInjector,
+    FaultAction,
+    FaultPoint,
+    FaultRule,
+    InjectedFault,
+)
+from .fault_scenario_matrix import (
+    PlatformFaultMatrixReport,
+    PlatformFaultObservation,
+    PlatformFaultPoint,
+    PlatformFaultScenario,
+    PlatformFaultScenarioMatrix,
+    PlatformFaultScenarioResult,
+    default_platform_fault_scenarios,
+)
+from .generative_backend_adapter import (
+    GenerativeBackendFamily,
+    GenerativeWorkerCapability,
+    VersionedGenerativeWorkerAdapter,
+)
+from .generative_chunk_scheduler import (
+    AttentionStateRegion,
+    GenerativeChunkPlan,
+    GenerativeChunkTask,
+    build_generative_chunk_plan,
+)
+from .graph_fusion import (
+    CapabilityGatedGraphFusionPass,
+    FusionRule,
+    GraphFusionResult,
+)
+from .hierarchical_state_cache import (
+    HierarchicalStateCache,
+    HierarchicalStateKey,
+    HierarchicalStateKind,
+    HierarchicalStateValue,
+)
+from .importance_analysis import (
+    ImportanceAnalyzer,
+    ImportanceKey,
+    ImportanceKind,
+    ImportanceObservation,
+)
 from .kernel_context import InferenceKernelContext, PagedAttentionKernelSelection
 from .kernel_probe import (
     KernelCapabilityRegistry,
@@ -302,10 +271,28 @@ from .kernel_profile import (
     build_model_kernel_shape_profile,
 )
 from .kernel_stress import MultiModelStressReport, run_multi_model_command_stress
-from .graph_fusion import (
-    CapabilityGatedGraphFusionPass,
-    FusionRule,
-    GraphFusionResult,
+from .kv_calibration import (
+    KVCalibration,
+    default_calibration_report_path,
+    discover_latest_kv_calibration,
+    load_kv_calibration,
+)
+from .kv_configuration_search import (
+    KVConfiguration,
+    KVConfigurationMeasurement,
+    KVConfigurationSearchReport,
+    KVSearchObjective,
+    search_kv_configuration,
+)
+from .latent_memory import (
+    LatentBufferLease,
+    LatentMemoryManager,
+    LatentShape,
+)
+from .layer_prefetch import (
+    LayerPrefetchCoordinator,
+    LayerPrefetchReport,
+    LayerResidencyBackend,
 )
 from .long_context import (
     LongContextEvaluator,
@@ -313,11 +300,10 @@ from .long_context import (
     save_long_context_report,
 )
 from .long_context_backend import MLXLongContextAdapter, VLLMLongContextAdapter
-from .kv_calibration import (
-    KVCalibration,
-    default_calibration_report_path,
-    discover_latest_kv_calibration,
-    load_kv_calibration,
+from .measured_state_backend import (
+    MeasuredStateBackendAdapter,
+    StatePrecisionGate,
+    StatePrecisionMeasurement,
 )
 from .memory_budget import (
     MemoryBudgetComponent,
@@ -337,88 +323,158 @@ from .metal_tuning import (
     save_metal_tuning_report,
     tune_metal_shape_profile,
 )
-from .mlx_probe import NativeMLXProbeAdapter, build_mlx_probe_registry
+from .mlx_audio_generation import MLXAudioGenerationBackend, MLXMusicGenerationBackend
 from .mlx_phase3_probe import MLXPhase3ProbeAdapter
-from .mlx_vision_probe import MLXVisionFusionProbeAdapter
+from .mlx_probe import NativeMLXProbeAdapter, build_mlx_probe_registry
+from .mlx_semantic_state import MLXPromptCacheStateAdapter
 from .mlx_vision_benchmark import (
     MLXVisionBenchmarkAdapter,
     VisionBatchBenchmark,
     VisionBenchmarkMeasurement,
     VisionBenchmarkReport,
 )
+from .mlx_vision_probe import MLXVisionFusionProbeAdapter
+from .mtls_authorization import (
+    ClientCertificatePolicy,
+    ClientCertificatePolicyStore,
+)
+from .multi_mac import (
+    DistributedStateShard,
+    FabricLink,
+    FabricNode,
+    FabricStage,
+    FabricTransfer,
+    FabricTransport,
+    MultiMacExecutionPlan,
+    StageKind,
+    StagePlacement,
+    build_multi_mac_plan,
+)
+from .multi_mac_execution import (
+    MAX_MULTI_MAC_RESULT_BYTES,
+    MultiMacExecutionCancelled,
+    MultiMacExecutionCoordinator,
+    MultiMacExecutionReport,
+    MultiMacNodeClient,
+    MultiMacStageResult,
+    MultiMacTransferClient,
+)
+from .multi_mac_transport import (
+    FabricFrame,
+    FabricStream,
+    accept_ethernet_fabric_stream,
+    open_ethernet_fabric_stream,
+)
+from .native_hardware_benchmark import (
+    run_native_hardware_benchmarks,
+    save_native_hardware_benchmarks,
+)
+from .numeric_advanced_quantization import (
+    DoubleQuantizedScales,
+    MixedPrecisionGroup,
+    MixedPrecisionTensor,
+    SparseResidualTensor,
+    double_quantize_scales,
+    quantize_mixed_precision,
+    quantize_with_sparse_residual,
+)
+from .numeric_capability_probe import (
+    NumericCapabilityProbeRegistry,
+    NumericFallbackResult,
+    NumericProbeIdentity,
+    NumericProbeResult,
+)
+from .numeric_codecs import (
+    NF4_CODEBOOK,
+    GroupwiseAffineTensor,
+    decode_fp8,
+    decode_nf4,
+    encode_fp8,
+    encode_nf4,
+    quantize_groupwise_affine,
+)
+from .numeric_container import (
+    NumericArtifactDescriptor,
+    NumericContainer,
+    QuantizationRecipe,
+    inspect_numeric_artifact_metadata,
+)
+from .numeric_conversion_cache import (
+    NumericConversionCache,
+    NumericConversionCacheEntry,
+    NumericConversionCacheIdentity,
+)
+from .numeric_layout import (
+    NumericExporterLayoutAdapter,
+    NumericExporterLayoutRegistry,
+    NumericLayoutDescriptor,
+    repack_bytes,
+    repack_packed_nibbles,
+)
+from .numeric_mx import (
+    MXElementFormat,
+    MXFormatAdapter,
+    convert_mx_to_int8,
+    decode_mx,
+)
+from .numeric_pipeline import (
+    NumericBandwidthLease,
+    NumericBandwidthLedger,
+    NumericPipelineReport,
+    NumericTilePipeline,
+)
+from .numeric_promotion import (
+    NumericPromotionDecision,
+    NumericPromotionEvidence,
+    NumericPromotionThresholds,
+    evaluate_numeric_promotion,
+)
+from .numeric_requantization import (
+    Int8ExecutionCapability,
+    Int8RouteComparison,
+    Int8RouteMetrics,
+    SymmetricInt8Tensor,
+    compare_nvfp4_int8_routes,
+    requantize_symmetric_int8,
+)
+from .numeric_routing import (
+    NumericCapability,
+    NumericEligibilityDecision,
+    NumericEligibilityMatrix,
+    NumericEligibilityRequest,
+    NumericFormat,
+    NumericRouteDecision,
+    NumericRouteProfile,
+    NumericRouteStrategy,
+    NumericTensorRole,
+    choose_numeric_route,
+)
 from .operator_dispatch import (
     OperatorDispatchDecision,
     OperatorDispatcher,
     OperatorDispatchRequest,
 )
+from .operator_graph_dispatch import (
+    OperatorGraphDispatcher,
+    OperatorGraphNode,
+    OperatorGraphResult,
+)
 from .phase_profile import ExecutionPhaseProfiler, PhaseMeasurement
+from .phase_resource_profile import (
+    PhaseResourceEntry,
+    PhaseResourceProfile,
+    build_phase_resource_profile,
+)
+from .process_inference_engine import MainThreadSubprocessInferenceEngine
 from .promotion_probe import (
     PromotionProbeConfig,
     PromotionProbeError,
     PromotionResponse,
     run_serving_promotion_probe,
 )
-from .runtime_probe import (
-    RuntimeEnvironmentVersions,
-    RuntimeProbeCoordinator,
-    RuntimeProbeReport,
-    discover_runtime_versions,
-)
-from .runtime_errors import (
-    RuntimeFailure,
-    RuntimeFailureCode,
-    RuntimeRecoverability,
-    classify_runtime_failure,
-    persist_crash_diagnostic,
-)
-from .vision_frontend import (
-    VisionChatInput,
-    VisionImageInput,
-    VisionPreprocessResult,
-    VisionPreprocessSpec,
-    parse_vision_chat_request,
-    preprocess_vision_image,
-)
-from .vision_cache import (
-    VisionCacheKey,
-    VisionCacheStats,
-    VisionEncoderCache,
-    preprocessing_fingerprint,
-)
-from .vision_batching import (
-    VisionBatch,
-    VisionBatchCompatibility,
-    VisionBatchLimits,
-    VisionBatchRequest,
-    plan_multimodal_batches,
-)
 from .qwen3_vl_ane import (
     Qwen3VLVisionANEAdapterSpec,
     inspect_qwen3_vl_vision_for_ane,
-)
-from .qwen3_vl_coreml import (
-    Qwen3VLCoreMLConversionManifest,
-    load_qwen3_vl_coreml_conversion,
-    qualify_qwen3_vl_coreml_conversion,
-    save_qwen3_vl_coreml_conversion,
-)
-from .qwen3_vl_conversion_plan import (
-    Qwen3VLCoreMLConversionPlan,
-    build_qwen3_vl_coreml_conversion_plan,
-)
-from .qwen3_vl_conversion_worker import stage_qwen3_vl_coreml_weights
-from .qwen3_vl_graph_spec import (
-    Qwen3VLCoreMLGraphProfile,
-    Qwen3VLCoreMLGraphSpec,
-    build_qwen3_vl_coreml_graph_spec,
-)
-from .qwen3_vl_patch_coreml import (
-    build_qwen3_vl_patch_coreml,
-    qualify_qwen3_vl_patch_coreml,
-)
-from .qwen3_vl_mlp_coreml import (
-    build_qwen3_vl_mlp_coreml,
-    qualify_qwen3_vl_mlp_coreml,
 )
 from .qwen3_vl_attention_coreml import (
     build_qwen3_vl_attention_coreml,
@@ -428,9 +484,17 @@ from .qwen3_vl_block_coreml import (
     build_qwen3_vl_block_coreml,
     qualify_qwen3_vl_block_coreml,
 )
-from .qwen3_vl_tower_coreml import (
-    build_qwen3_vl_tower_blocks_coreml,
-    qualify_qwen3_vl_tower_blocks_coreml,
+from .qwen3_vl_compute_plan import inspect_qwen3_vl_coreml_compute_plans
+from .qwen3_vl_conversion_plan import (
+    Qwen3VLCoreMLConversionPlan,
+    build_qwen3_vl_coreml_conversion_plan,
+)
+from .qwen3_vl_conversion_worker import stage_qwen3_vl_coreml_weights
+from .qwen3_vl_coreml import (
+    Qwen3VLCoreMLConversionManifest,
+    load_qwen3_vl_coreml_conversion,
+    qualify_qwen3_vl_coreml_conversion,
+    save_qwen3_vl_coreml_conversion,
 )
 from .qwen3_vl_deepstack_coreml import (
     build_qwen3_vl_deepstack_coreml,
@@ -438,21 +502,63 @@ from .qwen3_vl_deepstack_coreml import (
     qualify_qwen3_vl_deepstack_coreml,
     qualify_qwen3_vl_final_coreml,
 )
-from .qwen3_vl_pipeline_coreml import qualify_qwen3_vl_segment_pipeline_coreml
-from .qwen3_vl_pipeline_coreml import export_qwen3_vl_segment_pipeline_coreml
-from .qwen3_vl_transport import load_qwen3_vl_coreml_transport
-from .qwen3_vl_compute_plan import inspect_qwen3_vl_coreml_compute_plans
-from .qwen3_vl_persistent_worker import Qwen3VLPersistentWorker
+from .qwen3_vl_embedding import (
+    Qwen3VLANEGPUPipeline,
+    Qwen3VLCoreMLPipelineOutput,
+    Qwen3VLVisionEmbeddingBundle,
+    build_vllm_metal_qwen3_vl_encode_result,
+    validate_qwen3_vl_vision_embeddings,
+)
+from .qwen3_vl_graph_spec import (
+    Qwen3VLCoreMLGraphProfile,
+    Qwen3VLCoreMLGraphSpec,
+    build_qwen3_vl_coreml_graph_spec,
+)
+from .qwen3_vl_mlp_coreml import (
+    build_qwen3_vl_mlp_coreml,
+    qualify_qwen3_vl_mlp_coreml,
+)
+from .qwen3_vl_patch_coreml import (
+    build_qwen3_vl_patch_coreml,
+    qualify_qwen3_vl_patch_coreml,
+)
 from .qwen3_vl_persistent_encoder import (
     Qwen3VLPersistentEncoder,
     publish_qwen3_vl_persistent_transport_manifest,
 )
-from .qwen3_vl_embedding import (
-    build_vllm_metal_qwen3_vl_encode_result,
-    Qwen3VLCoreMLPipelineOutput,
-    Qwen3VLANEGPUPipeline,
-    Qwen3VLVisionEmbeddingBundle,
-    validate_qwen3_vl_vision_embeddings,
+from .qwen3_vl_persistent_worker import Qwen3VLPersistentWorker
+from .qwen3_vl_pipeline_coreml import (
+    export_qwen3_vl_segment_pipeline_coreml,
+    qualify_qwen3_vl_segment_pipeline_coreml,
+)
+from .qwen3_vl_tower_coreml import (
+    build_qwen3_vl_tower_blocks_coreml,
+    qualify_qwen3_vl_tower_blocks_coreml,
+)
+from .qwen3_vl_transport import load_qwen3_vl_coreml_transport
+from .runtime_autotuner import (
+    RuntimeTuningConfiguration,
+    RuntimeTuningMeasurement,
+    RuntimeTuningReport,
+    tune_runtime_configuration,
+)
+from .runtime_errors import (
+    RuntimeFailure,
+    RuntimeFailureCode,
+    RuntimeRecoverability,
+    classify_runtime_failure,
+    persist_crash_diagnostic,
+)
+from .runtime_probe import (
+    RuntimeEnvironmentVersions,
+    RuntimeProbeCoordinator,
+    RuntimeProbeReport,
+    discover_runtime_versions,
+)
+from .scheduling_preference import (
+    default_scheduling_preference_path,
+    load_scheduling_preference,
+    save_scheduling_preference,
 )
 from .semantic_cache import (
     SemanticAnchor,
@@ -467,7 +573,6 @@ from .semantic_state import (
     SemanticStateBackend,
     SemanticStateCoordinator,
 )
-from .mlx_semantic_state import MLXPromptCacheStateAdapter
 from .shape_benchmark import (
     MetalShapeBenchmark,
     default_metal_shape_benchmark_path,
@@ -475,28 +580,127 @@ from .shape_benchmark import (
     run_metal_shape_benchmark,
     save_metal_shape_benchmark,
 )
+from .speculative_execution import (
+    BackendRegistrySpeculativeAdapter,
+    HeterogeneousSpeculativeExecutor,
+    SpeculativeExecutionProfile,
+    SpeculativeExecutionResult,
+    load_speculative_profile,
+    save_speculative_profile,
+)
+from .speech_to_speech import (
+    DialogueBackend,
+    DialogueResponse,
+    EchoDialogueBackend,
+    SpeechSynthesisBackend,
+    SpeechToSpeechPipeline,
+    SpeechToSpeechResult,
+    SynthesizedSpeech,
+)
+from .structural_candidates import (
+    SimilarityObservation,
+    StructuralCandidate,
+    StructuralCandidateKind,
+    generate_structural_candidates,
+)
+from .structural_optimization import (
+    FunctionalSimilarity,
+    PruningResult,
+    StructuralComponentKind,
+    analyze_functional_similarity,
+    prune_structured,
+    prune_unstructured,
+)
+from .unified_memory_arena import (
+    UnifiedMemoryArena,
+    UnifiedMemoryArenaSnapshot,
+    UnifiedMemoryLease,
+)
 from .version import API_VERSION, SCHEMA_VERSION, __version__
+from .video_benchmark import (
+    VideoBenchmarkReport,
+    VideoBenchmarkThresholds,
+    VideoDecodeMeasurement,
+    run_video_benchmark,
+)
+from .video_cache import (
+    VideoArtifactCache,
+    VideoCacheKey,
+    VideoCacheKind,
+    VideoCacheSnapshot,
+    VideoCacheTierSnapshot,
+)
+from .video_decoder import (
+    DecodedVideoFrames,
+    FFmpegVideoToolboxDecoder,
+    MappedDecodedVideoFrames,
+    VideoStreamInfo,
+)
+from .video_frame_scheduler import (
+    ScheduledVideoFrame,
+    VideoFrameDecision,
+    VideoFrameScheduler,
+    VideoFrameSchedulerSnapshot,
+)
+from .video_metal_bridge import (
+    NativeVideoMetalBridge,
+    VideoMetalBridgeReport,
+)
+from .video_streaming_decoder import (
+    IncrementalFFmpegVideoDecoder,
+    StreamingVideoDecoderReport,
+)
+from .video_streaming_input import (
+    FinalizedVideoArtifact,
+    StreamingVideoInputRegistry,
+    StreamingVideoInputSession,
+    StreamingVideoUpdate,
+)
+from .video_temporal_sampler import (
+    TemporalSamplingReport,
+    TemporalVideoFrame,
+    sample_temporal_frames,
+)
+from .video_vlm import (
+    VideoFrameEmbedding,
+    VideoFrameEncoder,
+    VideoLanguageBackend,
+    VideoVLMIntegrator,
+    VideoVLMRequest,
+    VideoVLMResult,
+    embedding_digest,
+)
+from .vision_batching import (
+    VisionBatch,
+    VisionBatchCompatibility,
+    VisionBatchLimits,
+    VisionBatchRequest,
+    plan_multimodal_batches,
+)
+from .vision_cache import (
+    VisionCacheKey,
+    VisionCacheStats,
+    VisionEncoderCache,
+    preprocessing_fingerprint,
+)
+from .vision_frontend import (
+    VisionChatInput,
+    VisionImageInput,
+    VisionPreprocessResult,
+    VisionPreprocessSpec,
+    parse_vision_chat_request,
+    preprocess_vision_image,
+)
 from .vllm_metal_integration import (
     VLLMMetalIntegrationInspection,
     inspect_vllm_metal_integration,
 )
-from .vllm_metal_v2_tuning import (
-    V2DispatchConfiguration,
-    V2PagedAttentionFamily,
-    V2PagedAttentionShape,
-    V2ShapeTuningDecision,
-    VLLMMetalV2TuningProfile,
-    build_v2_tuning_profile,
-    build_v2_environment_fingerprint,
-    candidate_configurations,
-    load_v2_tuning_profile,
-    inspect_v2_tuning_quarantine,
-    quarantine_v2_tuning_profile,
-    restore_quarantined_v2_profile,
-    save_v2_tuning_profile,
-    tune_v2_model_profile,
-    tune_v2_observed_shapes,
-    tune_v2_shape,
+from .vllm_metal_v2_adapter import (
+    V2MeasurementAdapterError,
+    VLLMMetalV2MeasurementAdapter,
+    build_v2_measurement_request,
+    parse_v2_measurement_request,
+    parse_v2_measurement_response,
 )
 from .vllm_metal_v2_observation import (
     default_v2_observation_path,
@@ -513,17 +717,43 @@ from .vllm_metal_v2_preference import (
     load_native_v2_preference,
     save_native_v2_preference,
 )
-from .scheduling_preference import (
-    default_scheduling_preference_path,
-    load_scheduling_preference,
-    save_scheduling_preference,
+from .vllm_metal_v2_tuning import (
+    V2DispatchConfiguration,
+    V2PagedAttentionFamily,
+    V2PagedAttentionShape,
+    V2ShapeTuningDecision,
+    VLLMMetalV2TuningProfile,
+    build_v2_environment_fingerprint,
+    build_v2_tuning_profile,
+    candidate_configurations,
+    inspect_v2_tuning_quarantine,
+    load_v2_tuning_profile,
+    quarantine_v2_tuning_profile,
+    restore_quarantined_v2_profile,
+    save_v2_tuning_profile,
+    tune_v2_model_profile,
+    tune_v2_observed_shapes,
+    tune_v2_shape,
 )
-from .vllm_metal_v2_adapter import (
-    V2MeasurementAdapterError,
-    VLLMMetalV2MeasurementAdapter,
-    build_v2_measurement_request,
-    parse_v2_measurement_request,
-    parse_v2_measurement_response,
+from .weight_optimization import (
+    LowRankApproximation,
+    WeightClusteringResult,
+    approximate_low_rank,
+    cluster_weights,
+)
+from .workload_performance import (
+    EndToEndPerformanceProfile,
+    EndToEndPerformanceSample,
+    EndToEndPhase,
+    EndToEndPromotionDecision,
+    build_end_to_end_performance_profile,
+    evaluate_end_to_end_promotion,
+)
+from .workload_telemetry import (
+    ModalityKind,
+    ModalitySample,
+    RuntimeResourceSample,
+    WorkloadTelemetry,
 )
 
 __all__ = [
@@ -533,6 +763,11 @@ __all__ = [
     "AudioEncoderCache",
     "AudioEncoderCacheKey",
     "AudioEncoderCacheSnapshot",
+    "AudioGenerationBackend",
+    "AudioGenerationKind",
+    "AudioGenerationQualificationReport",
+    "AudioGenerationRequest",
+    "AudioWorkerTelemetry",
     "AudioDeadlineScheduler",
     "AudioBenchmarkConfig",
     "AudioBenchmarkReport",
@@ -541,6 +776,7 @@ __all__ = [
     "AudioSchedulingPriority",
     "AudioTaskOutcome",
     "audio_feature_fingerprint",
+    "accept_ethernet_fabric_stream",
     "run_audio_benchmark",
     "run_video_benchmark",
     "ASRBackend",
@@ -550,12 +786,28 @@ __all__ = [
     "CallableASRBackend",
     "DialogueBackend",
     "DialogueResponse",
+    "DistributedStateShard",
     "DecodedVideoFrames",
     "EchoDialogueBackend",
+    "FabricLink",
+    "FabricFrame",
+    "FabricNode",
+    "FabricStage",
+    "FabricStream",
+    "FabricTransfer",
+    "FabricTransport",
     "FFmpegVideoToolboxDecoder",
     "FinalizedVideoArtifact",
     "IncrementalFFmpegVideoDecoder",
     "MappedDecodedVideoFrames",
+    "MultiMacExecutionPlan",
+    "MultiMacExecutionCancelled",
+    "MultiMacExecutionCoordinator",
+    "MultiMacExecutionReport",
+    "MultiMacNodeClient",
+    "MultiMacStageResult",
+    "MultiMacTransferClient",
+    "MAX_MULTI_MAC_RESULT_BYTES",
     "NativeVideoMetalBridge",
     "AudioStreamSnapshot",
     "AudioStreamUpdate",
@@ -563,6 +815,8 @@ __all__ = [
     "StreamingLogBandEncoder",
     "StreamingAudioSession",
     "StreamingAudioSessionRegistry",
+    "StageKind",
+    "StagePlacement",
     "StreamingASRIntegrator",
     "StreamingVideoInputRegistry",
     "StreamingVideoInputSession",
@@ -595,6 +849,11 @@ __all__ = [
     "StatePrecisionGate",
     "StatePrecisionMeasurement",
     "NumericCapability",
+    "NumericCapabilityProbeRegistry",
+    "NumericExporterLayoutAdapter",
+    "NumericExporterLayoutRegistry",
+    "NumericBandwidthLedger",
+    "NumericBandwidthLease",
     "NumericConversionCache",
     "NumericConversionCacheEntry",
     "NumericConversionCacheIdentity",
@@ -602,6 +861,11 @@ __all__ = [
     "NumericEligibilityMatrix",
     "NumericEligibilityRequest",
     "NumericFormat",
+    "NumericFallbackResult",
+    "NumericLayoutDescriptor",
+    "NumericProbeIdentity",
+    "NumericProbeResult",
+    "NumericPipelineReport",
     "NumericPromotionDecision",
     "NumericPromotionEvidence",
     "NumericPromotionThresholds",
@@ -609,6 +873,125 @@ __all__ = [
     "NumericRouteProfile",
     "NumericRouteStrategy",
     "NumericTensorRole",
+    "NumericTilePipeline",
+    "Int8ExecutionCapability",
+    "Int8RouteComparison",
+    "Int8RouteMetrics",
+    "SymmetricInt8Tensor",
+    "GroupwiseAffineTensor",
+    "FastLoadArtifact",
+    "FastLoadSourceTensor",
+    "FastLoadTensorEntry",
+    "ExpertKey",
+    "ExpertLease",
+    "ExpertResidencyBackend",
+    "ExpertResidencyManager",
+    "ExpertResource",
+    "DoubleQuantizedScales",
+    "MixedPrecisionGroup",
+    "MixedPrecisionTensor",
+    "MXElementFormat",
+    "MXFormatAdapter",
+    "NumericArtifactDescriptor",
+    "NumericContainer",
+    "NF4_CODEBOOK",
+    "SparseResidualTensor",
+    "QuantizationRecipe",
+    "KernelCompatibility",
+    "KernelCompatibilityIndex",
+    "LayerPrefetchCoordinator",
+    "LayerPrefetchReport",
+    "LayerResidencyBackend",
+    "HierarchicalStateCache",
+    "HierarchicalStateKey",
+    "HierarchicalStateKind",
+    "HierarchicalStateValue",
+    "HeterogeneousSpeculativeExecutor",
+    "UnifiedMemoryArena",
+    "UnifiedMemoryArenaSnapshot",
+    "UnifiedMemoryLease",
+    "AttentionStateRegion",
+    "GenerativeChunkPlan",
+    "GenerativeChunkTask",
+    "GenerativeBackendFamily",
+    "GenerativeWorkerCapability",
+    "VersionedGenerativeWorkerAdapter",
+    "PlatformFaultMatrixReport",
+    "PlatformFaultObservation",
+    "PlatformFaultPoint",
+    "PlatformFaultScenario",
+    "PlatformFaultScenarioMatrix",
+    "PlatformFaultScenarioResult",
+    "ModalityKind",
+    "ModalitySample",
+    "RuntimeResourceSample",
+    "WorkloadTelemetry",
+    "ExpertSelectionSample",
+    "ExpertSelectionTelemetry",
+    "CorrectnessNeutralExpertPredictor",
+    "ExpertPrefetchHint",
+    "ExpertSSDStore",
+    "ExpertSSDValue",
+    "LatentBufferLease",
+    "SpeculativeExecutionProfile",
+    "SpeculativeExecutionResult",
+    "load_speculative_profile",
+    "save_speculative_profile",
+    "LatentMemoryManager",
+    "LatentShape",
+    "ActivationStatisticsSnapshot",
+    "ActivationStatisticsStream",
+    "OnlineActivationStatistics",
+    "run_native_hardware_benchmarks",
+    "save_native_hardware_benchmarks",
+    "PhaseResourceEntry",
+    "PhaseResourceProfile",
+    "build_phase_resource_profile",
+    "RuntimeTuningConfiguration",
+    "RuntimeTuningMeasurement",
+    "RuntimeTuningReport",
+    "tune_runtime_configuration",
+    "KVConfiguration",
+    "KVConfigurationMeasurement",
+    "KVConfigurationSearchReport",
+    "KVSearchObjective",
+    "search_kv_configuration",
+    "ImportanceAnalyzer",
+    "ImportanceKey",
+    "ImportanceKind",
+    "ImportanceObservation",
+    "LowRankApproximation",
+    "WeightClusteringResult",
+    "approximate_low_rank",
+    "cluster_weights",
+    "FunctionalSimilarity",
+    "PruningResult",
+    "StructuralComponentKind",
+    "analyze_functional_similarity",
+    "prune_structured",
+    "prune_unstructured",
+    "SimilarityObservation",
+    "StructuralCandidate",
+    "StructuralCandidateKind",
+    "generate_structural_candidates",
+    "compare_nvfp4_int8_routes",
+    "requantize_symmetric_int8",
+    "decode_fp8",
+    "decode_nf4",
+    "encode_fp8",
+    "encode_nf4",
+    "quantize_groupwise_affine",
+    "double_quantize_scales",
+    "quantize_mixed_precision",
+    "quantize_with_sparse_residual",
+    "qualify_audio_generation",
+    "inspect_numeric_artifact_metadata",
+    "build_fast_load_artifact",
+    "load_fast_load_artifact",
+    "build_generative_chunk_plan",
+    "default_platform_fault_scenarios",
+    "repack_bytes",
+    "repack_packed_nibbles",
     "BackendKernelTuningAdapter",
     "BackendEngine",
     "BackendEngineAttempt",
@@ -618,6 +1001,7 @@ __all__ = [
     "BackendEngineRequest",
     "BackendEngineResult",
     "BackendRegistryInferenceEngine",
+    "BackendRegistrySpeculativeAdapter",
     "BackendEngineRegistration",
     "ManagedInferenceBackendEngine",
     "ProductionBackendComposition",
@@ -753,6 +1137,8 @@ __all__ = [
     "MLXPhase3ProbeAdapter",
     "MLXVisionFusionProbeAdapter",
     "MLXVisionBenchmarkAdapter",
+    "MLXAudioGenerationBackend",
+    "MLXMusicGenerationBackend",
     "MultiModelStressReport",
     "MemoryBudgetComponent",
     "MemoryBudgetSnapshot",
@@ -842,11 +1228,15 @@ __all__ = [
     "__version__",
     "build_environment_fingerprint",
     "choose_numeric_route",
+    "convert_mx_to_int8",
+    "decode_mx",
     "evaluate_numeric_promotion",
     "build_device_placement_plan",
     "classify_runtime_failure",
     "compose_device_capability_registry",
     "build_mlx_probe_registry",
+    "build_multi_mac_plan",
+    "open_ethernet_fabric_stream",
     "build_model_kernel_shape_profile",
     "build_v2_tuning_profile",
     "build_v2_environment_fingerprint",

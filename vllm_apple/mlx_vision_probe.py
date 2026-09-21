@@ -16,7 +16,6 @@ from .kernel_probe import (
     run_kernel_probe,
 )
 
-
 _RESULT = """
 flat=[round(float(value),6) for value in result.reshape((-1,)).tolist()]
 values=flat[:4096]

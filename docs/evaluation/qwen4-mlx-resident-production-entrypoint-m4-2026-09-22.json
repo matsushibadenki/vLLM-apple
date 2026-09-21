@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "scope": "qwen4_mlx_resident_production_entrypoint",
+  "date": "2026-09-22",
+  "environment": {
+    "soc": "Apple M4",
+    "architecture": "arm64",
+    "gpu_core_count": 10,
+    "unified_memory_bytes": 34359738368,
+    "memory_pressure": "normal",
+    "thermal_state": "nominal",
+    "os_version": "27.0",
+    "python_version": "3.10.18",
+    "mlx_version": "0.27.1"
+  },
+  "command": "VLLM_APPLE_TEST_MLX_NUMERIC=1 python3 -m unittest tests.test_numeric_mlx_resident_device",
+  "tests_run": 2,
+  "failures": 0,
+  "errors": 0,
+  "passed": true,
+  "verified": {
+    "private_socket_transport": true,
+    "artifact_digest_binding": true,
+    "artifact_consumed_after_load": true,
+    "numeric_streaming": true,
+    "file_backed_nvfp4_streaming": true,
+    "mlx_eval_completed": true,
+    "f16_output_verified": true,
+    "bf16_output_verified": true,
+    "f32_output_verified": true,
+    "resident_memory_released_after_unload": true,
+    "orderly_shutdown": true
+  },
+  "expected_values": [[1.0, -1.0, 4.0], [4.0, -4.0, -8.0]],
+  "stores_weights": false,
+  "stores_tensor_values": false,
+  "limitations": [
+    "bounded synthetic NVFP4/scaled-INT8 correctness fixture",
+    "does not qualify the full Qwen3.8-Flash-Next model",
+    "does not promote a Native Metal kernel"
+  ]
+}

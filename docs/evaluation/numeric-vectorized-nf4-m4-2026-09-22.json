@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-09-21T15:23:15Z",
+  "hardware": {
+    "architecture": "arm64",
+    "soc": "Apple M4",
+    "physical_cpu_count": 10,
+    "memory_bytes": 34359738368,
+    "memory_pressure": "normal",
+    "thermal_state": "nominal"
+  },
+  "runtime": {
+    "python": "3.10.18",
+    "numpy": "1.25.2"
+  },
+  "operation": "nf4_encode_65536",
+  "samples": 7,
+  "scalar_nanoseconds": [
+    127486667,
+    114873792,
+    72112459,
+    71051542,
+    71069000,
+    71095875,
+    71255000
+  ],
+  "vectorized_nanoseconds": [
+    6311959,
+    6266792,
+    6226916,
+    6137583,
+    6161292,
+    6366833,
+    6036417
+  ],
+  "scalar_median_nanoseconds": 71255000,
+  "vectorized_median_nanoseconds": 6226916,
+  "speedup": 11.443064271302198,
+  "output_sha256": "4bd4a182d597cd9357731272cbd8a7f54b7e4b68607567eb0c6ad3b25a80efe7",
+  "digest_match": true,
+  "promotion_threshold": 1.05,
+  "promotion_passed": true
+}

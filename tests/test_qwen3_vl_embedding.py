@@ -16,8 +16,8 @@ from vllm_apple.execution import ExecutionBackend, WorkloadPhase
 from vllm_apple.qwen3_vl_ane import Qwen3VLVisionANEAdapterSpec
 from vllm_apple.qwen3_vl_coreml import Qwen3VLCoreMLConversionManifest
 from vllm_apple.qwen3_vl_embedding import (
-    Qwen3VLCoreMLPipelineOutput,
     Qwen3VLANEGPUPipeline,
+    Qwen3VLCoreMLPipelineOutput,
     Qwen3VLVisionEmbeddingBundle,
     build_vllm_metal_qwen3_vl_encode_result,
     validate_qwen3_vl_vision_embeddings,

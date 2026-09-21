@@ -16,7 +16,6 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import BinaryIO, Sequence
 
-
 MAX_RESPONSE_BYTES = 4 * 1024 * 1024
 MIN_STABILITY_SECONDS = 30 * 60
 LATENCY_BUCKETS_MS = (5, 10, 25, 50, 100, 250, 500, 1_000, 2_500, 5_000, 10_000)

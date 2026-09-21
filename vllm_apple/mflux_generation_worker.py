@@ -14,10 +14,10 @@ from .diffusers_generation_worker import (
     GeneratedImageArtifact,
     default_worker_telemetry,
     execute_local_image_request,
+    load_private_input_image,
 )
 from .generative_collector import GenerationTelemetryEvent
 from .generative_worker_protocol import consume_private_generative_request
-
 
 _MFLUX_RUNTIME_CLASSES = {
     "z-image-turbo-mlx-4bit": "ZImageTurbo",
@@ -64,14 +64,34 @@ class LocalMFluxImageRuntime:
             config = model_config.qwen_image()
 
         model = model_type(model_config=config, model_path=str(model_root))
+        private_source = None
         try:
             progress()
+            generation_arguments = {}
+            if request.get("mode") == "image-edit":
+                source = load_private_input_image(request, self._module_loader)
+                descriptor, temporary = tempfile.mkstemp(
+                    prefix=f"source-{request['sample_index']}-",
+                    suffix=".png",
+                    dir=output_root,
+                )
+                os.fchmod(descriptor, 0o600)
+                os.close(descriptor)
+                private_source = Path(temporary)
+                try:
+                    source.save(private_source, format="PNG")
+                finally:
+                    close = getattr(source, "close", None)
+                    if callable(close):
+                        close()
+                generation_arguments["image_path"] = private_source
             image = model.generate_image(
                 prompt=request["prompt"],
                 seed=request["seed"],
                 num_inference_steps=request["steps"],
                 width=request["width"],
                 height=request["height"],
+                **generation_arguments,
             )
             descriptor, temporary = tempfile.mkstemp(
                 prefix=f"qualification-{request['sample_index']}-",
@@ -88,6 +108,8 @@ class LocalMFluxImageRuntime:
                 raise
             return GeneratedImageArtifact(output, int(request["width"]), int(request["height"]))
         finally:
+            if private_source is not None:
+                private_source.unlink(missing_ok=True)
             del model
 
 

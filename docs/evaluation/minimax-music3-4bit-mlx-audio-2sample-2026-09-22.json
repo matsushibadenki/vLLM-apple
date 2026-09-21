@@ -1,0 +1,75 @@
+{
+  "admission": {
+    "available_bytes": 19487752192,
+    "memory_pressure": "normal",
+    "minimum_available_bytes": 14000000000,
+    "thermal_state": "nominal"
+  },
+  "backend_version": "0.5.4",
+  "model_license": "minimax-music3-community-license",
+  "model_revision": "c7ea32923b245fe5afc22d740a1936ad2ac590f3",
+  "passed": true,
+  "private_cleanup_verified": true,
+  "quantization": {
+    "bits": 4,
+    "group_size": 64,
+    "mode": "affine"
+  },
+  "sample_count": 2,
+  "samples": [
+    {
+      "backend": "mlx-audio-minimax-music3",
+      "backend_version": "0.5.4",
+      "channels": 2,
+      "duration_seconds": 4.992290249433107,
+      "frames": 220160,
+      "kind": "music",
+      "memory_pressure": "normal",
+      "output_bytes": 880684,
+      "output_sha256": "dea955dbec62219377f08f85be96c916b74a86c6c98d7531d7eac5f2fbe3a1d4",
+      "passed": true,
+      "peak_rss_bytes": 8674295808,
+      "private_cleanup_verified": true,
+      "prompt_sha256": "0d3eb1a30b7b947c69487191dd0010d74ac43997bf29f3629dda06126d769040",
+      "sample_rate": 44100,
+      "schema_version": 1,
+      "scope": "audio_generation_qualification",
+      "seed": 7,
+      "stores_output": false,
+      "stores_prompt": false,
+      "thermal_state": "nominal",
+      "wall_time_seconds": 30.672513500001514
+    },
+    {
+      "backend": "mlx-audio-minimax-music3",
+      "backend_version": "0.5.4",
+      "channels": 2,
+      "duration_seconds": 4.992290249433107,
+      "frames": 220160,
+      "kind": "music",
+      "memory_pressure": "normal",
+      "output_bytes": 880684,
+      "output_sha256": "3930fbb7caddfe12f3db351e020f59a60db5d9e1f35e0df797f1e4f7a44bd784",
+      "passed": true,
+      "peak_rss_bytes": 9789440000,
+      "private_cleanup_verified": true,
+      "prompt_sha256": "4b0cbb9ba350fc2ecbad5153c315919b566762844b8e0ab157cafbd194f25b70",
+      "sample_rate": 44100,
+      "schema_version": 1,
+      "scope": "audio_generation_qualification",
+      "seed": 8,
+      "stores_output": false,
+      "stores_prompt": false,
+      "thermal_state": "nominal",
+      "wall_time_seconds": 31.440798124996945
+    }
+  ],
+  "schema_version": 1,
+  "scope": "minimax_music3_mlx_audio_qualification",
+  "stores_output": false,
+  "stores_prompt": false,
+  "weight_sha256": {
+    "model-00001-of-00002.safetensors": "d660e5da8b62092edf101cb661ba66cbb1efefad71ac3496a96f8eff8e94225b",
+    "model-00002-of-00002.safetensors": "156e2ef0cc941103da98537c90d1695f1b77330c72f806649fa0ecf1cdc2d048"
+  }
+}

@@ -8,7 +8,6 @@ from .backend_engine import BackendEngineRegistry, BackendEngineRequest, Backend
 from .execution import WorkloadPhase
 from .inference_request import InferenceRequestContext
 
-
 MAX_OPERATOR_GRAPH_NODES = 64
 MAX_OPERATOR_GRAPH_EDGES = 256
 MAX_OPERATOR_SYNC_NANOSECONDS = 60_000_000_000

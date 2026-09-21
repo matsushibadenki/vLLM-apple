@@ -1,19 +1,18 @@
 """Versioned exchange contract for isolated CPU/GPU/ANE backend engines."""
 from __future__ import annotations
 
-from dataclasses import dataclass
 import threading
+from dataclasses import dataclass
 from typing import Generic, Protocol, TypeVar
 
 from .execution import ExecutionBackend, WorkloadPhase
-from .inference_request import InferenceRequestContext
 from .fault_injection import (
     DeterministicFaultInjector,
     FaultAction,
     FaultPoint,
     InjectedFault,
 )
-
+from .inference_request import InferenceRequestContext
 
 BACKEND_ENGINE_SCHEMA_VERSION = 1
 MAX_BACKEND_METADATA_VALUES = 128

@@ -1,13 +1,12 @@
 """Deterministic age/pressure policy for backend-owned inference state."""
 from __future__ import annotations
 
+import threading
 from dataclasses import dataclass
 from enum import Enum
-import threading
 from typing import Protocol
 
 from .types import MemoryPressure
-
 
 MAX_STATE_RECORDS = 65_536
 _PRECISION_BYTES = {"fp32": 4, "bf16": 2, "fp16": 2, "int8": 1}
@@ -19,6 +18,7 @@ class AdaptiveStateKind(str, Enum):
     PREFIX = "prefix"
     ATTENTION_WINDOW = "attention_window"
     EXPERT = "expert"
+    WORKSPACE = "workspace"
 
 
 @dataclass(frozen=True, slots=True)

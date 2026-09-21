@@ -8,7 +8,6 @@ from typing import Generic, Protocol, TypeVar
 from .video_cache import VideoArtifactCache, VideoCacheKey, VideoCacheKind
 from .video_temporal_sampler import TemporalVideoFrame, sample_temporal_frames
 
-
 T = TypeVar("T")
 E = TypeVar("E")
 

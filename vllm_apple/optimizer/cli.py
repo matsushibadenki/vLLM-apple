@@ -4,6 +4,7 @@ import argparse
 import json
 import math
 import shutil
+import signal
 import sys
 from pathlib import Path
 
@@ -18,6 +19,7 @@ from .adapters import (
     persist_artifact_manifest,
 )
 from .checkpoint import CheckpointLeaseError, CheckpointStore
+from .correctness_regression import evaluate_real_model_regression
 from .errors import OptimizerErrorCode, OptimizerFailure, Recoverability
 from .evaluation import (
     compare_perplexity_reports,
@@ -70,6 +72,7 @@ def build_parser() -> argparse.ArgumentParser:
     export.add_argument("--manifest-output", type=Path)
     export.add_argument("--license")
     export.add_argument("--timeout-seconds", type=float)
+    export.add_argument("--event-output", type=Path)
     export.add_argument("--resume", action="store_true")
     export.add_argument("--execute", action="store_true")
     evaluate = commands.add_parser(
@@ -126,6 +129,17 @@ def build_parser() -> argparse.ArgumentParser:
         required=True,
     )
     generation_gate.add_argument("--output", type=Path)
+    regression = commands.add_parser(
+        "correctness-regression",
+        help="gate repeated multilingual real-model generation reports",
+    )
+    regression.add_argument("--baseline", type=Path, required=True)
+    regression.add_argument("--candidate", type=Path, action="append", required=True)
+    regression.add_argument("--min-token-agreement", type=float, required=True)
+    regression.add_argument("--max-expectation-regression", type=float, required=True)
+    regression.add_argument("--max-latency-regression", type=float, required=True)
+    regression.add_argument("--max-rss-regression", type=float, required=True)
+    regression.add_argument("--output", type=Path)
     return parser
 
 
@@ -153,6 +167,20 @@ def main(argv: list[str] | None = None) -> int:
                 candidate,
                 minimum_token_agreement=arguments.min_token_agreement,
                 maximum_expectation_regression=arguments.max_expectation_regression,
+            )
+            payload = report.to_dict()
+            if arguments.output is not None:
+                persist_evaluation_report(payload, arguments.output)
+            print(json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True))
+            return 0 if report.approved else 1
+        if arguments.command == "correctness-regression":
+            report = evaluate_real_model_regression(
+                load_generation_report(arguments.baseline),
+                tuple(load_generation_report(path) for path in arguments.candidate),
+                minimum_token_agreement=arguments.min_token_agreement,
+                maximum_expectation_regression=arguments.max_expectation_regression,
+                maximum_latency_regression=arguments.max_latency_regression,
+                maximum_rss_regression=arguments.max_rss_regression,
             )
             payload = report.to_dict()
             if arguments.output is not None:
@@ -223,16 +251,43 @@ def main(argv: list[str] | None = None) -> int:
                     )
                 )
                 return 0
-            from .worker import IsolatedConversionWorker
+            from .events import OptimizerEventJournal
+            from .worker import CancellationToken, IsolatedConversionWorker, PauseToken
 
-            result = adapter.execute_export(
-                invocation,
-                plan_id=arguments.plan_id,
-                worker=IsolatedConversionWorker(),
-                checkpoint_store=CheckpointStore(arguments.checkpoint_root),
-                resume=arguments.resume,
-                timeout_seconds=arguments.timeout_seconds,
+            cancellation = CancellationToken()
+            pause = PauseToken()
+            journal = (
+                OptimizerEventJournal(str(arguments.event_output))
+                if arguments.event_output is not None
+                else None
             )
+            previous_handlers = {
+                member: signal.getsignal(member) for member in (signal.SIGINT, signal.SIGTERM)
+            }
+            for member in previous_handlers:
+                signal.signal(member, lambda _signum, _frame: cancellation.cancel())
+            pause_signals = (signal.SIGUSR1, signal.SIGUSR2)
+            previous_pause_handlers = {member: signal.getsignal(member) for member in pause_signals}
+            signal.signal(signal.SIGUSR1, lambda _signum, _frame: pause.pause())
+            signal.signal(signal.SIGUSR2, lambda _signum, _frame: pause.resume())
+            try:
+                result = adapter.execute_export(
+                    invocation,
+                    plan_id=arguments.plan_id,
+                    worker=IsolatedConversionWorker(events=journal),
+                    checkpoint_store=CheckpointStore(arguments.checkpoint_root),
+                    resume=arguments.resume,
+                    cancellation=cancellation,
+                    pause=pause,
+                    timeout_seconds=arguments.timeout_seconds,
+                )
+            finally:
+                if journal is not None:
+                    journal.close()
+                for member, handler in previous_handlers.items():
+                    signal.signal(member, handler)
+                for member, handler in previous_pause_handlers.items():
+                    signal.signal(member, handler)
             if result.state.value != "completed":
                 print(json.dumps(result.to_dict(), ensure_ascii=False, indent=2, sort_keys=True))
                 return 1

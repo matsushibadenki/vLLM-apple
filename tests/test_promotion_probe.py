@@ -1,5 +1,5 @@
-import json
 import io
+import json
 import unittest
 from pathlib import Path
 
@@ -7,9 +7,9 @@ from tests.schema_validator import validate_instance
 from vllm_apple.promotion_probe import (
     PromotionProbeConfig,
     PromotionResponse,
+    _read_stream,
     run_serving_promotion_probe,
 )
-from vllm_apple.promotion_probe import _read_stream
 
 
 class PromotionProbeTests(unittest.TestCase):

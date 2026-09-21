@@ -4,6 +4,8 @@ from .adapters import (
     AdapterCapabilityReport,
     AdapterRegistry,
     AdapterUnavailableError,
+    GGUFExportInvocation,
+    GGUFOptimizationAdapter,
     MLXExportInvocation,
     MLXExportReport,
     MLXOptimizationAdapter,
@@ -11,7 +13,12 @@ from .adapters import (
     builtin_adapter_registry,
     persist_artifact_manifest,
 )
-from .errors import OptimizerErrorCode, OptimizerFailure, Recoverability
+from .candidate_selection import (
+    CandidateComparisonReport,
+    CandidateEvidence,
+    CandidateRanking,
+    compare_candidates,
+)
 from .checkpoint import (
     CheckpointError,
     CheckpointLease,
@@ -23,13 +30,12 @@ from .checkpoint import (
     decide_resume,
     execution_fingerprint,
 )
-from .candidate_selection import (
-    CandidateComparisonReport,
-    CandidateEvidence,
-    CandidateRanking,
-    compare_candidates,
+from .correctness_regression import (
+    CorrectnessRegressionRun,
+    RealModelCorrectnessRegressionReport,
+    evaluate_real_model_regression,
 )
-from .events import OptimizerEvent, OptimizerEventBus, OptimizerState
+from .errors import OptimizerErrorCode, OptimizerFailure, Recoverability
 from .evaluation import (
     PerplexityEvaluationReport,
     PerplexitySlice,
@@ -39,6 +45,7 @@ from .evaluation import (
     load_perplexity_report,
     persist_evaluation_report,
 )
+from .events import OptimizerEvent, OptimizerEventBus, OptimizerEventJournal, OptimizerState
 from .generation_evaluation import (
     GenerationEvaluationReport,
     GenerationGateSample,
@@ -50,6 +57,14 @@ from .generation_evaluation import (
 )
 from .planner import build_dry_run_plan
 from .profiler import OptimizationPerformanceProfile, profile_optimizer_io
+from .repair import (
+    RepairAdapter,
+    RepairArtifact,
+    RepairEvaluation,
+    RepairMethod,
+    RepairRequest,
+    run_repair_and_evaluate,
+)
 from .safety import OptimizationPathError, validate_immutable_output_path
 from .types import (
     ArtifactManifest,
@@ -66,6 +81,7 @@ from .worker import (
     ArtifactValidationError,
     CancellationToken,
     IsolatedConversionWorker,
+    PauseToken,
     WorkerResult,
 )
 
@@ -80,6 +96,7 @@ __all__ = [
     "ArtifactValidationError",
     "CalibrationManifest",
     "CancellationToken",
+    "PauseToken",
     "CandidateComparisonReport",
     "CandidateEvidence",
     "CandidateRanking",
@@ -89,10 +106,13 @@ __all__ = [
     "CheckpointManifest",
     "CheckpointStage",
     "CheckpointStore",
+    "CorrectnessRegressionRun",
     "GenerationEvaluationReport",
     "GenerationGateSample",
     "GenerationQualityGateReport",
     "GenerationSampleResult",
+    "GGUFExportInvocation",
+    "GGUFOptimizationAdapter",
     "IsolatedConversionWorker",
     "MLXExportInvocation",
     "MLXExportReport",
@@ -108,16 +128,23 @@ __all__ = [
     "OptimizerErrorCode",
     "OptimizerEvent",
     "OptimizerEventBus",
+    "OptimizerEventJournal",
     "OptimizerFailure",
     "OptimizerState",
     "QualityBudget",
     "QualityGateReport",
     "QualityGateSlice",
     "Recoverability",
+    "RealModelCorrectnessRegressionReport",
     "ResourceBudget",
     "ResumeAction",
     "SourceModel",
     "WorkerResult",
+    "RepairAdapter",
+    "RepairArtifact",
+    "RepairEvaluation",
+    "RepairMethod",
+    "RepairRequest",
     "build_dry_run_plan",
     "builtin_adapter_registry",
     "compare_perplexity_reports",
@@ -125,6 +152,7 @@ __all__ = [
     "compare_generation_reports",
     "decide_resume",
     "execution_fingerprint",
+    "evaluate_real_model_regression",
     "load_perplexity_report",
     "load_generation_report",
     "profile_optimizer_io",
@@ -132,4 +160,5 @@ __all__ = [
     "persist_evaluation_report",
     "generation_token_fingerprint",
     "validate_immutable_output_path",
+    "run_repair_and_evaluate",
 ]

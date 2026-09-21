@@ -1,5 +1,5 @@
-import plistlib
 import os
+import plistlib
 import subprocess
 import tempfile
 import unittest

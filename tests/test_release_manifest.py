@@ -6,15 +6,15 @@ import unittest
 import zipfile
 from pathlib import Path
 
+from tests.schema_validator import validate_instance
 from vllm_apple.release_manifest import (
-    INFO_PLIST,
     EXPECTED_COMPONENTS,
+    INFO_PLIST,
     ReleaseManifestError,
     build_release_manifest,
     save_release_manifest,
     verify_release_manifest,
 )
-from schema_validator import validate_instance
 
 
 class ReleaseManifestTests(unittest.TestCase):

@@ -8,7 +8,6 @@ import statistics
 from dataclasses import asdict, dataclass
 from enum import Enum
 
-
 MAX_WORKLOAD_SAMPLES = 256
 
 

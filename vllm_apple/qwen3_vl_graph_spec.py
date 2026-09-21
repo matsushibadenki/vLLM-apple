@@ -12,7 +12,6 @@ from pathlib import Path
 from .qwen3_vl_ane import Qwen3VLVisionANEAdapterSpec
 from .qwen3_vl_conversion_plan import Qwen3VLCoreMLConversionPlan
 
-
 MAX_STAGING_MANIFEST_BYTES = 2 * 1024 * 1024
 
 

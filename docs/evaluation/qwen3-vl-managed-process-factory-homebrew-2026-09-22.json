@@ -1,0 +1,119 @@
+{
+  "active_timeout_code": "request_cancelled",
+  "active_timeout_status": 408,
+  "active_timeout_verified": true,
+  "backpressure_results": [
+    [
+      503,
+      "engine_busy"
+    ],
+    [
+      200,
+      null
+    ],
+    [
+      200,
+      null
+    ]
+  ],
+  "backpressure_verified": true,
+  "cases": [
+    {
+      "label": "circle",
+      "language": "en",
+      "request_index": 0,
+      "sha256": "2736a3eb08b35c5e59d707b3ada56b746c82237f39f286ee4f7c4c9b420570e9",
+      "task": "shape",
+      "task_correct": true
+    },
+    {
+      "label": "circle",
+      "language": "ja",
+      "request_index": 0,
+      "sha256": "10c5e150cb9402ede462a1ed9ad15eeddefb68be10872c9a84bce75736b5a016",
+      "task": "shape",
+      "task_correct": true
+    },
+    {
+      "label": "circle",
+      "language": "zh-Hans",
+      "request_index": 0,
+      "sha256": "82d06faea185a02c3118f679b41a83c488f22b52088f044d02a72fdde953742c",
+      "task": "shape",
+      "task_correct": true
+    },
+    {
+      "label": "house",
+      "language": "en",
+      "request_index": 1,
+      "sha256": "d6e21286621a8586f7e54720ab5a39c93acc2f4b8fba7a16ec1c24d69a08c613",
+      "task": "object",
+      "task_correct": true
+    },
+    {
+      "label": "house",
+      "language": "ja",
+      "request_index": 1,
+      "sha256": "c8ae97be80f3867c089e1c9ffa2d7cd62a6f26055fe67be3ad7ab9a6e7131da7",
+      "task": "object",
+      "task_correct": true
+    },
+    {
+      "label": "house",
+      "language": "zh-Hans",
+      "request_index": 1,
+      "sha256": "a38b0657f4edcfea1d3b847a48b3a0dda2232506742986eb8aeaf1df318caf86",
+      "task": "object",
+      "task_correct": true
+    },
+    {
+      "label": "APPLE",
+      "language": "en",
+      "request_index": 2,
+      "sha256": "55562347f437d65829303cf6307e71acf8b84a020989dd218f31586eeafd01a9",
+      "task": "ocr",
+      "task_correct": true
+    },
+    {
+      "label": "APPLE",
+      "language": "ja",
+      "request_index": 2,
+      "sha256": "55562347f437d65829303cf6307e71acf8b84a020989dd218f31586eeafd01a9",
+      "task": "ocr",
+      "task_correct": true
+    },
+    {
+      "label": "APPLE",
+      "language": "zh-Hans",
+      "request_index": 2,
+      "sha256": "55562347f437d65829303cf6307e71acf8b84a020989dd218f31586eeafd01a9",
+      "task": "ocr",
+      "task_correct": true
+    }
+  ],
+  "client_disconnect_verified": true,
+  "model_process_main_thread": true,
+  "passed": true,
+  "post_cancel_recovery_verified": true,
+  "request_count": 9,
+  "resources_after_completion": {
+    "ane_tasks": 0,
+    "bandwidth_slots": 0,
+    "cpu_threads": 0,
+    "gpu_command_queues": 0,
+    "unified_memory_bytes": 0
+  },
+  "schema_version": 1,
+  "scope": "qwen3_vl_managed_persistent_http",
+  "server_request_metrics": {
+    "active_requests": 0,
+    "completed_requests": 15,
+    "peak_active_requests": 3,
+    "rejected_requests": 0
+  },
+  "shutdown_clean": true,
+  "stores_output": false,
+  "stores_prompt": false,
+  "temporary_cleanup_verified": true,
+  "worker_restart_count": 0
+}

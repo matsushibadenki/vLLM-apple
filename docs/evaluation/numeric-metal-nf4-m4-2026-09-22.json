@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "device": "Apple M4",
+  "sample_count": 7,
+  "report_id": "3924a5ec24c7fb9be8cc0660f1a9ec091831c6187b61a74af8eb46ed6f5d78d0",
+  "correctness": {
+    "packed_u4_all_codes_match": true,
+    "fused_matches_cpu_reference": true,
+    "two_pass_matches_cpu_reference": true
+  },
+  "reports": [
+    {
+      "operator": "nf4_decode_gemv_two_pass",
+      "nanoseconds": [216167, 220792, 234833, 234292, 232834, 232459, 214667],
+      "median_nanoseconds": 232459,
+      "work_items": 65536,
+      "bytes": 559104,
+      "output_digest": "06dee83b4261b98f9aebb94ab762ccd96e8e4acb0eacce84324dc4a14dd27fca"
+    },
+    {
+      "operator": "nf4_gemv_fused",
+      "nanoseconds": [371167, 313125, 306916, 386167, 259000, 258000, 255916],
+      "median_nanoseconds": 306916,
+      "work_items": 65536,
+      "bytes": 34816,
+      "output_digest": "757278e6432af6dbb85819612825faf42a933481035bb8d055445f0162bec87b"
+    },
+    {
+      "operator": "packed_u4_unpack",
+      "nanoseconds": [229583, 195667, 196500, 189292, 194958, 194083, 196000],
+      "median_nanoseconds": 195667,
+      "work_items": 65536,
+      "bytes": 294912,
+      "output_digest": "893fad2b37737d058ed0d7bb6dc3ee717e5924ba0ee800da121413998d7ecd2f"
+    }
+  ],
+  "fused_speedup_over_two_pass": 0.7574003095267059,
+  "promotion_threshold": 1.05,
+  "promotion_passed": false,
+  "decision": "retain_two_pass_metal_route"
+}

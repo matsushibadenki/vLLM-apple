@@ -12,7 +12,6 @@ from pathlib import Path
 
 from .qwen4_runtime_protocol import MAX_RUNTIME_MESSAGE_BYTES, Qwen4RuntimeCommandService
 
-
 MAX_COMMANDS_PER_CONNECTION = 1024
 
 

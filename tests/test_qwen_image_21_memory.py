@@ -1,6 +1,8 @@
 import unittest
 
 from vllm_apple.qwen_image_21_memory import (
+    QWEN_IMAGE_21_GROUP_OFFLOAD_EMPIRICAL_PEAK_BYTES,
+    QWEN_IMAGE_21_IMAGE_EDIT_EMPIRICAL_PEAK_BYTES,
     QWEN_IMAGE_21_PHASE_MARGIN_BYTES,
     estimate_qwen_image_21_resident_bytes,
 )
@@ -45,7 +47,8 @@ class QwenImage21MemoryTests(unittest.TestCase):
             estimate_qwen_image_21_resident_bytes(
                 artifact, width=512, height=512, component_staged=True
             ),
-            25_500 + QWEN_IMAGE_21_PHASE_MARGIN_BYTES + 512 * 512 * 16,
+            QWEN_IMAGE_21_GROUP_OFFLOAD_EMPIRICAL_PEAK_BYTES
+            + QWEN_IMAGE_21_PHASE_MARGIN_BYTES,
         )
 
     def test_component_staged_estimate_rejects_overlapping_components(self) -> None:
@@ -61,6 +64,27 @@ class QwenImage21MemoryTests(unittest.TestCase):
             estimate_qwen_image_21_resident_bytes(
                 artifact, width=1, height=1, component_staged=True
             )
+
+    def test_image_edit_estimate_includes_empirical_peak_and_margin(self) -> None:
+        artifact = {
+            "artifact_bytes": 32_000,
+            "components": [
+                {"role": "denoiser", "artifact_bytes": 14_000},
+                {"role": "text_encoder", "artifact_bytes": 15_000},
+                {"role": "vae", "artifact_bytes": 1_000},
+            ],
+        }
+        self.assertEqual(
+            estimate_qwen_image_21_resident_bytes(
+                artifact,
+                width=512,
+                height=512,
+                component_staged=True,
+                image_edit=True,
+            ),
+            QWEN_IMAGE_21_IMAGE_EDIT_EMPIRICAL_PEAK_BYTES
+            + QWEN_IMAGE_21_PHASE_MARGIN_BYTES,
+        )
 
     def test_estimate_rejects_non_unit_batch(self) -> None:
         with self.assertRaisesRegex(ValueError, "batch size 1"):

@@ -5,6 +5,7 @@ import json
 import math
 import os
 import platform
+import re
 import stat
 import sys
 import tempfile
@@ -16,11 +17,11 @@ from typing import TYPE_CHECKING, Callable, Iterable, Protocol
 
 from ..model import InspectedModel
 from .safety import validate_immutable_output_path
-from .types import ArtifactManifest, OPTIMIZER_SCHEMA_VERSION
+from .types import OPTIMIZER_SCHEMA_VERSION, ArtifactManifest
 
 if TYPE_CHECKING:
     from .checkpoint import CheckpointStore
-    from .worker import CancellationToken, IsolatedConversionWorker, WorkerResult
+    from .worker import CancellationToken, IsolatedConversionWorker, PauseToken, WorkerResult
 
 
 ADAPTER_API_VERSION = 1
@@ -112,6 +113,53 @@ class MLXExportReport:
             "artifact_manifest": self.artifact_manifest.to_dict(),
             "manifest_path": self.manifest_path,
         }
+
+
+@dataclass(frozen=True, slots=True)
+class GGUFExportInvocation:
+    adapter_id: str
+    adapter_api_version: int
+    implementation_version: str
+    converter_version: str
+    source_path: str
+    output_path: str
+    source_fingerprint: str
+    output_type: str
+    estimated_output_bytes: int
+    maximum_output_bytes: int
+    command: tuple[str, ...]
+
+    def __post_init__(self) -> None:
+        if (
+            self.adapter_id != "builtin.llama-cpp-gguf"
+            or self.adapter_api_version != ADAPTER_API_VERSION
+            or self.implementation_version != "1.0.0"
+            or not re.fullmatch(r"b[0-9]{4,6}", self.converter_version)
+        ):
+            raise ValueError("invalid GGUF export adapter identity")
+        if not Path(self.source_path).is_absolute() or not Path(self.output_path).is_absolute():
+            raise ValueError("GGUF export paths must be absolute")
+        if len(self.source_fingerprint) != 64 or any(
+            character not in "0123456789abcdef" for character in self.source_fingerprint
+        ):
+            raise ValueError("invalid GGUF export source fingerprint")
+        if self.output_type not in {"f16", "bf16", "q8_0"}:
+            raise ValueError("unsupported GGUF output type")
+        if any(
+            not isinstance(value, int) or isinstance(value, bool)
+            for value in (self.estimated_output_bytes, self.maximum_output_bytes)
+        ) or self.estimated_output_bytes <= 0:
+            raise ValueError("GGUF export byte budgets must be positive integers")
+        if self.maximum_output_bytes < self.estimated_output_bytes:
+            raise ValueError("GGUF export byte budget is below the conservative estimate")
+        if not self.command or len(self.command) > 16 or any(not value for value in self.command):
+            raise ValueError("invalid GGUF export command")
+
+    def to_dict(self) -> dict[str, object]:
+        payload = asdict(self)
+        payload["schema_version"] = OPTIMIZER_SCHEMA_VERSION
+        payload["command"] = list(self.command)
+        return payload
 
 
 @dataclass(frozen=True, slots=True)
@@ -335,6 +383,7 @@ class MLXOptimizationAdapter:
         checkpoint_store: "CheckpointStore",
         resume: bool = False,
         cancellation: "CancellationToken | None" = None,
+        pause: "PauseToken | None" = None,
         timeout_seconds: float | None = None,
     ) -> "WorkerResult":
         if invocation.adapter_id != self.adapter_id:
@@ -349,6 +398,7 @@ class MLXOptimizationAdapter:
             checkpoint_store=checkpoint_store,
             resume=resume,
             cancellation=cancellation,
+            pause=pause,
             timeout_seconds=timeout_seconds,
             produced_subdirectory="mlx-output",
         )
@@ -391,6 +441,193 @@ class MLXOptimizationAdapter:
         )
 
 
+class GGUFOptimizationAdapter:
+    """Version-gated llama.cpp Hugging Face to GGUF exporter.
+
+    The converter path and its reported build version are explicit inputs.  Detection
+    never imports llama.cpp code or executes an untrusted model repository.
+    """
+
+    adapter_id = "builtin.llama-cpp-gguf"
+    implementation_version = "1.0.0"
+    _source_formats = ("safetensors",)
+    _source_dtypes = ("float16", "bfloat16", "float32")
+    _output_types = {"f16": 16, "bf16": 16, "q8_0": 8}
+
+    def __init__(
+        self,
+        converter_path: Path | None = None,
+        converter_version: str | None = None,
+        *,
+        python_executable: str | None = None,
+        supported_converter_versions: tuple[str, ...] = (),
+    ) -> None:
+        if len(supported_converter_versions) > 32 or any(
+            not re.fullmatch(r"b[0-9]{4,6}", version)
+            for version in supported_converter_versions
+        ):
+            raise ValueError("invalid GGUF converter version allowlist")
+        self._converter_path = converter_path
+        self._converter_version = converter_version
+        self._python_executable = python_executable or sys.executable
+        self._supported_converter_versions = frozenset(supported_converter_versions)
+
+    def detect(
+        self,
+        model: InspectedModel,
+        source_format: str,
+        source_dtype: str,
+    ) -> AdapterCapability:
+        del model
+        issues: list[str] = []
+        converter = self._validated_converter(issues)
+        version = self._converter_version
+        if version is None:
+            issues.append("dependency_version_missing:llama.cpp")
+        elif (
+            not re.fullmatch(r"b[0-9]{4,6}", version)
+            or version not in self._supported_converter_versions
+        ):
+            issues.append(f"dependency_version_unsupported:llama.cpp:{version}")
+        python_path = Path(self._python_executable).expanduser()
+        if not python_path.is_file() or not os.access(python_path, os.X_OK):
+            issues.append("python_executable_unavailable")
+        if source_format not in self._source_formats:
+            issues.append(f"source_format_unsupported:{source_format}")
+        if source_dtype not in self._source_dtypes:
+            issues.append(f"source_dtype_unsupported:{source_dtype}")
+        available = converter is not None and version is not None
+        model_compatible = (
+            source_format in self._source_formats and source_dtype in self._source_dtypes
+        )
+        executable = available and model_compatible and not issues
+        return AdapterCapability(
+            adapter_id=self.adapter_id,
+            adapter_api_version=ADAPTER_API_VERSION,
+            implementation_version=self.implementation_version,
+            available=available,
+            compatible=executable,
+            executable=executable,
+            operations=("export_model", "quantize_weights"),
+            source_formats=self._source_formats,
+            output_formats=("gguf",),
+            weight_bits=(8, 16),
+            dependency_versions={"llama.cpp": version},
+            issues=tuple(issues),
+        )
+
+    def build_export_invocation(
+        self,
+        model: InspectedModel,
+        output_path: Path,
+        *,
+        output_type: str,
+        maximum_output_bytes: int,
+        allow_existing_output: bool = False,
+        require_executable: bool = True,
+    ) -> GGUFExportInvocation:
+        capability = self.detect(
+            model,
+            detect_source_format(model.path),
+            detect_source_dtype(model),
+        )
+        if require_executable and not capability.executable:
+            raise AdapterUnavailableError(",".join(capability.issues) or "adapter_not_executable")
+        if output_type not in self._output_types:
+            raise ValueError("unsupported GGUF output type")
+        if not isinstance(maximum_output_bytes, int) or isinstance(maximum_output_bytes, bool):
+            raise ValueError("maximum output bytes must be an integer")
+        converter_issues: list[str] = []
+        converter = self._validated_converter(converter_issues)
+        if converter is None:
+            raise AdapterUnavailableError(",".join(converter_issues) or "converter_unavailable")
+        version = self._converter_version
+        if (
+            version is None
+            or not re.fullmatch(r"b[0-9]{4,6}", version)
+            or version not in self._supported_converter_versions
+        ):
+            raise AdapterUnavailableError("dependency_version_unsupported:llama.cpp")
+        source = model.path.expanduser().resolve(strict=True)
+        safe_output = _validated_export_output(
+            source,
+            output_path,
+            allow_existing=allow_existing_output,
+        )
+        bits = self._output_types[output_type]
+        overhead = 1.10 if bits == 16 else 1.20
+        estimated = math.ceil(model.memory_spec.weights_bytes * bits / 16 * overhead)
+        if maximum_output_bytes < estimated:
+            raise ValueError("maximum output bytes are below the conservative export estimate")
+        command = (
+            str(Path(self._python_executable).expanduser().absolute()),
+            str(converter),
+            str(source),
+            "--outfile",
+            "model.gguf",
+            "--outtype",
+            output_type,
+        )
+        return GGUFExportInvocation(
+            adapter_id=self.adapter_id,
+            adapter_api_version=ADAPTER_API_VERSION,
+            implementation_version=self.implementation_version,
+            converter_version=version,
+            source_path=str(source),
+            output_path=str(safe_output),
+            source_fingerprint=fingerprint_model_snapshot(model),
+            output_type=output_type,
+            estimated_output_bytes=estimated,
+            maximum_output_bytes=maximum_output_bytes,
+            command=command,
+        )
+
+    def execute_export(
+        self,
+        invocation: GGUFExportInvocation,
+        *,
+        plan_id: str,
+        worker: "IsolatedConversionWorker",
+        checkpoint_store: "CheckpointStore",
+        resume: bool = False,
+        cancellation: "CancellationToken | None" = None,
+        timeout_seconds: float | None = None,
+    ) -> "WorkerResult":
+        if invocation.adapter_id != self.adapter_id:
+            raise ValueError("export invocation belongs to another adapter")
+        return worker.run(
+            plan_id=plan_id,
+            source=Path(invocation.source_path),
+            source_fingerprint=invocation.source_fingerprint,
+            output=Path(invocation.output_path),
+            command=invocation.command,
+            maximum_output_bytes=invocation.maximum_output_bytes,
+            checkpoint_store=checkpoint_store,
+            resume=resume,
+            cancellation=cancellation,
+            timeout_seconds=timeout_seconds,
+        )
+
+    def _validated_converter(self, issues: list[str]) -> Path | None:
+        if self._converter_path is None:
+            issues.append("dependency_missing:llama.cpp-convert-hf-to-gguf")
+            return None
+        path = self._converter_path.expanduser().absolute()
+        try:
+            info = path.lstat()
+        except OSError:
+            issues.append("converter_unavailable")
+            return None
+        if (
+            not stat.S_ISREG(info.st_mode)
+            or info.st_uid != os.getuid()
+            or stat.S_IMODE(info.st_mode) & 0o022
+        ):
+            issues.append("converter_path_unsafe")
+            return None
+        return path.resolve(strict=True)
+
+
 class AdapterRegistry:
     def __init__(self, adapters: Iterable[OptimizationAdapter]) -> None:
         registered = tuple(adapters)
@@ -419,7 +656,7 @@ class AdapterRegistry:
 
 
 def builtin_adapter_registry() -> AdapterRegistry:
-    return AdapterRegistry((MLXOptimizationAdapter(),))
+    return AdapterRegistry((MLXOptimizationAdapter(), GGUFOptimizationAdapter()))
 
 
 def detect_source_format(model_path: Path) -> str:

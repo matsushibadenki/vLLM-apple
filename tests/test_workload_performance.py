@@ -7,7 +7,6 @@ from vllm_apple.workload_performance import (
     evaluate_end_to_end_promotion,
 )
 
-
 DIGEST = "a" * 64
 
 

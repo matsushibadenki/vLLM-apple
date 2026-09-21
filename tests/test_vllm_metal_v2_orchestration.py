@@ -1,12 +1,13 @@
 from __future__ import annotations
 
-import threading
 import tempfile
+import threading
 import unittest
 from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import Mock, patch
 
+from tests.test_scheduler import hardware
 from vllm_apple.daemon import configure_native_v2_restore, start_observed_native_v2_tuning
 from vllm_apple.scheduler import BasicScheduler, MaintenanceInProgressError, ScheduleRequest
 from vllm_apple.service import RuntimeService
@@ -24,8 +25,6 @@ from vllm_apple.vllm_metal_v2_tuning import (
     build_v2_tuning_profile,
     save_v2_tuning_profile,
 )
-
-from tests.test_scheduler import hardware
 
 
 def profile():

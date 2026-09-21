@@ -1,17 +1,21 @@
 from __future__ import annotations
 
-import hashlib
-import importlib
 import argparse
 import gc
+import hashlib
+import importlib
+import io
 import json
+import math
 import os
 import platform
 import resource
+import shutil
 import stat
 import sys
 import tempfile
 import time
+import types
 from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Callable, Mapping, Protocol
@@ -20,8 +24,10 @@ from .generative_collector import GenerationTelemetryEvent
 from .generative_worker_protocol import consume_private_generative_request
 from .hardware import detect_memory, detect_thermal_state
 
-
 MAX_GENERATED_ARTIFACT_BYTES = 16 * 1024**3
+MAX_INPUT_IMAGE_BYTES = 64 * 1024**2
+MAX_INPUT_IMAGE_PIXELS = 4096 * 4096
+QWEN_IMAGE_EDIT_CONDITION_RESOLUTION = 256
 _IMAGE_PIPELINES = {
     "flux2-klein-9b-base": "Flux2KleinPipeline",
     "qwen-image-2512": "QwenImagePipeline",
@@ -60,13 +66,19 @@ class DiffusersImageRuntime(Protocol):
 class LocalDiffusersImageRuntime:
     """Lazily imports a local-only Diffusers pipeline inside the isolated worker."""
 
-    def __init__(self, candidate_id: str, *, module_loader=importlib.import_module) -> None:
+    def __init__(
+        self, candidate_id: str, *, module_loader=importlib.import_module,
+        phase_handoff_manifest: str | Path | None = None,
+    ) -> None:
         try:
             self.pipeline_class = _IMAGE_PIPELINES[candidate_id]
         except KeyError as error:
             raise ValueError("unsupported local Diffusers image candidate") from error
         self._candidate_id = candidate_id
         self._module_loader = module_loader
+        self._phase_handoff_manifest = (
+            Path(phase_handoff_manifest) if phase_handoff_manifest is not None else None
+        )
 
     def generate(
         self,
@@ -77,6 +89,21 @@ class LocalDiffusersImageRuntime:
             raise ValueError("local Diffusers runtime candidate does not match its request")
         if request.get("batch_size") != 1:
             raise ValueError("qualification image worker requires batch size one")
+        if self._phase_handoff_manifest is not None and self._candidate_id != "qwen-image-2.1":
+            raise ValueError("phase handoff is only supported for Qwen-Image-2.1")
+        if self._phase_handoff_manifest is not None and request.get("mode") == "image-edit":
+            raise ValueError("image-edit phase handoff requires condition image transfer")
+        phase_tensors = None
+        if self._phase_handoff_manifest is not None:
+            from .qwen_image_21_phase_handoff import consume_qwen_image_21_phase_handoff
+
+            phase_tensors = consume_qwen_image_21_phase_handoff(
+                self._phase_handoff_manifest,
+                plan_sha256=str(request["plan_sha256"]),
+                prompt_sha256=str(request["prompt_sha256"]),
+                sample_index=int(request["sample_index"]),
+                mode=str(request["mode"]),
+            )
         model_root = Path(str(request["model_root"])).resolve(strict=True)
         output_root = Path(str(request["output_root"])).resolve(strict=True)
         if not model_root.is_dir() or not output_root.is_dir():
@@ -94,59 +121,89 @@ class LocalDiffusersImageRuntime:
         if pipeline_type is None:
             raise RuntimeError(f"Diffusers does not expose {self.pipeline_class}")
         pipeline = None
+        disk_offload_root = None
         try:
             prompt_arguments = {}
+            image_pad_mask = None
             generation_prompt = request["prompt"]
+            input_image = None
+            if request.get("mode", "text-to-image") == "image-edit":
+                input_image = load_private_input_image(request, self._module_loader)
             if self._candidate_id == "qwen-image-2.1":
-                processor_type = getattr(transformers, "Qwen3VLProcessor", None)
-                text_encoder_type = getattr(
-                    transformers, "Qwen3VLForConditionalGeneration", None
-                )
                 scheduler_type = getattr(diffusers, "FlowMatchEulerDiscreteScheduler", None)
                 vae_type = getattr(diffusers, "AutoencoderKLQwenImage21", None)
                 transformer_type = getattr(
                     diffusers, "QwenImage21Transformer2DModel", None
                 )
-                if any(value is None for value in (
-                    processor_type, text_encoder_type, scheduler_type,
-                    vae_type, transformer_type,
-                )):
+                if any(value is None for value in (scheduler_type, vae_type, transformer_type)):
                     raise RuntimeError("Qwen-Image-2.1 staged component classes are unavailable")
-                processor = processor_type.from_pretrained(
-                    str(model_root / "processor"), local_files_only=True
-                )
-                text_encoder = text_encoder_type.from_pretrained(
-                    str(model_root / "text_encoder"),
-                    local_files_only=True,
-                    dtype=torch.bfloat16,
-                )
-                text_pipeline = pipeline_type(
-                    scheduler=None,
-                    vae=None,
-                    text_encoder=text_encoder,
-                    processor=processor,
-                    transformer=None,
-                )
-                try:
-                    self._enable_sequential_offload(text_pipeline)
-                    encode_prompt = getattr(text_pipeline, "encode_prompt", None)
-                    remove_hooks = getattr(text_pipeline, "remove_all_hooks", None)
-                    if not callable(encode_prompt) or not callable(remove_hooks):
-                        raise RuntimeError(
-                            "Qwen-Image-2.1 pipeline lacks the staged text-encoder contract"
-                        )
-                    prompt_embeds, prompt_embeds_mask, _ = encode_prompt(
-                        prompt=generation_prompt,
-                        device=getattr(text_pipeline, "_execution_device", "mps"),
-                        num_images_per_prompt=request["batch_size"],
+                if phase_tensors is not None:
+                    prompt_embeds = phase_tensors["prompt_embeds"]
+                    prompt_embeds_mask = phase_tensors.get("prompt_embeds_mask")
+                    image_pad_mask = phase_tensors.get("image_pad_mask")
+                    processor_type = getattr(transformers, "Qwen3VLProcessor", None)
+                    if processor_type is None:
+                        raise RuntimeError("Qwen-Image-2.1 processor class is unavailable")
+                    processor = processor_type.from_pretrained(
+                        str(model_root / "processor"), local_files_only=True
                     )
-                    progress()
-                    remove_hooks()
-                    text_pipeline.text_encoder = None
-                    text_encoder = None
-                finally:
-                    del text_pipeline
-                    self._release_mps(torch)
+                else:
+                    processor_type = getattr(transformers, "Qwen3VLProcessor", None)
+                    text_encoder_type = getattr(
+                        transformers, "Qwen3VLForConditionalGeneration", None
+                    )
+                    if processor_type is None or text_encoder_type is None:
+                        raise RuntimeError("Qwen-Image-2.1 text classes are unavailable")
+                    processor = processor_type.from_pretrained(
+                        str(model_root / "processor"), local_files_only=True
+                    )
+                    text_encoder = text_encoder_type.from_pretrained(
+                        str(model_root / "text_encoder"),
+                        local_files_only=True,
+                        dtype=torch.bfloat16,
+                    )
+                    text_pipeline = pipeline_type(
+                        scheduler=None,
+                        vae=None,
+                        text_encoder=text_encoder,
+                        processor=processor,
+                        transformer=None,
+                    )
+                    try:
+                        self._enable_text_encoder_layer_offload(text_pipeline)
+                        if input_image is not None:
+                            resize = getattr(text_pipeline.image_processor, "resize", None)
+                            if not callable(resize):
+                                raise RuntimeError(
+                                    "Qwen-Image pipeline lacks condition image resizing"
+                                )
+                            condition_width, condition_height = self._condition_dimensions(
+                                input_image.width, input_image.height
+                            )
+                            input_image = resize(
+                                input_image,
+                                width=condition_width,
+                                height=condition_height,
+                            )
+                        encode_prompt = getattr(text_pipeline, "encode_prompt", None)
+                        remove_hooks = getattr(text_pipeline, "remove_all_hooks", None)
+                        if not callable(encode_prompt) or not callable(remove_hooks):
+                            raise RuntimeError(
+                                "Qwen-Image-2.1 pipeline lacks the staged text-encoder contract"
+                            )
+                        prompt_embeds, prompt_embeds_mask, image_pad_mask = encode_prompt(
+                            prompt=generation_prompt,
+                            image=[input_image] if input_image is not None else None,
+                            device=getattr(text_pipeline, "_execution_device", "mps"),
+                            num_images_per_prompt=request["batch_size"],
+                        )
+                        progress()
+                        remove_hooks()
+                        text_pipeline.text_encoder = None
+                        text_encoder = None
+                    finally:
+                        del text_pipeline
+                        self._release_mps(torch)
                 progress()
                 scheduler = scheduler_type.from_pretrained(
                     str(model_root / "scheduler"), local_files_only=True
@@ -184,7 +241,19 @@ class LocalDiffusersImageRuntime:
             if required_sequence is None:
                 pipeline.to("mps")
             else:
-                self._enable_sequential_offload(pipeline)
+                if request.get("disk_offload", False):
+                    disk_offload_root = Path(
+                        tempfile.mkdtemp(
+                            prefix=f"offload-{request['sample_index']}-",
+                            dir=output_root,
+                        )
+                    )
+                    disk_offload_root.chmod(0o700)
+                self._enable_generation_group_offload(
+                    pipeline, torch, disk_offload_root=disk_offload_root
+                )
+            if input_image is not None and self._candidate_id == "qwen-image-2.1":
+                self._bind_image_pad_mask(pipeline, image_pad_mask)
             progress()
             generator = torch.Generator(device="cpu").manual_seed(request["seed"])
 
@@ -200,6 +269,18 @@ class LocalDiffusersImageRuntime:
                 num_images_per_prompt=request["batch_size"],
                 generator=generator,
                 callback_on_step_end=callback,
+                **(
+                    {
+                        "output_resolution": (
+                            QWEN_IMAGE_EDIT_CONDITION_RESOLUTION
+                            if input_image is not None
+                            else max(request["width"], request["height"])
+                        )
+                    }
+                    if self._candidate_id == "qwen-image-2.1"
+                    else {}
+                ),
+                **({"image": input_image} if input_image is not None else {}),
                 **prompt_arguments,
             )
             images = getattr(result, "images", None)
@@ -226,6 +307,8 @@ class LocalDiffusersImageRuntime:
             if pipeline is not None:
                 del pipeline
             self._release_mps(torch)
+            if disk_offload_root is not None:
+                shutil.rmtree(disk_offload_root, ignore_errors=True)
 
     @staticmethod
     def _release_mps(torch: object) -> None:
@@ -238,16 +321,127 @@ class LocalDiffusersImageRuntime:
             empty_cache()
 
     @staticmethod
-    def _enable_sequential_offload(pipeline: object) -> None:
+    def _enable_generation_group_offload(
+        pipeline: object, torch: object, *, disk_offload_root: Path | None = None
+    ) -> None:
         required = _SEQUENTIAL_OFFLOAD_CONTRACTS["qwen-image-2.1"]
         if getattr(pipeline, "model_cpu_offload_seq", None) != required:
             raise RuntimeError(
                 "Diffusers image pipeline offload sequence does not match the candidate"
             )
-        enable = getattr(pipeline, "enable_model_cpu_offload", None)
+        enable = getattr(pipeline, "enable_group_offload", None)
+        device = getattr(torch, "device", None)
         if not callable(enable):
-            raise RuntimeError("Diffusers image pipeline does not expose model CPU offload")
+            raise RuntimeError("Diffusers image pipeline does not expose group offload")
+        if not callable(device):
+            raise RuntimeError("Diffusers image worker lacks torch device construction")
+        arguments = dict(
+            onload_device=device("mps"),
+            offload_device=device("cpu"),
+            offload_type="block_level",
+            num_blocks_per_group=1,
+            non_blocking=False,
+            use_stream=False,
+            low_cpu_mem_usage=False,
+        )
+        if disk_offload_root is not None:
+            arguments["offload_to_disk_path"] = str(disk_offload_root)
+        enable(**arguments)
+
+    @staticmethod
+    def _enable_text_encoder_layer_offload(pipeline: object) -> None:
+        required = _SEQUENTIAL_OFFLOAD_CONTRACTS["qwen-image-2.1"]
+        if getattr(pipeline, "model_cpu_offload_seq", None) != required:
+            raise RuntimeError(
+                "Diffusers image pipeline offload sequence does not match the candidate"
+            )
+        enable = getattr(pipeline, "enable_sequential_cpu_offload", None)
+        if not callable(enable):
+            raise RuntimeError(
+                "Diffusers image pipeline does not expose sequential CPU offload"
+            )
         enable(device="mps")
+
+    @staticmethod
+    def _bind_image_pad_mask(pipeline: object, image_pad_mask: object) -> None:
+        if image_pad_mask is None:
+            raise RuntimeError("Qwen-Image image-edit prompt lacks image pad mask")
+        original = getattr(pipeline, "encode_prompt", None)
+        if not callable(original):
+            raise RuntimeError("Qwen-Image pipeline lacks encode_prompt")
+
+        def encode_with_bound_mask(_pipeline, *args, **kwargs):
+            if kwargs.get("prompt_embeds") is not None and kwargs.get("image") is not None:
+                if kwargs.get("image_pad_mask") is not None:
+                    raise RuntimeError("Qwen-Image image pad mask was unexpectedly supplied")
+                kwargs["image_pad_mask"] = image_pad_mask
+            return original(*args, **kwargs)
+
+        pipeline.encode_prompt = types.MethodType(encode_with_bound_mask, pipeline)
+
+    @staticmethod
+    def _condition_dimensions(width: int, height: int) -> tuple[int, int]:
+        if type(width) is not int or type(height) is not int or width <= 0 or height <= 0:
+            raise ValueError("Qwen-Image condition image dimensions are invalid")
+        ratio = width / height
+        target_area = QWEN_IMAGE_EDIT_CONDITION_RESOLUTION**2
+        condition_width = max(32, round(math.sqrt(target_area * ratio) / 32) * 32)
+        condition_height = max(32, round(condition_width / ratio / 32) * 32)
+        if condition_width * condition_height > 2 * target_area:
+            raise ValueError("Qwen-Image condition image aspect ratio is unsupported")
+        return condition_width, condition_height
+
+def load_private_input_image(
+    request: Mapping[str, object], module_loader=importlib.import_module
+) -> object:
+        path_value = request.get("input_image_path")
+        expected_digest = request.get("input_image_sha256")
+        expected_size = request.get("input_image_bytes")
+        if (
+            not isinstance(path_value, str)
+            or not isinstance(expected_digest, str)
+            or len(expected_digest) != 64
+            or not isinstance(expected_size, int)
+            or not 1 <= expected_size <= MAX_INPUT_IMAGE_BYTES
+        ):
+            raise ValueError("image-edit request has invalid input image metadata")
+        path = Path(path_value)
+        if path.is_symlink():
+            raise ValueError("image-edit input must not be a symlink")
+        descriptor = os.open(path, os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0))
+        try:
+            info = os.fstat(descriptor)
+            if (
+                not stat.S_ISREG(info.st_mode)
+                or info.st_uid != os.getuid()
+                or info.st_mode & 0o077
+                or info.st_size != expected_size
+            ):
+                raise ValueError("image-edit input is not the bound private file")
+            data = bytearray()
+            while len(data) < expected_size:
+                chunk = os.read(descriptor, min(1024 * 1024, expected_size - len(data)))
+                if not chunk:
+                    break
+                data.extend(chunk)
+            if len(data) != expected_size or os.read(descriptor, 1):
+                raise ValueError("image-edit input changed while being read")
+        finally:
+            os.close(descriptor)
+        if hashlib.sha256(data).hexdigest() != expected_digest:
+            raise ValueError("image-edit input digest does not match its request")
+        image_module = module_loader("PIL.Image")
+        image = image_module.open(io.BytesIO(data))
+        try:
+            if image.format not in {"PNG", "JPEG"}:
+                raise ValueError("image-edit input must be PNG or JPEG")
+            width, height = image.size
+            if width <= 0 or height <= 0 or width * height > MAX_INPUT_IMAGE_PIXELS:
+                raise ValueError("image-edit input dimensions exceed the bounded contract")
+            image.load()
+            return image.convert("RGB")
+        finally:
+            image.close()
 
 
 def _remove_output_if_owned(path: Path, output_root: Path) -> None:
@@ -363,8 +557,8 @@ def _execute_image_request(
     expected_pipeline = expected_runtimes.get(candidate_id)
     if expected_pipeline is None or request.get("modality") != "image":
         raise ValueError(f"{backend_name} image worker does not support this candidate")
-    if request.get("mode") != "text-to-image":
-        raise ValueError(f"{backend_name} image worker currently supports text-to-image only")
+    if request.get("mode") not in {"text-to-image", "image-edit"}:
+        raise ValueError(f"{backend_name} image worker does not support this mode")
     if runtime.pipeline_class != expected_pipeline:
         raise ValueError(f"{backend_name} runtime class does not match the candidate")
     output_root_value = request.get("output_root")
@@ -377,7 +571,11 @@ def _execute_image_request(
         snapshot = telemetry()
         ceiling = request.get("memory_hard_ceiling_bytes")
         if isinstance(ceiling, int) and snapshot.process_rss_bytes > ceiling:
-            raise MemoryError("Generative worker exceeded its memory hard ceiling")
+            raise MemoryError(
+                "Generative worker exceeded its memory hard ceiling: "
+                f"effective_resident_bytes={snapshot.process_rss_bytes}, "
+                f"memory_hard_ceiling_bytes={ceiling}"
+            )
         elapsed_ms = max(0.0, (clock() - started) * 1000.0)
         return GenerationTelemetryEvent(
             kind=kind,
@@ -443,13 +641,21 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="vllm-apple-diffusers-worker")
     parser.add_argument("--request", required=True, type=Path)
     parser.add_argument("--workspace-root", required=True, type=Path)
+    parser.add_argument("--phase-handoff", type=Path)
     arguments = parser.parse_args(argv)
     try:
         request = consume_private_generative_request(
             arguments.request,
             workspace_root=arguments.workspace_root,
         )
-        runtime = LocalDiffusersImageRuntime(request["candidate_id"])
+        if arguments.phase_handoff is not None:
+            workspace = arguments.workspace_root.resolve(strict=True)
+            handoff_parent = arguments.phase_handoff.parent.resolve(strict=True)
+            if handoff_parent == workspace or not handoff_parent.is_relative_to(workspace):
+                raise ValueError("Qwen-Image phase handoff must be in workspace")
+        runtime = LocalDiffusersImageRuntime(
+            request["candidate_id"], phase_handoff_manifest=arguments.phase_handoff
+        )
 
         def emit(event: GenerationTelemetryEvent) -> None:
             print(json.dumps(asdict(event), sort_keys=True, separators=(",", ":")), flush=True)

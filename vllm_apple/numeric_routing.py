@@ -1,13 +1,12 @@
 """Fail-closed numeric format eligibility and measured conversion routing."""
 from __future__ import annotations
 
-from dataclasses import dataclass
-from enum import Enum
 import hashlib
 import json
+from dataclasses import dataclass
+from enum import Enum
 
 from .execution import ExecutionBackend, WorkloadPhase
-
 
 MAX_NUMERIC_CAPABILITIES = 512
 MAX_ROUTE_PROFILES = 128
@@ -17,7 +16,9 @@ class NumericFormat(str, Enum):
     NVFP4_E2M1 = "nvfp4_e2m1"
     MXFP4_E2M1 = "mxfp4_e2m1"
     MXFP6_E2M3 = "mxfp6_e2m3"
+    MXFP6_E3M2 = "mxfp6_e3m2"
     MXFP8_E4M3 = "mxfp8_e4m3"
+    MXFP8_E5M2 = "mxfp8_e5m2"
     FP8_E4M3FN = "fp8_e4m3fn"
     FP8_E5M2 = "fp8_e5m2"
     FP32 = "fp32"

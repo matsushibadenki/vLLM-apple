@@ -1,8 +1,8 @@
 """Qualify direct Core ML handoff across Qwen3-VL vision tower segments."""
 from __future__ import annotations
 
-import json
 import hashlib
+import json
 import os
 import shutil
 import subprocess
@@ -13,7 +13,6 @@ from .qwen3_vl_deepstack_coreml import (
     DEEPSTACK_MAXIMUM_SCALED_ERROR,
     MAIN_MAXIMUM_SCALED_ERROR,
 )
-
 
 _PIPELINE_PROGRAM = r'''
 import CoreML

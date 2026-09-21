@@ -1,3 +1,4 @@
+import hashlib
 import sys
 import unittest
 from pathlib import Path
@@ -111,6 +112,95 @@ class DiffusersGenerationWorkerTests(unittest.TestCase):
                     telemetry=lambda: WorkerTelemetry(1024, "normal", "nominal"),
                     emit=lambda event: None,
                 )
+
+    def test_image_edit_is_forwarded_as_a_bound_rgb_image(self) -> None:
+        with TemporaryDirectory() as directory:
+            root = Path(directory)
+            model, output = root / "model", root / "output"
+            model.mkdir()
+            output.mkdir()
+            source = root / "source.png"
+            source.write_bytes(b"\x89PNG\r\n\x1a\nprivate-test-payload")
+            source.chmod(0o600)
+            calls = {}
+
+            class SourceImage:
+                format = "PNG"
+                size = (8, 8)
+
+                def load(self):
+                    calls["loaded"] = True
+
+                def convert(self, mode):
+                    calls["converted"] = mode
+                    return "rgb-source"
+
+                def close(self):
+                    calls["closed"] = True
+
+            class OutputImage:
+                def save(self, path, *, format):
+                    Path(path).write_bytes(b"png")
+
+            class Pipeline:
+                vae = None
+
+                @classmethod
+                def from_pretrained(cls, _path, **_kwargs):
+                    return cls()
+
+                def to(self, _device):
+                    pass
+
+                def __call__(self, **kwargs):
+                    calls["image"] = kwargs.get("image")
+                    return SimpleNamespace(images=[OutputImage()])
+
+            class Generator:
+                def __init__(self, *, device):
+                    pass
+
+                def manual_seed(self, _seed):
+                    return self
+
+            data = source.read_bytes()
+            modules = {
+                "torch": SimpleNamespace(
+                    bfloat16="bf16",
+                    backends=SimpleNamespace(mps=SimpleNamespace(is_available=lambda: True)),
+                    mps=SimpleNamespace(empty_cache=lambda: None),
+                    Generator=Generator,
+                ),
+                "diffusers": SimpleNamespace(Flux2KleinPipeline=Pipeline),
+                "PIL.Image": SimpleNamespace(open=lambda _stream: SourceImage()),
+            }
+            runtime = LocalDiffusersImageRuntime(
+                "flux2-klein-9b-base", module_loader=modules.__getitem__
+            )
+            artifact = runtime.generate(
+                {
+                    "candidate_id": "flux2-klein-9b-base",
+                    "mode": "image-edit",
+                    "model_root": str(model),
+                    "output_root": str(output),
+                    "input_image_path": str(source),
+                    "input_image_sha256": hashlib.sha256(data).hexdigest(),
+                    "input_image_bytes": len(data),
+                    "prompt": "edit",
+                    "seed": 1,
+                    "width": 64,
+                    "height": 64,
+                    "steps": 1,
+                    "batch_size": 1,
+                    "sample_index": 0,
+                },
+                lambda: None,
+            )
+            self.addCleanup(lambda: artifact.path.unlink(missing_ok=True))
+            self.assertEqual(calls["image"], "rgb-source")
+            self.assertEqual(calls["converted"], "RGB")
+            self.assertTrue(calls["loaded"])
+            self.assertTrue(calls["closed"])
 
     def test_output_outside_root_is_rejected_without_deleting_out_of_scope_file(self) -> None:
         with TemporaryDirectory() as directory, TemporaryDirectory() as outside:
@@ -239,7 +329,7 @@ class DiffusersGenerationWorkerTests(unittest.TestCase):
             runtime.generate(
                 {"candidate_id": "qwen-image-2.1", "batch_size": 2}, lambda: None)
 
-    def test_qwen_image_21_requires_sequential_mps_offload(self) -> None:
+    def test_qwen_image_21_uses_sequential_text_and_group_generation_offload(self) -> None:
         with TemporaryDirectory() as directory:
             root = Path(directory)
             model, output = root / "model", root / "output"
@@ -258,8 +348,11 @@ class DiffusersGenerationWorkerTests(unittest.TestCase):
                     self.__dict__.update(components)
                     self._execution_device = "mps"
 
-                def enable_model_cpu_offload(self, *, device):
-                    calls.setdefault("offload", []).append(device)
+                def enable_group_offload(self, **kwargs):
+                    calls.setdefault("group_offload", []).append(kwargs)
+
+                def enable_sequential_cpu_offload(self, *, device):
+                    calls.setdefault("sequential_offload", []).append(device)
 
                 def encode_prompt(self, **kwargs):
                     calls["encode_prompt"] = kwargs
@@ -288,6 +381,7 @@ class DiffusersGenerationWorkerTests(unittest.TestCase):
 
             torch = SimpleNamespace(
                 bfloat16="bf16",
+                device=lambda value: value,
                 backends=SimpleNamespace(mps=SimpleNamespace(is_available=lambda: True)),
                 Generator=lambda device: SimpleNamespace(manual_seed=lambda seed: object()),
                 mps=SimpleNamespace(empty_cache=lambda: None),
@@ -317,7 +411,16 @@ class DiffusersGenerationWorkerTests(unittest.TestCase):
                 },
                 lambda: None,
             )
-        self.assertEqual(calls["offload"], ["mps", "mps"])
+        self.assertEqual(calls["sequential_offload"], ["mps"])
+        self.assertEqual(calls["group_offload"], [{
+            "onload_device": "mps",
+            "offload_device": "cpu",
+            "offload_type": "block_level",
+            "num_blocks_per_group": 1,
+            "non_blocking": False,
+            "use_stream": False,
+            "low_cpu_mem_usage": False,
+        }])
         self.assertEqual(calls["generate"]["prompt_embeds"], "embeds")
         self.assertEqual(calls["generate"]["prompt_embeds_mask"], "mask")
         self.assertIsNone(calls["generate"]["prompt"])
@@ -328,6 +431,75 @@ class DiffusersGenerationWorkerTests(unittest.TestCase):
         )
         self.assertTrue(all(load[2]["local_files_only"] for load in calls["loads"]))
         self.assertEqual(artifact.width, 64)
+
+    def test_qwen_image_21_binds_precomputed_image_pad_mask(self) -> None:
+        calls = {}
+
+        class Pipeline:
+            def encode_prompt(self, *args, **kwargs):
+                calls["kwargs"] = kwargs
+                return "embeds", "attention", kwargs["image_pad_mask"]
+
+        pipeline = Pipeline()
+        mask = object()
+        LocalDiffusersImageRuntime._bind_image_pad_mask(pipeline, mask)
+        result = pipeline.encode_prompt(
+            prompt=None,
+            image=[object()],
+            prompt_embeds="embeds",
+            prompt_embeds_mask="attention",
+        )
+        self.assertIs(calls["kwargs"]["image_pad_mask"], mask)
+        self.assertIs(result[2], mask)
+
+    def test_qwen_image_21_group_offload_can_bind_private_disk_path(self) -> None:
+        calls = []
+        pipeline = SimpleNamespace(
+            model_cpu_offload_seq="text_encoder->transformer->vae",
+            enable_group_offload=lambda **kwargs: calls.append(kwargs),
+        )
+        torch = SimpleNamespace(device=lambda value: value)
+        with TemporaryDirectory() as directory:
+            offload = Path(directory)
+            LocalDiffusersImageRuntime._enable_generation_group_offload(
+                pipeline, torch, disk_offload_root=offload
+            )
+        self.assertEqual(calls[0]["offload_to_disk_path"], str(offload))
+        self.assertEqual(calls[0]["offload_type"], "block_level")
+
+    def test_qwen_phase_handoff_rejects_edit_before_consuming_or_loading(self) -> None:
+        runtime = LocalDiffusersImageRuntime(
+            "qwen-image-2.1",
+            phase_handoff_manifest="/private/handoff/prompt-embeddings.json",
+            module_loader=lambda _name: self.fail("must reject before imports"),
+        )
+        with self.assertRaisesRegex(ValueError, "condition image transfer"):
+            runtime.generate({"candidate_id": "qwen-image-2.1", "batch_size": 1,
+                              "mode": "image-edit"}, lambda: None)
+
+    def test_qwen_phase_handoff_rejects_identity_before_model_load(self) -> None:
+        runtime = LocalDiffusersImageRuntime(
+            "qwen-image-2.1",
+            phase_handoff_manifest="/private/handoff/prompt-embeddings.json",
+            module_loader=lambda _name: self.fail("must reject before imports"),
+        )
+        with patch(
+            "vllm_apple.qwen_image_21_phase_handoff.consume_qwen_image_21_phase_handoff",
+            side_effect=ValueError("handoff identity does not match"),
+        ) as consume, self.assertRaisesRegex(ValueError, "identity"):
+            runtime.generate({
+                "candidate_id": "qwen-image-2.1", "batch_size": 1,
+                "mode": "text-to-image", "plan_sha256": "a" * 64,
+                "prompt_sha256": "b" * 64, "sample_index": 0,
+            }, lambda: None)
+        consume.assert_called_once()
+
+    def test_qwen_image_21_condition_dimensions_are_bounded(self) -> None:
+        dimensions = LocalDiffusersImageRuntime._condition_dimensions(640, 320)
+        self.assertEqual(dimensions, (352, 192))
+        self.assertLessEqual(dimensions[0] * dimensions[1], 2 * 256**2)
+        with self.assertRaisesRegex(ValueError, "dimensions"):
+            LocalDiffusersImageRuntime._condition_dimensions(0, 320)
 
 
 if __name__ == "__main__":

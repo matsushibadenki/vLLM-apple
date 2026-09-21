@@ -2,7 +2,11 @@ import threading
 import time
 import unittest
 
-from vllm_apple.backend_engine import BackendEngineDescriptor, BackendEngineRegistry, BackendEngineRequest
+from vllm_apple.backend_engine import (
+    BackendEngineDescriptor,
+    BackendEngineRegistry,
+    BackendEngineRequest,
+)
 from vllm_apple.execution import ExecutionBackend, WorkloadPhase
 from vllm_apple.inference_request import InferenceRequestContext
 from vllm_apple.operator_graph_dispatch import OperatorGraphDispatcher, OperatorGraphNode

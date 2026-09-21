@@ -8,7 +8,6 @@ import threading
 from dataclasses import asdict, dataclass
 from typing import Protocol
 
-
 MAX_NUMERIC_TILE_BYTES = 8 * 1024 * 1024
 MAX_NUMERIC_STREAM_BYTES = 1 << 40
 _ZERO_BLOCK = bytes(64 * 1024)

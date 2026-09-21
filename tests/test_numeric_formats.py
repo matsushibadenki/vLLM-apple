@@ -2,9 +2,14 @@ import unittest
 from dataclasses import replace
 
 from vllm_apple.numeric_formats import (
-    ConversionAdapter, ConversionRegistry, DEFAULT_CONVERSION_REGISTRY,
+    DEFAULT_CONVERSION_REGISTRY,
+    ConversionAdapter,
+    ConversionRegistry,
+    NumericFormatDescriptor,
     TensorGeometry,
-    NumericFormatDescriptor, conversion_plan, convert_nvfp4_to_int8, decode_nvfp4,
+    conversion_plan,
+    convert_nvfp4_to_int8,
+    decode_nvfp4,
 )
 
 

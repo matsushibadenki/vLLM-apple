@@ -1,10 +1,10 @@
 """Quality-gated backend-owned KV and recurrent state precision adapter."""
 from __future__ import annotations
 
-from dataclasses import dataclass
 import math
 import struct
 import threading
+from dataclasses import dataclass
 
 from .adaptive_state_allocation import (
     AdaptiveStateAction,
@@ -14,7 +14,6 @@ from .adaptive_state_allocation import (
     AdaptiveStateRecord,
     AdaptiveStateTransaction,
 )
-
 
 MAX_STATE_VALUES = 16_777_216
 

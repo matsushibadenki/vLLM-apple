@@ -12,7 +12,6 @@ from .qwen4_conversion_plan import _component
 from .qwen4_shard_stager import COPY_CHUNK_BYTES, MANIFEST_NAME, _load_manifest
 from .qwen4_weight_map import _bounded_index
 
-
 MAX_TENSOR_CHUNK_BYTES = 8 * 1024 * 1024
 
 

@@ -74,8 +74,10 @@ class ManagedInferenceBackendEngine:
             raise BackendEngineFailure("backend_context_api_missing", retryable=False)
         try:
             result = execute(request.payload, None, context)
-        except InferenceEngineBusy as error:
-            raise BackendEngineFailure("backend_busy", retryable=True) from error
+        except InferenceEngineBusy:
+            # Capacity is a request-level condition, not backend failure. Preserve
+            # it so the HTTP boundary can return a bounded 503 response.
+            raise
         except InferenceRequestCancelled:
             raise
         except BackendEngineFailure:

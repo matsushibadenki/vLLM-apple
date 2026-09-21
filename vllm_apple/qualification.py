@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-import json
 import hashlib
+import json
 import math
 import os
 import tempfile
@@ -11,7 +11,11 @@ from pathlib import Path
 from typing import Callable
 
 from .backend import BackendConfig, BackendProcess
-from .backend_memory import KVCacheCapacityResolver, MLXMemoryMetricsAdapter, VLLMMemoryMetricsAdapter
+from .backend_memory import (
+    KVCacheCapacityResolver,
+    MLXMemoryMetricsAdapter,
+    VLLMMemoryMetricsAdapter,
+)
 from .context_reevaluation import ContextCapacityReevaluator
 from .hardware import default_application_support, detect_hardware, detect_memory
 from .model import (
@@ -25,8 +29,8 @@ from .model import (
 from .phase_probe import PhaseProbeConfig, run_phase_probe
 from .promotion_probe import PromotionProbeConfig, run_serving_promotion_probe
 from .quality_smoke import run_serving_quality_smoke
-from .vllm_metal_v2_tuning import build_v2_hardware_fingerprint
 from .soak import SoakConfig, run_soak
+from .vllm_metal_v2_tuning import build_v2_hardware_fingerprint
 
 
 @dataclass(frozen=True, slots=True)

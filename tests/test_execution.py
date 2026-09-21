@@ -1,19 +1,19 @@
-import unittest
 import json
-from pathlib import Path
+import unittest
 from dataclasses import replace
+from pathlib import Path
 
 from tests.schema_validator import validate_instance
-from tests.test_schemas import load_schema
 from tests.test_scheduler import hardware
-from vllm_apple.profile import build_profile
-from vllm_apple.service import RuntimeService
+from tests.test_schemas import load_schema
 from vllm_apple.context import ContextPolicy, recommend_context, recommend_state_context
 from vllm_apple.execution import (
     AppleChipProfile,
     AppleExecutionPlanner,
     ExecutionBackend,
 )
+from vllm_apple.profile import build_profile
+from vllm_apple.service import RuntimeService
 from vllm_apple.types import (
     GIB,
     MemoryInfo,

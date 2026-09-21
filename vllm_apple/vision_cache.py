@@ -8,7 +8,6 @@ from collections import OrderedDict
 from dataclasses import dataclass
 from typing import Callable, Generic, TypeVar
 
-
 T = TypeVar("T")
 
 

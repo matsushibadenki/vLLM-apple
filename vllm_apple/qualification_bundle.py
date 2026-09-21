@@ -13,7 +13,6 @@ from .model_integrity import (
     verify_detached_cms_json,
 )
 
-
 MAX_REPORT_BYTES = 1024 * 1024
 
 

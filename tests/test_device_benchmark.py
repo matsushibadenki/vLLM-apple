@@ -3,7 +3,13 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import Mock
 
+from vllm_apple.coreml_backend import (
+    CoreMLFixedGraphBackend,
+    CoreMLFixedGraphResource,
+    CoreMLFixedGraphResult,
+)
 from vllm_apple.device_benchmark import (
     BoundedCPUReferenceBenchmarkAdapter,
     CoreMLFixedGraphBenchmarkAdapter,
@@ -24,12 +30,6 @@ from vllm_apple.device_capability import (
     DeviceCapabilityRegistry,
 )
 from vllm_apple.execution import ExecutionBackend, WorkloadPhase
-from vllm_apple.coreml_backend import (
-    CoreMLFixedGraphBackend,
-    CoreMLFixedGraphResource,
-    CoreMLFixedGraphResult,
-)
-from unittest.mock import Mock
 from vllm_apple.kernel_probe import KernelMeasurement
 
 

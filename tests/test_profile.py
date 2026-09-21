@@ -2,8 +2,8 @@ import json
 import stat
 import tempfile
 import unittest
-from unittest.mock import patch
 from pathlib import Path
+from unittest.mock import patch
 
 from vllm_apple.profile import (
     build_profile,

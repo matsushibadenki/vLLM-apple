@@ -9,7 +9,6 @@ from typing import Any
 
 from .model import inspect_model_metadata
 
-
 MAX_INDEX_BYTES = 4 * 1024 * 1024
 MAX_WEIGHT_ENTRIES = 16_384
 MAX_WEIGHT_NAME_BYTES = 1024

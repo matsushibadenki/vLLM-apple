@@ -5,7 +5,6 @@ import json
 import subprocess
 from pathlib import Path
 
-
 _COMPUTE_PLAN_PROGRAM = r'''
 import CoreML
 import Foundation

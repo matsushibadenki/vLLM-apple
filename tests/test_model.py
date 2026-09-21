@@ -9,8 +9,8 @@ from vllm_apple.model import (
     ModelInspectionError,
     assess_model_memory_fit,
     ensure_model_backend_compatible,
-    inspect_model_architecture,
     inspect_model,
+    inspect_model_architecture,
     resolve_model_path,
 )
 from vllm_apple.types import GIB, HardwareInfo, MemoryInfo

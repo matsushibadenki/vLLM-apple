@@ -1,7 +1,7 @@
-import unittest
 import json
 import os
 import tempfile
+import unittest
 from pathlib import Path
 from subprocess import CompletedProcess
 from unittest.mock import patch
@@ -9,8 +9,8 @@ from unittest.mock import patch
 from vllm_apple.compat import (
     BackendCompatibility,
     _decode_mlx_probe,
-    assess_candidate_backend,
     assess_backend_versions,
+    assess_candidate_backend,
     assess_platform_selection,
     inspect_backend,
     inspect_mlx_lm_backend,

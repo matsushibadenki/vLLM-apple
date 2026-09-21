@@ -3,9 +3,9 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from .types import (
+    GIB,
     ContextRecommendation,
     ContextTier,
-    GIB,
     MemoryInfo,
     ModelMemorySpec,
     StateMemorySpec,

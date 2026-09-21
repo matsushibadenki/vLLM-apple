@@ -1,0 +1,26 @@
+{
+  "platform": "Darwin",
+  "architecture": "arm64",
+  "soc": "Apple M4",
+  "mlx_version": "0.27.1",
+  "iterations": 7,
+  "timing": "warm-up followed by median wall time",
+  "requantize_symmetric_int8": {
+    "elements": 65536,
+    "group_size": 128,
+    "mlx_median_ms": 30.168542,
+    "scalar_median_ms": 10.955875,
+    "scalar_speedup": 0.3631556009567848,
+    "digest_match": true,
+    "promotion": false,
+    "note": "MLX float32 can differ by one code at rounding boundaries; the guarded implementation verifies against exact host codes and falls back when needed."
+  },
+  "byte_layouts": [
+    {"layout": "contiguous_row_major", "storage_elements": 65536, "mlx_median_ms": 10.106292, "scalar_median_ms": 16.902125, "speedup": 1.6724358449172063, "digest_match": true},
+    {"layout": "column_major", "storage_elements": 65536, "mlx_median_ms": 11.468167, "scalar_median_ms": 19.045584, "speedup": 1.66073479746153, "digest_match": true},
+    {"layout": "row_padded", "storage_elements": 69360, "mlx_median_ms": 12.319542, "scalar_median_ms": 20.904667, "speedup": 1.696870468074219, "digest_match": true},
+    {"layout": "tile_row_major", "storage_elements": 69632, "mlx_median_ms": 22.010584, "scalar_median_ms": 40.450916, "speedup": 1.8377938540840169, "digest_match": true},
+    {"layout": "tile_morton", "storage_elements": 69632, "mlx_median_ms": 61.173625, "scalar_median_ms": 118.192666, "speedup": 1.9320853717594797, "digest_match": true}
+  ],
+  "layout_promotion": true
+}

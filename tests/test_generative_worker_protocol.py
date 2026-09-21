@@ -111,6 +111,69 @@ class GenerativeWorkerProtocolTests(unittest.TestCase):
         self.assertTrue(target.exists())
         os.unlink(link)
 
+    def test_image_edit_binds_private_input_image_digest(self) -> None:
+        image = self.workspace / "input.png"
+        image.write_bytes(b"\x89PNG\r\n\x1a\n" + b"private-image")
+        image.chmod(0o600)
+        payload = build_generative_worker_request(
+            self.plan,
+            workspace_root=self.workspace,
+            model_root=self.model,
+            output_root=self.output,
+            mode="image-edit",
+            prompt="Make the apple green",
+            seed=7,
+            sample_index=0,
+            input_image_path=image,
+        )
+        self.assertEqual(payload["abi_version"], 3)
+        self.assertFalse(payload["disk_offload"])
+        self.assertEqual(payload["input_image_bytes"], image.stat().st_size)
+        self.assertEqual(len(payload["input_image_sha256"]), 64)
+        image.write_bytes(b"\x89PNG\r\n\x1a\n" + b"tampered")
+        with self.assertRaisesRegex(ValueError, "digest"):
+            save_private_generative_request(payload, self.workspace / "edit.json")
+            consume_private_generative_request(
+                self.workspace / "edit.json", workspace_root=self.workspace
+            )
+
+    def test_disk_offload_is_explicitly_bound(self) -> None:
+        payload = build_generative_worker_request(
+            self.plan,
+            workspace_root=self.workspace,
+            model_root=self.model,
+            output_root=self.output,
+            mode="text-to-image",
+            prompt="test",
+            seed=0,
+            sample_index=0,
+            disk_offload=True,
+        )
+        self.assertIs(payload["disk_offload"], True)
+        payload["disk_offload"] = "true"
+        with self.assertRaisesRegex(ValueError, "disk offload"):
+            save_private_generative_request(payload, self.workspace / "disk.json")
+            consume_private_generative_request(
+                self.workspace / "disk.json", workspace_root=self.workspace
+            )
+
+    def test_image_edit_requires_private_png_or_jpeg(self) -> None:
+        image = self.workspace / "input.bin"
+        image.write_bytes(b"not an image")
+        image.chmod(0o600)
+        with self.assertRaisesRegex(ValueError, "PNG or JPEG"):
+            build_generative_worker_request(
+                self.plan,
+                workspace_root=self.workspace,
+                model_root=self.model,
+                output_root=self.output,
+                mode="image-edit",
+                prompt="edit",
+                seed=0,
+                sample_index=0,
+                input_image_path=image,
+            )
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -6,8 +6,8 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 from tests.schema_validator import validate_instance
 from tests.test_schemas import load_schema
-from vllm_apple.long_context import LongContextEvaluationError, LongContextEvaluator
 from vllm_apple.backend_memory import BackendMemorySample
+from vllm_apple.long_context import LongContextEvaluationError, LongContextEvaluator
 from vllm_apple.long_context_backend import MLXLongContextAdapter, VLLMLongContextAdapter
 from vllm_apple.phase_probe import PhaseProbeConfig
 

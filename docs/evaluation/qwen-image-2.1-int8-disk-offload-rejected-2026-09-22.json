@@ -1,0 +1,31 @@
+{
+  "artifact_bytes": 18516268404,
+  "artifact_quantization": {
+    "bits": 8,
+    "method": "torchao",
+    "weight_only": true
+  },
+  "candidate_id": "qwen-image-2.1",
+  "cleanup": {
+    "private_files_remaining": 0,
+    "report_created": false
+  },
+  "failure_phase": "group_offload_hook_installation",
+  "loads_completed_before_failure": true,
+  "profile": {
+    "height": 512,
+    "samples_requested": 2,
+    "steps": 1,
+    "width": 512
+  },
+  "reason": "Diffusers rejects offload_to_disk_path for TorchAO quantized tensor subclasses because safetensors cannot serialize them",
+  "runtime": {
+    "diffusers": "0.41.0.dev0",
+    "torch": "2.14.0",
+    "torchao": "0.18.0"
+  },
+  "schema_version": 1,
+  "status": "rejected",
+  "timestamp_utc": "2026-09-21T19:44:34Z",
+  "weights_loaded": true
+}

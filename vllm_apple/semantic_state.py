@@ -7,7 +7,6 @@ from typing import Callable, Protocol
 
 from .semantic_cache import SemanticAnchor, SemanticAnchorCache, SemanticAnchorKind
 
-
 MAX_PENDING_RELEASES = 1_024
 
 

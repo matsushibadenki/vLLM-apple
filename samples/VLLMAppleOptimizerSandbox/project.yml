@@ -1,0 +1,28 @@
+name: VLLMAppleOptimizerSandbox
+options:
+  bundleIdPrefix: dev.vllm-apple
+  deploymentTarget:
+    macOS: "13.0"
+  createIntermediateGroups: true
+targets:
+  VLLMAppleOptimizerSandbox:
+    type: application
+    platform: macOS
+    sources:
+      - path: Sources
+      - path: ../VLLMAppleOptimizer/Sources/VLLMAppleOptimizer/OptimizerDaemonTransport.swift
+      - path: ../VLLMAppleOptimizer/Sources/VLLMAppleOptimizer/OptimizationPlan.swift
+      - path: ../VLLMAppleOptimizer/Sources/VLLMAppleOptimizer/SecurityScopedBookmarkStore.swift
+      - path: Resources
+        buildPhase: resources
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: dev.vllm-apple.optimizer.sandbox
+        PRODUCT_NAME: VLLMAppleOptimizerSandbox
+        GENERATE_INFOPLIST_FILE: NO
+        INFOPLIST_FILE: Info.plist
+        CODE_SIGN_ENTITLEMENTS: VLLMAppleOptimizerSandbox.entitlements
+        ENABLE_APP_SANDBOX: YES
+        ENABLE_HARDENED_RUNTIME: YES
+        SWIFT_VERSION: "6.0"
+        MACOSX_DEPLOYMENT_TARGET: "13.0"

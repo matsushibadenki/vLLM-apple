@@ -8,8 +8,8 @@ import tempfile
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from .types import OPTIMIZER_SCHEMA_VERSION
 
+from .types import OPTIMIZER_SCHEMA_VERSION
 
 MAX_EVALUATION_SLICES = 64
 MAX_EVALUATION_REPORT_BYTES = 1024 * 1024

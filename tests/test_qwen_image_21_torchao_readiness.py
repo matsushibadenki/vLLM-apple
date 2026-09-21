@@ -22,6 +22,11 @@ class QwenImage21TorchAOReadinessTests(unittest.TestCase):
             "mps_available": False,
             "mps_int8_weight_only_probe": False,
             "mps_error": None,
+            "int4_weight_only_api": True,
+            "cpu_int4_weight_only_probe": False,
+            "cpu_int4_error": "ImportError: Requires mslk >= 1.0.0",
+            "mps_int4_weight_only_probe": False,
+            "mps_int4_error": None,
         }
         completed = subprocess.CompletedProcess([], 0, json.dumps(payload), "")
         with patch("pathlib.Path.is_file", return_value=True), patch(
@@ -30,6 +35,8 @@ class QwenImage21TorchAOReadinessTests(unittest.TestCase):
             report = inspect_qwen_image_21_torchao_readiness(Path("python"))
         self.assertTrue(report["conversion_ready"])
         self.assertFalse(report["mps_runtime_ready"])
+        self.assertFalse(report["int4_conversion_ready"])
+        self.assertFalse(report["int4_mps_runtime_ready"])
         self.assertFalse(report["loads_model_weights"])
 
     def test_probe_rejects_unexpected_schema(self) -> None:

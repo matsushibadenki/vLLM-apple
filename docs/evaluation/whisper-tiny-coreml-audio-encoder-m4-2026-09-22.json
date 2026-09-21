@@ -1,0 +1,60 @@
+{
+  "artifact_bytes": 16788176,
+  "artifact_file_count": 6,
+  "artifact_sha256": "559ec249eb67969197971428d2d29214712804e2059a7cdfb29daa80049fd3ba",
+  "compute_units": "cpu_and_neural_engine",
+  "input_name": "melspectrogram_features",
+  "input_shape": [
+    1,
+    80,
+    1,
+    3000
+  ],
+  "memory_pressure": "normal",
+  "model": "openai/whisper-tiny",
+  "model_license": "mit",
+  "model_revision": "0f63a7800b00dd0226abd051b906c246e1907482",
+  "os_version": "27.0",
+  "output_name": "encoder_output_embeds",
+  "output_shape": [
+    1,
+    384,
+    1,
+    1500
+  ],
+  "passed": true,
+  "peak_rss_bytes": 206536704,
+  "sample_count": 3,
+  "samples": [
+    {
+      "latency_nanoseconds": 14221875,
+      "maximum": 19.328125,
+      "minimum": -17.265625,
+      "output_count": 576000,
+      "output_sha256": "975d0b88a16ed7549c8d88511f3592e35741e80db466e886bcfb4742d7708828",
+      "sample_index": 0
+    },
+    {
+      "latency_nanoseconds": 10827125,
+      "maximum": 19.34375,
+      "minimum": -17.296875,
+      "output_count": 576000,
+      "output_sha256": "adb29644798a61b7abe5ec5dee74dfd572c20c9c72bd663f1d5cd23625d2af4c",
+      "sample_index": 1
+    },
+    {
+      "latency_nanoseconds": 6486375,
+      "maximum": 19.265625,
+      "minimum": -17.265625,
+      "output_count": 576000,
+      "output_sha256": "d27ce3685d51a4918dafa8997256c1af45b455be059b2ca483d50e83ddc9350e",
+      "sample_index": 2
+    }
+  ],
+  "schema_version": 1,
+  "scope": "whisper_coreml_audio_encoder_qualification",
+  "soc": "Apple M4",
+  "stores_audio": false,
+  "stores_embedding": false,
+  "thermal_state": "nominal"
+}

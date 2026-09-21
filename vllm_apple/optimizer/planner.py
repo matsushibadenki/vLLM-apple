@@ -8,7 +8,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from ..model import InspectedModel
-from ..types import HardwareInfo, MIB
+from ..types import MIB, HardwareInfo
 from .adapters import builtin_adapter_registry
 from .profiler import OptimizationPerformanceProfile, hardware_fingerprint
 from .safety import validate_immutable_output_path

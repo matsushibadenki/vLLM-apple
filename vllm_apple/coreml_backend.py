@@ -23,7 +23,6 @@ from .execution import ExecutionBackend, WorkloadPhase
 from .model_integrity import verify_model_integrity
 from .operator_dispatch import BackendExecutionError
 
-
 MAX_COREML_RESOURCES = 32
 
 

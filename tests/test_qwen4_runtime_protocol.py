@@ -1,6 +1,6 @@
-import unittest
 import threading
 import time
+import unittest
 from types import SimpleNamespace
 
 from vllm_apple.numeric_formats import NumericFormatDescriptor, convert_nvfp4_to_int8

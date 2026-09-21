@@ -1,14 +1,14 @@
-import os
 import json
+import os
 import tempfile
-from dataclasses import replace
 import unittest
+from dataclasses import replace
 from pathlib import Path
 from unittest.mock import patch
 
+from tests.schema_validator import validate_instance
 from vllm_apple.backend_memory import BackendMemorySample
 from vllm_apple.model import ModelCapabilityError
-from vllm_apple.types import HardwareInfo, MemoryInfo, MemoryPressure
 from vllm_apple.qualification import (
     QualificationConfig,
     default_qualification_report_path,
@@ -16,7 +16,7 @@ from vllm_apple.qualification import (
     qualify_model,
     save_qualification_report,
 )
-from tests.schema_validator import validate_instance
+from vllm_apple.types import HardwareInfo, MemoryInfo, MemoryPressure
 
 
 class VisionQualificationTests(unittest.TestCase):

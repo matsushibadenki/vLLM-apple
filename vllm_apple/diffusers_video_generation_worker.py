@@ -15,12 +15,25 @@ from .diffusers_generation_worker import (
     _hash_private_output,
     _remove_output_if_owned,
     default_worker_telemetry,
+    load_private_input_image,
 )
 from .generative_collector import GenerationTelemetryEvent
 from .generative_worker_protocol import consume_private_generative_request
 
-
-_VIDEO_PIPELINES = {"wan2.2-ti2v-5b": "WanPipeline"}
+_VIDEO_PIPELINES = {
+    "wan2.2-ti2v-5b": {
+        "text-to-video": "WanPipeline",
+        "image-to-video": "WanImageToVideoPipeline",
+    },
+    "wan2.2-a14b-quantized": {
+        "text-to-video": "WanPipeline",
+        "image-to-video": "WanImageToVideoPipeline",
+    },
+    "hunyuanvideo-1.5-8.3b": {
+        "text-to-video": "HunyuanVideo15Pipeline",
+        "image-to-video": "HunyuanVideo15ImageToVideoPipeline",
+    },
+}
 DEFAULT_VIDEO_FPS = 16
 WAN_MODULE_RESIDENCY_SEQUENCE = "text_encoder->transformer->vae"
 
@@ -46,11 +59,14 @@ class DiffusersVideoRuntime(Protocol):
 class LocalDiffusersVideoRuntime:
     """Load a local Wan T2V checkpoint only inside the isolated worker."""
 
-    def __init__(self, candidate_id: str, *, module_loader=importlib.import_module) -> None:
+    def __init__(
+        self, candidate_id: str, mode: str = "text-to-video",
+        *, module_loader=importlib.import_module,
+    ) -> None:
         try:
-            self.pipeline_class = _VIDEO_PIPELINES[candidate_id]
+            self.pipeline_class = _VIDEO_PIPELINES[candidate_id][mode]
         except KeyError as error:
-            raise ValueError("unsupported local Diffusers video candidate") from error
+            raise ValueError("unsupported local Diffusers video candidate or mode") from error
         self._candidate_id = candidate_id
         self._module_loader = module_loader
 
@@ -106,6 +122,11 @@ class LocalDiffusersVideoRuntime:
                 num_videos_per_prompt=request["batch_size"],
                 generator=generator,
                 callback_on_step_end=callback,
+                **(
+                    {"image": load_private_input_image(request, self._module_loader)}
+                    if request.get("mode") == "image-to-video"
+                    else {}
+                ),
             )
             batches = getattr(result, "frames", None)
             if not isinstance(batches, (list, tuple)) or len(batches) != 1:
@@ -159,7 +180,7 @@ def execute_local_video_request(
     request: Mapping[str, object],
     runtime: DiffusersVideoRuntime,
     *,
-    expected_runtimes: Mapping[str, str],
+    expected_runtimes: Mapping[str, object],
     backend_name: str,
     telemetry: Callable[[], WorkerTelemetry],
     emit: Callable[[GenerationTelemetryEvent], None],
@@ -167,11 +188,17 @@ def execute_local_video_request(
     enforce_memory_ceiling_during_generation: bool = True,
 ) -> None:
     candidate_id = request.get("candidate_id")
-    expected_pipeline = expected_runtimes.get(candidate_id)
+    candidate_runtimes = expected_runtimes.get(candidate_id)
+    mode = request.get("mode")
+    expected_pipeline = (
+        candidate_runtimes.get(mode)
+        if isinstance(candidate_runtimes, dict)
+        else candidate_runtimes
+    )
     if expected_pipeline is None or request.get("modality") != "video":
         raise ValueError(f"{backend_name} video worker does not support this candidate")
-    if request.get("mode") != "text-to-video":
-        raise ValueError(f"{backend_name} video worker currently supports text-to-video only")
+    if mode not in {"text-to-video", "image-to-video"}:
+        raise ValueError(f"{backend_name} video worker does not support this mode")
     if request.get("batch_size") != 1:
         raise ValueError(f"{backend_name} video qualification requires batch size one")
     if runtime.pipeline_class != expected_pipeline:
@@ -227,7 +254,7 @@ def main(argv: list[str] | None = None) -> int:
         request = consume_private_generative_request(
             arguments.request, workspace_root=arguments.workspace_root
         )
-        runtime = LocalDiffusersVideoRuntime(request["candidate_id"])
+        runtime = LocalDiffusersVideoRuntime(request["candidate_id"], request["mode"])
 
         def emit(event: GenerationTelemetryEvent) -> None:
             print(json.dumps(asdict(event), sort_keys=True, separators=(",", ":")), flush=True)

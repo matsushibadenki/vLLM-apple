@@ -5,7 +5,6 @@ import os
 import subprocess
 from pathlib import Path
 
-
 MAX_PROBE_OUTPUT_BYTES = 16 * 1024
 
 
@@ -18,7 +17,7 @@ import importlib.metadata as metadata
 import json
 import torch
 from diffusers import PipelineQuantizationConfig, TorchAoConfig
-from torchao.quantization import Int8WeightOnlyConfig, quantize_
+from torchao.quantization import Int4WeightOnlyConfig, Int8WeightOnlyConfig, quantize_
 
 probe = torch.nn.Linear(32, 16, bias=False).eval()
 quantize_(probe, Int8WeightOnlyConfig())
@@ -34,6 +33,28 @@ if mps_available:
         mps_int8_weight_only = device_shape == [2, 16]
     except Exception as error:
         mps_error = f"{type(error).__name__}: {error}"[:1000]
+int4_weight_only_api = True
+cpu_int4_weight_only = False
+cpu_int4_error = None
+mps_int4_weight_only = False
+mps_int4_error = None
+try:
+    int4_probe = torch.nn.Linear(256, 128, bias=False, dtype=torch.bfloat16).eval()
+    quantize_(int4_probe, Int4WeightOnlyConfig(group_size=128))
+    cpu_int4_weight_only = list(
+        int4_probe(torch.randn(2, 256, dtype=torch.bfloat16)).shape
+    ) == [2, 128]
+    if mps_available:
+        try:
+            int4_probe = int4_probe.to("mps")
+            mps_int4_weight_only = list(
+                int4_probe(torch.randn(2, 256, dtype=torch.bfloat16, device="mps"))
+                .shape
+            ) == [2, 128]
+        except Exception as error:
+            mps_int4_error = f"{type(error).__name__}: {error}"[:1000]
+except Exception as error:
+    cpu_int4_error = f"{type(error).__name__}: {error}"[:1000]
 print(json.dumps({
     "torch_version": metadata.version("torch"),
     "torchao_version": metadata.version("torchao"),
@@ -45,6 +66,11 @@ print(json.dumps({
     "mps_available": mps_available,
     "mps_int8_weight_only_probe": mps_int8_weight_only,
     "mps_error": mps_error,
+    "int4_weight_only_api": int4_weight_only_api,
+    "cpu_int4_weight_only_probe": cpu_int4_weight_only,
+    "cpu_int4_error": cpu_int4_error,
+    "mps_int4_weight_only_probe": mps_int4_weight_only,
+    "mps_int4_error": mps_int4_error,
 }))
 """
     try:
@@ -72,6 +98,11 @@ print(json.dumps({
         "mps_available",
         "mps_int8_weight_only_probe",
         "mps_error",
+        "int4_weight_only_api",
+        "cpu_int4_weight_only_probe",
+        "cpu_int4_error",
+        "mps_int4_weight_only_probe",
+        "mps_int4_error",
     }
     if not isinstance(payload, dict) or set(payload) != required:
         raise ValueError("TorchAO readiness output has an invalid schema")
@@ -87,6 +118,15 @@ print(json.dumps({
         payload[key]
         for key in ("mps_built", "mps_available", "mps_int8_weight_only_probe")
     )
+    int4_conversion_ready = bool(
+        payload["int4_weight_only_api"] and payload["cpu_int4_weight_only_probe"]
+    )
+    int4_mps_runtime_ready = bool(
+        int4_conversion_ready
+        and payload["mps_built"]
+        and payload["mps_available"]
+        and payload["mps_int4_weight_only_probe"]
+    )
     return {
         "schema_version": 1,
         "backend": "torchao-int8-weight-only",
@@ -94,5 +134,7 @@ print(json.dumps({
         **payload,
         "conversion_ready": conversion_ready,
         "mps_runtime_ready": mps_runtime_ready,
+        "int4_conversion_ready": int4_conversion_ready,
+        "int4_mps_runtime_ready": int4_mps_runtime_ready,
         "loads_model_weights": False,
     }

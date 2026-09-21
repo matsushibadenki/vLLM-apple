@@ -3,6 +3,7 @@ import time
 import unittest
 from pathlib import Path
 
+from tests.test_scheduler import hardware
 from vllm_apple.device_contention import (
     ContentionBenchmarkConfig,
     ContentionProfile,
@@ -24,7 +25,6 @@ from vllm_apple.device_resources import (
 from vllm_apple.execution import ExecutionBackend
 from vllm_apple.profile import build_profile
 from vllm_apple.service import RuntimeService
-from tests.test_scheduler import hardware
 
 
 class DeviceContentionTests(unittest.TestCase):

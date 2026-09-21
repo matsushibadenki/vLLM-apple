@@ -1,8 +1,8 @@
 """Combined correctness and end-to-end promotion gate for numeric routes."""
 from __future__ import annotations
 
-from dataclasses import dataclass
 import math
+from dataclasses import dataclass
 
 from .workload_performance import (
     EndToEndPerformanceProfile,

@@ -3,8 +3,8 @@ import json
 import threading
 import time
 import unittest
-import urllib.request
 import urllib.error
+import urllib.request
 from contextlib import nullcontext
 
 from vllm_apple.api import create_server

@@ -6,7 +6,6 @@ import os
 import subprocess
 from pathlib import Path
 
-
 MAX_PROBE_OUTPUT_BYTES = 16 * 1024
 MAX_SOURCE_FILE_BYTES = 2 * 1024 * 1024
 MAX_SOURCE_FILES = 4096

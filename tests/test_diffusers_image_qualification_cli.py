@@ -75,11 +75,75 @@ class DiffusersImageQualificationCLITests(unittest.TestCase):
         self.assertEqual(captured["plan"].quantization, "none")
         self.assertEqual(captured["plan"].steps, 20)
         self.assertEqual(captured["kwargs"]["mode"], "text-to-image")
+        self.assertIsNone(captured["kwargs"]["input_image_path"])
+        self.assertFalse(captured["kwargs"]["disk_offload"])
         self.assertEqual(
             captured["kwargs"]["worker_command"][-1],
             "vllm_apple.diffusers_generation_worker",
         )
         self.assertEqual(len(captured["kwargs"]["provenance"].artifact_root_sha256), 64)
+
+    def test_image_edit_cli_forwards_private_input(self) -> None:
+        with TemporaryDirectory() as directory:
+            root = Path(directory)
+            model = root / "model"
+            model.mkdir()
+            model.joinpath("weight.safetensors").write_bytes(b"weight")
+            source = root / "source.png"
+            source.write_bytes(b"\x89PNG\r\n\x1a\nsource")
+            source.chmod(0o600)
+            artifact = {
+                "artifact_format": "diffusers",
+                "pipeline_class": "QwenImage21Pipeline",
+                "artifact_bytes": 80,
+                "quantization": {"bits": 8},
+                "license": "qwen-research",
+                "base_model": None,
+                "components": [
+                    {"name": "transformer", "role": "denoiser", "artifact_bytes": 50},
+                    {"name": "text_encoder", "role": "text_encoder", "artifact_bytes": 20},
+                    {"name": "vae", "role": "vae", "artifact_bytes": 10},
+                ],
+                "inspectable": True,
+            }
+            readiness = {
+                "diffusers_version": "0.41.0.dev0",
+                "candidates": {"qwen-image-2.1": {"ready": True}},
+            }
+            hardware = HardwareInfo(
+                "Darwin", "arm64", "Apple M4", 10, 10, 10,
+                MemoryInfo(32 * GIB, 28 * GIB), True, "test",
+            )
+            captured = {}
+
+            def run(_plan, **kwargs):
+                captured.update(kwargs)
+                return SimpleNamespace(passed=True, to_dict=lambda: {"passed": True})
+
+            with patch(
+                "vllm_apple.cli.inspect_diffusers_generative_readiness",
+                return_value=readiness,
+            ), patch(
+                "vllm_apple.cli.inspect_generative_artifact", return_value=artifact
+            ), patch(
+                "vllm_apple.cli.estimate_qwen_image_21_resident_bytes",
+                return_value=2 * GIB,
+            ), patch(
+                "vllm_apple.cli.detect_hardware", return_value=hardware
+            ), patch(
+                "vllm_apple.cli.run_generative_qualification", side_effect=run
+            ), redirect_stdout(io.StringIO()):
+                code = main([
+                    "diffusers-image-qualification", str(model),
+                    "--python", "/test/python", "--resident-auto",
+                    "--mode", "image-edit", "--input-image", str(source),
+                    "--workspace-root", str(root),
+                    "--private-root", str(root / "private"),
+                    "--report", str(root / "report.json"),
+                ])
+        self.assertEqual(code, 0)
+        self.assertEqual(captured["mode"], "image-edit")
+        self.assertEqual(captured["input_image_path"], source)
 
     def test_qwen_cli_rejects_wrong_pipeline_before_generation(self) -> None:
         readiness = {
@@ -103,6 +167,34 @@ class DiffusersImageQualificationCLITests(unittest.TestCase):
                 "--python", "/test/python", "--resident-auto",
             ])
         self.assertEqual(code, 2)
+        run.assert_not_called()
+
+    def test_qwen_cli_rejects_torchao_disk_offload_before_generation(self) -> None:
+        readiness = {
+            "diffusers_version": "0.41.0.dev0",
+            "candidates": {"qwen-image-2.1": {"ready": True}},
+        }
+        artifact = {
+            "artifact_format": "diffusers",
+            "pipeline_class": "QwenImage21Pipeline",
+            "inspectable": True,
+            "quantization": {"method": "torchao", "bits": 8},
+        }
+        output = io.StringIO()
+        with patch(
+            "vllm_apple.cli.inspect_diffusers_generative_readiness",
+            return_value=readiness,
+        ), patch(
+            "vllm_apple.cli.inspect_generative_artifact", return_value=artifact
+        ), patch(
+            "vllm_apple.cli.run_generative_qualification"
+        ) as run, redirect_stdout(output):
+            code = main([
+                "diffusers-image-qualification", "model",
+                "--python", "/test/python", "--resident-auto", "--disk-offload",
+            ])
+        self.assertEqual(code, 2)
+        self.assertIn("do not support", json.loads(output.getvalue())["detail"])
         run.assert_not_called()
 
     def test_resolution_promotion_binds_an_all_normal_baseline(self) -> None:
@@ -175,3 +267,71 @@ class DiffusersImageQualificationCLITests(unittest.TestCase):
         self.assertEqual(captured["plan"].promotion_axis, "resolution")
         self.assertEqual(captured["plan"].baseline_plan_sha256, "a" * 64)
         self.assertEqual(captured["plan"].issues, ())
+
+    def test_same_resolution_four_samples_uses_stability_promotion(self) -> None:
+        artifact = {
+            "artifact_format": "diffusers", "pipeline_class": "QwenImage21Pipeline",
+            "artifact_bytes": 80, "quantization": {"bits": 8},
+            "license": "other", "base_model": None,
+            "components": [
+                {"name": "transformer", "role": "denoiser", "artifact_bytes": 50},
+                {"name": "text_encoder", "role": "text_encoder", "artifact_bytes": 20},
+                {"name": "vae", "role": "vae", "artifact_bytes": 10},
+            ], "inspectable": True,
+        }
+        readiness = {
+            "diffusers_version": "0.41.0.dev0",
+            "candidates": {"qwen-image-2.1": {"ready": True}},
+        }
+        hardware = HardwareInfo(
+            "Darwin", "arm64", "Apple M4", 10, 10, 10,
+            MemoryInfo(32 * GIB, 28 * GIB), True, "test",
+        )
+        sample = SimpleNamespace(
+            output_width=768, output_height=768, output_frames=1,
+            memory_pressure="normal",
+        )
+        baseline = SimpleNamespace(
+            passed=True, candidate_id="qwen-image-2.1", plan_sha256="a" * 64,
+            sample_count=2, samples=(sample, sample),
+        )
+        captured = {}
+
+        def run(plan, **kwargs):
+            captured["plan"] = plan
+            captured["kwargs"] = kwargs
+            return SimpleNamespace(passed=True, to_dict=lambda: {"passed": True})
+
+        with TemporaryDirectory() as directory:
+            root = Path(directory)
+            model = root / "model"
+            model.mkdir()
+            (model / "weight.safetensors").write_bytes(b"weight")
+            with patch(
+                "vllm_apple.cli.inspect_diffusers_generative_readiness",
+                return_value=readiness,
+            ), patch(
+                "vllm_apple.cli.inspect_generative_artifact", return_value=artifact,
+            ), patch(
+                "vllm_apple.cli.estimate_qwen_image_21_resident_bytes",
+                return_value=2 * GIB,
+            ), patch(
+                "vllm_apple.cli.detect_hardware", return_value=hardware,
+            ), patch(
+                "vllm_apple.cli.load_generative_evaluation_report", return_value=baseline,
+            ), patch(
+                "vllm_apple.cli.run_generative_qualification", side_effect=run,
+            ), redirect_stdout(io.StringIO()):
+                code = main([
+                    "diffusers-image-qualification", str(model),
+                    "--python", "/test/python", "--resident-auto", "--two-phase",
+                    "--width", "768", "--height", "768", "--samples", "4",
+                    "--baseline-report", str(root / "baseline.json"),
+                    "--workspace-root", str(root),
+                    "--private-root", str(root / "private"),
+                    "--report", str(root / "report.json"),
+                ])
+        self.assertEqual(code, 0)
+        self.assertEqual(captured["plan"].promotion_axis, "sample_count_4")
+        self.assertEqual(captured["plan"].baseline_plan_sha256, "a" * 64)
+        self.assertIsNotNone(captured["kwargs"]["phase_encoder_command"])

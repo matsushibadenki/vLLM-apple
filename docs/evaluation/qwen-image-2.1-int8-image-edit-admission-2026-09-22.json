@@ -1,0 +1,21 @@
+{
+  "candidate_id": "qwen-image-2.1",
+  "mode": "image-edit",
+  "profile": {
+    "width": 512,
+    "height": 512,
+    "steps": 20,
+    "samples": 2,
+    "batch_size": 1
+  },
+  "artifact": "models/Qwen-Image-2.1-torchao-int8",
+  "estimated_resident_bytes": 16141367203,
+  "memory_hard_ceiling_bytes": 15453877699,
+  "fits_disk": true,
+  "fits_memory": false,
+  "worker_started": false,
+  "weights_loaded": false,
+  "passed": false,
+  "error_code": "load_before_admission_rejected",
+  "reason": "The dynamic Unified Memory ceiling was 687,489,504 bytes below the conservative resident estimate. The qualification was not retried."
+}

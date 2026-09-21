@@ -7,7 +7,6 @@ from typing import Any
 
 from .types import GIB, HardwareInfo, ModelMemorySpec, StateMemorySpec
 
-
 DEFAULT_UNINSPECTED_CONTEXT = 4096
 MAX_MODEL_CONFIG_BYTES = 1024 * 1024
 MAX_MODEL_CONFIG_NODES = 4096

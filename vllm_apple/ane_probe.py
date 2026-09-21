@@ -14,7 +14,6 @@ from .execution import ExecutionBackend
 from .kernel_probe import KernelMeasurement, KernelProbeConfig, KernelProbeResult, run_kernel_probe
 from .model_integrity import verify_model_integrity
 
-
 ANE_SURFACE_SCHEMA_VERSION = 1
 _SURFACE_PROGRAM = r'''
 import CoreML

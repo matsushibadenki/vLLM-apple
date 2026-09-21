@@ -6,7 +6,6 @@ from pathlib import Path
 
 from vllm_apple.qwen3_vl_ane import inspect_qwen3_vl_vision_for_ane
 
-
 REVISION = "9c4f5209e57b31f4b9dfba735de3fb983739c9cc"
 
 

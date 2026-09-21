@@ -23,7 +23,6 @@ from .qwen3_vl_managed_engine import (
 from .qwen3_vl_persistent_encoder import Qwen3VLPersistentEncoder
 from .qwen3_vl_persistent_worker import Qwen3VLPersistentWorker
 
-
 _CONFIG_KEYS = {
     "model", "revision", "graph_id", "compiled_models", "model_id",
     "hardware_profile", "environment_profile", "unified_memory_bytes",

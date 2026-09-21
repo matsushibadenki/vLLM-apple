@@ -6,15 +6,16 @@ from dataclasses import replace
 from pathlib import Path
 
 from tests.schema_validator import validate_instance
+from tests.test_scheduler import hardware
 from vllm_apple.cli import build_parser
 from vllm_apple.kernel_profile import ModelKernelShapeProfile, PagedAttentionShape
 from vllm_apple.vllm_metal_v2_tuning import (
     V2DispatchConfiguration,
     V2PagedAttentionFamily,
     V2PagedAttentionShape,
-    build_v2_tuning_profile,
     build_v2_environment_fingerprint,
     build_v2_hardware_fingerprint,
+    build_v2_tuning_profile,
     candidate_configurations,
     inspect_v2_tuning_quarantine,
     load_v2_tuning_profile,
@@ -24,7 +25,6 @@ from vllm_apple.vllm_metal_v2_tuning import (
     tune_v2_model_profile,
     tune_v2_shape,
 )
-from tests.test_scheduler import hardware
 
 
 class VLLMMetalV2TuningTests(unittest.TestCase):

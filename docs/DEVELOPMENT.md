@@ -436,6 +436,12 @@ collector側の早期中断時には専用process groupへTERMを送り、2秒�
 prompt、seed、生成物path、生成内容はprotocol fieldに含めない。MLX、Diffusers、ComfyUI固有workerは
 このJSONL境界の背後に置き、framework importとmodel/Metal allocationをcontrol processから隔離する。
 
+framework固有境界は`VersionedGenerativeWorkerAdapter`で統一し、MLX-Gen、MFLUX、Diffusersは固定Python module、
+ComfyUIは明示指定した外部worker executableとして扱う。backend versionは呼び出し側のexact allowlistに含まれる
+場合だけ実行可能とし、owned regular executable（venv Python symlinkはowned regular targetまで再検査）、workspace内の
+non-symlink request、固定JSONL v1 telemetry contractをworker起動前に検証する。ComfyUIのworkflow実装差はadapterの外側へ
+漏らさず、同じrequest consume／privacy／collector契約を満たすworkerだけを差し替える。
+
 生成workerへの入力は`build_generative_worker_request`で構築する。requestはqualification plan digest、
 prompt digest、candidate/model、mode、seed、shape、memory hard ceilingに結合される。model rootとoutput
 rootは指定workspace内の実directoryに限定し、outputをmodel tree内へ置くことはできない。

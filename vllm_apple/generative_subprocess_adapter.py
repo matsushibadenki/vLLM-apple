@@ -13,7 +13,6 @@ from typing import Iterator, Mapping, Sequence
 
 from .generative_collector import GenerationTelemetryEvent
 
-
 DEFAULT_MAX_LINE_BYTES = 16 * 1024
 MAX_STDERR_TAIL_BYTES = 4 * 1024
 MAX_COMMAND_ARGUMENTS = 256

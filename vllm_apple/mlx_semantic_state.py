@@ -13,7 +13,6 @@ from .semantic_cache import (
 )
 from .semantic_state import BackendStateReference
 
-
 MAX_MLX_STATE_ENTRIES = 4_096
 
 

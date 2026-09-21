@@ -12,7 +12,6 @@ from .generative_evaluation import (
 )
 from .generative_qualification import GenerativeQualificationPlan
 
-
 MAX_TELEMETRY_EVENTS = 4096
 _MEMORY_SEVERITY = {"normal": 0, "warning": 1, "unknown": 2, "critical": 3}
 _THERMAL_SEVERITY = {"nominal": 0, "fair": 1, "unknown": 2, "serious": 3, "critical": 4}

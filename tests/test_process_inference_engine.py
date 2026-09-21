@@ -6,8 +6,8 @@ import tempfile
 import threading
 import time
 import unittest
-import urllib.request
 import urllib.error
+import urllib.request
 from pathlib import Path
 
 from vllm_apple.api import create_server
@@ -16,11 +16,20 @@ from vllm_apple.inference_request import (
     InferenceRequestCancelled,
     InferenceRequestContext,
 )
-from vllm_apple.process_inference_engine import MainThreadSubprocessInferenceEngine
+from vllm_apple.process_inference_engine import (
+    MainThreadSubprocessInferenceEngine,
+    _validated_python_executable,
+)
 from vllm_apple.service import RuntimeService
 
 
 class ProcessInferenceEngineTests(unittest.TestCase):
+    def test_python_venv_symlink_is_preserved_after_validation(self):
+        with tempfile.TemporaryDirectory() as directory:
+            link = Path(directory) / "python"
+            link.symlink_to(Path(sys.executable).resolve())
+            self.assertEqual(_validated_python_executable(link), link.absolute())
+
     def setUp(self):
         self.directory = tempfile.TemporaryDirectory()
         root = Path(self.directory.name)

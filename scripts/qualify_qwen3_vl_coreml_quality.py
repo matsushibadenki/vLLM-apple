@@ -8,7 +8,6 @@ import json
 import stat
 from pathlib import Path
 
-
 _DESCRIPTION_PROMPTS = (
     ("en", "Describe the image briefly."),
     ("ja", "画像を簡潔に説明してください。"),

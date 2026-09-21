@@ -10,7 +10,6 @@ from pathlib import Path
 
 from .ane_probe import CoreMLANEModelProbeConfig, CoreMLPrediction
 
-
 _WORKER_PROGRAM = r'''
 import CoreML
 import Foundation

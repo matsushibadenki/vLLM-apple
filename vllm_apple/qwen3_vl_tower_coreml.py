@@ -16,7 +16,6 @@ from .qwen3_vl_conversion_plan import Qwen3VLCoreMLConversionPlan
 from .qwen3_vl_graph_spec import build_qwen3_vl_coreml_graph_spec
 from .qwen3_vl_mlp_coreml import _PREDICTION_PROGRAM
 
-
 TOWER_MAXIMUM_SCALED_ERROR = 3e-2
 
 

@@ -9,7 +9,6 @@ import tempfile
 from dataclasses import dataclass
 from pathlib import Path
 
-
 QWEN4_CONVERSION_ABI_VERSION = 1
 MAX_CONVERSION_REQUEST_BYTES = 16 * 1024
 MAX_CONVERSION_RESPONSE_BYTES = 16 * 1024

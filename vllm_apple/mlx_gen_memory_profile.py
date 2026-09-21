@@ -4,7 +4,6 @@ from contextlib import contextmanager
 from functools import wraps
 from typing import Callable, Iterator
 
-
 _BLOCK_CLASSES = (
     (
         "mflux.models.flux2.model.flux2_transformer.transformer_block",

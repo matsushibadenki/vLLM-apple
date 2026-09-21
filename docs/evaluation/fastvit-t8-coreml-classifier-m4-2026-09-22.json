@@ -1,0 +1,68 @@
+{
+  "artifact_bytes": 8126615,
+  "artifact_file_count": 3,
+  "artifact_sha256": "4508df7bb7977d38fd46ebbf3bc2a7b1f32e967eedadf1457c95e29b8c3fae33",
+  "compute_units": "cpu_and_neural_engine",
+  "input": {
+    "name": "image",
+    "shape": [
+      256,
+      256,
+      3
+    ]
+  },
+  "memory_pressure": "normal",
+  "model": "apple/coreml-FastViT-T8",
+  "model_license": "apple-ascl",
+  "model_revision": "b42811edaa9f7ca6d79eeada204227704484c881",
+  "os_version": "27.0",
+  "outputs": {
+    "class_count": 1000,
+    "label": "classLabel",
+    "probabilities": "classLabel_probs",
+    "probability_array": "classLabelProbs",
+    "unique_label_count": 999
+  },
+  "passed": true,
+  "peak_rss_bytes": 217677824,
+  "sample_count": 3,
+  "samples": [
+    {
+      "class_count": 1000,
+      "latency_nanoseconds": 2246875,
+      "probability_sha256": "a290861e680c7370d11b47d57f29c1307cf980dd6c5a099aedce3ea08492572e",
+      "probability_sum": 0.9993551969528198,
+      "sample_index": 0,
+      "top_label": "web site, website, internet site, site",
+      "top_probability": 0.050048828125,
+      "unique_label_count": 999
+    },
+    {
+      "class_count": 1000,
+      "latency_nanoseconds": 1998541,
+      "probability_sha256": "ccccee79c3e9dc7db8b1265fb9468c90791a845a1a07f52b85e4b9e6b2999c83",
+      "probability_sum": 0.9999364614486694,
+      "sample_index": 1,
+      "top_label": "velvet",
+      "top_probability": 0.19921875,
+      "unique_label_count": 999
+    },
+    {
+      "class_count": 1000,
+      "latency_nanoseconds": 1942792,
+      "probability_sha256": "67d47a1047ca215e005ee47ba31e95d02dfb8a73646ed6e7067e7494480e5b49",
+      "probability_sum": 0.9993668794631958,
+      "sample_index": 2,
+      "top_label": "velvet",
+      "top_probability": 0.1358642578125,
+      "unique_label_count": 999
+    }
+  ],
+  "schema_version": 1,
+  "scope": "fastvit_t8_coreml_classifier_qualification",
+  "soc": "Apple M4",
+  "stores_image": false,
+  "stores_probabilities": false,
+  "temporary_cleanup_verified": true,
+  "thermal_state": "nominal"
+}

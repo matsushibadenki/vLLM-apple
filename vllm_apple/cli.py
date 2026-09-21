@@ -11,27 +11,12 @@ from pathlib import Path
 from .artifact_admission import assess_artifact_admission_for_path
 from .compat import assess_candidate_backend, inspect_backend, inspect_mlx_lm_backend
 from .context import recommend_context
-from .vision_smoke import run_vision_smoke
 from .daemon import serve
 from .daemon_lifecycle import daemon_status, install_daemon, start_daemon, stop_daemon
 from .diffusers_generative_readiness import inspect_diffusers_generative_readiness
 from .diffusers_video_readiness import inspect_diffusers_video_readiness
-from .execution_profile import detect_apple_chip_profile, save_chip_profile
 from .execution_preview_client import fetch_execution_preview
-from .hardware import detect_hardware
-from .huggingface_metadata import HuggingFaceMetadataError, fetch_hugging_face_metadata
-from .generative_qualification import (
-    GENERATIVE_CANDIDATES,
-    GenerativeBaselineEvidence,
-    build_generative_qualification_plan,
-    list_generative_candidates,
-    parse_generative_component,
-    promote_generative_chained_resolution_plan,
-    promote_generative_chained_frame_plan,
-    promote_generative_frame_plan,
-    promote_generative_resolution_plan,
-    promote_generative_sample_count_plan,
-)
+from .execution_profile import detect_apple_chip_profile, save_chip_profile
 from .generative_artifact_inspection import (
     inspect_generative_artifact,
     qualification_components_from_inspection,
@@ -40,7 +25,21 @@ from .generative_evaluation import (
     GenerativeEvaluationProvenance,
     load_generative_evaluation_report,
 )
+from .generative_qualification import (
+    GENERATIVE_CANDIDATES,
+    GenerativeBaselineEvidence,
+    build_generative_qualification_plan,
+    list_generative_candidates,
+    parse_generative_component,
+    promote_generative_chained_frame_plan,
+    promote_generative_chained_resolution_plan,
+    promote_generative_frame_plan,
+    promote_generative_resolution_plan,
+    promote_generative_sample_count_plan,
+)
 from .generative_qualification_runner import run_generative_qualification
+from .hardware import detect_hardware
+from .huggingface_metadata import HuggingFaceMetadataError, fetch_hugging_face_metadata
 from .kernel_probe import build_environment_fingerprint
 from .kernel_profile import build_model_kernel_shape_profile
 from .kv_calibration import (
@@ -56,6 +55,14 @@ from .long_context import (
 from .long_context_backend import MLXLongContextAdapter, VLLMLongContextAdapter
 from .metal_probe import NativeMetalProbeAdapter
 from .metal_tuning import save_metal_tuning_report, tune_metal_shape_profile
+from .mflux_generative_readiness import inspect_mflux_generative_readiness
+from .mlx_gen_generative_readiness import (
+    inspect_mlx_gen_generative_readiness,
+    select_mlx_gen_qualification_candidate,
+)
+from .mlx_gen_video_memory import estimate_mlx_gen_video_resident_bytes
+from .mlx_gen_video_readiness import inspect_mlx_gen_video_readiness
+from .mlx_qwen4_readiness import inspect_mlx_qwen4_readiness
 from .model import ModelInspectionError, inspect_model, inspect_model_metadata
 from .model_integrity import (
     ModelIntegrityError,
@@ -77,6 +84,11 @@ from .numeric_formats import (
     convert_nvfp4_to_int8,
 )
 from .numeric_precision import NumericPrecisionPolicy, PrecisionExecutionContract
+from .numeric_routing import (
+    NumericFormat,
+    NumericRouteStrategy,
+    NumericTensorRole,
+)
 from .phase_probe import PhaseProbeConfig, PhaseProbeError, run_phase_probe
 from .profile import build_profile, save_profile
 from .qualification import (
@@ -85,34 +97,6 @@ from .qualification import (
     qualify_model,
     save_qualification_report,
 )
-from .mlx_qwen4_readiness import inspect_mlx_qwen4_readiness
-from .mflux_generative_readiness import inspect_mflux_generative_readiness
-from .mlx_gen_generative_readiness import (
-    inspect_mlx_gen_generative_readiness,
-    select_mlx_gen_qualification_candidate,
-)
-from .mlx_gen_video_readiness import inspect_mlx_gen_video_readiness
-from .mlx_gen_video_memory import estimate_mlx_gen_video_resident_bytes
-from .qwen_image_21_memory import estimate_qwen_image_21_resident_bytes
-from .qwen_image_21_residency import build_qwen_image_21_residency_plan
-from .qwen_image_21_torchao_readiness import inspect_qwen_image_21_torchao_readiness
-from .qwen_image_21_conversion import (
-    build_qwen_image_21_conversion_plan,
-    build_qwen_image_21_streaming_conversion_plan,
-)
-from .qwen_image_21_conversion_subprocess import run_qwen_image_21_conversion_worker
-from .qualification_preflight import run_qualification_preflight
-from .qwen4_cache_contract import run_qwen4_cache_fixture
-from .qwen4_adapter_contract import build_qwen4_adapter_contract
-from .qwen4_adapter_loader import inspect_qwen4_adapter_headers
-from .qwen4_conversion_plan import build_qwen4_conversion_plan
-from .qwen4_mlx_fixture import run_qwen4_mlx_fixture
-from .qwen4_load_plan import build_qwen4_component_load_plan
-from .qwen4_mlx_resident_backend import Qwen4MLXNumericResidentBackend
-from .qwen4_runtime_client import Qwen4RuntimeClient
-from .qwen4_runtime_worker import Qwen4RuntimeWorker
-from .qwen4_shard_stager import stage_qwen4_shards, verify_qwen4_stage
-from .qwen4_weight_map import inspect_qwen4_weight_map
 from .qualification_bundle import (
     QualificationBundleError,
     build_qualification_bundle,
@@ -121,6 +105,26 @@ from .qualification_bundle import (
     verify_qualification_bundle,
     verify_signed_qualification_bundle,
 )
+from .qualification_preflight import run_qualification_preflight
+from .qwen4_adapter_contract import build_qwen4_adapter_contract
+from .qwen4_adapter_loader import inspect_qwen4_adapter_headers
+from .qwen4_cache_contract import run_qwen4_cache_fixture
+from .qwen4_conversion_plan import build_qwen4_conversion_plan
+from .qwen4_load_plan import build_qwen4_component_load_plan
+from .qwen4_mlx_fixture import run_qwen4_mlx_fixture
+from .qwen4_mlx_resident_backend import Qwen4MLXNumericResidentBackend
+from .qwen4_runtime_client import Qwen4RuntimeClient
+from .qwen4_runtime_worker import Qwen4RuntimeWorker
+from .qwen4_shard_stager import stage_qwen4_shards, verify_qwen4_stage
+from .qwen4_weight_map import inspect_qwen4_weight_map
+from .qwen_image_21_conversion import (
+    build_qwen_image_21_conversion_plan,
+    build_qwen_image_21_streaming_conversion_plan,
+)
+from .qwen_image_21_conversion_subprocess import run_qwen_image_21_conversion_worker
+from .qwen_image_21_memory import estimate_qwen_image_21_resident_bytes
+from .qwen_image_21_residency import build_qwen_image_21_residency_plan
+from .qwen_image_21_torchao_readiness import inspect_qwen_image_21_torchao_readiness
 from .runtime_probe import discover_runtime_versions
 from .shape_benchmark import (
     default_metal_shape_benchmark_path,
@@ -129,6 +133,7 @@ from .shape_benchmark import (
 )
 from .soak import _read_private_token
 from .types import GIB, ModelMemorySpec
+from .vision_smoke import run_vision_smoke
 from .vllm_metal_integration import inspect_vllm_metal_integration
 from .vllm_metal_v2_adapter import V2MeasurementAdapterError, VLLMMetalV2MeasurementAdapter
 from .vllm_metal_v2_observation import load_v2_observations
@@ -242,6 +247,15 @@ def build_parser() -> argparse.ArgumentParser:
     )
     diffusers_video_readiness.add_argument("--python", type=Path, default=Path(sys.executable))
     diffusers_video_readiness.add_argument("--model", required=True, type=Path)
+    diffusers_video_readiness.add_argument(
+        "--candidate", choices=(
+            "wan2.2-ti2v-5b", "wan2.2-a14b-quantized", "hunyuanvideo-1.5-8.3b"
+        ),
+        default="wan2.2-ti2v-5b",
+    )
+    diffusers_video_readiness.add_argument(
+        "--mode", choices=("text-to-video", "image-to-video"), default="text-to-video"
+    )
     diffusers_video_qualification = commands.add_parser(
         "diffusers-video-qualification",
         help="run repeated local Wan T2V qualification and save private evidence",
@@ -252,6 +266,16 @@ def build_parser() -> argparse.ArgumentParser:
     video_resident.add_argument("--resident-gib", type=float)
     video_resident.add_argument("--resident-bytes", type=int)
     diffusers_video_qualification.add_argument("--samples", type=int, default=2)
+    diffusers_video_qualification.add_argument(
+        "--candidate", choices=(
+            "wan2.2-ti2v-5b", "wan2.2-a14b-quantized", "hunyuanvideo-1.5-8.3b"
+        ),
+        default="wan2.2-ti2v-5b",
+    )
+    diffusers_video_qualification.add_argument(
+        "--mode", choices=("text-to-video", "image-to-video"), default="text-to-video"
+    )
+    diffusers_video_qualification.add_argument("--input-image", type=Path)
     diffusers_video_qualification.add_argument("--timeout", type=float, default=3600.0)
     diffusers_video_qualification.add_argument("--recovery-timeout", type=float, default=300.0)
     diffusers_video_qualification.add_argument("--recovery-poll", type=float, default=5.0)
@@ -282,7 +306,24 @@ def build_parser() -> argparse.ArgumentParser:
     diffusers_image_qualification.add_argument("--height", type=int, default=512)
     diffusers_image_qualification.add_argument("--steps", type=int, default=20)
     diffusers_image_qualification.add_argument("--samples", type=int, default=2)
+    diffusers_image_qualification.add_argument(
+        "--mode", choices=("text-to-image", "image-edit"), default="text-to-image"
+    )
+    diffusers_image_qualification.add_argument(
+        "--input-image",
+        type=Path,
+        help="private PNG/JPEG source required by --mode image-edit",
+    )
     diffusers_image_qualification.add_argument("--baseline-report", type=Path)
+    diffusers_image_qualification.add_argument(
+        "--two-phase", action="store_true",
+        help="run Qwen-Image text encoder and generation in sequential child processes",
+    )
+    diffusers_image_qualification.add_argument(
+        "--disk-offload",
+        action="store_true",
+        help="use private per-sample disk backing for Qwen-Image-2.1 group offload",
+    )
     diffusers_image_qualification.add_argument("--timeout", type=float, default=3600.0)
     diffusers_image_qualification.add_argument("--recovery-timeout", type=float, default=300.0)
     diffusers_image_qualification.add_argument("--recovery-poll", type=float, default=5.0)
@@ -374,6 +415,29 @@ def build_parser() -> argparse.ArgumentParser:
     )
     mflux_readiness.add_argument("--python", type=Path, default=Path(sys.executable))
     mflux_readiness.add_argument("--model", type=Path)
+    mflux_qualification = commands.add_parser(
+        "mflux-image-qualification",
+        help="run bounded local MFLUX Qwen-Image qualification",
+    )
+    mflux_qualification.add_argument("model", type=Path)
+    mflux_qualification.add_argument("--python", required=True, type=Path)
+    mflux_resident = mflux_qualification.add_mutually_exclusive_group(required=True)
+    mflux_resident.add_argument("--resident-gib", type=float)
+    mflux_resident.add_argument("--resident-bytes", type=int)
+    mflux_qualification.add_argument("--width", type=int, default=512)
+    mflux_qualification.add_argument("--height", type=int, default=512)
+    mflux_qualification.add_argument("--steps", type=int, default=20)
+    mflux_qualification.add_argument("--samples", type=int, default=2)
+    mflux_qualification.add_argument("--timeout", type=float, default=3600.0)
+    mflux_qualification.add_argument("--recovery-timeout", type=float, default=300.0)
+    mflux_qualification.add_argument("--recovery-poll", type=float, default=5.0)
+    mflux_qualification.add_argument("--workspace-root", type=Path, default=Path("."))
+    mflux_qualification.add_argument(
+        "--private-root", type=Path, default=Path("qualification-private/mflux-image")
+    )
+    mflux_qualification.add_argument(
+        "--report", type=Path, default=Path("qualification-results/mflux-image.json")
+    )
     mlx_gen_readiness = commands.add_parser(
         "mlx-gen-generative-readiness",
         help="verify MLX-Gen and a local FLUX.2 Klein artifact without loading weights",
@@ -783,6 +847,32 @@ def build_parser() -> argparse.ArgumentParser:
         help="write private packed/scales companions for incremental runtime loading",
     )
 
+    numeric_diagnostic = commands.add_parser(
+        "numeric-route-diagnostic",
+        help="describe a numeric conversion route without exposing tensor data",
+    )
+    numeric_diagnostic.add_argument(
+        "--source-format", choices=tuple(value.value for value in NumericFormat), required=True
+    )
+    numeric_diagnostic.add_argument(
+        "--runtime-format", choices=tuple(value.value for value in NumericFormat), required=True
+    )
+    numeric_diagnostic.add_argument(
+        "--compute-format", choices=tuple(value.value for value in NumericFormat), required=True
+    )
+    numeric_diagnostic.add_argument(
+        "--tensor-role", choices=tuple(value.value for value in NumericTensorRole), required=True
+    )
+    numeric_diagnostic.add_argument(
+        "--route", choices=tuple(value.value for value in NumericRouteStrategy), required=True
+    )
+    numeric_diagnostic.add_argument("--absolute-error-budget", type=float, required=True)
+    numeric_diagnostic.add_argument("--rmse-budget", type=float, required=True)
+    numeric_diagnostic.add_argument("--fallback-reason", default="none")
+    numeric_diagnostic.add_argument(
+        "--language", choices=("en", "ja", "zh-Hans"), default="en"
+    )
+
     numeric_load = commands.add_parser(
         "numeric-runtime-load", help="consume one numeric artifact into the local MLX runtime"
     )
@@ -903,6 +993,8 @@ def build_parser() -> argparse.ArgumentParser:
     server.add_argument("--disable-native-v2-idle-tuning", action="store_true")
     server.add_argument("--native-v2-preference-path", type=Path)
     server.add_argument("--scheduling-preference-path", type=Path)
+    server.add_argument("--optimizer-model-root", type=Path, action="append", default=[])
+    server.add_argument("--optimizer-output-root", type=Path, action="append", default=[])
     daemon_install = commands.add_parser(
         "daemon-install", help="install an owner-only per-user launchd service definition")
     daemon_install.add_argument("model", nargs="?")
@@ -1121,7 +1213,8 @@ def main(argv: list[str] | None = None) -> int:
     if arguments.command == "diffusers-video-readiness":
         try:
             report = inspect_diffusers_video_readiness(
-                arguments.python, model=arguments.model
+                arguments.python, model=arguments.model,
+                candidate_id=arguments.candidate, mode=arguments.mode,
             )
         except (OSError, ValueError) as error:
             _json(
@@ -1358,6 +1451,15 @@ def main(argv: list[str] | None = None) -> int:
                 raise ValueError("artifact pipeline must be QwenImage21Pipeline")
             if not artifact.get("inspectable"):
                 raise ValueError("Qwen-Image-2.1 artifact did not pass load-free inspection")
+            if (
+                arguments.disk_offload
+                and artifact.get("quantization", {}).get("method") == "torchao"
+            ):
+                raise ValueError(
+                    "TorchAO quantized tensors do not support Diffusers disk offload"
+                )
+            if arguments.two_phase and (arguments.mode != "text-to-image" or arguments.disk_offload):
+                raise ValueError("two-phase requires text-to-image without disk offload")
             if arguments.resident_bytes is not None:
                 resident_bytes = arguments.resident_bytes
             elif arguments.resident_gib is not None:
@@ -1370,6 +1472,7 @@ def main(argv: list[str] | None = None) -> int:
                     width=arguments.width,
                     height=arguments.height,
                     component_staged=True,
+                    image_edit=arguments.mode == "image-edit",
                 )
             bits = artifact.get("quantization", {}).get("bits")
             quantization = f"int{bits}" if bits in {4, 8} else "none"
@@ -1419,18 +1522,26 @@ def main(argv: list[str] | None = None) -> int:
                 if len(shapes) != 1:
                     raise ValueError("generative image baseline shapes are inconsistent")
                 baseline_width, baseline_height, baseline_frames = shapes.pop()
-                plan = promote_generative_resolution_plan(
-                    plan,
-                    baseline_candidate_id=baseline.candidate_id,
-                    baseline_plan_sha256=baseline.plan_sha256,
-                    baseline_sample_count=baseline.sample_count,
-                    baseline_width=baseline_width,
-                    baseline_height=baseline_height,
-                    baseline_frames=baseline_frames,
-                    baseline_memory_pressures=tuple(
+                promotion = (
+                    promote_generative_sample_count_plan
+                    if (baseline_width, baseline_height, baseline_frames)
+                    == (plan.width, plan.height, plan.frames)
+                    else promote_generative_resolution_plan
+                )
+                promotion_arguments = {
+                    "baseline_candidate_id": baseline.candidate_id,
+                    "baseline_plan_sha256": baseline.plan_sha256,
+                    "baseline_sample_count": baseline.sample_count,
+                    "baseline_width": baseline_width,
+                    "baseline_height": baseline_height,
+                    "baseline_frames": baseline_frames,
+                    "baseline_memory_pressures": tuple(
                         sample.memory_pressure for sample in baseline.samples
                     ),
-                )
+                }
+                if promotion is promote_generative_sample_count_plan:
+                    promotion_arguments["target_sample_count"] = arguments.samples
+                plan = promotion(plan, **promotion_arguments)
             if not plan.eligible:
                 admission = plan.artifact_admission
                 raise ValueError(
@@ -1457,10 +1568,16 @@ def main(argv: list[str] | None = None) -> int:
                     "vllm_apple.diffusers_generation_worker",
                 ),
                 provenance=provenance,
-                mode="text-to-image",
+                mode=arguments.mode,
+                input_image_path=arguments.input_image,
                 timeout_seconds=arguments.timeout,
                 recovery_timeout_seconds=arguments.recovery_timeout,
                 recovery_poll_seconds=arguments.recovery_poll,
+                disk_offload=arguments.disk_offload,
+                phase_encoder_command=(
+                    str(arguments.python.expanduser().absolute()), "-m",
+                    "vllm_apple.qwen_image_21_phase_handoff",
+                ) if arguments.two_phase else None,
             )
         except (OSError, ValueError, RuntimeError) as error:
             _json(
@@ -1476,10 +1593,11 @@ def main(argv: list[str] | None = None) -> int:
     if arguments.command == "diffusers-video-qualification":
         try:
             readiness = inspect_diffusers_video_readiness(
-                arguments.python, model=arguments.model
+                arguments.python, model=arguments.model,
+                candidate_id=arguments.candidate, mode=arguments.mode,
             )
             if not readiness["ready"]:
-                raise ValueError("Diffusers Wan backend or artifact did not pass readiness")
+                raise ValueError("Diffusers video backend or artifact did not pass readiness")
             if arguments.resident_bytes is not None:
                 resident_bytes = arguments.resident_bytes
             else:
@@ -1488,7 +1606,7 @@ def main(argv: list[str] | None = None) -> int:
                 resident_bytes = int(arguments.resident_gib * GIB)
             artifact = readiness["artifact"]
             bits = artifact.get("quantization", {}).get("bits")
-            quantization = f"int{bits}"
+            quantization = f"int{bits}" if bits in {4, 8} else "none"
             hardware = detect_hardware()
             plan = build_generative_qualification_plan(
                 candidate_id=readiness["candidate_id"],
@@ -1543,7 +1661,8 @@ def main(argv: list[str] | None = None) -> int:
                     "vllm_apple.diffusers_video_generation_worker",
                 ),
                 provenance=provenance,
-                mode="text-to-video",
+                mode=arguments.mode,
+                input_image_path=arguments.input_image,
                 timeout_seconds=arguments.timeout,
                 recovery_timeout_seconds=arguments.recovery_timeout,
                 recovery_poll_seconds=arguments.recovery_poll,
@@ -1576,6 +1695,86 @@ def main(argv: list[str] | None = None) -> int:
             return 2
         _json(report)
         return 0 if report["ready"] else 1
+    if arguments.command == "mflux-image-qualification":
+        try:
+            readiness = inspect_mflux_generative_readiness(
+                arguments.python, model=arguments.model
+            )
+            candidate = readiness.get("candidates", {}).get("qwen-image-2512", {})
+            if not candidate.get("ready"):
+                raise ValueError("MFLUX Qwen-Image backend or artifact did not pass readiness")
+            artifact = readiness["artifact"]
+            bits = artifact.get("quantization", {}).get("bits")
+            if bits != 4:
+                raise ValueError("MFLUX Qwen-Image qualification requires a 4-bit artifact")
+            if arguments.resident_bytes is not None:
+                resident_bytes = arguments.resident_bytes
+            else:
+                if not math.isfinite(arguments.resident_gib) or arguments.resident_gib <= 0:
+                    raise ValueError("resident GiB must be finite and positive")
+                resident_bytes = int(arguments.resident_gib * GIB)
+            hardware = detect_hardware()
+            plan = build_generative_qualification_plan(
+                candidate_id="qwen-image-2512",
+                artifact_bytes=artifact["artifact_bytes"],
+                estimated_resident_bytes=resident_bytes,
+                hardware=hardware,
+                target=arguments.model.parent,
+                quantization="int4",
+                components=qualification_components_from_inspection(
+                    artifact, resident_bytes
+                ),
+                width=arguments.width,
+                height=arguments.height,
+                steps=arguments.steps,
+                batch_size=1,
+            )
+            if not plan.eligible:
+                admission = plan.artifact_admission
+                raise ValueError(
+                    "load-before-admission rejected: "
+                    f"estimated_resident_bytes={admission.estimated_resident_bytes}, "
+                    f"memory_hard_ceiling_bytes={admission.memory_hard_ceiling_bytes}, "
+                    f"fits_disk={admission.fits_disk}, fits_memory={admission.fits_memory}"
+                )
+            integrity = build_model_integrity_manifest(arguments.model)
+            provenance = GenerativeEvaluationProvenance(
+                hardware.platform, hardware.architecture, hardware.soc,
+                hardware.gpu_core_count, hardware.memory.total_bytes,
+                "mflux", readiness["mflux_version"], artifact["artifact_format"],
+                artifact["artifact_bytes"], "int4", artifact.get("license"),
+                artifact.get("base_model"), integrity["root_sha256"],
+            )
+            report = run_generative_qualification(
+                plan,
+                workspace_root=arguments.workspace_root,
+                model_root=arguments.model,
+                private_root=arguments.private_root,
+                report_path=arguments.report,
+                prompt=(
+                    "A small friendly robot examining a glowing Apple Silicon chip, "
+                    "clean studio illustration"
+                ),
+                sample_count=arguments.samples,
+                worker_command=(
+                    str(arguments.python.expanduser().absolute()), "-m",
+                    "vllm_apple.mflux_generation_worker",
+                ),
+                provenance=provenance,
+                mode="text-to-image",
+                timeout_seconds=arguments.timeout,
+                recovery_timeout_seconds=arguments.recovery_timeout,
+                recovery_poll_seconds=arguments.recovery_poll,
+            )
+        except (OSError, ValueError, RuntimeError) as error:
+            _json({
+                "passed": False,
+                "error_code": "mflux_image_qualification_failed",
+                "detail": str(error),
+            })
+            return 2
+        _json(report.to_dict())
+        return 0 if report.passed else 1
     if arguments.command == "mlx-gen-generative-readiness":
         try:
             report = inspect_mlx_gen_generative_readiness(
@@ -2585,6 +2784,45 @@ def main(argv: list[str] | None = None) -> int:
             return 2
         _json(result)
         return 0
+    if arguments.command == "numeric-route-diagnostic":
+        if (not math.isfinite(arguments.absolute_error_budget)
+                or not math.isfinite(arguments.rmse_budget)
+                or arguments.absolute_error_budget < 0
+                or arguments.rmse_budget < 0
+                or not 1 <= len(arguments.fallback_reason) <= 128
+                or any(ord(character) < 0x20 for character in arguments.fallback_reason)):
+            _json({
+                "valid": False,
+                "error_code": "invalid_numeric_route_diagnostic",
+                "language": arguments.language,
+            })
+            return 2
+        messages = {
+            "en": "Numeric conversion route is ready for inspection.",
+            "ja": "数値変換ルートを確認できます。",
+            "zh-Hans": "数值转换路径已可供检查。",
+        }
+        _json({
+            "schema_version": 1,
+            "valid": True,
+            "source_format": arguments.source_format,
+            "runtime_format": arguments.runtime_format,
+            "compute_format": arguments.compute_format,
+            "tensor_role": arguments.tensor_role,
+            "route": arguments.route,
+            "error_budget": {
+                "maximum_absolute_error": arguments.absolute_error_budget,
+                "maximum_rmse": arguments.rmse_budget,
+            },
+            "fallback_reason": (
+                None if arguments.fallback_reason == "none"
+                else arguments.fallback_reason
+            ),
+            "message_key": "numeric_route_ready_for_inspection",
+            "message": messages[arguments.language],
+            "language": arguments.language,
+        })
+        return 0
     if arguments.command == "numeric-artifact-create":
         try:
             geometry = TensorGeometry(arguments.shape, arguments.scale_axis)
@@ -2822,6 +3060,8 @@ def main(argv: list[str] | None = None) -> int:
                 vllm_metal_v2_helper=arguments.vllm_metal_v2_helper,
                 native_v2_preference_path=arguments.native_v2_preference_path,
                 scheduling_preference_path=arguments.scheduling_preference_path,
+                optimizer_model_roots=tuple(arguments.optimizer_model_root),
+                optimizer_output_roots=tuple(arguments.optimizer_output_root),
             )
         except (RuntimeError, ValueError) as error:
             print(f"vllm-apple: {error}", file=sys.stderr)

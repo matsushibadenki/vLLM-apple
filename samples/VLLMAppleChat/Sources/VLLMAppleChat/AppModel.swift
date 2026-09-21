@@ -65,6 +65,7 @@ final class AppModel: ObservableObject {
     @Published private(set) var verifiedPromotionReportURLs: Set<URL>
     @Published private(set) var signedPromotionReportURLs: Set<URL>
     @Published private(set) var verifiedMacRelease: MacReleaseManifest?
+    @Published private(set) var numericRouteDiagnostic: NumericRouteDiagnostic?
 
     private let resolver: RuntimeResourceResolver
     private let qualificationStore: QualificationReportStore
@@ -116,6 +117,9 @@ final class AppModel: ObservableObject {
         verifiedPromotionReportURLs = []
         signedPromotionReportURLs = []
         verifiedMacRelease = nil
+        numericRouteDiagnostic = environment["VLLM_APPLE_NUMERIC_ROUTE_DIAGNOSTIC"].flatMap {
+            try? NumericRouteDiagnosticLoader().load(fileURL: URL(fileURLWithPath: $0))
+        }
         reloadQualificationReports()
     }
 
@@ -136,6 +140,10 @@ final class AppModel: ObservableObject {
         reloadQualificationReports()
 
         do {
+            #if VLLM_APPLE_SANDBOX_CLIENT
+            client = HTTPRuntimeClient(baseURL: URL(string: "http://127.0.0.1:8000")!)
+            transportLabel = "Sandbox HTTP · 127.0.0.1:8000"
+            #else
             let resources = try resolver.resolve()
             if let daemonURL = resources.daemonExecutableURL {
                 let runtime = try ManagedRuntime(
@@ -154,6 +162,7 @@ final class AppModel: ObservableObject {
                 client = HTTPRuntimeClient(baseURL: URL(string: "http://127.0.0.1:8000")!)
                 transportLabel = "HTTP · 127.0.0.1:8000"
             }
+            #endif
 
             guard let client else { return }
             let health = try await client.health()

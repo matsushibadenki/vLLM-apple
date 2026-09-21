@@ -1,0 +1,61 @@
+{
+  "candidate_id": "qwen-image-2.1",
+  "issues": [],
+  "maximum_peak_rss_bytes": 17954488320,
+  "median_first_output_ms": 59412.72633349945,
+  "median_wall_time_ms": 59449.16254199779,
+  "minimum_frames_per_second": 0.016385936632610756,
+  "modality": "image",
+  "model": "Qwen/Qwen-Image-2.1",
+  "passed": true,
+  "plan_sha256": "99205f0cccb012312d5ec07a80978fd32ddf5058298d8f76dd7a2348ff1c85d2",
+  "provenance": {
+    "architecture": "arm64",
+    "artifact_bytes": 18516268404,
+    "artifact_format": "diffusers",
+    "artifact_root_sha256": "dcacfc334ed0821c18a1ff079e37cae9d99de0966c821c508a145134e85f38cf",
+    "backend": "diffusers",
+    "backend_version": "0.41.0.dev0",
+    "base_model": null,
+    "gpu_core_count": 10,
+    "license": "other",
+    "platform": "Darwin",
+    "quantization": "int8",
+    "soc": "Apple M4",
+    "total_memory_bytes": 34359738368
+  },
+  "sample_count": 2,
+  "samples": [
+    {
+      "first_output_ms": 57828.68225000129,
+      "memory_pressure": "warning",
+      "output_frames": 1,
+      "output_height": 768,
+      "output_sha256": "b978218354b7e56382c542dfd08fd72658743721f0f59c29722ff163ee998c68",
+      "output_width": 768,
+      "peak_rss_bytes": 17954488320,
+      "sample_index": 0,
+      "stores_output": false,
+      "stores_prompt": false,
+      "thermal_state": "nominal",
+      "wall_time_ms": 57870.382499997504
+    },
+    {
+      "first_output_ms": 60996.770416997606,
+      "memory_pressure": "warning",
+      "output_frames": 1,
+      "output_height": 768,
+      "output_sha256": "b978218354b7e56382c542dfd08fd72658743721f0f59c29722ff163ee998c68",
+      "output_width": 768,
+      "peak_rss_bytes": 17954488320,
+      "sample_index": 1,
+      "stores_output": false,
+      "stores_prompt": false,
+      "thermal_state": "nominal",
+      "wall_time_ms": 61027.94258399808
+    }
+  ],
+  "schema_version": 1,
+  "stores_output": false,
+  "stores_prompt": false
+}

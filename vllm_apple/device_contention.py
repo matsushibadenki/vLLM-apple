@@ -16,7 +16,6 @@ from .device_resources import BandwidthContentionEvidence, UnifiedDeviceResource
 from .execution import ExecutionBackend
 from .hardware import default_application_support
 
-
 CONTENTION_PROFILE_SCHEMA_VERSION = 1
 MAX_CONTENTION_PAIRS = 16
 MAX_CONTENTION_SAMPLES = 64

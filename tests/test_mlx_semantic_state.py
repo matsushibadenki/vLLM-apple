@@ -1,10 +1,8 @@
 import unittest
 
 from vllm_apple.mlx_semantic_state import MLXPromptCacheStateAdapter
-from vllm_apple.semantic_cache import SemanticAnchorKind
+from vllm_apple.semantic_cache import SemanticAnchorCache, SemanticAnchorKind
 from vllm_apple.semantic_state import SemanticStateCoordinator
-from vllm_apple.semantic_cache import SemanticAnchorCache
-
 
 SESSION = "a" * 64
 PREFIX = "b" * 64

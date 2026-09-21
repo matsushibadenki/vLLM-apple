@@ -13,7 +13,6 @@ from typing import Callable
 from .generative_artifact_inspection import inspect_generative_artifact
 from .model_integrity import build_model_integrity_manifest
 
-
 COMPONENTS = ("transformer", "text_encoder")
 
 

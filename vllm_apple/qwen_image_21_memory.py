@@ -2,16 +2,18 @@ from __future__ import annotations
 
 from .types import GIB
 
-
 QWEN_IMAGE_21_REQUIRED_ROLES = frozenset({"denoiser", "text_encoder", "vae"})
 QWEN_IMAGE_21_PHASE_MARGIN_BYTES = GIB
 QWEN_IMAGE_21_MATERIALIZATION_NUMERATOR = 3
 QWEN_IMAGE_21_MATERIALIZATION_DENOMINATOR = 2
+QWEN_IMAGE_21_GROUP_OFFLOAD_EMPIRICAL_PEAK_BYTES = 17_954_488_320
+QWEN_IMAGE_21_IMAGE_EDIT_EMPIRICAL_PEAK_BYTES = 19_381_600_256
 
 
 def estimate_qwen_image_21_resident_bytes(
     artifact: dict[str, object], *, width: int, height: int, batch_size: int = 1,
     component_staged: bool = False,
+    image_edit: bool = False,
 ) -> int:
     """Estimate Unified Memory residency for the Qwen-Image-2.1 worker.
 
@@ -59,4 +61,17 @@ def estimate_qwen_image_21_resident_bytes(
             phase_floor * QWEN_IMAGE_21_MATERIALIZATION_NUMERATOR
             + QWEN_IMAGE_21_MATERIALIZATION_DENOMINATOR - 1
         ) // QWEN_IMAGE_21_MATERIALIZATION_DENOMINATOR
-    return weight_floor + QWEN_IMAGE_21_PHASE_MARGIN_BYTES + image_working_bytes
+    estimate = weight_floor + QWEN_IMAGE_21_PHASE_MARGIN_BYTES + image_working_bytes
+    if component_staged:
+        estimate = max(
+            estimate,
+            QWEN_IMAGE_21_GROUP_OFFLOAD_EMPIRICAL_PEAK_BYTES
+            + QWEN_IMAGE_21_PHASE_MARGIN_BYTES,
+        )
+    if image_edit:
+        estimate = max(
+            estimate,
+            QWEN_IMAGE_21_IMAGE_EDIT_EMPIRICAL_PEAK_BYTES
+            + QWEN_IMAGE_21_PHASE_MARGIN_BYTES,
+        )
+    return estimate

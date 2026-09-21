@@ -12,7 +12,6 @@ import tempfile
 from dataclasses import asdict, dataclass
 from pathlib import Path
 
-
 COREML_ARTIFACT_CACHE_SCHEMA_VERSION = 1
 MAX_CACHE_ENTRIES = 64
 MAX_ARTIFACT_FILES = 8192

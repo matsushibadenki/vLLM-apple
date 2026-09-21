@@ -5,8 +5,8 @@ import hashlib
 import json
 import math
 import os
-import statistics
 import stat
+import statistics
 import tempfile
 import time
 from collections.abc import Callable
@@ -15,7 +15,6 @@ from pathlib import Path
 
 from .device_capability import DeviceCapabilityRegistry, DeviceEligibilityRequest
 from .execution import ExecutionBackend, WorkloadPhase
-
 
 DEVICE_BENCHMARK_SCHEMA_VERSION = 1
 MAX_DEVICE_BENCHMARK_SAMPLES = 64

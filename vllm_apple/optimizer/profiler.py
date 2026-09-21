@@ -9,9 +9,8 @@ from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 
-from ..types import HardwareInfo, MIB
+from ..types import MIB, HardwareInfo
 from .types import OPTIMIZER_SCHEMA_VERSION
-
 
 WEIGHT_SUFFIXES = (".safetensors", ".gguf", ".bin")
 

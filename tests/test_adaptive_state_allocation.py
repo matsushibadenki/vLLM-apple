@@ -47,6 +47,25 @@ class AdaptiveStateAllocationTests(unittest.TestCase):
         self.assertEqual(plan.actions[0].action, "retain")
         self.assertEqual(plan.target_bytes, plan.source_bytes)
 
+    def test_kv_expert_and_workspace_share_one_atomic_plan(self):
+        records = tuple(
+            AdaptiveStateRecord(
+                name, kind, 400, age, "fp32", ("fp32", "int8")
+            )
+            for name, kind, age in (
+                ("kv", AdaptiveStateKind.KV, 3),
+                ("expert", AdaptiveStateKind.EXPERT, 2),
+                ("workspace", AdaptiveStateKind.WORKSPACE, 1),
+            )
+        )
+        plan = AdaptiveStateAllocator().plan(records, MemoryPressure.CRITICAL)
+        self.assertEqual(plan.source_bytes, 1200)
+        self.assertLessEqual(plan.target_bytes, 600)
+        self.assertEqual(
+            {action.state_id for action in plan.actions},
+            {"kv", "expert", "workspace"},
+        )
+
     def test_unknown_pressure_is_fail_soft_normal(self):
         plan = AdaptiveStateAllocator().plan(
             (record("state", 10),), MemoryPressure.UNKNOWN

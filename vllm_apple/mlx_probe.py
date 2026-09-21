@@ -18,7 +18,6 @@ from .kernel_probe import (
     run_kernel_probe,
 )
 
-
 _VECTOR_VALUES = tuple(float(value) for value in range(256))
 _MATRIX_SIZE = 16
 _MATRIX_VALUES = tuple(float(value % 7) for value in range(_MATRIX_SIZE**2))

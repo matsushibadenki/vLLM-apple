@@ -12,7 +12,6 @@ import tempfile
 import time
 from pathlib import Path
 
-
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 
@@ -125,9 +124,9 @@ def main() -> int:
 
     import mlx.core as mx
     import numpy as np
-    from PIL import Image
     from mlx_vlm import apply_chat_template, generate
     from mlx_vlm.utils import load
+    from PIL import Image
 
     from vllm_apple.qwen3_vl_pipeline_coreml import (
         qualify_qwen3_vl_segment_pipeline_coreml,

@@ -9,7 +9,6 @@ from .qwen4_adapter_contract import build_qwen4_adapter_contract
 from .qwen4_shard_stager import _safe_regular
 from .qwen4_weight_map import _bounded_index
 
-
 DEFAULT_MAX_HEADER_BYTES = 64 * 1024 * 1024
 MAX_TENSOR_RANK = 16
 MAX_DIMENSION = 1 << 30

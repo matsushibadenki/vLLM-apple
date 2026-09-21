@@ -8,7 +8,6 @@ from vllm_apple.vision_frontend import (
 )
 from vllm_apple.vision_smoke import solid_png
 
-
 PNG = solid_png((255, 0, 0))
 
 

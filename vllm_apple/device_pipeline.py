@@ -1,12 +1,12 @@
 """Bounded parallel execution for contention-qualified heterogeneous stages."""
 from __future__ import annotations
 
+import threading
 import time
 from collections.abc import Callable
 from concurrent.futures import Future, ThreadPoolExecutor
 from dataclasses import dataclass
 from enum import Enum
-import threading
 from typing import Generic, TypeVar
 
 from .device_capability import DeviceCapabilityRegistry, DeviceEligibilityRequest

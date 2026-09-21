@@ -30,7 +30,6 @@ from .events import OptimizerEventBus, OptimizerState
 from .safety import OptimizationPathError, validate_immutable_output_path
 from .types import OPTIMIZER_SCHEMA_VERSION
 
-
 DEFAULT_MAX_ARTIFACT_FILES = 100_000
 DEFAULT_LOG_TAIL_BYTES = 64 * 1024
 
@@ -109,6 +108,21 @@ class CancellationToken:
 
     @property
     def is_cancelled(self) -> bool:
+        return self._event.is_set()
+
+
+class PauseToken:
+    def __init__(self) -> None:
+        self._event = threading.Event()
+
+    def pause(self) -> None:
+        self._event.set()
+
+    def resume(self) -> None:
+        self._event.clear()
+
+    @property
+    def is_paused(self) -> bool:
         return self._event.is_set()
 
 
@@ -212,6 +226,7 @@ class IsolatedConversionWorker:
         command: Sequence[str],
         maximum_output_bytes: int,
         cancellation: CancellationToken | None = None,
+        pause: PauseToken | None = None,
         timeout_seconds: float | None = None,
         environment: Mapping[str, str] | None = None,
         checkpoint_store: CheckpointStore | None = None,
@@ -229,6 +244,7 @@ class IsolatedConversionWorker:
                 command=command,
                 maximum_output_bytes=maximum_output_bytes,
                 cancellation=cancellation,
+                pause=pause,
                 timeout_seconds=timeout_seconds,
                 environment=environment,
                 produced_subdirectory=produced_subdirectory,
@@ -322,6 +338,7 @@ class IsolatedConversionWorker:
                 command=command,
                 maximum_output_bytes=maximum_output_bytes,
                 cancellation=cancellation,
+                pause=pause,
                 timeout_seconds=timeout_seconds,
                 environment=environment,
                 produced_subdirectory=produced_subdirectory,
@@ -346,6 +363,7 @@ class IsolatedConversionWorker:
         command: Sequence[str],
         maximum_output_bytes: int,
         cancellation: CancellationToken | None = None,
+        pause: PauseToken | None = None,
         timeout_seconds: float | None = None,
         environment: Mapping[str, str] | None = None,
         resume_workspace: Path | None = None,
@@ -364,6 +382,7 @@ class IsolatedConversionWorker:
             raise ValueError("worker timeout must be positive")
         worker_environment = _worker_environment(environment)
         token = cancellation or CancellationToken()
+        pause_token = pause or PauseToken()
         run_started = time.monotonic()
         peak_child_rss_bytes = prior_peak_child_rss_bytes
 
@@ -427,6 +446,34 @@ class IsolatedConversionWorker:
                 cancelled = False
                 timed_out = False
                 while process.poll() is None:
+                    if pause_token.is_paused:
+                        try:
+                            os.killpg(process.pid, signal.SIGSTOP)
+                        except ProcessLookupError:
+                            pass
+                        self.events.publish(
+                            plan_id,
+                            "convert",
+                            OptimizerState.PAUSED,
+                            0.5,
+                            "optimizer.worker.paused",
+                        )
+                        while pause_token.is_paused and process.poll() is None:
+                            if token.is_cancelled:
+                                break
+                            time.sleep(self.poll_interval)
+                        try:
+                            os.killpg(process.pid, signal.SIGCONT)
+                        except ProcessLookupError:
+                            pass
+                        if not token.is_cancelled:
+                            self.events.publish(
+                                plan_id,
+                                "convert",
+                                OptimizerState.RUNNING,
+                                0.5,
+                                "optimizer.worker.running",
+                            )
                     if token.is_cancelled:
                         cancelled = True
                         _stop_process(process, self.terminate_grace_seconds)

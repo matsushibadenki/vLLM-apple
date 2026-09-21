@@ -10,7 +10,6 @@ from enum import Enum
 from .execution import ExecutionBackend, WorkloadPhase
 from .kernel_probe import KernelProbeResult
 
-
 DEVICE_CAPABILITY_SCHEMA_VERSION = 1
 MAX_DEVICE_CAPABILITIES = 64
 MAX_ELIGIBILITY_VALUES = 128

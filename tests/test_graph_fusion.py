@@ -4,8 +4,8 @@ from vllm_apple.execution import ExecutionBackend
 from vllm_apple.graph_fusion import CapabilityGatedGraphFusionPass
 from vllm_apple.kernel_probe import (
     KernelCapabilityRegistry,
-    KernelProbeConfig,
     KernelMeasurement,
+    KernelProbeConfig,
     run_kernel_probe,
 )
 

@@ -3,11 +3,11 @@ import importlib.metadata
 import subprocess
 import tempfile
 import unittest
-from unittest.mock import patch
 from pathlib import Path
+from unittest.mock import patch
 
-from vllm_apple.execution import AppleChipProfile, ExecutionBackend
 from vllm_apple.ane_probe import CoreMLANESurfaceResult
+from vllm_apple.execution import AppleChipProfile, ExecutionBackend
 from vllm_apple.kernel_probe import KernelMeasurement, KernelProbeConfig, run_kernel_probe
 from vllm_apple.profile import build_profile
 from vllm_apple.runtime_probe import RuntimeProbeCoordinator, discover_runtime_versions

@@ -527,6 +527,9 @@ FP32からFP16またはsymmetric INT8へ実際にencode/decodeし、maximum abso
 memory削減率の全gateに合格した組み合わせだけを`promoted_precisions`へ追加する。adaptive allocatorが生成したplanは
 source precisionとtarget byte数を再検証してstagingし、commitまでは現行bufferを置換しない。stale plan、未昇格precision、
 byte見積り不一致はfail-closedとし、rollbackでは元bufferをそのまま維持する。
+同じadaptive planはKV、recurrent、prefix、attention window、MoE expert、workspaceを共通state kindとして扱う。
+したがって個別cacheが競合して同じ空きmemoryを二重計上せず、age／pressure順のreprecision／evictionを一つの
+backend transactionでcommitまたはrollbackできる。pinned stateは全kindで変更対象外とする。
 
 ---
 
@@ -1411,6 +1414,43 @@ CPU/GPU/Memory
 
 を一つのlogical compute fabricとして扱う方向を目指す。
 
+最初の実装境界では、最大64 node、2,016 measured link、1,024 execution stage、4,096 distributed
+state shardに制限する。nodeはmemory capacity、対応modality、healthを持ち、linkはThunderbolt／Ethernet、
+実測bandwidth／latency、MTU、measurement ID、peer authenticationを持つ。未認証または未計測のlinkを
+fallbackとして利用しない。
+
+pipeline／modality stageはresident bytes、output bytes、required modality、依存DAG、checkpoint可能性を
+宣言する。plannerはtopological orderで、memoryとmodalityを満たし、依存出力の実測transfer costが最小となる
+healthy nodeへ決定論的に配置する。cross-node transferはsource/destination stage、node、transport、bytes、
+estimated time、measurement IDをplan identityへ固定する。
+
+distributed KV/stateはraw内容ではなくshard ID、SHA-256、size、replica nodeだけをplannerへ渡す。故障後に
+healthy replicaが0なら処理を停止する。以前のplanで故障nodeがnon-checkpointable stageを所有していた場合も
+再計画せず停止し、checkpointable stageだけを残存topologyへ再配置する。これらはtransportとexecutionの
+安全契約であり、Thunderbolt／Ethernet上の実byte transfer認定とは別gateにする。
+
+共通stream frameは最大64 MiB payload、4 KiB JSON headerとし、magic、ABI version、単調sequence、
+source/destination stage・node、transport、planned bytes、measurement ID、payload SHA-256を保持する。senderと
+receiverはplanの`FabricTransfer`と全fieldを照合し、short read、sequence replay、digest mismatch、別linkの
+measurement replay、endpoint不一致を拒否する。framing層はpeer authenticationを代替せず、mTLSまたは
+Thunderbolt peer identityを上位transportが検証済みの場合だけ構築可能とする。
+
+Ethernet clientは`CERT_REQUIRED`、hostname verification、有効なhost／port、最大300秒timeoutを接続前に
+検証する。TLS handshake後に得たDER peer certificateのSHA-256をplan外の明示pinと照合し、一致したsocketだけを
+authenticated fabric streamへ渡す。certificate欠落／差し替え時はsocketを即時closeし、frameを送信しない。
+server accept側も`CERT_REQUIRED`とclient certificate SHA-256 pinを必須にし、匿名clientやCA署名済みでも
+想定nodeと異なる証明書をfabricへ昇格させない。
+senderは最終frameの`sendall`後にwrite側をhalf-closeし、receiverの所定frame完了を待ってからsocket全体を
+closeする。即時closeでTLS終端時に最終frameが失われることを実loopback試験で再現しているため、この終了順序を
+transport lifecycle contractとする。
+
+execution coordinatorはplanのstage、placement、reserved bytes、cross-node edgeが完全一致する場合だけ開始する。
+依存が満たされたstageを1 waveとして最大64件並列実行し、modality間の独立性を利用する。pipeline stageは全依存
+outputが揃うまで開始しない。cross-node payloadはtransfer adapter往復後にsizeとSHA-256が不変であること、各
+node outputはplanのbyte数と一致することを必須とする。result保持は全stage合計256 MiB以下、deadline／cancelは
+wave前、transfer前、node実行前後、publish前に検査し、失敗waveのpartial resultをreportへ公開しない。reportは
+payloadを保持せずstage/node、size、digest、latency、peak result bytesだけを記録する。
+
 ---
 
 # 37. Distributed Modality
@@ -1671,6 +1711,23 @@ CPU vectorization、MLX、Metal computeを順次実装し、成立するoperator
 double bufferとprefetchはbuffer所有権・completion barrierで管理し、使用中arrayを解放／書換えしない。
 cancel、kernel failure、memory/thermal pressure時は新規prefetchを抑え、既存safe pointでrouteを切り替える。
 
+CPU vectorized candidateは`numeric_vectorized.py`へscalar referenceと分離して置く。NumPyが無い環境では
+明示的にunavailableとし、暗黙fallbackや必須依存追加を行わない。初期範囲は2/4/8-bit unpack／repack、
+FP8 decode、NF4 encode、symmetric INT8 requantize、byte／nibbleの全対応layout gatherで、既存65,536 element上限、padding検査、finite検査、
+ties-to-even、scale serialization、output digestをscalar経路と完全一致させる。候補は実hardwareで
+最低3 sample・5%以上の改善を満たすまで標準routeへ昇格しない。
+
+MLX candidateも同じpacked decode／repack、FP8、NF4、layout gather契約で実装するが、hostからMLX arrayへの
+転送と結果readbackを含むend-to-end時間でCPU vectorized routeと比較する。M4／MLX 0.27.1の65,536値NF4では
+出力digestは一致したものの、7 sample medianがMLX 12.457 ms、NumPy 9.645 msで5%改善を満たさないため、
+MLX routeは非昇格としCPU vectorized routeを維持する。device実装が存在することを高速性の証拠にしない。
+
+Native Metal candidateは全65,536 U4 codeのexact unpack検査と、256×256 NF4 weight／ones vectorの
+CPU参照一致をkernel実行後に必須化する。同一command buffer内のNF4 decode→float GEMV二段経路と、
+packed weightを直接読むfused GEMVを同一work itemで比較する。M4の7 sampleではtwo-pass median
+232.459 µsに対しfused 306.916 µs（0.76倍）であり、中間書戻し削減だけでは5% gateを満たさないため
+fused routeを非昇格とする。
+
 現在の`NumericStreamingPlan`はsource SHA-256、総byte数、最大8 MiBのtile、1または2 buffer、alignmentを
 canonical IDへ結合する。`NumericDoubleBufferStream`は各slotをgeneration付きleaseとして払い出し、未解放slotの
 上書きと3個目のin-flight tileを拒否する。release/cancel/closeでは64 KiB以下の固定zero blockでslotを消去し、
@@ -1719,6 +1776,120 @@ synchronization、compute latency、amortized uses、peak Unified Memory、outpu
 モデル品質scoreの退行上限を順に検査し、その後に同一hardware／model／phase／workloadのend-to-end profileを比較する。
 双方3 sample以上、output digest一致、peak Unified Memory非悪化、計測済みenergy非悪化、median latencyの既定5%以上改善を
 全て満たした場合だけpromotedとする。どの層で不合格になったかは固定reason codeで返す。
+
+実行環境のcapabilityは`NumericProbeIdentity`へchip、OS build、toolchain、backend/version、operator、shape、
+source／compute format、tensor role、recipe IDを結合する。`NumericCapabilityProbeRegistry`は最大16 MiBの固定probe入力で
+CPU referenceとcandidateの出力digestを比較し、一致したidentityだけを実行可能にする。不一致またはcandidate例外は
+identity単位でquarantineし、未probe／隔離済みidentityはCPU referenceへ理由付きfallbackする。recipe inventoryにない
+形式はreference fallbackで対応済みに見せず、明示的なunsupportedとして拒否する。
+
+CLIの`numeric-route-diagnostic`はsource／runtime／compute format、tensor role、選択route、maximum absolute error／RMSE
+budget、fallback reasonをschema version付きJSONで返す。利用者向けmessageは英語、日本語、简体中文を同じmessage keyで
+提供し、tensor値やpromptは含めない。非有限または負のbudget、制御文字を含むfallback reasonはfail-closedで拒否する。
+
+`NumericTilePipeline`は最大65,536 tile、16 MiB/tile、1または2 source bufferに制限し、二buffer時は次tileのreadを
+専用threadでprefetchしながら現在tileをconvert／consumeする。future completionを明示barrierとして順序を維持し、
+tile indexと変換結果を連結したdigest、source／converted byte、実buffer peak、barrier数をreportする。
+`NumericBandwidthLedger`はUnified Memory帯域予約をthread-safeに合算し、ceiling超過を処理開始前に拒否する。
+変換例外、reader例外、cooperative cancelの全経路でprefetch executorとbandwidth leaseを回収する。
+
+exporter固有packingは`NumericExporterLayoutAdapter`でvalue layoutとscale layoutを別々に宣言する。
+対応layoutはcontiguous row-major、column-major、row padding、tiled row-major、square power-of-two Morton swizzleで、
+low/high-first nibble順、padding code、shape、stride、tile shapeをadapter digestへ結合する。repack時はlogical要素外と
+末尾未使用nibbleを含む全padding codeを検査し、logical contiguous順へ変換する。registryはexporter IDとrecipe IDの
+完全一致だけを解決し、未知swizzleや曖昧なmetadataを推測しない。
+
+NVFP4のINT8経路は`compare_nvfp4_int8_routes`で二種類を別routeとして比較する。表現保存経路はE2M1 codeを
+scale付きsigned INT8へ正確に写し、元のblock／global scaleを保持するため追加誤差をゼロとして記録する。
+一般経路はFP32参照値からtensorまたはgroup単位のsymmetric INT8へ再量子化し、maximum absolute error、RMSE、
+payload＋scale storageを算出する。`Int8ExecutionCapability`はsignedness、INT32／FP32 accumulator、
+nvfp4-block／group／tensor scale粒度を宣言し、演算kernelがscale ABIを持たないrouteをcompatibleにしない。
+
+CPU参照codecはFP8 E4M3FNとE5M2をfinite／subnormal境界まで明示decodeし、NaN／Inf payloadとfinite range超過を
+拒否する。encoderは全finite codebookから決定論的nearest値を選び、signed zeroを保持する。NF4は固定16値codebookを
+low-nibble-firstでpackし、末尾paddingを検査する。groupwise affineはsigned／unsigned INT8・INT4・INT2について
+groupごとのscaleとstored-domain zero-pointを保持する。これらはCPU reference能力であり、accelerator実行能力は
+environment-bound capability probeに合格するまで付与しない。
+
+OCP MX v1.0 adapterはMXFP4 E2M1、MXFP6 E2M3／E3M2、MXFP8 E4M3／E5M2を別formatとして扱う。
+各blockは32要素とE8M0共有scaleを持ち、reference artifact packingは4／6／8-bit LSB-first contiguousとして
+明示する。E8M0 `0xff`、E4M3 NaN、E5M2 Inf／NaN、nonzero padding、F32 range超過を実行不能として拒否し、
+全codeのnormal／subnormal／signed zeroをCPU参照decodeする。decode後は共通groupwise symmetric INT8へ
+requantizeできるが、Apple backendのnative能力や高速化は別probeなしに付与しない。vendor固有scale、saturation、
+packing variantはOCP標準へ推測変換せず、独立adapter identityと全bit-pattern testを要求する。
+
+scaleのdouble quantizationは有限scale列のmin/maxからUINT8 code、offset、stepを生成する。mixed precisionは
+group最大絶対値と明示thresholdから2／4／8-bitをgroup単位で選び、各groupの開始位置とaffine tensorを保持する。
+outlier residual表現はthresholdへclipしたbounded affine baseに対し、threshold超過indexだけを昇順・重複なしで保持し、
+元値との差をfinite residualとして加算する。全経路を65,536要素以下のCPU referenceに限定し、accelerator capabilityを
+暗黙に付与しない。
+
+artifact metadataは`NumericArtifactDescriptor`でcontainer、quantization recipe、storage format、compute format、
+bits、group size、packing、exporterを分離する。strict adapterはSafetensors上のGPTQ／AWQ、MLX affine、Core ML linear、
+GGUF Q4_0／Q4_K／Q8_0、および非量子FP16／BF16／FP32をcanonical descriptor IDへ正規化する。
+containerとrecipeの不正な組合せ、余分／欠損field、未知GGUF type、INT系compute dtypeはfail-closedで拒否し、
+container名だけで実行能力を推測しない。
+
+optimizer出力は`FastLoadArtifact`として4–64 KiBの選択page sizeへ各tensor先頭をalignする。source fileの
+no-follow／regular file／範囲／SHA-256をcopy中に検証し、private temporary directoryへdataをfsyncした後、
+manifest-lastでatomic publishする。loaderはprivate ownership、manifest上限、artifact ID、tensor digest、alignment、
+重複name、offset overlap、最大65,536 tensor／32 GiBを再検証する。`KernelCompatibilityIndex`はbackend/version、
+environment digest、operator、numeric format、layout、minimum alignment、maximum tensor bytesが一意一致するkernelだけを返す。
+
+MoE expert residencyは`ExpertResidencyManager`が`(layer, expert)` keyで管理する。backend固有のMetal／MLX handleは
+opaque `ExpertResource`としてload／release ownershipを明確にし、entry数とresident byteの二重上限内で決定論的LRUを
+行う。active lease中のexpertはevictせず、全候補がpinnedなら新規load結果を解放してrequestを拒否する。
+pressure resizeを即時適用できない場合はtarget boundsをpending化し、lease解放時に再適用する。診断にはhit、miss、
+eviction、rejection、active lease、pending boundsだけを保持し、weight内容は保存しない。
+
+expert選択は`ExpertSelectionTelemetry`の最大65,536 sampleのringへ、layer、重複のない最大64 expert、有限非負の
+routing weight、選択latency、実際にresidency cacheへhitしたexpertだけを記録する。snapshotはlayer/expert別の
+選択回数とcache hit、総選択数、median／p95／maximum latency、上限超過の破棄数を返す。token、activation、
+routing入力、任意labelは保存せず、predictorの学習入力へ暗黙転用しない。
+
+`CorrectnessNeutralExpertPredictor`は明示的に渡された実選択列だけからfirst-order遷移頻度を学習し、最大
+65,536 context／historyの範囲で次expertのprefetch hintを頻度順・key順に返す。未知contextは空候補とし、
+context上限超過はFIFOで破棄する。hintはresidency準備だけに使用し、`resolve`はrouterの実選択を変更・追加・
+削除せずそのまま返すため、予測誤りは速度にだけ影響し数値結果を変えない。
+
+非active expertのSSD tierは`ExpertSSDStore`で最大65,536 entry／4 TiB、単一expert最大1 TiBをhard ceilingとする。
+rootはowner-only 0700、各expert fileは0600とし、temporary fileへのwrite・fsync後にatomic replaceしdirectoryも
+fsyncする。readは`O_NOFOLLOW`で開き、owner、regular file、mode、inode、size、mtime、SHA-256を前後で再検証する。
+entry数とbyte数の二重上限はLRUで回収し、tamper検出時はindexとfileをevictする。snapshotは容量、hit／miss、
+eviction、integrity failureだけを返し、weight bytesやmodel入力は保持しない。
+
+layer単位offloadは`LayerPrefetchCoordinator`が最大4,096 layerを順序付きで処理する。専用single-thread executorへ
+次layerのloadを一件だけ先行投入し、現在layerのconsumeとoverlapすることでsource resourceを二slot以内に保つ。
+prefetch例外時は同じlayerを同期loadするon-demand fallbackを一度だけ行い、失敗を別layerへ波及させない。
+成功、consume例外、cooperative cancelの全経路で現在resourceと完了済みorphan futureをbackendへreleaseする。
+
+`HierarchicalStateCache`はKV、prefix、vision／video／audio embeddingを同じfingerprint-only keyでhot memoryと
+private cold fileの二階層へ格納する。各tierはentry数／byte数の独立LRU上限を持ち、hot evictionは容量内ならcoldへspillし、
+cold hitはhot容量内ならpromotionする。cold writeはprivate temporary file、fsync、atomic replaceを用い、read時はowner、
+mode、regular file、no-follow、size、SHA-256を再検証する。tamper entryはactive indexから削除する。
+key、filename、telemetryにはraw promptやembedding内容を保存せず、kindとSHA-256 fingerprintだけを使用する。
+
+大容量Unified Memoryは`UnifiedMemoryArena`のanonymous mmapを最大1 TiBのlazy virtual capacityとして確保し、
+1–64 KiB alignmentのfirst-fit suballocationを最大65,536件まで提供する。各leaseはcopyを伴わないmemoryviewを返し、
+release時にviewを無効化して範囲をzeroizeし、隣接free rangeをcoalesceする。snapshotはallocated／free／largest range、
+fragmentation、peak、failure数を返す。free pageはplatformが対応する場合だけ`madvise`で回収し、active lease中のarena closeを拒否する。
+
+video生成は`AttentionStateRegion`へframe start/count、temporal overlap context、spatial tile bounds、state bytesを固定する。
+`GenerativeChunkPlan`は最大65,536 task、最大64 concurrencyでtemporal chunkとspatial tileの直積を生成し、端frame／端tileを
+切り詰める。同一spatial tileの次temporal chunkは直前taskへ明示依存し、attention stateの順序を維持する。
+単一stateがmemory ceilingを超えるplanは拒否し、複数taskの推定peakが超える場合はconcurrencyを安全側へclampする。
+
+diffusion／video latentは`LatentMemoryManager`が`UnifiedMemoryArena`上で管理する。1〜5次元、1/2/4 byte element、
+単一256 GiB以下のshapeだけを受け付け、最大4,096 bufferのidle LRUとactive lease pinを行う。同一shapeのidle
+bufferは内容を全zeroizeしてから再利用し、arena容量不足時はidle bufferだけを順次解放する。全bufferがactiveなら
+新規割当を拒否し、既存生成を破壊しない。trimはidle leaseを解放してfree page回収を試み、active lease中のcloseは
+fail-closedとする。診断はbuffer数、active数、resident bytes、hit／miss／eviction／rejectionだけを返す。
+
+platform fault qualificationは`PlatformFaultScenarioMatrix`でprofile persistence、scheduler admission、worker crash、
+client disconnectの全pointを必須coverする。既定scenarioはatomic replace前中断からlast-known-good復元、queue後かつ
+reservation前のcapacity拒否、reservation後worker crashから再起動、first stream chunk後disconnectからcancelを注入する。
+各handlerはservice ready、active reservationゼロ、temporary fileゼロ、stored prompt/outputゼロを共通に証明し、
+profile scenarioはlast-known-good復元も証明する。例外はmessageを保存せず型名だけのbounded failure reasonへ変換する。
 
 ---
 
@@ -1784,11 +1955,46 @@ buffer fill
 RT deadline miss
 ```
 
+実装済みの共通`WorkloadTelemetry`は、CPU/GPU utilization、Unified Memory bandwidth、power、
+thermal stateを最大1024件のthread-safe ring bufferへ保持する。GPU、bandwidth、powerをOSから取得できない
+場合は0へ置換せず`null`として欠測を明示し、median、p95、maximum、thermal状態別件数、上限超過による
+破棄件数をschema version付きsnapshotで返す。Vision、Audio、Videoについてはmodality、bounded operation名、
+latency、入力／出力unit数、peak memory、成功可否だけを同じ上限内へ記録し、modality別sample数、failure数、
+latency分布、累積unit、最大peak memoryを集計する。prompt、画像、音声、frame、embedding、生成物pathは
+このtelemetryへ保存しない。
+
 ---
 
 # 45. Benchmark設計
 
 単純なtokens/secだけを評価しない。
+
+native hardware microbenchmarkは単一Swift／Metal processで全pipelineをcompileし、各operatorを一度warm-upした後に
+7 sampleを取得する。対象はFP32 64×64×64 GEMM、FP32 256×256 GEMV、32 MiB shared-buffer copy、empty kernel、
+1 query×128 KV×64 dimension attention、INT8 64×64×64＋INT32 accumulationである。各sampleはcommand encodeから
+completionまでのend-to-end時間を測り、compile時間を除外する。copy bandwidthはread＋writeの64 MiB traffic、
+演算throughputは明示work-item数から算出する。responseはoperator集合、sample数、正の時間、work／byte数をstrict検証し、
+outputの非内容digestを持つprivate atomic reportだけを証跡化する。Apple M4実測値は
+`native-hardware-microbenchmarks-m4-2026-09-21.json`を正本とする。
+
+phase resource profileはCPU prefill GEMM／decode GEMV reportとnative Metal reportのfile全体SHA-256、CPU側hardware
+fingerprintを結合する。prefillは同一64×64×64 FP32 GEMM、decodeは同一256×256 FP32 GEMVのmedianを比較し、
+5%以上速い場合だけMetalを候補とする。両phaseへattention medianとshared Unified Memory bandwidthを付加し、
+shapeやsample数が一致しないCPU evidence、欠損Metal operator、別hardwareを拒否する。M4 profileではprefill 35.27倍、
+decode 8.23倍のMetal speedup、37.79 GB/sを記録し、両phaseをNative Metal候補とした。これは代表microbenchmarkの
+配置候補であり、実model correctness gateなしにproduction routeへ昇格しない。
+
+runtime autotunerはMac hardware fingerprintとphase profile IDへ結合し、batch、tile、KV block、prefill chunk、kernelの
+最大256構成を比較する。各候補はprefill／decodeをそれぞれ3〜64 sample、peak memory、output digestとともに提出する。
+baseline digest不一致またはmemory ceiling超過は順位付け前に除外し、残りをworkload指定のprefill／decode weight付き
+median latency、peak memory、構成の辞書順で決定論的に選ぶ。全候補不合格時は既定構成を推測せずfail-closedとし、
+winner、qualified／rejected数、hardware／profile identityからreport IDを生成する。
+
+KV configuration searchはFP32／FP16／BF16／INT8、context 128〜16,777,216、batch 1〜256、KV block
+8／16／32／64／128の最大512候補を扱う。各候補のpeak memoryは`bytes_per_token × context × batch`以上、
+decode latencyは3〜64 sampleとし、maximum absolute error、RMSE、cosine similarity、baseline output digestを
+quality gateとして検査する。memory ceilingとqualityを通過した候補だけをcapacity、latency、balanced objectiveに応じて
+順位付けし、同点はlatency、capacity、memory、構成順で決定する。全候補不合格時はprecisionを暗黙に緩和しない。
 
 LLM：
 
@@ -1974,6 +2180,12 @@ public protocol VLLMAppleRuntimeClient: Sendable {
 データ型は `Codable`、`Sendable` を基本とする。
 
 callback専用APIではなく、`async/await` と `AsyncSequence` を第一選択とする。Objective-Cからの利用が必要になった場合は薄いadapterを追加し、core APIをObjective-C互換性へ縛らない。
+
+Objective-C互換層は別target／dynamic library productの`VLLMAppleKitObjC`として提供し、Swift coreを変更しない。
+`NSObject`派生のhealth／chat resultとcompletion-block型clientだけを公開する。modelは256文字、promptは32 Ki文字、
+temperatureは0〜2、max tokensは1〜1,048,576へ制限し、不正入力はnetwork access前に拒否する。Swift errorは
+任意detailを渡さずstable `message_key`付き`NSError`へ変換する。Objective-C adapterはnon-streaming health/chatを
+対象とし、streamingとruntime eventはSwift Concurrency APIを正本とする。
 
 ### 48.1.3 通信方式
 
@@ -2259,6 +2471,36 @@ samples/VLLMAppleOptimizer/      Mac companion app
 - 実行前に必要disk、peak memory、workspaceを見積もり、hard admission limitを適用する
 - optimizer crashは`vllm-appled`と実行中の推論へ影響させない
 - activationとlogはbounded memoryまたはdisk streamingとし、全量をRAMに保持しない
+- activation statisticsは`OnlineActivationStatistics`でWelford法を用い、個別値を保持せずcount、mean、
+  population variance、minimum、maximum、absolute maximum、zero countだけをmergeする。1 updateは最大
+  1,048,576 finite値、総countはsigned 64-bit以内とする。`ActivationStatisticsStream`はraw tensor名ではなく
+  64文字SHA-256 fingerprintとaggregate snapshotだけをowner-only 0700 directory／0600 JSONLへ追記する。
+  `O_NOFOLLOW`、owner／mode／regular-file検査、最大1 GiB、record単位fsyncを適用し、activation全量をdiskにも残さない
+- layer、attention head、neuronのimportanceは、上記aggregateから得たmean absolute activationと明示的な
+  output sensitivityをsample数でweighted mergeし、その積をscoreとする。最大65,536 component、最大4,096件の
+  report出力に制限し、score降順・component key順で決定論的に並べる。全component scoreに対するnormalized score、
+  truncation、SHA-256 report IDを返し、raw activation、prompt、model outputはreportへ含めない
+- weight clusteringは最大65,536 finite値と最大256 centroidを対象に、quantile初期値、距離同値時の小さい
+  centroid index優先、最大256 iterationの決定論的1D k-meansを行い、assignment、MSE、最大絶対誤差を返す。
+  low-rank参照近似は最大65,536 matrix要素、rank 64、最大256 power iterationで成分を求めてdeflationし、
+  left／right factorとFrobenius誤差を返す。outlier-aware経路は既存のbounded affine base＋sorted sparse residualを
+  使用する。いずれもreference analysisであり、品質gateなしに元weightを置換しない
+- pruning experimentは最大65,536 finite値に限定し、unstructuredでは絶対値・元index順、structuredでは
+  row／column L2 norm・group index順で除去候補を決定する。fractionは0以上1未満とし、最低1 weight／groupを
+  必ず残す。mask、zero置換した参照値、pruned count、squared errorだけを返し、元artifactを直接変更しない
+- attention head、MLP、layerのfunctional similarityは、同一sample上の同長bounded出力を一時的に比較し、
+  cosine similarity、MSE、最大絶対誤差、sample数、左右出力digestに結合したcomparison IDを返す。非finite値、
+  shape不一致は拒否し、raw outputはreportへ保持しない
+- structural candidate generatorはnormalized importanceが明示ceiling以下のlayerだけをbypass候補とし、
+  cosine similarityが明示floor以上の同一layer内attention headだけをhead merge、隣接layerだけをlayer merge候補とする。
+  最大4,096候補をscore降順、kind、candidate ID順で決定論的に返し、importance report IDまたはcomparison ID、
+  component key、scoreからSHA-256 candidate IDを生成する。この段階ではartifactを変更せず、後続quality gateなしに
+  candidateをpromotionしない
+- optional repairは`RepairAdapter` protocolのLoRA／SFTだけを許可し、candidate model hash、dataset fingerprint、
+  最大sample数、epoch、learning rate、LoRA rank、seedをbounded requestへ固定する。adapter出力はabsolute path、
+  source／repaired model hash、methodを再照合し、同一dataset fingerprint・slice・sample／token countのbefore／after
+  perplexityを既存quality gateで比較する。既定ではrelative regression 0以下、つまり悪化しないrepairだけをapproveし、
+  artifact hashと再評価reportが一致しない場合はfail-closedとする
 - profilerは明示実行とし、read/write sample量へhard upper boundを設ける。plan作成時に暗黙実行しない
 - profiler実測値はhardware fingerprintが一致する場合だけ所要時間推定へ利用する
 - failureはstable error code、localizable message key、recoverabilityを持つversioned JSONとする
@@ -2276,17 +2518,56 @@ samples/VLLMAppleOptimizer/      Mac companion app
 - promotion/checkpoint間のcrash gapは公開artifactを再検証してcompletedへreconcileする
 - exporterは検証済みdependency/platform/model matrixだけをexecutableとして公開し、未知versionを拒否する
 - MLX変換はshellを介さない固定argument列とし、remote uploadとremote code trustを既定で禁止する
+- GGUF変換は明示指定されたowner所有・group/world非writableのregular `convert_hf_to_gguf.py`と、
+  呼び出し側が検証済みbuildとしてexact allowlistした`bNNNN`形式のllama.cpp versionを必須とし、未知buildを拒否する。
+  Safetensors FP16／BF16／FP32からF16／BF16／Q8_0だけを
+  Schema v1固定argument invocationとして公開する。source snapshot hash、output byte budget、checkpoint、isolated worker、
+  private workspace検証、atomic promotionはMLXと共通化し、別quantizerを要するQ4系は専用pipelineが完成するまで拒否する
 - 実行は副作用のないinvocation生成と明示的executeを分離する
 - source bindingは全regular fileを固定長bufferでstreaming hashし、model全体をRAMへ保持しない
 - configにdtypeがないsafetensorsはheader sizeをboundedに検証し、weightをloadせずdtypeを判定する
 - virtual environmentのPython launcherはsymlink解決せず、capability検出とworker実行環境を一致させる
 - backendが非既存output directoryを要求する場合はprivate childへ生成し、検証前にworkspace rootへ正規化する
+- production numeric runtime workerは、verified Qwen stage reader、requested-mode-aware memory admission、private
+  numeric artifact reader、実MLX resident backend、16 KiB length-prefixed UDS、same-user peer gate、inode-bound
+  session credentialを単一composition rootで構築する。artifact load後はsource bundleをconsumeし、explicit unloadで
+  MLX array参照とresident reservationを同時に解放する。実device qualificationはF16／BF16／F32の値、digest、
+  streaming plan、unload後reserved bytes 0、orderly shutdownを確認するが、full model品質認定とは区別する
 - artifact tree hash、byte/file数、elapsed time、peak child RSSをcheckpointとsidecar manifestへ保存する
 - baselineとcandidateの評価は別processで順次実行し、両modelをUnified Memoryへ同時常駐させない
 - evaluation JSONLはline/sample/token/domain数をboundedにし、全datasetやlogitsをRAMへ保持しない
 - quality gateは同一dataset fingerprint、slice、token数を要求し、相対perplexity劣化で判定する
 - deterministic generationは固定seedのgreedy decodingを使い、同一sampleのtoken一致率と期待条件scoreで判定する
 - generation reportはpromptと生成文を保持せず、最大256 tokenのID列、fingerprint、期待条件scoreだけを保存する
+- real-model correctness regressionは同一dataset／prompt contractとcandidate model hashに固定した2〜16回の
+  generation reportを束ね、英語・日本語・简体中文のcoverage、baseline token agreement、expectation score、
+  run間output fingerprint再現性、worst-case latency／RSS budgetをすべて満たす場合だけapproveする。集約reportは
+  prompt、生成本文、token IDを複製せず、model／dataset hash、bounded測定値、判定、deterministic report IDだけを保存する
+- Mac sampleはbundled-daemon版とApp Sandbox client版を別targetにする。sandbox版はcompile-time conditionで
+  daemon resource解決とchild process起動を除外し、outbound network client、user-selected read-only file、
+  app-scoped bookmarkだけをentitlementへ宣言して、独立管理されたloopback daemonへ接続する。sandboxを理由に
+  broad filesystem entitlementや任意process executionへ拡張しない
+- Optimizer sandbox transportはschema version 1、UUID request identity、operation、opaque bounded payloadだけを
+  loopback HTTPへ送る。`http`かつ`localhost`／`127.0.0.1`／`::1`以外、userinfo、query、fragmentを拒否し、
+  ephemeral URLSessionでcache、cookie、credential storageを無効化する。request／responseは各1 MiB、接続は1本に
+  制限し、responseのschema versionとrequest UUIDが一致しない場合はUI stateへ反映しない。このtransportには
+  executable探索、child process起動、signal、filesystem pathの自動展開を実装しない
+- daemon側optimizer endpointは既定無効とし、loopback bindかつmodel root／output rootの双方を明示した場合だけ
+  enableする。各rootは最大16件、current user所有、非symlinkの実directoryとし、output rootにはwrite権限も
+  要求する。plan payloadは固定fieldだけを受理し、canonical model／output pathが各allowlist内にあることを
+  model inspection前に確認する。plan操作はartifact directoryを作らず、実model metadataと現在hardwareから
+  既存optimizer schema version 1のdry-run planだけを生成する。execute系operationは個別のcheckpoint／確認／
+  cancellation contractが実装されるまで明示的に拒否する
+- `samples/VLLMAppleOptimizerSandbox`は非sandbox optimizer appと別bundle ID／Xcode targetにし、同じversioned
+  transport、plan schema、bookmark storeだけをsource共有する。UIはendpoint、model/output picker、objective、
+  memory/disk/duration budget、license、dry-run候補だけを扱い、`Process`／`NSTask`／spawn実装をbuild sourceへ
+  含めない。entitlementはApp Sandbox、outbound network client、user-selected read-only、app-scoped bookmarkに
+  限定し、英語・日本語・简体中文のkey集合を同一に保つ
+- heterogeneous speculative executionはCPUまたはCore MLをdraft、vLLM-Metal／MLX／Native Metalを
+  authoritative verifierとする。3 sample以上のbitwise output一致と5%以上のend-to-end latency改善があるprofileだけを
+  構築可能とし、draftとverifyはproduction `BackendEngineRegistry`の独立`DRAFT`／`VERIFY` requestとして扱う。
+  各stageは共通resource ledgerで予約し、deadline／cancelをstage間とpublish直前に再検査する。clientへ渡せるのは
+  GPUが返したsequenceとの共通prefixおよび最初のGPU correction tokenだけで、未検証draft tokenは一切公開しない
 - datasetは期待条件の`contains`/`prefix`を明示し、短い正答の部分一致によるfalse positiveを避ける
 - domain/language filterをdataset fingerprintへ含め、異なる用途選択のreport比較を拒否する
 - 未評価能力は固定値ではなく、実際に評価したdomainから算出する
@@ -2349,6 +2630,45 @@ UIは推論chat sampleと分離し、model選択、用途、quality/speed/memory
 進捗、pause/resume/cancel、original/optimized比較、provenanceとlicense reportを提供する。
 英語、日本語、简体中文へ対応する。Swift SDKはoptimizer workerのprocess実装へ依存せず、
 versioned plan/event/artifact modelとtransport interfaceだけを公開する。
+
+`samples/VLLMAppleOptimizer`は独立したmacOS 13 SwiftUI targetとする。最初の実装境界では
+model/output directory、objective、license、memory/disk/duration上限を入力し、`plan` subcommandの
+schema version 1 JSONを1 MiB以内で厳格decodeする。候補ごとのoutput size、required disk、peak memory、
+duration、budget適合、実行可否、blocking reason、plan warningを表示する。CLIはshellを介さず通常file、
+非symlink、実行可能な絶対pathだけを120秒上限で起動し、stdout/stderrを各1 MiBに制限する。
+model/output/perplexity/generationの選択は種別ごとに最大1 MiBのsecurity-scoped bookmarkとして保存する。
+再起動時はUIを出さずに復元し、stale bookmarkは再生成、復号不能・過大な値は即時消去する。復元URLの
+security-scoped accessは処理中だけ保持し、恒久的なaccess tokenやfile内容を永続化しない。5 GiBの疎model
+fileを全量readせずmetadata参照できる回帰testを置き、大容量file accessがRAM容量へ比例しないことを固定する。
+dry-run planの表示までは副作用を持たず、
+変換実行には別の明示確認、checkpoint、resume、quality gateを要求する。
+
+実行UIはbudget内かつadapterが実行可能と判定した候補だけを選べる。破壊的操作の確認後、固定引数の
+`export --execute`を起動し、owner-only checkpoint root、duration timeout、immutable outputを適用する。
+SIGINT/SIGTERMはCLIの`CancellationToken`へ変換し、隔離worker process groupを停止してcancelled checkpointを
+保存するため、GUI終了操作でconverterを孤児化しない。利用者は同一planと引数に限り`--resume`を明示できる。
+完了JSONはworker/artifact hash一致、file count、絶対manifest pathを検証してからartifact ID、size、peak RSS、
+license、transform/tool version、品質評価の有無を表示する。
+
+artifact生成後の比較UIは、利用者が選択したowner-owned 16 MiB以下のJSONLをoriginalとoptimizedへ
+同一の256 sample、1 sample 512 token、総131,072 token上限で逐次適用する。各評価reportはplan IDと
+random UUIDに分離した0700 evaluation directoryへ0600 immutable fileとして保存し、dataset fingerprint、
+slice集合、sample/token数の一致をCLI quality gateで強制する。UIはslice別perplexity regressionと合否、
+`generation_quality`、`long_context`、`code`、`mathematics`、`safety_alignment`等の未評価能力を表示し、
+不合格を成功表示へ変換しない。
+
+response比較は別のgeneration JSONLを用い、original／optimizedに同一chat template、最大32 sample、
+16,384 prompt token、32 new tokenを適用する。UIはsample ID、domain、language、token agreement、
+期待値score合否と、両modelの総elapsed／peak RSSを並べる。privacy境界としてpromptと生成本文は
+reportやUI stateへ保存せず、bounded token IDs、SHA-256 fingerprint、aggregate benchmarkだけを扱う。
+
+進捗はCLIの`--event-output`で指定したowner-only 0600 JSONL journalを介す。journal親directoryは
+current user所有かつ0700、既存file／symlinkを拒否し、1 MiBでhard stopする。各recordは既存の
+`optimizer-event-v1` contractを使い、GUIはschema version、plan ID、有限な0〜1 progressを検証した
+最終完全行だけを250 ms間隔で読み、prepare／convert／resume／validate／promoteを表示する。
+pause／continueはGUIからCLIへSIGUSR1／SIGUSR2を送り、CLIのsignal handlerはthread-safe `PauseToken`だけを
+変更する。worker loopが隔離converter process groupへSIGSTOP／SIGCONTを送り、pause中もcancelを監視する。
+したがってCLI本体だけを停止してconverterを走らせ続ける状態を作らない。wall-clock timeoutはpause時間も含む。
 
 ---
 
@@ -2438,6 +2758,33 @@ benchmarkでdropout、failure、p50／p95／max latency、RTFを実測した。P
 実測までとする。実ASR／dialogue／TTS modelおよびCore Audio device latencyは未認定であり、
 利用可能なmodelとdeviceを用いる別qualificationなしには昇格しない。
 
+固定graph audio encoderの最初の実機profileには、固定revisionのWhisper tiny AudioEncoderを用いる。
+Core ML configurationは`.cpuAndNeuralEngine`とし、実行器がANEだけを使用したとは主張しない。
+`[1,80,1,3000]` FP16 log-melから`[1,384,1,1500]` FP16 embeddingへの3 sampleをApple M4で実行し、
+全576,000要素の有限値と入力別digest、latency、peak RSS、memory pressure、thermalを検証する。
+model revision、MIT license、全compiled artifactのpath／content digestを証跡へ結合し、audio／embedding本文は保存しない。
+GPU LLMとのmodel固有projection、ASR品質、汎用embedding／classifierはこのencoder単体認定とは分離する。
+
+汎用embeddingの最初の実artifact profileにはApple公式MobileCLIP S0のimage/text Core ML packageを用いる。
+固定revision `3e0a7bfb9fe83da8a3efaa3fd8f7df24214bb947`、Apple-ASCL、source package合計
+107,801,759 bytesとpath/content SHA-256を証跡へ結合し、qualificationごとにprivate rootへcompileして終了時に削除する。
+Core ML configurationは`.cpuAndNeuralEngine`とし、ANE単独実行とは表現しない。画像`256×256×3`と
+Int32 text token `[1,77]`からFloat32 `[1,512]`への各3入力について、全要素の有限性、入力別digest、
+L2 norm、latency、peak RSS、memory pressure、thermalを検証する。Apple M4実測はimage 1.23–1.83 ms、
+text 0.91–1.37 ms、peak RSS 317,358,080 bytes、pressure normal、thermal nominalで合格した。
+synthetic image/tokenによるexecution qualificationであり、ANE実device割当、zero-shot分類精度、classifier、
+または特定アプリケーションのsemantic quality認定へ拡張しない。画像、token、embedding本文は保存しない。
+
+classifierの最初の実artifact profileにはApple公式FastViT-T8 ImageNet-1K Core ML packageを用いる。
+固定revision `b42811edaa9f7ca6d79eeada204227704484c881`、Apple-ASCL、8,126,615 bytesと
+path/content SHA-256を証跡へ結合し、private rootでcompileして終了時に削除する。入力は256×256 BGRA、
+出力は1000要素のFP16 probability array、top class label、label probability dictionaryである。
+元class labelに同一文字列`maillot`が2件あるためdictionaryは999 unique keyとなる。この既知の表現差を
+1000-class欠損と誤判定せず、1000要素配列の有限性・確率和、999 unique key、入力別digest、top label、
+latency、peak RSS、pressure、thermalを検証する。Apple M4実測は3入力1.94–2.25 ms、peak RSS
+217,677,824 bytes、pressure normal、thermal nominalで合格した。これはsynthetic inputによる実行契約の
+認定であり、ANE単独割当やImageNet／自然画像accuracyの再認定には拡張しない。画像と確率本文は保存しない。
+
 ---
 
 ## Phase 6 — Video
@@ -2525,8 +2872,10 @@ thermal fair、shape 640×384×49、private cleanupを確認した。次は49-fr
 33-frame rootと49-frame stable reportを結合するchained promotionでのみ2-sample評価を許可する。
 この契約による65-frame 2-sample qualificationも2/2件で合格した。両件とも640×384×65、
 memory pressure normal、thermal fairで、最大peak RSS 11,844,460,868 bytes、median wall 1,532,029 ms、
-異なるoutput digest、prompt/output非保存、private cleanupを確認した。次は65-frame 2-sample reportと初期33-frame
-4-sample rootを再検証し、同一profileを4 sampleへ安定性昇格する。
+異なるoutput digest、prompt/output非保存、private cleanupを確認した。65-frame 2-sample reportと初期33-frame
+4-sample rootを再検証した同一profileの4-sample stabilityも4/4件で合格した。全件640×384×65、20 steps、
+memory pressure normal、thermal fairで、issues 0、最大peak RSS 11,844,460,868 bytes、RSS range 0、
+median wall 1,333,142 ms、4 output digest distinct、prompt/output非保存、private cleanupを確認した。
 frame-count promotionは4-sample以上かつ全sampleのmemory pressureがnormalである同一artifact reportを
 baselineとして要求する。候補初期profileと同じ幅、高さ、steps、batchを維持し、frame数は直前値の
 2倍以下かつ`frames - 1`が4の倍数でなければload前に拒否する。
@@ -2569,6 +2918,11 @@ telemetryは1 event 16 KiB、1 sample 4096 eventを既定上限とし、collecto
 timeoutまたはprotocol違反ではworker process groupを停止する。prompt、生成内容、生成物pathはtelemetryへ
 含めず、completed eventに出力shape、frame数、content SHA-256だけを含める。
 
+framework固有境界はversioned worker adapterで統一する。MLX-Gen、MFLUX、Diffusersは固定Python module、
+ComfyUIは明示指定した外部telemetry workerとし、exact backend version allowlist、owner所有でgroup/world
+非writableな実行file、workspace内non-symlink requestを起動前に検査する。venv Python symlinkはlinkと解決先の
+所有者、解決先のregular/executable/permissionを再検査する。いずれも同じJSONL v1、timeout、privacy collectorへ接続する。
+
 Diffusers対応は、frameworkをimportする前に配布sourceをbounded AST scanし、候補ごとのpipeline classを
 照合する。T2V/I2Vの両modeを宣言する候補は両pipeline classを要求する。静的readiness通過はsource上の
 API存在だけを示し、MPSでのcorrectness、memory fit、実生成成功を示すqualificationとしては扱わない。
@@ -2578,6 +2932,13 @@ Diffusers image worker coreはcandidate IDとpipeline classを固定対応させ
 digest、telemetryだけとし、画像bytesとpathは渡さない。workspace外fileをworkerが返した場合は拒否するが、
 権限範囲外のfileをcleanup名目で削除しない。
 
+Qwen3-VLのmanaged Core ML→MLX経路は、固定revisionからBF16 vision weightをstagingし、patchと4つの6層
+segmentを構築・個別数値qualificationしてから、5 artifactを同一graph IDへ結合してatomic公開する。
+subprocess起動時はvenvのPython symlinkと解決先をowner／mode／regular／executableで検証するが、実行時のpathは
+symlinkのまま保持してvenv `sys.prefix`を失わない。process queueの飽和はbackend故障やfallbackとして扱わず、
+`InferenceEngineBusy`をHTTP境界まで保持して503 `engine_busy`を返す。実機promotionは順序付き複数requestに加え、
+並行backpressure、active timeout、client disconnect、cancel後の回復、resource zero、clean shutdownを必須とする。
+
 最初の実runtimeはDiffusers text-to-imageとし、private request消費後にだけframeworkを遅延importする。
 local-files-only、MPS availability、candidate/pipeline identity、memory hard ceilingをmodel load/generation境界で
 検証する。step callbackを共通telemetryへ変換し、runtime終了時にpipeline参照とMPS cacheを解放する。
@@ -2586,7 +2947,8 @@ local-files-only、MPS availability、candidate/pipeline identity、memory hard 
 
 ## Phase 7 — Generative Media
 
-状態：`[Later]`
+状態：`[Next]`（image／video、audio／music qualification foundation、Kokoro speechおよび
+MiniMax Music3 4-bitの実機認定は完了。残るimage系の実機gateは個別に継続）
 
 実装：
 
@@ -2597,6 +2959,25 @@ music generation
 video generation
 latent memory management
 ```
+
+audio／music generationはbackend-neutralなqualification境界を先に実装する。requestはspeech／music種別、
+prompt digest、seed、8–192 kHz、1–8 channel、最大1,800秒へ制限し、backendへ渡すprompt自体をreportへ
+保存しない。backendは呼出元が用意したowner-only 0700 private root直下へPCM S16LE WAVを1件だけ生成する。
+qualificationは`O_NOFOLLOW`、owner、0600、regular file、inode／size不変、最大size、sample rate、channel、
+durationを検証しながらcontentをstreaming SHA-256し、終了時にregular owner fileだけを削除する。reportは
+digest、音声metadata、wall time、peak RSS、memory pressure、thermal state、backend identityだけを保持し、
+prompt、音声bytes、生成物pathを保持しない。実speech／music modelの対応表明は、この共通境界にversion固定workerを
+接続し、複数sampleの品質とresource安定性を実機で確認した後に限定する。
+
+speechの最初の認定profileは固定revisionのKokoro-82M-6bit、MLX Audio 0.5.4、24 kHz mono PCM S16LEとする。
+worker requestは0600 one-shot JSONで渡し、promptをargv／stdoutへ含めない。Homebrew側のoptional G2P dependencyは
+private Python overlayへ分離し、Homebrew管理領域のpackageを置換しない。2 sample実機qualificationでは異なるoutput
+digest、memory pressure normal、thermal nominal、最大peak RSS 788,283,392 bytes、request／WAV cleanupを確認した。
+musicは同じprivate subprocess境界の別schemaで固定revisionのMiniMax Music3 affine 4-bitを認定する。
+Community License、2 shardのSHA-256、14 GB available-memory gateを記録し、44.1 kHz stereo PCM S16LE、
+5秒上限・4 stepsの独立2 sampleで異なるdigest、memory pressure normal、thermal nominal、最大peak RSS
+9,789,440,000 bytes、request／WAV cleanupを実機確認した。speechのG2P overlayとmusic modelを混在させず、
+各workerはprompt／lyricsをargv、stdout、reportへ保存しない。
 
 初期の画像生成qualification候補は、MacBook Air M4 / 32GBでload前memory admissionを通過する
 構成に限定する。
@@ -2694,11 +3075,59 @@ component residencyの実効memory削減を実装・検証した後に限る。
 worker telemetryのeffective residentはOSのprocess peak、MLX allocator peakに加え、PyTorch MPSの
 `current_allocated_memory()`と`driver_allocated_memory()`の大きい方を含める。これによりMPS側allocationが
 RSSに現れない場合でも共通hard ceilingを適用する。未対応runtimeやprobe例外は他の実測値へfail-softする。
-Qwen-Image-2.1ではpromptをmodel offload下で先にencodeし、embeddingを確定した時点で既存offload hookを外す。
+image-editはgenerative worker ABI v2で扱う。sourceはworkspace内のcurrent-user所有regular fileに限定し、
+group/world permission、symlink、空file、64 MiB超過、PNG/JPEG以外をload前に拒否する。親processはpath、byte数、
+SHA-256をrequestへ結合し、consume時とDiffusers runtimeで再検証する。runtimeはfile descriptorからbounded readした
+byte列だけをPillowへ渡し、最大4096×4096 pixels、RGB変換後のimage objectだけをpipelineへ渡す。request ABI v1は
+既存text-to-image向けに読取互換を維持するが、新規requestは常にABI v2とする。source path、prompt本文、生成画像は
+qualification reportへ保存せず、実機認定は512×512・2 sampleから開始する。
+
+同じABI v2入力契約をvideo I2Vにも使用する。Wan 2.2は`WanPipeline`／`WanImageToVideoPipeline`、
+HunyuanVideo 1.5は`HunyuanVideo15Pipeline`／`HunyuanVideo15ImageToVideoPipeline`をmodeごとに固定し、
+候補ID、mode、artifactのpipeline classが完全一致しなければweight load前に拒否する。T2Vでは入力画像を禁止し、
+I2Vではdigest-bound private PNG/JPEGを必須にする。HunyuanVideoのadapter実装完了と、未配置artifactでの
+480p実機qualification完了は区別する。
+
+MFLUX readinessは独立`mflux` wheelだけでなく、`mlx-gen` distribution内へ同梱された`mflux/` sourceも
+distribution file listからload-freeで検出し、versionを`mlx-gen-bundled-<version>`として区別する。
+Qwen-Image-2512 image-editではABI v2 sourceをdescriptor readとdigestで再検証し、workerのprivate output rootへ
+0600 PNGとして複製してからMFLUXへ渡す。元入力をbackendへ直接再openさせず、複製は成功・失敗の双方で削除する。
+
+Qwen-Image-2.1ではpromptをsequential CPU offload下で先にencodeし、embeddingを確定した時点で既存offload hookを外す。
 その後text encoderとtokenizerのpipeline参照を破棄し、GC、MPS synchronize、cache解放を行ってから、残る
-transformerとVAEだけでmodel offload chainを再構成する。解放の前後でbounded progress telemetryを採取し、
+transformerとVAEだけのgeneration pipelineを再構成する。generation側にはDiffusers block-level group offloadを
+MPS同期転送、1 block/groupで適用する。CUDA専用stream prefetchはMPSで有効化せず、APIまたは固定component
+sequenceが欠落する場合は全model residencyへfallbackしない。解放の前後でbounded progress telemetryを採取し、
 `encode_prompt`またはhook除去APIが固定Diffusers runtimeに存在しない場合は通常pipeline residencyへ暗黙fallbackせず
 生成前に拒否する。この経路の768×768実機再qualificationがall-normalになるまでは512×512を認定上限とする。
+
+Qwen-Image-2.1 image-editではcondition imageもtext encoderのvision contextへ含める。text-onlyで事前生成した
+embeddingへ後から画像だけを渡すと`image_pad_mask`が欠落するため、conditionを含む`encode_prompt`の3戻り値を保持し、
+text encoder解放後のpipeline instanceへmaskを明示結合する。condition encoderは出力解像度と分離した256px area profileとし、
+同じリサイズ済み画像をvision contextとVAE conditionへ渡す。text encoderのresidencyはdirect-MPS 25.37 GB、
+CPU-only 22.87 GB、module単位sequential-MPS 19.37 GB（256px condition）を比較し、最後だけを採用する。
+従来のmodel-level offloadでは512px出力のgeneration phaseが26,672,431,104 bytesに達したが、block-level
+group offload後はtext-to-image smokeで17,954,488,320 bytes、20-step image-editで19,381,600,256 bytesへ低下した。
+それぞれ実測値＋1 GiBをstaged／image-edit admission floorとする。image-editは512×512・20 step・2 sampleを
+2/2完走し、異なるdigest、median wall 219,401.91 ms、pressure warning、thermal fair、private cleanupを確認した。
+warningを含むため、この証跡から768pxまたは4-sample stabilityへ自動昇格しない。
+同じgroup-offload構成の768×768・20 step・2 sampleも2/2生成し、peak 17,954,488,320 bytes、
+median wall 393,331.26 ms、thermal fair、異なるdigest、private cleanupを確認したが、両sampleでmemory
+pressure warningとなった。従って768×768はexecution-compatibleだがstable profileへは昇格せず、同じ
+profileの無条件再実行ではなくgroup sizeまたはVAE decode residencyを別途改善してから再評価する。
+より細粒度なleaf-level offloadも768×768・1 step・2 sampleで評価したが、peak
+17,954,488,320 bytesとpressure warningはblock-levelから変わらず、median wall 59,449.16 msへ増加した。
+このprofileは採用せずblock-levelへ戻す。text encoder INT4はTorchAO 0.18.0の
+`Int4WeightOnlyConfig` API、CPU変換、MPS forwardを独立gateとしてprobeする。2026-09-22の固定runtimeでは
+APIは存在したがBF16 LinearのCPU量子化が`mslk >= 1.0.0`不足で停止したため、混合INT4 artifactは生成しない。
+`mslk>=1.0.0`もresolver上は利用不能（取得可能なのは0.0.0のみ）である。owner-only一時領域とworker ABI v3で
+disk-backed group offloadも実装したが、TorchAO INT8 artifactではDiffusersがTorchAO tensor subclassを
+safetensorsへserializeできず明示拒否した。この組合せは以後weight load前に拒否する。次の候補は量子化tensorを
+再serializeしない独立process phase loader、またはTorchAO MPS INT4対応版が利用可能になった時点でのreadiness再評価とする。
+独立process間ではprompt本文を保存せず、通常BF16/FP16/FP32 embeddingとbool/int maskだけをsafetensorsへ保存する。
+handoff manifestはplan/prompt digest、sample index、mode、tensor shape/dtype、payload SHA-256/sizeを結合し、owner-only・
+512 MiB上限・atomic保存・一回consume後の確実な削除を必須とする。このhandoff境界は実装済みであり、次にencoder childと
+generation childの起動順序、終了確認、telemetry集約へ接続する。
 このstaged release実装後の再qualificationは、weight load前admissionでestimated resident
 19,599,447,412 bytesが当時のdynamic hard ceiling 16,052,303,299 bytesを超えることを検出し、安全停止した。
 後段でtext encoder参照を解放しても`from_pretrained`が全componentを同時にloadする初期peakは削減されない。
@@ -2789,7 +3218,7 @@ rebind、stable weight keyの4契約をすべて必須とする。現integration
 
 ## Phase 8 — MoE / Large Model
 
-状態：`[Later]`
+状態：`[Done]` foundation（実model別の性能昇格は継続）
 
 実装：
 
@@ -2804,7 +3233,8 @@ large Unified Memory optimization
 
 ## Phase 9 — Multi-Mac
 
-状態：`[Later]`
+状態：`[Next]`（bounded planner、authenticated framing、loopback mTLS、execution coordinatorは実装済み。
+物理複数Mac qualificationが未完了）
 
 ```text
 Thunderbolt
@@ -2813,6 +3243,17 @@ pipeline parallel
 modality parallel
 distributed KV/state
 ```
+
+logical fabricは最大64 node、2,016 link、1,024 stage、4,096 state shardに制限し、計測済み・認証済みlinkだけを
+配置候補にする。plannerはmemory、modality、依存DAG、転送costから決定論的配置を作り、checkpointable stageだけを
+healthy replicaから再配置できる。transport frameはplan ID、stage／node、sequence、transport、計測ID、planned bytes、
+payload SHA-256を結合する。Ethernet境界は相互TLS、hostname検証、双方certificate pinを要求する。
+
+単一Mac loopbackでは実証明書による1 MiB×8 frameを8/8受信し、digest mismatch 0を確認した。coordinatorは
+dependency waveごとの最大64並列、pipeline順序、modality並列、cross-node payload不変、最大256 MiB result、
+deadline／cooperative cancellationを実装する。ただしこの証跡から物理Thunderbolt／Ethernet性能や複数Mac上の
+分散実行を認定してはならない。次のpromotionは2台以上の実Macでlink計測、correctness、failure isolation、
+単一node baseline比較を行う。
 
 ---
 
@@ -2903,8 +3344,11 @@ versioned execution planへ記録し、active request中は変更せずscheduler
    使用する。指定hit回数、one-shot／repeatを明示し、request ID、入力、model名、任意error文字列は保持しない。
    backend executeへ注入したretryable／timeoutは通常のbounded fallbackを通し、fatalは即時停止する。
    stop注入時も全backendの逆順回収を続行してfailure型だけを集約する。
-21. `[Later]` Vision/Audio encoder、embedding、classifier、background modelなど固定graph化しやすい
-   auxiliary workloadからANE routingを開始する。LLM prefill/decodeはGPU baselineを維持する。
+21. `[Done]` Vision/Audio encoderと汎用embeddingなど固定graph化しやすいauxiliary workloadから
+   Core ML routingを開始し、LLM prefill/decodeはGPU baselineを維持する。Qwen3-VL Vision、Whisper tiny
+   AudioEncoder、MobileCLIP S0 image/text embeddingを固定artifactと`.cpuAndNeuralEngine`設定で実機認定した。
+   FastViT-T8 classifierも固定artifactと同じ設定で実機認定した。background modelの実artifact profileは
+   未認定のため別の計画として扱う。
 22. `[Done]` 共有memory bandwidth競合の代表組み合わせを逐次・並列で測定するbounded adapterとprivate
    strict profileを追加し、profile-boundで3 sample以上、出力一致、逐次実行比5%以上の改善を満たす
    evidenceだけをhardware identity一致時にruntime起動時installする。fallback時のresource予約は
@@ -2926,9 +3370,17 @@ versioned execution planへ記録し、active request中は変更せずscheduler
    thermal／memoryによる縮退は上書きせず、緩和はactive request終了後のsafe pointに限る。
    選択はowner-onlyのbounded JSONへatomic保存し、daemon起動時に復元する。権限不備、symlink、破損、
    未知値ではautomaticへfail-closedする。保存に失敗した管理APIは稼働中policyを変更しない。
-   これらの再起動時復元も`[Done]`とする。次はVision/Audio encoderとembedding/classifierのANE
-   routingにcapability／correctness gateを設け、GPU LLM pipelineとの非同期連携を`[Next]`とする。
-23. `[Later]` CPU/Core ML draft + GPU verifyをcorrectness-neutralなspeculative executionとして評価する。
+   これらの再起動時復元も`[Done]`とする。Vision/Audio encoderとembeddingのCore ML routing、
+   capability／correctness gate、GPU LLM pipelineとの非同期連携基盤、classifier実artifact認定は
+   `[Done]`とする。Whisper encoderからGPU LLMへのmodel固有projection／品質gateを`[Next]`とする。
+23. `[Done]` CPU/Core ML draft + GPU verifyをcorrectness-neutralに扱うexecutor、GPU検証済みtokenだけの公開、
+   correction、resource reservation、3 sample以上・同一出力・5%以上改善のprofile gateを実装する。
+   合格profileだけをowner-only／bounded／atomicに永続化し、model hash、precision、backend、latency、
+   再計算profile IDをload時に検証する。不合格profileは永続化しない。実候補として固定revisionのGemma 3
+   1B 4-bit draftと4B 4-bit verifierをMLX-LM 0.26.2で測定し、3言語のtoken列は3/3一致したが、
+   median 469.78 msから620.63 msへ32.1%低速化し、native MLX経路はdraftもGPUであるため不採用とした。
+   次は同構成の無条件再試行ではなく、CPU/Core ML用draft artifactまたは十分大きいGPU verifierとの
+   別構成を測定し、5%以上改善したprofileだけを標準decode routeへ昇格する。
 24. `[Done]` thermal、memory pressure、low-power modeを入力に、batch、concurrency、device assignmentを
    段階的に縮退・復元する。既存requestをcancelせず、新規admissionを制限し、緩和は次のsafe pointで適用する。
 25. `[Later]` hardware、OS、Core ML、MLX、Metal、model、shapeに結び付いたprofileを保存し、期限切れ、
@@ -2942,6 +3394,13 @@ ANE → GPU → CPUの明示fallbackを使う。ANE利用不可は通常状態�
 Mac appには自動、省電力、最高性能の三policyとdevice assignmentの診断を英語、日本語、简体中文で
 表示する。operator入力、prompt、生成内容はtelemetryに保存せず、queue wait、実行時間、fallback理由、
 resource pressureだけをbounded metricとして保持する。
+
+portable numeric route診断はPython CLIと同じschema version 1をSwift SDKの`NumericRouteDiagnostic`でtyped
+decodeする。source／runtime／compute format、tensor role、routeはclosed enumとし、finiteかつ非負のabsolute error／
+RMSE budget、`valid=true`、固定message key、bounded fallback reasonを検証する。file loaderは64 KiB以下のowner-owned
+regular fileだけを`O_NOFOLLOW`で読み、inode／sizeをopen前後で照合する。Mac appは
+`VLLM_APPLE_NUMERIC_ROUTE_DIAGNOSTIC`で明示指定された証跡だけを読み、format chain、error budget、fallbackを
+英語、日本語、简体中文のcatalogで表示する。CLI由来のmessage本文はUI文言として信用せず、local message keyを使う。
 
 ---
 

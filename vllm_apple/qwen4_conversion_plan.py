@@ -7,7 +7,6 @@ from pathlib import Path
 
 from .qwen4_weight_map import _bounded_index, inspect_qwen4_weight_map
 
-
 _COMPONENT_POLICIES = {
     "output_head": "resident",
     "token_embedding": "resident",

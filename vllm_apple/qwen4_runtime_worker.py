@@ -6,6 +6,7 @@ import stat
 import tempfile
 from pathlib import Path
 
+from .numeric_artifact import NumericArtifactReader
 from .qwen4_component_loader import Qwen4MemoryAdmission
 from .qwen4_resident_store import Qwen4ResidentBackend, Qwen4ResidentStore
 from .qwen4_runtime_protocol import (
@@ -14,7 +15,6 @@ from .qwen4_runtime_protocol import (
 )
 from .qwen4_runtime_transport import Qwen4RuntimeUnixServer
 from .qwen4_tensor_reader import Qwen4TensorReader
-from .numeric_artifact import NumericArtifactReader
 
 
 class Qwen4RuntimeWorker:

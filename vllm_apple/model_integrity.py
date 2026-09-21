@@ -8,7 +8,6 @@ import subprocess
 import tempfile
 from pathlib import Path
 
-
 CHUNK_BYTES = 8 * 1024 * 1024
 MAXIMUM_FILES = 100_000
 MAXIMUM_DEPTH = 32

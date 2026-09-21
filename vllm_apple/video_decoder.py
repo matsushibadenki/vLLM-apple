@@ -10,7 +10,6 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import BinaryIO
 
-
 _CODECS = frozenset({"h264", "hevc", "vp9", "av1"})
 
 

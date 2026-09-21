@@ -7,10 +7,9 @@ import textwrap
 import threading
 import unittest
 import urllib.request
-from unittest.mock import Mock
-from unittest.mock import patch
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+from unittest.mock import Mock, patch
 
 from vllm_apple.api import create_server
 from vllm_apple.backend import (
@@ -22,8 +21,8 @@ from vllm_apple.backend import (
     OpenAIProxyEngine,
     supports_kernel_tuning_middleware,
 )
-from vllm_apple.compat import inspect_backend
 from vllm_apple.cli import build_parser, main
+from vllm_apple.compat import inspect_backend
 from vllm_apple.kernel_context import (
     KERNEL_TUNING_ACCEPTED_HEADER,
     KERNEL_TUNING_CONTEXT_HEADER,

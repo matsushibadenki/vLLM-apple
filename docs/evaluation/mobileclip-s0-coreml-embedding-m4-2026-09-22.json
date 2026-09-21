@@ -1,0 +1,93 @@
+{
+  "artifact_bytes": 107801759,
+  "artifact_file_count": 6,
+  "artifact_sha256": "24ed4658dcf9e2cdb8807137ee5ec74c4a65af7bfffe85023a57eb30e11b0a26",
+  "compute_units": "cpu_and_neural_engine",
+  "image_input": {
+    "name": "image",
+    "shape": [
+      256,
+      256,
+      3
+    ]
+  },
+  "image_samples": [
+    {
+      "l2_norm": 1.06334491872567,
+      "latency_nanoseconds": 1825042,
+      "output_count": 512,
+      "output_sha256": "70b82379744fccd2b0b4f2be1511b23cae957dd3f5625ef8ad50c0c6218ecf35",
+      "sample_index": 0
+    },
+    {
+      "l2_norm": 1.0721712432425303,
+      "latency_nanoseconds": 1236416,
+      "output_count": 512,
+      "output_sha256": "d3fab5f35a2fb748a89f8de6c5c9a06166941d2edfcb4c26e3e5af39fc742cfd",
+      "sample_index": 1
+    },
+    {
+      "l2_norm": 1.0055461302044233,
+      "latency_nanoseconds": 1226916,
+      "output_count": 512,
+      "output_sha256": "13d7039257a91e4f7e2261572046cbea5aa7caaa9a021442a739de5daf94c483",
+      "sample_index": 2
+    }
+  ],
+  "memory_pressure": "normal",
+  "model": "apple/coreml-mobileclip",
+  "model_license": "apple-ascl",
+  "model_revision": "3e0a7bfb9fe83da8a3efaa3fd8f7df24214bb947",
+  "os_version": "27.0",
+  "output": {
+    "dtype": "float32",
+    "name": "final_emb_1",
+    "shape": [
+      1,
+      512
+    ]
+  },
+  "passed": true,
+  "peak_rss_bytes": 317358080,
+  "profile": "mobileclip_s0",
+  "sample_count": 3,
+  "schema_version": 1,
+  "scope": "mobileclip_s0_coreml_embedding_qualification",
+  "soc": "Apple M4",
+  "stores_embedding": false,
+  "stores_image": false,
+  "stores_tokens": false,
+  "temporary_cleanup_verified": true,
+  "text_input": {
+    "dtype": "int32",
+    "name": "text",
+    "shape": [
+      1,
+      77
+    ]
+  },
+  "text_samples": [
+    {
+      "l2_norm": 9.219096306832071,
+      "latency_nanoseconds": 1370375,
+      "output_count": 512,
+      "output_sha256": "1a86f586011519ea65bc0a913b873ff2376263b12bbcc6f22d3a4940e8c57dcc",
+      "sample_index": 0
+    },
+    {
+      "l2_norm": 8.70975775740546,
+      "latency_nanoseconds": 994042,
+      "output_count": 512,
+      "output_sha256": "8acf79e73f3d16f343f4a730f47e04c8aeefb414c21a52a92f06b03ff2c05528",
+      "sample_index": 1
+    },
+    {
+      "l2_norm": 8.71486176636645,
+      "latency_nanoseconds": 909416,
+      "output_count": 512,
+      "output_sha256": "fae2c8db7501a4fb56919f94b6994a6ec2b947897a191fe4e634587c91c87409",
+      "sample_index": 2
+    }
+  ],
+  "thermal_state": "nominal"
+}

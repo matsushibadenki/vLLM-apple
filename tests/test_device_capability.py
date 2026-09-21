@@ -11,8 +11,8 @@ from vllm_apple.device_capability import (
 from vllm_apple.execution import ExecutionBackend, WorkloadPhase
 from vllm_apple.kernel_probe import (
     KernelCapabilityRegistry,
-    KernelProbeConfig,
     KernelMeasurement,
+    KernelProbeConfig,
     run_kernel_probe,
 )
 

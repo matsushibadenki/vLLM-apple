@@ -8,7 +8,6 @@ import threading
 from dataclasses import dataclass
 from pathlib import Path
 
-
 MAX_POLICY_BYTES = 64 * 1024
 MAX_IDENTITIES = 256
 _SAN_KINDS = {"DNS", "email", "URI", "IP Address"}

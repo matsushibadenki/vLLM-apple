@@ -34,6 +34,20 @@ def backend(*, missing=()):
     }
 
 
+def hunyuan_backend(*, missing=()):
+    return {
+        "diffusers_version": "0.36.0",
+        "candidates": {
+            "hunyuanvideo-1.5-8.3b": {
+                "required_pipeline_classes": [
+                    "HunyuanVideo15Pipeline", "HunyuanVideo15ImageToVideoPipeline"
+                ],
+                "missing_pipeline_classes": list(missing),
+            }
+        },
+    }
+
+
 class DiffusersVideoReadinessTests(unittest.TestCase):
     def test_quantized_wan_artifact_passes_without_loading_weights(self) -> None:
         with TemporaryDirectory() as directory:
@@ -69,6 +83,43 @@ class DiffusersVideoReadinessTests(unittest.TestCase):
             )
         self.assertFalse(report["ready"])
         self.assertIn("wan_pipeline_unavailable", report["issues"])
+
+    def test_unquantized_hunyuan_i2v_artifact_is_supported(self) -> None:
+        with TemporaryDirectory() as directory:
+            report = assess_diffusers_video_readiness(
+                executable="/test/python",
+                backend=hunyuan_backend(),
+                artifact=artifact(
+                    Path(directory), bits=0,
+                    pipeline="HunyuanVideo15ImageToVideoPipeline",
+                ),
+                candidate_id="hunyuanvideo-1.5-8.3b",
+                mode="image-to-video",
+            )
+        self.assertTrue(report["ready"])
+        self.assertEqual(report["mode"], "image-to-video")
+
+    def test_quantized_wan_a14b_uses_the_strict_wan_pipeline_contract(self) -> None:
+        backend_report = {
+            "diffusers_version": "0.36.0",
+            "candidates": {
+                "wan2.2-a14b-quantized": {
+                    "required_pipeline_classes": [
+                        "WanPipeline", "WanImageToVideoPipeline"
+                    ],
+                    "missing_pipeline_classes": [],
+                }
+            },
+        }
+        with TemporaryDirectory() as directory:
+            report = assess_diffusers_video_readiness(
+                executable="/test/python",
+                backend=backend_report,
+                artifact=artifact(Path(directory), bits=8),
+                candidate_id="wan2.2-a14b-quantized",
+            )
+        self.assertTrue(report["ready"])
+        self.assertEqual(report["candidate_id"], "wan2.2-a14b-quantized")
 
 
 if __name__ == "__main__":

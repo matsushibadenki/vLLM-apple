@@ -12,7 +12,6 @@ from .qwen3_vl_ane import Qwen3VLVisionANEAdapterSpec, _read_json, _regular_file
 from .qwen3_vl_conversion_plan import Qwen3VLCoreMLConversionPlan
 from .qwen4_adapter_loader import _inspect_header
 
-
 CONVERSION_CHUNK_BYTES = 8 * 1024 * 1024
 
 

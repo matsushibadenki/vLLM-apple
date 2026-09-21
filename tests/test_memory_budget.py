@@ -1,7 +1,7 @@
 import unittest
 
-from vllm_apple.memory_budget import UnifiedMemoryBudgetLedger
 from vllm_apple.memory_admission import MemoryPressureAdmissionError
+from vllm_apple.memory_budget import UnifiedMemoryBudgetLedger
 from vllm_apple.scheduler import ScheduleRequest
 from vllm_apple.service import RuntimeService
 
