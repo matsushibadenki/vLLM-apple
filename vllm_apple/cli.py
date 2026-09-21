@@ -1369,6 +1369,7 @@ def main(argv: list[str] | None = None) -> int:
                     artifact,
                     width=arguments.width,
                     height=arguments.height,
+                    component_staged=True,
                 )
             bits = artifact.get("quantization", {}).get("bits")
             quantization = f"int{bits}" if bits in {4, 8} else "none"

@@ -7,6 +7,7 @@ import base64
 import hashlib
 import json
 import sys
+import tempfile
 import threading
 import urllib.request
 from pathlib import Path
@@ -25,6 +26,7 @@ def main() -> int:
     parser.add_argument("--image", type=Path, action="append", required=True)
     parser.add_argument("--task", choices=tuple(_TASKS), action="append", required=True)
     parser.add_argument("--label", action="append", required=True)
+    parser.add_argument("--report", type=Path)
     arguments = parser.parse_args()
     if (
         len(arguments.compiled_model) != 5
@@ -38,86 +40,75 @@ def main() -> int:
     ):
         raise ValueError("invalid managed HTTP qualification")
 
-    from mlx_vlm.utils import load
-
     from vllm_apple.api import create_server
-    from vllm_apple.device_capability import (
-        ComputeDevice,
-        DeviceCapability,
-        DeviceCapabilityRegistry,
+    from vllm_apple.backend_composition import (
+        BackendEngineRegistration,
+        BackendRegistryInferenceEngine,
+        ProductionBackendComposition,
     )
-    from vllm_apple.device_pipeline import (
-        ANEAuxiliaryWorkload,
-        AsyncEncoderLLMPipeline,
-        require_ane_auxiliary_route,
-    )
-    from vllm_apple.device_resources import UnifiedDeviceResourceLedger
+    from vllm_apple.backend_engine import BackendEngineDescriptor
     from vllm_apple.execution import ExecutionBackend, WorkloadPhase
-    from vllm_apple.managed_engine import ThreadAffineInferenceEngine
-    from vllm_apple.qwen3_vl_ane import inspect_qwen3_vl_vision_for_ane
-    from vllm_apple.qwen3_vl_coreml import Qwen3VLCoreMLConversionManifest
-    from vllm_apple.qwen3_vl_embedding import Qwen3VLANEGPUPipeline
-    from vllm_apple.qwen3_vl_managed_engine import (
-        Qwen3VLPersistentChatDelegate,
-        load_qwen3_vl_chat_runtime,
-    )
-    from vllm_apple.qwen3_vl_persistent_encoder import Qwen3VLPersistentEncoder
-    from vllm_apple.qwen3_vl_persistent_worker import Qwen3VLPersistentWorker
+    from vllm_apple.process_inference_engine import MainThreadSubprocessInferenceEngine
+    from vllm_apple.qualification import save_qualification_report
     from vllm_apple.service import RuntimeService
 
-    ledger_holder = []
-    worker_holder = []
     model_id = "qwen3-vl-managed"
-
-    def factory():
-        model, processor = load(str(arguments.model), lazy=True)
-        source = inspect_qwen3_vl_vision_for_ane(
-            arguments.model, model_revision=arguments.revision
-        )
-        conversion = Qwen3VLCoreMLConversionManifest(
-            source.artifact_fingerprint, source.model_revision, arguments.graph_id,
-            "pixel_values", "final_hidden_states", (256, 1536), (64, 2048),
-            "fp16", "coremltools-8.1",
-        )
-        registry = DeviceCapabilityRegistry("apple-m4", "macos-27")
-        registry.record(DeviceCapability(
-            ExecutionBackend.COREML_DRAFT, ComputeDevice.ANE, "coremltools-8.1",
-            "apple-m4", "macos-27", (source.operator,), (WorkloadPhase.AUXILIARY,),
-            ("fp16",), "available", "probe_passed", (arguments.graph_id[:24],),
-        ))
-        route = require_ane_auxiliary_route(
-            registry, workload=ANEAuxiliaryWorkload.VISION_ENCODER,
-            operator=source.operator, precision="fp16",
-        )
-        ledger = UnifiedDeviceResourceLedger(
-            unified_memory_bytes=4_000_000_000, cpu_threads=8,
-            gpu_command_queues=2, ane_tasks=1, bandwidth_slots=2,
-        )
-        pipeline = AsyncEncoderLLMPipeline(ledger, registry)
-        worker = Qwen3VLPersistentWorker(tuple(arguments.compiled_model))
-        encoder = Qwen3VLPersistentEncoder(
-            worker, source, route, graph_id=arguments.graph_id
-        )
-        bridge = Qwen3VLANEGPUPipeline(
-            pipeline, source=source, conversion=conversion, route=route,
-            coreml_graph_id=arguments.graph_id,
-        )
-        ledger_holder.append(ledger)
-        worker_holder.append(worker)
-        return Qwen3VLPersistentChatDelegate(
-            model, processor, bridge, encoder, pipeline,
-            load_qwen3_vl_chat_runtime(), model_id=model_id,
-        )
-
-    engine = ThreadAffineInferenceEngine(factory, maximum_pending_requests=2)
-    service = RuntimeService(engine=engine)
-    server = create_server(
-        "127.0.0.1", 0, service, max_concurrent_requests=3, socket_timeout=120
-    )
-    thread = threading.Thread(target=server.serve_forever, daemon=True)
-    thread.start()
+    private = tempfile.TemporaryDirectory(prefix="vllm-apple-qwen3-vl-process-")
+    private_path = Path(private.name)
+    config_path = private_path / "config.json"
+    config_path.write_text(json.dumps({
+        "model": str(arguments.model.resolve()),
+        "revision": arguments.revision,
+        "graph_id": arguments.graph_id,
+        "compiled_models": [str(path.resolve()) for path in arguments.compiled_model],
+        "model_id": model_id,
+        "hardware_profile": "apple-m4",
+        "environment_profile": "macos-27",
+        "unified_memory_bytes": 4_000_000_000,
+        "cpu_threads": 8,
+        "gpu_command_queues": 2,
+        "bandwidth_slots": 2,
+    }))
+    config_path.chmod(0o600)
+    engine = None
+    service = None
+    server = None
+    thread = None
     cases = []
+    diagnostics = None
+    shutdown_clean = False
     try:
+        descriptor = BackendEngineDescriptor(
+            ExecutionBackend.NATIVE_MLX,
+            "qwen3-vl-coreml-mlx-1",
+            ("qwen3_vl",),
+            ("fp16",),
+            (WorkloadPhase.PREFILL,),
+            ("chat.completions",),
+            "subprocess",
+        )
+        composition = ProductionBackendComposition((BackendEngineRegistration(
+            descriptor,
+            lambda: MainThreadSubprocessInferenceEngine(
+                "vllm_apple.qwen3_vl_process_factory:create_qwen3_vl_process_delegate",
+                python_executable=Path(sys.executable),
+                config_path=config_path,
+                maximum_pending_requests=2,
+                startup_timeout_seconds=600,
+            ),
+        ),))
+        engine = BackendRegistryInferenceEngine(
+            composition,
+            model_architecture="qwen3_vl",
+            precision="fp16",
+            candidates=(ExecutionBackend.NATIVE_MLX,),
+        )
+        service = RuntimeService(engine=engine)
+        server = create_server(
+            "127.0.0.1", 0, service, max_concurrent_requests=3, socket_timeout=120
+        )
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
         endpoint = f"http://127.0.0.1:{server.server_port}/v1/chat/completions"
         for index, (image, task_name, label) in enumerate(zip(
             arguments.image, arguments.task, arguments.label, strict=True
@@ -154,28 +145,45 @@ def main() -> int:
                         for expected in task["labels"][label][language]
                     ),
                 })
+        diagnostics = engine.diagnostics()
     finally:
-        server.shutdown()
-        server.server_close()
-        service.close()
-        thread.join(timeout=2)
+        if server is not None:
+            server.shutdown()
+            server.server_close()
+        if service is not None:
+            shutdown_clean = service.close()
+        elif engine is not None:
+            shutdown_clean = engine.close()
+        if thread is not None:
+            thread.join(timeout=2)
+        private.cleanup()
+    assert diagnostics is not None and server is not None
     report = {
         "schema_version": 1,
         "scope": "qwen3_vl_managed_persistent_http",
         "request_count": len(cases),
         "cases": cases,
-        "owner_thread_ident": engine.owner_thread_ident,
-        "worker_restart_count": worker_holder[0].restart_count,
-        "resources_after_completion": ledger_holder[0].snapshot()["used"],
+        "model_process_main_thread": diagnostics["main_thread"],
+        "worker_restart_count": diagnostics["worker_restart_count"],
+        "resources_after_completion": diagnostics["resources"]["used"],
         "server_request_metrics": server.request_metrics(),
+        "shutdown_clean": shutdown_clean,
+        "temporary_cleanup_verified": not private_path.exists(),
+        "stores_prompt": False,
+        "stores_output": False,
     }
     report["passed"] = (
         len(cases) == len(arguments.image) * 3
         and all(case["task_correct"] for case in cases)
+        and report["model_process_main_thread"] is True
         and report["worker_restart_count"] == 0
+        and report["shutdown_clean"]
+        and report["temporary_cleanup_verified"]
         and all(value == 0 for value in report["resources_after_completion"].values())
         and report["server_request_metrics"]["active_requests"] == 0
     )
+    if arguments.report is not None:
+        save_qualification_report(report, arguments.report)
     print(json.dumps(report, sort_keys=True))
     return 0 if report["passed"] else 2
 

@@ -162,8 +162,9 @@ Graph / Memory Planner + Global Scheduler
 - `[Done]` cancellation時のreservation自動解放
 - `[Done]` backend failure時のMetal → MLX → CPU fallback
 - `[Done]` application threadからbackend command queueを隔離するglobal submission scheduler
-- `[Later]` prefill、decode、sampling、encoder別のoperator dispatch
-- `[Later]` Vision/Audio encoderのCore ML/ANE routingとGPU LLM pipeline連携
+- `[Done]` prefill、decode、sampling、Vision／Audio encoder、embedding、classifier、draft、verify別のoperator dispatch。共通`WorkloadPhase`／backend descriptorへphase vocabularyを追加し、bounded dependency graphの逆向きphase edgeをbackend実行前にfail-closed拒否する
+- `[Done]` Qwen3-VL固定224×224 profileのVision encoderをpersistent Core ML/ANEへrouteし、probe-bound resource予約内でMLX GPU LLMへ順序付きhandoff。task限定実機qualificationとfallback／cleanupを完了
+- `[Next]` Audio encoderおよび汎用embedding／classifierのCore ML/ANE routingとGPU LLM pipeline連携（実audio model artifact待ち）
 - `[Done]` profiler実測値によるbackend選択。同一operator/phase/precision/shape/batchのCPU baselineとaccelerator reportを比較し、digest一致、最低sample数、peak memory非悪化、cold-load償却後5%以上のlatency改善を満たすbackendだけをversioned placement planへ昇格。hardware/environment identity、TTL、quarantine、last-known-good、safe-point reloadまでruntimeに統合済み
 
 ### Edge-native adaptive execution
@@ -455,13 +456,15 @@ VLLMAppleKit / Control API
 - `[Later]` quantized matmul benchmark
 - `[Done]` model、shape、batch、context別kernel profile。model metadataからGQA heads、head dimension、KV dtype、context tier、block数・working setを固定するversioned Paged Attention profile、profile-bound shape benchmark、batchを含むdevice benchmark identity、private/atomic strict loaderとCLIを実装済み
 - `[Done]` automatic phase batch sizing。memory pressure、thermal、power mode、CPU backend制約からprefillを1/2/4、decodeを1へ決定し、plan identityとdecision reasonへ固定してscheduler admissionで超過を拒否する
-- `[Later]` adaptive state allocationとage/pressure別precision
+- `[Done]` adaptive state allocationの決定論的policy。KV／recurrent／prefix／attention-window／expert stateをbounded recordで表し、state age順、normal／warning／critical pressure、pinned状態、backendで明示promotion済みprecisionだけからretain／reprecision／evict planと解放byte数を生成する。未知pressureはnormalへfail-soft、未昇格precisionは選択しない
+- `[Done]` backend-owned stateのatomic reprecision／rollback adapterをscheduler safe pointへ接続。backend snapshot→bounded plan→transaction begin／commitを同一safe pointで行い、commit例外時はrollbackする。active reservation中はpressureをpending化し、最後のreservation完了時にsemantic cache resize、adaptive state transaction、execution planを順に適用。単独adaptive構成、event、snapshot metricsも追加
+- `[Done]` 実bufferを所有するKV／recurrent state backend adapter。FP32からFP16／symmetric INT8への変換を実データで行い、maximum absolute error、RMSE、cosine similarity、memory削減率を全て満たしたprecisionだけをpromotion対象にする。変換／evictionはstale planとbyte見積りを再検証してatomic commitし、rollback時は元bufferを維持する
 - `[Done]` continuous memory pressure monitoring。macOS libdispatch memory-pressure sourceでnormal/warning/critical変化をevent-driven取得し、同一状態をcoalesce。daemon起動をブロックしない隔離threadからadmission、scheduler、safe-point elastic cacheとruntime eventへ反映し、source不可時は`vm_stat`系telemetryへfail-softする
 - `[Done]` thermal/power状態をversioned plan identityとdecision reasonへ固定し、prefill batchを保守的にclampするscheduling foundation
 - `[Done]` 15秒bounded thermal/power monitor、同一状態coalesce、current hardware snapshotとruntime change eventへの反映
 - `[Done]` Swift SDKのtyped operating-state event decodeと未知のcurrent値に対するfail-soft fallback
 - `[Done]` versioned BackendEngine交換契約。vLLM-Metal、Native MLX、Native Metal、Core ML draft、CPUを共通enumで扱い、version、architecture、precision、phase、operator、isolation、ready/lifecycle、request deadline/cancel safe point、retryable fallback attemptをfail-closed registryへ統合
-- `[Later]` 各production backend processをBackendEngine registryへ直接登録するcomposition rootと段階的切替
+- `[Done]` production backend processを`BackendEngineRegistry`へ直接登録するcomposition root。chat payloadをversioned requestへ保持し、factoryのatomic startup／失敗時reverse rollback、context-aware実行、retryable busy／execution failure、結果schema、model一覧、diagnostics、逆順shutdownを共通adapterへ実装。`BackendRegistryInferenceEngine`でRuntimeService ABIへ戻し、Qwen3-VL専用main-thread subprocess runnerを実際にregistry経由へ切替済み
 - `[Later]` CPU/Core ML draft + GPU verifyのheterogeneous speculative execution
 - `[Done]` bounded kernel self-test/performance probe contractとprofile単位quarantine registry
 - `[Done]` hardware、OS、toolchain、MLX、backend versionを束ねるenvironment fingerprint
@@ -780,7 +783,8 @@ fallback、fusion、stress、および大容量model向け再現可能qualificat
 - `[Done]` 33→49 frameの一軸promotionを2-sample正式qualificationで実証。2/2件が640×384×49で完了し、issues 0、memory pressure normal、thermal fair、sample間recovery、private cleanup、異なるseedのdigest相違を確認。最大peak RSS 11,533,691,012 bytes（33-frame 4-sample最大比+178,686,112 bytes／+1.57%）、median wall 987.66秒（+126.99秒／+14.76%）。prompt／動画は非保存。証跡: [Wan MLX-Gen 49-frame qualification](evaluation/wan-mlx-gen-640x384-49frames-2sample-2026-09-20.json)
 - `[Done]` promoted videoの同一frame数2→4 sample stability契約。49-frame 2-sample reportだけでなく、それを許可した33-frame 4-sample parent reportも同一provenanceで検証し、frame promotion chainとsample-count promotionの両方をload前に再検証する`--promotion-parent-report`をMLX-Gen video CLIへ追加
 - `[Done]` Wan 49-frame profileの4-sample stability gate。Apple M4/32 GiB、640×384、49 frame、20 stepsで4/4成功、失敗0、全件memory pressure normal／thermal fair、最大peak RSS 11,533,691,012 bytes、RSS range 0、median wall 1,098,215 ms、4 digest distinct、prompt/output非保存、private cleanupを確認。証跡: [49-frame 4-sample stability](evaluation/wan-mlx-gen-640x384-49frames-4sample-stability-2026-09-21.json)
-- `[Next]` 33-frame root＋49-frame 4-sampleのchained promotion contractで、他条件を固定した65-frame・2-sampleを一軸評価する。全件normalの場合だけ4-sample安定化へ進む
+- `[Done]` 33-frame root＋49-frame 4-sampleのchained promotion contractで65-frameへ一軸拡張し、2/2件が640×384×65で成功。全件memory pressure normal／thermal fair、issues 0、最大peak RSS 11,844,460,868 bytes、median wall 1,532,029 ms、2 digest distinct、prompt/output非保存、private cleanupを確認。証跡: [65-frame 2-sample qualification](evaluation/wan-mlx-gen-640x384-65frames-2sample-2026-09-21.json)
+- `[Next]` 合格した65-frame 2-sample reportと初期33-frame 4-sample rootを再検証し、同一640×384×65・20 stepsの4-sample stabilityへ昇格する
 - `[Later]` HunyuanVideo 1.5 8.3Bを候補とする480p、step-distilled、SSTA、model offload検証
 - `[Later]` Wan 2.2 A14B量子化版をstretch候補とするT2V/I2V別artifact、dual-expert residency、CPU/SSD offload検証
 - `[Done]` video diffusion pipelineのDiT/expert、text encoder、3D VAE別artifact admissionとconservative resident-memory hard ceiling
@@ -819,7 +823,10 @@ fallback、fusion、stress、および大容量model向け再現可能qualificat
 - `[Done]` Qwen-Image-2.1 INT8の768×768 warning切り分けのうち、workerによる`pipeline`破棄・`torch.mps.empty_cache()`・独立process終了と、runnerによる次sample開始前のnormal連続観測は実装済みであることを確認。その状態でも第2 sample中のwarningが2回再現したため、単純なcache解放漏れ・開始前回復不足は原因候補から除外
 - `[Done]` 生成workerのeffective resident telemetryにPyTorch MPSの`current_allocated_memory` / `driver_allocated_memory`を追加。OS process peakとMLX allocator peakに加え、MPS driver allocationの最大値をhard-ceiling判定へ反映し、probe不可時だけfail-softする
 - `[Done]` Qwen-Image-2.1 INT8の明示的text-encoder phase解放。model offload下でprompt embeddingを先に確定し、hook除去後にtext encoder/tokenizer参照を破棄、GC・MPS synchronize/cache解放後に`transformer->vae` offload chainを再構成する。解放前後を既存bounded telemetryで観測し、API欠落時はfail-closedする回帰テストを追加
-- `[Next]` 上記staged releaseを768×768・20 stepsの独立2 sampleで再qualificationし、MPS allocator peak、全sampleのmemory pressure normal、生成結果、private cleanupを確認する。合格後だけ4-sample stabilityへ昇格する
+- `[Done]` 上記staged releaseの768×768・20 steps再qualificationを一度開始し、weight load前admissionがestimated resident 19,599,447,412 bytesに対する当時のhard ceiling 16,052,303,299 bytesを検出して安全停止。disk適合、memory不適合、weight load未開始であり、失敗後の無条件再実行は行わない。証跡: [768 staged load admission](evaluation/qwen-image-2.1-768-staged-load-admission-2026-09-21.json)
+- `[Done]` Qwen-Image 2.1 component別staged loader。required componentに`None`を渡すpipeline loaderが全weightをloadする挙動を実機で検出したため使用せず、processor／text encoder／scheduler／VAE／transformerを各subdirectoryから固有classで直接loadする。text encode後にencoderを解放してからgeneration pipelineを手動構成し、各phaseでoffload契約を再検証、全component同時loadへ暗黙fallbackしない
+- `[Done]` staged admissionへTorchAO materialization 1.5倍余裕を追加し、配置artifactの768 profile見積りを19,599,447,412→16,146,610,083 bytesへ更新。約25.8 GB空きのdirect-component実機試験でもtext encoder単体load中にworker hard ceiling超過を検出して安全停止し、process／private outputを回収。証跡: [direct component memory stop](evaluation/qwen-image-2.1-768-direct-component-memory-stop-2026-09-21.json)
+- `[Next]` text encoder shard単位streaming materialization、またはより大容量Apple Siliconでdirect-component load peakを実測する。現在のM4/32GBでは512×512を認定上限とし、768×768の2/4-sample再qualificationはload peak解決後だけ行う
 - `[Later]` FLUX.2 [dev]をstretch候補とする4-bit級量子化、CPU/SSD offload、chunking検証（非量子化weightはM4/32GBでload前にreject）
 - `[Done]` diffusion pipelineのmodel、text encoder、VAE別artifact admissionとconservative resident-memory hard ceiling
 - `[Done]` privacy-preserving画像生成qualification report schemaとdeterministic evaluator（first-output/wall latency、peak RSS、memory pressure、thermal state、output metadata、plan fingerprint）
@@ -893,10 +900,10 @@ NVFP4 → INT8を最初の候補としつつ、FP16/BF16展開、既存MLX量子
 - `[Later]` MXFP4／MXFP6／MXFP8、FP8 E4M3／E5M2とvariant、FP16／BF16／FP32、signed/unsigned INT8／INT4／INT2の段階的対応
 - `[Later]` NF4／codebook量子化、groupwise affine、zero-point、double quantization、mixed precision、outlier/residual・sparse表現の拡張adapter
 - `[Later]` Safetensors／GGUF／MLX／Core ML artifactとGPTQ／AWQ／各exporterのmetadata・packing adapter（container、量子化recipe、演算形式を分離）
-- `[Later]` weights／activations／KV・recurrent state／MoE expert／vision・audio・diffusion tensorを同一契約で扱うeligibility matrix
+- `[Done]` weights／activations／KV・recurrent state／MoE expert／vision・audio・diffusion tensorを同一契約で扱うeligibility matrix。source／compute形式、role、backend、operator、要素数範囲、recipe、evidence、qualified状態をcanonical capability IDへ結合し、未知・未認定・曖昧recipeをfail-closed拒否する
 - `[Later]` CPU vectorized／MLX／Metalのdecode・repack・requantize・layout変換と、tile単位convert + GEMV/GEMM/attention融合
 - `[Later]` asynchronous prefetch、backend completion barrier、file/compute overlapとUnified Memory bandwidth ceilingへの統合
-- `[Later]` load時変換／初回利用時変換／反復利用cache／毎回fused変換を比較するcost modelとprefill/decode別route選択
+- `[Done]` load時変換／初回利用時変換／反復利用cache／毎回fused変換を比較するcost modelとphase別route選択。conversion、synchronization、反復compute、amortized uses、peak memory、output digestを比較し、memory ceiling内で出力一致する最小amortized latency routeだけを選択する
 - `[Later]` NVFP4 → scale付きINT8の表現保存経路と一般的な再量子化経路の比較、INT8演算・累積型・scale粒度の対応検証
 - `[Later]` source/scale/layout/kernel/environment digestに結合した変換cache、bounded LRU、単一変換共有、quarantine・rollback
 - `[Later]` chip／OS／toolchain／backend／operator／shape別capability probeとreference fallback、未知recipeは明示unsupported
@@ -923,10 +930,10 @@ Unified Memoryとmemory bandwidthを共有する一つの実行系として管�
 - `[Done]` M4ローカル実機でfixture生成／compile／`.cpuAndNeuralEngine` prediction 3回の数値一致（中央値約96.5 µs、fixture tree digest binding）
 - `[Done]` probe合格済みmodel digest／capability ID／auxiliary phase／FP32 eligibilityを必須にするCore ML fixed-graph resource load・bounded execute・integrity再検証・明示unloadとscheduler直前dispatch gate
 - `[Done]` Core ML load／predictionをSwift subprocessへ隔離するpersistent ANE worker adapterと、hardware／OS／model tree SHA-256／I/O identity別のbounded process cacheをfixed-graph backend lifecycleへ接続。resourceのload／unloadを跨いで同一workerを再利用し、active leaseをevictせず、idle workerだけをLRU回収し、容量超過・identity不一致・active closeをfail-closedにする
-- `[Later]` Core ML compiler出力そのものを再利用する場合の、toolchain／Core ML versionを含むdisk artifact cacheと署名・失効policy
+- `[Done]` Core ML compiler出力のprivate disk artifact cache。source digest、graph ID、toolchain、Core ML version、OS build、compute unitsをcache IDへ結合し、symlink／special file拒否、file数／容量上限、tree digest、32-byte以上のsecretによるHMAC-SHA256署名、atomic publish、厳格load、改ざん時quarantine、理由付き明示失効を実装
 - `[Done]` CPU thread、GPU command queue、ANE in-flight task、Unified Memory、memory bandwidthを原子的に予約・解放する統合resource ledgerとruntime snapshot
 - `[Done]` backend exchangeのversioned dispatch contract。architecture／precision／phase／operator／isolation、deadline／cancel safe point、retryable bounded fallback、逆順shutdownを共通化
-- `[Later]` operator graphの依存関係とdevice間同期costを含むproduction composition rootへの共通dispatch contract接続
+- `[Done]` operator graphの依存関係とdevice間同期costをproduction composition rootへ接続。最大64 node／256 edge、欠損dependency・cycle・reserved payload拒否、決定論的topological order、依存結果の明示注入、request context safe point、合計sync cost hard budgetを経て各nodeを共通`BackendEngineRegistry`へdispatchする
 - `[Done]` probe済みcapabilityに限定したCPU/GPU/ANE共通bounded microbenchmark schemaとrunner（cold load、execution、変換、同期、throughput、peak memory、energyのunknown保持、output digest安定性）およびprivate atomic report・strict再計算loader
 - `[Done]` deterministic CPU vector add／matmul／KV copy、MLX／Metal probe kernel、loaded Core ML fixed graphを共通schemaへ接続するnative measurement adapter（kernel時間とsubprocess込みend-to-end時間を分離）
 - `[Done]` available・FP32 capabilityだけからCPU/MLX/Metal/Core ML代表shapeを構築するbounded deterministic suite、明示operation map、欠損operation拒否、suite ID
@@ -938,7 +945,7 @@ Unified Memoryとmemory bandwidthを共有する一つの実行系として管�
 - `[Done]` accelerator固有operatorへ同一identityの決定論的CPU baselineを供給するbounded reference adapterとFP32 digest正規化
 - `[Done]` M4上の4要素Core ML fixed graphをCPUと各3 sample比較し、出力一致を確認した上で起動cost非改善のためCPU維持（ANE誤昇格なし）
 - `[Done]` M4実機でのMLX/Metal/Core ML代表shape qualification（CPU 3・MLX 6・Metal 2・Core ML/ANE 1の12/12 correctness合格。energyとpeak memoryは実測sourceがある場合だけ記録）
-- `[Later]` prefill、decode、Vision/Audio encoder、sampling、draft/verify別のend-to-end performance profile
+- `[Done]` prefill、decode、Vision/Audio encoder、sampling、draft/verify別のbounded end-to-end performance profileと共通promotion gate。hardware/model/workload identity、最大256 sample、median/p95 latency、work-unit throughput、peak Unified Memory、全sample取得時だけenergy中央値、deterministic output digestを保持し、同一identity・3 sample以上・出力一致・memory/energy非悪化・5%以上のmedian改善を全て満たす場合だけ昇格する
 - `[Done]` promotion winnerのbenchmark report／capability／exact workload identityを結合するversioned device placement plan、probe profile一致検証、active/pending scheduler safe-point適用、reservation plan ID
 - `[Done]` device placement planのprivate atomic persistence、全field／plan ID再計算、最大30日TTL、future／expired拒否、current破損時last-known-good fallback
 - `[Done]` runtime snapshot／JSON Schemaへactive・pending plan、有効期限、最大64件の非機密placement metadataを追加
@@ -953,7 +960,7 @@ Unified Memoryとmemory bandwidthを共有する一つの実行系として管�
 - `[Done]` 1024幅×16層dense+ReLU代表encoderの決定論的generator／CPU reference／integrity-bound Core ML qualification、同一digest benchmarkによるANE placement昇格とruntime fallback
 - `[Done]` Core ML modelをprocess内で保持するbounded persistent Swift worker、resource load／unload連動、timeout／worker failureのretryable fallback変換
 - `[Done]` hardware／OS／model tree SHA-256／I/O identityに結合したbounded Core ML worker cache。同一identityはpersistent workerを共有し、active lease保護、idle-only LRU eviction、厳密なclose accountingを実装
-- `[Later]` Core ML compiler artifactのdisk再利用を行う場合のtoolchain／Core ML version binding、署名、quarantine、失効
+- `[Done]` Core ML compiler artifact disk再利用のtoolchain／Core ML version binding、署名、quarantine、失効（上記共通cacheをpersistent ANE workerとQwen3-VL compiled artifactの双方が利用可能な独立契約として実装）
 - `[Done]` M4実機でpersistent workerの連続5 prediction出力一致（load約235ms、end-to-end 0.84–1.41ms、kernel 16–84µs）
 - `[Done]` Core ML/ANE in-flight、CPU thread、GPU command queue、Unified Memory、bandwidth slotを同一admissionで原子的に予約し、失敗時にmemory予約をrollbackするresource ledger
 - `[Done]` fallbackごとのbackend resource原子的引き継ぎと、profile-bound・3 sample以上・出力一致・5%以上の並列改善を必須にするfail-closed contention evidence gate
@@ -965,12 +972,13 @@ Unified Memoryとmemory bandwidthを共有する一つの実行系として管�
 - `[Done]` contention reload／rollbackのtyped Swift SDK、strict evidence検証、Mac app英語・日本語・简体中文操作UI
 - `[Done]` probe承認済みfallbackとcontention認定がある場合だけqueue先頭をidle backendへ移すbounded work stealing（resource原子予約、容量不足時FIFO復元）
 - `[Done]` memory pressure、thermal state、low-power modeに応じた新規admissionのconcurrency／batch／device割当の段階的縮退、safe-point回復
-- `[Next]` Vision/Audio encoderとembedding/classifierから開始するANE routing、GPU LLM pipelineとの非同期連携
+- `[Done]` Qwen3-VL Vision encoderのANE routingとMLX GPU LLM連携。fixed graph／precision／capability／resource identityを結合し、非同期submitとnative main-thread向けinline経路、実画像task限定quality、persistent worker soakまで実証
+- `[Next]` Audio encoder、汎用embedding／classifierのANE routing。固定graph artifactと実audio model配置後に同じpromotion gateへ接続
 - `[Later]` CPUまたはANE draft + GPU verifyによるheterogeneous speculative execution
 - `[Done]` contention全ペア合格時だけ原子的に一括予約するCPU／GPU／ANE bounded pipeline並列化
 - `[Done]` hardware／OS／model／shape別autotuning profile。model-backed shape、hardware/source/environment fingerprint、private atomic profile、OS/toolchain/MLX変更時の失効、TTL、quarantine、明示的再計測restore、last-known-good rollbackをnative v2 tuningとdevice placementで実装
 - `[Done]` backend別correctness比較、timeout／compile failure／numerical mismatch時のANE → GPU → CPU fallback。同一workloadのCPU reference digestと数値誤差を昇格時に検証し、昇格済みCore ML routeの固定retryable codeからprobe済みGPU、CPUへbounded resource引き継ぎでfallback
-- `[Later]` TTFT、TPOT、tokens/sec、frames/sec、energy/request、peak Unified Memoryを用いたpromotion gate
+- `[Done]` TTFT、TPOT、tokens/sec、frames/sec等をphase固有latency／work unitとして扱い、energy/requestとpeak Unified Memoryを組み合わせる共通promotion gate。energy未計測はunknownのまま保持し、存在するbaseline energyを悪化させる候補は拒否する
 - `[Done]` device assignment、queue wait、fallback、contention、thermal/power decisionの固定キー・上限付きruntime observabilityとstrict schema
 - `[Done]` scheduling observabilityのtyped Swift SDK、旧runtime unavailable fallback、Mac app英語・日本語・简体中文diagnostics
 - `[Done]` 安全上のthermal／memory縮退を維持した自動／省電力／最高性能policy選択の認証付きruntime管理API、typed Swift SDK、Mac app三言語操作UI（runtime内の選択）
@@ -1017,7 +1025,7 @@ Unified Memoryとmemory bandwidthを共有する一つの実行系として管�
 - `[Done]` tokens/sec、TTFT、TPOTのbounded phase profile
 - `[Done]` Unified MemoryとKV usage（OS/framework/KVを分離し、source付きused/capacity/ratioをruntime snapshotへ公開）
 - `[Done]` allocator内peakとOS backend resident peakのsigned差分metric
-- `[Later]` operator別backend選択、fallback、quarantine telemetry
+- `[Done]` operator別backend選択／fallback telemetry。共通backend registryがrejected／failed／succeededをbackend・理由別にthread-safe集計し、256 key上限とoverflow countを持つversioned snapshotを公開する。quarantine状態は既存probe registryのoperator単位snapshotと組み合わせて診断する
 - `[Later]` GPU/CPU utilization、bandwidth、thermal、power
 - `[Later]` Vision、Audio、Video固有metrics
 
@@ -1367,7 +1375,7 @@ Unified Memoryとmemory bandwidthを共有する一つの実行系として管�
 241. `[Done]` persistent workerのstage順digestを実payloadと再照合し、graph ID／固定grid／shape／dtype／bytesへ束縛した0600 manifestを排他的作成・fsyncするadapterを実装。順序不一致を実機でfail-closed検出してdeep-stack 0／1／2→final順へ修正後、Homebrew MLXでfinal／deep-stack 3本をFP16 `[64,2048]`としてmaterializeし、実`Qwen3VLVisionEncodeResult`を構築。probe済みcapability registry、ANE 216,449,024 bytes予約、MLX GPU 1,000,000,000 bytes予約を通る非同期scheduler routeでCore ML→MLX handoffを完走し、全resource使用量0へ復帰、restart 0、正常shutdownを確認。証跡: [persistent scheduler bridge](evaluation/qwen3-vl-persistent-scheduler-bridge-2026-09-20.json)
 242. `[Done]` persistent scheduler routeの実vision resultをHomebrew Qwen3-VL language generationへ接続。MLXをexecutor threadで実行するとnative runtime終了時にSIGSEGVとなる実機障害を検出し、ANE／GPUの予約と依存順序を維持したcaller-thread実行経路を追加した。赤／緑／青、円、家、OCR `APPLE`の6 requestを順序どおり処理し、英語／日本語／简体中文18/18正答、従来MLX vision baselineとの生成hash 18/18完全一致、restart 0、全resource解放、正常shutdown、一時領域削除を確認。queue saturationはfail-fast、encoder失敗時はGPU callback未実行となる回帰テストも追加。証跡: [persistent scheduled chat quality](evaluation/qwen3-vl-persistent-scheduled-chat-quality-2026-09-20.json)
 243. `[Done]` server統合の安全境界として、非stream chatにもrequest ID、有限deadline、socketのnon-consuming切断signalを持つ`InferenceRequestContext`を追加し、対応engineへkernel contextと共に伝播。persistent ANE→GPU caller-thread schedulerはANE前、ANE完了後／GPU前、GPU完了後のsafe pointでcancel／timeoutを検査し、GPU未実行または結果非公開で全予約を解放する。HTTP timeoutは408、client切断は応答を書き戻さずmetadata-only 499として記録する。daemon停止時はmanaged engineを冪等に一度だけcloseするmodel lifecycleも接続し、実HTTP timeout後のrequest slot回収を含む回帰テストを追加
-244. `[Done]` native modelを専用processのmain threadで生成・実行・closeするbounded inference transport。最大64 pending、4 MiB request／16 MiB responseのJSON-lines IPC、親側fail-fast backpressure、子側bounded queue、active cancel／deadline safe point、固定error code、worker exit時pending解放、shutdown→terminate→kill回収を実装。fake native delegateの同一process順序、child main-thread ownership、queue saturation、active cancel後の回復、実`/v1/chat/completions`経路、main-thread cleanupを確認
+244. `[Done]` native modelを専用processのmain threadで生成・実行・closeするbounded inference transport。最大64 pending、4 MiB request／16 MiB responseのJSON-lines IPC、親側fail-fast backpressure、子側bounded queue、active cancel／deadline safe point、固定error code、worker exit時pending解放、shutdown→terminate→kill回収を実装。fake native delegateの同一process順序、child main-thread ownership、queue saturation、active cancel、実HTTP 408 timeout、client切断後のrequest slot／子safe-point cleanupと後続request回復、実`/v1/chat/completions`経路、main-thread closeを確認
 245. `[Next]` inline PNG／JPEG、private request workspace、persistent Core ML encoder、scheduler予約内MLX生成、OpenAI互換responseを扱うQwen3-VL managed delegateを上記専用process factoryへ接続し、Homebrew MLX実機の複数request順序、backpressure、cancel／timeout、client切断cleanupをqualificationする。一般runtime昇格はopen-domain品質gateまたはBF16相当precisionの実装まで保留
 
 この順序により、まず推論runtimeの実model安定性を確立し、その境界を壊さずにoptimizerを

@@ -294,7 +294,40 @@ isolation方式をversion付きで固定する。`BackendEngineRegistry`はreque
 未ready、architecture／precision／phase／operator不一致を理由付きattemptとして拒否する。実行前後には共通の
 `InferenceRequestContext`でdeadline／cancel safe pointを検査し、retryableと宣言されたbackend failureだけを次候補へ
 fallbackする。non-retryable failureはCPUへ暗黙退避しない。shutdownは逆登録順で全engineへ伝播し、失敗をboundedに
-集約する。次段階では既存production process adapterをこのregistryのcomposition rootへ直接接続する。
+集約する。
+
+registryは各attemptをbackend、status（rejected／failed／succeeded）、reason別にthread-safe集計する。
+telemetry keyは256件を上限とし、未知の動的failure reasonで無制限に増えないよう超過分をoverflow countへ集約する。
+このversioned snapshotとoperator単位probe quarantine snapshotを併読することで、選択、fallback、隔離の理由を追跡できる。
+
+`ProductionBackendComposition`はproduction chat engine factoryを上記registryへ直接登録する。全engineの起動が
+完了した場合だけregistryを公開し、途中失敗時は開始済みengineを逆順回収する。chat payloadは
+`BackendEngineRequest`内で保持し、`ManagedInferenceBackendEngine`がcontext-aware ABIだけを許可する。
+busy／実行失敗はretryable、payload／結果schema不一致はnon-retryableとして分類する。
+`BackendRegistryInferenceEngine`がmodel一覧、chat、diagnostics、冪等shutdownを`RuntimeService` ABIへ接続する。
+Qwen3-VLのCore ML encoder＋MLX生成専用process qualification runnerはこのcomposition rootを通るため、
+実backendとテスト用registryが別経路になることを防ぐ。
+
+複数operatorのproduction compositionは`OperatorGraphDispatcher`を使う。graphは最大64 node／256 edgeに制限し、
+欠損dependency、cycle、重複ID、予約済み`_dependencies` payloadを実行前に拒否する。決定論的topological orderで
+各nodeの宣言済み依存結果だけを注入し、node間のprofile済みsynchronization nanoseconds合計がrequestのhard budgetを
+超えない場合だけ共通`BackendEngineRegistry`へdispatchする。各node前には同じrequest deadline／cancel safe pointを検査する。
+phase vocabularyはprefill、decode、sampling、Vision／Audio encoder、embedding、classifier、draft、verify、auxiliaryを
+共通契約として持つ。encoder／embeddingからprefill、prefill／verifyからdecodeまたはsampling、draftからverifyという
+許可済み依存だけを受け入れ、decodeからprefillのような逆向きedgeは一nodeも実行する前に拒否する。
+
+end-to-end performance profileはprefill、decode、Vision encoder、Audio encoder、sampling、draft、verifyを
+明示phaseとして区別する。hardware、model、backend、shape／batch／contextを含むworkload identityへ最大256 sampleを
+束縛し、median／p95 latency、work-unit throughput、peak Unified Memory、全sampleで取得できた場合だけenergy/request、
+deterministic output digestを集計する。promotionは同じhardware/model/phase/workload、双方3 sample以上、出力digest一致、
+peak memory非悪化、計測済みenergy非悪化、median latency 5%以上改善を同時に要求する。
+
+Core ML compiler出力を再利用する場合は`CoreMLArtifactCacheIdentity`へsource SHA-256、graph ID、
+toolchain version、Core ML version、OS build、compute unitsをすべて結合する。cache root／entry／manifestは
+private permissionとし、compiled treeのsymlink・special file、8,192 files超、32 GiB超を拒否する。
+publishはprivate temporary treeへcopy・fsync後にatomic renameし、manifestとtree digestを32-byte以上の
+secretによるHMAC-SHA256で署名する。load時はidentity、署名、全tree digestを再計算し、一つでも不一致なら
+active entryから外してquarantineする。toolchain失効等は理由付きrevocation recordとともに同じquarantineへ移す。
 
 ---
 
@@ -488,6 +521,12 @@ Decode  → bandwidth-intensive / GEMV寄り / 小batch / TPOT最適化
 
 各phaseに独立したmemory budget、batch上限、kernel selectionとmetricを持たせる。
 CPU/GPU/ANEの同時利用は、共有memory競合を含むend-to-end実測で有利な場合だけ採用する。
+
+KV／recurrent stateのprecision変更は`MeasuredStateBackendAdapter`がbackend所有bufferに対して行う。
+FP32からFP16またはsymmetric INT8へ実際にencode/decodeし、maximum absolute error、RMSE、cosine similarity、
+memory削減率の全gateに合格した組み合わせだけを`promoted_precisions`へ追加する。adaptive allocatorが生成したplanは
+source precisionとtarget byte数を再検証してstagingし、commitまでは現行bufferを置換しない。stale plan、未昇格precision、
+byte見積り不一致はfail-closedとし、rollbackでは元bufferをそのまま維持する。
 
 ---
 
@@ -1660,6 +1699,16 @@ cold load、warm reuse、prefill、decodeのTTFT/TPOT/throughput、変換時間�
 native/既存MLX/floating fallbackとのend-to-end比較で採用を決める。高速化を未計測で保証しない。
 最初の実装順はdescriptorとCPU参照 → NVFP4小規模変換 → 既存backend consumer → streaming/fused → 他形式拡張。
 
+実装済み`NumericEligibilityMatrix`はsource／compute format、tensor role（weight、activation、KV、recurrent、
+expert、vision、audio、diffusion）、backend、operator、要素数範囲、recipe ID、evidence ID、qualified状態を
+canonical capability IDへ結合する。形式名の一致だけではeligibleにせず、完全一致する認定済みcapabilityが一件だけ
+存在する場合に限り実行を許可する。未知recipe、未認定evidence、重複して曖昧なcapabilityはfail-closedである。
+
+`NumericRouteProfile`はload convert、first-use convert、cached convert、fused every-useについて、conversion、
+synchronization、compute latency、amortized uses、peak Unified Memory、output digestを記録する。phaseとcapability IDが
+一致し、memory ceiling内かつ全候補のoutput digestが一致する場合だけ、amortized latencyが最小のrouteを決定論的に選ぶ。
+これにより変換単体の速さではなく、read／convert／barrier／反復computeを含む総費用でrouteを選択する。
+
 ---
 
 # 43. モデルフォーマット
@@ -2148,7 +2197,13 @@ vLLM-Metal互換pluginとして成立させる。
 [Done] CPU reference profiler and profile-bound accelerator benchmark contract
 [Done] kernel self-test / benchmark / quarantine foundation
 [Done] pressure・thermal・power・backend制約に基づくprefill/decode automatic batch sizingとscheduler admission
-[Later] adaptive state allocation
+[Done] adaptive state allocation policy foundation。KV／recurrent／prefix／attention-window／expertを
+bounded state recordとして扱い、明示的にpromotionされたprecisionだけをstate age順に選び、pressure別の
+retain／reprecision／evict planと解放byte数を決定論的に生成する。pinned stateは変更しない
+[Done] backend-owned stateのatomic reprecision／rollbackとscheduler safe-point適用。backendがstate recordを列挙し、
+transaction begin／commit／rollbackを所有する。active reservation中はpending化し、最後のreservation完了時に
+semantic cache resize、adaptive transaction、execution planの順で適用する。commit失敗はrollbackして旧stateを維持する
+[Next] 実KV・recurrent state backendによる品質／memory promotion gate
 [Done] event-driven memory pressure monitoring and safe-point propagation
 ```
 
@@ -2457,6 +2512,10 @@ thermal fair、shape 640×384×49、private cleanupを確認した。次は49-fr
 11,533,691,012 bytes、4 sampleのRSS range 0、median wall 1,098,215 ms、minimum 0.04197 frames/sec、
 4 output digest distinct、prompt/output非保存、private cleanupを確認した。これにより次の一軸候補を65 frameとし、
 33-frame rootと49-frame stable reportを結合するchained promotionでのみ2-sample評価を許可する。
+この契約による65-frame 2-sample qualificationも2/2件で合格した。両件とも640×384×65、
+memory pressure normal、thermal fairで、最大peak RSS 11,844,460,868 bytes、median wall 1,532,029 ms、
+異なるoutput digest、prompt/output非保存、private cleanupを確認した。次は65-frame 2-sample reportと初期33-frame
+4-sample rootを再検証し、同一profileを4 sampleへ安定性昇格する。
 frame-count promotionは4-sample以上かつ全sampleのmemory pressureがnormalである同一artifact reportを
 baselineとして要求する。候補初期profileと同じ幅、高さ、steps、batchを維持し、frame数は直前値の
 2倍以下かつ`frames - 1`が4の倍数でなければload前に拒否する。
@@ -2629,6 +2688,15 @@ Qwen-Image-2.1ではpromptをmodel offload下で先にencodeし、embeddingを�
 transformerとVAEだけでmodel offload chainを再構成する。解放の前後でbounded progress telemetryを採取し、
 `encode_prompt`またはhook除去APIが固定Diffusers runtimeに存在しない場合は通常pipeline residencyへ暗黙fallbackせず
 生成前に拒否する。この経路の768×768実機再qualificationがall-normalになるまでは512×512を認定上限とする。
+このstaged release実装後の再qualificationは、weight load前admissionでestimated resident
+19,599,447,412 bytesが当時のdynamic hard ceiling 16,052,303,299 bytesを超えることを検出し、安全停止した。
+後段でtext encoder参照を解放しても`from_pretrained`が全componentを同時にloadする初期peakは削減されない。
+required componentへ`None`を渡すpipeline loaderは実機で全weightをloadしたため廃止し、processor、text encoder、
+scheduler、VAE、transformerを各subdirectoryから固有classで直接loadするcomponent loaderへ置き換えた。prompt
+embedding確定後にtext encoderのhook・参照・MPS cacheを解放してからgeneration pipelineを手動構成する。
+TorchAO materialization用1.5倍余裕を含む768 profile見積りは16,146,610,083 bytesである。しかし約25.8 GB空きの
+direct-component試験でもtext encoder単体load中にworker hard ceilingを超えたため、M4/32GBでの768 profile昇格を停止する。
+次はtext encoder shard単位streaming materialization、またはより大容量Apple Siliconでload peakを実測する。
 reportにはwall latency、peak RSS、memory pressure、thermal state、backend/model fingerprint、
 quantization provenance、licenseを含める。CIはweightおよび生成画像をartifactとして保存しない。
 

@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import threading
 from typing import Generic, Protocol, TypeVar
 
 from .execution import ExecutionBackend, WorkloadPhase
@@ -16,6 +17,7 @@ from .fault_injection import (
 
 BACKEND_ENGINE_SCHEMA_VERSION = 1
 MAX_BACKEND_METADATA_VALUES = 128
+MAX_BACKEND_TELEMETRY_KEYS = 256
 _Result = TypeVar("_Result")
 
 
@@ -61,6 +63,7 @@ class BackendEngineRequest:
     precision: str
     model_architecture: str
     candidates: tuple[ExecutionBackend, ...]
+    payload: object | None = None
 
     def __post_init__(self) -> None:
         _values((self.operator,), "request operator")
@@ -132,6 +135,9 @@ class BackendEngineRegistry(Generic[_Result]):
             raise ValueError("backend engine registry entries are invalid")
         self._engines = {engine.descriptor.backend: engine for engine in engines}
         self._fault_injector = fault_injector
+        self._telemetry: dict[tuple[str, str, str], int] = {}
+        self._telemetry_overflow = 0
+        self._telemetry_lock = threading.Lock()
 
     def execute(
         self, request: BackendEngineRequest, context: InferenceRequestContext
@@ -144,6 +150,7 @@ class BackendEngineRegistry(Generic[_Result]):
             reason = self._ineligible_reason(engine, request)
             if reason is not None:
                 attempts.append(BackendEngineAttempt(backend, "rejected", reason))
+                self._record_attempt(backend, "rejected", reason)
                 continue
             assert engine is not None
             context.raise_if_cancelled()
@@ -158,18 +165,50 @@ class BackendEngineRegistry(Generic[_Result]):
                     code = f"injected_backend_{error.action.value}"
                     retryable = error.action is FaultAction.RETRYABLE
                 attempts.append(BackendEngineAttempt(backend, "failed", code))
+                self._record_attempt(backend, "failed", code)
                 if not retryable:
                     raise BackendEngineFailure(code, retryable=False) from error
                 continue
             except BackendEngineFailure as error:
                 attempts.append(BackendEngineAttempt(backend, "failed", error.code))
+                self._record_attempt(backend, "failed", error.code)
                 if not error.retryable:
                     raise
                 continue
             context.raise_if_cancelled()
             attempts.append(BackendEngineAttempt(backend, "succeeded", None))
+            self._record_attempt(backend, "succeeded", "none")
             return BackendEngineResult(value, backend, tuple(attempts))
         raise BackendEngineFailure("backend_engine_fallback_exhausted", retryable=False)
+
+    def telemetry_snapshot(self) -> dict[str, object]:
+        with self._telemetry_lock:
+            attempts = tuple(
+                {
+                    "backend": backend,
+                    "status": status,
+                    "reason": reason,
+                    "count": count,
+                }
+                for (backend, status, reason), count in sorted(self._telemetry.items())
+            )
+            return {
+                "schema_version": 1,
+                "attempts": attempts,
+                "overflow_count": self._telemetry_overflow,
+            }
+
+    def _record_attempt(
+        self, backend: ExecutionBackend, status: str, reason: str
+    ) -> None:
+        key = (backend.value, status, reason)
+        with self._telemetry_lock:
+            if key in self._telemetry:
+                self._telemetry[key] += 1
+            elif len(self._telemetry) < MAX_BACKEND_TELEMETRY_KEYS:
+                self._telemetry[key] = 1
+            else:
+                self._telemetry_overflow += 1
 
     @staticmethod
     def _ineligible_reason(

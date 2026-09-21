@@ -1,11 +1,13 @@
 import json
 import os
+import socket
 import sys
 import tempfile
 import threading
 import time
 import unittest
 import urllib.request
+import urllib.error
 from pathlib import Path
 
 from vllm_apple.api import create_server
@@ -140,6 +142,75 @@ class ProcessInferenceEngineTests(unittest.TestCase):
             self.assertTrue(result["main_thread"])
             self.assertEqual(result["value"], "through-http")
             self.assertNotEqual(result["pid"], os.getpid())
+        finally:
+            server.shutdown()
+            server.server_close()
+            service.close()
+            thread.join(timeout=2)
+
+    def test_http_timeout_cancels_child_and_recovers_request_slot(self):
+        engine = self.engine()
+        service = RuntimeService(engine=engine)
+        server = create_server("127.0.0.1", 0, service, socket_timeout=0.15)
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        try:
+            body = {
+                "model": "process-fixture",
+                "messages": [{"role": "user", "content": "hello"}],
+                "delay": 2,
+            }
+            request = urllib.request.Request(
+                f"http://127.0.0.1:{server.server_port}/v1/chat/completions",
+                data=json.dumps(body).encode(),
+                headers={"Content-Type": "application/json"},
+                method="POST",
+            )
+            with self.assertRaises(urllib.error.HTTPError) as raised:
+                urllib.request.urlopen(request, timeout=2)
+            self.assertEqual(raised.exception.code, 408)
+            result = engine.chat_completions_with_request_context(
+                {"value": "after-timeout"}, None, self.context()
+            )
+            self.assertEqual(result["value"], "after-timeout")
+            self.assertEqual(server.request_metrics()["active_requests"], 0)
+        finally:
+            server.shutdown()
+            server.server_close()
+            service.close()
+            thread.join(timeout=2)
+
+    def test_client_disconnect_cancels_child_and_cleans_up(self):
+        engine = self.engine()
+        service = RuntimeService(engine=engine)
+        server = create_server("127.0.0.1", 0, service, socket_timeout=2)
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        body = json.dumps({
+            "model": "process-fixture",
+            "messages": [{"role": "user", "content": "hello"}],
+            "delay": 2,
+        }).encode()
+        connection = socket.create_connection(("127.0.0.1", server.server_port))
+        try:
+            connection.sendall(
+                b"POST /v1/chat/completions HTTP/1.1\r\n"
+                b"Host: 127.0.0.1\r\nContent-Type: application/json\r\n"
+                + f"Content-Length: {len(body)}\r\n\r\n".encode()
+                + body
+            )
+        finally:
+            connection.close()
+        deadline = time.monotonic() + 3
+        while (server.request_metrics()["active_requests"] != 0
+               and time.monotonic() < deadline):
+            time.sleep(0.02)
+        try:
+            self.assertEqual(server.request_metrics()["active_requests"], 0)
+            result = engine.chat_completions_with_request_context(
+                {"value": "after-disconnect"}, None, self.context()
+            )
+            self.assertEqual(result["value"], "after-disconnect")
         finally:
             server.shutdown()
             server.server_close()

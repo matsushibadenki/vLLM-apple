@@ -83,18 +83,100 @@ class LocalDiffusersImageRuntime:
             raise ValueError("local Diffusers model and output roots must be directories")
         torch = self._module_loader("torch")
         diffusers = self._module_loader("diffusers")
+        transformers = (
+            self._module_loader("transformers")
+            if self._candidate_id == "qwen-image-2.1" else None
+        )
         mps = getattr(getattr(torch, "backends", None), "mps", None)
         if mps is None or not mps.is_available():
             raise RuntimeError("Diffusers image worker requires an available MPS device")
         pipeline_type = getattr(diffusers, self.pipeline_class, None)
         if pipeline_type is None:
             raise RuntimeError(f"Diffusers does not expose {self.pipeline_class}")
-        pipeline = pipeline_type.from_pretrained(
-            str(model_root),
-            local_files_only=True,
-            dtype=torch.bfloat16,
-        )
+        pipeline = None
         try:
+            prompt_arguments = {}
+            generation_prompt = request["prompt"]
+            if self._candidate_id == "qwen-image-2.1":
+                processor_type = getattr(transformers, "Qwen3VLProcessor", None)
+                text_encoder_type = getattr(
+                    transformers, "Qwen3VLForConditionalGeneration", None
+                )
+                scheduler_type = getattr(diffusers, "FlowMatchEulerDiscreteScheduler", None)
+                vae_type = getattr(diffusers, "AutoencoderKLQwenImage21", None)
+                transformer_type = getattr(
+                    diffusers, "QwenImage21Transformer2DModel", None
+                )
+                if any(value is None for value in (
+                    processor_type, text_encoder_type, scheduler_type,
+                    vae_type, transformer_type,
+                )):
+                    raise RuntimeError("Qwen-Image-2.1 staged component classes are unavailable")
+                processor = processor_type.from_pretrained(
+                    str(model_root / "processor"), local_files_only=True
+                )
+                text_encoder = text_encoder_type.from_pretrained(
+                    str(model_root / "text_encoder"),
+                    local_files_only=True,
+                    dtype=torch.bfloat16,
+                )
+                text_pipeline = pipeline_type(
+                    scheduler=None,
+                    vae=None,
+                    text_encoder=text_encoder,
+                    processor=processor,
+                    transformer=None,
+                )
+                try:
+                    self._enable_sequential_offload(text_pipeline)
+                    encode_prompt = getattr(text_pipeline, "encode_prompt", None)
+                    remove_hooks = getattr(text_pipeline, "remove_all_hooks", None)
+                    if not callable(encode_prompt) or not callable(remove_hooks):
+                        raise RuntimeError(
+                            "Qwen-Image-2.1 pipeline lacks the staged text-encoder contract"
+                        )
+                    prompt_embeds, prompt_embeds_mask, _ = encode_prompt(
+                        prompt=generation_prompt,
+                        device=getattr(text_pipeline, "_execution_device", "mps"),
+                        num_images_per_prompt=request["batch_size"],
+                    )
+                    progress()
+                    remove_hooks()
+                    text_pipeline.text_encoder = None
+                    text_encoder = None
+                finally:
+                    del text_pipeline
+                    self._release_mps(torch)
+                progress()
+                scheduler = scheduler_type.from_pretrained(
+                    str(model_root / "scheduler"), local_files_only=True
+                )
+                vae = vae_type.from_pretrained(
+                    str(model_root / "vae"), local_files_only=True,
+                    dtype=torch.bfloat16,
+                )
+                transformer = transformer_type.from_pretrained(
+                    str(model_root / "transformer"), local_files_only=True,
+                    dtype=torch.bfloat16,
+                )
+                pipeline = pipeline_type(
+                    scheduler=scheduler,
+                    vae=vae,
+                    text_encoder=None,
+                    processor=processor,
+                    transformer=transformer,
+                )
+                generation_prompt = None
+                prompt_arguments = {
+                    "prompt_embeds": prompt_embeds,
+                    "prompt_embeds_mask": prompt_embeds_mask,
+                }
+            else:
+                pipeline = pipeline_type.from_pretrained(
+                    str(model_root),
+                    local_files_only=True,
+                    dtype=torch.bfloat16,
+                )
             vae = getattr(pipeline, "vae", None)
             if vae is not None and hasattr(vae, "enable_tiling"):
                 vae.enable_tiling()
@@ -102,53 +184,9 @@ class LocalDiffusersImageRuntime:
             if required_sequence is None:
                 pipeline.to("mps")
             else:
-                if getattr(pipeline, "model_cpu_offload_seq", None) != required_sequence:
-                    raise RuntimeError(
-                        "Diffusers image pipeline offload sequence does not match the candidate"
-                    )
-                enable_offload = getattr(pipeline, "enable_model_cpu_offload", None)
-                if not callable(enable_offload):
-                    raise RuntimeError(
-                        "Diffusers image pipeline does not expose model CPU offload"
-                    )
-                enable_offload(device="mps")
+                self._enable_sequential_offload(pipeline)
             progress()
             generator = torch.Generator(device="cpu").manual_seed(request["seed"])
-
-            generation_prompt = request["prompt"]
-            prompt_arguments = {}
-            if self._candidate_id == "qwen-image-2.1":
-                encode_prompt = getattr(pipeline, "encode_prompt", None)
-                remove_hooks = getattr(pipeline, "remove_all_hooks", None)
-                if not callable(encode_prompt) or not callable(remove_hooks):
-                    raise RuntimeError(
-                        "Qwen-Image-2.1 pipeline lacks the staged text-encoder release contract"
-                    )
-                prompt_embeds, prompt_embeds_mask, _ = encode_prompt(
-                    prompt=generation_prompt,
-                    device=getattr(pipeline, "_execution_device", "mps"),
-                    num_images_per_prompt=request["batch_size"],
-                )
-                progress()
-                remove_hooks()
-                pipeline.text_encoder = None
-                tokenizer = getattr(pipeline, "tokenizer", None)
-                if tokenizer is not None:
-                    pipeline.tokenizer = None
-                gc.collect()
-                mps_synchronize = getattr(getattr(torch, "mps", None), "synchronize", None)
-                if callable(mps_synchronize):
-                    mps_synchronize()
-                mps_empty_cache = getattr(getattr(torch, "mps", None), "empty_cache", None)
-                if callable(mps_empty_cache):
-                    mps_empty_cache()
-                progress()
-                enable_offload(device="mps")
-                generation_prompt = None
-                prompt_arguments = {
-                    "prompt_embeds": prompt_embeds,
-                    "prompt_embeds_mask": prompt_embeds_mask,
-                }
 
             def callback(_pipeline, _step, _timestep, callback_kwargs):
                 progress()
@@ -185,10 +223,31 @@ class LocalDiffusersImageRuntime:
                 raise
             return GeneratedImageArtifact(output, request["width"], request["height"])
         finally:
-            del pipeline
-            mps_empty_cache = getattr(getattr(torch, "mps", None), "empty_cache", None)
-            if callable(mps_empty_cache):
-                mps_empty_cache()
+            if pipeline is not None:
+                del pipeline
+            self._release_mps(torch)
+
+    @staticmethod
+    def _release_mps(torch: object) -> None:
+        gc.collect()
+        synchronize = getattr(getattr(torch, "mps", None), "synchronize", None)
+        if callable(synchronize):
+            synchronize()
+        empty_cache = getattr(getattr(torch, "mps", None), "empty_cache", None)
+        if callable(empty_cache):
+            empty_cache()
+
+    @staticmethod
+    def _enable_sequential_offload(pipeline: object) -> None:
+        required = _SEQUENTIAL_OFFLOAD_CONTRACTS["qwen-image-2.1"]
+        if getattr(pipeline, "model_cpu_offload_seq", None) != required:
+            raise RuntimeError(
+                "Diffusers image pipeline offload sequence does not match the candidate"
+            )
+        enable = getattr(pipeline, "enable_model_cpu_offload", None)
+        if not callable(enable):
+            raise RuntimeError("Diffusers image pipeline does not expose model CPU offload")
+        enable(device="mps")
 
 
 def _remove_output_if_owned(path: Path, output_root: Path) -> None:

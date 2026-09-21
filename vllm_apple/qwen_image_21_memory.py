@@ -5,16 +5,20 @@ from .types import GIB
 
 QWEN_IMAGE_21_REQUIRED_ROLES = frozenset({"denoiser", "text_encoder", "vae"})
 QWEN_IMAGE_21_PHASE_MARGIN_BYTES = GIB
+QWEN_IMAGE_21_MATERIALIZATION_NUMERATOR = 3
+QWEN_IMAGE_21_MATERIALIZATION_DENOMINATOR = 2
 
 
 def estimate_qwen_image_21_resident_bytes(
-    artifact: dict[str, object], *, width: int, height: int, batch_size: int = 1
+    artifact: dict[str, object], *, width: int, height: int, batch_size: int = 1,
+    component_staged: bool = False,
 ) -> int:
     """Estimate Unified Memory residency for the Qwen-Image-2.1 worker.
 
-    Model CPU offload limits active MPS residency to the largest phase, but its CPU
-    weights still occupy the same physical Unified Memory on Apple Silicon.  The
-    admission estimate must therefore retain the complete artifact-weight floor.
+    The default full-pipeline path retains the complete artifact-weight floor.
+    A component-staged worker first loads only text_encoder+processor, releases it,
+    then loads denoiser+VAE; that path admits against the larger phase plus shared
+    artifact overhead instead of pretending that post-load release lowers load peak.
     """
     if not 1 <= width <= 4096 or not 1 <= height <= 4096:
         raise ValueError("image dimensions are outside the supported range")
@@ -43,4 +47,16 @@ def estimate_qwen_image_21_resident_bytes(
         raise ValueError("artifact byte count is required for Unified Memory estimation")
     image_working_bytes = width * height * 4 * 4 * batch_size
     weight_floor = max(artifact_bytes, max(role_bytes.values()))
+    if component_staged:
+        classified = sum(role_bytes.values())
+        if classified > artifact_bytes:
+            raise ValueError("phase component bytes exceed the artifact")
+        shared = artifact_bytes - classified
+        text_phase = role_bytes["text_encoder"] + shared
+        generation_phase = role_bytes["denoiser"] + role_bytes["vae"] + shared
+        phase_floor = max(text_phase, generation_phase)
+        weight_floor = (
+            phase_floor * QWEN_IMAGE_21_MATERIALIZATION_NUMERATOR
+            + QWEN_IMAGE_21_MATERIALIZATION_DENOMINATOR - 1
+        ) // QWEN_IMAGE_21_MATERIALIZATION_DENOMINATOR
     return weight_floor + QWEN_IMAGE_21_PHASE_MARGIN_BYTES + image_working_bytes

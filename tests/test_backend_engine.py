@@ -136,6 +136,31 @@ class BackendEngineTests(unittest.TestCase):
                 self.context(),
             )
 
+    def test_telemetry_records_rejection_failure_and_success(self):
+        failing = Engine(
+            ExecutionBackend.NATIVE_MLX,
+            failure=BackendEngineFailure("busy", retryable=True),
+        )
+        cpu = Engine(ExecutionBackend.CPU, result="ok")
+        registry = BackendEngineRegistry((failing, cpu))
+        registry.execute(
+            self.request((
+                ExecutionBackend.NATIVE_METAL,
+                ExecutionBackend.NATIVE_MLX,
+                ExecutionBackend.CPU,
+            )),
+            self.context(),
+        )
+        attempts = {
+            (item["backend"], item["status"], item["reason"]): item["count"]
+            for item in registry.telemetry_snapshot()["attempts"]
+        }
+        self.assertEqual(
+            attempts[("native_metal", "rejected", "backend_unregistered")], 1
+        )
+        self.assertEqual(attempts[("native_mlx", "failed", "busy")], 1)
+        self.assertEqual(attempts[("cpu", "succeeded", "none")], 1)
+
 
 if __name__ == "__main__":
     unittest.main()

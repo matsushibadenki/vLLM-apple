@@ -150,7 +150,7 @@ class DiffusersGenerationWorkerTests(unittest.TestCase):
 
                 @classmethod
                 def from_pretrained(cls, path, **kwargs):
-                    calls["load"] = (path, kwargs)
+                    calls.setdefault("loads", []).append((path, kwargs))
                     return cls()
 
                 def to(self, device):
@@ -197,8 +197,8 @@ class DiffusersGenerationWorkerTests(unittest.TestCase):
             )
             self.addCleanup(lambda: artifact.path.unlink(missing_ok=True))
             self.assertTrue(artifact.path.is_file())
-            self.assertTrue(calls["load"][1]["local_files_only"])
-            self.assertEqual(calls["load"][1]["dtype"], "bf16")
+            self.assertTrue(calls["loads"][0][1]["local_files_only"])
+            self.assertEqual(calls["loads"][0][1]["dtype"], "bf16")
             self.assertEqual(calls["device"], "mps")
             self.assertEqual(calls["generator_device"], "cpu")
             self.assertEqual(calls["seed"], 9)
@@ -253,15 +253,10 @@ class DiffusersGenerationWorkerTests(unittest.TestCase):
 
             class Pipeline:
                 model_cpu_offload_seq = "text_encoder->transformer->vae"
-                vae = SimpleNamespace(enable_tiling=lambda: calls.setdefault("tiling", True))
-                text_encoder = object()
-                tokenizer = object()
-                _execution_device = "mps"
 
-                @classmethod
-                def from_pretrained(cls, path, **kwargs):
-                    calls["load"] = (path, kwargs)
-                    return cls()
+                def __init__(self, **components):
+                    self.__dict__.update(components)
+                    self._execution_device = "mps"
 
                 def enable_model_cpu_offload(self, *, device):
                     calls.setdefault("offload", []).append(device)
@@ -281,6 +276,16 @@ class DiffusersGenerationWorkerTests(unittest.TestCase):
                     kwargs["callback_on_step_end"](self, 0, 0, {})
                     return SimpleNamespace(images=[Image()])
 
+            def component(name, value=None):
+                class Component:
+                    @classmethod
+                    def from_pretrained(cls, path, **kwargs):
+                        calls.setdefault("loads", []).append((name, path, kwargs))
+                        return value if value is not None else cls()
+                return Component
+
+            vae = SimpleNamespace(enable_tiling=lambda: calls.setdefault("tiling", True))
+
             torch = SimpleNamespace(
                 bfloat16="bf16",
                 backends=SimpleNamespace(mps=SimpleNamespace(is_available=lambda: True)),
@@ -291,7 +296,16 @@ class DiffusersGenerationWorkerTests(unittest.TestCase):
                 "qwen-image-2.1",
                 module_loader={
                     "torch": torch,
-                    "diffusers": SimpleNamespace(QwenImage21Pipeline=Pipeline),
+                    "transformers": SimpleNamespace(
+                        Qwen3VLProcessor=component("processor", object()),
+                        Qwen3VLForConditionalGeneration=component("text_encoder"),
+                    ),
+                    "diffusers": SimpleNamespace(
+                        QwenImage21Pipeline=Pipeline,
+                        FlowMatchEulerDiscreteScheduler=component("scheduler"),
+                        AutoencoderKLQwenImage21=component("vae", vae),
+                        QwenImage21Transformer2DModel=component("transformer"),
+                    ),
                 }.__getitem__,
             )
             artifact = runtime.generate(
@@ -308,7 +322,11 @@ class DiffusersGenerationWorkerTests(unittest.TestCase):
         self.assertEqual(calls["generate"]["prompt_embeds_mask"], "mask")
         self.assertIsNone(calls["generate"]["prompt"])
         self.assertTrue(calls["remove_hooks"])
-        self.assertTrue(calls["load"][1]["local_files_only"])
+        self.assertEqual(
+            [load[0] for load in calls["loads"]],
+            ["processor", "text_encoder", "scheduler", "vae", "transformer"],
+        )
+        self.assertTrue(all(load[2]["local_files_only"] for load in calls["loads"]))
         self.assertEqual(artifact.width, 64)
 
 

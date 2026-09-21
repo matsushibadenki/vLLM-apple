@@ -12,6 +12,11 @@ from .elastic_memory import (
     ElasticMemoryDecision,
     disabled_elastic_memory_snapshot,
 )
+from .adaptive_state_allocation import (
+    AdaptiveStateBackend,
+    AdaptiveStateCoordinator,
+    AdaptiveStateDecision,
+)
 from .events import EventBus
 from .context_reevaluation import (
     ContextCapacityReevaluator,
@@ -154,6 +159,7 @@ class RuntimeService:
         kv_calibration: dict[str, int | float | str | bool | None] | None = None,
         execution_chip_profile: AppleChipProfile | None = None,
         contention_profile: ContentionProfile | None = None,
+        adaptive_state_backend: AdaptiveStateBackend | None = None,
     ) -> None:
         self._lock = threading.RLock()
         self._execution_chip_profile = execution_chip_profile
@@ -250,6 +256,10 @@ class RuntimeService:
         self.semantic_state = semantic_state
         self.elastic_memory = (
             ElasticMemoryController(semantic_state) if semantic_state is not None else None
+        )
+        self.adaptive_state = (
+            AdaptiveStateCoordinator(adaptive_state_backend)
+            if adaptive_state_backend is not None else None
         )
         self._state = RuntimeState.READY if self.engine.ready else RuntimeState.DEGRADED
         self._startup_progress = self._progress_for_state(self._state)
@@ -372,11 +382,7 @@ class RuntimeService:
                 failure=self._failure.to_dict() if self._failure is not None else None,
                 events=self.events.snapshot(),
                 semantic_cache=semantic_cache,
-                elastic_memory=(
-                    self.elastic_memory.snapshot()
-                    if self.elastic_memory is not None
-                    else disabled_elastic_memory_snapshot()
-                ),
+                elastic_memory=self._elastic_memory_snapshot(),
                 execution_plan=self.scheduler.execution_plan_snapshot(),
                 device_placement=self.scheduler.device_placement_snapshot(),
                 device_resources=self.scheduler.device_resources.snapshot(),
@@ -796,22 +802,34 @@ class RuntimeService:
                 if self.elastic_memory is not None
                 else None
             )
+            adaptive = (
+                self.adaptive_state.apply_pending(safe_to_apply=True)
+                if self.adaptive_state is not None
+                else None
+            )
             plan = self.scheduler.apply_pending_execution_plan()
-            return plan, elastic
+            return plan, elastic, adaptive
 
         applied, result = self.scheduler.at_safe_point(apply)
         if applied:
             assert result is not None
-            plan, elastic = result
+            plan, elastic, adaptive = result
         else:
             elastic = (
                 self.elastic_memory.apply_pending(safe_to_apply=False)
                 if self.elastic_memory is not None
                 else None
             )
+            adaptive = (
+                self.adaptive_state.apply_pending(safe_to_apply=False)
+                if self.adaptive_state is not None
+                else None
+            )
             plan = self.scheduler.apply_pending_execution_plan()
         if elastic is not None:
             self._publish_elastic_decision(elastic)
+        if adaptive is not None:
+            self._publish_adaptive_state_decision(adaptive)
         if plan is not None:
             self._publish_plan_decision(plan)
         return plan, elastic
@@ -1074,30 +1092,103 @@ class RuntimeService:
         self.memory_telemetry.update_pressure(pressure)
         self.memory_admission.refresh(self.memory_telemetry.snapshot())
         self.scheduler.update_adaptive_inputs(pressure=pressure)
-        if self.elastic_memory is None:
+        if self.elastic_memory is None and self.adaptive_state is None:
             self.events.publish(
                 "memory.pressure",
                 {"pressure": pressure.value, "elastic_memory_enabled": False},
             )
             return None
-        applied, result = self.scheduler.at_safe_point(
-            lambda: self.elastic_memory.request(pressure, safe_to_apply=True)
-        )
-        decision = result if applied else self.elastic_memory.request(pressure, safe_to_apply=False)
-        assert decision is not None
-        self._publish_elastic_decision(decision)
+        def apply():
+            elastic = (
+                self.elastic_memory.request(pressure, safe_to_apply=True)
+                if self.elastic_memory is not None else None
+            )
+            adaptive = (
+                self.adaptive_state.request(pressure, safe_to_apply=True)
+                if self.adaptive_state is not None else None
+            )
+            return elastic, adaptive
+
+        applied, result = self.scheduler.at_safe_point(apply)
+        if applied:
+            assert result is not None
+            decision, adaptive = result
+        else:
+            decision = (
+                self.elastic_memory.request(pressure, safe_to_apply=False)
+                if self.elastic_memory is not None else None
+            )
+            adaptive = (
+                self.adaptive_state.request(pressure, safe_to_apply=False)
+                if self.adaptive_state is not None else None
+            )
+        if decision is not None:
+            self._publish_elastic_decision(decision)
+        if adaptive is not None:
+            self._publish_adaptive_state_decision(adaptive)
         return decision
 
     def apply_pending_memory_pressure(self) -> ElasticMemoryDecision | None:
-        if self.elastic_memory is None:
+        if self.elastic_memory is None and self.adaptive_state is None:
             return None
-        applied, result = self.scheduler.at_safe_point(
-            lambda: self.elastic_memory.apply_pending(safe_to_apply=True)
-        )
-        decision = result if applied else self.elastic_memory.apply_pending(safe_to_apply=False)
+        def apply():
+            return (
+                self.elastic_memory.apply_pending(safe_to_apply=True)
+                if self.elastic_memory is not None else None,
+                self.adaptive_state.apply_pending(safe_to_apply=True)
+                if self.adaptive_state is not None else None,
+            )
+
+        applied, result = self.scheduler.at_safe_point(apply)
+        if applied:
+            assert result is not None
+            decision, adaptive = result
+        else:
+            decision = (
+                self.elastic_memory.apply_pending(safe_to_apply=False)
+                if self.elastic_memory is not None else None
+            )
+            adaptive = (
+                self.adaptive_state.apply_pending(safe_to_apply=False)
+                if self.adaptive_state is not None else None
+            )
         if decision is not None:
             self._publish_elastic_decision(decision)
+        if adaptive is not None:
+            self._publish_adaptive_state_decision(adaptive)
         return decision
+
+    def _publish_adaptive_state_decision(
+        self, decision: AdaptiveStateDecision
+    ) -> None:
+        self.events.publish(
+            "memory.adaptive_state",
+            {
+                "pressure": decision.pressure.value,
+                "status": decision.status,
+                "source_bytes": decision.source_bytes,
+                "target_bytes": decision.target_bytes,
+                "reprecisioned": decision.reprecisioned,
+                "evicted": decision.evicted,
+            },
+        )
+
+    def _elastic_memory_snapshot(self) -> dict[str, int | bool | str | None]:
+        snapshot = (
+            self.elastic_memory.snapshot()
+            if self.elastic_memory is not None else disabled_elastic_memory_snapshot()
+        )
+        if self.adaptive_state is not None:
+            snapshot.update(self.adaptive_state.snapshot())
+        else:
+            snapshot.update({
+                "adaptive_state_enabled": False,
+                "adaptive_state_pending_pressure": None,
+                "adaptive_state_applied": 0,
+                "adaptive_state_rollbacks": 0,
+                "adaptive_state_last_released_bytes": 0,
+            })
+        return snapshot
 
     def _publish_elastic_decision(self, decision: ElasticMemoryDecision) -> None:
         self.events.publish(

@@ -16,6 +16,13 @@ EXECUTION_SCHEMA_VERSION = 1
 class WorkloadPhase(str, Enum):
     PREFILL = "prefill"
     DECODE = "decode"
+    SAMPLING = "sampling"
+    VISION_ENCODER = "vision_encoder"
+    AUDIO_ENCODER = "audio_encoder"
+    EMBEDDING = "embedding"
+    CLASSIFIER = "classifier"
+    DRAFT = "draft"
+    VERIFY = "verify"
     AUXILIARY = "auxiliary"
 
 

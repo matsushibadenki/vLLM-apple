@@ -178,7 +178,12 @@
         "current_capacity_bytes",
         "adjustments",
         "deferred_adjustments",
-        "last_evicted_entries"
+        "last_evicted_entries",
+        "adaptive_state_enabled",
+        "adaptive_state_pending_pressure",
+        "adaptive_state_applied",
+        "adaptive_state_rollbacks",
+        "adaptive_state_last_released_bytes"
       ],
       "properties": {
         "enabled": { "type": "boolean" },
@@ -190,7 +195,12 @@
         "current_capacity_bytes": { "type": "integer", "minimum": 0 },
         "adjustments": { "type": "integer", "minimum": 0 },
         "deferred_adjustments": { "type": "integer", "minimum": 0 },
-        "last_evicted_entries": { "type": "integer", "minimum": 0 }
+        "last_evicted_entries": { "type": "integer", "minimum": 0 },
+        "adaptive_state_enabled": { "type": "boolean" },
+        "adaptive_state_pending_pressure": { "type": ["string", "null"], "enum": ["normal", "warning", "critical", null] },
+        "adaptive_state_applied": { "type": "integer", "minimum": 0 },
+        "adaptive_state_rollbacks": { "type": "integer", "minimum": 0 },
+        "adaptive_state_last_released_bytes": { "type": "integer", "minimum": 0 }
       },
       "additionalProperties": false
     },
@@ -391,7 +401,7 @@
             "required": ["operator", "phase", "precision", "dimensions", "batch_size", "backend", "improvement_ratio"],
             "properties": {
               "operator": {"type": "string", "minLength": 1, "maxLength": 128},
-              "phase": {"enum": ["prefill", "decode", "auxiliary"]},
+              "phase": {"enum": ["prefill", "decode", "sampling", "vision_encoder", "audio_encoder", "embedding", "classifier", "draft", "verify", "auxiliary"]},
               "precision": {"type": "string", "minLength": 1, "maxLength": 128},
               "dimensions": {"type": "array", "minItems": 1, "maxItems": 8, "items": {"type": "integer", "minimum": 1}},
               "batch_size": {"type": "integer", "minimum": 1},
