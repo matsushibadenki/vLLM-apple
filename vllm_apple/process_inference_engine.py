@@ -278,9 +278,9 @@ def _validated_python_executable(path: Path) -> Path:
         raise ValueError("subprocess inference Python is unavailable") from error
     if (
         not (stat.S_ISREG(link_info.st_mode) or stat.S_ISLNK(link_info.st_mode))
-        or link_info.st_uid != os.getuid()
+        or link_info.st_uid not in (os.getuid(), 0)
         or not stat.S_ISREG(target_info.st_mode)
-        or target_info.st_uid != os.getuid()
+        or target_info.st_uid not in (os.getuid(), 0)
         or stat.S_IMODE(target_info.st_mode) & 0o022
         or not os.access(resolved, os.X_OK)
     ):

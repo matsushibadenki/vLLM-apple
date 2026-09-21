@@ -24,6 +24,12 @@ from vllm_apple.service import RuntimeService
 
 
 class ProcessInferenceEngineTests(unittest.TestCase):
+    def test_root_owned_system_python_is_accepted(self):
+        system_python = Path("/usr/bin/python3")
+        if not system_python.exists() or system_python.stat().st_uid != 0:
+            self.skipTest("root-owned system Python is unavailable")
+        self.assertEqual(_validated_python_executable(system_python), system_python)
+
     def test_python_venv_symlink_is_preserved_after_validation(self):
         with tempfile.TemporaryDirectory() as directory:
             link = Path(directory) / "python"

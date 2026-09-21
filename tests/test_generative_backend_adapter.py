@@ -13,6 +13,18 @@ from vllm_apple.generative_backend_adapter import (
 
 
 class VersionedGenerativeWorkerAdapterTests(unittest.TestCase):
+    def test_root_owned_system_python_is_accepted(self) -> None:
+        system_python = Path("/usr/bin/python3")
+        if not system_python.exists() or system_python.stat().st_uid != 0:
+            self.skipTest("root-owned system Python is unavailable")
+        adapter = VersionedGenerativeWorkerAdapter(
+            GenerativeBackendFamily.DIFFUSERS,
+            backend_version="1",
+            supported_backend_versions=("1",),
+            python_executable=system_python,
+        )
+        self.assertTrue(adapter.detect().executable)
+
     def test_builds_fixed_python_worker_commands_for_frameworks(self) -> None:
         for family, module in (
             (GenerativeBackendFamily.DIFFUSERS, "vllm_apple.diffusers_generation_worker"),

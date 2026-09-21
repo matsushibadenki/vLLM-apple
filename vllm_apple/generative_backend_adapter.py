@@ -167,9 +167,9 @@ def _safe_executable(path: Path) -> bool:
         return False
     return (
         (stat.S_ISREG(info.st_mode) or stat.S_ISLNK(info.st_mode))
-        and info.st_uid == os.getuid()
+        and info.st_uid in (os.getuid(), 0)
         and stat.S_ISREG(target.st_mode)
-        and target.st_uid == os.getuid()
+        and target.st_uid in (os.getuid(), 0)
         and not stat.S_IMODE(target.st_mode) & 0o022
         and os.access(resolved, os.X_OK)
     )
