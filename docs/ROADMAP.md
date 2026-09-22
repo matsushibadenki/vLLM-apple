@@ -9,6 +9,7 @@
 - `[Done]` implemented in the current codebase
 - `[Next]` high-priority unfinished work
 - `[Later]` planned, but not the closest next step
+- `[Pending]` on hold until required hardware, model artifact, runtime, upstream ABI, or signing credentials become available; not counted as locally actionable work
 
 `[Done]` は設計済みではなく、現在のコードベースに実装と検証が存在する項目だけに付与する。
 
@@ -19,9 +20,9 @@ prefill/decode別profile、Swift SDK、3言語macOS sample、Gemma実modelの30�
 
 2026-09-22のstatus監査で、contention profile管理、optimizer companion app、生成系backend、数値変換、
 Qwen3-VL Core ML／Homebrew MLX統合までの後続実装と実機証跡を反映した。現行Macで安全に完了できる
-実装項目は、大容量file bookmarkを含めて回帰試験済みである。残る`[Next]`は、
-32 GBを超えるresident見積り、複数の物理Mac、専用version runner、Developer ID／notary秘密情報など、外部resourceを
-必要とするqualification gateである。HomebrewのvLLM-Metal 0.29.xは固定revisionの認定stackとは別candidate
+既に`[Done]`となった実装項目は、大容量file bookmarkを含めて回帰試験済みである。現行Macで進められる実装・試験は`[Next]`、
+追加のhardware、未配置model、専用runner、Developer ID／notary資格情報などが必要な実機qualificationは
+`[Pending]`として保留する。保留項目は前提が揃うまでローカル完了数に含めない。HomebrewのvLLM-Metal 0.29.xは固定revisionの認定stackとは別candidate
 として扱い、一般runtime昇格にはopen-domain品質またはBF16相当precisionの追加証拠を要求する。
 設計判断は
 [Architecture-Decision-Apple-Execution.md](Architecture-Decision-Apple-Execution.md)に固定する。
@@ -169,7 +170,7 @@ Graph / Memory Planner + Global Scheduler
 - `[Done]` 実audio encoderのCore ML/ANE-eligible routing。WhisperKitの固定revision Whisper tiny AudioEncoder（MIT、16,788,176 bytes、artifact SHA-256固定）を`.cpuAndNeuralEngine`で実行し、固定shape `[1,80,1,3000]→[1,384,1,1500]`、3/3有限値、入力別digest、6.49–14.22 ms、peak RSS 206,536,704 bytes、pressure normal、thermal nominalをApple M4で確認。音声／embedding本文は非保存。証跡: [Whisper tiny Core ML encoder](evaluation/whisper-tiny-coreml-audio-encoder-m4-2026-09-22.json)
 - `[Done]` 汎用embeddingの実artifact Core ML routing。Apple公式MobileCLIP S0の固定revision（Apple-ASCL、image/text合計107,801,759 bytes、artifact SHA-256固定）を`.cpuAndNeuralEngine`で実行し、画像`256×256×3`とtext token `[1,77]`から各3入力で相異なる有限512次元embeddingを確認。image 1.23–1.83 ms、text 0.91–1.37 ms、peak RSS 317,358,080 bytes、pressure normal、thermal nominal、一時compiled artifact cleanupまでApple M4で合格。画像／token／embedding本文は非保存。証跡: [MobileCLIP S0 Core ML embedding](evaluation/mobileclip-s0-coreml-embedding-m4-2026-09-22.json)
 - `[Done]` classifierの実artifact Core ML routing。Apple公式FastViT-T8 ImageNet-1K classifierの固定revision（Apple-ASCL、8,126,615 bytes、artifact SHA-256固定）を`.cpuAndNeuralEngine`で実行し、3 synthetic imageで1000要素の有限確率分布・確率和・入力別digest・top labelを検証。重複class nameによりdictionaryは999 unique keyであることを明示検証し、1.94–2.25 ms、peak RSS 217,677,824 bytes、pressure normal、thermal nominal、一時compiled artifact cleanupまでApple M4で合格。画像／確率本文は非保存。証跡: [FastViT-T8 Core ML classifier](evaluation/fastvit-t8-coreml-classifier-m4-2026-09-22.json)
-- `[Next]` Whisper encoder出力をGPU LLMへ渡すmodel固有multimodal projection／quality qualification
+- `[Pending]` 音声対応LLMとmodel固有projection artifact配置後、Whisper encoder出力をGPU LLMへ渡すmultimodal projection／quality qualification
 - `[Done]` profiler実測値によるbackend選択。同一operator/phase/precision/shape/batchのCPU baselineとaccelerator reportを比較し、digest一致、最低sample数、peak memory非悪化、cold-load償却後5%以上のlatency改善を満たすbackendだけをversioned placement planへ昇格。hardware/environment identity、TTL、quarantine、last-known-good、safe-point reloadまでruntimeに統合済み
 
 ### Edge-native adaptive execution
@@ -276,7 +277,7 @@ Metal向けに独立実装する。外部engineへのruntime依存は追加し�
 - `[Done]` sampleのbounded conversation contextとstream cancellation
 - `[Done]` Xcode app target、Swift package、3言語resource、検証付きdaemon bundle build phase sample
 - `[Done]` Objective-C adapter。専用`VLLMAppleKitObjC` dynamic library product、`NSObject` health/chat result、completion-block型HTTP clientを追加し、model 256文字・prompt 32Ki文字・temperature 0〜2・max tokens 1〜1,048,576を同期検証する。Swift errorはstable `message_key`付き`NSError`へ変換し、Swift 6 concurrencyと全SDK testで実ビルド済み
-- `[Done]` notarizationとApp Sandbox統合sample。bundled-daemon版とsandbox client版を別targetにし、sandbox版はoutbound network、user-selected read-only、app-scoped bookmarkだけを付与。Developer ID署名、hardened runtime、notary submit/wait、staple、ZIP／checksum／notary result／release manifest生成、OIDC provenance、exact-tag draft release gateをmanual workflowへ接続。実資格情報による初回artifact生成はPackagingの独立`[Next]` gateとして維持
+- `[Done]` notarizationとApp Sandbox統合sample。bundled-daemon版とsandbox client版を別targetにし、sandbox版はoutbound network、user-selected read-only、app-scoped bookmarkだけを付与。Developer ID署名、hardened runtime、notary submit/wait、staple、ZIP／checksum／notary result／release manifest生成、OIDC provenance、exact-tag draft release gateをmanual workflowへ接続。実資格情報による初回artifact生成はPackagingの独立`[Pending]` gateとして維持
 - `[Done]` App Sandbox client integration target。通常のbundled-daemon targetと分離した`VLLMAppleChatSandbox`を追加し、App Sandbox、outbound network client、user-selected read-only file、app-scoped bookmarkだけを付与。compile-time gateでdaemon resolve／起動を除外し、独立したloopback daemonへ接続する構成をApple M4上のXcode Debug buildで検証
 
 ### Schema and testing
@@ -446,7 +447,7 @@ VLLMAppleKit / Control API
 - `[Done]` Optimizer sandbox client向けversioned loopback transport基盤。HTTP loopback以外、userinfo／query／fragmentを拒否し、ephemeral session、cache／cookie／credential無効化、単一connection、1 MiB request／response上限、schema version／request UUID再照合を実装。transportはprocess探索・起動・signal操作を一切持たない
 - `[Done]` 独立daemonのoptimizer plan API。loopback serverでだけ明示enableし、model／output allowlist rootを別々に最大16件、current-user所有のreal directoryへ固定。片側だけの設定、remote公開、symlink、allowlist外pathをload前拒否し、1 MiB versioned envelopeから実model metadataの副作用なしdry-run planを返す
 - `[Done]` `VLLMAppleOptimizerSandbox` App Sandbox client target。外部optimizerを直接起動する現行targetとXcode targetを分離し、loopback endpoint、model/output picker、objective／budget／license、dry-run候補表示を英語・日本語・简体中文で実装。App Sandbox、network client、user-selected read-only、app-scoped bookmarkだけを付与し、process API非混入とApple M4 Debug buildを検証
-- `[Next]` 実Developer ID／notary資格情報による署名artifact生成。workflow、hardened runtime、submit／wait、staple、release manifestは実装済みであり、秘密情報をrepositoryへ保存せず初回artifactを検証する
+- `[Pending]` 実Developer ID／notary資格情報による署名artifact生成。workflow、hardened runtime、submit／wait、staple、release manifestは実装済みであり、秘密情報をrepositoryへ保存せず初回artifactを検証する
 
 ## Phase 2 — Apple Runtime Planner
 
@@ -649,7 +650,7 @@ vLLM-Metal対応とは見なさない。
 - `[Done]` large-memory runner、exact artifact/resident bytes、text-only、30分、Swift証跡再計算を固定したQwen専用qualification workflow
 - `[Done]` Qwen認定前後のmodel tree streaming SHA-256再検証（constant-memory、private manifest、report非公開）
 - `[Done]` Qwen認定での任意CMS provenance mode（trusted CA・signer identity・load前後署名再検証）
-- `[Next]` 大容量Apple Siliconでtext-only smoke、TTFT、TPOT、RSS、品質gate
+- `[Pending]` 大容量Apple Siliconでtext-only smoke、TTFT、TPOT、RSS、品質gate
 - `[Done]` worker compositionへ実MLX resident backendを注入するproduction entrypoint。`numeric-runtime-worker`がverified stage reader、mode-aware admission、numeric artifact reader、`Qwen4MLXNumericResidentBackend`、private UDS、session credential、command serviceを一体構築する。Apple M4／MLX 0.27.1でsocket経由artifact load、NVFP4 streaming、F16／BF16／F32実配列値、artifact consume、unload後reservation 0、正常shutdownを実機確認。証跡: [MLX resident production entrypoint](evaluation/qwen4-mlx-resident-production-entrypoint-m4-2026-09-22.json)
 - `[Done]` production MLX adapter correctness後のNative Metal比較。実MLX resident backendはF16／BF16／F32値とlifecycleに合格。Native Metal NF4 fused GEMV／GEMM／attentionも参照一致したが、Apple M4で認定two/three-pass route比約0.85／0.89／0.20倍だったためproduction resident routeへは昇格せず、MLXを維持する決定を証跡化
 
@@ -801,9 +802,9 @@ fallback、fusion、stress、および大容量model向け再現可能qualificat
 - `[Done]` 33-frame root＋49-frame 4-sampleのchained promotion contractで65-frameへ一軸拡張し、2/2件が640×384×65で成功。全件memory pressure normal／thermal fair、issues 0、最大peak RSS 11,844,460,868 bytes、median wall 1,532,029 ms、2 digest distinct、prompt/output非保存、private cleanupを確認。証跡: [65-frame 2-sample qualification](evaluation/wan-mlx-gen-640x384-65frames-2sample-2026-09-21.json)
 - `[Done]` 65-frame 4-sample stability gate。合格した65-frame 2-sample reportと初期33-frame 4-sample rootをload前に再検証し、Apple M4/32 GiB、MLX-Gen 0.33.1、mixed Q8/BF16、640×384×65、20 stepsで4/4成功。issues 0、全件memory pressure normal／thermal fair、最大peak RSS 11,844,460,868 bytes、RSS range 0、median wall 1,333,142 ms、4 digest distinct、prompt/output非保存、private cleanupを確認。証跡: [65-frame 4-sample stability](evaluation/wan-mlx-gen-640x384-65frames-4sample-stability-2026-09-21.json)
 - `[Done]` HunyuanVideo 1.5 8.3BのDiffusers worker adapter。T2V／I2Vを`HunyuanVideo15Pipeline`／`HunyuanVideo15ImageToVideoPipeline`へmode別に固定し、load-free source/artifact readiness、private image digest binding、MPS model offload、VAE tiling、bounded telemetry、private MP4 digest/deleteを共通qualification CLIへ接続
-- `[Later]` HunyuanVideo 1.5 8.3B実artifact配置後の480p、step-distilled、SSTA、model offload実機qualification
+- `[Pending]` HunyuanVideo 1.5 8.3B実artifact配置後の480p、step-distilled、SSTA、model offload実機qualification
 - `[Done]` Wan 2.2 A14B量子化版のstretch worker adapter。T2V／I2Vをmode別Wan pipelineへ固定し、4/8-bit artifact readiness、ABI v2 private image binding、isolated MPS worker、共通qualification CLIへ接続
-- `[Later]` Wan 2.2 A14B量子化実artifact配置後のT2V/I2V別artifact、dual-expert residency、CPU/SSD offload実機検証
+- `[Pending]` Wan 2.2 A14B量子化実artifact配置後のT2V/I2V別artifact、dual-expert residency、CPU/SSD offload実機検証
 - `[Done]` video diffusion pipelineのDiT/expert、text encoder、3D VAE別artifact admissionとconservative resident-memory hard ceiling
 - `[Done]` privacy-preserving動画生成qualification report schemaとdeterministic evaluator（first-output/wall latency、peak RSS、memory pressure、thermal state、frames/sec、output metadata、plan fingerprint）
 - `[Done]` backend-neutralなbounded telemetry event contractとconstant-memory sample collector
@@ -822,10 +823,23 @@ fallback、fusion、stress、および大容量model向け再現可能qualificat
 - `[Done]` M4/32GB向け画像生成qualification profile。512×512、batch 1、20 steps、独立2 sampleをApple M4/32 GiBで実測合格
 - `[Done]` FLUX.2 [klein] 9B Base 4-bitのMLX-Gen経路。artifact／license／backend readiness、逐次module residency、512×512・20-step 2-sample、768×768・2/4-sampleまで実機認定し、1024はhard-ceiling停止から安定上限を768へ固定。MLX-GenがVAE tilingを公開しないため、未実装optionへfallbackせずautomatic VAE decodeを認定profileに固定
 - `[Done]` MLX-Gen互換Z-Image Turbo 4-bitを優先候補とするbackend readiness、512×512・9 steps実機qualification
-- `[Next]` Qwen-Image-2512 4-bit MFLUXのoffload、peak Unified Memory実機qualification。配置artifactはMFLUX形式25,907,123,451 bytes／21 files、同梱MFLUX 0.33.1のQwenImage classとload-free readinessに合格。load-free inspectionではtext encoder＋tokenizer 14,152,729,850 bytes、transformer 11,500,791,227 bytes、VAE 253,599,659 bytesであり、単純な二段process分離だけでは当時のhard ceiling 12,494,910,915 bytesにtext encoder側が収まらない。512×512・20 steps・2 sampleはresident見積り27,917,287,424 bytesのためworker起動・weight load前に安全停止し、M4/32GBでは未認定。component内streaming/offloadの実装とpeak検証、または大容量Apple Siliconが必要。証跡: [readiness/admission](evaluation/qwen-image-2512-mflux-readiness-admission-2026-09-22.json)
+- `[Next]` Qwen-Image-2512 4-bit MFLUXの現行Mac向けcomponent streaming/offload。28層text encoderの3言語実prompt、英語実embedding/maskのprivate別process handoffと量子化transformer固定層＋RoPE＋60 block、合成promptでの32px・実ノイズ2 step denoising→VAEまで`[Done]`。次は実prompt＋2 stepの一体実証、実用画像寸法・必要step数・peak Unified Memory・画像品質を段階的に検証する。配置artifactは25,907,123,451 bytes／21 files。従来の一括512×512・20 steps・2 sampleはresident見積り27,917,287,424 bytesでload前停止したため、同じ一括経路を再試行しない。証跡: [readiness/admission](evaluation/qwen-image-2512-mflux-readiness-admission-2026-09-22.json)、[32px two-step](evaluation/qwen-image-2512-mflux-streamed-2step-32px-synthetic-2026-09-22.json)
+- `[Pending]` 上記component streamingで現行Macのload前admissionを通過できない場合の、大容量Apple SiliconによるQwen-Image-2512画像生成・memory-stability qualification
 - `[Done]` Qwen-Image-2512のtext encoderを層単位で読むためのload-free staging inventory。7 safetensors shardの367 tensorとindexを照合し、28層は各466,115,840 bytes、共通weightは1,090,002,176 bytes、共通＋1層のpayload下限は1,556,118,016 bytesと算定。artifact全体のmetadataは4-bitだがtext encoderのtensorはBF16×338／F32×29で量子化weightは0件。deployable 21 files／25,907,123,451 bytesだけのdigestへ結合し、`.git/lfs`複製を除外する。これはweight loadなしの構造証跡であり、materialization overhead・実RSS・生成品質の合格ではない。証跡: [dtypeを含むtext encoder staging inventory](evaluation/qwen-image-2512-mflux-text-encoder-staging-dtype-2026-09-22.json)。旧[deployable inventory](evaluation/qwen-image-2512-mflux-text-encoder-staging-deployable-2026-09-22.json)と[Git LFSを含む過大計上report](evaluation/qwen-image-2512-mflux-text-encoder-staging-2026-09-22.json)は訂正履歴として保持
 - `[Done]` MFLUX Qwen text encoderの選択的BF16/F32 tensor readerと第0層だけの実機forward smoke。safetensors headerのoffset／shape／dtype／byte上限を検証し、指定tensorの範囲だけをpreadしてMLXへ復元する。M4/32 GiBで第0層の13 tensorを読み、norm／q projectionはMFLUX標準mx.loadと完全一致、synthetic `[1,4,3584]`出力は有限値。peak MLX 504,735,132 bytes、process peak RSS 736,804,864 bytes、pressure normal／thermal nominal。これは単層実行証跡であり28層全体や画像生成の合格ではない。証跡: [Qwen-Image-2512 selective layer 0](evaluation/qwen-image-2512-mflux-layer0-selective-load-2026-09-22.json)
 - `[Done]` Qwen-Image-2512 BF16 text encoderの28層逐次materializationとsynthetic full-tower smoke。共通weightを先にloadし、各層のweightをexact-offsetで1層ずつ読んでforward後にmaterialize／解放する。M4/32 GiBで独立process 2回とも28/28層完走、`[1,40]→[1,6,3584]`有限出力のdigest一致、各層pressure normal／thermal nominal、peak MLX 1,576,732,112 bytes、peak process RSS 1,916,436,480／2,035,269,632 bytes。text encoderのsynthetic smokeに限定し、prompt品質・transformer/VAE・画像生成は未認定。証跡: [initial full tower](evaluation/qwen-image-2512-mflux-28layer-streaming-smoke-2026-09-22.json)、[independent repeat](evaluation/qwen-image-2512-mflux-28layer-streaming-repeat-2026-09-22.json)
+- `[Done]` Qwen-Image-2512の配置済みMFLUX tokenizer templateで英語・日本語・简体中文の固定実文章をtokenizeし、逐次28層encoderへ入力。M4/32 GiBで3/3有限embedding、shapeは`[1,13,3584]`／`[1,19,3584]`／`[1,12,3584]`、maskは各長さと一致、digestは3件相違、計84層実行、pressure全件normal、thermal fair、peak MLX 1,583,913,835 bytes、process peak RSS 1,321,123,840 bytes。prompt・embedding本文は非保存。これは実文章のencoder実行可能性であり、意味品質・private handoff・画像生成は未認定。証跡: [real-prompt streaming smoke](evaluation/qwen-image-2512-mflux-real-prompt-streaming-smoke-2026-09-22.json)
+- `[Done]` Qwen-Image-2512専用のprivate一回消費embedding/mask ABI。BF16互換のMLX出力を値を失わないF32とI32 maskへ変換し、固定`[1,1..1058,3584]`／`[1,1..1058]`、16 MiB payload、candidate／plan／prompt／sample identity、owner-only directory/file、SHA-256、atomic publish、no-follow read、異常時cleanupを検証。M4/32 GiBの英語実promptで28層実行後、別processのconsumerが`[1,13,3584]`／`[1,13]`をdigest完全一致で受け取り、private残存0、pressure normal、thermal nominal。encoder peak MLX 1,580,437,823 bytes／process RSS 1,794,293,760 bytes、consumer peak RSS 48,513,024 bytes。これはtensor transportの認定でありtransformer/VAEや画像生成は未認定。証跡: [private handoff smoke](evaluation/qwen-image-2512-mflux-private-handoff-smoke-2026-09-22.json)
+- `[Done]` Qwen-Image-2512量子化transformerのload-free inventory。6 shard／3625 tensor／60 blockをindexとsafetensors headerで照合し、BF16 2779／U32 846、各block payload 191,288,320 bytes、静的22,826,112 bytes、静的＋最大1 block 214,114,432 bytesと算定。846件のU32 packed weightすべてに対応するscales/biases、4-bitの形状比、および各blockの量子化weight存在を照合した。これはpayload下限とlayoutの証跡でありallocator、実RSS、60 block forwardの合格ではない。証跡: [transformer staging](evaluation/qwen-image-2512-mflux-transformer-staging-2026-09-22.json)
+- `[Done]` 選択的U32/BF16 readerと4-bit MLX layer構築でtransformer第0・第59 blockの合成forwardを実機検証。現MFLUXの一部8-bit規則をそのまま使うとshape不一致で停止するため、検証済みlayoutに従い4-bitへ固定した。M4/32 GiBで画像`[1,4,3072]`／text`[1,13,3072]`から両有限出力。第0 blockのpeak MLX 193,871,058 bytes／RSS 395,132,928 bytes、第59 blockのpeak MLX 195,337,444 bytes／RSS 393,396,224 bytes、いずれもpressure normal。RoPEを省いた単独block smokeであり、実画像生成の認定ではない。証跡: [block 0](evaluation/qwen-image-2512-mflux-transformer-block0-smoke-2026-09-22.json)、[block 59](evaluation/qwen-image-2512-mflux-transformer-block59-smoke-2026-09-22.json)
+- `[Done]` Qwen-Image-2512量子化transformerの合成60 block逐次materialization／forward／解放。M4/32 GiBで60/60 blockの両出力が有限、pressure全件normal／thermal fair、peak MLX 195,353,822 bytes、process peak RSS 498,073,600 bytes、約17.3秒。各block前にメモリ入場判定し、block単位でweightを選択的に読む。画像`[1,4,3072]`／text`[1,13,3072]`の合成状態を伝播させ、RoPE・実prompt・static入出力projection・timestep conditioningの実経路・VAE・画像生成は含まない。したがってfull transformerや生成品質の認定ではない。証跡: [60-block synthetic streaming](evaluation/qwen-image-2512-mflux-transformer-60block-synthetic-streaming-2026-09-22.json)
+- `[Done]` 同じ60 block逐次経路にMFLUX標準Qwen RoPE（theta 10000、axes `[16,56,56]`、scaled、合成grid `[1,2,2]`、text 13 token）を接続。M4/32 GiBで60/60 blockが有限、pressure全件normal／thermal fair、peak MLX 197,361,374 bytes、process peak RSS 480,919,552 bytes、約17.9秒。これは合成小gridのRoPE適用であり、実latent寸法・実prompt・static projection・denoising・VAE・画像品質は未認定。証跡: [60-block RoPE synthetic streaming](evaluation/qwen-image-2512-mflux-transformer-60block-rope-synthetic-2026-09-22.json)
+- `[Done]` Qwen-Image-2512量子化transformerの固定層を、選択的weight loadで60 block逐次経路へ接続。`img_in`／`txt_norm`／`txt_in`／`time_text_embed`／RoPE／60 block／`norm_out`／`proj_out`を合成image `[1,4,64]`、text `[1,13,3584]`、timestep 0.5で通し、有限出力`[1,4,64]`、60/60 block normal pressure／thermal fair、peak MLX 220,384,096 bytes、process peak RSS 430,620,672 bytesを確認。配置weightには標準MFLUX moduleと異なり`norm_out.linear.bias`があり、静的loaderで対応した。小grid・合成入力に限り、実prompt・実latent・denoising・VAE・画像生成は未認定。証跡: [static + 60-block synthetic](evaluation/qwen-image-2512-mflux-transformer-static-60block-synthetic-2026-09-22.json)
+- `[Done]` 英語実promptをQwen text encoder 28層で処理し、F32 embedding／I32 maskをprivate一回消費handoffで別processへ渡して、量子化transformerの固定層・RoPE・60 blockを実行。M4/32 GiBで28/28 encoder層、60/60 transformer block、有限`[1,4,64]`出力、private残存0、pressure全件normal／thermal fair。transformer側peak MLX 220,187,488 bytes／process peak RSS 503,136,256 bytes。画像側は合成`[1,4,64]` latent、timestep 0.5と小gridであり、実latent・denoising・VAE・画像生成品質は未認定。証跡: [real-prompt to streamed transformer](evaluation/qwen-image-2512-mflux-real-prompt-transformer-synthetic-latent-2026-09-22.json)
+- `[Done]` Qwen-Image-2512 MFLUX VAEのdecoder専用選択的loadと小latent復元。1 shard／192 BF16 tensorをheaderで照合し、decoder＋post-quant-convの108 tensor／146,591,206 bytesだけを読み、encoder 84 tensorはmaterializeしない。M4/32 GiBで合成packed `[1,4,64]`をunpack `[1,16,4,4]`後にdecodeし、有限`[1,3,1,32,32]`、peak MLX 439,150,838 bytes、process peak RSS 275,267,584 bytes、pressure normal／thermal fairを確認。transformer出力との接続、実latent、生成品質は未認定。証跡: [VAE decoder synthetic latent](evaluation/qwen-image-2512-mflux-vae-decoder-synthetic-2026-09-22.json)
+- `[Done]` 合成text／image／timestepで量子化transformer固定層＋RoPE＋60 blockの`[1,4,64]`出力をVAE decoderへ直接渡す小grid一体forward。M4/32 GiBで60/60 block完走、VAEの有限`[1,3,1,32,32]`出力、peak MLX 467,962,770 bytes、process peak RSS 480,002,048 bytes、pressure normal／thermal fair。実promptを加えた同時実行はtext encoder途中のメモリ安全ゲートで停止したため未認定。ゲートは緩めず、外部メモリ使用量が落ち着いてから再確認する。実ノイズ・denoising・実用画像寸法・品質も未認定。証跡: [transformer→VAE synthetic](evaluation/qwen-image-2512-mflux-transformer-to-vae-synthetic-2026-09-22.json)
+- `[Done]` Qwen-Image-2512の実ノイズ初期化、MFLUX FlowMatch Euler scheduler、量子化transformer固定層＋RoPE＋60 blockの2回逐次推論、scheduler latent更新、VAE decoder復元を32×32相当の合成promptで接続。M4/32 GiBで2/2 step・120/120 block、各更新latentと最終`[1,3,1,32,32]`が有限、pressure normal／thermal fair、peak MLX 468,062,634 bytes、process peak RSS 492,060,672 bytes。これはループの実行可能性証跡であり、32pxは画像品質を評価できず、実prompt・実用寸法・十分なstep数の生成認定ではない。証跡: [two-step synthetic-prompt denoising](evaluation/qwen-image-2512-mflux-streamed-2step-32px-synthetic-2026-09-22.json)
+- `[Next]` 上記denoising経路を実用寸法へ拡大する。128×128・2 stepの初回試験は2/2 step・有限VAE出力まで到達したが、decode直後のmemory pressureがwarningで不合格（peak MLX 896,521,970 bytes、process peak RSS 539,246,592 bytes）。decoder前の不要weight解放とVAE encoderの非保持後、再試験はstep 0のメモリ安全ゲートで停止した。空きメモリが約7–9 GBの現状では反復せず、128pxは開始前10 GB、256pxは14 GB、512pxは20 GB以上を要求する。これらは暫定保守gateであり合格profileではない。失敗のraw証跡: [128px pressure warning](evaluation/qwen-image-2512-mflux-streamed-2step-128px-synthetic-2026-09-22.json)、[cleanup後のadmission stop](evaluation/qwen-image-2512-mflux-streamed-2step-128px-synthetic-cleanup-2026-09-22.json)
 - `[Done]` 配置済みQwen-Image-2.1 revision `b3179ad355be050328e483a9dfdd9e60cd62adfa`を画像生成候補catalog、Diffusers静的pipeline readiness、isolated worker routingへ追加。loadなし検査でDiffusers形式、`QwenImage21Pipeline`、33,131,616,240 bytes、27 files、BF16非量子化、transformer 14.23 GB、text encoder 17.53 GB、VAE等1.35 GBを確認。公式Hub APIとの照合でlocal revision一致、非gated、BF16 7,115,124,736 parametersを確認。Qwen Research Licenseは非商用限定。証跡: [Qwen-Image-2.1 readiness](evaluation/qwen-image-2.1-artifact-readiness-2026-09-20.json)
 - `[Done]` Qwen-Image-2.1隔離runtimeを`.venv-qwen-image-21`へ構築。Python 3.12.9、Torch 2.14.0、Transformers 5.17.0、Diffusers 0.41.0.dev0 commit `80c7ed262aeffbeb43ef13ae04baeb9b84515a69`を固定し、`QwenImage21Pipeline`のload-free source readinessとMPS buildを確認。再現用requirementsと証跡: [runtime requirements](../requirements/qwen-image-2.1-runtime.txt)、[runtime readiness](evaluation/qwen-image-2.1-runtime-readiness-2026-09-21.json)
 - `[Done]` Qwen-Image-2.1 workerの段階的residency contract。text encoderはmodule単位sequential CPU offload、generation側はDiffusers block-level group offloadをtransformer/VAEへ適用し、MPSでは非同期streamを使わず1 block/groupでCPU↔MPS移送する。固定`text_encoder->transformer->vae`宣言、group-offload API、torch device構築の欠落時は全pipeline `.to("mps")`へfallbackせず生成前に拒否し、VAE tilingとbounded callback telemetryを維持
@@ -863,8 +877,8 @@ fallback、fusion、stress、および大容量model向け再現可能qualificat
 - `[Done]` Diffusers image CLIの非初期profile昇格に512初期rootと中間reportの二重bindingを実装。同形状2→4 sampleおよび次解像度の双方でall-normal・provenance・shapeを検証し、chain digestをplanへ固定する。root欠落はworker起動前に拒否する
 - `[Done]` 昇格reportのprovenance不一致診断をfield名だけで提示する。異なるmodel artifactを誤指定した場合もdigest等の値・pathを漏らさず不一致原因を特定でき、誤ったbaselineをworker起動前に拒否する
 - `[Done]` 768 stable profileから1024×1024への一軸promotionを512初期rootと768 4-sample安定reportのchain bindingで試行。現時点のM4/32 GiBは推定常駐19,028,230,144 bytesに対してdynamic hard ceiling 13,199,013,315 bytesのためload前admissionで安全停止し、生成は未実施。512×512 image-editはwarningを含むためこのtext-to-image baselineへ流用しない
-- `[Next]` 1024×1024の2→4 sample実機検証は、より大容量のApple Siliconまたは実証済み省メモリprofileがload前admissionを通過してから実施する
-- `[Later]` FLUX.2 [dev]をstretch候補とする4-bit級量子化、CPU/SSD offload、chunking検証（非量子化weightはM4/32GBでload前にreject）
+- `[Pending]` 1024×1024の2→4 sample実機検証は、より大容量のApple Siliconまたは実証済み省メモリprofileがload前admissionを通過してから実施する
+- `[Pending]` FLUX.2 [dev]をstretch候補とする実artifact配置後の4-bit級量子化、CPU/SSD offload、chunking検証（非量子化weightはM4/32GBでload前にreject）
 - `[Done]` diffusion pipelineのmodel、text encoder、VAE別artifact admissionとconservative resident-memory hard ceiling
 - `[Done]` privacy-preserving画像生成qualification report schemaとdeterministic evaluator（first-output/wall latency、peak RSS、memory pressure、thermal state、output metadata、plan fingerprint）
 - `[Done]` backend-neutralなbounded telemetry event contractとconstant-memory sample collector
@@ -908,8 +922,8 @@ fallback、fusion、stress、および大容量model向け再現可能qualificat
 - `[Done]` Ethernet mTLS client／server接続境界。双方で`CERT_REQUIRED`を必須化し、clientはhostnameも検証。handshake後のDER peer certificateをSHA-256 pinへ再照合してからfabric streamを公開する。timeoutは0〜300秒、host／port／payload上限を接続前検証し、pin不一致時はsocketを即時closeする
 - `[Done]` 実証明書によるEthernet loopback mTLS transport smoke。相互CA検証、hostname、双方certificate pin、1 MiB×8 frame、sequence／plan binding／payload digestを実socketで検証し、8/8受信、digest不一致0、12.420 ms、675.4 MB/sで合格。初回7/8 timeoutから最終送信half-close→receiver完了→closeへ修正し再合格。物理Ethernet性能認定には拡張しない。証跡: [合格](evaluation/multi-mac-ethernet-loopback-mtls-2026-09-22.json)、[初回close-order failure](evaluation/multi-mac-ethernet-loopback-mtls-failed-close-order-2026-09-22.json)
 - `[Done]` bounded Multi-Mac execution coordinator。planとstage／placement／transferの完全一致、最大64並列・256 MiB result、dependency wave単位のmodality並列、pipeline順序、cross-node payload size／digest不変、stage output size、deadline／cooperative cancelを検査し、失敗waveの結果をreportへ公開しない。reportはstage/node/size/digest/latencyだけを保持する
-- `[Next]` 2台以上の実MacでThunderbolt／high-speed Ethernetの帯域・latency・MTUを計測し、peer certificateを固定したtransport qualificationを行う。現在のmTLS証跡は単一Mac loopbackであり物理link認定ではない
-- `[Next]` 上記qualified physical link上でpipeline／modality parallel、distributed KV/state replica、checkpointable node failure recoveryを実行し、単一node baselineとのcorrectness・latency・failure isolationを比較する。planner、framing、coordinatorの論理契約は実装済み
+- `[Pending]` 2台以上の実MacでThunderbolt／high-speed Ethernetの帯域・latency・MTUを計測し、peer certificateを固定したtransport qualificationを行う。現在のmTLS証跡は単一Mac loopbackであり物理link認定ではない
+- `[Pending]` 上記qualified physical link上でpipeline／modality parallel、distributed KV/state replica、checkpointable node failure recoveryを実行し、単一node baselineとのcorrectness・latency・failure isolationを比較する。planner、framing、coordinatorの論理契約は実装済み
 
 ## Cross-Cutting Track — Portable Numeric Formats / Streaming Conversion
 
@@ -1024,7 +1038,7 @@ Unified Memoryとmemory bandwidthを共有する一つの実行系として管�
 - `[Done]` Whisper tiny固定AudioEncoderのCore ML `.cpuAndNeuralEngine` routingと3-sample実機promotion evidence。artifact identity、固定I/O shape、有限値、入力別digest、latency、RSS、pressure、thermalを結合し、ANE単独実行を主張せずCPU+ANE許可profileとして認定
 - `[Done]` MobileCLIP S0 image/text実artifactのCore ML `.cpuAndNeuralEngine` routingと3+3 sample実機promotion evidence。固定revision／license／source artifact digest、固定I/O、有限値、入力別digest、latency、RSS、pressure、thermal、compile cleanupを結合し、ANE単独実行やzero-shot分類品質は主張しない
 - `[Done]` FastViT-T8実artifactのCore ML `.cpuAndNeuralEngine` classifier routingと3-sample実機promotion evidence。固定revision／license／source artifact digest、1000-class probability array、999 unique label dictionary、入力別digest、latency、RSS、pressure、thermal、compile cleanupを結合し、ANE単独実行や自然画像accuracyの再認定は主張しない
-- `[Next]` Whisper encoderのmodel固有GPU LLM projection／end-to-end audio quality gate
+- `[Pending]` 音声対応LLMとmodel固有projection artifact配置後、Whisper encoderのGPU LLM projection／end-to-end audio quality gate
 - `[Done]` CPUまたはANE draft + GPU verifyのbounded speculative executorとproduction backend registry adapter。未検証tokenをclientへ公開せず、GPU authoritative sequenceとの共通prefixだけをacceptし、最初の不一致はGPU tokenへ補正する
 - `[Done]` speculative profileのowner-only atomic永続化、exact model／precision identity、再計算profile ID、qualified-only load gate
 - `[Done]` Gemma 3 1B→4B native MLX実測候補は3/3同一出力だが32.1%低速化かつGPU draftのため不合格として証跡化し、profile保存／decode route昇格をfail-closed拒否
@@ -1105,7 +1119,7 @@ Unified Memoryとmemory bandwidthを共有する一つの実行系として管�
 - `[Done]` Mac directory pickerからのprivate staging・copy後再検証・bundle ID atomic import
 - `[Done]` macOS Security frameworkによるdetached CMS・custom CA trust・signer SHA-256 native検証
 - `[Done]` Mac importerの署名必須modeとhash-only／trusted-signature三言語状態分離
-- `[Next]` vLLM 0.28.x / Transformers 5.15.x実環境での昇格試験。現workspaceの4 Python venvにはvLLM／vLLM-Metalがなく、Homebrew版vLLM-Metalは0.29.0、配置済みTransformersは5.16.1／5.17.0であるため、現stackを0.28.x認定証跡へ流用しない
+- `[Pending]` vLLM 0.28.x / Transformers 5.15.x専用runner構築後の昇格試験。現workspaceの4 Python venvにはvLLM／vLLM-Metalがなく、Homebrew版vLLM-Metalは0.29.0、配置済みTransformersは5.16.1／5.17.0であるため、現stackを0.28.x認定証跡へ流用しない
 - `[Done]` Python 3.12既定値とdevelopment dependency lock
 - `[Done]` MakefileによるPython／Swift一括check
 - `[Done]` Python 3.10/3.12/3.13とSwift/macOS CI
@@ -1163,8 +1177,8 @@ Unified Memoryとmemory bandwidthを共有する一つの実行系として管�
 - `[Done]` 公式48層・36 GDN・12 QSA・Vision/MTP config照合
 - `[Done]` 公式multimodal artifactのtext-only qualification mode
 - `[Done]` requested modeを記録・再検証するSwift text-only evidence gate
-- `[Next]` 大容量Apple SiliconでQwen text-only実model qualification
-- `[Next]` 専用runner上でvLLM 0.28.x昇格workflowを実行
+- `[Pending]` 大容量Apple SiliconでQwen text-only実model qualification
+- `[Pending]` 専用runner上でvLLM 0.28.x昇格workflowを実行
 - `[Done]` locked PyInstallerによるApple Silicon standalone daemon生成
 - `[Done]` standalone daemonを埋め込むunsigned Mac app release candidateとSHA-256検証CI
 - `[Done]` ephemeral keychain、inside-out hardened runtime署名、公証、staple、Gatekeeper検証release workflow
@@ -1177,8 +1191,8 @@ Unified Memoryとmemory bandwidthを共有する一つの実行系として管�
 - `[Done]` Mac appのrelease directory picker、三言語verified/failed表示
 - `[Done]` model-aware qualification preflightのarchitecture feature・mode・Unified Memory hard ceiling統合
 - `[Done]` Qwen／candidate stack／汎用Metal workflowのmodel load前fail-closed証跡
-- `[Next]` protected `mac-release` environment上で実資格情報による初回notarized artifact生成
-- `[Next]` 初回notarized artifactをexact tagへ結合しdraft release昇格を実行
+- `[Pending]` protected `mac-release` environment上で実資格情報による初回notarized artifact生成
+- `[Pending]` 初回notarized artifactをexact tagへ結合しdraft release昇格を実行
 - `[Done]` Ruff ruleをimport整列`I`へ段階拡張し、Python全対象の既存247件を機械修正して常設CI対象へ昇格
 
 ## Recommended Immediate Sequence
@@ -1289,7 +1303,7 @@ Unified Memoryとmemory bandwidthを共有する一つの実行系として管�
 102. `[Done]` Swift SDKでのartifact admission evidence再計算とCI必須gate
 103. `[Done]` model-bound admission evidenceによる別候補report replay防止
 104. `[Done]` 同名別量子化artifact間のadmission evidence replay防止
-105. `[Next]` 大容量Apple SiliconでQwen text-only実model qualification
+105. `[Pending]` 大容量Apple SiliconでQwen text-only実model qualification
 106. `[Done]` Mac companion app。`samples/VLLMAppleOptimizer`で三言語UI、dry-run、明示確認付きexport、stage progress、pause／continue／cancel／resume、perplexity・generation比較、provenance／未評価能力表示を実装
 107. `[Done]` M4/32GB画像生成基盤とFLUX.2 [klein] 9B Base 512×512実機qualification。Qwen-Image-2512と量子化FLUX.2 [dev]は個別のmemory gateとして未昇格
 108. `[Done]` M4/32GB動画生成qualification。Wan 2.2 TI2V-5B mixed Q8/BF16の640×384・33 frame・20 stepで2-sampleと4-sample stabilityに合格し、33→49 frame一軸promotionの2-sampleも合格。artifact digest binding、memory recovery、private cleanup、prompt／動画非保存を実機証跡で確認済み
@@ -1306,7 +1320,7 @@ Unified Memoryとmemory bandwidthを共有する一つの実行系として管�
 119. `[Done]` MLX Diffusers変換/MFLUX artifactのbounded静的形式判定、component実容量集計、backend誤接続防止
 120. `[Done]` MLX-Gen互換Z-Image Turbo 4-bit artifactの生成とM4/32GB最小profile qualification
 120a. `[Done]` MLX-Gen 0.33.1のZ-Image Turbo capability検出、candidate-bound worker route、base-model固定、2-step未満のload前拒否
-121. `[Next]` Qwen-Image-2512-4bitのMFLUX memory-stability qualification。worker、同梱distribution対応readiness、bounded CLIは`[Done]`。M4/32GBの初回admissionは27.92 GB見積りに対し12.49 GB ceilingでweight load前停止したため、より大容量のApple Siliconまたは実証済みcomponent offloadが必要
+121. `[Next]` Qwen-Image-2512-4bitのcomponent streaming/offloadと現行Macでの段階的memory-stability qualification。worker、readiness、3言語実promptの28層text encoder、英語実promptのprivate別process handoffから量子化transformerへの接続、合成promptでの32px・実ノイズ2 step→VAEは`[Done]`。実prompt＋denoisingの一体実証、実用寸法・必要step数・画像品質が残る。大容量Apple Siliconを必要とする一括経路の再qualificationは別途`[Pending]`
 122. `[Done]` MFLUX Z-Image/Qwen Image backend classとartifact形式を分離したloadなしreadiness gate
 123. `[Done]` 配置済みMLX Diffusers変換artifactの量子化layer非互換を実機で特定し、別directoryへMLX-Gen 4-bit packageを生成する配置手順を確定
 124. `[Done]` MFLUX Z-Image/Qwen Image local-only one-shot worker、private output digest/delete、memory ceiling telemetry接続。`mflux`独立distributionと`mlx-gen`同梱MFLUXをload-freeで識別し、配置済みQwen-Image-2512 4-bitへbounded qualification CLIを接続。Qwen image-editはABI v2入力を再検証後に0600 PNGへ複製し、生成終了・例外時とも即時削除する
@@ -1343,7 +1357,7 @@ Unified Memoryとmemory bandwidthを共有する一つの実行系として管�
 155. `[Done]` fused SDPAの512-token attention query chunkingを独立profileへ結合した512実機qualification（最大effective residentはblockwiseと同値、通常比76 bytes減に留まり昇格見送り）
 156. `[Done]` outer compileを維持したcombined QKV/MLP expansionの512-token sequence chunkingと独立512実機qualification（通常profileと生成hash・最大effective residentが完全一致し昇格見送り）
 157. `[Done]` incremental block load・release barrier・compiled graph rebind・stable weight keyを必須にするweight residency feasibility gate（現MLX-Gen 0.33.1は前三契約がなくfail-close）
-158. `[Later]` MLX-Gen側のblock streaming ABI実装後に行うweight residency profileと512 root再qualification
+158. `[Pending]` MLX-Gen側のblock streaming ABI実装後に行うweight residency profileと512 root再qualification
 159. `[Done]` NSProcessInfo thermal stateとactive電源系統別power modeの検出、Python profile／Swift SDKの後方互換decode
 160. `[Done]` thermal／powerをplan identityとdecision reasonへ固定し、scheduler safe-point適用可能なprefill batch縮退policyを実装
 161. `[Done]` daemon lifecycleへ停止可能なthermal／power monitorを接続し、重複を除いたbounded state-change eventを公開

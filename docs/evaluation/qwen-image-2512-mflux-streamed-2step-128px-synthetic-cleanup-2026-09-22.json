@@ -1,0 +1,42 @@
+{
+  "artifact_bytes": 25907123451,
+  "artifact_file_count": 21,
+  "artifact_root_sha256": "fb4f6226e0dbf21258098ec7f5eb73517122c56c131c8f89c1d825ee9fd229fe",
+  "candidate_id": "qwen-image-2512",
+  "decoded_sha256": null,
+  "decoded_shape": null,
+  "elapsed_nanoseconds": 243052083,
+  "failure": "step 0: memory admission failed",
+  "final_latent_shape": [
+    1,
+    64,
+    64
+  ],
+  "final_memory_pressure": "warning",
+  "final_thermal_state": "fair",
+  "height": 128,
+  "image_quality_qualified": false,
+  "initial_memory_pressure": "normal",
+  "initial_noise_sha256": "7c07711e93d1c860abd213cec2e52700f34dfad2cd3dd48801978b174b612cc2",
+  "input_text_shape": [
+    1,
+    13,
+    3584
+  ],
+  "mflux_version": "0.33.1",
+  "mlx_version": "0.31.2",
+  "passed": false,
+  "peak_mlx_bytes": 22890302,
+  "peak_process_rss_bytes": 126091264,
+  "prompt_sha256": null,
+  "scheduler": "flow_match_euler_discrete",
+  "schema_version": 1,
+  "scope": "mflux_qwen_image_streamed_denoising_smoke",
+  "seed": 0,
+  "step_reports": [],
+  "steps": 2,
+  "stores_output": false,
+  "stores_prompt": false,
+  "uses_real_prompt": false,
+  "width": 128
+}

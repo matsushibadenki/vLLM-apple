@@ -1,0 +1,611 @@
+{
+  "artifact_bytes": 25907123451,
+  "artifact_file_count": 21,
+  "artifact_root_sha256": "fb4f6226e0dbf21258098ec7f5eb73517122c56c131c8f89c1d825ee9fd229fe",
+  "candidate_id": "qwen-image-2512",
+  "elapsed_nanoseconds": 63876000625,
+  "embedding_sha256": "5ee036aeb83b6bba585d3b9bb2b9bee1f19078039bac224b862035b2de684931",
+  "encoder_layer_execution_count": 28,
+  "encoder_peak_mlx_bytes": 1580437823,
+  "encoder_peak_process_rss_bytes": 2860105728,
+  "final_memory_pressure": "normal",
+  "final_thermal_state": "fair",
+  "image_generation_qualified": false,
+  "mask_sha256": "c9d6b71ddb12ea95e93e7d9c58f5a4f11616f8b1e6b499bcbcf533aa999d065b",
+  "passed": true,
+  "plan_sha256": "2757dbd316a48826ab9439f610d93952fc52299d8a4ed22256bd573b40dbda1c",
+  "private_handoff_cleanup_verified": true,
+  "prompt_sha256": "8cd78f96768876372d552dab55765e0677f365386d0524491aa52a7d828a9acd",
+  "schema_version": 1,
+  "scope": "mflux_qwen_image_real_prompt_to_streamed_transformer_synthetic_latent",
+  "stores_output": false,
+  "stores_prompt": false,
+  "transformer": {
+    "artifact_bytes": 25907123451,
+    "artifact_file_count": 21,
+    "artifact_root_sha256": "fb4f6226e0dbf21258098ec7f5eb73517122c56c131c8f89c1d825ee9fd229fe",
+    "candidate_id": "qwen-image-2512",
+    "completed_blocks": 60,
+    "elapsed_nanoseconds": 18933762750,
+    "failure": null,
+    "final_memory_pressure": "normal",
+    "final_thermal_state": "fair",
+    "full_transformer_qualified": false,
+    "image_generation_qualified": false,
+    "initial_memory_pressure": "normal",
+    "input_image_shape": [
+      1,
+      4,
+      64
+    ],
+    "input_text_shape": [
+      1,
+      13,
+      3584
+    ],
+    "mflux_version": "0.33.1",
+    "mlx_version": "0.31.2",
+    "output_sha256": "c3d84ce49b8f4d0b86f4ab880abc5480b2fd95f36ea26645dc024eb05e6c6050",
+    "output_shape": [
+      1,
+      4,
+      64
+    ],
+    "passed": true,
+    "peak_mlx_bytes": 220187488,
+    "peak_process_rss_bytes": 503136256,
+    "prompt_sha256": "8cd78f96768876372d552dab55765e0677f365386d0524491aa52a7d828a9acd",
+    "requested_blocks": 60,
+    "samples": [
+      {
+        "block_index": 0,
+        "elapsed_nanoseconds": 687471958,
+        "finite": true,
+        "memory_pressure": "normal",
+        "peak_mlx_bytes": 218311508,
+        "peak_process_rss_bytes": 386924544,
+        "thermal_state": "fair"
+      },
+      {
+        "block_index": 1,
+        "elapsed_nanoseconds": 212662583,
+        "finite": true,
+        "memory_pressure": "normal",
+        "peak_mlx_bytes": 220187488,
+        "peak_process_rss_bytes": 387186688,
+        "thermal_state": "fair"
+      },
+      {
+        "block_index": 2,
+        "elapsed_nanoseconds": 205468083,
+        "finite": true,
+        "memory_pressure": "normal",
+        "peak_mlx_bytes": 220187488,
+        "peak_process_rss_bytes": 387317760,
+        "thermal_state": "fair"
+      },
+      {
+        "block_index": 3,
+        "elapsed_nanoseconds": 208160542,
+        "finite": true,
+        "memory_pressure": "normal",
+        "peak_mlx_bytes": 220187488,
+        "peak_process_rss_bytes": 387448832,
+        "thermal_state": "fair"
+      },
+      {
+        "block_index": 4,
+        "elapsed_nanoseconds": 202800916,
+        "finite": true,
+        "memory_pressure": "normal",
+        "peak_mlx_bytes": 220187488,
+        "peak_process_rss_bytes": 387514368,
+        "thermal_state": "fair"
+      },
+      {
+        "block_index": 5,
+        "elapsed_nanoseconds": 198249458,
+        "finite": true,
+        "memory_pressure": "normal",
+        "peak_mlx_bytes": 220187488,
+        "peak_process_rss_bytes": 387514368,
+        "thermal_state": "fair"
+      },
+      {
+        "block_index": 6,
+        "elapsed_nanoseconds": 213542500,
+        "finite": true,
+        "memory_pressure": "normal",
+        "peak_mlx_bytes": 220187488,
+        "peak_process_rss_bytes": 494436352,
+        "thermal_state": "fair"
+      },
+      {
+        "block_index": 7,
+        "elapsed_nanoseconds": 196525791,
+        "finite": true,
+        "memory_pressure": "normal",
+        "peak_mlx_bytes": 220187488,
+        "peak_process_rss_bytes": 494436352,
+        "thermal_state": "fair"
+      },
+      {
+        "block_index": 8,
+        "elapsed_nanoseconds": 194385709,
+        "finite": true,
+        "memory_pressure": "normal",
+        "peak_mlx_bytes": 220187488,
+        "peak_process_rss_bytes": 494436352,
+        "thermal_state": "fair"
+      },
+      {
+        "block_index": 9,
+        "elapsed_nanoseconds": 195588625,
+        "finite": true,
+        "memory_pressure": "normal",
+        "peak_mlx_bytes": 220187488,
+        "peak_process_rss_bytes": 494436352,
+        "thermal_state": "fair"
+      },
+      {
+        "block_index": 10,
+        "elapsed_nanoseconds": 219355667,
+        "finite": true,
+        "memory_pressure": "normal",
+        "peak_mlx_bytes": 220187488,
+        "peak_process_rss_bytes": 494436352,
+        "thermal_state": "fair"
+      },
+      {
+        "block_index": 11,
+        "elapsed_nanoseconds": 207732417,
+        "finite": true,
+        "memory_pressure": "normal",
+        "peak_mlx_bytes": 220187488,
+        "peak_process_rss_bytes": 494436352,
+        "thermal_state": "fair"
+      },
+      {
+        "block_index": 12,
+        "elapsed_nanoseconds": 199382000,
+        "finite": true,
+        "memory_pressure": "normal",
+        "peak_mlx_bytes": 220187488,
+        "peak_process_rss_bytes": 494436352,
+        "thermal_state": "fair"
+      },
+      {
+        "block_index": 13,
+        "elapsed_nanoseconds": 199726375,
+        "finite": true,
+        "memory_pressure": "normal",
+        "peak_mlx_bytes": 220187488,
+        "peak_process_rss_bytes": 494436352,
+        "thermal_state": "fair"
+      },
+      {
+        "block_index": 14,
+        "elapsed_nanoseconds": 209364375,
+        "finite": true,
+        "memory_pressure": "normal",
+        "peak_mlx_bytes": 220187488,
+        "peak_process_rss_bytes": 494436352,
+        "thermal_state": "fair"
+      },
+      {
+        "block_index": 15,
+        "elapsed_nanoseconds": 211325625,
+        "finite": true,
+        "memory_pressure": "normal",
+        "peak_mlx_bytes": 220187488,
+        "peak_process_rss_bytes": 494436352,
+        "thermal_state": "fair"
+      },
+      {
+        "block_index": 16,
+        "elapsed_nanoseconds": 216166875,
+        "finite": true,
+        "memory_pressure": "normal",
+        "peak_mlx_bytes": 220187488,
+        "peak_process_rss_bytes": 494436352,
+        "thermal_state": "fair"
+      },
+      {
+        "block_index": 17,
+        "elapsed_nanoseconds": 222173667,
+        "finite": true,
+        "memory_pressure": "normal",
+        "peak_mlx_bytes": 220187488,
+        "peak_process_rss_bytes": 494436352,
+        "thermal_state": "fair"
+      },
+      {
+        "block_index": 18,
+        "elapsed_nanoseconds": 226883458,
+        "finite": true,
+        "memory_pressure": "normal",
+        "peak_mlx_bytes": 220187488,
+        "peak_process_rss_bytes": 494436352,
+        "thermal_state": "fair"
+      },
+      {
+        "block_index": 19,
+        "elapsed_nanoseconds": 254242125,
+        "finite": true,
+        "memory_pressure": "normal",
+        "peak_mlx_bytes": 220187488,
+        "peak_process_rss_bytes": 494436352,
+        "thermal_state": "fair"
+      },
+      {
+        "block_index": 20,
+        "elapsed_nanoseconds": 253974750,
+        "finite": true,
+        "memory_pressure": "normal",
+        "peak_mlx_bytes": 220187488,
+        "peak_process_rss_bytes": 494436352,
+        "thermal_state": "fair"
+      },
+      {
+        "block_index": 21,
+        "elapsed_nanoseconds": 233298125,
+        "finite": true,
+        "memory_pressure": "normal",
+        "peak_mlx_bytes": 220187488,
+        "peak_process_rss_bytes": 494436352,
+        "thermal_state": "fair"
+      },
+      {
+        "block_index": 22,
+        "elapsed_nanoseconds": 225955708,
+        "finite": true,
+        "memory_pressure": "normal",
+        "peak_mlx_bytes": 220187488,
+        "peak_process_rss_bytes": 494436352,
+        "thermal_state": "fair"
+      },
+      {
+        "block_index": 23,
+        "elapsed_nanoseconds": 250833000,
+        "finite": true,
+        "memory_pressure": "normal",
+        "peak_mlx_bytes": 220187488,
+        "peak_process_rss_bytes": 494436352,
+        "thermal_state": "fair"
+      },
+      {
+        "block_index": 24,
+        "elapsed_nanoseconds": 257186708,
+        "finite": true,
+        "memory_pressure": "normal",
+        "peak_mlx_bytes": 220187488,
+        "peak_process_rss_bytes": 494436352,
+        "thermal_state": "fair"
+      },
+      {
+        "block_index": 25,
+        "elapsed_nanoseconds": 301649083,
+        "finite": true,
+        "memory_pressure": "normal",
+        "peak_mlx_bytes": 220187488,
+        "peak_process_rss_bytes": 494436352,
+        "thermal_state": "fair"
+      },
+      {
+        "block_index": 26,
+        "elapsed_nanoseconds": 240679500,
+        "finite": true,
+        "memory_pressure": "normal",
+        "peak_mlx_bytes": 220187488,
+        "peak_process_rss_bytes": 494436352,
+        "thermal_state": "fair"
+      },
+      {
+        "block_index": 27,
+        "elapsed_nanoseconds": 319532541,
+        "finite": true,
+        "memory_pressure": "normal",
+        "peak_mlx_bytes": 220187488,
+        "peak_process_rss_bytes": 494436352,
+        "thermal_state": "fair"
+      },
+      {
+        "block_index": 28,
+        "elapsed_nanoseconds": 374737084,
+        "finite": true,
+        "memory_pressure": "normal",
+        "peak_mlx_bytes": 220187488,
+        "peak_process_rss_bytes": 494436352,
+        "thermal_state": "fair"
+      },
+      {
+        "block_index": 29,
+        "elapsed_nanoseconds": 254203708,
+        "finite": true,
+        "memory_pressure": "normal",
+        "peak_mlx_bytes": 220187488,
+        "peak_process_rss_bytes": 494436352,
+        "thermal_state": "fair"
+      },
+      {
+        "block_index": 30,
+        "elapsed_nanoseconds": 223080167,
+        "finite": true,
+        "memory_pressure": "normal",
+        "peak_mlx_bytes": 220187488,
+        "peak_process_rss_bytes": 494436352,
+        "thermal_state": "fair"
+      },
+      {
+        "block_index": 31,
+        "elapsed_nanoseconds": 206954750,
+        "finite": true,
+        "memory_pressure": "normal",
+        "peak_mlx_bytes": 220187488,
+        "peak_process_rss_bytes": 494436352,
+        "thermal_state": "fair"
+      },
+      {
+        "block_index": 32,
+        "elapsed_nanoseconds": 208386958,
+        "finite": true,
+        "memory_pressure": "normal",
+        "peak_mlx_bytes": 220187488,
+        "peak_process_rss_bytes": 494436352,
+        "thermal_state": "fair"
+      },
+      {
+        "block_index": 33,
+        "elapsed_nanoseconds": 225580042,
+        "finite": true,
+        "memory_pressure": "normal",
+        "peak_mlx_bytes": 220187488,
+        "peak_process_rss_bytes": 494436352,
+        "thermal_state": "fair"
+      },
+      {
+        "block_index": 34,
+        "elapsed_nanoseconds": 205106375,
+        "finite": true,
+        "memory_pressure": "normal",
+        "peak_mlx_bytes": 220187488,
+        "peak_process_rss_bytes": 494436352,
+        "thermal_state": "fair"
+      },
+      {
+        "block_index": 35,
+        "elapsed_nanoseconds": 212102917,
+        "finite": true,
+        "memory_pressure": "normal",
+        "peak_mlx_bytes": 220187488,
+        "peak_process_rss_bytes": 494436352,
+        "thermal_state": "fair"
+      },
+      {
+        "block_index": 36,
+        "elapsed_nanoseconds": 217604166,
+        "finite": true,
+        "memory_pressure": "normal",
+        "peak_mlx_bytes": 220187488,
+        "peak_process_rss_bytes": 494436352,
+        "thermal_state": "fair"
+      },
+      {
+        "block_index": 37,
+        "elapsed_nanoseconds": 207858458,
+        "finite": true,
+        "memory_pressure": "normal",
+        "peak_mlx_bytes": 220187488,
+        "peak_process_rss_bytes": 494436352,
+        "thermal_state": "fair"
+      },
+      {
+        "block_index": 38,
+        "elapsed_nanoseconds": 204857209,
+        "finite": true,
+        "memory_pressure": "normal",
+        "peak_mlx_bytes": 220187488,
+        "peak_process_rss_bytes": 494436352,
+        "thermal_state": "fair"
+      },
+      {
+        "block_index": 39,
+        "elapsed_nanoseconds": 218587875,
+        "finite": true,
+        "memory_pressure": "normal",
+        "peak_mlx_bytes": 220187488,
+        "peak_process_rss_bytes": 494436352,
+        "thermal_state": "fair"
+      },
+      {
+        "block_index": 40,
+        "elapsed_nanoseconds": 229351208,
+        "finite": true,
+        "memory_pressure": "normal",
+        "peak_mlx_bytes": 220187488,
+        "peak_process_rss_bytes": 494436352,
+        "thermal_state": "fair"
+      },
+      {
+        "block_index": 41,
+        "elapsed_nanoseconds": 186928667,
+        "finite": true,
+        "memory_pressure": "normal",
+        "peak_mlx_bytes": 220187488,
+        "peak_process_rss_bytes": 494436352,
+        "thermal_state": "fair"
+      },
+      {
+        "block_index": 42,
+        "elapsed_nanoseconds": 196271791,
+        "finite": true,
+        "memory_pressure": "normal",
+        "peak_mlx_bytes": 220187488,
+        "peak_process_rss_bytes": 494436352,
+        "thermal_state": "fair"
+      },
+      {
+        "block_index": 43,
+        "elapsed_nanoseconds": 194248958,
+        "finite": true,
+        "memory_pressure": "normal",
+        "peak_mlx_bytes": 220187488,
+        "peak_process_rss_bytes": 494436352,
+        "thermal_state": "fair"
+      },
+      {
+        "block_index": 44,
+        "elapsed_nanoseconds": 195961542,
+        "finite": true,
+        "memory_pressure": "normal",
+        "peak_mlx_bytes": 220187488,
+        "peak_process_rss_bytes": 494436352,
+        "thermal_state": "fair"
+      },
+      {
+        "block_index": 45,
+        "elapsed_nanoseconds": 196502584,
+        "finite": true,
+        "memory_pressure": "normal",
+        "peak_mlx_bytes": 220187488,
+        "peak_process_rss_bytes": 494436352,
+        "thermal_state": "fair"
+      },
+      {
+        "block_index": 46,
+        "elapsed_nanoseconds": 203697125,
+        "finite": true,
+        "memory_pressure": "normal",
+        "peak_mlx_bytes": 220187488,
+        "peak_process_rss_bytes": 494436352,
+        "thermal_state": "fair"
+      },
+      {
+        "block_index": 47,
+        "elapsed_nanoseconds": 213336292,
+        "finite": true,
+        "memory_pressure": "normal",
+        "peak_mlx_bytes": 220187488,
+        "peak_process_rss_bytes": 494436352,
+        "thermal_state": "fair"
+      },
+      {
+        "block_index": 48,
+        "elapsed_nanoseconds": 197119583,
+        "finite": true,
+        "memory_pressure": "normal",
+        "peak_mlx_bytes": 220187488,
+        "peak_process_rss_bytes": 494436352,
+        "thermal_state": "fair"
+      },
+      {
+        "block_index": 49,
+        "elapsed_nanoseconds": 207198375,
+        "finite": true,
+        "memory_pressure": "normal",
+        "peak_mlx_bytes": 220187488,
+        "peak_process_rss_bytes": 494436352,
+        "thermal_state": "fair"
+      },
+      {
+        "block_index": 50,
+        "elapsed_nanoseconds": 204997625,
+        "finite": true,
+        "memory_pressure": "normal",
+        "peak_mlx_bytes": 220187488,
+        "peak_process_rss_bytes": 494436352,
+        "thermal_state": "fair"
+      },
+      {
+        "block_index": 51,
+        "elapsed_nanoseconds": 213649334,
+        "finite": true,
+        "memory_pressure": "normal",
+        "peak_mlx_bytes": 220187488,
+        "peak_process_rss_bytes": 494436352,
+        "thermal_state": "fair"
+      },
+      {
+        "block_index": 52,
+        "elapsed_nanoseconds": 201667292,
+        "finite": true,
+        "memory_pressure": "normal",
+        "peak_mlx_bytes": 220187488,
+        "peak_process_rss_bytes": 494436352,
+        "thermal_state": "fair"
+      },
+      {
+        "block_index": 53,
+        "elapsed_nanoseconds": 198466250,
+        "finite": true,
+        "memory_pressure": "normal",
+        "peak_mlx_bytes": 220187488,
+        "peak_process_rss_bytes": 494436352,
+        "thermal_state": "fair"
+      },
+      {
+        "block_index": 54,
+        "elapsed_nanoseconds": 199283625,
+        "finite": true,
+        "memory_pressure": "normal",
+        "peak_mlx_bytes": 220187488,
+        "peak_process_rss_bytes": 494436352,
+        "thermal_state": "fair"
+      },
+      {
+        "block_index": 55,
+        "elapsed_nanoseconds": 203077208,
+        "finite": true,
+        "memory_pressure": "normal",
+        "peak_mlx_bytes": 220187488,
+        "peak_process_rss_bytes": 494436352,
+        "thermal_state": "fair"
+      },
+      {
+        "block_index": 56,
+        "elapsed_nanoseconds": 209344000,
+        "finite": true,
+        "memory_pressure": "normal",
+        "peak_mlx_bytes": 220187488,
+        "peak_process_rss_bytes": 494436352,
+        "thermal_state": "fair"
+      },
+      {
+        "block_index": 57,
+        "elapsed_nanoseconds": 208808375,
+        "finite": true,
+        "memory_pressure": "normal",
+        "peak_mlx_bytes": 220187488,
+        "peak_process_rss_bytes": 494436352,
+        "thermal_state": "fair"
+      },
+      {
+        "block_index": 58,
+        "elapsed_nanoseconds": 201262584,
+        "finite": true,
+        "memory_pressure": "normal",
+        "peak_mlx_bytes": 220187488,
+        "peak_process_rss_bytes": 503136256,
+        "thermal_state": "fair"
+      },
+      {
+        "block_index": 59,
+        "elapsed_nanoseconds": 234772584,
+        "finite": true,
+        "memory_pressure": "normal",
+        "peak_mlx_bytes": 220187488,
+        "peak_process_rss_bytes": 503136256,
+        "thermal_state": "fair"
+      }
+    ],
+    "schema_version": 1,
+    "scope": "mflux_qwen_image_transformer_static_and_blocks_synthetic_smoke",
+    "stores_output": false,
+    "stores_prompt": false,
+    "uses_real_latent": false,
+    "uses_real_prompt": true,
+    "uses_synthetic_timestep": true
+  },
+  "uses_real_latent": false,
+  "uses_real_prompt": true
+}

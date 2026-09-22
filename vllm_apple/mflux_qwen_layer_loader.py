@@ -12,7 +12,10 @@ from .mflux_qwen_streaming_plan import inspect_mflux_qwen_text_encoder_staging
 
 MAX_HEADER_BYTES = 16 * 1024 * 1024
 MAX_LAYER_BYTES = 1024 * 1024 * 1024
-_STORAGE_DTYPES = {"BF16": (2, "<u2"), "F16": (2, "<u2"), "F32": (4, "<f4")}
+_STORAGE_DTYPES = {
+    "BF16": (2, "<u2"), "F16": (2, "<u2"), "F32": (4, "<f4"),
+    "U32": (4, "<u4"),
+}
 
 
 def _unique_object(pairs: list[tuple[str, object]]) -> dict[str, object]:

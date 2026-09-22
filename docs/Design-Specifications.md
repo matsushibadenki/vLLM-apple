@@ -3097,9 +3097,57 @@ Qwen-Image-2512の配置MFLUX packageは全体metadataが4-bitでもtext encoder
 indexとsafetensors headerを照合した後、指定tensorのbyte範囲だけを読み1層ずつmaterializeする。
 実機のsynthetic `[1,40]`入力では独立process 2回とも28/28層が完走し、同じ有限出力digest、
 各層normal pressure／nominal thermal、peak MLX 1,576,732,112 bytesを記録した。
-これはtext encoder内部の実行可能性確認であり、prompt品質、embedding handoff、transformer/VAE、
-画像生成の認定とは区別する。後段の分離processへ進む際はprivate embedding/maskのintegrity bindingと
-load前admission、出力非保存、終了時cleanupを必須とする。
+続いて配置済みtokenizer templateで英語・日本語・简体中文の実文章をencodeし、計84層の逐次実行で
+有限embedding 3/3、shape／mask整合、相異なるdigest、normal memory pressureを確認した。
+これはtext encoderの実文章入力に対する実行可能性確認であり、意味品質、embedding handoff、transformer/VAE、
+画像生成の認定とは区別する。後段の分離processへ進むため、candidate／plan／prompt／sample identityと
+payload SHA-256に結合したprivate一回消費embedding/mask ABIを実装した。英語実promptのF32 embeddingと
+I32 maskを別processでdigest一致のまま受け取り、private cleanupとnormal pressureを確認した。
+transformer/VAEへ接続する際もload前admission、出力非保存、終了時cleanupを必須とする。
+量子化transformerは60 block／6 shardで、header-only inventoryから各block 191,288,320 bytes、
+静的部分を含む1 block payload下限214,114,432 bytesを得た。全846件のU32 packed weightの
+scales/biasesと4-bit形状比をload-freeで検証し、各60 blockに量子化weightが存在することを確認した。
+選択的U32/BF16 readerで第0・第59 blockを4-bit MLX moduleへ復元し、RoPEを省く合成入力の
+単独forwardで有限出力とnormal pressureを確認した。現行MFLUXの一部8-bit量子化規則を
+適用するとshape不一致になるため、検証済みlayoutを使用する。全60 blockを合成状態
+`image[1,4,3072]`／`text[1,13,3072]`で逐次materialize／forward／解放し、60/60有限出力、
+normal pressure、peak MLX 195,353,822 bytes、process peak RSS 498,073,600 bytesを確認した。
+続いてMFLUX標準のscaled Qwen RoPEを合成grid `[1,2,2]`と13 token textへ適用し、
+60/60 blockで有限出力、normal pressure、peak MLX 197,361,374 bytes、process peak RSS
+480,919,552 bytesを確認した。このsmokeは実latent寸法、実prompt、static入出力projection、
+timestep conditioningの実経路、VAE、画像生成を含まないため、full transformerと画像品質は
+引き続き未認定とする。固定層の選択的loadも追加し、`img_in`、`txt_norm`、`txt_in`、
+`time_text_embed`、RoPE、60 block、`norm_out`、`proj_out`の順で合成forwardを完走した。
+配置weightには`norm_out.linear.bias`があるため、標準MFLUXのbiasなしmoduleをそのまま
+使用せず、静的loaderでbiasありの3072→6144線形層へ合わせる。合成image `[1,4,64]`、
+text `[1,13,3584]`、timestep 0.5から有限`[1,4,64]`を得て、peak MLX 220,384,096 bytes、
+process peak RSS 430,620,672 bytes、pressure normalを確認した。実prompt、実latent、
+denoising、VAE、画像生成の認定とは区別する。英語の実promptを28層text encoderで処理し、
+F32 embedding／I32 maskをprivate一回消費handoffで別processへ渡す接続も実証した。
+consumerは実embeddingを`txt_norm`／`txt_in`からRoPE付き60 blockへ入力し、
+有限`[1,4,64]`出力、private残存0、全block pressure normalを確認した。ただし画像側は
+合成小latent／合成timestepであり、実画像生成の認定には使用しない。
+VAEは配置済み1 shard／192 BF16 tensorのうちdecoderとpost-quant-convの108 tensor
+（146,591,206 bytes）だけを選択的に読み、encoder weightをmaterializeしない。
+合成packed latent `[1,4,64]`を`[1,16,4,4]`へunpackした32×32相当のdecodeで
+有限`[1,3,1,32,32]`出力、pressure normalを確認した。transformer出力との接続と
+生成画像の品質は別段階で検証する。
+合成text／image／timestepのtransformer固定層＋RoPE＋60 blockの出力を、同一processの
+VAE decoderに直接入力する32×32相当の一体forwardも完走し、有限`[1,3,1,32,32]`、
+peak MLX 467,962,770 bytes、process peak RSS 480,002,048 bytes、pressure normalを
+確認した。実promptを含む同時実行はtext encoderのメモリ安全ゲートで停止したため、
+この一体forwardの実prompt対応とdenoising・画像品質は未認定とする。
+FlowMatch Euler schedulerと実ノイズ初期化を追加し、合成prompt／32×32相当で
+2 step・120 blockの逐次denoising、VAE復元までを実行した。各stepのlatentと最終
+`[1,3,1,32,32]`は有限、peak MLX 468,062,634 bytes、process peak RSS 492,060,672 bytes、
+pressure normalだった。32px・2 stepは生成品質の判定に使わず、実promptと実用寸法の
+qualificationを別途必要とする。
+128×128・2 stepの拡大では、2 stepとVAEの有限出力後にmemory pressureがwarningとなり
+qualification不合格だった。decoder前のtransformer／中間tensor解放と、使用しないVAE encoder
+parameterの非保持を追加したが、空きメモリが約7–9 GBの再試験はstep 0の入場判定で停止した。
+decoder単体の小latent smokeは改善後も合格し、peak MLXは417,229,590 bytes、process RSSは
+246,398,976 bytesだった。128px以上の開始前空きメモリは暫定的に128px 10 GB、256px 14 GB、
+512px 20 GBを下限とし、合格を意味する値ではない。
 
 Qwen-Image-2.1ではpromptをsequential CPU offload下で先にencodeし、embeddingを確定した時点で既存offload hookを外す。
 その後text encoderとtokenizerのpipeline参照を破棄し、GC、MPS synchronize、cache解放を行ってから、残る
