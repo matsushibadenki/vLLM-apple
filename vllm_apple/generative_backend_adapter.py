@@ -4,6 +4,7 @@ from __future__ import annotations
 import os
 import re
 import stat
+import sys
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
@@ -165,12 +166,16 @@ def _safe_executable(path: Path) -> bool:
         target = resolved.stat()
     except OSError:
         return False
+    current_python = resolved == Path(sys.executable).resolve(strict=True)
     return (
         (stat.S_ISREG(info.st_mode) or stat.S_ISLNK(info.st_mode))
-        and info.st_uid in (os.getuid(), 0)
+        and (
+            info.st_uid in (os.getuid(), 0)
+            or (current_python and candidate == Path(sys.executable).absolute())
+        )
         and stat.S_ISREG(target.st_mode)
-        and target.st_uid in (os.getuid(), 0)
-        and not stat.S_IMODE(target.st_mode) & 0o022
+        and (target.st_uid in (os.getuid(), 0) or current_python)
+        and not stat.S_IMODE(target.st_mode) & (0o002 if current_python else 0o022)
         and os.access(resolved, os.X_OK)
     )
 

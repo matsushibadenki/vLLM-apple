@@ -6,6 +6,7 @@ import os
 import re
 import stat
 import subprocess
+import sys
 import threading
 import uuid
 from dataclasses import dataclass, field
@@ -276,12 +277,16 @@ def _validated_python_executable(path: Path) -> Path:
         target_info = resolved.stat()
     except OSError as error:
         raise ValueError("subprocess inference Python is unavailable") from error
+    current_python = resolved == Path(sys.executable).resolve(strict=True)
     if (
         not (stat.S_ISREG(link_info.st_mode) or stat.S_ISLNK(link_info.st_mode))
-        or link_info.st_uid not in (os.getuid(), 0)
+        or (
+            link_info.st_uid not in (os.getuid(), 0)
+            and not (current_python and candidate == Path(sys.executable).absolute())
+        )
         or not stat.S_ISREG(target_info.st_mode)
-        or target_info.st_uid not in (os.getuid(), 0)
-        or stat.S_IMODE(target_info.st_mode) & 0o022
+        or (target_info.st_uid not in (os.getuid(), 0) and not current_python)
+        or stat.S_IMODE(target_info.st_mode) & (0o002 if current_python else 0o022)
         or not os.access(resolved, os.X_OK)
     ):
         raise ValueError("subprocess inference Python is unsafe")

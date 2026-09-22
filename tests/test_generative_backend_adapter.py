@@ -5,6 +5,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from vllm_apple.generative_backend_adapter import (
     GenerativeBackendFamily,
@@ -13,6 +14,21 @@ from vllm_apple.generative_backend_adapter import (
 
 
 class VersionedGenerativeWorkerAdapterTests(unittest.TestCase):
+    def test_active_python_allows_group_writable_hosted_toolcache_binary(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            executable = Path(directory) / "python"
+            executable.write_text("#!/bin/sh\nexit 0\n")
+            executable.chmod(0o775)
+            adapter = VersionedGenerativeWorkerAdapter(
+                GenerativeBackendFamily.DIFFUSERS,
+                backend_version="1",
+                supported_backend_versions=("1",),
+                python_executable=executable,
+            )
+            self.assertFalse(adapter.detect().executable)
+            with patch.object(sys, "executable", str(executable)):
+                self.assertTrue(adapter.detect().executable)
+
     def test_root_owned_system_python_is_accepted(self) -> None:
         system_python = Path("/usr/bin/python3")
         if not system_python.exists() or system_python.stat().st_uid != 0:

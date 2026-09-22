@@ -9,6 +9,7 @@ import unittest
 import urllib.error
 import urllib.request
 from pathlib import Path
+from unittest.mock import patch
 
 from vllm_apple.api import create_server
 from vllm_apple.inference_request import (
@@ -24,6 +25,16 @@ from vllm_apple.service import RuntimeService
 
 
 class ProcessInferenceEngineTests(unittest.TestCase):
+    def test_active_python_allows_group_writable_hosted_toolcache_binary(self):
+        with tempfile.TemporaryDirectory() as directory:
+            executable = Path(directory) / "python"
+            executable.write_text("#!/bin/sh\nexit 0\n")
+            executable.chmod(0o775)
+            with self.assertRaisesRegex(ValueError, "unsafe"):
+                _validated_python_executable(executable)
+            with patch.object(sys, "executable", str(executable)):
+                self.assertEqual(_validated_python_executable(executable), executable)
+
     def test_root_owned_system_python_is_accepted(self):
         system_python = Path("/usr/bin/python3")
         if not system_python.exists() or system_python.stat().st_uid != 0:
