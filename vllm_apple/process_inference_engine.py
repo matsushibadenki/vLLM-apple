@@ -285,8 +285,8 @@ def _validated_python_executable(path: Path) -> Path:
             and not (current_python and candidate == Path(sys.executable).absolute())
         )
         or not stat.S_ISREG(target_info.st_mode)
-        or (target_info.st_uid not in (os.getuid(), 0) and not current_python)
-        or stat.S_IMODE(target_info.st_mode) & (0o002 if current_python else 0o022)
+        or (not current_python and target_info.st_uid not in (os.getuid(), 0))
+        or (not current_python and stat.S_IMODE(target_info.st_mode) & 0o022)
         or not os.access(resolved, os.X_OK)
     ):
         raise ValueError("subprocess inference Python is unsafe")

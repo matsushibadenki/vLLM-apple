@@ -14,11 +14,11 @@ from vllm_apple.generative_backend_adapter import (
 
 
 class VersionedGenerativeWorkerAdapterTests(unittest.TestCase):
-    def test_active_python_allows_group_writable_hosted_toolcache_binary(self) -> None:
+    def test_active_python_is_trusted_even_with_hosted_toolcache_permissions(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             executable = Path(directory) / "python"
             executable.write_text("#!/bin/sh\nexit 0\n")
-            executable.chmod(0o775)
+            executable.chmod(0o777)
             adapter = VersionedGenerativeWorkerAdapter(
                 GenerativeBackendFamily.DIFFUSERS,
                 backend_version="1",

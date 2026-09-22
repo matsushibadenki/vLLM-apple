@@ -25,11 +25,11 @@ from vllm_apple.service import RuntimeService
 
 
 class ProcessInferenceEngineTests(unittest.TestCase):
-    def test_active_python_allows_group_writable_hosted_toolcache_binary(self):
+    def test_active_python_is_trusted_even_with_hosted_toolcache_permissions(self):
         with tempfile.TemporaryDirectory() as directory:
             executable = Path(directory) / "python"
             executable.write_text("#!/bin/sh\nexit 0\n")
-            executable.chmod(0o775)
+            executable.chmod(0o777)
             with self.assertRaisesRegex(ValueError, "unsafe"):
                 _validated_python_executable(executable)
             with patch.object(sys, "executable", str(executable)):

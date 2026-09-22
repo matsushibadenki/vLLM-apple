@@ -174,8 +174,8 @@ def _safe_executable(path: Path) -> bool:
             or (current_python and candidate == Path(sys.executable).absolute())
         )
         and stat.S_ISREG(target.st_mode)
-        and (target.st_uid in (os.getuid(), 0) or current_python)
-        and not stat.S_IMODE(target.st_mode) & (0o002 if current_python else 0o022)
+        and (current_python or target.st_uid in (os.getuid(), 0))
+        and (current_python or not stat.S_IMODE(target.st_mode) & 0o022)
         and os.access(resolved, os.X_OK)
     )
 
