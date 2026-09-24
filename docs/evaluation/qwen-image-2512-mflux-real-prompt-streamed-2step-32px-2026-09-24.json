@@ -1,0 +1,101 @@
+{
+  "artifact_bytes": 25907123451,
+  "artifact_file_count": 21,
+  "artifact_root_sha256": "fb4f6226e0dbf21258098ec7f5eb73517122c56c131c8f89c1d825ee9fd229fe",
+  "candidate_id": "qwen-image-2512",
+  "denoise_steps": 2,
+  "elapsed_nanoseconds": 50014026375,
+  "embedding_sha256": "5ee036aeb83b6bba585d3b9bb2b9bee1f19078039bac224b862035b2de684931",
+  "encoder_layer_execution_count": 28,
+  "encoder_peak_mlx_bytes": 1580444122,
+  "encoder_peak_process_rss_bytes": 1560788992,
+  "final_memory_pressure": "normal",
+  "final_thermal_state": "nominal",
+  "image_generation_qualified": false,
+  "mask_sha256": "c9d6b71ddb12ea95e93e7d9c58f5a4f11616f8b1e6b499bcbcf533aa999d065b",
+  "passed": true,
+  "plan_sha256": "2757dbd316a48826ab9439f610d93952fc52299d8a4ed22256bd573b40dbda1c",
+  "private_handoff_cleanup_verified": true,
+  "prompt_sha256": "8cd78f96768876372d552dab55765e0677f365386d0524491aa52a7d828a9acd",
+  "schema_version": 1,
+  "scope": "mflux_qwen_image_real_prompt_two_step_32px",
+  "stores_output": false,
+  "stores_prompt": false,
+  "transformer": {
+    "artifact_bytes": 25907123451,
+    "artifact_file_count": 21,
+    "artifact_root_sha256": "fb4f6226e0dbf21258098ec7f5eb73517122c56c131c8f89c1d825ee9fd229fe",
+    "candidate_id": "qwen-image-2512",
+    "decoded_sha256": "66d438a3f7e0978da44f2042033b2a24b98357e1554f2ec302550c20ee86a57f",
+    "decoded_shape": [
+      1,
+      3,
+      1,
+      32,
+      32
+    ],
+    "elapsed_nanoseconds": 20453409250,
+    "failure": null,
+    "final_latent_shape": [
+      1,
+      4,
+      64
+    ],
+    "final_memory_pressure": "normal",
+    "final_thermal_state": "nominal",
+    "height": 32,
+    "image_quality_qualified": false,
+    "initial_memory_pressure": "normal",
+    "initial_noise_sha256": "0cf70cea715e50f50e1716709b7342af277455f2cd13e3d199931514162ae0ed",
+    "input_text_shape": [
+      1,
+      13,
+      3584
+    ],
+    "mflux_version": "0.33.1",
+    "mlx_version": "0.31.2",
+    "passed": true,
+    "peak_mlx_bytes": 311849410,
+    "peak_process_rss_bytes": 588529664,
+    "prompt_sha256": "8cd78f96768876372d552dab55765e0677f365386d0524491aa52a7d828a9acd",
+    "scheduler": "flow_match_euler_discrete",
+    "schema_version": 1,
+    "scope": "mflux_qwen_image_streamed_denoising_smoke",
+    "seed": 0,
+    "step_reports": [
+      {
+        "completed_blocks": 60,
+        "latent_finite": true,
+        "latent_shape": [
+          1,
+          4,
+          64
+        ],
+        "memory_pressure": "normal",
+        "peak_mlx_bytes": 220286328,
+        "step_index": 0,
+        "thermal_state": "nominal"
+      },
+      {
+        "completed_blocks": 60,
+        "latent_finite": true,
+        "latent_shape": [
+          1,
+          4,
+          64
+        ],
+        "memory_pressure": "normal",
+        "peak_mlx_bytes": 220385144,
+        "step_index": 1,
+        "thermal_state": "nominal"
+      }
+    ],
+    "steps": 2,
+    "stores_output": false,
+    "stores_prompt": false,
+    "uses_real_prompt": true,
+    "width": 32
+  },
+  "uses_real_latent": false,
+  "uses_real_prompt": true
+}

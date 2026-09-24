@@ -2426,7 +2426,7 @@ retain／reprecision／evict planと解放byte数を決定論的に生成する�
 [Done] backend-owned stateのatomic reprecision／rollbackとscheduler safe-point適用。backendがstate recordを列挙し、
 transaction begin／commit／rollbackを所有する。active reservation中はpending化し、最後のreservation完了時に
 semantic cache resize、adaptive transaction、execution planの順で適用する。commit失敗はrollbackして旧stateを維持する
-[Next] 実KV・recurrent state backendによる品質／memory promotion gate
+[Done] 実KV・recurrent state backendによる品質／memory promotion gate
 [Done] event-driven memory pressure monitoring and safe-point propagation
 ```
 
@@ -2434,7 +2434,8 @@ semantic cache resize、adaptive transaction、execution planの順で適用す�
 
 ## Parallel Track O — Model Optimization Compiler
 
-状態：`[Next]` foundation、`[Later]` model変換と構造最適化
+状態：`[Done]` foundation、representation／evaluation／構造最適化／companion app。
+実Developer ID／notary資格情報による初回署名artifactだけを`[Pending]`とする
 
 本trackは推論runtimeを変更する機能ではなく、open-weight modelからMacと用途に適した
 新しいimmutable artifactを生成するcompanion systemとする。大量の一時memory、長時間処理、
@@ -2700,7 +2701,7 @@ repository外の`large-memory` self-hosted runnerを必要とするため、load
 
 ## Phase 4 — Vision
 
-状態：`[Next]`
+状態：`[Done]` foundation（model固有VLMの実機昇格は個別qualificationで管理）
 
 実装：
 
@@ -2726,7 +2727,7 @@ batch plannerを実装した。Resize、Normalize、Patchify、Projectionを単�
 
 ## Phase 5 — Audio
 
-状態：`[Next]`
+状態：`[Done]` foundation（音声対応LLMとmodel固有projection artifact待ちは`[Pending]`）
 
 実装：
 
@@ -2789,7 +2790,7 @@ latency、peak RSS、pressure、thermalを検証する。Apple M4実測は3入�
 
 ## Phase 6 — Video
 
-状態：`[Next]`
+状態：`[Done]` foundation（未配置HunyuanVideo／Wan A14Bの実機試験は`[Pending]`）
 
 実装：
 
@@ -2947,8 +2948,9 @@ local-files-only、MPS availability、candidate/pipeline identity、memory hard 
 
 ## Phase 7 — Generative Media
 
-状態：`[Next]`（image／video、audio／music qualification foundation、Kokoro speechおよび
-MiniMax Music3 4-bitの実機認定は完了。残るimage系の実機gateは個別に継続）
+状態：`[Done]` foundation（image／video、audio／music qualification foundation、Kokoro speech、
+MiniMax Music3 4-bit、Qwen-Image-2512 256px staged generationの実機認定まで完了。
+未配置modelおよび大容量Apple Siliconを必要とするprofileは`[Pending]`）
 
 実装：
 
@@ -3142,12 +3144,72 @@ FlowMatch Euler schedulerと実ノイズ初期化を追加し、合成prompt／3
 `[1,3,1,32,32]`は有限、peak MLX 468,062,634 bytes、process peak RSS 492,060,672 bytes、
 pressure normalだった。32px・2 stepは生成品質の判定に使わず、実promptと実用寸法の
 qualificationを別途必要とする。
-128×128・2 stepの拡大では、2 stepとVAEの有限出力後にmemory pressureがwarningとなり
-qualification不合格だった。decoder前のtransformer／中間tensor解放と、使用しないVAE encoder
-parameterの非保持を追加したが、空きメモリが約7–9 GBの再試験はstep 0の入場判定で停止した。
-decoder単体の小latent smokeは改善後も合格し、peak MLXは417,229,590 bytes、process RSSは
-246,398,976 bytesだった。128px以上の開始前空きメモリは暫定的に128px 10 GB、256px 14 GB、
-512px 20 GBを下限とし、合格を意味する値ではない。
+128×128・2 stepの初回拡大ではVAE有限出力後にmemory pressureがwarningとなったため、
+decoder前のtransformer／中間tensor解放と、使用しないVAE encoder parameterの非保持を追加した。
+空きメモリ12.5 GBからの再qualificationは2/2 step・120/120 block、有限`[1,3,1,128,128]`、
+pressure normal、peak MLX 1,188,085,938 bytes、process RSS 565,231,616 bytesで合格した。
+また英語実promptを28層encodeしてprivate handoffし、別processで32pxの実ノイズ、2 step、
+120 block、scheduler更新、VAEまで一体実行した。private残存0、有限出力、pressure normalを確認した。
+128pxは実行可能性のみで品質認定ではない。次段階の開始前空きメモリは暫定的に256px 14 GB、
+512px 20 GBを下限とし、合格や品質を意味する値ではない。
+その後、合成promptの256×256・2 stepを14.28 GB availableから実行し、120/120 block、
+有限`[1,3,1,256,256]`、pressure normal、peak MLX 2,182,199,798 bytesで合格した。
+英語実promptは128×128・4 stepまで拡張し、28層encode、private handoff、240/240 block、
+VAE、cleanup、normal pressureを確認した。decoded tensorのmin/max/mean/standard deviationを
+qualification reportへ追加し、視覚確認前に定数画像や数値発散を検出する。negative prompt／CFG、
+十分なstep数、意味品質は未認定とする。
+true CFGではpositive／negative promptを逐次text encoderで別々に処理し、それぞれを独立した
+private一回消費handoffへ保存する。consumerは両manifestをcandidate／plan／prompt identityで検証し、
+各stepでpositive／negativeを60 blockずつ実行する。合成はMFLUXと同じ
+`negative + guidance * (positive - negative)`にcondition norm補正を加える。guidance 4.0、
+32px、2 stepの実機smokeで56 encoder層、240 block、両handoff cleanup、有限VAE出力、
+pressure normalを確認した。decoded標準偏差0.516、値域約2.22だが、低解像度のため意味品質は未認定とする。
+同じtrue CFG経路を128×128・4 stepへ拡大し、56 encoder層、480 transformer block、
+両handoff cleanup、有限VAE出力、pressure normalを確認した。decoded標準偏差0.239、
+値域約2.27、transformer/VAE peak MLX 1,188,102,592 bytes、peak RSS 668,909,568 bytesだった。
+これも低解像度・少stepの実行可能性証跡であり、視覚品質の認定には使用しない。
+さらに128×128・20 stepへ拡張し、56 encoder層、2,400 transformer block、両handoff cleanup、
+全step pressure normal、最終thermal fair、有限`[1,3,1,128,128]`を確認した。実行時間は約464.9秒、
+transformer/VAE peak MLX 1,188,102,720 bytes、peak RSS 641,253,376 bytesである。PNGはowner-onlyの
+一時fileからatomic renameし、reportのSHA-256と保存fileを照合する。decoded標準偏差0.491、値域約2.41で
+数値上は非退化だが、実視では固定promptの赤いリンゴを明確に識別できなかったため
+`image_quality_qualified=false`を維持する。scheduler、timestep、CFG合成はMFLUX 0.33.1標準実装と
+照合済みであり、次はstep数を変えず256pxへ解像度だけを上げる。256pxでも意味品質が得られない場合は、
+量子化block／static layer／prompt encodingを標準MFLUXと中間tensor単位で比較してから再生成する。
+生成前の切り分けとして、exact-offset selective readerとMLX標準`safetensors` readerから独立に
+固定層と量子化blockを構築し、同一のimage／text／timestep／RoPE入力で比較した。別shard端点の
+block 0と59はいずれもtext／image出力がbit-exactで、最大絶対誤差は0だった。従ってselective reader、
+4-bit module構築、固定層、RoPE、端点blockの不一致は第一原因から除外する。ただし全60 blockを独立比較した
+証跡ではないため、256pxでも不合格の場合はprompt encoderの標準経路比較と中間block samplingを追加する。
+text encoderについてもexact-offset BF16/F32 readerとMLX標準readerから独立にlayerを構築し、同一hidden state、
+attention mask、Qwen RoPEを入力した。layer 0／13／27の出力はいずれもbit-exact、最大絶対誤差0であり、
+`embed_tokens.weight`／最終`norm.weight`／`rotary_emb.inv_freq`も全要素一致した。先頭・中間・末尾encoder
+layerと全共通weightのload差分を第一原因から除外する。transformerもblock 0／30／59でbit-exactである。
+これは全28／60層や実prompt意味品質の独立比較ではない。
+256px・20 step本試験は親process開始時available 17.48 GBだったが、positive／negative promptの56層encode後、
+child側14 GB admissionを満たさずtransformer weight load前に安全停止した。開始条件は親開始時だけでなく、prompt
+encode後のchild起動時にも満たす必要がある。child report生成前のadmission停止も固定failure code、return code、
+private handoff cleanupを親の最終reportへ残し、例外だけで証跡を失わない。
+親processのallocator resident自体をgenerationへ持ち越さないため、staged orchestratorでは親がMLXをimportせず、
+positive encoder processを終了してからnegative encoder processを起動し、両方が終了した後だけgeneration processを
+起動する。handoffは既存のidentity-bound一回消費ABIを用い、prompt本文を保存しない。32px・2 step true CFGで
+2 encoder phase、56 layer、240 transformer block、両handoff消費、temporary root cleanup、normal pressureを確認した。
+解像度別admissionはstaged親とgeneration childの双方で検証し、256pxは14 GB、512pxは20 GB未満なら開始しない。
+段階的promotionとして160pxは11 GB、192pxは12 GBを下限に追加した。192px試験は開始直前の再判定で
+12 GBを下回りweight load前に停止した。同じprofileは再試行せず、11 GB gateを満たした160×160・20 stepを
+実行した。2 encoder phase／56 layer、2,400 block、全step pressure normal、最終thermal fair、有限VAE出力、
+handoff cleanup、PNG digest一致を確認した。generation peak MLXは1,599,759,092 bytes、peak RSSは
+651,444,224 bytes、全体は約514.0秒だった。PNGの固定digestと実行report digestへ結合したmanual visual reviewで、
+赤いリンゴと白系の台面を認識でき、固定promptの意味品質を合格とした。160pxは128pxから解像度だけを上げた
+品質promotionであり、256pxのmemory stability確認を置き換えない。
+160px execution reportをpromotion baselineとして、同一artifact、staged process、true CFG、20/20 step、
+all-normal、cleanup、memory peakをstrict loaderで再検証し、targetをbaselineの2倍以内に制限した。
+実測peakの4倍、RSSの4倍、encoder RSSの2倍、10 GB floorの最大値をevidence-bound admissionとする。
+このgateで開始前available 11.62 GBから256×256・20 stepを実行し、2 encoder phase／56 layer、
+2,400 block、全step pressure normal、最終thermal fair、有限`[1,3,1,256,256]`、handoff cleanup、
+PNG digest一致を確認した。generation peak MLXは2,182,266,500 bytes、peak RSSは633,749,504 bytes、
+全体約478.8秒である。digest-bound visual reviewでは赤いリンゴ、茎、白系の台面、接地影を明瞭に確認し、
+固定promptの意味品質を合格とした。
 
 Qwen-Image-2.1ではpromptをsequential CPU offload下で先にencodeし、embeddingを確定した時点で既存offload hookを外す。
 その後text encoderとtokenizerのpipeline参照を破棄し、GC、MPS synchronize、cache解放を行ってから、残る
@@ -3296,8 +3358,8 @@ large Unified Memory optimization
 
 ## Phase 9 — Multi-Mac
 
-状態：`[Next]`（bounded planner、authenticated framing、loopback mTLS、execution coordinatorは実装済み。
-物理複数Mac qualificationが未完了）
+状態：`[Done]` foundation（bounded planner、authenticated framing、loopback mTLS、execution coordinatorは実装済み。
+2台以上の物理Mac qualificationはhardware待ちの`[Pending]`）
 
 ```text
 Thunderbolt
@@ -3435,7 +3497,8 @@ versioned execution planへ記録し、active request中は変更せずscheduler
    未知値ではautomaticへfail-closedする。保存に失敗した管理APIは稼働中policyを変更しない。
    これらの再起動時復元も`[Done]`とする。Vision/Audio encoderとembeddingのCore ML routing、
    capability／correctness gate、GPU LLM pipelineとの非同期連携基盤、classifier実artifact認定は
-   `[Done]`とする。Whisper encoderからGPU LLMへのmodel固有projection／品質gateを`[Next]`とする。
+   `[Done]`とする。Whisper encoderからGPU LLMへのmodel固有projection／品質gateは、対応LLMと
+   projection artifactが未配置のため`[Pending]`とする。
 23. `[Done]` CPU/Core ML draft + GPU verifyをcorrectness-neutralに扱うexecutor、GPU検証済みtokenだけの公開、
    correction、resource reservation、3 sample以上・同一出力・5%以上改善のprofile gateを実装する。
    合格profileだけをowner-only／bounded／atomicに永続化し、model hash、precision、backend、latency、
@@ -3446,8 +3509,10 @@ versioned execution planへ記録し、active request中は変更せずscheduler
    別構成を測定し、5%以上改善したprofileだけを標準decode routeへ昇格する。
 24. `[Done]` thermal、memory pressure、low-power modeを入力に、batch、concurrency、device assignmentを
    段階的に縮退・復元する。既存requestをcancelせず、新規admissionを制限し、緩和は次のsafe pointで適用する。
-25. `[Later]` hardware、OS、Core ML、MLX、Metal、model、shapeに結び付いたprofileを保存し、期限切れ、
+25. `[Done]` hardware、OS、Core ML、MLX、Metal、model、shapeに結び付いたprofileを保存し、期限切れ、
    quarantine、last-known-good rollbackを既存kernel profileと同じfail-closed policyで管理する。
+   ROADMAP 58–77で、hardware/environment fingerprint、private atomic保存、起動時の適合profile選択、
+   readiness失敗時rollback、quarantine retention、明示restore、OS/toolchain/MLX変更時の失効まで実装・回帰固定済み。
 
 昇格条件は、backend間のbounded numerical comparisonまたはtask固有quality gateが合格し、代表workloadで
 TTFT、TPOT、throughput、energy/requestの少なくとも一つが改善し、peak Unified Memory、memory pressure、

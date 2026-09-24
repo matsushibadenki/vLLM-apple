@@ -1,0 +1,45 @@
+{
+  "artifact_bytes": 25907123451,
+  "artifact_file_count": 21,
+  "artifact_root_sha256": "fb4f6226e0dbf21258098ec7f5eb73517122c56c131c8f89c1d825ee9fd229fe",
+  "block_index": 59,
+  "candidate_id": "qwen-image-2512",
+  "comparison": "exact-offset selective reader versus mlx.core.load",
+  "elapsed_nanoseconds": 174205625,
+  "final_memory_pressure": "normal",
+  "final_thermal_state": "nominal",
+  "image_quality_qualified": false,
+  "initial_memory_pressure": "normal",
+  "mflux_version": "0.33.1",
+  "mlx_version": "0.31.2",
+  "output_image_exact": true,
+  "output_image_maximum_absolute_error": 0.0,
+  "output_image_sha256": "14292a8a9a85023ff644c2872195e9792e2618ce8d6495d8ad300dc09fd69d7d",
+  "output_image_shape": [
+    1,
+    4,
+    3072
+  ],
+  "output_text_exact": true,
+  "output_text_maximum_absolute_error": 0.0,
+  "output_text_sha256": "e41ed65277443b083e5cff7b9794f14c74b52d0289a6ba2e162491faae36bf36",
+  "output_text_shape": [
+    1,
+    13,
+    3072
+  ],
+  "passed": true,
+  "peak_mlx_bytes": 221116596,
+  "peak_process_rss_bytes": 429981696,
+  "schema_version": 1,
+  "scope": "mflux_qwen_image_streamed_transformer_standard_reader_parity",
+  "static_layers_compared": [
+    "img_in",
+    "txt_norm",
+    "txt_in",
+    "time_text_embed",
+    "pos_embed"
+  ],
+  "stores_output": false,
+  "stores_prompt": false
+}
