@@ -14,8 +14,6 @@ _MAX_DECODER_BYTES = 192 * 1024 * 1024
 
 def inspect_mflux_qwen_vae_decoder(model_root: Path) -> dict[str, int]:
     """Verify decoder descriptors and index binding without loading tensor payloads."""
-    from safetensors import safe_open
-
     component = model_root / "vae"
     index = component / "model.safetensors.index.json"
     index_info = index.lstat()
@@ -41,6 +39,10 @@ def inspect_mflux_qwen_vae_decoder(model_root: Path) -> dict[str, int]:
     before = shard.lstat()
     if not stat.S_ISREG(before.st_mode) or before.st_size < 16:
         raise ValueError("Qwen VAE shard must be a regular file")
+    try:
+        from safetensors import safe_open
+    except ImportError as error:
+        raise RuntimeError("safetensors is required for Qwen VAE inspection") from error
     decoder_bytes = 0
     with safe_open(str(shard), framework="numpy") as handle:
         if set(handle.keys()) != set(weight_map):

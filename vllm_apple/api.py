@@ -38,6 +38,41 @@ from .version import API_VERSION, MINIMUM_CLIENT_VERSION, SCHEMA_VERSION, __vers
 MAX_REQUEST_BYTES = 4 * 1024 * 1024
 MAX_OPTIMIZER_REQUEST_BYTES = 1 * 1024 * 1024
 
+# Adapted from vLLM PR #54684: validation failures must not echo an
+# attacker-controlled value into an unbounded response. This API normalizes
+# failures to one message, so cap that final public boundary.
+MAX_ERROR_MESSAGE_CHARS = 1000
+_ERROR_TRUNCATION_MARKER = "...[truncated]"
+_CACHE_SALT_FORBIDDEN_CHARS = frozenset("@/\\\x00")
+_MAX_CACHE_SALT_LENGTH = 128
+
+
+def _bounded_error_message(message: str) -> str:
+    """Return a deterministic, size-bounded public error message."""
+    if len(message) <= MAX_ERROR_MESSAGE_CHARS:
+        return message
+    keep = MAX_ERROR_MESSAGE_CHARS - len(_ERROR_TRUNCATION_MARKER)
+    return message[:keep] + _ERROR_TRUNCATION_MARKER
+
+
+def _validate_cache_salt(cache_salt: object) -> None:
+    """Validate cache salts before forwarding them to a cache backend.
+
+    Ported from vLLM PR #51444 so older Metal candidates receive the same
+    fail-closed request boundary as current upstream vLLM.
+    """
+    if cache_salt is None:
+        return
+    if not isinstance(cache_salt, str) or not cache_salt:
+        raise ValueError("cache_salt must be a non-empty string if provided")
+    if len(cache_salt) > _MAX_CACHE_SALT_LENGTH or any(
+        char in _CACHE_SALT_FORBIDDEN_CHARS for char in cache_salt
+    ):
+        raise ValueError(
+            "cache_salt must be at most 128 characters and must not contain "
+            "'@', '/', '\\', or NUL"
+        )
+
 
 class OptimizerController(Protocol):
     def handle(self, operation: str, payload: bytes) -> bytes: ...
@@ -337,7 +372,7 @@ class RuntimeRequestHandler(BaseHTTPRequestHandler):
             status,
             {
                 "error": {
-                    "message": message,
+                    "message": _bounded_error_message(message),
                     "type": "vllm_apple_error",
                     "param": None,
                     "code": code,
@@ -453,6 +488,11 @@ class RuntimeRequestHandler(BaseHTTPRequestHandler):
             return
         request = self._read_json()
         if request is None:
+            return
+        try:
+            _validate_cache_salt(request.get("cache_salt"))
+        except ValueError as error:
+            self._error(HTTPStatus.BAD_REQUEST, "invalid_cache_salt", str(error))
             return
         if request.get("stream") is True:
             self._stream_chat(request)

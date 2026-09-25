@@ -3,6 +3,7 @@ import json
 import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from unittest.mock import patch
 
 from vllm_apple.mflux_qwen_vae_loader import inspect_mflux_qwen_vae_decoder
 
@@ -40,5 +41,13 @@ class MFluxQwenVAELoaderTests(unittest.TestCase):
 
     def test_missing_index_rejected(self) -> None:
         with TemporaryDirectory() as directory:
-            with self.assertRaises(FileNotFoundError):
-                inspect_mflux_qwen_vae_decoder(Path(directory))
+            original_import = __import__
+
+            def import_without_safetensors(name, *args, **kwargs):
+                if name == "safetensors":
+                    raise ModuleNotFoundError(name)
+                return original_import(name, *args, **kwargs)
+
+            with patch("builtins.__import__", side_effect=import_without_safetensors):
+                with self.assertRaises(FileNotFoundError):
+                    inspect_mflux_qwen_vae_decoder(Path(directory))

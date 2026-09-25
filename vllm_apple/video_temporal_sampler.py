@@ -7,6 +7,10 @@ from typing import Generic, Sequence, TypeVar
 
 T = TypeVar("T")
 
+# vLLM PR #56729 caps Qwen2/3-VL client-controlled video sampling at 768
+# frames. Keep the backend-neutral Apple sampling boundary equally strict.
+MAX_VIDEO_SAMPLE_FRAMES = 768
+
 
 @dataclass(frozen=True, slots=True)
 class TemporalVideoFrame(Generic[T]):
@@ -48,7 +52,7 @@ def sample_temporal_frames(
     """Preserve salient frames, then fill gaps by farthest temporal distance."""
     if (
         type(maximum_frames) is not int
-        or not 1 <= maximum_frames <= 4096
+        or not 1 <= maximum_frames <= MAX_VIDEO_SAMPLE_FRAMES
         or len(frames) > 1_000_000
         or not math.isfinite(minimum_interval_seconds)
         or minimum_interval_seconds < 0

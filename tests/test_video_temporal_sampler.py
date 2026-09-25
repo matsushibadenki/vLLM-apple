@@ -1,6 +1,10 @@
 import unittest
 
-from vllm_apple.video_temporal_sampler import TemporalVideoFrame, sample_temporal_frames
+from vllm_apple.video_temporal_sampler import (
+    MAX_VIDEO_SAMPLE_FRAMES,
+    TemporalVideoFrame,
+    sample_temporal_frames,
+)
 
 
 def frame(index, *, keyframe=False, scene=0.0):
@@ -45,6 +49,12 @@ class VideoTemporalSamplerTests(unittest.TestCase):
             sample_temporal_frames([frame(1), frame(1)], maximum_frames=1)
         with self.assertRaisesRegex(ValueError, "configuration"):
             sample_temporal_frames([], maximum_frames=0)
+        with self.assertRaisesRegex(ValueError, "configuration"):
+            sample_temporal_frames([], maximum_frames=MAX_VIDEO_SAMPLE_FRAMES + 1)
+
+    def test_upstream_qwen_video_frame_ceiling_is_accepted_exactly(self):
+        report = sample_temporal_frames([], maximum_frames=MAX_VIDEO_SAMPLE_FRAMES)
+        self.assertEqual(report.maximum_frames, 768)
 
 
 if __name__ == "__main__":

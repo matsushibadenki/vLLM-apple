@@ -99,6 +99,25 @@ class APITests(unittest.TestCase):
         payload = json.load(raised.exception)
         self.assertEqual(payload["error"]["code"], "backend_unavailable")
 
+    def test_chat_rejects_cache_salt_before_backend(self) -> None:
+        for stream in (False, True):
+            request = urllib.request.Request(
+                self.base_url + "/v1/chat/completions",
+                data=json.dumps({
+                    "model": "none", "messages": [], "stream": stream,
+                    "cache_salt": "../unsafe",
+                }).encode(),
+                headers={"Content-Type": "application/json"},
+                method="POST",
+            )
+            with self.subTest(stream=stream):
+                with self.assertRaises(urllib.error.HTTPError) as raised:
+                    urllib.request.urlopen(request, timeout=2)
+                self.assertEqual(raised.exception.code, 400)
+                self.assertEqual(
+                    json.load(raised.exception)["error"]["code"], "invalid_cache_salt"
+                )
+
     def test_chat_is_rejected_before_backend_during_critical_pressure(self) -> None:
         self.server.service.apply_memory_pressure(MemoryPressure.CRITICAL)
         try:
