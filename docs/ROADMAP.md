@@ -1463,6 +1463,7 @@ Unified Memoryとmemory bandwidthを共有する一つの実行系として管�
 248. `[Done]` vLLM 0.30.0 security修正PR #54684のbounded validation error方針をcontrol API境界へ移植。Pydantic error配列を公開しない本APIに合わせ、backend／validation／runtime由来を含む全public error messageを1,000文字へ制限し、短い診断は完全保持、長大ASCII／escape／多byte入力は決定的marker付きで切り詰める。未認定のvLLM 0.30.0自体をversion matrixへ昇格せず、platform非依存の境界防御だけを流用した
 249. `[Done]` vLLM 0.30.0 security修正PR #51444の`cache_salt`検証をchat frontendへ移植。non-stream／streamの分岐前に、非empty文字列、128文字上限、`@`／slash／backslash／NUL禁止を検証し、不正値をvLLM-Metalや外部cache backendへ渡さず固定400 errorで拒否する。現行Metal candidateが旧vLLM protocolでも新しいupstream境界を保持する
 250. `[Done]` vLLM 0.30.0 security修正PR #56729のQwen2／Qwen3-VL動画sampling hard capをbackend-neutral temporal samplerへ移植。client指定の最大抽出frameを768以下へfail-closed制限し、scene-aware選択やdecoder開始後ではなくsampling設定検証時点で過大要求を拒否する。FPS指定を受けない本経路へ不要なparameterは追加せず、実際に存在するframe-count attack surfaceだけを保護した
+251. `[Done]` vLLM 0.30.0 benchmark修正PR #55508のstreaming timing invariantをphase qualificationへ移植。TTFTは最初の生成chunk、E2E終点は最後の生成chunkの単一timestampで記録し、choice-less usage trailerと`[DONE]`の配送時間をdecode／TPOTへ加算しない。client semaphoreを持たない同期probeへqueue metricは捏造せず、該当する計測補正だけを適用した
 
 この順序により、まず推論runtimeの実model安定性を確立し、その境界を壊さずにoptimizerを
 別processとして追加する。構造pruningはquantization、calibration、評価gateの後に着手する。

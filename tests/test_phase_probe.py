@@ -3,6 +3,7 @@ import os
 import threading
 import unittest
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from unittest.mock import patch
 
 from tests.schema_validator import validate_instance
 from tests.test_schemas import load_schema
@@ -92,6 +93,22 @@ class PhaseProbeTests(unittest.TestCase):
         validate_instance(
             result, load_schema("runtime/execution-phase-profile-v1.schema.json")
         )
+
+    def test_usage_and_done_trailers_do_not_extend_token_latency(self) -> None:
+        server = self._server(UsageStreamHandler)
+        config = PhaseProbeConfig(
+            base_url=f"http://127.0.0.1:{server.server_port}",
+            model="test-model",
+            hardware_fingerprint="test-hardware",
+        )
+        with patch(
+            "vllm_apple.phase_probe.time.monotonic_ns",
+            side_effect=(1_000_000, 2_000_000),
+        ) as clock:
+            result = measure_stream(config)
+        self.assertEqual(result.measurement.first_token_ns, 2_000_000)
+        self.assertEqual(result.measurement.completed_ns, 2_000_000)
+        self.assertEqual(clock.call_count, 2)
 
     def test_missing_usage_is_not_replaced_by_an_estimate(self) -> None:
         server = self._server(MissingUsageStreamHandler)

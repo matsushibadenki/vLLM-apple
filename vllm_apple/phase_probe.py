@@ -148,7 +148,7 @@ def measure_stream(
 
     started_ns = time.monotonic_ns()
     first_token_ns: int | None = None
-    completed_ns = started_ns
+    last_token_ns: int | None = None
     usage: dict[str, Any] | None = None
     expected_matched = False
     match_tail = ""
@@ -175,7 +175,6 @@ def measure_stream(
                 data = line[5:].strip()
                 if data == b"[DONE]":
                     stream_completed = True
-                    completed_ns = time.monotonic_ns()
                     break
                 try:
                     event = json.loads(data)
@@ -188,8 +187,11 @@ def measure_stream(
                         "backend_stream_error", "backend reported an error in the SSE stream"
                     )
                 generated = _generated_text(event)
-                if generated and first_token_ns is None:
-                    first_token_ns = time.monotonic_ns()
+                if generated:
+                    token_ns = time.monotonic_ns()
+                    if first_token_ns is None:
+                        first_token_ns = token_ns
+                    last_token_ns = token_ns
                 answer = _answer_text(event)
                 if expected_text is not None and answer:
                     if expected_match_mode == "trimmed_exact":
@@ -205,7 +207,6 @@ def measure_stream(
                 candidate = event.get("usage")
                 if isinstance(candidate, dict):
                     usage = candidate
-            completed_ns = max(completed_ns, time.monotonic_ns())
     except urllib.error.HTTPError as error:
         error.read(64 * 1024)
         raise PhaseProbeError("backend_http_error", f"backend returned HTTP {error.code}") from error
@@ -218,7 +219,7 @@ def measure_stream(
 
     if not stream_completed:
         raise PhaseProbeError("incomplete_stream", "backend stream ended without [DONE]")
-    if first_token_ns is None:
+    if first_token_ns is None or last_token_ns is None:
         raise PhaseProbeError("first_token_missing", "stream contained no generated token")
     prompt_tokens = _usage_integer(usage, "prompt_tokens")
     output_tokens = _usage_integer(usage, "completion_tokens")
@@ -238,7 +239,7 @@ def measure_stream(
         measurement=PhaseMeasurement(
             started_ns=started_ns,
             first_token_ns=first_token_ns,
-            completed_ns=completed_ns,
+            completed_ns=last_token_ns,
             prompt_tokens=prompt_tokens,
             output_tokens=output_tokens,
             peak_memory_bytes=peak[0],
