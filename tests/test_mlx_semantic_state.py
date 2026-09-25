@@ -101,6 +101,24 @@ class MLXPromptCacheStateAdapterTests(unittest.TestCase):
         self.assertEqual(adapter.snapshot()["entry_count"], 0)
         self.assertEqual(len(snapshots), 1)
 
+    def test_incomplete_wide_snapshot_is_released_without_admission(self) -> None:
+        snapshot = [FakeArray(4), *([None] * 5000)]
+        released = []
+        adapter = MLXPromptCacheStateAdapter(
+            lambda: snapshot,
+            lambda _snapshot: True,
+            released.append,
+            capacity_entries=1,
+            capacity_bytes=8,
+        )
+        self.assertIsNone(adapter.capture_semantic_state(
+            SESSION, PREFIX, 1, SemanticAnchorKind.TURN
+        ))
+        self.assertEqual(len(released), 1)
+        self.assertIs(released[0], snapshot)
+        self.assertEqual(adapter.snapshot()["resident_bytes"], 0)
+        self.assertEqual(adapter.snapshot()["entry_count"], 0)
+
     def test_invalid_metadata_and_handles_fail_closed(self) -> None:
         adapter, _, _, _ = self.adapter()
         with self.assertRaises(ValueError):

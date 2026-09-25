@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 from typing import Any
 
 MAXIMUM_CACHE_NODES = 4096
@@ -10,37 +11,63 @@ MAXIMUM_TOKENIZE_REQUEST_BYTES = 8 * 1024 * 1024
 
 
 def bounded_cache_nbytes(value: object, maximum_nodes: int = MAXIMUM_CACHE_NODES) -> tuple[int, bool]:
-    """Count distinct MLX array storage without retaining or materializing tensors."""
-    pending = [value]
-    seen: set[int] = set()
+    """Count distinct array objects with bounded work and no tensor evaluation.
+
+    The budget includes container entries, aliases and scalar metadata. Iterator
+    frames avoid copying a wide cache's children before checking that budget.
+    References live only for this traversal, preventing temporary state objects
+    from reusing an identity that has already been visited.
+    """
+    if type(maximum_nodes) is not int or maximum_nodes <= 0:
+        raise ValueError("cache traversal budget must be a positive integer")
+    pending = [iter((value,))]
+    seen: dict[int, object] = {}
     total = 0
     nodes = 0
     while pending:
-        item = pending.pop()
+        try:
+            item = next(pending[-1])
+        except StopIteration:
+            pending.pop()
+            continue
+        nodes += 1
+        if nodes > maximum_nodes:
+            return total, False
         if item is None or isinstance(item, (str, bytes, int, float, bool)):
             continue
         identity = id(item)
         if identity in seen:
             continue
-        seen.add(identity)
-        nodes += 1
-        if nodes > maximum_nodes:
-            return total, False
-        nbytes = getattr(item, "nbytes", None)
+        seen[identity] = item
+        nbytes = _array_nbytes(item)
         if isinstance(nbytes, int) and not isinstance(nbytes, bool) and nbytes >= 0:
             total += nbytes
             continue
         if isinstance(item, dict):
-            pending.extend(item.values())
+            pending.append(iter(item.values()))
         elif isinstance(item, (list, tuple)):
-            pending.extend(item)
+            pending.append(iter(item))
         else:
             try:
                 state = item.state
             except (AttributeError, RuntimeError, ValueError):
                 continue
-            pending.append(state)
+            pending.append(iter((state,)))
     return total, True
+
+
+def _array_nbytes(value: object) -> int | None:
+    """Prefer MLX shape/dtype metadata over the array's nbytes property."""
+    shape = getattr(value, "shape", None)
+    item_size = getattr(getattr(value, "dtype", None), "size", None)
+    if (
+        isinstance(shape, (tuple, list))
+        and type(item_size) is int
+        and item_size > 0
+        and all(type(dimension) is int and dimension >= 0 for dimension in shape)
+    ):
+        return math.prod(shape) * item_size
+    return getattr(value, "nbytes", None)
 
 
 def tokenize_chat_request(model_provider: object, payload: object) -> int:

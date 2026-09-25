@@ -1,6 +1,7 @@
 import io
 import json
 import unittest
+from types import SimpleNamespace
 from unittest.mock import patch
 
 from vllm_apple.backend_memory import MLXMemoryMetricsAdapter
@@ -15,6 +16,16 @@ class FakeArray:
 class FakeCache:
     def __init__(self, state: object) -> None:
         self.state = state
+
+
+class LazyArray:
+    def __init__(self, shape, item_size=2):
+        self.shape = shape
+        self.dtype = SimpleNamespace(size=item_size)
+
+    @property
+    def nbytes(self):
+        raise AssertionError("lazy array nbytes must not be accessed")
 
 
 class FakeTokenizer:
@@ -81,6 +92,49 @@ class MLXServerTelemetryTests(unittest.TestCase):
         self.assertEqual(sample.allocator_current_bytes, 120)
         self.assertEqual(sample.allocator_peak_bytes, 150)
         self.assertEqual(sample.kv_used_bytes, 16)
+
+    def test_lazy_quantized_and_nested_states_use_metadata(self) -> None:
+        packed = LazyArray((2, 3, 4), 4)
+        scales = LazyArray((2, 3))
+        state = FakeCache({"quantized": (packed, scales, None),
+                           "nested": [packed, LazyArray(()), LazyArray((0, 4))]})
+        self.assertEqual(bounded_cache_nbytes(state), (110, True))
+
+    def test_cycles_and_exact_budget_are_supported(self) -> None:
+        state = [FakeArray(8)]
+        state.append(state)
+        self.assertEqual(bounded_cache_nbytes(state, maximum_nodes=3), (8, True))
+        self.assertEqual(bounded_cache_nbytes(state, maximum_nodes=2), (8, False))
+
+    def test_wide_containers_do_not_expand_before_budget_check(self) -> None:
+        class WideList(list):
+            def __iter__(self):
+                for _ in range(1_000_000):
+                    self.visits += 1
+                    if self.visits > 5:
+                        raise AssertionError("traversal eagerly expanded children")
+                    yield None
+
+        state = WideList()
+        state.visits = 0
+        self.assertEqual(bounded_cache_nbytes(state, maximum_nodes=5), (0, False))
+        self.assertEqual(state.visits, 5)
+
+    def test_repeated_aliases_consume_traversal_budget(self) -> None:
+        shared = FakeArray(8)
+        self.assertEqual(
+            bounded_cache_nbytes([shared] * 100, maximum_nodes=5), (8, False)
+        )
+
+    def test_invalid_metadata_falls_back_to_nbytes(self) -> None:
+        for shape, size in [((True,), 2), ((-1,), 2), ((2,), True), ((2,), None)]:
+            array = SimpleNamespace(shape=shape, dtype=SimpleNamespace(size=size), nbytes=8)
+            self.assertEqual(bounded_cache_nbytes(array), (8, True))
+
+    def test_invalid_traversal_budgets_are_rejected(self) -> None:
+        for budget in [0, -1, True, 1.5]:
+            with self.assertRaises(ValueError):
+                bounded_cache_nbytes([], maximum_nodes=budget)
 
     def test_incomplete_cache_traversal_fails_closed(self) -> None:
         payload = json.dumps(

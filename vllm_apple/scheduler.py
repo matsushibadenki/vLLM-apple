@@ -180,6 +180,7 @@ class PriorityScheduleQueue:
         with self._condition:
             if self._requests.pop(token, None) is not None:
                 self._enqueued_ns.pop(token, None)
+                self._compact_cancelled_locked()
                 return True
             if token in self._claimed:
                 self._claimed.remove(token)
@@ -187,6 +188,19 @@ class PriorityScheduleQueue:
                 self._enqueued_ns.pop(token, None)
                 return True
             return False
+
+    def _compact_cancelled_locked(self) -> None:
+        """Bound tombstones even when no consumer drains the priority heap.
+
+        Preserve the original rank/sequence so restored claims and FIFO ties
+        remain ordered. Batch cleanup amortizes heap rebuilding across cancels.
+        The caller holds the condition lock, including during heap replacement.
+        """
+        if not self._requests:
+            self._heap.clear()
+        elif len(self._heap) > 2 * len(self._requests) + 64:
+            self._heap = [entry for entry in self._heap if entry[2] in self._requests]
+            heapq.heapify(self._heap)
 
     def finish_claim(self, token: str) -> bool:
         with self._condition:
