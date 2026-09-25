@@ -38,6 +38,14 @@ Intel Macは互換性の別枠とし、Apple Siliconの性能認定を適用し�
 
 現時点では、主要backend横断の同条件ランキング、代表モデル群の長時間SLO、全Mac世代での優位性を証明する比較資料は揃っていない。まずこの不足を埋める。
 
+## モデル対応範囲を広げる計画
+
+必要なarchitecture、共通operator、state契約、現行実装との差分は[LLMアーキテクチャ対応計画](LLM-ARCHITECTURE-SUPPORT.md)にまとめる。
+
+- [Next] P0のcapability matrixへ、モデル名だけでなくlayer構成・必須operator・weight形式・state layout・backend buildを登録し、unknownを対応済みと扱わない。
+- [Next] Dense MHA／MQA／GQA、local/global混在、標準MoEを代表モデルで認定する。
+- [Later] MLA、KV共有、Gated DeltaNet／KDA、SSM、短いconvを個別state契約で広げ、その後に高度な疎・圧縮Attentionと再帰実行へ進む。
+
 ## 実行アーキテクチャ
 
 ```text
