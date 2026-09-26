@@ -158,6 +158,49 @@ warm-up・cache充填後の同一負荷窓とidle回復時を比較し、RSS／a
 
 **完了条件：** 対応matrixの各認定セルに品質・性能・24時間安定性reportとrollback手順がある。機種横断平均だけで「最速」と表示せず、対象条件と比較日を公開する。
 
+## RAGとLoRAの段階的な完全対応
+
+推論経路の安定化と並行して、**外部RAG接続 → 固定LoRA推論 → 内蔵検索 → LoRA学習 → 複数LoRA運用 → 統合認定**の順に進める。「完全対応」は公開したmodel／architecture／backend／量子化の対応matrix内で、取り込みから回答、学習から配信までのライフサイクルを完結できることとする。未知の全モデルへの無条件対応を意味しない。
+
+### R0 — 外部検索との接続
+
+- [Done] `rag` CLIとPython APIで、検索済みチャンクから三言語の生成リクエストを構成する。資料のUTF-8 byte上限、丸ごとの除外、資料なし時のローカル回答不能、ループバックHTTP生成、出典ID／内容hashと参照IDの照合を実装。[利用手順](RAG-LORA.md)と`tests/test_rag.py`を参照。
+- [Done] 引用IDの存在確認と回答の事実性を分離する。`references_valid`でも`grounding_verified=false`とし、未知参照・引用なし・生成未完了を区別する。模擬HTTP試験は実モデルの品質認定に含めない。
+- [Next] 実tokenizerとchat templateでsystem／質問／資料／出力予約を含むcontext予算を検証する。モデル上限を超える資料選別と多言語境界条件をテストする。
+- [Next] 英語・日本語・简体中文の実モデル評価を追加。回答正確性、引用箇所との意味的整合性、資料不足時の回答不能、悪意ある資料への耐性を別指標で記録する。構成を固定したbaselineと比較し、runtime変更後のevidenceを再取得する。
+
+### L0 — 一つの固定LoRAを安全に配信
+
+- [Next] 起動時に一つのimmutable adapterを読み込む経路を実装。base modelとadapterのhash、形式、rank、target modules、dtype、量子化との互換性を事前検証し、未対応の組み合わせは明示的に拒否する。
+- [Next] adapter分のメモリをadmissionへ計上し、model一覧／capability／qualificationにadapter identityを含める。adapterなし・ありの数値差と三言語品質を実MLXで検証する。単にload成功しただけでは認定しない。
+- [Next] 外部学習済みadapterと、別artifactとしてmergeしたモデルの導入手順を用意する。merge結果は独立modelとして再認定し、量子化前後の品質差とrollbackを確認する。
+
+**R0／L0完了条件：** 対応matrixの少なくとも一構成で、出典付き回答と固定LoRA推論が実モデル試験に合格し、context超過・互換性不一致・メモリ不足を再現可能に処理できる。
+
+### R1 — 取り込み・検索・回答を一体化
+
+- [Later] 文書取り込み、parser、chunking、安定したdocument／chunk IDと版管理、差分更新・削除を実装する。まずtext／Markdownから始め、PDF等は形式別の検証後に追加する。
+- [Later] embedding modelを生成modelと別capabilityとして管理し、`/v1/embeddings`、batching、次元・正規化・revision検証、メモリ競合の制御を実装する。embedding更新時には再indexを必須にする。
+- [Later] 永続vector index、keywordとのhybrid検索、reranker、重複排除、引用spanを実装する。検索recallと回答品質を別々に測定し、障害時の復旧・index migration・削除反映を検証する。
+- [Later] 検索前のtenant／ACL filterとrerank前の再検証、権限変更・資料削除時のcache無効化、監査を実装する。corpus revision、embedding revision、権限scopeをcache identityへ含め、別利用者の資料を混入させない。
+
+### L1 — 学習と複数アダプター運用
+
+- [Later] 既存`RepairAdapter`の抽象契約を実MLX LoRA学習workerへ接続する。学習データ・seed・step・memory上限、checkpoint、cancel／resume、学習前後のperplexityと三言語task品質を記録する。QLoRAはbackend／architecture／量子化ごとの対応を検証する。
+- [Later] 学習と推論を別worker・budgetで管理し、GPU／unified memory競合を制御する。失敗時は既存配信を維持し、成果物の検証後に切り替え可能にする。
+- [Later] request単位のadapter指定、登録／削除／切り替え、GPU常駐上限とeviction、adapter別batch groupingを実装する。受付時にimmutable identityを固定し、処理中の差し替えを防止する。
+- [Later] KV／prefix cache keyにbase model、adapter hash、量子化、template等の実行identityを含める。異なるadapter間のKV共有を禁止し、同時実行・cancel・再起動で回答混入がないことを検証する。dynamic適用とmerge配信の品質・速度・メモリを比較する。
+
+### RL2 — 完全対応の受け入れ条件
+
+- [Later] CLI／API／SDKで、文書登録・更新・削除→権限付き検索→引用付き回答、および学習→評価→登録→配信→rollbackを通して操作できるようにする。三言語で同じ状態とerror codeを説明する。
+- [Later] 対応matrix各セルで、LoRAとRAGを併用した品質、検索・rerank・prefill・decode別latency、p95 TTFT／TPOT、goodput、memoryを記録する。個別機能の合格を併用認定に代用しない。
+- [Later] 文書更新、adapter切り替え、同時利用、cancel、メモリ逼迫、worker障害を含む8時間試験とrelease前24時間試験を通す。権限・adapter間の情報混入ゼロ、削除反映、復旧・rollbackを必須条件とする。品質・性能閾値は認定前にsuiteへ固定する。
+
+**English:** [Done] External RAG request preparation, bounded local generation and reference-ID diagnostics are implemented; factual grounding and tokenizer limits are not certified. [Next] Validate real-model RAG quality/context budgets and one immutable LoRA adapter. [Later] Add ingestion, embeddings, hybrid retrieval, reranking, ACLs, actual LoRA/QLoRA training, multi-adapter serving with isolated KV caches, and combined 8/24-hour qualification. Full support is scoped to an explicit compatibility matrix.
+
+**简体中文：** [Done] 已实现外部RAG请求构建、有界本地生成和引用ID检查，尚未认证事实依据或token预算。[Next] 验证真实模型的RAG质量与上下文预算，并支持单个固定LoRA适配器。[Later] 完成文档导入、embedding、混合检索、重排、权限、LoRA／QLoRA实际训练、多适配器与KV隔离，以及组合场景的8／24小时认证。完整支持以明确的兼容矩阵为范围。
+
 ## 別トラックとして維持する作業 [Later]
 
 | 作業 | 着手条件・必要な資源 |

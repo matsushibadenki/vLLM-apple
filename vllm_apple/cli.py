@@ -127,6 +127,7 @@ from .qwen_image_21_conversion_subprocess import run_qwen_image_21_conversion_wo
 from .qwen_image_21_memory import estimate_qwen_image_21_resident_bytes
 from .qwen_image_21_residency import build_qwen_image_21_residency_plan
 from .qwen_image_21_torchao_readiness import inspect_qwen_image_21_torchao_readiness
+from .rag import MAX_INPUT_BYTES, answer_rag, prepare_rag
 from .runtime_probe import discover_runtime_versions
 from .shape_benchmark import (
     default_metal_shape_benchmark_path,
@@ -515,6 +516,13 @@ def build_parser() -> argparse.ArgumentParser:
     vision.add_argument("--url", default="http://127.0.0.1:8000")
     vision.add_argument("--model", required=True)
     vision.add_argument("--output", type=Path)
+
+    rag = commands.add_parser("rag", help="prepare or answer from externally retrieved text chunks")
+    rag.add_argument("input", type=Path)
+    rag.add_argument("--url", help="explicit loopback server URL; omit to prepare without HTTP")
+    rag.add_argument("--model", default="default_model")
+    rag.add_argument("--max-source-bytes", type=int, default=32768)
+    rag.add_argument("--max-tokens", type=int, default=256)
 
     architecture = commands.add_parser(
         "inspect-architecture", help="describe local architecture metadata without certifying execution"
@@ -2196,6 +2204,22 @@ def main(argv: list[str] | None = None) -> int:
             return 2
         _json(result)
         return 0 if result["passed"] else 1
+    if arguments.command == "rag":
+        try:
+            with arguments.input.open("rb") as source:
+                raw = source.read(MAX_INPUT_BYTES + 1)
+            if len(raw) > MAX_INPUT_BYTES:
+                raise ValueError("RAG input exceeds 1 MiB")
+            payload = json.loads(raw)
+            options = dict(model=arguments.model, max_source_bytes=arguments.max_source_bytes,
+                           max_tokens=arguments.max_tokens)
+            result = (answer_rag(payload, base_url=arguments.url, **options) if arguments.url
+                      else prepare_rag(payload, **options))
+        except (OSError, ValueError, http.client.HTTPException) as error:
+            _json({"error_code": "rag_failed", "detail": str(error)})
+            return 2
+        _json(result)
+        return 0 if not arguments.url or result["status"] in {"references_valid", "abstained"} else 1
     if arguments.command == "inspect-architecture":
         try:
             report = inspect_architecture(arguments.model)
