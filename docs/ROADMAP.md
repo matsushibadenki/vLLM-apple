@@ -11,6 +11,8 @@ Intel Macは互換性の別枠とし、Apple Siliconの性能認定を適用し�
 開発順序は **比較基盤 → 標準LLM経路 → batching／KV再利用 → 実測hot path → 長時間認定と配布** とする。
 安定性の回帰検証は全段階で行う。画像・音声・動画生成、独自形式、大規模分散の追加より、日常的なchat・coding・agent用途の改善を優先する。
 
+2026-09-26の外部レビューを踏まえ、開発単位を「固定条件で比較 → 支配時間を特定 → 1か所改善 → E2E再測定」とする。P0の基準が得られた対象では、P2と並行してP3のhot path調査を開始できる。kernel追加や独自engineの構築自体を成果指標にせず、長context・複数request・Agent・限られたメモリでのgoodputと安定性を重視する。
+
 既存の253項目を含む詳細履歴は、編集開始時の内容をそのまま[旧roadmap](ROADMAP-history-2026-09-25.md)へ保存した。未コミットの追記も保存対象に含む。
 本書が今後の優先順位を定め、旧roadmapは証跡索引として参照する。旧書の完了表示は、一般用途の性能認定を意味しない。
 [設計判断](Architecture-Decision-Apple-Execution.md)のcontrol／execution分離と計測優先方針を継続する。
@@ -20,8 +22,9 @@ Intel Macは互換性の別枠とし、Apple Siliconの性能認定を適用し�
 - [Done] implemented in the current codebase — 現在のコードに実装がある。実機認定の範囲は別記する。
 - [Next] high-priority unfinished work — 次の開発サイクルで取り組む未完了作業。
 - [Later] planned, but not the closest next step — 依存作業の完了後に進める計画。
+- [pending] 現在の筐体・環境では検証できない作業。必要なhardware／artifact／資格情報と再開条件を添え、環境が整った時に着手候補へ戻す。
 
-旧書の`[Pending]`は本書では`[Later]`に集約し、必要な実機・artifact・資格情報を明記する。
+旧書の`[Pending]`は履歴として保持する。本書では、優先順位待ちの`[Later]`と環境待ちの`[pending]`を区別する。現在のM4で実行可能な長時間試験や未実装項目は、時間がかかることだけを理由に`[pending]`へ移さない。
 新規項目の完了にはコード／テスト、対象の実行経路、再現コマンド、認定範囲を必要とする。性能項目は実モデルの比較reportも必要とする。
 以下の数値は**今後の受け入れ目標**であり、達成済みの測定値ではない。
 
@@ -80,6 +83,7 @@ MLX / vLLM-Metal / qualified optional backend → Metal GPU
 - [Next] 起動から最終tokenまでの経路を追い、backendごとにstreaming、usage、cancel、prefix reuse、continuous batching、chunked prefill、KV精度、structured outputの「未対応／adapterのみ／実機合格」を記録する。フラグの存在だけでは有効と判定しない。
 - [Next] 既存phase probe・qualification・soakを共通reportへ接続する。直接backendとdaemon経由を同じ入力で比較し、queue、tokenize、prefill、decode、serialization／SSE、model loadを分離する。
 - [Done] P0のstream通信計測：phase probeで最終生成contentと`[DONE]`到着を分離し、end-to-end／stream tailを固定容量histogramへ集計。未取得sampleは欠測として区別する。既存のdecode計算を維持し、HTTP・schema・qualification回帰49件で検証。[仕様・再現手順](PHASE-TRANSPORT-METRICS.md)。実モデルの性能比較は未実施。
+- [Done] P0のbounded HTTP benchmark runner：三言語・固定workload hash、並列度1〜32、失敗を含む件数、品質とTTFT／E2E SLOを満たすgoodput、言語別集計、参考値表示付きp99を実装。関連54テスト合格。[仕様](TEXT-BENCHMARK.md)。[M4実測](evaluation/text-benchmark-m4-smoke-2026-09-26.json)のGemma 2 2B／MLX-LMで並列度1は30/30正答。並列度2は応答停止後に手動回収し、不完全な失敗runとして保存。性能優位・batching認定は付与しない。
 - [Next] モデル・データ・tokenizer・chat template・量子化方式／group size・KV dtype・sampling・依存versionを固定する。reportへrevision／hash、再現コマンド、power／thermal、失敗・除外理由を保存する。
 - [Next] 実MLX cacheでmetadata計測の完全性と負荷を確認し、viewの共有storageを二重計上し得る限界を明記する。queueキャンセルの長時間負荷とp95待ち時間を測る。
 
@@ -112,6 +116,7 @@ RSS・allocator・KV・OS pressure・swap差分は別系列で記録し、重複
 - [Next] model-owner thread／processを固定し、load／generate／cancel／closeの所有権を一貫させる。既存main-thread process経路を再利用し、モデルをrequestごとにロードしない。
 - [Next] admissionにprompt＋最大出力のKV増分、prefill scratch、batch増分、allocator cache、OS reserveを反映する。最大contextと最大concurrencyを同時に保証しない。
 - [Next] client切断、active／queued cancel、timeout、遅いSSE consumer、worker crash、sleep／wake、shutdownを実backendで試験する。queue・IPC・出力bufferをboundedに保つ。
+- [Next] M4／Gemma 2 2B／Homebrew MLX-LM 0.32.0の並列度2で観測した応答停止を修正・再検証する。[短い再試験](evaluation/text-benchmark-m4-c2-repro-2026-09-26.json)でも3件中2件失敗し、Gemma 2 attention maskのbroadcast例外による生成thread終了を確認。現在の筐体で再現できる問題として扱い、修正・回復試験までこの構成の並列推論を認定しない。
 - [Next] cancelはbackendの安全な実行境界で処理する。解放完了まで予約を維持し、stream公開済みrequestの黙った再実行やtoken重複を禁止する。OOM retryは副作用と状態復元が証明できる経路だけに限定する。
 - [Next] watchdogとrestart backoffを整備する。ハング時はworkerを回収し、失敗をclientへ通知して新規requestを回復する。過負荷拒否と内部障害を別集計する。
 
@@ -127,15 +132,16 @@ warm-up・cache充填後の同一負荷窓とidle回復時を比較し、RSS／a
 - [Next] 実際のKV／recurrent stateに結び付いたprefix reuseを有効化する。model／adapter／tokenizer／template／position／cache saltをidentityへ含め、exact token prefix一致のみを再利用する。
 - [Next] turn／tool境界anchor、copy-on-write、eviction／releaseをbackend所有下で検証する。共有prefixの書き換え、cancel、異なるsession間の状態混入を防ぐ。SWA／hybridはarchitecture固有の復元契約を要求する。
 - [Next] hit率に加えて再計算を省けたprompt tokens、TTFT、cache byte、eviction頻度を測る。metadata上のhitだけでは昇格しない。
+- [Next] chat／coding／agent／batchを比較workloadとして分ける。Agentは固定tool定義・system prompt、短いdecode、模擬tool待機、再入場を含め、再prefill token数、再入場TTFT、他requestのp95とstarvationを検証する。最初はbackend既存schedulerの設定profileで比較し、独自token schedulerの追加は不足の実測後に判断する。
 - [Later] prefix trie、SSD cache、prompt類似度slot選択。RAM内reuseを認定した後に、SSD read／write、昇格前予約、摩耗、privacyと実latencyを含めて評価する。
 
 **完了条件：** prefixなしconcurrency 1のp95 TTFT／TPOT悪化を5%以内に抑え、代表concurrency 4でgoodput 20%以上改善を目標とする。prefix hitではprefill実行token数の減少とTTFT改善を確認する。未達なら標準有効化せず、改善するprofileだけを残す。
 
 ## P3 — 計測で選ぶkernel・量子化・speculative実行 [Later]
 
-依存：P0–P2の比較report。成果物は対象shapeに限定した高速化profileと安全なfallback。
+依存：調査開始には対象経路のP0 baseline、標準採用にはP1の安定性と対象P2 workloadの回帰report。成果物は対象shapeに限定した高速化profileと安全なfallback。P2全体の完了前でも、baselineで支配時間が分かった経路の調査は並行できる。
 
-- [Later] GPU profilerで同期、CPU送信、dequantize、GEMV／GEMM、attention、KV copyの支配時間を特定する。decodeのmemory帯域律速とprefillのcompute律速を分けて扱う。
+- [Next] P0 baseline取得後、GPU profilerで同期、CPU送信、dequantize、GEMV／GEMM、attention、KV copyの支配時間を特定する。decodeのmemory帯域律速とprefillのcompute律速を分けて検証し、律速を先に決め付けない。
 - [Later] upstream MLX／Metalの最適化を先に比較し、不足するhot pathに限りfused quantized GEMV／GEMM、RoPE／RMSNorm、paged／split-KV attentionを追加する。kernel単体の改善とE2E改善を別reportにする。
 - [Later] model／shape／SoC別にbounded autotuningを行う。compile・warm-up時間、p95、scratch使用量まで比較し、未測定shapeは既定kernelへ戻す。
 - [Later] weight 4／8-bit、KV量子化、mixed precisionを品質／速度／容量のPareto比較で選ぶ。perplexityだけでなく三言語coding、tool-use、long-context retrievalの劣化を検出する。
@@ -146,6 +152,21 @@ warm-up・cache充填後の同一負荷窓とidle回復時を比較し、RSS／a
 
 **完了条件：** 独立3 runでE2E中央値5%以上改善し、改善幅が測定ノイズを超える。対象profileのp95悪化5%以内、品質gate合格、memory budget内を満たす。未達の最適化は採用しない。
 品質gateは評価前に固定し、deterministic correctness、task score、長文検索、構造化出力を分ける。量子化の許容差はsuiteごとに明記し、失敗sliceを総合平均で隠さない。
+
+### Execution Plannerの拡張境界
+
+- [Next] 既存の[Execution Planner設計](Architecture-Decision-Apple-Execution.md)を基に、同一backend内のphase／operator設定とworkload別profileを実測へ結び付ける。model／state所有者はbackend processに維持し、upstreamのbatching、KV管理、kernelを先に比較する。
+- [Later] backendを跨ぐprefill／decode分割は、weight共有、KV／recurrent state形式、位置情報、同期、cancel／解放の契約を定義し、転送・変換・重複memory込みのE2E改善を証明できる場合だけ試す。DLPackなどの共有手段の存在だけでstate互換と判断しない。
+- [Later] Apple-native execution engineは既存backendで解決できない律速が反復して確認された場合の選択肢とする。NAX／ANEを含む候補は実device能力と認定済みkernelに基づき選び、SoC名だけで有効化しない。未保有hardwareは未評価とする。
+
+English: Keep P0 first. Once a baseline exists, profile hot paths alongside P2;
+promote optimizations only after stability and workload regression checks. Add
+agent re-entry workloads and prefer existing backend policies. Cross-backend phase
+splitting and a native engine remain conditional research, not committed replacements.
+
+简体中文：P0仍为最高优先级。取得基线后，可与P2并行分析热点，但优化必须通过稳定性
+及工作负载回归测试。增加Agent工具等待与再次进入推理的测试，优先使用现有后端策略。
+跨后端阶段拆分和原生引擎仍是有条件的研究方向，不是已确定的替代方案。
 
 ## P4 — Mac別自動選択と配布認定 [Later]
 
@@ -201,6 +222,26 @@ warm-up・cache充填後の同一負荷窓とidle回復時を比較し、RSS／a
 **English:** [Done] External RAG request preparation, bounded local generation and reference-ID diagnostics are implemented; factual grounding and tokenizer limits are not certified. [Next] Validate real-model RAG quality/context budgets and one immutable LoRA adapter. [Later] Add ingestion, embeddings, hybrid retrieval, reranking, ACLs, actual LoRA/QLoRA training, multi-adapter serving with isolated KV caches, and combined 8/24-hour qualification. Full support is scoped to an explicit compatibility matrix.
 
 **简体中文：** [Done] 已实现外部RAG请求构建、有界本地生成和引用ID检查，尚未认证事实依据或token预算。[Next] 验证真实模型的RAG质量与上下文预算，并支持单个固定LoRA适配器。[Later] 完成文档导入、embedding、混合检索、重排、权限、LoRA／QLoRA实际训练、多适配器与KV隔离，以及组合场景的8／24小时认证。完整支持以明确的兼容矩阵为范围。
+
+## 環境が整った時の作業候補 [pending]
+
+現在確認した筐体はMacBook Air／Apple M4／32 GiB。以下は本筐体だけでは認定できない条件として分離する。実装可能な共通runner・schema・fallbackは先に整備し、未保有機の性能値を推定で埋めない。
+
+| 状態 | 作業候補 | 再開に必要な環境・確認内容 |
+| --- | --- | --- |
+| [pending] | M5世代のNAX kernel認定とM4との比較 | 対象M5実機、対応OS／toolchain／backend。device能力検出、correctness、対象shapeのE2E・memory・fallbackを実測 |
+| [pending] | 16 GB級・64 GB以上・別SoCでの容量／thermal／24時間認定 | 各容量・SoCの実機runner。同一artifact、context、並列度、電源条件で比較し、容量超過を理由付きskip |
+| [pending] | M4 32 GiBのadmission予算を超えるモデル・context・batchの認定 | 必要なRAMを備えるMacと対象artifact。小さい量子化版が収まることを、元の構成の合格に代用しない |
+| [pending] | 複数Macの分散実行・通信込み性能 | 複数の対象Macと検証用network。通信・同期・障害時state回収を含めて評価 |
+| [pending] | ANE draft＋GPU verifierの実モデル比較 | 互換draftのCore ML artifactと変換・実行契約。M4のANEが利用可能でも互換artifactなしでは認定しない。既存encoder検証はこの保留に含めない |
+| [pending] | 署名・notarization済みreleaseとclean-machine install | Developer ID／notary資格情報と独立した検証環境。未署名のlocal buildとは別認定 |
+
+English: `[pending]` means an unavailable test environment, with explicit resumption
+requirements. Work runnable on this M4, including concurrency failures and long soaks,
+remains `[Next]` or `[Later]`; it is not deferred merely because it takes time.
+
+简体中文：`[pending]`表示缺少测试环境，必须注明恢复条件。当前M4可运行的工作，
+包括并发故障排查和长时间测试，仍保留为`[Next]`或`[Later]`，不因耗时而搁置。
 
 ## 別トラックとして維持する作業 [Later]
 
