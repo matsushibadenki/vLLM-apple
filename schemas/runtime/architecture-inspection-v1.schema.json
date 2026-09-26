@@ -1,0 +1,265 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vllm-apple.local/schemas/runtime/architecture-inspection-v1.schema.json",
+  "title": "Metadata-only architecture inspection v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "registry_version",
+    "model_type",
+    "config_sha256",
+    "recognition",
+    "structure_status",
+    "family",
+    "required_features",
+    "layers",
+    "state_layout",
+    "backend",
+    "qualification",
+    "artifact_status",
+    "issues",
+    "source"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "registry_version": {
+      "const": 1
+    },
+    "model_type": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "config_sha256": {
+      "type": "string",
+      "minLength": 64,
+      "maxLength": 64
+    },
+    "recognition": {
+      "enum": [
+        "recognized",
+        "unknown"
+      ]
+    },
+    "structure_status": {
+      "enum": [
+        "described",
+        "unverified"
+      ]
+    },
+    "family": {
+      "enum": [
+        "dense_transformer",
+        "moe_transformer",
+        "windowed_transformer",
+        null
+      ]
+    },
+    "required_features": {
+      "type": "array",
+      "maxItems": 64,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 128
+      }
+    },
+    "layers": {
+      "type": "array",
+      "maxItems": 512,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "index",
+          "attention",
+          "pattern",
+          "query_heads",
+          "kv_heads",
+          "head_dim",
+          "window_tokens",
+          "ffn",
+          "experts",
+          "active_experts"
+        ],
+        "properties": {
+          "index": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 511
+          },
+          "attention": {
+            "enum": [
+              "mha",
+              "mqa",
+              "gqa"
+            ]
+          },
+          "pattern": {
+            "enum": [
+              "full_attention",
+              "sliding_attention"
+            ]
+          },
+          "query_heads": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 65536
+          },
+          "kv_heads": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 65536
+          },
+          "head_dim": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 65536
+          },
+          "window_tokens": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1,
+            "maximum": 16777216
+          },
+          "ffn": {
+            "enum": [
+              "dense",
+              "moe"
+            ]
+          },
+          "experts": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1,
+            "maximum": 65536
+          },
+          "active_experts": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1,
+            "maximum": 65536
+          }
+        }
+      }
+    },
+    "state_layout": {
+      "type": "array",
+      "maxItems": 512,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "owner_layer",
+          "kind",
+          "window_tokens",
+          "dtype",
+          "allocation_bytes",
+          "retention_verified"
+        ],
+        "properties": {
+          "owner_layer": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 511
+          },
+          "kind": {
+            "enum": [
+              "window_kv",
+              "append_kv"
+            ]
+          },
+          "window_tokens": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1,
+            "maximum": 16777216
+          },
+          "dtype": {
+            "const": "unverified"
+          },
+          "allocation_bytes": {
+            "const": null
+          },
+          "retention_verified": {
+            "const": false
+          }
+        }
+      }
+    },
+    "backend": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "build",
+        "compatibility"
+      ],
+      "properties": {
+        "name": {
+          "const": null
+        },
+        "build": {
+          "const": null
+        },
+        "compatibility": {
+          "const": "unverified"
+        }
+      }
+    },
+    "qualification": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "loadable",
+        "correct",
+        "service",
+        "performance"
+      ],
+      "properties": {
+        "loadable": {
+          "const": "unverified"
+        },
+        "correct": {
+          "const": "unverified"
+        },
+        "service": {
+          "const": "unverified"
+        },
+        "performance": {
+          "const": "unverified"
+        }
+      }
+    },
+    "artifact_status": {
+      "const": "unverified"
+    },
+    "issues": {
+      "type": "array",
+      "maxItems": 16,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 256
+      }
+    },
+    "source": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "maxLength": 512
+    }
+  }
+}

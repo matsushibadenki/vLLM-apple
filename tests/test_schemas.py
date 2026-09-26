@@ -45,7 +45,8 @@ class SchemaTests(unittest.TestCase):
         for path in schemas:
             payload = json.loads(path.read_text(encoding="utf-8"))
             self.assertEqual(payload["$schema"], "https://json-schema.org/draft/2020-12/schema")
-            self.assertIn("v1", payload["$id"])
+            self.assertRegex(path.name, r"-v[1-9][0-9]*\.schema\.json$")
+            self.assertTrue(payload["$id"].endswith("/" + path.name))
             ensure_supported_schema(payload)
 
     def test_validator_rejects_missing_wrong_and_additional_values(self) -> None:

@@ -10,6 +10,7 @@ from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import Callable
 
+from .architecture_evidence import bind_evidence, capture_identity
 from .backend import BackendConfig, BackendProcess
 from .backend_memory import (
     KVCacheCapacityResolver,
@@ -55,6 +56,7 @@ class QualificationConfig:
     quality_smoke: bool = False
     requested_modes: tuple[str, ...] = ("text",)
     backend_versions: dict[str, str | None] | None = None
+    bind_architecture_evidence: bool = False
 
     def __post_init__(self) -> None:
         if not self.model.strip():
@@ -86,6 +88,16 @@ class QualificationConfig:
             raise ValueError("qualification modes are invalid")
         if self.require_30_minute_window and self.duration_seconds < 1800:
             raise ValueError("real-model certification requires at least 1800 seconds")
+        if self.bind_architecture_evidence and (
+            not self.require_30_minute_window or self.requested_modes != ("text",)
+            or not self.quality_smoke or self.phase_samples < 3
+            or type(self.max_model_len) is not int or self.max_model_len <= 0
+            or self.allow_context_reduction
+        ):
+            raise ValueError(
+                "bound evidence requires text, explicit context, quality, 3 phase samples "
+                "and a full soak without context reduction"
+            )
 
 
 def qualify_model(
@@ -135,6 +147,10 @@ def qualify_model(
     }
     if not fit.fits:
         raise ModelCapabilityError("model_memory_hard_ceiling_exceeded")
+    evidence_identity = (
+        capture_identity(inspected, config.executable, config.backend_kind, qualification_hardware)
+        if config.bind_architecture_evidence else None
+    )
     backend = process_factory(
         BackendConfig(
             model=config.model,
@@ -223,7 +239,7 @@ def qualify_model(
     finally:
         backend.stop()
         shutdown_clean = not backend.running
-    return {
+    report = {
         "schema_version": 1,
         "model": config.model,
         "backend": config.backend_kind,
@@ -246,6 +262,19 @@ def qualify_model(
             and context["passed"]
         ),
     }
+    if evidence_identity is not None:
+        current_identity = capture_identity(
+            inspect_model(config.model), config.executable, config.backend_kind, detect_hardware()
+        )
+        if current_identity != evidence_identity:
+            raise ValueError("model or backend identity changed during qualification")
+        report["qualification_limits"] = {
+            "context_tokens": context_tokens, "concurrency": config.concurrency,
+        }
+        report = bind_evidence(
+            report, evidence_identity, context_tokens=context_tokens, concurrency=config.concurrency
+        )
+    return report
 
 
 def _pending_context_report(config: QualificationConfig) -> dict[str, object]:

@@ -1,0 +1,62 @@
+{
+  "artifact_bytes": 2985649380,
+  "artifact_root_sha256": "4f69654cb373cc4392fd048acf60d51d39d67e8176648a3e52a7936b0776cd14",
+  "artifact_unchanged": true,
+  "config_sha256": "9279e9a8c58d7656782dc02f787feaa45118f37109281acb88144b6a44093401",
+  "hardware": {
+    "memory_bytes": 34359738368,
+    "os": "27.0",
+    "soc": "Apple M4"
+  },
+  "limits": [
+    "three_arithmetic_prompts_only",
+    "no_reference_logits",
+    "no_http_batching_cancel_or_soak",
+    "not_a_performance_benchmark"
+  ],
+  "load_seconds": 0.665387,
+  "model": "gemma-2-2b-it-4bit",
+  "model_type": "gemma2",
+  "passed": true,
+  "peak_allocator_bytes": 1551882799,
+  "peak_process_rss_bytes": 2395832320,
+  "report_kind": "architecture_text_smoke",
+  "runtime_promoted": false,
+  "samples": [
+    {
+      "elapsed_seconds": 0.490781,
+      "finish_reason": "stop",
+      "generation_tokens": 4,
+      "language": "en",
+      "output_sha256": "8c90963d8f3da9bf0465279550af369a2c6eb885f63e793ed53b47c3cfa30a2e",
+      "prompt_tokens": 22,
+      "selected_logprobs_finite": true,
+      "trimmed_exact_passed": true
+    },
+    {
+      "elapsed_seconds": 0.24949,
+      "finish_reason": "stop",
+      "generation_tokens": 4,
+      "language": "ja",
+      "output_sha256": "8c90963d8f3da9bf0465279550af369a2c6eb885f63e793ed53b47c3cfa30a2e",
+      "prompt_tokens": 22,
+      "selected_logprobs_finite": true,
+      "trimmed_exact_passed": true
+    },
+    {
+      "elapsed_seconds": 0.258411,
+      "finish_reason": "stop",
+      "generation_tokens": 4,
+      "language": "zh",
+      "output_sha256": "8c90963d8f3da9bf0465279550af369a2c6eb885f63e793ed53b47c3cfa30a2e",
+      "prompt_tokens": 19,
+      "selected_logprobs_finite": true,
+      "trimmed_exact_passed": true
+    }
+  ],
+  "schema_version": 1,
+  "versions": {
+    "mlx": "0.32.1",
+    "mlx-lm": "0.32.0"
+  }
+}

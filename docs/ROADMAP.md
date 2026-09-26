@@ -1,6 +1,6 @@
 # vLLM-Apple Runtime Roadmap
 
-更新日：2026-09-25
+更新日：2026-09-26
 
 ## 目標と優先順位
 
@@ -42,6 +42,14 @@ Intel Macは互換性の別枠とし、Apple Siliconの性能認定を適用し�
 
 必要なarchitecture、共通operator、state契約、現行実装との差分は[LLMアーキテクチャ対応計画](LLM-ARCHITECTURE-SUPPORT.md)にまとめる。
 
+- [Done] A0初期診断：`inspect-architecture`とJSON schema、5系列の構造recipe・synthetic fixtureを追加。未知／未検証を明示し、実行認定は付与しない。詳細は上記対応計画を参照。
+- [Done] A0 recommendation統合：`inspect-model`をschema v2へ更新し、宣言一致と実機認定を分離。未知backendへの暗黙の能力付与も廃止。Gemma2／M4／MLX-LM 0.32.0の三言語smokeは3/3合格（短い算術task限定、標準backendへ未昇格）。
+- [Done] A0証跡gate：30分text qualificationのidentity bindingと、`inspect-model`／managed `serve`の任意検証を追加。7日期限・model/backend/runtime/hardware変更・設定上限超過を拒否する。
+- [Done] Homebrewが意図的に削除するRECORDへ対応。brew管理・分離venvを確認し、環境全体のbounded inventoryでbackend identityを検証する。
+- [Done] Homebrew MLX-LM 0.32.0／Gemma 2 2B／M4でidentity付き30分text試験に合格。6,491/6,491件成功、RSS peak増加15.9 MiB、三言語・stream一致・正常終了と`inspect-model`による証跡再検証を確認。[実測report](evaluation/architecture-gemma2-homebrew-bound-2026-09-26.json)。
+- [Done] 有効なidentity付き証跡を指定した通常`serve`で、MLX-LMのversion matrix範囲外だけを限定許可する。証跡なし・期限切れ・identity変更・他の互換性エラーは引き続き拒否する。
+- [Done] 変更後runtimeの[30分再認定](evaluation/architecture-gemma2-homebrew-serving-bound-2026-09-26.json)で5,995/5,995件成功。新しい証跡で`--skip-backend-check`なしの[通常serve実HTTP検証](evaluation/architecture-gemma2-homebrew-managed-serve-2026-09-26.json)も合格（三言語・greedy反復・stream一致・正常終了）。
+- [Next] 追加のDense／window／MoEモデルと、長文・並列負荷・cancel／recoveryを認定する。今回の通常serve確認は短いHTTP smokeであり、frontend全体の30分soakや性能優位の証明ではない。
 - [Next] P0のcapability matrixへ、モデル名だけでなくlayer構成・必須operator・weight形式・state layout・backend buildを登録し、unknownを対応済みと扱わない。
 - [Next] Dense MHA／MQA／GQA、local/global混在、標準MoEを代表モデルで認定する。
 - [Later] MLA、KV共有、Gated DeltaNet／KDA、SSM、短いconvを個別state契約で広げ、その後に高度な疎・圧縮Attentionと再帰実行へ進む。

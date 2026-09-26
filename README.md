@@ -500,3 +500,43 @@ Unified Memory、allocator、KV cacheのsource-aware metricsは
 make bootstrap
 make check
 ```
+
+## Architecture metadata inspection
+
+```bash
+python3 -m vllm_apple inspect-architecture /path/to/model/config.json
+```
+
+English: Describe local architecture metadata without loading weights. The initial
+registry covers Llama, Qwen2, Qwen3, Mixtral and Gemma2 structural recipes. Exit 0
+means metadata was described; backend execution remains unverified.
+
+日本語：weightをロードせず、5系列の構造・Attention・KV所有layerを診断します。
+終了code 0は構造記述成功であり、推論対応の認定ではありません。
+
+简体中文：无需加载权重即可检查五个系列的结构、Attention及KV所属层。
+退出码0仅表示已描述元数据，不代表推理认证。
+
+See [architecture support plan](docs/LLM-ARCHITECTURE-SUPPORT.md) for scope,
+limitations and remaining runtime integration work.
+
+`inspect-model` now emits recommendation schema v2. Feature declarations only
+establish `eligible_for_validation`; they do not certify backend compatibility or
+set `runnable=true`. Its metadata-only result exits with code 1 (input errors: 2).
+
+日本語：`inspect-model`はschema v2です。能力宣言の一致は検証候補を示し、実行認定には使いません。未認定診断の終了codeは1です。
+
+简体中文：`inspect-model`输出schema v2。能力声明匹配仅表示验证候选，不代表执行认证。未认证诊断的退出码为1。
+
+Optional local evidence: `qualify-model --bind-architecture-evidence` produces an
+identity-bound 30-minute text report; `inspect-model` and `serve` accept it through
+`--architecture-evidence`. See the [protocol and limits](docs/LLM-ARCHITECTURE-SUPPORT.md#ローカル証跡による起動gate2026-09-26).
+Gemma 2 2B passed a bound 30-minute run on M4 with Homebrew MLX-LM 0.32.0
+(6,491/6,491 requests). After the startup-gate change, a fresh run passed
+5,995/5,995 requests and managed `serve` passed multilingual/stream/shutdown checks
+without `--skip-backend-check`. Valid matching evidence permits that exact MLX
+candidate; the blanket version matrix remains unchanged.
+
+日本語：モデルとbackendに結び付けた30分text証跡を起動前に検証できます。Gemma 2 2B／M4／Homebrew MLX-LM 0.32.0で30分・6,491件すべて成功しました。変更後の再認定も5,995件すべて成功し、証跡付き通常serveの三言語・stream・終了確認が通りました。有効な証跡が一致する構成だけを許可します。
+
+简体中文：启动前可验证绑定模型与后端的30分钟文本证据。Gemma 2 2B／M4／Homebrew MLX-LM 0.32.0完成了30分钟验证，6,491次请求全部成功。变更后的重新验证也全部通过（5,995次），证据匹配的常规serve通过了三语言、stream及退出检查。仅允许与有效证据一致的配置。

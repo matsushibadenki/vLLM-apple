@@ -215,11 +215,9 @@ def ensure_architecture_backend_compatible(
             or feature not in optional_features
         )
     if available_features is None:
-        available_features = (
-            frozenset()
-            if backend in {"vllm_metal", "mlx_lm"}
-            else frozenset(required_features)
-        )
+        # An unfamiliar backend name is not evidence that it implements every
+        # requested operator. Custom adapters must declare their capabilities.
+        available_features = frozenset()
     missing_features = tuple(
         feature for feature in required_features if feature not in available_features
     )

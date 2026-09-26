@@ -1,0 +1,205 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vllm-apple.local/schemas/runtime/model-recommendation-v2.schema.json",
+  "title": "Model recommendation v2 with optional local text qualification",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "model",
+    "architecture",
+    "modes",
+    "required_features",
+    "backend",
+    "requested_modes",
+    "backend_compatible",
+    "compatibility_issue",
+    "state_memory",
+    "context",
+    "recommended_tier",
+    "recommended_context_tokens",
+    "estimated_resident_bytes",
+    "memory_hard_ceiling_bytes",
+    "fits_memory",
+    "runnable",
+    "recognition",
+    "structure_status",
+    "config_sha256",
+    "declared_features_match",
+    "eligible_for_validation",
+    "compatibility_basis",
+    "qualification"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 2
+    },
+    "model": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096
+    },
+    "architecture": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "modes": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 4,
+      "items": {
+        "enum": [
+          "text",
+          "vision",
+          "mtp",
+          "yarn"
+        ]
+      }
+    },
+    "required_features": {
+      "type": "array",
+      "maxItems": 64,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 128
+      }
+    },
+    "backend": {
+      "enum": [
+        "vllm_metal",
+        "mlx_lm"
+      ]
+    },
+    "requested_modes": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 4,
+      "items": {
+        "enum": [
+          "text",
+          "vision",
+          "mtp",
+          "yarn"
+        ]
+      }
+    },
+    "backend_compatible": {
+      "type": "boolean"
+    },
+    "compatibility_issue": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "maxLength": 4096
+    },
+    "state_memory": {
+      "type": "object"
+    },
+    "context": {
+      "type": "object"
+    },
+    "recommended_tier": {
+      "enum": [
+        "safe",
+        "balanced",
+        "aggressive"
+      ]
+    },
+    "recommended_context_tokens": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "estimated_resident_bytes": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "memory_hard_ceiling_bytes": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "fits_memory": {
+      "type": "boolean"
+    },
+    "runnable": {
+      "type": "boolean"
+    },
+    "recognition": {
+      "enum": [
+        "recognized",
+        "unknown"
+      ]
+    },
+    "structure_status": {
+      "enum": [
+        "described",
+        "unverified"
+      ]
+    },
+    "config_sha256": {
+      "type": "string",
+      "minLength": 64,
+      "maxLength": 64
+    },
+    "declared_features_match": {
+      "type": "boolean"
+    },
+    "eligible_for_validation": {
+      "type": "boolean"
+    },
+    "compatibility_basis": {
+      "enum": [
+        "metadata_and_caller_declarations",
+        "identity_bound_text_smoke"
+      ]
+    },
+    "qualification": {
+      "enum": [
+        "unverified",
+        "text_smoke_30min"
+      ]
+    }
+  },
+  "oneOf": [
+    {
+      "properties": {
+        "backend_compatible": {
+          "const": false
+        },
+        "runnable": {
+          "const": false
+        },
+        "compatibility_basis": {
+          "const": "metadata_and_caller_declarations"
+        },
+        "qualification": {
+          "const": "unverified"
+        }
+      }
+    },
+    {
+      "properties": {
+        "backend_compatible": {
+          "const": true
+        },
+        "compatibility_issue": {
+          "const": null
+        },
+        "recognition": {
+          "const": "recognized"
+        },
+        "structure_status": {
+          "const": "described"
+        },
+        "compatibility_basis": {
+          "const": "identity_bound_text_smoke"
+        },
+        "qualification": {
+          "const": "text_smoke_30min"
+        }
+      }
+    }
+  ]
+}

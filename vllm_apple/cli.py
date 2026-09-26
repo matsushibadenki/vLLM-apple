@@ -8,6 +8,7 @@ import sys
 from dataclasses import asdict
 from pathlib import Path
 
+from .architecture_registry import inspect_architecture
 from .artifact_admission import assess_artifact_admission_for_path
 from .compat import assess_candidate_backend, inspect_backend, inspect_mlx_lm_backend
 from .context import recommend_context
@@ -515,12 +516,24 @@ def build_parser() -> argparse.ArgumentParser:
     vision.add_argument("--model", required=True)
     vision.add_argument("--output", type=Path)
 
+    architecture = commands.add_parser(
+        "inspect-architecture", help="describe local architecture metadata without certifying execution"
+    )
+    architecture.add_argument("model", type=Path)
+
     inspect = commands.add_parser(
         "inspect-model", help="inspect local metadata and recommend a safe configuration"
     )
     inspect.add_argument("model")
+    inspect.add_argument("--architecture-evidence", type=Path)
+    inspect.add_argument("--backend-executable", type=Path)
+    inspect.add_argument("--max-model-len", type=int)
+    inspect.add_argument("--max-concurrent-requests", type=int, default=1)
     inspect.add_argument("--backend", choices=("vllm_metal", "mlx_lm"), default="vllm_metal")
-    inspect.add_argument("--feature", action="append", dest="features")
+    inspect.add_argument(
+        "--feature", action="append", dest="features",
+        help="declare a backend capability for planning; does not certify execution",
+    )
     inspect.add_argument(
         "--mode", action="append", choices=("text", "vision", "mtp", "yarn"), dest="modes"
     )
@@ -712,6 +725,8 @@ def build_parser() -> argparse.ArgumentParser:
         choices=("text", "vision", "mtp", "yarn"),
         dest="qualification_modes",
     )
+    qualify.add_argument("--bind-architecture-evidence", action="store_true")
+    qualify.add_argument("--candidate-mlx-lm-version", help="exact MLX-LM version to qualify without promoting it")
     qualify.add_argument("--allow-short-run", action="store_true")
     qualify.add_argument("--allow-context-reduction", action="store_true")
     qualify.add_argument("--output", type=Path)
@@ -978,6 +993,7 @@ def build_parser() -> argparse.ArgumentParser:
     server.add_argument("--backend-port", type=int, default=8001)
     server.add_argument("--backend-startup-timeout", type=float, default=600.0)
     server.add_argument("--max-model-len", type=int)
+    server.add_argument("--architecture-evidence", type=Path)
     server.add_argument("--model-integrity-manifest", type=Path)
     server.add_argument("--skip-backend-check", action="store_true")
     server.add_argument("--socket-path")
@@ -2180,6 +2196,14 @@ def main(argv: list[str] | None = None) -> int:
             return 2
         _json(result)
         return 0 if result["passed"] else 1
+    if arguments.command == "inspect-architecture":
+        try:
+            report = inspect_architecture(arguments.model)
+        except (OSError, ModelInspectionError, ValueError) as error:
+            _json({"error_code": "architecture_inspection_failed", "detail": str(error)})
+            return 2
+        _json(report)
+        return 0 if report["structure_status"] == "described" else 1
     if arguments.command == "inspect-model":
         try:
             features = frozenset(arguments.features or ())
@@ -2191,8 +2215,12 @@ def main(argv: list[str] | None = None) -> int:
                 backend=arguments.backend,
                 available_features=features,
                 requested_modes=frozenset(arguments.modes or ("text",)),
+                architecture_evidence=arguments.architecture_evidence,
+                backend_executable=arguments.backend_executable,
+                context_tokens=arguments.max_model_len,
+                concurrency=arguments.max_concurrent_requests,
             )
-        except (OSError, ModelInspectionError, ValueError) as error:
+        except (OSError, RuntimeError, ValueError) as error:
             _json({"runnable": False, "error_code": "model_inspection_failed", "detail": str(error)})
             return 2
         _json(report.to_dict())
@@ -2613,6 +2641,8 @@ def main(argv: list[str] | None = None) -> int:
             candidate_versions = _candidate_versions(arguments)
             if candidate_versions is not None and arguments.backend_kind != "vllm_metal":
                 raise ValueError("candidate stack qualification requires vllm_metal")
+            if arguments.candidate_mlx_lm_version is not None and arguments.backend_kind != "mlx_lm":
+                raise ValueError("candidate MLX-LM qualification requires mlx_lm")
             vllm_version = None
             backend_versions: dict[str, str | None] | None = None
             architecture_features: tuple[str, ...] = ()
@@ -2639,9 +2669,15 @@ def main(argv: list[str] | None = None) -> int:
                 architecture_features = compatibility.architecture_features
             else:
                 mlx_compatibility = inspect_mlx_lm_backend(arguments.backend_executable)
-                if not mlx_compatibility.compatible:
+                mlx_issues = mlx_compatibility.issues
+                if arguments.candidate_mlx_lm_version is not None:
+                    if mlx_compatibility.mlx_lm_version != arguments.candidate_mlx_lm_version:
+                        raise ValueError("candidate MLX-LM version does not match installed backend")
+                    mlx_issues = tuple(issue for issue in mlx_issues
+                                       if issue != "mlx_lm_version_outside_verified_matrix")
+                if mlx_issues:
                     raise ValueError(
-                        "incompatible backend: " + ", ".join(mlx_compatibility.issues)
+                        "incompatible backend: " + ", ".join(mlx_issues)
                     )
                 architecture_features = mlx_compatibility.architecture_features
                 backend_versions = {"mlx_lm": mlx_compatibility.mlx_lm_version}
@@ -2667,6 +2703,7 @@ def main(argv: list[str] | None = None) -> int:
                     quality_smoke=not arguments.skip_quality_smoke,
                     requested_modes=tuple(arguments.qualification_modes or ("text",)),
                     backend_versions=backend_versions,
+                    bind_architecture_evidence=arguments.bind_architecture_evidence,
                 )
             )
             save_qualification_report(
@@ -3083,6 +3120,7 @@ def main(argv: list[str] | None = None) -> int:
                 backend_port=arguments.backend_port,
                 backend_startup_timeout=arguments.backend_startup_timeout,
                 max_model_len=arguments.max_model_len,
+                architecture_evidence=arguments.architecture_evidence,
                 model_integrity_manifest=arguments.model_integrity_manifest,
                 require_compatible_backend=not arguments.skip_backend_check,
                 socket_path=arguments.socket_path,

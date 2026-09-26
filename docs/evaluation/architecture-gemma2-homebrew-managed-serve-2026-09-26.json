@@ -1,0 +1,47 @@
+{
+  "backend": "mlx_lm",
+  "backend_check_skipped": false,
+  "concurrency": 1,
+  "context_tokens": 1024,
+  "evidence_sha256": "b9ffec7a2544b2c162e51ab68f3238b2b803cc3529a778998402eb363a216aba",
+  "evidence_unchanged": true,
+  "exit_code": 0,
+  "inference_ready": true,
+  "model": "gemma-2-2b-it-4bit",
+  "passed": true,
+  "promotion_probe": {
+    "checks": {
+      "greedy_repeat_equal": true,
+      "sampled_repeat_equal": true,
+      "sampled_stream_equal": true,
+      "stream_completed": true
+    },
+    "determinism_mode": "greedy_only",
+    "digests": {
+      "greedy": "a72f0215ec983589f7140253c77d742103fd5bf1210ece94febc2d1562d35e6d",
+      "sampled": "a72f0215ec983589f7140253c77d742103fd5bf1210ece94febc2d1562d35e6d",
+      "sampled_stream": "a72f0215ec983589f7140253c77d742103fd5bf1210ece94febc2d1562d35e6d"
+    },
+    "model": "default_model",
+    "passed": true,
+    "schema_version": 1,
+    "seed": 1729,
+    "temperature": 0
+  },
+  "quality_smoke": {
+    "checks": {
+      "english": true,
+      "japanese": true,
+      "simplified_chinese": true
+    },
+    "match_policy": "trimmed_exact",
+    "passed": true,
+    "sample_count": 3,
+    "schema_version": 1,
+    "stores_generated_text": false
+  },
+  "report_kind": "evidence_managed_serve_smoke",
+  "schema_version": 1,
+  "shutdown_clean": true,
+  "stores_generated_text": false
+}

@@ -13,6 +13,7 @@ from dataclasses import replace
 from pathlib import Path
 
 from .api import create_server, create_unix_server
+from .architecture_evidence import verify_startup_evidence
 from .auth import load_or_create_token_file
 from .backend import (
     BackendProcess,
@@ -672,6 +673,7 @@ def serve(
     backend_port: int = 8001,
     backend_startup_timeout: float = 600.0,
     max_model_len: int | None = None,
+    architecture_evidence: Path | None = None,
     model_integrity_manifest: Path | None = None,
     model_integrity_signature: Path | None = None,
     model_integrity_trusted_ca: Path | None = None,
@@ -694,6 +696,8 @@ def serve(
     optimizer_model_roots: tuple[Path, ...] = (),
     optimizer_output_roots: tuple[Path, ...] = (),
 ) -> None:
+    if architecture_evidence is not None and (model is None or max_model_len is None):
+        raise ValueError("architecture evidence requires a model and explicit max_model_len")
     if shutdown_grace_period < 0:
         raise ValueError("shutdown grace period cannot be negative")
     if model is not None and port == backend_port and host in {"127.0.0.1", "localhost", "::1"}:
@@ -834,7 +838,24 @@ def serve(
             if backend_kind == "mlx_lm"
             else inspect_backend(config.executable)
         )
-        if require_compatible_backend and not compatibility.compatible:
+        if architecture_evidence is not None:
+            if config.enable_kernel_tuning_middleware:
+                raise ValueError("architecture evidence requires --disable-metal-tuning")
+            if inspected is None:
+                raise ValueError("architecture evidence requires inspectable model metadata")
+            verify_startup_evidence(
+                architecture_evidence, inspected, config.executable, backend_kind, hardware,
+                context_tokens=max_model_len, concurrency=max_concurrent_requests,
+            )
+        # A verified local text report permits this exact MLX installation/model
+        # outside the release matrix. Probe/platform/capability failures remain fatal.
+        qualified_mlx_candidate = (
+            architecture_evidence is not None
+            and backend_kind == "mlx_lm"
+            and compatibility.issues == ("mlx_lm_version_outside_verified_matrix",)
+            and bool(compatibility.mlx_lm_version)
+        ) if require_compatible_backend and not compatibility.compatible else False
+        if require_compatible_backend and not compatibility.compatible and not qualified_mlx_candidate:
             issues = ", ".join(compatibility.issues)
             remediation = ""
             if backend_kind == "vllm_metal" and (

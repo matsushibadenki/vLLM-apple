@@ -274,8 +274,13 @@ backend例外、admission失敗、pending cancelの全経路でqueueから除去
 
 `vllm-apple inspect-model <model>`はmodelをloadせず、bounded metadata inspection、architecture mode、
 state memory内訳、現在のMacに対するsafe/balanced/aggressive context、balanced tierのresident estimate、
-backend capability fitをschema v1 JSONで返す。`--backend`、繰り返し可能な`--feature`と`--mode`で認定予定の
-構成を事前確認できる。raw config本文やweight内容はreportへ含めない。
+構造認識とbackend能力宣言の一致をschema v2 JSONで返す。`--backend`、繰り返し可能な`--feature`と`--mode`で検証予定の
+構成を事前確認できる。宣言一致とmemory適合は`eligible_for_validation`に示し、証跡を指定しない診断では
+`backend_compatible=false`、`runnable=false`、`qualification=unverified`を維持する。正常な未認定診断も終了code 1、入力失敗は2。
+`qualify-model --bind-architecture-evidence`で発行したowner-only reportを`--architecture-evidence`で検証できる。
+有効な証跡とmemory条件が揃うと終了code 0。証跡失効・identity不一致は2。scopeは`text_smoke_30min`に限定する。
+`serve`では明示contextと対応backendが必要で、backend生成前に検査する。証跡は署名済み認定ではなくローカル利用者を信頼する。
+v1 schemaは過去report用に残す。raw config本文やweight内容はreportへ含めない。詳細は[architecture対応計画](LLM-ARCHITECTURE-SUPPORT.md)を参照。
 
 runtime startup progressはschema version、stage、completed/total units、整数percent、128文字以下の
 localization message keyだけをsnapshotと`runtime.startup_progress` SSE eventへ出す。model path、prompt、
@@ -1075,3 +1080,108 @@ rebind, and stable weight keys. The current integration reports the first three 
 and remains ineligible while preserving the existing stable keys. A future MLX-Gen streaming ABI
 must satisfy this gate before a new candidate or 512 qualification root is added; the application
 must not infer support from version number alone.
+
+## Homebrew backend identity and candidate qualification
+
+Homebrew's local `Library/Homebrew/cleaner.rb::clean_python_metadata` intentionally
+removes Python `RECORD` files and sets `INSTALLER` to `brew`. Missing RECORD alone
+is therefore not evidence of a damaged environment. Do not regenerate fabricated
+package ownership records or run pip over the managed Cellar to satisfy the probe.
+
+The fingerprint worker accepts this case only for brew-managed distributions in
+an isolated virtual environment (`include-system-site-packages = false`). It
+inventories the entire environment, including unlisted files, configuration,
+launchers and distribution metadata, excluding bytecode caches. It rejects
+external file symlinks except the interpreter, directory symlinks, external `.pth`
+search paths, nonregular files, more than 100,000 entries or 32 GiB of file data.
+The existing 120-second worker timeout applies; inventory changes during scanning
+are rejected. This is a local identity check, not package provenance or signing.
+
+[The real inventory probe](evaluation/homebrew-backend-fingerprint-2026-09-26.json)
+found 161 distributions, 156 without file inventories, and produced equal digests
+on two independent runs. The installed Homebrew environment was not modified.
+
+`qualify-model --backend-kind mlx_lm --candidate-mlx-lm-version 0.32.0` permits
+qualification of that exact installed version outside the verified version matrix.
+It does not suppress other compatibility failures, change the normal `serve`
+version gate, or certify every model supported by that MLX-LM release.
+
+日本語：HomebrewによるRECORD削除は正常な管理処理です。環境を変更せず、brew管理の分離venv全体を走査してidentityを検証します。候補版の指定は認定試験だけに適用し、通常起動の対応版を自動で広げません。
+
+简体中文：Homebrew删除RECORD属于正常管理行为。无需修改环境，可扫描由brew管理的隔离venv来验证身份。候选版本选项仅用于验证测试，不会自动扩大常规启动的支持版本范围。
+
+Reproduce the Homebrew candidate run (requires the local model and Metal access):
+
+```bash
+.venv/bin/python -m vllm_apple qualify-model models/gemma-2-2b-it-4bit \
+  --backend-kind mlx_lm \
+  --backend-executable /opt/homebrew/opt/vllm-metal/libexec/bin/mlx_lm.server \
+  --candidate-mlx-lm-version 0.32.0 \
+  --max-model-len 1024 --concurrency 1 --duration 1800 --phase-samples 3 \
+  --startup-timeout 90 --request-timeout 30 --backend-port 18137 \
+  --bind-architecture-evidence --output /private/tmp/gemma2-bound-evidence.json
+```
+
+The [bound Gemma 2 report](evaluation/architecture-gemma2-homebrew-bound-2026-09-26.json)
+passed 1,800.005 seconds, 6,491/6,491 requests, all three language checks and clean
+shutdown. Peak RSS increased 16,629,760 bytes (15.9 MiB), within the fixed 256 MiB
+limit. Context 1,024 and concurrency 1 are configuration bounds; the probes use
+short text and do not measure long-context KV capacity (`status=unavailable`).
+This candidate result does not automatically promote MLX-LM 0.32.0 into the
+normal startup version matrix.
+
+A separate `inspect-model --architecture-evidence` invocation accepted the saved
+report and returned `runnable=true`, `qualification=text_smoke_30min`; both reports
+passed their JSON schemas. See the [inspection result](evaluation/architecture-gemma2-homebrew-inspection-2026-09-26.json).
+This is architecture evidence acceptance; normal `serve` version checks still apply.
+
+## Evidence-gated MLX candidate startup
+
+`serve --architecture-evidence <report>` now permits an MLX-LM installation outside
+the verified release matrix only after its local text evidence passes all identity,
+age and workload-bound checks. The sole allowed compatibility issue is
+`mlx_lm_version_outside_verified_matrix`; additional issues, missing capabilities
+and memory admission failures still prevent backend construction. vLLM-Metal does
+not receive this exception. No `--skip-backend-check` flag is needed for this path.
+
+Any runtime source change invalidates the older report. The historical report and
+inspection remain evidence for their original source identity, not the modified
+daemon. Never rewrite a historical identity to make it pass; run qualification again.
+
+日本語：有効な証跡が一致するMLX構成だけを通常起動で許可します。旧証跡はコード変更後に失効し、再認定が必要です。
+
+简体中文：常规启动仅允许与有效证据一致的MLX配置。代码变更会使旧证据失效，必须重新验证。
+
+The bounded real HTTP check is reproducible with:
+
+```bash
+.venv/bin/python scripts/probe_evidence_managed_serve.py \
+  --model models/gemma-2-2b-it-4bit \
+  --backend-executable /opt/homebrew/opt/vllm-metal/libexec/bin/mlx_lm.server \
+  --evidence /private/tmp/gemma2-bound-evidence.json \
+  --output /private/tmp/gemma2-managed-serve.json
+```
+
+It uses unprivileged loopback ports, leaves backend compatibility checks enabled,
+checks readiness, repeated greedy generation, stream equality and English/Japanese/
+Simplified Chinese quality, and terminates the process group on timeout. The report
+contains digests and booleans, not generated text.
+
+### Managed startup result (2026-09-26)
+
+After the daemon change, the historical evidence was rejected with
+`architecture evidence identity mismatch` (CLI exit 2). A
+[fresh bound qualification](evaluation/architecture-gemma2-homebrew-serving-bound-2026-09-26.json)
+then passed 1,800.22 seconds and all 5,995 requests, with RSS peak growth of
+18,841,600 bytes (17.97 MiB) and unchanged identities.
+
+The [managed HTTP probe](evaluation/architecture-gemma2-homebrew-managed-serve-2026-09-26.json)
+used that evidence with backend checks enabled. Readiness, greedy repeat/stream
+equality, all three language checks and clean process-group shutdown passed.
+This is a short frontend HTTP check following a direct-backend 30-minute soak; it
+is not a 30-minute managed frontend soak, long-context test or general version promotion.
+The applicable limits remain context configuration 1,024 and concurrency 1.
+
+日本語：新しい30分証跡と通常serveのHTTP検証が合格しました。互換性チェックのスキップは不要で、対象は一致するモデル・backend・runtime・hardwareと設定範囲に限定されます。
+
+简体中文：新的30分钟证据与常规serve的HTTP验证均已通过，无需跳过兼容性检查。适用范围仅限匹配的模型、后端、运行时、硬件及配置限制。

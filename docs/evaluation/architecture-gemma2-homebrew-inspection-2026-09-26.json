@@ -1,0 +1,85 @@
+{
+  "architecture": "gemma2",
+  "backend": "mlx_lm",
+  "backend_compatible": true,
+  "compatibility_basis": "identity_bound_text_smoke",
+  "compatibility_issue": null,
+  "config_sha256": "9279e9a8c58d7656782dc02f787feaa45118f37109281acb88144b6a44093401",
+  "context": {
+    "allocatable_bytes": 14955197891,
+    "limiting_factor": "model_max_context",
+    "model_id": "models/gemma-2-2b-it-4bit",
+    "os_reserve_bytes": 5153960755,
+    "safety_headroom_bytes": 2748779069,
+    "tiers": [
+      {
+        "kv_budget_bytes": 9387461695,
+        "max_tokens": 8192,
+        "name": "safe"
+      },
+      {
+        "kv_budget_bytes": 11399060630,
+        "max_tokens": 8192,
+        "name": "balanced"
+      },
+      {
+        "kv_budget_bytes": 12740126586,
+        "max_tokens": 8192,
+        "name": "aggressive"
+      }
+    ],
+    "workspace_bytes": 73549444
+  },
+  "declared_features_match": false,
+  "eligible_for_validation": true,
+  "estimated_resident_bytes": 1580040786,
+  "fits_memory": true,
+  "memory_hard_ceiling_bytes": 14955197891,
+  "model": "models/gemma-2-2b-it-4bit",
+  "modes": [
+    "text"
+  ],
+  "qualification": "text_smoke_30min",
+  "recognition": "recognized",
+  "recommended_context_tokens": 1024,
+  "recommended_tier": "balanced",
+  "requested_modes": [
+    "text"
+  ],
+  "required_features": [
+    "attention_softcap",
+    "embedding_scale",
+    "full_attention",
+    "geglu",
+    "gqa",
+    "logit_softcap",
+    "rms_norm",
+    "rope",
+    "sandwich_norm",
+    "sliding_attention"
+  ],
+  "runnable": true,
+  "schema_version": 2,
+  "state_memory": {
+    "architecture": "transformer",
+    "attention_window_bytes_per_token": 0,
+    "attention_window_tokens": null,
+    "expert_storage_bytes": 0,
+    "expert_working_set_bytes": 0,
+    "kv_bytes_per_token": 106496,
+    "model_id": "models/gemma-2-2b-it-4bit",
+    "model_max_context": 8192,
+    "mtp_storage_bytes": 0,
+    "mtp_working_set_bytes": 0,
+    "ngram_storage_bytes": 0,
+    "ngram_working_set_bytes": 0,
+    "prefix_state_bytes": 0,
+    "recurrent_state_bytes": 0,
+    "scratch_workspace_bytes": 0,
+    "sparse_index_bytes_per_token": 0,
+    "sparse_retrieval_bytes_per_token": 0,
+    "sparse_retrieval_tokens": null,
+    "weights_bytes": 1470988882
+  },
+  "structure_status": "described"
+}

@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "report_kind": "homebrew_backend_fingerprint_smoke",
+  "backend": "mlx_lm",
+  "backend_executable": "/opt/homebrew/opt/vllm-metal/libexec/bin/mlx_lm.server",
+  "metadata": {
+    "distribution_count": 161,
+    "missing_record_count": 156,
+    "mlx_lm": "0.32.0",
+    "mlx": "0.32.1"
+  },
+  "runs": [
+    {
+      "sha256": "fbe49ebc3429bb6e5f3ffacaed9ba735f1101d01cd5068724ef9fc0fe174e643",
+      "elapsed_seconds": 10.156
+    },
+    {
+      "sha256": "fbe49ebc3429bb6e5f3ffacaed9ba735f1101d01cd5068724ef9fc0fe174e643",
+      "elapsed_seconds": 7.578
+    }
+  ],
+  "passed": true,
+  "environment_modified": false,
+  "runtime_promoted": false,
+  "scope": "local file identity only; not inference qualification"
+}

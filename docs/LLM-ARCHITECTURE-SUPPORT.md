@@ -1,6 +1,6 @@
 # LLMアーキテクチャ対応計画
 
-更新日：2026-09-25。対象：Apple Silicon上のvLLM-Apple。関連：[roadmap](ROADMAP.md)。
+更新日：2026-09-26。対象：Apple Silicon上のvLLM-Apple。関連：[roadmap](ROADMAP.md)。
 
 ## 結論
 
@@ -63,11 +63,63 @@
 | [Done] | [StateMemorySpec](../vllm_apple/types.py)にrecurrent／window／sparse等の容量表現がある | layer別layoutとallocation共有を表現し、model inspectorからの自動導出を検証 |
 | [Done] | `inspect_model_architecture`にQwen4-Exp専用required feature検出がある | それ以外のモデルには一般化したfeature導出が必要 |
 | [Done] | [MLX state adapter](../vllm_apple/mlx_semantic_state.py)にbounded snapshotとopaque handleの契約がある | 各state方式でcapture／restore／release・分岐・rollbackの実効性を認定 |
-| [Next] | 一般architecture registry | 現在、専用分岐以外は`required_features=()`へ進む。空集合を「任意backendで対応」の証拠にせず、unknown／unverifiedを明示する |
+| [Next] | architecture registryの拡張 | 初期5系列のmetadata診断と任意証跡gateは実装済み。残りの系列と既定起動経路への適用を広げ、空集合を任意backend対応の証拠にしない |
 | [Next] | backend能力の実測・登録 | backend名だけで不足能力を補ったことにしない。固定buildの実装とprobeから対応集合を作る |
 | [Next] | recurrent方式別のstate descriptor | 既存の`state_size`／`conv_kernel`前提の式を、DeltaNet／KDA／RWKV／xLSTMへそのまま流用しない |
 
 上記はコードの静的確認結果であり、この文書作成時に新しいモデル推論や全テストを実行したわけではない。
+
+## A0の初期実装：metadata診断（2026-09-26）
+
+- [Done] `inspect-architecture` CLIとversion 1 JSON schemaを追加。`llama`、`qwen2`、`qwen3`、`mixtral`、`gemma2`の正確なmodel typeから構造を記述する。
+- [Done] MHA／MQA／GQA、明示head dimension、layer別full／sliding attention、全expert数／active expert数、KVの論理所有layerを出力する。windowの実保持量・dtype・allocation bytesは未認定として残す。
+- [Done] 未登録model type、未知のwrapper、未対応layer／RoPE、破損・不足metadataを区別し、構造を推測で完成させない。config内容のSHA-256で比較対象を識別する。
+- [Done] 5系列の固定synthetic fixtureと回帰試験。weight読込・GPU probe・network accessなしで診断する。
+- [Next] upstream revisionを固定した実config inventory、詳細なnorm／FFN／position差分、model／tokenizer／artifact identity、backend buildの証跡を接続する。
+- [Done] `inspect-model`へregistryを接続し、schema v2で構造認識・宣言一致・検証実行候補・実機未認定を分離。未知／構造未検証を`runnable`へ昇格させない。
+- [Done] 共通compatibility gateで、未知のbackend名に必要能力を自動付与するfallbackを廃止。custom backendも明示的な能力宣言を必要とする。
+- [Done] `qualify-model`の証跡発行と`inspect-model`／managed `serve`の任意証跡gateを接続。通常モデルの既存起動経路全体はまだ置き換えていない。
+- [Done] Homebrew MLX-LM 0.32.0でGemma 2 2Bの新しい30分証跡を取得。三言語・stream一致・6,491件の成功・正常終了を確認。
+- [Done] 証跡付き通常起動に限り、MLX-LMのversion matrix範囲外を限定許可する。
+- [Done] 変更後runtimeの30分再認定は5,995件すべて成功。証跡付き通常serveの実HTTP検証も三言語・stream一致・正常終了に合格。
+- [Next] 追加モデル・長文・並列負荷・cancel／recoveryの検証。
+
+```bash
+python3 -m vllm_apple inspect-architecture /path/to/model/config.json
+# weightを持たない固定fixtureでも利用できる
+python3 -m vllm_apple inspect-architecture tests/fixtures/architectures/qwen3.json
+```
+
+終了codeは構造記述成功0、unknown／構造未検証1、読込・JSON失敗2。0は推論成功やbackend互換性を意味しない。
+`recognition`と`structure_status`を分け、`loadable`／`correct`／`service`／`performance`とbackend互換性はすべて`unverified`を返す。現段階のrequired featuresは登録recipeの構造上の要求であり、全forward semanticsを検証した網羅的な能力証明ではない。
+
+English: The metadata-only CLI describes five initial families with bounded local reads. Recognition never certifies loading or inference. Recommendation integration now uses schema v2; general managed-startup integration, pinned upstream configs and full operator semantics remain [Next].
+
+简体中文：新增仅检查元数据的CLI，初步描述五个系列。识别结构不代表加载或推理认证。推荐诊断已接入schema v2；托管启动判定集成、固定上游版本配置及完整算子语义仍为[Next]。
+
+## Recommendation v2と実モデルsmoke（2026-09-26）
+
+`inspect-model`のJSONはschema v2へ更新した。v1 schemaは過去report読込用に保持する。
+`--feature`は検証計画のための能力宣言であり、実機証拠ではない。すべて一致してメモリに適合しても、`eligible_for_validation=true`に留め、`backend_compatible=false`、`runnable=false`、`qualification=unverified`を返す。
+証跡を指定しないmetadata-only CLIは正常な診断でも終了code 1となる。検証済み証跡と現在のメモリ条件が揃った診断は0、読込・入力・証跡エラーは2。旧CLIの0を期待するconsumerはv2へ移行し、検証候補の判断に`eligible_for_validation`を使う。
+
+[Gemma 2 2B 4-bitの実GPU smoke](evaluation/architecture-gemma2-text-smoke-2026-09-26.json)はApple M4／32 GiB、macOS 27.0、MLX 0.32.1／MLX-LM 0.32.0で3言語とも`1+1`の数字正答・EOS停止・選択tokenの有限logprobを確認した。
+全artifact tree hashの実行前後一致を検証し、peak allocatorは1,551,882,799 bytes、process peak RSSは2,395,832,320 bytes。測定値はこの短いprobeに限定する。
+このbackendは既存MLX-LM 0.26.xのversion matrixとは別candidateであり、自動昇格しない。reference logits、HTTP、batch、cancel、長時間soakは未検証。
+
+再現：既存モデルと対象MLX環境を使い、[probe script](../scripts/probe_architecture_text.py)を実行する。script全体120秒、各生成16 token、入力128 token、allocator 4 GiBを上限とし、load前memory admissionを行う。
+
+```bash
+/opt/homebrew/opt/vllm-metal/libexec/bin/python scripts/probe_architecture_text.py \
+  --model models/gemma-2-2b-it-4bit \
+  --report /tmp/architecture-gemma2-text-smoke.json
+```
+
+検証：関連75テスト、Ruff、差分チェック。fixture／CLI試験と実GPUのsmokeを別証拠として扱う。
+
+English: Recommendation v2 separates declared feature matching from execution certification. Even a matching declaration only enables validation eligibility. The M4 Gemma2 smoke passed three arithmetic prompts, without promoting MLX-LM 0.32.0 or certifying serving/soak behavior.
+
+简体中文：推荐报告v2区分能力声明匹配与实际执行认证。声明全部匹配仅表示可进入验证。M4上的Gemma2通过了三种语言的简单算术smoke，未将MLX-LM 0.32.0提升为认证版本，也未认证服务或长期稳定性。
 
 ## 提案する能力・状態の契約
 
@@ -93,6 +145,40 @@ local層は対応backendが実際にwindow上限で保持すると確認した�
 recurrent stateは過去token分のKVを持たなくても0 byteではなく、並列request数・分岐・snapshot数に応じて増える。memory見積もりと実測の差を認定reportへ記録する。
 
 recurrent stateの任意位置への巻き戻しは、KVの末尾切り捨てと同等ではない。checkpointから再計算するか、backendが保証するrestore／rollbackを使う。未実装の組合せではprefix reuse／speculationを無効にして通常生成を維持する。
+
+## ローカル証跡による起動gate（2026-09-26）
+
+- [Done] `qualify-model --bind-architecture-evidence`はtextのみ、明示context、3回以上のphase測定、三言語quality smoke、30分以上のsoak、正常停止を要求する。検証前後のidentityが異なる場合は証跡を発行しない。
+- [Done] `inspect-model --architecture-evidence`と`serve --architecture-evidence`はowner-onlyの通常ファイルを読み、7日以内の証跡、report digest、model tree／config、backend配布ファイル、wrapper source、hardware／OS、対象環境変数を照合する。期限切れ、変更、指定context／並列数の上限超過は拒否する。
+- [Done] 証跡が有効な診断は`qualification=text_smoke_30min`、`compatibility_basis=identity_bound_text_smoke`を返す。managed serveではbackend生成前に検査する。有効な証跡がある場合に限り、MLX-LMの`mlx_lm_version_outside_verified_matrix`単独の理由を解除する。他のversion／platform／capability／memory gateは維持する。
+- [Done] [実機で新規の証跡を取得](evaluation/architecture-gemma2-homebrew-bound-2026-09-26.json)。Homebrewは管理目的で`RECORD`を削除するため、`INSTALLER=brew`かつ分離venvの場合に環境全体の走査へ切り替える実装を追加した。既存の短時間smokeやidentityのない旧reportを昇格させない。
+
+この証跡は同じ利用者が管理するローカル結果であり、署名された第三者証明ではない。digestは整合性検査であり、所有者による結果の捏造を防がない。backendは隣接Pythonと明示shebangを持ち、配布ファイル一覧、またはHomebrew管理下の分離venvの全体走査が必要。editable install、外部pathを加える`.pth`、`PYTHONPATH`／`PYTHONHOME`指定は拒否する。標準ライブラリ、外部の共有library、`.pth`のimportが読み込む依存先のすべてを網羅する証明ではない。
+
+scopeは短いtext workloadの30分安定性に限定する。指定contextは設定上限であり、その長さまでの入力品質やKV使用量を実測した証明ではない。MLX-LMではseeded samplingの代わりにgreedy比較を使う。長文、多模態、全量子化形式、系列全体、性能優位、24時間安定性は別のgateが必要。起動時検査後のファイル変更を監視する機能は含まない。
+
+例（`/path/to/...`は実際の固定環境に置換）：
+
+```bash
+python3 -m vllm_apple qualify-model /path/to/model \
+  --backend-kind mlx_lm --backend-executable /path/to/env/bin/mlx_lm.server \
+  --max-model-len 1024 --concurrency 1 --duration 1800 --phase-samples 3 \
+  --bind-architecture-evidence --output /path/to/evidence.json
+python3 -m vllm_apple inspect-model /path/to/model --backend mlx_lm \
+  --backend-executable /path/to/env/bin/mlx_lm.server \
+  --max-model-len 1024 --max-concurrent-requests 1 \
+  --architecture-evidence /path/to/evidence.json
+python3 -m vllm_apple serve /path/to/model --backend-kind mlx_lm \
+  --backend-executable /path/to/env/bin/mlx_lm.server \
+  --max-model-len 1024 --max-concurrent-requests 1 --disable-metal-tuning \
+  --architecture-evidence /path/to/evidence.json
+```
+
+MLX-LMは有効な証跡があればversion matrix範囲外でも限定起動できる。これは全モデル・全MLX-LM版の許可ではなく、他のbackend互換性条件を満たす必要がある。証跡を指定しない通常起動の挙動は維持する。証跡はtuning middlewareなしで取得するため、証跡付き起動でもmiddlewareを有効化しない。
+
+English: Optional locally trusted evidence binds a clean 30-minute text qualification to model/backend/runtime/hardware identity, with a seven-day expiry and configured context/concurrency limits. It does not certify long-context quality, all family variants or performance leadership. Gemma 2 2B passed 1,800.005 seconds and all 6,491 requests on M4 with Homebrew MLX-LM 0.32.0. Homebrew environments use a bounded full-environment inventory when RECORD is intentionally removed. The blanket version matrix remains unchanged; valid matching evidence now permits the exact MLX candidate through normal serve. A fresh 30-minute run passed 5,995/5,995 requests, followed by managed HTTP smoke checks without skipping backend validation.
+
+简体中文：可选的本地可信证据将30分钟文本验证绑定到模型、后端、运行时及硬件，七天后失效，并限制配置的上下文及并发数。这不代表长文本质量、整个模型系列或性能领先。Gemma 2 2B在M4及Homebrew MLX-LM 0.32.0上完成了1,800.005秒验证，6,491次请求全部成功。Homebrew主动删除RECORD时，可对隔离环境进行有界的完整文件扫描。通用版本矩阵保持不变；有效且匹配的证据现在允许对应的MLX候选配置通过常规serve启动。新的30分钟验证中5,995次请求全部成功，随后在保留后端检查的情况下通过托管HTTP smoke测试。
 
 ## 対応と認定の段階
 
@@ -137,7 +223,8 @@ tiny／synthetic fixtureはoperatorの正しさに使い、実モデル認定の
 Support should be composed from capabilities rather than inferred from a model name. Prioritize dense MHA/MQA/GQA, local/global attention and standard MoE; then MLA, Gated DeltaNet/KDA hybrids, Mamba/SSM, short convolutions and cross-layer KV sharing. Extend to indexed/compressed attention, specialized residual paths, RWKV/xLSTM and depth-recurrent models with separate state contracts.
 
 - [Done] The code contains metadata/memory foundations and bounded state adapters; these are not universal inference certification.
-- [Next] Build an architecture registry with explicit unknown/unverified states and qualify representative dense, windowed and MoE models.
+- [Done] Initial five-family registry and optional identity-bound text evidence gate.
+- [Next] Obtain fresh real-model evidence and qualify representative dense, windowed and MoE models.
 - [Later] Add each hybrid/specialized family with reference comparisons, state lifecycle tests and real-model serving evidence.
 
 Track recognition, loading, correctness, serving and performance independently. Quantization format, tokenizer/template and optional MTP support are separate axes. Total MoE weights and non-KV recurrent state must be budgeted. A text-backbone pass does not certify multimodal inputs.
@@ -147,7 +234,8 @@ Track recognition, loading, correctness, serving and performance independently. 
 应按能力组合支持模型，而不是仅根据模型名称判断兼容性。优先支持Dense MHA／MQA／GQA、局部与全局Attention混合及标准MoE；随后支持MLA、Gated DeltaNet／KDA、Mamba／SSM、短卷积和跨层KV共享；最后扩展索引／压缩Attention、特殊残差、RWKV／xLSTM及深度循环模型。
 
 - [Done] 现有代码具备部分元数据、内存估算及有界状态适配基础，不等于全面推理认证。
-- [Next] 建立显式区分未知与未验证的架构注册表，认证代表性的Dense、窗口Attention及MoE模型。
+- [Done] 初始五系列架构注册表及可选的身份绑定文本证据检查。
+- [Next] 获取新的真实模型证据，认证代表性的Dense、窗口Attention及MoE模型。
 - [Later] 为各混合和特殊架构分别增加参考数值、状态生命周期和真实模型服务测试。
 
 识别、加载、正确性、服务能力和性能应分别记录。量化格式、分词器／模板及可选MTP是独立维度。MoE总权重和非KV循环状态也占用内存。文本骨干通过测试不代表支持多模态输入。

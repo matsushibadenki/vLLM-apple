@@ -60,7 +60,118 @@
       },
       "additionalProperties": false
     },
-    "passed": {"type": "boolean"}
+    "passed": {"type": "boolean"},
+    "architecture_evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "scope",
+        "created_at",
+        "identity",
+        "context_tokens",
+        "concurrency",
+        "report_sha256"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": 1
+        },
+        "scope": {
+          "const": "text_smoke_30min"
+        },
+        "created_at": {
+          "type": "number",
+          "minimum": 0
+        },
+        "identity": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "config_sha256",
+            "model_root_sha256",
+            "backend_sha256",
+            "environment_sha256",
+            "hardware_sha256",
+            "runtime_sha256",
+            "backend"
+          ],
+          "properties": {
+            "config_sha256": {
+              "type": "string",
+              "minLength": 64,
+              "maxLength": 64
+            },
+            "model_root_sha256": {
+              "type": "string",
+              "minLength": 64,
+              "maxLength": 64
+            },
+            "backend_sha256": {
+              "type": "string",
+              "minLength": 64,
+              "maxLength": 64
+            },
+            "environment_sha256": {
+              "type": "string",
+              "minLength": 64,
+              "maxLength": 64
+            },
+            "hardware_sha256": {
+              "type": "string",
+              "minLength": 64,
+              "maxLength": 64
+            },
+            "runtime_sha256": {
+              "type": "string",
+              "minLength": 64,
+              "maxLength": 64
+            },
+            "backend": {
+              "enum": [
+                "mlx_lm",
+                "vllm_metal"
+              ]
+            }
+          }
+        },
+        "context_tokens": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 16777216
+        },
+        "concurrency": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 256
+        },
+        "report_sha256": {
+          "type": "string",
+          "minLength": 64,
+          "maxLength": 64
+        }
+      }
+    },
+    "qualification_limits": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "context_tokens",
+        "concurrency"
+      ],
+      "properties": {
+        "context_tokens": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 16777216
+        },
+        "concurrency": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 256
+        }
+      }
+    }
   },
   "additionalProperties": false
 }
