@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="vLLM Apple 是一款面向 Apple Silicon 的本地推理引擎，让开放权重的大语言模型运行得更快、更省内存、更安全。">
+  <meta name="theme-color" content="#eef6ff">
+  <link rel="alternate" hreflang="ja" href="../jp/">
+  <link rel="alternate" hreflang="en" href="../en/">
+  <link rel="alternate" hreflang="zh-Hans" href="../zh/">
+  <link rel="alternate" hreflang="x-default" href="../en/">
+  <title>vLLM Apple — 让你的 Mac 拥有更快的本地 AI。</title>
+  <link rel="stylesheet" href="./assets/css/styles.css">
+  <script src="./assets/js/script.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">跳转到正文</a>
+  <header class="site-header" data-header>
+    <a class="brand" href="#top" aria-label="vLLM Apple 首页">
+      <span class="brand-mark" aria-hidden="true"><i></i><b></b></span>
+      <span>vLLM Apple</span>
+    </a>
+    <button class="menu-button" type="button" aria-expanded="false" aria-controls="site-nav" data-menu-button>
+      <span></span><span></span><span></span><span class="sr-only">菜单</span>
+    </button>
+    <nav id="site-nav" class="site-nav" data-nav>
+      <a href="#features">特点</a>
+      <a href="#how">工作原理</a>
+      <a href="#safety">安全性</a>
+      <a class="nav-github" href="https://github.com/matsushibadenki/vLLM-apple">GitHub</a>
+    </nav>
+  </header>
+
+  <main id="main">
+    <section class="hero" id="top">
+      <div class="hero-copy reveal">
+        <h1>让你的 Mac，<br>拥有更快的本地 AI。</h1>
+        <p>分析模型与内存，为 Apple Silicon 打造恰到好处的推理环境。</p>
+        <div class="hero-actions">
+          <a class="button button-primary" href="https://github.com/matsushibadenki/vLLM-apple">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 .8a11.4 11.4 0 0 0-3.6 22.2c.6.1.8-.2.8-.5v-2c-3.3.7-4-1.4-4-1.4-.5-1.4-1.3-1.7-1.3-1.7-1.1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1.1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.8-1.6-2.6-.3-5.4-1.3-5.4-5.7 0-1.3.5-2.3 1.2-3.1-.1-.3-.5-1.5.1-3.1 0 0 1-.3 3.1 1.2a10.7 10.7 0 0 1 5.7 0c2.2-1.5 3.1-1.2 3.1-1.2.6 1.6.2 2.8.1 3.1.8.8 1.2 1.8 1.2 3.1 0 4.4-2.8 5.4-5.4 5.7.4.4.8 1.1.8 2.2v3.3c0 .3.2.6.8.5A11.4 11.4 0 0 0 12 .8Z"/></svg>
+            前往 GitHub
+          </a>
+          <a class="button button-secondary" href="#how">了解工作原理 <span aria-hidden="true">↓</span></a>
+        </div>
+      </div>
+
+      <div class="hero-stage reveal" data-delay="1">
+        <div class="app-window" aria-label="vLLM Apple 应用界面交互演示">
+          <div class="window-bar"><span></span><span></span><span></span><strong>vLLM Apple</strong></div>
+          <div class="app-shell">
+            <aside class="app-sidebar">
+              <div class="mini-brand"><span class="mini-leaf"></span><b>vLLM Apple</b></div>
+              <div class="runtime-live"><i></i> Runtime ready</div>
+              <label for="model-demo">模型</label>
+              <select id="model-demo" data-model-select>
+                <option>Gemma 2 2B</option>
+                <option>Qwen Flash Next</option>
+                <option>Local Model</option>
+              </select>
+              <div class="app-nav-item active"><span>✦</span>对话</div>
+              <div class="app-nav-item"><span>⌁</span>模型管理</div>
+              <div class="app-nav-item"><span>▥</span>内存方案</div>
+            </aside>
+            <div class="chat-panel">
+              <div class="chat-top"><div><small>本地对话</small><strong data-model-label>Gemma 2 2B</strong></div><span class="local-dot">正在这台 Mac 上运行</span></div>
+              <div class="chat-body">
+                <div class="bubble user">请调整为适合这台 Mac 流畅运行的设置。</div>
+                <div class="bubble assistant"><span class="bot-face">●</span><p>已检查模型和内存。将为你准备兼顾速度与稳定性的配置。</p></div>
+                <div class="memory-card">
+                  <div class="memory-heading"><span>统一内存</span><b data-memory-status>已准备优化</b></div>
+                  <div class="memory-row"><span>模型</span><i style="--w:68%;--c:#3d74f5"></i></div>
+                  <div class="memory-row"><span>KV 缓存</span><i style="--w:46%;--c:#55cdb0"></i></div>
+                  <div class="memory-row"><span>余量</span><i style="--w:76%;--c:#ff947d"></i></div>
+                </div>
+              </div>
+              <button class="optimize-button" type="button" data-optimize><span>✦</span><span data-optimize-label>为这台 Mac 优化</span></button>
+            </div>
+          </div>
+        </div>
+        <figure class="mascot-wrap">
+          <img src="./assets/img/vllm-apple-mascot-cutout.png" alt="手持内存条的 vLLM Apple 角色">
+        </figure>
+      </div>
+    </section>
+
+    <section class="flow-section" id="how">
+      <div class="section-heading centered reveal">
+        <h2>从模型到本地 AI。</h2>
+        <p>加载模型，检查兼容性和内存，再连接最合适的运行时。</p>
+      </div>
+      <div class="flow-track reveal" data-delay="1">
+        <article><span class="flow-icon folder"><i></i></span><b>Open Weight</b><small>获取开放模型</small></article>
+        <i class="flow-arrow" aria-hidden="true">→</i>
+        <article><span class="flow-icon inspect"></span><b>Model Check</b><small>检查结构与兼容性</small></article>
+        <i class="flow-arrow" aria-hidden="true">→</i>
+        <article><span class="flow-icon ram"><i></i><i></i><i></i></span><b>Memory Plan</b><small>安全规划内存容量</small></article>
+        <i class="flow-arrow" aria-hidden="true">→</i>
+        <article><span class="flow-icon chip">M</span><b>Metal / MLX</b><small>在 Apple Silicon 上运行</small></article>
+        <i class="flow-arrow" aria-hidden="true">→</i>
+        <article><span class="flow-icon chat"><i></i><i></i></span><b>Local Chat</b><small>在本机流畅对话</small></article>
+      </div>
+    </section>
+
+    <section class="memory-section" id="features">
+      <div class="memory-copy reveal">
+        <p class="section-label">释放 Apple Silicon 的潜力</p>
+        <h2>聪明地用好<br>每一份内存。</h2>
+        <p>将模型、KV 缓存和运行中的工作区作为统一内存整体管理，在达到上限前选择安全方案。</p>
+        <ul>
+          <li>加载前检查，严格遵守硬件上限</li>
+          <li>分阶段评估长上下文</li>
+          <li>实时显示内存状态</li>
+        </ul>
+      </div>
+      <div class="memory-map reveal" data-delay="1">
+        <div class="map-title"><span>统一内存映射</span><small>32 GB Mac 示例</small></div>
+        <div class="map-meter"><i></i><i></i><i></i><i></i></div>
+        <div class="memory-stack" aria-hidden="true">
+          <div class="slab slab-model">Model</div>
+          <div class="slab slab-kv">KV Cache</div>
+          <div class="slab slab-work">Workspace</div>
+          <div class="slab slab-system">macOS</div>
+        </div>
+        <div class="map-legend"><span><i class="blue"></i>模型</span><span><i class="mint"></i>KV 缓存</span><span><i class="coral"></i>工作区</span><span><i class="gray"></i>系统</span></div>
+      </div>
+    </section>
+
+    <section class="tuning-section">
+      <div class="tuning-visual reveal">
+        <img src="./assets/img/vllm-apple-mascot.png" alt="正在为 Mac 调整设置的 vLLM Apple 角色">
+      </div>
+      <div class="tuning-copy reveal" data-delay="1">
+        <p class="section-label blue-label">自动优化</p>
+        <h2>为你的 Mac，<br>找到合适的设置。</h2>
+        <p>即使使用同一模型，不同的 Mac 和使用方式也会有不同的最佳方案。通过观察实际张量形状和内存使用，选择稳妥的配置。</p>
+        <div class="compare-panel">
+          <div><small>优化前</small><span>内存余量</span><i><b style="--w:38%"></b></i><span>响应速度</span><i><b style="--w:46%"></b></i></div>
+          <strong aria-hidden="true">→</strong>
+          <div class="after"><small>优化后</small><span>内存余量</span><i><b style="--w:72%"></b></i><span>响应速度</span><i><b style="--w:84%"></b></i></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="safety-section" id="safety">
+      <div class="safety-copy reveal">
+        <p class="section-label blue-label">安全可信的分发</p>
+        <h2>因为本地运行，<br>隐私尽在掌控。</h2>
+        <p>提示词和模型都留在你的 Mac 上。签名、公证和完整性验证共同构成值得信赖的本地 AI 方案。</p>
+        <ul class="check-list"><li>无需联网即可完成推理</li><li>支持 macOS 公证</li><li>SHA-256 与来源验证</li></ul>
+      </div>
+      <div class="safety-art reveal" data-delay="1">
+        <div class="package-window"><span class="package-mark"><i></i><b></b></span><strong>vLLM Apple.app</strong><small><i>✓</i> Notarized</small></div>
+        <div class="shield"><svg viewBox="0 0 120 140" aria-hidden="true"><path d="M60 5 108 24v42c0 31-19 56-48 69C31 122 12 97 12 66V24L60 5Z"/><path d="m36 69 15 15 34-39"/></svg></div>
+      </div>
+    </section>
+
+    <section class="final-cta">
+      <div class="reveal">
+        <h2>现在就在你的 Mac 上，<br>开启本地 AI。</h2>
+        <p>让开放模型在你的设备上快速、安全地运行。</p>
+        <a class="button button-primary" href="https://github.com/matsushibadenki/vLLM-apple">前往 GitHub 开始使用 <span aria-hidden="true">→</span></a>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <a class="brand" href="#top"><span class="brand-mark" aria-hidden="true"><i></i><b></b></span><span>vLLM Apple</span></a>
+    <p>Fast. Local. Yours.</p>
+    <div><a href="#features">特点</a><a href="#how">工作原理</a><a href="#safety">安全性</a><a href="https://github.com/matsushibadenki/vLLM-apple">GitHub</a></div>
+    <small>MIT License · © 2026 vLLM Apple</small>
+  </footer>
+</body>
+</html>

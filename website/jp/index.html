@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="vLLM Appleは、Apple SiliconでオープンウェイトLLMを速く、メモリ効率よく、安全に動かすためのローカル推論エンジンです。">
+  <meta name="theme-color" content="#eef6ff">
+  <link rel="alternate" hreflang="ja" href="../jp/">
+  <link rel="alternate" hreflang="en" href="../en/">
+  <link rel="alternate" hreflang="zh-Hans" href="../zh/">
+  <link rel="alternate" hreflang="x-default" href="../en/">
+  <title>vLLM Apple — そのMacに、もっと速いローカルAIを。</title>
+  <link rel="stylesheet" href="./assets/css/styles.css">
+  <script src="./assets/js/script.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">本文へ移動</a>
+  <header class="site-header" data-header>
+    <a class="brand" href="#top" aria-label="vLLM Apple ホーム">
+      <span class="brand-mark" aria-hidden="true"><i></i><b></b></span>
+      <span>vLLM Apple</span>
+    </a>
+    <button class="menu-button" type="button" aria-expanded="false" aria-controls="site-nav" data-menu-button>
+      <span></span><span></span><span></span><span class="sr-only">メニュー</span>
+    </button>
+    <nav id="site-nav" class="site-nav" data-nav>
+      <a href="#features">特徴</a>
+      <a href="#how">仕組み</a>
+      <a href="#safety">安全性</a>
+      <a class="nav-github" href="https://github.com/matsushibadenki/vLLM-apple">GitHub</a>
+    </nav>
+  </header>
+
+  <main id="main">
+    <section class="hero" id="top">
+      <div class="hero-copy reveal">
+        <h1>そのMacに、<br>もっと速い<span class="mobile-break"><br></span>ローカルAIを。</h1>
+        <p>モデルとメモリを見つめて、Apple Siliconにちょうどいい推論環境をつくります。</p>
+        <div class="hero-actions">
+          <a class="button button-primary" href="https://github.com/matsushibadenki/vLLM-apple">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 .8a11.4 11.4 0 0 0-3.6 22.2c.6.1.8-.2.8-.5v-2c-3.3.7-4-1.4-4-1.4-.5-1.4-1.3-1.7-1.3-1.7-1.1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1.1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.8-1.6-2.6-.3-5.4-1.3-5.4-5.7 0-1.3.5-2.3 1.2-3.1-.1-.3-.5-1.5.1-3.1 0 0 1-.3 3.1 1.2a10.7 10.7 0 0 1 5.7 0c2.2-1.5 3.1-1.2 3.1-1.2.6 1.6.2 2.8.1 3.1.8.8 1.2 1.8 1.2 3.1 0 4.4-2.8 5.4-5.4 5.7.4.4.8 1.1.8 2.2v3.3c0 .3.2.6.8.5A11.4 11.4 0 0 0 12 .8Z"/></svg>
+            GitHubで見る
+          </a>
+          <a class="button button-secondary" href="#how">仕組みを見る <span aria-hidden="true">↓</span></a>
+        </div>
+      </div>
+
+      <div class="hero-stage reveal" data-delay="1">
+        <div class="app-window" aria-label="vLLM Appleアプリ画面のデモ">
+          <div class="window-bar"><span></span><span></span><span></span><strong>vLLM Apple</strong></div>
+          <div class="app-shell">
+            <aside class="app-sidebar">
+              <div class="mini-brand"><span class="mini-leaf"></span><b>vLLM Apple</b></div>
+              <div class="runtime-live"><i></i> Runtime ready</div>
+              <label for="model-demo">モデル</label>
+              <select id="model-demo" data-model-select>
+                <option>Gemma 2 2B</option>
+                <option>Qwen Flash Next</option>
+                <option>Local Model</option>
+              </select>
+              <div class="app-nav-item active"><span>✦</span>チャット</div>
+              <div class="app-nav-item"><span>⌁</span>モデル管理</div>
+              <div class="app-nav-item"><span>▥</span>メモリプラン</div>
+            </aside>
+            <div class="chat-panel">
+              <div class="chat-top"><div><small>ローカルチャット</small><strong data-model-label>Gemma 2 2B</strong></div><span class="local-dot">このMacで実行中</span></div>
+              <div class="chat-body">
+                <div class="bubble user">このMacで快適に動く設定にして。</div>
+                <div class="bubble assistant"><span class="bot-face">●</span><p>メモリとモデルを確認しました。速度と安定性のバランスがよい設定を準備します。</p></div>
+                <div class="memory-card">
+                  <div class="memory-heading"><span>Unified Memory</span><b data-memory-status>最適化の準備完了</b></div>
+                  <div class="memory-row"><span>モデル</span><i style="--w:68%;--c:#3d74f5"></i></div>
+                  <div class="memory-row"><span>KVキャッシュ</span><i style="--w:46%;--c:#55cdb0"></i></div>
+                  <div class="memory-row"><span>余裕</span><i style="--w:76%;--c:#ff947d"></i></div>
+                </div>
+              </div>
+              <button class="optimize-button" type="button" data-optimize><span>✦</span><span data-optimize-label>このMac向けに最適化</span></button>
+            </div>
+          </div>
+        </div>
+        <figure class="mascot-wrap">
+          <img src="./assets/img/vllm-apple-mascot-cutout.png" alt="メモリを手にしたvLLM Appleのキャラクター">
+        </figure>
+      </div>
+    </section>
+
+    <section class="flow-section" id="how">
+      <div class="section-heading centered reveal">
+        <h2>ローカルAIが動くまで。</h2>
+        <p>モデルを読み込み、互換性とメモリを確かめて、最適なランタイムへつなぎます。</p>
+      </div>
+      <div class="flow-track reveal" data-delay="1">
+        <article><span class="flow-icon folder"><i></i></span><b>Open Weight</b><small>公開モデルを取得</small></article>
+        <i class="flow-arrow" aria-hidden="true">→</i>
+        <article><span class="flow-icon inspect"></span><b>Model Check</b><small>構造と互換性を確認</small></article>
+        <i class="flow-arrow" aria-hidden="true">→</i>
+        <article><span class="flow-icon ram"><i></i><i></i><i></i></span><b>Memory Plan</b><small>容量を安全に計画</small></article>
+        <i class="flow-arrow" aria-hidden="true">→</i>
+        <article><span class="flow-icon chip">M</span><b>Metal / MLX</b><small>Apple Siliconで実行</small></article>
+        <i class="flow-arrow" aria-hidden="true">→</i>
+        <article><span class="flow-icon chat"><i></i><i></i></span><b>Local Chat</b><small>手元で軽快に対話</small></article>
+      </div>
+    </section>
+
+    <section class="memory-section" id="features">
+      <div class="memory-copy reveal">
+        <p class="section-label">Apple Siliconの力を引き出す</p>
+        <h2>メモリを、<br>賢く使い切る。</h2>
+        <p>モデル、KVキャッシュ、実行中の作業領域をひとつのUnified Memoryとして捉え、限界を越える前に安全なプランを選びます。</p>
+        <ul>
+          <li>ハード上限を守るload前判定</li>
+          <li>長いcontextも段階的に評価</li>
+          <li>メモリ状態をリアルタイム表示</li>
+        </ul>
+      </div>
+      <div class="memory-map reveal" data-delay="1">
+        <div class="map-title"><span>Unified Memory Map</span><small>32 GB Macのイメージ</small></div>
+        <div class="map-meter"><i></i><i></i><i></i><i></i></div>
+        <div class="memory-stack" aria-hidden="true">
+          <div class="slab slab-model">Model</div>
+          <div class="slab slab-kv">KV Cache</div>
+          <div class="slab slab-work">Workspace</div>
+          <div class="slab slab-system">macOS</div>
+        </div>
+        <div class="map-legend"><span><i class="blue"></i>モデル</span><span><i class="mint"></i>KVキャッシュ</span><span><i class="coral"></i>作業領域</span><span><i class="gray"></i>システム</span></div>
+      </div>
+    </section>
+
+    <section class="tuning-section">
+      <div class="tuning-visual reveal">
+        <img src="./assets/img/vllm-apple-mascot.png" alt="Mac向け設定を調整するvLLM Appleのキャラクター">
+      </div>
+      <div class="tuning-copy reveal" data-delay="1">
+        <p class="section-label blue-label">自動で最適化</p>
+        <h2>あなたのMacに、<br>ちょうどいい設定を。</h2>
+        <p>同じモデルでも、Macと使い方が違えば最適解は変わります。実際のshapeとメモリを観察し、無理のない設定を選びます。</p>
+        <div class="compare-panel">
+          <div><small>最適化前</small><span>メモリ余裕</span><i><b style="--w:38%"></b></i><span>応答性</span><i><b style="--w:46%"></b></i></div>
+          <strong aria-hidden="true">→</strong>
+          <div class="after"><small>最適化後</small><span>メモリ余裕</span><i><b style="--w:72%"></b></i><span>応答性</span><i><b style="--w:84%"></b></i></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="safety-section" id="safety">
+      <div class="safety-copy reveal">
+        <p class="section-label blue-label">安全で信頼できる配布</p>
+        <h2>ローカルだから、<br>守れる。</h2>
+        <p>プロンプトもモデルもあなたのMacに。署名・公証・改ざん検証の経路まで含め、ローカルAIを安心して扱える設計です。</p>
+        <ul class="check-list"><li>通信なしで完結できる推論</li><li>macOS Notarization対応</li><li>配布物のSHA-256と証跡検証</li></ul>
+      </div>
+      <div class="safety-art reveal" data-delay="1">
+        <div class="package-window"><span class="package-mark"><i></i><b></b></span><strong>vLLM Apple.app</strong><small><i>✓</i> Notarized</small></div>
+        <div class="shield"><svg viewBox="0 0 120 140" aria-hidden="true"><path d="M60 5 108 24v42c0 31-19 56-48 69C31 122 12 97 12 66V24L60 5Z"/><path d="m36 69 15 15 34-39"/></svg></div>
+      </div>
+    </section>
+
+    <section class="final-cta">
+      <div class="reveal">
+        <h2>今すぐ、あなたのMacで<br>ローカルAIを。</h2>
+        <p>オープンなモデルを、速く、安全に、あなたの手元で。</p>
+        <a class="button button-primary" href="https://github.com/matsushibadenki/vLLM-apple">GitHubで始める <span aria-hidden="true">→</span></a>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <a class="brand" href="#top"><span class="brand-mark" aria-hidden="true"><i></i><b></b></span><span>vLLM Apple</span></a>
+    <p>Fast. Local. Yours.</p>
+    <div><a href="#features">特徴</a><a href="#how">仕組み</a><a href="#safety">安全性</a><a href="https://github.com/matsushibadenki/vLLM-apple">GitHub</a></div>
+    <small>MIT License · © 2026 vLLM Apple</small>
+  </footer>
+</body>
+</html>
