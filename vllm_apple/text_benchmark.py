@@ -11,7 +11,7 @@ from concurrent.futures import ThreadPoolExecutor
 from dataclasses import replace
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
+from typing import Any, Sequence
 
 from .phase_probe import PhaseProbeConfig, PhaseProbeError, measure_stream
 from .phase_profile import ExecutionPhaseProfiler, _BoundedLatency
@@ -23,11 +23,35 @@ CASES = (
     ("ja", "1+1は？数字だけで答えてください。", "2"),
     ("zh", "1+1等于几？只回答数字。", "2"),
 )
+BenchmarkCase = tuple[str, str, str]
+
+
+def _validated_cases(cases: Sequence[BenchmarkCase]) -> tuple[BenchmarkCase, ...]:
+    if not 1 <= len(cases) <= 64:
+        raise ValueError("benchmark requires between 1 and 64 cases")
+    validated: list[BenchmarkCase] = []
+    labels: set[str] = set()
+    for case in cases:
+        if not isinstance(case, (tuple, list)) or len(case) != 3:
+            raise ValueError("each benchmark case must contain label, prompt and expected text")
+        label, prompt, expected = case
+        if not all(isinstance(value, str) and value for value in case):
+            raise ValueError("benchmark case values must be non-empty strings")
+        if len(label.encode("utf-8")) > 64 or label in labels:
+            raise ValueError("benchmark case labels must be unique and no larger than 64 bytes")
+        if len(prompt.encode("utf-8")) > 8 * 1024 * 1024:
+            raise ValueError("benchmark prompts must not exceed 8 MiB")
+        if len(expected.encode("utf-8")) > 1024:
+            raise ValueError("expected text must not exceed 1 KiB")
+        labels.add(label)
+        validated.append((label, prompt, expected))
+    return tuple(validated)
 
 
 def run_text_benchmark(
     config: PhaseProbeConfig, *, requests: int = 30, concurrency: int = 1,
     ttft_slo_ms: float = 1000, e2e_slo_ms: float = 5000,
+    cases: Sequence[BenchmarkCase] = CASES,
 ) -> dict[str, Any]:
     """Run exactly requests attempts, retaining failures in the denominator.
 
@@ -44,13 +68,14 @@ def run_text_benchmark(
             raise ValueError("SLO limits must be finite and positive")
     if not math.isfinite(config.timeout_seconds) or config.timeout_seconds <= 0:
         raise ValueError("timeout must be finite and positive")
+    selected_cases = _validated_cases(cases)
     profiler = ExecutionPhaseProfiler(config.hardware_fingerprint, config.model, config.backend)
     lock = threading.Lock()
     next_index = 0
     errors: dict[str, int] = {}
     successes = quality_passes = slo_passes = output_tokens = good_tokens = 0
     slices = {language: {"attempted": 0, "completed": 0, "quality_passed": 0,
-                         "slo_passed": 0} for language, _, _ in CASES}
+                         "slo_passed": 0} for language, _, _ in selected_cases}
     latencies = _BoundedLatency()
     started_at = datetime.now(timezone.utc).isoformat()
     started = time.monotonic_ns()
@@ -63,7 +88,7 @@ def run_text_benchmark(
                     return
                 index = next_index
                 next_index += 1
-                language, prompt, expected = CASES[index % len(CASES)]
+                language, prompt, expected = selected_cases[index % len(selected_cases)]
                 slices[language]["attempted"] += 1
             try:
                 result = measure_stream(
@@ -98,7 +123,7 @@ def run_text_benchmark(
         for future in futures:
             future.result()
     elapsed = (time.monotonic_ns() - started) / 1_000_000_000
-    workload = {"cases": CASES, "requests": requests, "concurrency": concurrency,
+    workload = {"cases": selected_cases, "requests": requests, "concurrency": concurrency,
                 "maximum_output_tokens": config.maximum_output_tokens, "temperature": 0,
                 "timeout_seconds": config.timeout_seconds,
                 "ttft_slo_ms": ttft_slo_ms, "e2e_slo_ms": e2e_slo_ms}

@@ -65,6 +65,15 @@ class TextBenchmarkTests(unittest.TestCase):
         self.assertNotEqual(first["workload_sha256"], changed["workload_sha256"])
         self.assertNotEqual(first["workload_sha256"], slo["workload_sha256"])
 
+    def test_custom_cases_bind_identity_and_labels(self):
+        cases = (("long-a", "prefix 1+1", "2"), ("long-b", "prefix 2+2", "4"))
+        with patch("vllm_apple.text_benchmark.measure_stream", return_value=self.result()):
+            custom = run_text_benchmark(self.config, requests=4, cases=cases)
+            default = run_text_benchmark(self.config, requests=4)
+        self.assertEqual(list(custom["languages"]), ["long-a", "long-b"])
+        self.assertEqual([item["attempted"] for item in custom["languages"].values()], [2, 2])
+        self.assertNotEqual(custom["workload_sha256"], default["workload_sha256"])
+
     def test_all_failed_has_no_latency(self):
         with patch("vllm_apple.text_benchmark.measure_stream",
                    side_effect=PhaseProbeError("usage_missing", "missing")):
@@ -82,6 +91,12 @@ class TextBenchmarkTests(unittest.TestCase):
         from dataclasses import replace
         with self.assertRaises(ValueError):
             run_text_benchmark(replace(self.config, timeout_seconds=float("nan")))
+        invalid_cases = ((), (("duplicate", "p", "e"), ("duplicate", "p", "e")),
+                         (("", "p", "e"),), (("label", "p", ""),),
+                         (("x" * 65, "p", "e"),))
+        for cases in invalid_cases:
+            with self.subTest(cases=cases), self.assertRaises(ValueError):
+                run_text_benchmark(self.config, cases=cases)
 
 
 if __name__ == "__main__":

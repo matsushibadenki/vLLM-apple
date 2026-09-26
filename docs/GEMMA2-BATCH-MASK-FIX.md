@@ -38,8 +38,30 @@ VLLM_APPLE_TEST_GEMMA2_MASK=1 /opt/homebrew/opt/vllm-metal/libexec/bin/python \
 ```
 
 数値回帰は小型F32 attention、HTTP試験は配置済み4-bit実モデルの短い算術promptに限定する。
-長文・prefix編集・cancel・復旧・長時間並列負荷は未認定。既存の並列度1用証跡を、
+既存の並列度1用証跡を、
 この新しい実行経路の証跡として流用しない。rollbackは専用起動をやめ、既存の認定経路へ戻す。
+
+追加の短時間qualificationは、約2K prompt tokensの同一prefix末尾を3種類に編集した
+並列12件と、三言語算術の並列100件を実行した。いずれも完了・品質・設定SLOが全件合格し、
+継続負荷のgoodputは19.283 output tokens/s、観測peak RSSは2,232,991,744 bytesだった。
+長文側p95 TTFTはhistogram範囲外の`>5000 ms`、最大7,249.752 msであり、短い入力の
+性能値として扱わない。SSEを最初のdata受信後にclientから閉じ、1秒後の正常応答も確認した。
+ただしupstream serverからcancel完了通知は得られず、backend処理の停止・KV解放完了は未確認。
+結果は[qualification report](evaluation/gemma2-batch-mask-m4-qualification-2026-09-26.json)に保存した。
+
+再現コマンド：
+
+```bash
+.venv/bin/python scripts/qualify_gemma2_batch_mask.py \
+  --python /opt/homebrew/opt/vllm-metal/libexec/bin/python \
+  --model models/gemma-2-2b-it-4bit \
+  --output docs/evaluation/gemma2-batch-mask-m4-qualification-2026-09-26.json \
+  --port 19097 --sustained-requests 100 --long-requests 12
+```
+
+runnerは固定数workerを使い、reportをatomic保存する。仮想環境launcherのsymlinkを保持して
+`sys.prefix`を変えず、local modelだけをofflineで起動する。これは約36秒の回帰試験であり、
+30分認定、明示的cancel、遅いconsumer、一般的な長文品質は未認定。
 
 ## English
 
@@ -47,12 +69,15 @@ An explicit, version- and source-hash-bound launcher reshapes shared-head batche
 Gemma 2 masks for grouped-query scores. It preserves upstream computation and never
 modifies installed packages. M4 HTTP smoke passed 30/30 requests at concurrency 1
 and 2; eight GPU cases matched unpatched per-row attention within 1e-5 tolerance.
-Long-context, cancellation, recovery and sustained-load qualification remain pending
-work on this M4. Managed serving is unchanged.
+A short M4 regression passed 12 shared-prefix edits and 100 sustained concurrent
+requests, then recovered after a client-side stream disconnect. Backend cancellation
+completion, slow consumers and a 30-minute mixed load remain unqualified. Managed
+serving is unchanged.
 
 ## 简体中文
 
 专用启动入口仅对版本和源码哈希匹配的Gemma 2补齐批处理mask的分组维度，保留上游计算，
 不修改已安装的软件包。M4上的并发度1和2各通过30/30次HTTP测试，8组GPU数值测试与未修改的
-逐条attention在1e-5容差内一致。长上下文、取消、恢复和持续负载仍需在本机验证，
+逐条attention在1e-5容差内一致。追加测试通过12次共享前缀编辑、100次并发持续请求，
+并在客户端中断stream后恢复。后端取消完成、慢速客户端及30分钟混合负载仍未认证，
 标准托管启动路径保持不变。

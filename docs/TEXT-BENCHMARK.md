@@ -20,6 +20,7 @@
 - goodputは、前後の空白を除いた答えが`2`で、TTFTと`[DONE]`までの時間が指定SLO以内のrequestのusage output tokensを、負荷実行全体のwall timeで割る。並列requestの時間を加算して分母にしない。
 - 言語別の試行・完了・品質・SLO合格件数を保存する。全件正答でCLI終了code 0、失敗／品質不合格があれば1。SLO未達はreportで別に判定する。
 - workload hashはprompt・期待値・request数・並列度・sampling・timeout・SLOを固定する。endpointを含めないのでdirect／daemon間で照合できるが、同一artifactやbackend buildの証明にはならない。
+- Python APIの`cases=`には最大64件の`(label, prompt, expected)`を渡せる。labelは重複不可、64 bytes以下。prompt 8 MiB、expected 1 KiBを上限とし、内容をreportへ保存せずworkload hashへ結合する。CLIは固定三言語workloadだけを実行する。
 - p99はhistogram上限であり、測定完了数1,000未満は参考値。backend内部token timestamp、queue、tokenize、allocator、swap、thermal、energyは未取得と明記する。RSSを指定していない場合、phase profileの既存0値は実測ゼロではない。
 - backend cacheは制御しない。cold／warm／prefix hitの認定や純粋なdecode速度比較ではない。HTTPタイムアウトはsocket待機の上限で、request全体のhard deadlineではない。
 

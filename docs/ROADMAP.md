@@ -117,7 +117,8 @@ RSS・allocator・KV・OS pressure・swap差分は別系列で記録し、重複
 - [Next] admissionにprompt＋最大出力のKV増分、prefill scratch、batch増分、allocator cache、OS reserveを反映する。最大contextと最大concurrencyを同時に保証しない。
 - [Next] client切断、active／queued cancel、timeout、遅いSSE consumer、worker crash、sleep／wake、shutdownを実backendで試験する。queue・IPC・出力bufferをboundedに保つ。
 - [Done] M4／Gemma 2 2B／MLX-LM 0.32.0のbatch mask不一致へ、version＋source hash限定のプロセス内互換修正を追加。[修正後HTTP試験](evaluation/text-benchmark-m4-gemma2-mask-fix-2026-09-26.json)は並列度1／2とも30/30正答。GPU上の8条件で未修正の逐次attentionと数値一致。Homebrew packageを変更せず、[専用起動経路](GEMMA2-BATCH-MASK-FIX.md)で明示適用する。
-- [Next] 修正したGemma 2経路の長文、prefix編集、cancel／回復、30分以上の並列負荷を検証する。短い算術試験を一般品質や長時間安定性の認定に代用せず、標準serveへの採用は再認定後とする。
+- [Done] 修正したGemma 2経路の短時間M4回帰：[実測report](evaluation/gemma2-batch-mask-m4-qualification-2026-09-26.json)で約2K prompt tokensの共通prefix編集12/12、並列度2の継続負荷100/100が品質・SLO合格。stream途中切断後の正常応答とSIGINT正常終了も確認。client側切断に対するcancel完了通知はbackendにないため未認定。
+- [Next] 修正したGemma 2経路の明示的cancel、遅いconsumer、30分以上の並列混合負荷を検証する。短い算術試験を一般品質や長時間安定性の認定に代用せず、標準serveへの採用は再認定後とする。
 - [Next] cancelはbackendの安全な実行境界で処理する。解放完了まで予約を維持し、stream公開済みrequestの黙った再実行やtoken重複を禁止する。OOM retryは副作用と状態復元が証明できる経路だけに限定する。
 - [Next] watchdogとrestart backoffを整備する。ハング時はworkerを回収し、失敗をclientへ通知して新規requestを回復する。過負荷拒否と内部障害を別集計する。
 
