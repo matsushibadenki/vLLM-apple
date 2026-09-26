@@ -116,7 +116,8 @@ RSS・allocator・KV・OS pressure・swap差分は別系列で記録し、重複
 - [Next] model-owner thread／processを固定し、load／generate／cancel／closeの所有権を一貫させる。既存main-thread process経路を再利用し、モデルをrequestごとにロードしない。
 - [Next] admissionにprompt＋最大出力のKV増分、prefill scratch、batch増分、allocator cache、OS reserveを反映する。最大contextと最大concurrencyを同時に保証しない。
 - [Next] client切断、active／queued cancel、timeout、遅いSSE consumer、worker crash、sleep／wake、shutdownを実backendで試験する。queue・IPC・出力bufferをboundedに保つ。
-- [Next] M4／Gemma 2 2B／Homebrew MLX-LM 0.32.0の並列度2で観測した応答停止を修正・再検証する。[短い再試験](evaluation/text-benchmark-m4-c2-repro-2026-09-26.json)でも3件中2件失敗し、Gemma 2 attention maskのbroadcast例外による生成thread終了を確認。現在の筐体で再現できる問題として扱い、修正・回復試験までこの構成の並列推論を認定しない。
+- [Done] M4／Gemma 2 2B／MLX-LM 0.32.0のbatch mask不一致へ、version＋source hash限定のプロセス内互換修正を追加。[修正後HTTP試験](evaluation/text-benchmark-m4-gemma2-mask-fix-2026-09-26.json)は並列度1／2とも30/30正答。GPU上の8条件で未修正の逐次attentionと数値一致。Homebrew packageを変更せず、[専用起動経路](GEMMA2-BATCH-MASK-FIX.md)で明示適用する。
+- [Next] 修正したGemma 2経路の長文、prefix編集、cancel／回復、30分以上の並列負荷を検証する。短い算術試験を一般品質や長時間安定性の認定に代用せず、標準serveへの採用は再認定後とする。
 - [Next] cancelはbackendの安全な実行境界で処理する。解放完了まで予約を維持し、stream公開済みrequestの黙った再実行やtoken重複を禁止する。OOM retryは副作用と状態復元が証明できる経路だけに限定する。
 - [Next] watchdogとrestart backoffを整備する。ハング時はworkerを回収し、失敗をclientへ通知して新規requestを回復する。過負荷拒否と内部障害を別集計する。
 
