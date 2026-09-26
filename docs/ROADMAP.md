@@ -79,6 +79,7 @@ MLX / vLLM-Metal / qualified optional backend → Metal GPU
 
 - [Next] 起動から最終tokenまでの経路を追い、backendごとにstreaming、usage、cancel、prefix reuse、continuous batching、chunked prefill、KV精度、structured outputの「未対応／adapterのみ／実機合格」を記録する。フラグの存在だけでは有効と判定しない。
 - [Next] 既存phase probe・qualification・soakを共通reportへ接続する。直接backendとdaemon経由を同じ入力で比較し、queue、tokenize、prefill、decode、serialization／SSE、model loadを分離する。
+- [Done] P0のstream通信計測：phase probeで最終生成contentと`[DONE]`到着を分離し、end-to-end／stream tailを固定容量histogramへ集計。未取得sampleは欠測として区別する。既存のdecode計算を維持し、HTTP・schema・qualification回帰49件で検証。[仕様・再現手順](PHASE-TRANSPORT-METRICS.md)。実モデルの性能比較は未実施。
 - [Next] モデル・データ・tokenizer・chat template・量子化方式／group size・KV dtype・sampling・依存versionを固定する。reportへrevision／hash、再現コマンド、power／thermal、失敗・除外理由を保存する。
 - [Next] 実MLX cacheでmetadata計測の完全性と負荷を確認し、viewの共有storageを二重計上し得る限界を明記する。queueキャンセルの長時間負荷とp95待ち時間を測る。
 
@@ -250,7 +251,7 @@ All targets are prospective. Unsupported combinations, insufficient samples and 
 
 ## 一次資料と更新方針
 
-2026-09-25参照。以下は比較候補の技術資料であり、このrepositoryでの性能認定の証拠ではない。実装時は参照commitとlicenseを固定する。
+2026-09-26参照。[最新確認と採用判断](upstream-review-2026-09-26.md)。以下は比較候補の技術資料であり、このrepositoryでの性能認定の証拠ではない。実装時は参照commitとlicenseを固定する。
 
 - [MLX-LM公式](https://github.com/ml-explore/mlx-lm)：Apple Silicon向け生成・量子化・streamingの比較基準。
 - [vLLM-Metal公式](https://github.com/vllm-project/vllm-metal)：vLLMのApple Silicon plugin。使用buildの実効機能は個別に確認する。

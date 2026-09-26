@@ -36,7 +36,7 @@ class ExecutionPhaseProfilerTests(unittest.TestCase):
             worker.join()
         snapshot = profiler.snapshot()
         self.assertEqual(snapshot["sample_count"], 40_000)
-        self.assertEqual(snapshot["storage"]["latency_bucket_count"], 26)
+        self.assertEqual(snapshot["storage"]["latency_bucket_count"], 52)
         self.assertEqual(snapshot["storage"]["raw_sample_count"], 0)
 
     def test_invalid_measurement_is_rejected(self) -> None:
@@ -49,6 +49,31 @@ class ExecutionPhaseProfilerTests(unittest.TestCase):
         ):
             with self.assertRaises(ValueError):
                 PhaseMeasurement(*values)
+
+    def test_transport_latency_keeps_missing_samples_separate(self) -> None:
+        profiler = ExecutionPhaseProfiler("hardware", "model", "cpu")
+        profiler.record(PhaseMeasurement(0, 1_000_000, 3_000_000, 1, 2, 0))
+        missing = profiler.snapshot()["transport"]
+        self.assertIsNone(missing["end_to_end"])
+        self.assertIsNone(missing["stream_tail"])
+        profiler.record(PhaseMeasurement(0, 1_000_000, 3_000_000, 1, 2, 0, 13_000_000))
+        result = profiler.snapshot()
+        self.assertEqual(result["transport"]["sample_count"], 1)
+        self.assertEqual(result["transport"]["unavailable_sample_count"], 1)
+        self.assertEqual(result["transport"]["end_to_end"]["mean_ms"], 13)
+        self.assertEqual(result["transport"]["stream_tail"]["mean_ms"], 10)
+        self.assertEqual(result["decode"]["tpot"]["mean_ms"], 2)
+        validate_instance(result, load_schema("runtime/execution-phase-profile-v1.schema.json"))
+        with self.assertRaises(ValueError):
+            PhaseMeasurement(0, 1, 3, 1, 2, 0, 2)
+
+    def test_transport_changes_profile_identity(self) -> None:
+        ids = []
+        for done in (4, 5):
+            profiler = ExecutionPhaseProfiler("hardware", "model", "cpu")
+            profiler.record(PhaseMeasurement(0, 1, 3, 1, 2, 0, done))
+            ids.append(profiler.snapshot()["profile_id"])
+        self.assertNotEqual(*ids)
 
 
 if __name__ == "__main__":

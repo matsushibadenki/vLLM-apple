@@ -54,6 +54,96 @@
       }
     },
     "peak_memory_bytes": { "type": "integer", "minimum": 0 },
+    "transport": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sample_count",
+        "unavailable_sample_count",
+        "end_to_end",
+        "stream_tail"
+      ],
+      "properties": {
+        "sample_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "unavailable_sample_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "end_to_end": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": false,
+          "required": [
+            "mean_ms",
+            "p50_upper_bound_ms",
+            "p95_upper_bound_ms",
+            "max_ms"
+          ],
+          "properties": {
+            "mean_ms": {
+              "type": "number",
+              "minimum": 0
+            },
+            "p50_upper_bound_ms": {
+              "type": [
+                "number",
+                "string"
+              ]
+            },
+            "p95_upper_bound_ms": {
+              "type": [
+                "number",
+                "string"
+              ]
+            },
+            "max_ms": {
+              "type": "number",
+              "minimum": 0
+            }
+          }
+        },
+        "stream_tail": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": false,
+          "required": [
+            "mean_ms",
+            "p50_upper_bound_ms",
+            "p95_upper_bound_ms",
+            "max_ms"
+          ],
+          "properties": {
+            "mean_ms": {
+              "type": "number",
+              "minimum": 0
+            },
+            "p50_upper_bound_ms": {
+              "type": [
+                "number",
+                "string"
+              ]
+            },
+            "p95_upper_bound_ms": {
+              "type": [
+                "number",
+                "string"
+              ]
+            },
+            "max_ms": {
+              "type": "number",
+              "minimum": 0
+            }
+          }
+        }
+      }
+    },
     "storage": {
       "type": "object",
       "additionalProperties": false,

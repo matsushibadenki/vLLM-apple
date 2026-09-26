@@ -157,6 +157,7 @@ def measure_stream(
     trimmed_digest = _TrimmedTextDigest()
     response_bytes = 0
     stream_completed = False
+    stream_done_ns: int | None = None
     try:
         with urllib.request.urlopen(request, timeout=config.timeout_seconds) as response:
             while True:
@@ -174,6 +175,7 @@ def measure_stream(
                     continue
                 data = line[5:].strip()
                 if data == b"[DONE]":
+                    stream_done_ns = time.monotonic_ns()
                     stream_completed = True
                     break
                 try:
@@ -243,6 +245,7 @@ def measure_stream(
             prompt_tokens=prompt_tokens,
             output_tokens=output_tokens,
             peak_memory_bytes=peak[0],
+            stream_done_ns=stream_done_ns,
         ),
         expected_text_matched=expected_matched if expected_text is not None else None,
         steady_memory_bytes=_resident_bytes(config.target_pid),

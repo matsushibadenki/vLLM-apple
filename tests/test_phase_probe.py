@@ -89,6 +89,8 @@ class PhaseProbeTests(unittest.TestCase):
         self.assertEqual(result["sample_count"], 2)
         self.assertEqual(result["prefill"]["prompt_tokens"], 18)
         self.assertEqual(result["decode"]["output_tokens"], 4)
+        self.assertEqual(result["transport"]["sample_count"], 2)
+        self.assertEqual(result["transport"]["unavailable_sample_count"], 0)
         self.assertGreater(result["peak_memory_bytes"], 0)
         validate_instance(
             result, load_schema("runtime/execution-phase-profile-v1.schema.json")
@@ -103,12 +105,14 @@ class PhaseProbeTests(unittest.TestCase):
         )
         with patch(
             "vllm_apple.phase_probe.time.monotonic_ns",
-            side_effect=(1_000_000, 2_000_000),
+            side_effect=(1_000_000, 2_000_000, 12_000_000),
         ) as clock:
             result = measure_stream(config)
         self.assertEqual(result.measurement.first_token_ns, 2_000_000)
         self.assertEqual(result.measurement.completed_ns, 2_000_000)
-        self.assertEqual(clock.call_count, 2)
+        self.assertEqual(result.measurement.stream_done_ns, 12_000_000)
+        self.assertEqual(result.measurement.decode_ns, 0)
+        self.assertEqual(clock.call_count, 3)
 
     def test_missing_usage_is_not_replaced_by_an_estimate(self) -> None:
         server = self._server(MissingUsageStreamHandler)

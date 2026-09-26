@@ -21,6 +21,8 @@ class PhaseMeasurement:
     prompt_tokens: int
     output_tokens: int
     peak_memory_bytes: int
+    # completed_ns remains the last generated-content arrival for v1 compatibility.
+    stream_done_ns: int | None = None
 
     def __post_init__(self) -> None:
         if self.started_ns < 0 or not (
@@ -31,6 +33,8 @@ class PhaseMeasurement:
             raise ValueError("measurement token counts are invalid")
         if self.peak_memory_bytes < 0:
             raise ValueError("peak_memory_bytes must not be negative")
+        if self.stream_done_ns is not None and self.stream_done_ns < self.completed_ns:
+            raise ValueError("stream completion must follow generated content")
 
     @property
     def ttft_ns(self) -> int:
@@ -103,6 +107,8 @@ class ExecutionPhaseProfiler:
         self._peak_memory_bytes = 0
         self._ttft = _BoundedLatency()
         self._tpot = _BoundedLatency()
+        self._e2e = _BoundedLatency()
+        self._stream_tail = _BoundedLatency()
 
     def record(self, measurement: PhaseMeasurement) -> None:
         with self._lock:
@@ -117,6 +123,9 @@ class ExecutionPhaseProfiler:
             self._ttft.record(measurement.ttft_ns)
             if measurement.token_intervals:
                 self._tpot.record(measurement.decode_ns // measurement.token_intervals)
+            if measurement.stream_done_ns is not None:
+                self._e2e.record(measurement.stream_done_ns - measurement.started_ns)
+                self._stream_tail.record(measurement.stream_done_ns - measurement.completed_ns)
 
     def snapshot(self) -> dict[str, Any]:
         with self._lock:
@@ -132,6 +141,11 @@ class ExecutionPhaseProfiler:
                 "peak_memory_bytes": self._peak_memory_bytes,
                 "ttft_counts": self._ttft.counts,
                 "tpot_counts": self._tpot.counts,
+                "transport_samples": self._e2e.count,
+                "e2e_counts": self._e2e.counts,
+                "e2e_total_ns": self._e2e.total_ns,
+                "stream_tail_counts": self._stream_tail.counts,
+                "stream_tail_total_ns": self._stream_tail.total_ns,
             }
             profile_id = hashlib.sha256(
                 json.dumps(identity, sort_keys=True, separators=(",", ":")).encode("utf-8")
@@ -160,8 +174,16 @@ class ExecutionPhaseProfiler:
                     "tokens_per_second": round(throughput, 3),
                 },
                 "peak_memory_bytes": self._peak_memory_bytes,
+                "transport": {
+                    "sample_count": self._e2e.count,
+                    "unavailable_sample_count": self._samples - self._e2e.count,
+                    "end_to_end": self._e2e.snapshot() if self._e2e.count else None,
+                    "stream_tail": self._stream_tail.snapshot() if self._e2e.count else None,
+                },
                 "storage": {
-                    "latency_bucket_count": len(self._ttft.counts) + len(self._tpot.counts),
+                    "latency_bucket_count": sum(len(metric.counts) for metric in (
+                        self._ttft, self._tpot, self._e2e, self._stream_tail
+                    )),
                     "raw_sample_count": 0,
                 },
             }
