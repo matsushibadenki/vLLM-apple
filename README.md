@@ -1,21 +1,19 @@
 # vLLM-Apple Runtime
 
-Apple Silicon向けの、メモリ安定性を重視したAI runtime control planeです。
+An AI runtime control plane designed for Apple Silicon with a strong emphasis on memory stability.
 
-現在はPhase 1として、hardware/memory検出、安全なcontext計算、runtime profile、
-メモリ予約scheduler、headless daemon、versioned local APIを実装しています。
+Currently in Phase 1, it implements hardware/memory detection, safe context calculation, runtime profiling, a memory-reservation scheduler, a headless daemon, and a versioned local API.
 
-## 安定性の基本方針
+## Core Principles for Memory Stability
 
-- context計算ではphysical memoryとcurrent available memoryの小さい方を採用
-- OS reserve、workspace、緊急headroomを推論用budgetから除外
-- request bodyを4MiBへ制限
-- server threadを既定32本へ制限し、過負荷時は503で早期拒否
-- load計測値は固定bucketと上限付きerror分類で保持し、計測自体のmemory増加を抑制
-- profileは一時fileへ書き、`fsync`後にatomic replace
+- Context calculation adopts the smaller value between physical memory and currently available memory.
+- Excludes OS reserves, workspace allocations, and emergency headroom from the inference budget.
+- Limits HTTP request bodies to 4 MiB.
+- Caps server worker threads at a default of 32, rejecting overloaded requests early with HTTP 503.
+- Retains load metrics using fixed buckets and capped error classifications to prevent telemetry itself from increasing memory footprint.
+- Writes profiles to temporary files and atomically replaces them after `fsync`.
 
-Macアプリ用Swift Packageは `sdk/swift` にあります。SwiftUIやAppKitへ依存せず、
-Foundation、`async/await`、`AsyncThrowingStream` を公開interfaceにしています。
+The Swift Package for Mac applications is located in `sdk/swift`. It has no dependencies on SwiftUI or AppKit, exposing Foundation, `async/await`, and `AsyncThrowingStream` as public interfaces.
 
 ```bash
 python3 -m vllm_apple hardware
@@ -29,40 +27,23 @@ python3 -m vllm_apple serve --socket-path /tmp/vllm-apple.sock \
   --session-token-file /tmp/vllm-apple.token
 ```
 
-サーバーは明示指定しない限り `127.0.0.1` のみにbindします。推論backendが未設定の
-場合もhealth、hardware、runtime profile APIは利用できます。
+Unless explicitly specified, the server binds to `127.0.0.1` only. Even when no inference backend is configured, the health, hardware, and runtime profile APIs remain available.
 
-modelを指定した場合は、選択したvLLM-MetalまたはMLX LM serverを別processでloopback interface上に起動し、
-OpenAI APIをcontrol daemon経由でproxyします。SSEはresponse全体を保持せず、小さいchunkで
-転送します。`doctor` が互換環境を確認できない場合は起動を拒否します。異なる環境を明示的に
-利用する場合は `--backend-executable /path/to/vllm` を指定してください。
+When a model is specified, it launches the selected vLLM-Metal or MLX LM server as a separate process on the loopback interface and proxies OpenAI API requests through the control daemon. SSE transfers responses in small chunks without buffering full responses. If `doctor` fails to verify a compatible environment, startup is refused. To explicitly use a different environment, specify `--backend-executable /path/to/vllm`.
 
-local directoryまたはHugging Face cacheにmodelがある場合は、weight shardと`config.json`から
-標準Transformer/GQAのKV memoryを計算し、BALANCED contextを自動適用します。安全にinspection
-できないmodelは、`--max-model-len`が指定されていなければ4096 tokenへ制限します。
+If the model exists in a local directory or Hugging Face cache, it calculates standard Transformer/GQA KV memory requirements from weight shards and `config.json`, automatically applying BALANCED context limits. Models that cannot be safely inspected are capped at 4096 tokens unless `--max-model-len` is explicitly provided.
 
-Macアプリとのlocal接続用にUnix Domain Socketを作成できます。session tokenをcommand lineへ
-露出させないよう、`--session-token-file`の利用を推奨します。token fileとsocketは0600で作成され、
-runtime state/failure eventは `/v1/events` からSSEで購読できます。
+A Unix Domain Socket (UDS) can be created for local connections from Mac apps. To avoid exposing session tokens on the command line, using `--session-token-file` is recommended. Token files and sockets are created with `0600` permissions, and runtime state/failure events can be subscribed to via SSE from `/v1/events`.
 
-daemonが強制終了してUDS entryが残った場合、次回起動はownerとsocket typeを検証したうえで
-stale entryを置換します。session token fileは再利用し、通常のSIGTERM shutdownではUDSを削除します。
+If the daemon is forcefully terminated and a stale UDS entry remains, subsequent startups verify ownership and socket type before replacing the stale entry. Session token files are reused, and standard SIGTERM shutdowns delete the UDS.
 
-health、runtime snapshot、runtime eventのv1 schemaは`schemas/`に固定し、live HTTP/SSE responseを
-dependency-free validatorで検証します。validatorが未対応のschema keywordを検出した場合もtestを
-失敗させるため、schema制約が黙って無視されることはありません。
+The v1 schemas for health, runtime snapshots, and runtime events are locked in `schemas/`, and live HTTP/SSE responses are validated with a dependency-free validator. If the validator detects unsupported schema keywords, tests fail to ensure schema constraints are never silently ignored.
 
-`VLLMAppleKit`の`UnixSocketRuntimeClient`はPOSIX UDS上でhealth、profile、chat、SSEを
-利用できます。`ManagedRuntime`へsocket pathとtoken fileを渡すとUDS clientを自動選択し、
-bounded stdout/stderr log、readiness監視、failure時だけの上限付きrestart policyを提供します。
+`VLLMAppleKit`'s `UnixSocketRuntimeClient` supports health, profile, chat, and SSE over POSIX UDS. Passing socket paths and token files to `ManagedRuntime` automatically selects the UDS client, providing bounded stdout/stderr logging, readiness monitoring, and capped restart policies upon failure.
 
-`RuntimeResourceResolver`はapp bundle内の`vllm-appled`を検出し、Application Support配下の
-profile/log/tokenと、Darwinのpath長制限を満たす`/tmp`配下のUDSを解決します。directoryは0700、
-session tokenは0600で作成されます。
+`RuntimeResourceResolver` detects `vllm-appled` inside the app bundle and resolves Application Support paths for profiles, logs, and tokens, as well as `/tmp` paths for UDS to satisfy Darwin path length limits. Directories are created with `0700` permissions, and session tokens with `0600`.
 
-英語、日本語、簡体字中国語に対応した最小macOS SwiftUI chat sampleは
-`samples/VLLMAppleChat`にあります。bundleにdaemonがない場合は`127.0.0.1:8000`へ接続します。
-開発中のdaemon executableを明示する場合は環境変数を使用できます。
+A minimal macOS SwiftUI chat sample supporting English, Japanese, and Simplified Chinese is located in `samples/VLLMAppleChat`. If no daemon is found in the app bundle, it connects to `127.0.0.1:8000`. Environment variables can be used to explicitly specify a development daemon executable.
 
 ```bash
 cd samples/VLLMAppleChat
@@ -70,11 +51,9 @@ swift run
 VLLM_APPLE_DAEMON_PATH=/path/to/vllm-appled swift run
 ```
 
-### 実モデルでチャットを試す
+### Trying Chat with Real Models
 
-MLX LMの`--model`で起動したモデルは、チャットAPIでは`default_model`として参照します。
-`/v1/models`も管理中のこのaliasだけを返します。モデル未読込時はMacアプリの送信ボタンを無効にします。
-既存のdaemonを使う場合は、別terminalで次を実行してから`swift run`します。
+Models launched with MLX LM's `--model` flag are referenced as `default_model` in the chat API. `/v1/models` also returns only this managed alias. The send button in the Mac app is disabled when no model is loaded. When using an existing daemon, run the following in a separate terminal before running `swift run`:
 
 ```bash
 python3 -m vllm_apple serve /absolute/path/to/MLX-model \
@@ -88,46 +67,32 @@ cd samples/VLLMAppleChat
 VLLM_APPLE_CHAT_MODEL_ID=default_model swift run
 ```
 
-Macアプリにdaemonを起動させる場合は、`VLLM_APPLE_DAEMON_PATH`に実行可能な`vllm-appled`、
-`VLLM_APPLE_MODEL_PATH`にモデルの絶対path、`VLLM_APPLE_BACKEND_KIND=mlx_lm`、
-`VLLM_APPLE_BACKEND_EXECUTABLE`に`mlx_lm.server`の絶対pathを指定します。
-この場合、アプリのモデルIDは既定で`default_model`になり、モデルload完了後に送信できます。
+To have the Mac application launch the daemon automatically, set `VLLM_APPLE_DAEMON_PATH` to an executable `vllm-appled`, `VLLM_APPLE_MODEL_PATH` to the absolute path of the model, `VLLM_APPLE_BACKEND_KIND=mlx_lm`, and `VLLM_APPLE_BACKEND_EXECUTABLE` to the absolute path of `mlx_lm.server`. In this scenario, the application's model ID defaults to `default_model`, allowing prompt transmission once model loading completes.
 
-### Homebrew vLLM-Metal candidateの確認
+### Verifying Homebrew vLLM-Metal Candidates
 
-Homebrew版は固定revisionの認定stackとは別candidateとして扱います。まずMetalが利用可能か、
-vLLMが実際にMetal platformを選択したかを確認してください。
+The Homebrew build is treated as a separate candidate from the certified stack with fixed revisions. First, check whether Metal is available and whether vLLM actually selected the Metal platform:
 
 ```bash
 python3 -m vllm_apple doctor
 ```
 
-`vllm_metal_available_but_not_selected` または `vllm_metal_platform_not_selected` が表示された場合は、
-Homebrew版をvLLM-Metalの実推論経路として昇格させず、`mlx_lm` backendを明示してチャットを実行します。
-Metal platform選択が確認できたcandidateだけを、non-stream、SSE、memory、qualificationの順に検証します。
+If `vllm_metal_available_but_not_selected` or `vllm_metal_platform_not_selected` is displayed, do not promote the Homebrew build to the active execution path for vLLM-Metal; instead, explicitly specify the `mlx_lm` backend for chat. Only candidates with confirmed Metal platform selection are verified in order: non-stream, SSE, memory, and qualification.
 
-2026-09-19にHomebrew vLLM / vLLM-Metal 0.29.0、Transformers 5.17.0、tokenizers 0.23.2で
-依存関係チェックとMetal platform初期化を確認しました。`+cpu`というversion suffixはMetal利用不可を意味しません。
-CPUが選択された場合は、GPUアクセス権と`VLLM_LOGGING_LEVEL=DEBUG vllm --version`のplugin例外を確認してください。
-Transformersだけのdowngradeは画像・音声backendの依存関係を壊すため、推奨しません。
+On September 19, 2026, dependency checks and Metal platform initialization were verified with Homebrew vLLM / vLLM-Metal 0.29.0, Transformers 5.17.0, and tokenizers 0.23.2. Note that the `+cpu` version suffix does not indicate that Metal is unavailable. If CPU is selected, check GPU access privileges and plugin exceptions via `VLLM_LOGGING_LEVEL=DEBUG vllm --version`. Downgrading Transformers alone is not recommended as it breaks vision and audio backend dependencies.
 
-Homebrew版と別に、公式install scriptの専用環境がある場合は、候補として明示指定できます。
-GPUが見えないheadless／sandbox環境ではMetal初期化が失敗するため、実機のログインセッションで診断してください。
+If a dedicated environment created via the official install script exists separately from Homebrew, it can be explicitly specified as a candidate. Because Metal initialization fails in headless or sandboxed environments where the GPU is not visible, run diagnostics within a physical machine login session.
 
 ```bash
 python3 -m vllm_apple doctor \
   --backend-executable "$HOME/.venv-vllm-metal/bin/vllm"
 ```
 
-## 同時負荷とメモリ安定性の検証
+## Concurrency and Memory Stability Verification
 
-起動済みの画像対応serverには、`python3 -m vllm_apple vision-smoke --url http://127.0.0.1:8000 --model MODEL_ID`
-で画像入力のsmokeを実行できます。32x32の赤・青PNGを同じ質問で送り、英語・日本語・简体中文の6回答を
-前後空白のみ除外して照合します。画像・回答本文はレポートに保存しません。
-これは画像入力経路のsmokeであり、長時間安定性や一般的な画像理解能力の認定ではありません。
+For a running vision-capable server, you can execute a vision input smoke test via `python3 -m vllm_apple vision-smoke --url http://127.0.0.1:8000 --model MODEL_ID`. This sends 32x32 red and blue PNG images with identical prompts and cross-checks 6 responses across English, Japanese, and Simplified Chinese after trimming only leading/trailing whitespace. Image data and response bodies are excluded from saved reports. This serves as a smoke test for the vision input path and is not a certification of long-term stability or general vision understanding capability.
 
-`vllm-apple-soak`は、履歴sampleを無制限に保持せず、固定12 latency bucketと最大17 error keyで
-throughput、failure、RSS増加量をJSON出力します。既定ではloopback以外への接続を拒否します。
+`vllm-apple-soak` does not maintain unlimited history samples; instead, it outputs JSON containing throughput, failure counts, and RSS growth using 12 fixed latency buckets and up to 17 error keys. By default, non-loopback connections are rejected.
 
 ```bash
 python3 -m vllm_apple.soak --duration 300 --warmup 5 --concurrency 8
@@ -139,14 +104,9 @@ python3 -m vllm_apple.soak --mode chat-mixed --model your-model \
   --require-30-minute-window --session-token-file /path/to/session.token
 ```
 
-request failureまたはRSS上限超過ではexit code 1、設定・接続準備のerrorではexit code 2を返します。
-実modelの長時間判定では、model load後のdaemon PIDを`--pid`へ指定してください。
-`chat-mixed`はnon-streaming JSONとstreaming SSEを交互に実行し、応答構造と`[DONE]`までの完走を
-検証します。30分認定modeは1800秒以上、PID監視、RSS増加上限のすべてを必須とし、backendが
-途中終了した場合も失敗します。
+It returns exit code 1 on request failures or RSS threshold breaches, and exit code 2 on configuration or connection preparation errors. For long-duration evaluations on real models, pass the post-load daemon PID to `--pid`. `chat-mixed` alternates between non-streaming JSON and streaming SSE requests, verifying response structure and successful completion up to `[DONE]`. The 30-minute qualification mode strictly requires $\ge 1800$ seconds, PID monitoring, and RSS growth caps, failing if the backend terminates early.
 
-backendの起動からshutdownまでを一度に検証する場合は`qualify-model`を使用します。起動前に
-vLLM/vLLM-Metalの互換性を検査し、model load後のPIDを自動的にRSS監視へ接続します。
+To verify everything from backend startup to shutdown in one execution, use `qualify-model`. It inspects vLLM/vLLM-Metal compatibility prior to launch and automatically attaches the post-load PID to RSS monitoring.
 
 ```bash
 python3 -m vllm_apple qualify-model /path/to/model \
@@ -155,73 +115,32 @@ python3 -m vllm_apple qualify-model /path/to/model \
   --concurrency 4 --max-rss-growth-mib 256
 ```
 
-短時間の配線確認に限り`--allow-short-run --duration 60`を使用できます。この結果は30分認定には
-なりません。
+For quick wiring checks only, `--allow-short-run --duration 60` can be passed. These results do not qualify for 30-minute certification.
 
-daemonのSIGINT/SIGTERM shutdownでは新規リクエストを`server_draining`で拒否し、既存のHTTP/UDS
-リクエストを既定30秒まで待ってからbackendを停止します。猶予時間は
-`serve --shutdown-grace-period SECONDS`で変更できます。
+During daemon SIGINT/SIGTERM shutdown, new requests are rejected with `server_draining`, while existing HTTP/UDS requests are allowed up to a default 30-second grace period before stopping the backend. The grace period can be customized using `serve --shutdown-grace-period SECONDS`.
 
-operator dispatcherを有効にしたschedulerでは、MLX/Metal acceleratorは現在のhardware、OS、
-toolchain、backend versionに結び付いたkernel probeが成功した場合だけ選択されます。未probe、
-correctness不一致、性能退行、native crashはfail-closedでquarantineされ、利用可能なMLXまたはCPUへ
-fallbackします。MLX probeはnative crashからdaemonを守るため短命な隔離subprocessで実行します。
-Native Metal probeも固定された小型shaderをSwift子プロセスでcompile、dispatch、readbackし、専用の
-temporary module cacheだけを使用します。Metal device、toolchain、command queueの異常はdaemonを
-終了させず、そのoperatorのquarantineとして扱います。
+In schedulers with the operator dispatcher enabled, MLX/Metal accelerators are selected only if kernel probes bound to current hardware, OS, toolchain, and backend versions succeed. Unprobed kernels, correctness mismatches, performance regressions, or native crashes fail closed into quarantine, falling back to available MLX or CPU paths. MLX probes run in short-lived isolated subprocesses to protect the daemon from native crashes. Native Metal probes compile, dispatch, and read back fixed small shaders in Swift subprocesses using a dedicated temporary module cache. Anomalies in Metal devices, toolchains, or command queues do not crash the daemon; they are treated as operator quarantines.
 
-`RuntimeProbeCoordinator`はMLX/Metalの結果を同じenvironment fingerprintへ統合し、dispatcherを
-scheduler safe pointで適用します。処理中requestがある場合はpendingとして保持し、最後の
-reservation解放後にexecution planやelastic memory policyと同じ境界で切り替えます。
+`RuntimeProbeCoordinator` unifies MLX/Metal results into the same environment fingerprint and applies the dispatcher at scheduler safe points. Active requests are held as pending and switched after the final reservation release, sharing boundaries with execution plans or elastic memory policies.
 
-互換性検査を有効にした`serve <model>`では、Metal toolchain、MLX package、backend versionを
-MLX本体をimportせずに検出し、起動時にprobe coordinatorを自動実行します。probe完了数と
-quarantine数はbounded runtime eventへ通知されます。問題調査時に限り
-`--skip-runtime-probes`で自動probeを無効化できます。
+When `serve <model>` runs with compatibility checks enabled, it detects Metal toolchains, MLX packages, and backend versions without importing MLX itself, automatically executing the probe coordinator at startup. Probe completion count and quarantine count are reported via bounded runtime events. `--skip-runtime-probes` can be passed to disable auto-probing strictly during troubleshooting.
 
-probe結果はhardware/environment fingerprint別のprivate cacheへatomic保存されます。完全一致する
-cacheではnative probeを省略し、quarantineも再利用します。OS、toolchain、MLX、backend、probe
-suite versionが変わると別cacheになり、安全に再測定されます。cacheは既定7日で期限切れとなり、
-未来の作成時刻も拒否します。
+Probe results are stored atomically in a private cache per hardware/environment fingerprint. Exact cache matches skip native probing and reuse quarantine states. If the OS, toolchain, MLX, backend, or probe suite version changes, a new cache entry is created and re-measured safely. Cache entries expire after 7 days by default, and future creation timestamps are rejected.
 
-MLX suiteはvector add、16x16 matmul、bounded KV copyに加え、sequence長8/32・head dimension 8の
-scaled dot-product attentionを検証します。attentionの出力は小数点以下5桁へ正規化し、無害な
-浮動小数差を許容しながら両shapeのどちらかが壊れればoperator全体をquarantineします。
-同じcapabilityにはcausal prefill、single-token decode、4 query head/2 KV headのGQAも含まれ、
-全シナリオが一致した場合だけ`attention`を有効化します。異なるsuite versionのcacheは移行せず、
-correctnessを再測定します。
+The MLX suite tests vector addition, 16x16 matmul, bounded KV copy, and scaled dot-product attention with sequence lengths 8/32 and head dimension 8. Attention outputs are normalized to 5 decimal places, tolerating harmless floating-point noise while quarantining the entire operator if either shape fails. The same capability covers causal prefill, single-token decode, and GQA with 4 query heads / 2 KV heads, enabling `attention` only when all scenarios match. Caches from different suite versions are not migrated; correctness is re-measured.
 
-Paged Attention probeは非連続block tableでKVを再構成し、14、256、1024 tokenのdecode tierを
-検証します。Native Metal版も固定された14 token shaderのcompile、dispatch、readbackを独立した
-capabilityとして検証します。MLA probeは16 token×4次元のcompressed latentを別々の
-key/value projectionで8次元へ展開し、attention出力まで比較します。probe suite version 4より
-各operatorを独立してquarantineし、現行suite version 6ではbounded数値toleranceを含む新しい
-probe contractで再測定します。
+The Paged Attention probe reconstructs KV from non-contiguous block tables, verifying decode tiers for 14, 256, and 1024 tokens. The Native Metal version independently verifies compile, dispatch, and readback of a fixed 14-token shader as a distinct capability. The MLA probe expands 16 token $\times$ 4-dimensional compressed latents to 8 dimensions using separate key/value projections and compares attention outputs. Starting from probe suite version 4, each operator is quarantined independently; current suite version 6 re-measures with a new probe contract featuring bounded numerical tolerances.
 
-実モデルの`config.json`から、query/KV head、head dimension、context、block数、KV working-setだけを
-抽出したbounded shape profileも生成できます。重みtensorはロードしません。
+Bounded shape profiles can also be generated from a model's `config.json`, extracting query/KV heads, head dimension, context, block count, and KV working-set without loading weight tensors.
 
 ```bash
 python3 -m vllm_apple kernel-shape-profile /path/to/model \
   --contexts 128,1024,4096,16384 --block-tokens 16
 ```
 
-Native Metal adapterはこのprofileを最大4 shapeずつ消費し、各shapeを別のprobe identityとして
-計測できます。代表bufferは64 MiBをhard limitとし、上限を超えるshapeは確保前に拒否します。
-測定reportはmodel profile、hardware、environment fingerprintに結び付けてprivate/atomic保存でき、
-読み戻し時には権限、サイズ、全identity、result由来IDを再検証します。
-長shapeでは最大絶対誤差`1e-5`以内のbounded数値ベクトル比較を使い、それ以外のprobeは従来どおり
-SHA-256 digestの完全一致を要求します。現行suite version 7ではshape kernelをscore、softmax、outputの
-3段階へ分割し、scoreをcontext方向、outputをhead dimension方向へ並列dispatchします。softmaxは
-256-threadの固定scratchでmax/sum reductionし、context長に依存するthreadgroup memoryを持ちません。
-中間score bufferも64 MiBの総allocation上限に含まれます。
+The Native Metal adapter consumes this profile in batches of up to 4 shapes at a time, profiling each shape under a distinct probe identity. Representative buffers enforce a 64 MiB hard limit, rejecting shape allocations before allocation if they exceed this limit. Benchmark reports can be saved privately and atomically, bound to model profile, hardware, and environment fingerprints. On load, permissions, file size, all identities, and result provenance IDs are re-verified. For long shapes, bounded numerical vector comparison within a maximum absolute error of $10^{-5}$ is used; other probes require exact SHA-256 digest matching as before. Current suite version 7 splits shape kernels into three stages—score, softmax, and output—dispatching score along the context axis and output along the head dimension axis. Softmax performs max/sum reduction in fixed 256-thread scratch memory with no context-length-dependent threadgroup memory. Intermediate score buffers count toward the 64 MiB total allocation ceiling.
 
-shape autotunerは32、64、128、256 threadの最大4候補を同じCPU基準へ照合し、correctnessを
-通過した候補のMetal中央値だけを比較します。最速から2%以内は同等とみなし、thread総数が小さい
-構成を決定的に選びます。winnerと全候補はmodel、hardware、environment fingerprint別のversioned
-reportとしてprivateかつatomicに保存できます。誤った高速kernelがwinnerになることはありません。
-読み戻し時はfile owner、権限、サイズ、全fingerprintを検査し、保存済み候補からwinnerを再計算して
-2% tie-break policyと一致しないreportを拒否します。
+The shape autotuner evaluates up to 4 candidates (32, 64, 128, 256 threads) against the same CPU baseline, comparing Metal median runtimes only for candidates passing correctness checks. Candidates within 2% of the fastest speed are treated as equal, deterministically selecting the configuration with the smaller total thread count. The winner and all candidates are saved privately and atomically as a versioned report per model, hardware, and environment fingerprint. Erroneous fast kernels are never selected as winners. During reload, file ownership, permissions, size, and all fingerprints are checked, re-calculating the winner from saved candidates to reject any report inconsistent with the 2% tie-break policy.
 
 ```bash
 python3 -m vllm_apple metal-shape-tune /path/to/model \
@@ -231,19 +150,11 @@ python3 -m vllm_apple metal-shape-tune /path/to/model \
   --contexts 1024 --samples 3 --stdout
 ```
 
-daemonへreportをinstallすると、active requestがある間はpendingとして保持されます。各reservationは
-開始時の`tuning_id`を固定し、最後のactive request完了後のscheduler safe pointでのみwinnerが
-切り替わるため、1 request内でthread構成が混在しません。
+Installing a report into the daemon holds it as pending while active requests exist. Each reservation fixes its starting `tuning_id`, switching winners only at a scheduler safe point after the final active request completes, preventing mixed thread configurations within a single request.
 
-推論時はwinner tableをversionedかつ4 KiB以下の内部headerとしてlocal backendへ渡します。
-OpenAI互換のrequest JSONは変更しません。非streamingでは応答完了まで、streamingではupstreamの
-終了またはclient切断まで同じreservationを保持するため、実行途中の構成切替を防ぎます。context-aware
-contractに未対応のengineは従来の呼び出しへ安全にfallbackします。
+During inference, the winner table is passed to the local backend as a versioned internal header of 4 KiB or less. OpenAI-compatible request JSON remains unmodified. The same reservation is retained until response completion for non-streaming, or upstream end / client disconnect for streaming, preventing mid-execution configuration switches. Engines lacking context-aware contract support safely fall back to legacy invocation.
 
-model指定でdaemonを起動すると、model shape、Apple hardware、OS/Metal/MLX/backend versionが
-完全一致する保存済みreportをApplication Supportから自動探索します。private directory内の候補を
-最大64件に制限し、破損・権限不正・identity不一致のfileを採用せず、検証済みreportのうち最新を
-決定的にinstallします。明示report指定または自動導入の無効化も可能です。
+When launching the daemon with a model, it automatically searches Application Support for saved reports matching the model shape, Apple hardware, and OS/Metal/MLX/backend versions exactly. Candidates in private directories are capped at 64, ignoring corrupted, permission-invalid, or identity-mismatched files, deterministically installing the latest verified report. Explicit report specification or disabling automatic adoption is supported.
 
 ```bash
 python3 -m vllm_apple serve /path/to/model \
@@ -252,9 +163,7 @@ python3 -m vllm_apple serve /path/to/model \
 python3 -m vllm_apple serve /path/to/model --disable-metal-tuning
 ```
 
-vLLM-Metal側には依存追加なしのASGI adapterを組み込めます。contextは`ContextVar`でrequestごとに
-隔離され、headerが壊れている場合やshapeが完全一致しない場合は`None`を渡してbackend既定構成へ
-fallbackします。別requestのwinnerが混入することはありません。
+An ASGI adapter without extra dependencies can be integrated into vLLM-Metal. Contexts are isolated per-request via `ContextVar`; if headers are corrupted or shapes do not match exactly, `None` is passed to fall back to the backend default configuration. Winners from separate requests are never mixed.
 
 ```python
 from vllm_apple import BackendKernelTuningAdapter, KernelTuningASGIMiddleware
@@ -262,42 +171,27 @@ from vllm_apple import BackendKernelTuningAdapter, KernelTuningASGIMiddleware
 tuning = BackendKernelTuningAdapter()
 app.add_middleware(KernelTuningASGIMiddleware, adapter=tuning)
 
-# Paged Attentionの実call siteで使用するbridge
+# Bridge used at actual call site for Paged Attention
 result = tuning.invoke_paged_attention(invoke_kernel, shape, pages, query)
 ```
 
-`invoke_kernel`には`(shape, configuration, ...)`が渡されます。`configuration`が存在する場合は
-`score_width`、`softmax_width`、`output_width`を各Metal dispatchへ適用します。metricsでは
-accepted/rejected contextとshape hit/missを取得できます。
+`invoke_kernel` receives `(shape, configuration, ...)`. If `configuration` exists, `score_width`, `softmax_width`, and `output_width` are applied to each Metal dispatch. Metrics track accepted/rejected contexts and shape hits/misses.
 
-managed backend起動時は、`vllm serve --help`を10秒・1 MiB上限で検査し、`--middleware`と
-`--disable-frontend-multiprocessing`の両方が利用できる場合だけmiddlewareを自動登録します。
-未対応backendでは推論起動を維持したままtuning integrationを無効化します。受理したbackendは
-responseにtuning IDを返し、control planeはacknowledged、missing、mismatchを別々に計測します。
-acknowledgementはheaderをparseした時点ではなく、shape一致winnerがkernel hookから取得された場合だけ
-付与されます。
+During managed backend startup, `vllm serve --help` is inspected within a 10-second and 1 MiB limit; middleware is registered automatically only if both `--middleware` and `--disable-frontend-multiprocessing` are supported. Unsupported backends retain inference launch while disabling tuning integration. Accepted backends return a tuning ID in responses, and the control plane measures acknowledged, missing, and mismatched responses separately. Acknowledgements are recorded not at header parsing, but when a shape-matched winner is retrieved from kernel hooks.
 
-vLLM-Metal sourceと現在のtuning ABIの互換性は、sourceを実行せずに検査できます。
+vLLM-Metal source compatibility with the current tuning ABI can be inspected without running the source:
 
 ```bash
 python3 -m vllm_apple vllm-metal-integration-inspect /path/to/vllm-metal
 ```
 
-`doctor`はPythonに加えてvLLM、vLLM-Metal、Transformersのverified matrixを検査します。現在の
-vLLM 0.28.0 / Transformers 5.15.0は、vLLM-Metal側の対応確認が完了するまで未検証として拒否します。
-詳細は[VERSION-COMPATIBILITY.md](docs/VERSION-COMPATIBILITY.md)を参照してください。
+`doctor` verifies Python as well as verified matrices for vLLM, vLLM-Metal, and Transformers. Currently, vLLM 0.28.0 / Transformers 5.15.0 are rejected as unverified until vLLM-Metal compatibility verification is complete. See [VERSION-COMPATIBILITY.md](docs/VERSION-COMPATIBILITY.md) for details.
 
-現行native v2はNAX、tiled、per-token、split/reduceでthread構成とshared memory条件が異なるため、
-3-stage winnerを暗黙適用しません。詳細は
-[VLLM-Metal-Integration.md](docs/VLLM-Metal-Integration.md)を参照してください。
+The current native v2 has differing thread configurations and shared memory conditions across NAX, tiled, per-token, and split/reduce, so 3-stage winners are not applied implicitly. See [VLLM-Metal-Integration.md](docs/VLLM-Metal-Integration.md) for details.
 
-native v2 tuning profileはNAX、tiled、per-token、split-KVを別familyとして扱います。最大9 sampleの
-中央値、correctnessとoutput digest、2% tie-breakを適用し、hardwareとupstream source fingerprintへ
-固定します。profileは最大16 shape・512 KiBでprivate atomic保存され、読み戻し時にwinnerを含む
-全policyを再検証します。
+Native v2 tuning profiles treat NAX, tiled, per-token, and split-KV as distinct families. Applying medians over up to 9 samples, correctness and output digests, and 2% tie-breaking, profiles are pinned to hardware and upstream source fingerprints. Profiles are stored privately and atomically (up to 16 shapes, 512 KiB max), re-validating all policies including winners upon reload.
 
-native measurement ABIを実装したvLLM-Metal sourceでは、model metadataからboundedなdecode/prefill
-shapeを生成し、実device profileを保存できます。未対応native extensionでは安全に終了します。
+In vLLM-Metal source implementing the native measurement ABI, bounded decode/prefill shapes can be generated from model metadata to save real device profiles. Unsupported native extensions terminate safely.
 
 ```bash
 python3 -m vllm_apple vllm-metal-v2-tune /path/to/model \
@@ -306,9 +200,7 @@ python3 -m vllm_apple vllm-metal-v2-tune /path/to/model \
   --contexts 1024,4096 --samples 3
 ```
 
-実モデルshapeのMetal benchmarkは1コマンドで実行できます。既定ではhardware、environment、
-model profileごとにApplication Support配下へprivate保存し、`--stdout`ではMacアプリが扱いやすい
-versioned JSONを返します。
+Metal benchmarks for real model shapes can be run in a single command. By default, results are stored privately in Application Support per hardware, environment, and model profile, while `--stdout` returns versioned JSON easy for Mac apps to handle.
 
 ```bash
 python3 -m vllm_apple metal-shape-benchmark /path/to/model \
@@ -318,10 +210,9 @@ python3 -m vllm_apple metal-shape-benchmark /path/to/model \
   --contexts 1024 --stdout
 ```
 
-## Prefill / Decode profile
+## Prefill / Decode Profile
 
-streaming backendがOpenAI互換のstream usageを返す場合、TTFTとTPOTを分離して計測できます。
-promptや生成本文はprofileへ保存せず、固定サイズbucket、token数、対象PIDのpeak RSSだけを保持します。
+When a streaming backend returns OpenAI-compatible stream usage, TTFT and TPOT can be measured separately. Prompts and generated text are not saved to profiles; only fixed-size buckets, token counts, and target PID peak RSS are retained.
 
 ```bash
 python3 -m vllm_apple execution-profile --save
@@ -329,14 +220,11 @@ python3 -m vllm_apple phase-profile --model your-model --samples 5 \
   --pid BACKEND_PID --session-token-file /path/to/session.token
 ```
 
-usageが返らないbackendではtoken数を推測せず、`usage_missing`として失敗します。remote URLは
-既定で拒否され、明示的な`--allow-remote`が必要です。
+Backends that do not return usage fail as `usage_missing` without inferring token counts. Remote URLs are rejected by default, requiring explicit `--allow-remote`.
 
-## 段階的long-context評価
+## Gradual Long-Context Evaluation
 
-`long-context-evaluate`はvLLMの`/tokenize`を使ってretrieval promptを目標token長へ調整し、
-1K、4K、16Kなどを短いcontextから順に評価します。各段階でretrieval成功率、TTFT、TPOT、
-tokens/sec、model load peak、steady/request peak RSS、state bytesを分離して記録します。
+`long-context-evaluate` uses vLLM's `/tokenize` to adjust retrieval prompts to target token lengths, evaluating from short contexts (e.g., 1K, 4K, 16K) upward. Each stage separately logs retrieval success rate, TTFT, TPOT, tokens/sec, model load peak RSS, steady/request peak RSS, and state bytes.
 
 ```bash
 python3 -m vllm_apple long-context-evaluate \
@@ -345,70 +233,33 @@ python3 -m vllm_apple long-context-evaluate \
   --state-bytes-per-token 131072 --pid BACKEND_PID
 ```
 
-`/tokenize`と`/v1/chat/completions`へ直接接続するため、既定URLはbackend用のport 8001です。
-stream usageの実token数が目標から外れる、retrieval keyが一致しない、またはmemory ceilingを超えると
-その段階を失敗にし、より長い段階を実行しません。promptと生成本文はreportへ保存しません。
+Connecting directly to `/tokenize` and `/v1/chat/completions`, the default URL is backend port 8001. If actual stream usage tokens deviate from target, retrieval keys mismatch, or memory ceilings are breached, the stage fails and longer stages are skipped. Prompts and generated text are excluded from reports.
 
-## Semantic anchor cache
+## Semantic Anchor Cache
 
-agentic contextの再prefill削減に向け、`SemanticAnchorCache`はconversation turn、tool call、
-tool result、thinking境界のbackend state metadataを保持します。raw promptとtoken列は保存せず、
-session/prefix SHA-256、token位置、opaque state handle、accounted bytesだけを管理します。
+To reduce redundant re-prefilling in agentic contexts, `SemanticAnchorCache` holds backend state metadata at conversation turn, tool call, tool result, and thinking boundaries. Raw prompts and token sequences are not stored; only session/prefix SHA-256 hashes, token positions, opaque state handles, and accounted bytes are managed.
 
-cacheはentry数とstate bytesのhard upper boundを持つthread-safe LRUです。`put`、`resize`、
-`clear`はevictionされたanchorを返すため、backend側は対応するKV/recurrent stateを確実に解放できます。
-`deepest_reusable`はcontext編集後も一致するprefix境界のうち最深のanchorだけを返します。
+The cache is a thread-safe LRU with hard upper bounds on entry counts and state bytes. `put`, `resize`, and `clear` return evicted anchors, allowing the backend to reliably free corresponding KV/recurrent states. `deepest_reusable` returns only the deepest matching prefix anchor after context edits.
 
-これはFreeTokenのsemantic-aware cachingを参考にしたbackend-neutralな独立実装であり、
-FreeToken、CUDA、NVIDIA runtimeへの依存はありません。
+This is a backend-neutral standalone implementation inspired by FreeToken's semantic-aware caching, without dependencies on FreeToken, CUDA, or NVIDIA runtimes.
 
-`SemanticStateCoordinator`はdaemonの`RuntimeService`とbackend-owned stateを接続します。
-backendはcapture時にopaque handleとaccounted bytesを返し、restore/releaseを実装します。
-stale handleは復元失敗時にcacheから除去され、release失敗は最大1024件のretry queueへ移されます。
-runtime snapshotにはcapacity、resident bytes、capture、hit/miss、eviction、restore/release failureを
-出力します。現行OpenAI HTTP proxyはKV handle APIを持たないため既定ではdisabledです。
+`SemanticStateCoordinator` bridges daemon `RuntimeService` with backend-owned state. Backends return opaque handles and accounted bytes on capture, and implement restore/release handlers. Stale handles are evicted from cache on restore failures, and release failures enter a retry queue capped at 1024 items. Runtime snapshots log capacity, resident bytes, captures, hits/misses, evictions, and restore/release failures. The current OpenAI HTTP proxy lacks KV handle APIs, so this is disabled by default.
 
-`ElasticMemoryController`はsemantic cacheの通常容量を基準に、memory pressureがWarningなら1/2、
-Criticalなら1/8へ縮小し、Normalへ戻ると容量を復元します。active scheduler reservationがある間は
-変更をpendingにし、safe pointでだけ適用します。現在は明示的pressure入力まで実装済みで、
-macOS memory pressure notificationとの継続接続が次の作業です。
+`ElasticMemoryController` scales semantic cache baseline capacity down to 1/2 under Warning memory pressure and 1/8 under Critical pressure, restoring capacity when returning to Normal. Capacity changes are kept pending during active scheduler reservations and applied at safe points. Explicit pressure inputs are currently implemented, with continuous macOS memory pressure notification integration planned next.
 
-## Model Optimization Compiler dry-run
+## Model Optimization Compiler Dry-Run
 
-O0の`vllm-apple-optimize plan`はmodelを変更せず、INT8/INT4候補のoutput size、required disk、
-peak memoryを見積もります。original modelと重なるpath、既存artifact path、resource budget超過を
-検出します。MLX adapterが対応する環境とmodelではcandidateを実行可能として提示し、それ以外は
-理由付きで拒否します。
+O0 `vllm-apple-optimize plan` estimates output size, disk requirements, and peak memory for INT8/INT4 candidates without modifying the model. It detects paths overlapping with the original model, existing artifact paths, or resource budget overruns. In environments and models supported by MLX adapters, candidates are presented as runnable; otherwise, they are rejected with reasons.
 
-所要時間を見積もる場合のみ、明示的にbounded I/O profileを取得します。読み書きsampleは既定で
-各64 MiBに制限され、一時fileは`fsync`後に削除されます。`plan`自体がbenchmarkを暗黙実行する
-ことはありません。
+Bounded I/O profiling is run explicitly only when estimating execution duration. Read/write samples are capped at 64 MiB each by default, and temporary files are removed after `fsync`. `plan` itself does not execute benchmarks implicitly.
 
-O1のadapter capability検出は外部packageをimport・実行せず、package metadata、platform、modelの
-format/dtypeを確認します。現在のMLX exporterはApple Silicon、safetensors、FP16/BF16/FP32、
-MLX/MLX-LM 0.26.xから0.31.x、4/8 bit affine quantizationだけを実行可能とします。
-未検証versionは推測で実行せず、structured errorを返します。
+O1 adapter capability detection inspects package metadata, platform, and model format/dtype without importing or executing external packages. The current MLX exporter requires Apple Silicon, safetensors, FP16/BF16/FP32, MLX/MLX-LM 0.26.x through 0.31.x, and 4/8-bit affine quantization to be deemed runnable. Unverified versions are not run speculatively, returning structured errors instead.
 
-変換workerの基盤は別process、最大64 KiBのbounded stdout/stderr、process-group cancel、
-private sibling workspaceを提供します。成功時だけregular file、file数、byte数、directory深度を
-streaming検証し、全fileとdirectoryを`fsync`してからartifact directoryをatomic renameします。
-失敗またはcancel時はoutputを公開しません。MLX exporterは固定argument列でworkerへ接続され、
-shell、remote upload、remote code trustを利用しません。source fingerprintはweightを含む全regular
-fileを8 MiBずつstreaming SHA-256して生成するため、model全体をmemoryへ読み込みません。
-safetensorsのdtypeがconfigにない場合は、最大16 MiBに制限したheaderだけを読み、weightをloadせず
-判定します。
+The conversion worker infrastructure provides a separate process, bounded stdout/stderr up to 64 KiB, process-group cancellation, and private sibling workspaces. Upon success, regular files, file counts, byte sizes, and directory depth are stream-validated, and all files/directories are `fsync`ed before atomically renaming the artifact directory. Outputs are not published on failure or cancellation. MLX exporters connect to workers via fixed argument vectors without shell execution, remote upload, or remote code trust. Source fingerprints stream SHA-256 in 8 MiB chunks across all regular files including weights, avoiding loading full models into memory. If safetensors dtypes are missing from config files, headers are inspected up to a 16 MiB limit without loading weights.
 
-persistent checkpoint v1はplan、source fingerprint、output、command/environment fingerprint、
-output byte予算へbindingされます。checkpoint fileはplan IDをSHA-256 filenameへ変換し、private
-directoryへ0600でatomic保存します。`converted`だけがworkspace検証から再開でき、それ以前の
-stageは変換を最初から再実行します。resumeは誤操作を避けるため明示的に有効化します。
+Persistent checkpoint v1 binds to plan, source fingerprint, output, command/environment fingerprint, and output byte budget. Checkpoint files convert plan IDs to SHA-256 filenames, saved atomically with `0600` permissions in private directories. Only `converted` states resume from workspace validation; earlier stages restart conversion from scratch. Resumptions are enabled explicitly to avoid accidental operation.
 
-workerはcheckpoint fileごとのcross-process `flock`を保持します。同じplanの二重実行は拒否され、
-processが異常終了した場合はkernelがlockを自動解放します。`resume=True`ではbindingを再検証し、
-`converted` workspaceからcommandを再実行せずvalidation/promotionへ進みます。promotionとcompleted
-checkpoint更新の間で停止した場合も、公開済みartifactを再検証して状態をreconcileします。
-成功時はartifact tree hash、size、file数、elapsed milliseconds、peak child RSSを記録した0600の
-sidecar manifestと、Mac appからdecodeしやすいversioned export report JSONを生成します。
+Workers acquire cross-process `flock` locks per checkpoint file. Duplicate runs of the same plan are rejected, and locks automatically release on abnormal process termination. With `resume=True`, bindings are re-validated, skipping command execution from `converted` workspaces directly to validation/promotion. Halts between promotion and completed checkpoint updates reconcile state by re-validating published artifacts. Upon success, a `0600` sidecar manifest (recording artifact tree hash, size, file count, elapsed milliseconds, peak child RSS) and a versioned export report JSON (formatted for easy Mac app parsing) are generated.
 
 ```bash
 python3 -m vllm_apple.optimizer.cli capabilities /path/to/model
@@ -426,19 +277,19 @@ python3 -m vllm_apple.optimizer.cli plan /path/to/model \
   --performance-profile optimizer-profile.json \
   --license apache-2.0
 
-# Dry-run: invocation JSONを表示するだけでoutput/checkpointを作成しない
+# Dry-run: Displays invocation JSON without creating output or checkpoints
 python3 -m vllm_apple.optimizer.cli export /path/to/model \
   --output /path/to/immutable-artifact \
   --checkpoint-root /path/to/existing-private-parent/checkpoints \
   --plan-id my-plan --bits 4 --group-size 64 --max-output-gb 20
 
-# 明示実行。中断後の安全な再開には --resume も付ける
+# Explicit execution. Pass --resume for safe restart after interruption
 python3 -m vllm_apple.optimizer.cli export /path/to/model \
   --output /path/to/immutable-artifact \
   --checkpoint-root /path/to/existing-private-parent/checkpoints \
   --plan-id my-plan --bits 4 --group-size 64 --max-output-gb 20 --execute
 
-# baselineとcandidateは別processで順番に評価し、同時にmemoryへ載せない
+# Baseline and candidate are evaluated sequentially in separate processes; never loaded simultaneously
 python3 -m vllm_apple.optimizer.cli evaluate /path/to/baseline \
   --dataset docs/evaluation/smoke-multilingual-v1.jsonl \
   --output /path/to/baseline-evaluation.json
@@ -451,7 +302,7 @@ python3 -m vllm_apple.optimizer.cli quality-gate \
   --max-perplexity-regression 0.10 \
   --output /path/to/quality-gate.json
 
-# 固定seed・greedy生成を別processで比較する
+# Compare fixed-seed, greedy generation in separate processes
 python3 -m vllm_apple.optimizer.cli generate-evaluate /path/to/baseline \
   --dataset docs/evaluation/generation-smoke-multilingual-v1.jsonl \
   --max-samples 6 --max-new-tokens 16 \
@@ -466,7 +317,7 @@ python3 -m vllm_apple.optimizer.cli generation-quality-gate \
   --min-token-agreement 0.70 --max-expectation-regression 0 \
   --output /path/to/generation-quality-gate.json
 
-# 用途と言語は繰り返し指定でき、選択条件もfingerprintへ含まれる
+# Domains and languages can be specified repeatedly; selection criteria are included in fingerprints
 python3 -m vllm_apple.optimizer.cli generate-evaluate /path/to/model \
   --dataset docs/evaluation/task-suite-multilingual-v1.jsonl \
   --chat-template --max-prompt-tokens 4096 \
@@ -474,69 +325,29 @@ python3 -m vllm_apple.optimizer.cli generate-evaluate /path/to/model \
   --output /path/to/ja-code-math.json
 ```
 
-durationは同一hardwareのprofile実測値がない限り推測せず`null`とし、warningへ理由を記録します。
-CLI failureは`code`、localizableな`message_key`、`recoverability`を持つJSONとしてstderrへ返します。
-perplexity runnerはJSONLを1行ずつ処理し、dataset 16 MiB、1行72 KiB、sample 4096、
-sample当たり4096 tokens、合計100万tokensをhard upper boundとします。gateは同一dataset
-fingerprint、slice、token数を要求し、未評価のgeneration、long-context、code、math、safetyを
-reportへ明示します。
-generation runnerは最大64 prompts、各256 tokensとし、生成文やpromptをreportへ保存しません。
-比較に必要な上限付きtoken ID、SHA-256 fingerprint、期待文字列の一致scoreだけを保存します。
-期待条件はdataset側で`contains`または`prefix`を明示します。短い数値正答などは`prefix`を使い、
-`8`が`18`へ偶然含まれるような誤合格を防ぎます。
-instruction modelでは`--chat-template`を明示し、tokenizer固有template適用後の入力token数を
-各sampleへ記録します。prompt上限とmodel context上限は生成開始前に検証され、baselineとcandidateで
-prompt形式、token budget、実入力token数が異なるreportは比較されません。
+Duration returns `null` with a logged warning unless empirical profile measurements exist for the same hardware. CLI failures return JSON to stderr containing `code`, localizable `message_key`, and `recoverability`. The perplexity runner processes JSONL line-by-line, enforcing hard upper bounds of 16 MiB dataset size, 72 KiB per line, 4096 samples, 4096 tokens per sample, and 1,000,000 total tokens. Quality gates require identical dataset fingerprints, slices, and token counts, explicitly indicating un-evaluated generation, long-context, code, math, and safety in reports. The generation runner supports up to 64 prompts of 256 tokens each, excluding generated text and prompts from saved reports. Only bounded token IDs required for comparison, SHA-256 fingerprints, and expected string match scores are retained. Expectations explicitly specify `contains` or `prefix` on the dataset side. Short numerical answers use `prefix` to avoid false positives (e.g., `8` matching inside `18`). Instruction models require `--chat-template`, recording post-template input token counts for each sample. Prompt limits and model context limits are validated prior to generation; reports with mismatching prompt formats, token budgets, or actual input token counts between baseline and candidate are rejected for comparison.
 
-## 開発時の確認
+## Development Verification
 
-再現可能な開発環境とCIの詳細は[DEVELOPMENT.md](docs/DEVELOPMENT.md)を参照してください。
-runtime errorのrecoverabilityとprivate crash diagnosticは
-[RUNTIME-FAILURES.md](docs/RUNTIME-FAILURES.md)を参照してください。
-Unified Memory、allocator、KV cacheのsource-aware metricsは
-[MEMORY-TELEMETRY.md](docs/MEMORY-TELEMETRY.md)を参照してください。
+See [DEVELOPMENT.md](docs/DEVELOPMENT.md) for reproducible development environment setup and CI details.
+See [RUNTIME-FAILURES.md](docs/RUNTIME-FAILURES.md) for runtime error recoverability and private crash diagnostics.
+See [MEMORY-TELEMETRY.md](docs/MEMORY-TELEMETRY.md) for source-aware metrics across Unified Memory, allocators, and KV caches.
 
 ```bash
 make bootstrap
 make check
 ```
 
-## Architecture metadata inspection
+## Architecture Metadata Inspection
 
 ```bash
 python3 -m vllm_apple inspect-architecture /path/to/model/config.json
 ```
 
-English: Describe local architecture metadata without loading weights. The initial
-registry covers Llama, Qwen2, Qwen3, Mixtral and Gemma2 structural recipes. Exit 0
-means metadata was described; backend execution remains unverified.
+Describes local architecture metadata without loading weights. The initial registry covers Llama, Qwen2, Qwen3, Mixtral, and Gemma2 structural recipes. Exit code 0 indicates metadata was successfully described; backend execution remains unverified.
 
-日本語：weightをロードせず、5系列の構造・Attention・KV所有layerを診断します。
-終了code 0は構造記述成功であり、推論対応の認定ではありません。
+See the [architecture support plan](docs/LLM-ARCHITECTURE-SUPPORT.md) for scope, limitations, and remaining runtime integration work.
 
-简体中文：无需加载权重即可检查五个系列的结构、Attention及KV所属层。
-退出码0仅表示已描述元数据，不代表推理认证。
+`inspect-model` now emits recommendation schema v2. Feature declarations only establish `eligible_for_validation`; they do not certify backend compatibility or set `runnable=true`. Its metadata-only result exits with code 1 (input errors: 2).
 
-See [architecture support plan](docs/LLM-ARCHITECTURE-SUPPORT.md) for scope,
-limitations and remaining runtime integration work.
-
-`inspect-model` now emits recommendation schema v2. Feature declarations only
-establish `eligible_for_validation`; they do not certify backend compatibility or
-set `runnable=true`. Its metadata-only result exits with code 1 (input errors: 2).
-
-日本語：`inspect-model`はschema v2です。能力宣言の一致は検証候補を示し、実行認定には使いません。未認定診断の終了codeは1です。
-
-简体中文：`inspect-model`输出schema v2。能力声明匹配仅表示验证候选，不代表执行认证。未认证诊断的退出码为1。
-
-Optional local evidence: `qualify-model --bind-architecture-evidence` produces an
-identity-bound 30-minute text report; `inspect-model` and `serve` accept it through
-`--architecture-evidence`. See the [protocol and limits](docs/LLM-ARCHITECTURE-SUPPORT.md#ローカル証跡による起動gate2026-09-26).
-Gemma 2 2B passed a bound 30-minute run on M4 with Homebrew MLX-LM 0.32.0
-(6,491/6,491 requests). After the startup-gate change, a fresh run passed
-5,995/5,995 requests and managed `serve` passed multilingual/stream/shutdown checks
-without `--skip-backend-check`. Valid matching evidence permits that exact MLX
-candidate; the blanket version matrix remains unchanged.
-
-日本語：モデルとbackendに結び付けた30分text証跡を起動前に検証できます。Gemma 2 2B／M4／Homebrew MLX-LM 0.32.0で30分・6,491件すべて成功しました。変更後の再認定も5,995件すべて成功し、証跡付き通常serveの三言語・stream・終了確認が通りました。有効な証跡が一致する構成だけを許可します。
-
-简体中文：启动前可验证绑定模型与后端的30分钟文本证据。Gemma 2 2B／M4／Homebrew MLX-LM 0.32.0完成了30分钟验证，6,491次请求全部成功。变更后的重新验证也全部通过（5,995次），证据匹配的常规serve通过了三语言、stream及退出检查。仅允许与有效证据一致的配置。
+Optional local evidence: `qualify-model --bind-architecture-evidence` produces an identity-bound 30-minute text report; `inspect-model` and `serve` accept it through `--architecture-evidence`. See the [protocol and limits](docs/LLM-ARCHITECTURE-SUPPORT.md#local-evidence-startup-gate-2026-09-26). Gemma 2 2B passed a bound 30-minute run on M4 with Homebrew MLX-LM 0.32.0 (6,491/6,491 requests). After the startup-gate change, a fresh run passed 5,995/5,995 requests, and managed `serve` passed multilingual/stream/shutdown checks without `--skip-backend-check`. Valid matching evidence permits that exact MLX candidate; the blanket version matrix remains unchanged.
