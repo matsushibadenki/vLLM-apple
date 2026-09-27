@@ -16,8 +16,10 @@ from vllm_apple.backend import (
     VLLM_APPLE_TUNING_MIDDLEWARE,
     BackendConfig,
     BackendConfigurationError,
+    BackendHTTPError,
     BackendProcess,
     BackendStartupError,
+    BackendSupervisor,
     OpenAIProxyEngine,
     supports_kernel_tuning_middleware,
 )
@@ -121,6 +123,32 @@ class BackendConfigTests(unittest.TestCase):
         with self.assertRaisesRegex(Exception, "managed backend is not ready"):
             engine.models()
 
+    def test_managed_restart_rejects_new_requests_without_upstream_retry(self) -> None:
+        process = Mock()
+        process.ready = False
+        engine = OpenAIProxyEngine("http://127.0.0.1:1", process)
+        with patch("urllib.request.urlopen") as open_url:
+            for operation in (
+                lambda: engine.chat_completions({"messages": []}),
+                lambda: engine.open_chat_stream({"messages": []}),
+            ):
+                with self.subTest(operation=operation), self.assertRaises(BackendHTTPError) as raised:
+                    operation()
+                self.assertEqual(raised.exception.status, 503)
+                self.assertEqual(raised.exception.code, "backend_unavailable")
+            open_url.assert_not_called()
+
+    def test_inflight_transport_failure_is_not_replayed(self) -> None:
+        process = Mock()
+        process.ready = True
+        engine = OpenAIProxyEngine("http://127.0.0.1:1", process)
+        with patch("urllib.request.urlopen", side_effect=OSError("worker exited")) as open_url:
+            with self.assertRaises(BackendHTTPError) as raised:
+                engine.open_chat_stream({"messages": []})
+        self.assertEqual(raised.exception.status, 503)
+        self.assertEqual(raised.exception.code, "backend_unavailable")
+        open_url.assert_called_once()
+
     def test_factory_preserves_explicit_mlx_backend_kind(self) -> None:
         from vllm_apple.backend import make_backend_config
 
@@ -174,6 +202,64 @@ class BackendConfigTests(unittest.TestCase):
             BackendConfig(
                 "model", Path("/venv/bin/python"), backend_kind="mlx_lm",
                 python_module="unreviewed.module")
+
+    def test_backend_supervisor_restarts_crash_with_bounded_state(self) -> None:
+        class Process:
+            running = False
+            ready = False
+            pid = None
+            starts = 0
+
+            def start(self):
+                self.starts += 1
+                self.pid = 100 + self.starts
+                self.running = True
+                self.ready = True
+
+            def stop(self):
+                self.running = False
+                self.ready = False
+
+            def restart(self):
+                self.stop()
+                self.start()
+
+        process = Process()
+        supervisor = BackendSupervisor(
+            process, poll_interval=0.01, initial_backoff=0,
+            maximum_backoff=0, maximum_restarts=2)
+        try:
+            supervisor.start()
+            process.running = False
+            process.ready = False
+            self.assertTrue(supervisor.wait_for_restart(0, timeout=1))
+            snapshot = supervisor.snapshot()
+            self.assertEqual(snapshot["restart_count"], 1)
+            self.assertEqual(snapshot["restart_failures"], 0)
+            self.assertEqual(snapshot["planned_restart_count"], 0)
+            self.assertTrue(snapshot["ready"])
+            self.assertEqual(snapshot["pid"], 102)
+        finally:
+            supervisor.stop()
+
+    def test_backend_supervisor_rejects_unbounded_configuration(self) -> None:
+        process = Mock()
+        with self.assertRaises(ValueError):
+            BackendSupervisor(process, poll_interval=0)
+        with self.assertRaises(ValueError):
+            BackendSupervisor(process, initial_backoff=2, maximum_backoff=1)
+        with self.assertRaises(ValueError):
+            BackendSupervisor(process, maximum_restarts=0)
+
+    def test_planned_restart_uses_supervisor_lifecycle_transaction(self) -> None:
+        process = Mock()
+        process.running = True
+        process.ready = True
+        process.pid = 1
+        supervisor = BackendSupervisor(process)
+        supervisor.restart()
+        process.restart.assert_called_once_with()
+        self.assertEqual(supervisor.snapshot()["planned_restart_count"], 1)
 
     def test_command_is_explicit_and_managed_options_cannot_be_overridden(self) -> None:
         config = BackendConfig(

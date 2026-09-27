@@ -39,6 +39,40 @@ def profile():
 
 
 class NativeV2IdleTuningCoordinatorTests(unittest.TestCase):
+    def test_daemon_tuning_uses_supervisor_restart_transaction(self) -> None:
+        service = RuntimeService()
+        backend = Mock()
+        restart = Mock()
+        generated = profile()
+        with tempfile.TemporaryDirectory() as directory:
+            observation = Path(directory) / "shapes.json"
+            observation.write_text("{}")
+            with (
+                patch(
+                    "vllm_apple.daemon.inspect_vllm_metal_integration",
+                    return_value=SimpleNamespace(
+                        native_v2_detected=True, source_fingerprint="source"),
+                ),
+                patch("vllm_apple.daemon.build_v2_hardware_fingerprint",
+                      return_value="hardware"),
+                patch("vllm_apple.daemon.default_v2_observation_path",
+                      return_value=observation),
+                patch("vllm_apple.daemon.load_v2_observations",
+                      return_value=(generated.decisions[0].shape,)),
+                patch("vllm_apple.daemon.VLLMMetalV2MeasurementAdapter") as adapter,
+                patch("vllm_apple.daemon.tune_v2_observed_shapes",
+                      return_value=generated),
+                patch("vllm_apple.daemon.save_v2_tuning_profile"),
+            ):
+                adapter.return_value.capability.return_value = {"compatible": True}
+                self.assertTrue(start_observed_native_v2_tuning(
+                    service, backend, source_root=Path(directory),
+                    helper=Path("/private/helper"), samples=1,
+                    restart_backend=restart))
+                self.assertTrue(service.native_v2_tuning.wait(1))
+        restart.assert_called_once_with()
+        backend.restart.assert_not_called()
+
     def test_applies_profile_while_admission_is_exclusively_blocked(self) -> None:
         scheduler = BasicScheduler(hardware(), 500)
         entered = threading.Event()

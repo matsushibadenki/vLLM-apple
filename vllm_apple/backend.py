@@ -296,6 +296,126 @@ class BackendProcess:
         self.start()
 
 
+class BackendSupervisor:
+    """Bounded watchdog for one managed backend process."""
+
+    def __init__(
+        self,
+        process: BackendProcess,
+        *,
+        poll_interval: float = 0.1,
+        initial_backoff: float = 0.25,
+        maximum_backoff: float = 5.0,
+        maximum_restarts: int = 5,
+    ) -> None:
+        if not 0.01 <= poll_interval <= 5:
+            raise ValueError("watchdog poll interval is outside bounded limits")
+        if not 0 <= initial_backoff <= maximum_backoff <= 60:
+            raise ValueError("watchdog backoff is outside bounded limits")
+        if not 1 <= maximum_restarts <= 100:
+            raise ValueError("watchdog restart limit is outside bounded limits")
+        self.process = process
+        self._poll_interval = poll_interval
+        self._initial_backoff = initial_backoff
+        self._maximum_backoff = maximum_backoff
+        self._maximum_restarts = maximum_restarts
+        self._stop = threading.Event()
+        self._changed = threading.Condition()
+        self._lifecycle_lock = threading.Lock()
+        self._thread: threading.Thread | None = None
+        self._restart_count = 0
+        self._restart_failures = 0
+        self._planned_restart_count = 0
+        self._last_error: str | None = None
+        self._exhausted = False
+
+    def start(self) -> None:
+        with self._lifecycle_lock:
+            if self._thread is not None:
+                raise RuntimeError("backend supervisor was already started")
+            self.process.start()
+            self._thread = threading.Thread(
+                target=self._monitor, daemon=True, name="vllm-apple-backend-watchdog")
+            self._thread.start()
+
+    def _monitor(self) -> None:
+        while not self._stop.wait(self._poll_interval):
+            if self.process.running:
+                continue
+            with self._changed:
+                if self._restart_count >= self._maximum_restarts:
+                    self._exhausted = True
+                    self._changed.notify_all()
+                    return
+                attempt = self._restart_count
+            backoff = min(self._initial_backoff * (2 ** attempt), self._maximum_backoff)
+            if self._stop.wait(backoff):
+                return
+            try:
+                with self._lifecycle_lock:
+                    if self._stop.is_set():
+                        return
+                    if self.process.running:
+                        continue
+                    self.process.restart()
+                error = None
+            except Exception as restart_error:
+                error = f"{type(restart_error).__name__}: {restart_error}"
+            with self._changed:
+                self._restart_count += 1
+                if error is not None:
+                    self._restart_failures += 1
+                    self._last_error = error
+                else:
+                    self._last_error = None
+                self._changed.notify_all()
+
+    def wait_for_restart(self, previous_count: int, timeout: float) -> bool:
+        if timeout <= 0:
+            raise ValueError("watchdog wait timeout must be positive")
+        deadline = time.monotonic() + timeout
+        with self._changed:
+            while self._restart_count <= previous_count and not self._exhausted:
+                remaining = deadline - time.monotonic()
+                if remaining <= 0:
+                    return False
+                self._changed.wait(remaining)
+            return self._restart_count > previous_count and self.process.ready
+
+    def snapshot(self) -> dict[str, Any]:
+        with self._changed:
+            return {
+                "restart_count": self._restart_count,
+                "restart_failures": self._restart_failures,
+                "planned_restart_count": self._planned_restart_count,
+                "last_error": self._last_error,
+                "exhausted": self._exhausted,
+                "ready": self.process.ready,
+                "running": self.process.running,
+                "pid": self.process.pid,
+            }
+
+    def restart(self) -> None:
+        """Run an intentional restart in the same transaction as watchdog recovery."""
+        with self._lifecycle_lock:
+            if self._stop.is_set():
+                raise RuntimeError("backend supervisor is stopping")
+            self.process.restart()
+        with self._changed:
+            self._planned_restart_count += 1
+            self._changed.notify_all()
+
+    def stop(self) -> None:
+        self._stop.set()
+        with self._lifecycle_lock:
+            self.process.stop()
+        thread = self._thread
+        if thread is not None and thread is not threading.current_thread():
+            thread.join(timeout=2.0)
+        with self._changed:
+            self._changed.notify_all()
+
+
 class OpenAIProxyEngine:
     """Low-buffer OpenAI API proxy for a local vLLM-Metal process."""
 
@@ -437,6 +557,11 @@ class OpenAIProxyEngine:
             method="POST" if body is not None else "GET",
         )
 
+    def _ensure_managed_ready(self) -> None:
+        if self.process is not None and not self.process.ready:
+            raise BackendHTTPError(
+                503, "backend_unavailable", "managed backend is restarting")
+
     def _read_json(self, response: BinaryIO) -> dict[str, Any]:
         data = response.read(MAX_UPSTREAM_RESPONSE_BYTES + 1)
         if len(data) > MAX_UPSTREAM_RESPONSE_BYTES:
@@ -495,6 +620,7 @@ class OpenAIProxyEngine:
         request: dict[str, Any],
         context: InferenceKernelContext | None,
     ) -> dict[str, Any]:
+        self._ensure_managed_ready()
         body = json.dumps(request, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
         headers = context.to_http_headers() if context is not None else None
         try:
@@ -516,6 +642,7 @@ class OpenAIProxyEngine:
         request: dict[str, Any],
         context: InferenceKernelContext | None,
     ) -> AbstractContextManager[BinaryIO]:
+        self._ensure_managed_ready()
         streaming_request = dict(request)
         streaming_request["stream"] = True
         body = json.dumps(streaming_request, ensure_ascii=False, separators=(",", ":")).encode(

@@ -11,12 +11,14 @@ import threading
 import time
 from dataclasses import replace
 from pathlib import Path
+from typing import Callable
 
 from .api import create_server, create_unix_server
 from .architecture_evidence import verify_startup_evidence
 from .auth import load_or_create_token_file
 from .backend import (
     BackendProcess,
+    BackendSupervisor,
     OpenAIProxyEngine,
     make_backend_config,
     supports_kernel_tuning_middleware,
@@ -450,6 +452,7 @@ def start_observed_native_v2_tuning(
     source_root: Path | None,
     helper: Path | None,
     samples: int = 3,
+    restart_backend: Callable[[], None] | None = None,
 ) -> bool:
     """Tune saved production shapes and recycle EngineCore under one idle lease."""
     candidate = shutil.which("vllm-apple-v2-measure") if helper is None else None
@@ -514,6 +517,7 @@ def start_observed_native_v2_tuning(
             destination,
             hardware_fingerprint=hardware_fingerprint,
             source_fingerprint=inspection.source_fingerprint,
+            restart_backend=restart_backend,
         )
 
     return service.start_native_v2_idle_tuning(tune, apply)
@@ -527,11 +531,12 @@ def _apply_native_v2_profile(
     *,
     hardware_fingerprint: str,
     source_fingerprint: str,
+    restart_backend: Callable[[], None] | None = None,
 ) -> None:
     """Recycle through readiness, quarantining and rolling back on failure."""
     service.set_state(RuntimeState.LOADING_MODEL)
     try:
-        backend.restart()
+        (restart_backend or backend.restart)()
     except Exception as apply_error:
         try:
             quarantine_v2_tuning_profile(destination)
@@ -550,7 +555,7 @@ def _apply_native_v2_profile(
             quarantine_count, latest_quarantined
         )
         try:
-            backend.restart()
+            (restart_backend or backend.restart)()
         except Exception as rollback_error:
             service.set_failure(rollback_error)
             raise RuntimeError("native v2 profile rollback failed") from apply_error
@@ -570,6 +575,7 @@ def configure_native_v2_restore(
     source_root: Path | None,
     helper: Path | None,
     samples: int = 3,
+    restart_backend: Callable[[], None] | None = None,
 ) -> bool:
     """Register an explicit, remeasurement-gated restore transaction."""
     candidate = shutil.which("vllm-apple-v2-measure") if helper is None else None
@@ -596,6 +602,7 @@ def configure_native_v2_restore(
                 adapter.measure,
                 hardware_fingerprint=hardware_fingerprint,
                 source_fingerprint=inspection.source_fingerprint,
+                restart_backend=restart_backend,
                 samples=samples,
             )
             destination.append(path)
@@ -633,6 +640,7 @@ def build_native_v2_observation_monitor(
     source_root: Path | None,
     helper: Path | None,
     prime_existing: bool,
+    restart_backend: Callable[[], None] | None = None,
 ) -> NativeV2ObservationMonitor | None:
     candidate = shutil.which("vllm-apple-v2-measure") if helper is None else None
     resolved_helper = helper or (Path(candidate) if candidate else None)
@@ -653,6 +661,7 @@ def build_native_v2_observation_monitor(
             backend,
             source_root=source_root,
             helper=resolved_helper,
+            restart_backend=restart_backend,
         ),
         prime_existing=prime_existing,
     )
@@ -876,6 +885,7 @@ def serve(
                 available_features=frozenset(compatibility.architecture_features),
             )
         backend = BackendProcess(config)
+        backend_supervisor = BackendSupervisor(backend)
         profile = build_profile(hardware, recommendation)
         proxy_engine = OpenAIProxyEngine(backend.base_url, backend)
         service = RuntimeService(
@@ -1090,7 +1100,7 @@ def serve(
 
         def launch_backend() -> None:
             try:
-                backend.start()
+                backend_supervisor.start()
             except Exception as error:
                 failure = classify_runtime_failure(error)
                 service.set_failure(failure)
@@ -1123,6 +1133,7 @@ def serve(
                         backend,
                         source_root=vllm_metal_source_root,
                         helper=vllm_metal_v2_helper,
+                        restart_backend=backend_supervisor.restart,
                     )
                     started = False
                     if enable_native_v2_idle_tuning:
@@ -1131,6 +1142,7 @@ def serve(
                             backend,
                             source_root=vllm_metal_source_root,
                             helper=vllm_metal_v2_helper,
+                            restart_backend=backend_supervisor.restart,
                         )
                     monitor = build_native_v2_observation_monitor(
                         service,
@@ -1138,6 +1150,7 @@ def serve(
                         source_root=vllm_metal_source_root,
                         helper=vllm_metal_v2_helper,
                         prime_existing=started,
+                        restart_backend=backend_supervisor.restart,
                     )
                     if monitor is not None:
                         with native_v2_monitor_lock:
@@ -1192,7 +1205,7 @@ def serve(
         if backend is not None:
             if memory_monitor is not None:
                 memory_monitor.stop()
-            backend.stop()
+            backend_supervisor.stop()
         if launch_thread is not None:
             launch_thread.join(timeout=2.0)
         service.close()

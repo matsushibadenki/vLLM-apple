@@ -135,6 +135,16 @@ SIGKILL 3/3回を検出し、0.25／0.5／1.0秒backoff後に各2.596〜2.798秒
 毎回の算術品質と最終shutdownに合格した。これは明示的supervisor restartの証拠であり、daemon
 watchdog、inflight request replay、sleep／wakeの認定ではない。
 
+続いて`BackendSupervisor`を追加し、poll、最大restart回数、0.25秒からのbounded exponential
+backoff、restart failure／exhaustion／PID／ready snapshot、shutdown競合防止を実装した。
+[自動watchdog report](evaluation/gemma2-worker-watchdog-qualified-m4-2026-09-27.json)では、
+手動`restart()`を呼ばずSIGKILL 3/3回を検出し、backoff込み2.953／3.418／3.710秒で別PIDを
+readyへ復帰、restart failure 0、毎回の算術品質、最終shutdownに合格した。その後daemonの
+起動・停止とnative v2 tuning／restore／quarantine rollbackを同じsupervisor transactionへ
+接続した。planned restart中はwatchdogがprocessの再稼働を再確認し、二重restartを行わない。
+restart中の新規requestはupstreamへ送らず`503 backend_unavailable`、接続後のworker消失も
+同じretryable errorへ変換する。proxyはinflight requestを自動再送しない。
+
 ## English
 
 An explicit, version- and source-hash-bound launcher reshapes shared-head batched
@@ -162,6 +172,14 @@ SIGKILL crashes were restored under the existing managed process lifecycle with 
 PIDs and correct recovery responses. Automatic daemon watchdog and in-flight replay
 remain unqualified.
 
+`BackendSupervisor` now provides bounded polling, exponential backoff, restart
+limits, lifecycle locking, and observable restart state. Without manual restart
+calls, an M4 test recovered from three SIGKILL crashes in 2.95–3.71 seconds including
+backoff, with zero restart failures and correct responses. Daemon startup, shutdown,
+native-v2 tuning, restore, and rollback now share the same supervisor transaction.
+New requests during restart receive `503 backend_unavailable`; transport failures are
+not replayed automatically, avoiding duplicate in-flight execution.
+
 ## 简体中文
 
 专用启动入口仅对版本和源码哈希匹配的Gemma 2补齐批处理mask的分组维度，保留上游计算，
@@ -180,3 +198,8 @@ remain unqualified.
 有界故障测试现在可以在请求仍处于queue时取消，并通过同一取消路径支持1–600,000 ms超时。
 真实HTTP测试通过了queued取消、100 ms超时及后续恢复。现有managed process生命周期在3次
 SIGKILL后都以新PID恢复，并返回正确答案。daemon自动watchdog和处理中请求重放仍未认证。
+
+新增的`BackendSupervisor`提供有界轮询、指数backoff、重启次数上限、生命周期锁和状态快照。
+无需手动调用restart，M4测试在三次SIGKILL后均于2.95–3.71秒内恢复，重启失败为0且回答正确。
+daemon启动、停止、native-v2调优、恢复及rollback现在共用同一个supervisor transaction。
+重启期间的新请求返回`503 backend_unavailable`；传输中断的请求不会被自动重放，以避免重复执行。

@@ -1,0 +1,95 @@
+{
+  "schema_version": 1,
+  "report_kind": "gemma2_worker_restart_qualification",
+  "started_at_unix": 1790487323.995768,
+  "hardware": "Apple M4 / 32 GiB",
+  "initial_probe": {
+    "completed": true,
+    "quality_passed": true
+  },
+  "cycles": [
+    {
+      "index": 1,
+      "old_pid": 66046,
+      "new_pid": 66079,
+      "pid_changed": true,
+      "crash_observed": true,
+      "backoff_seconds": 0.25,
+      "restart_seconds": 2.9532946670005913,
+      "recovery": {
+        "completed": true,
+        "quality_passed": true
+      },
+      "supervisor": {
+        "restart_count": 1,
+        "restart_failures": 0,
+        "last_error": null,
+        "exhausted": false,
+        "ready": true,
+        "running": true,
+        "pid": 66079
+      }
+    },
+    {
+      "index": 2,
+      "old_pid": 66079,
+      "new_pid": 66099,
+      "pid_changed": true,
+      "crash_observed": true,
+      "backoff_seconds": 0.5,
+      "restart_seconds": 3.417523791998974,
+      "recovery": {
+        "completed": true,
+        "quality_passed": true
+      },
+      "supervisor": {
+        "restart_count": 2,
+        "restart_failures": 0,
+        "last_error": null,
+        "exhausted": false,
+        "ready": true,
+        "running": true,
+        "pid": 66099
+      }
+    },
+    {
+      "index": 3,
+      "old_pid": 66099,
+      "new_pid": 66150,
+      "pid_changed": true,
+      "crash_observed": true,
+      "backoff_seconds": 1.0,
+      "restart_seconds": 3.709880874997907,
+      "recovery": {
+        "completed": true,
+        "quality_passed": true
+      },
+      "supervisor": {
+        "restart_count": 3,
+        "restart_failures": 0,
+        "last_error": null,
+        "exhausted": false,
+        "ready": true,
+        "running": true,
+        "pid": 66150
+      }
+    }
+  ],
+  "shutdown_clean": true,
+  "elapsed_seconds": 14.202479839324951,
+  "passed": true,
+  "supervisor": {
+    "restart_count": 3,
+    "restart_failures": 0,
+    "last_error": null,
+    "exhausted": false,
+    "ready": false,
+    "running": false,
+    "pid": null
+  },
+  "limits": [
+    "standalone_watchdog",
+    "not_yet_wired_to_daemon",
+    "no_inflight_request_replay"
+  ]
+}

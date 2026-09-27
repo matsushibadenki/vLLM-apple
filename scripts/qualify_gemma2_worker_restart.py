@@ -11,7 +11,7 @@ import time
 from dataclasses import replace
 from pathlib import Path
 
-from vllm_apple.backend import BackendConfig, BackendProcess
+from vllm_apple.backend import BackendConfig, BackendProcess, BackendSupervisor
 from vllm_apple.phase_probe import PhaseProbeConfig, measure_stream
 
 
@@ -75,39 +75,40 @@ def main() -> int:
             "--prefill-step-size", "512", "--prompt-cache-size", "4"),
     )
     process = BackendProcess(config)
+    supervisor = BackendSupervisor(
+        process, poll_interval=0.05, initial_backoff=0.25,
+        maximum_backoff=2.0, maximum_restarts=args.crashes)
     started = time.time()
     cycles: list[dict[str, object]] = []
     clean_shutdown = False
     try:
-        process.start()
+        supervisor.start()
         initial = _probe(process.base_url, str(args.model.resolve()), process.pid)
         for index in range(args.crashes):
             old_pid = process.pid
             if old_pid is None:
                 raise RuntimeError("managed backend PID unavailable")
             os.kill(old_pid, signal.SIGKILL)
-            deadline = time.monotonic() + 5
-            while process.running and time.monotonic() < deadline:
-                time.sleep(0.05)
-            crashed = not process.running and not process.ready
             backoff_seconds = min(0.25 * (2 ** index), 2.0)
-            time.sleep(backoff_seconds)
             restart_started = time.monotonic()
-            process.restart()
+            restarted = supervisor.wait_for_restart(index, timeout=30)
             new_pid = process.pid
-            recovery = _probe(process.base_url, str(args.model.resolve()), new_pid)
+            recovery = (
+                _probe(process.base_url, str(args.model.resolve()), new_pid)
+                if restarted else {"completed": False, "quality_passed": False})
             cycles.append({
                 "index": index + 1,
                 "old_pid": old_pid,
                 "new_pid": new_pid,
                 "pid_changed": new_pid is not None and new_pid != old_pid,
-                "crash_observed": crashed,
+                "crash_observed": restarted,
                 "backoff_seconds": backoff_seconds,
                 "restart_seconds": time.monotonic() - restart_started,
                 "recovery": recovery,
+                "supervisor": supervisor.snapshot(),
             })
     finally:
-        process.stop()
+        supervisor.stop()
         clean_shutdown = not process.running
         if current_python_path is None:
             os.environ.pop("PYTHONPATH", None)
@@ -131,7 +132,8 @@ def main() -> int:
         "shutdown_clean": clean_shutdown,
         "elapsed_seconds": time.time() - started,
         "passed": passed,
-        "limits": ["explicit_supervisor_restart", "not_daemon_watchdog",
+        "supervisor": supervisor.snapshot(),
+        "limits": ["standalone_watchdog", "not_yet_wired_to_daemon",
                    "no_inflight_request_replay"],
     }
     _atomic_json(args.output.resolve(), report)
