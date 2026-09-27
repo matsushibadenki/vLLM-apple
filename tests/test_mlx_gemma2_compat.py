@@ -2,9 +2,12 @@ import hashlib
 import os
 import types
 import unittest
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 from vllm_apple.mlx_gemma2_compat import (
+    _register_context,
+    _release_context,
+    cancel_request,
     grouped_query_mask,
     install_gemma2_batch_mask_fix,
 )
@@ -20,6 +23,10 @@ class Mask:
 
 
 class Gemma2CompatTests(unittest.TestCase):
+    def tearDown(self):
+        from vllm_apple.mlx_gemma2_compat import _ACTIVE
+        _ACTIVE.clear()
+
     def test_only_grouped_batch_shared_head_masks_are_changed(self):
         mask = Mask((3, 1, 4, 7))
         self.assertEqual(grouped_query_mask(mask, 2).shape, (3, 1, 1, 4, 7))
@@ -55,6 +62,42 @@ class Gemma2CompatTests(unittest.TestCase):
                 self.assertFalse(install_gemma2_batch_mask_fix())
                 self.assertEqual(Attention()('input', Mask((3, 1, 4, 7)), 'cache'),
                                  ('input', (3, 1, 1, 4, 7), 'cache'))
+
+    def test_cancel_registry_is_bounded_to_active_valid_ids(self):
+        class Context:
+            stopped = 0
+
+            def stop(self):
+                self.stopped += 1
+
+        context = Context()
+        queue = Mock()
+        _register_context("request-1", context, queue)
+        self.assertTrue(cancel_request("request-1"))
+        self.assertEqual(context.stopped, 1)
+        queue.put.assert_called_once_with(None)
+        self.assertFalse(cancel_request("../request-1"))
+        _release_context("request-1", object())
+        self.assertTrue(cancel_request("request-1"))
+        _release_context("request-1", context)
+        self.assertFalse(cancel_request("request-1"))
+
+    def test_duplicate_request_id_stops_only_the_new_context(self):
+        class Context:
+            stopped = False
+
+            def stop(self):
+                self.stopped = True
+
+        first, duplicate = Context(), Context()
+        first_queue, duplicate_queue = Mock(), Mock()
+        _register_context("same", first, first_queue)
+        with self.assertRaises(ValueError):
+            _register_context("same", duplicate, duplicate_queue)
+        self.assertFalse(first.stopped)
+        self.assertTrue(duplicate.stopped)
+        first_queue.put.assert_not_called()
+        duplicate_queue.put.assert_called_once_with(None)
 
 
 @unittest.skipUnless(os.environ.get('VLLM_APPLE_TEST_GEMMA2_MASK') == '1',

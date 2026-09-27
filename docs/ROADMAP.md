@@ -1,6 +1,6 @@
 # vLLM-Apple Runtime Roadmap
 
-更新日：2026-09-26
+更新日：2026-09-27
 
 ## 目標と優先順位
 
@@ -117,8 +117,9 @@ RSS・allocator・KV・OS pressure・swap差分は別系列で記録し、重複
 - [Next] admissionにprompt＋最大出力のKV増分、prefill scratch、batch増分、allocator cache、OS reserveを反映する。最大contextと最大concurrencyを同時に保証しない。
 - [Next] client切断、active／queued cancel、timeout、遅いSSE consumer、worker crash、sleep／wake、shutdownを実backendで試験する。queue・IPC・出力bufferをboundedに保つ。
 - [Done] M4／Gemma 2 2B／MLX-LM 0.32.0のbatch mask不一致へ、version＋source hash限定のプロセス内互換修正を追加。[修正後HTTP試験](evaluation/text-benchmark-m4-gemma2-mask-fix-2026-09-26.json)は並列度1／2とも30/30正答。GPU上の8条件で未修正の逐次attentionと数値一致。Homebrew packageを変更せず、[専用起動経路](GEMMA2-BATCH-MASK-FIX.md)で明示適用する。
-- [Done] 修正したGemma 2経路の短時間M4回帰：[実測report](evaluation/gemma2-batch-mask-m4-qualification-2026-09-26.json)で約2K prompt tokensの共通prefix編集12/12、並列度2の継続負荷100/100が品質・SLO合格。stream途中切断後の正常応答とSIGINT正常終了も確認。client側切断に対するcancel完了通知はbackendにないため未認定。
-- [Next] 修正したGemma 2経路の明示的cancel、遅いconsumer、30分以上の並列混合負荷を検証する。短い算術試験を一般品質や長時間安定性の認定に代用せず、標準serveへの採用は再認定後とする。
+- [Done] 修正したGemma 2経路の短時間M4回帰：[実測report](evaluation/gemma2-batch-mask-cancel-slow-m4-2026-09-27.json)で約2K prompt tokensの共通prefix編集12/12、並列度2の継続負荷100/100が品質・SLO合格。source hash限定の実験用cancel APIはactive contextへstopとrequest専用queue終了を通知し、HTTP 202後0.759 msでstream完了。1 KiB receive buffer・1秒読み取り停止の遅いconsumer、client切断後の正常応答、SIGINT正常終了も確認。
+- [Done] 修正したGemma 2経路に30分の短長混合・cancel反復runnerを追加し、M4で実行。[実測report](evaluation/gemma2-batch-mask-30min-m4-2026-09-27.json)は通常応答3162/3162正答、cancel 310/310、slow consumer 32/32、正常終了、RSS増加なしを確認した。一方で長prefixの102件がTTFT 10秒SLOを超え、SLO内3060/3162のため総合判定は不合格。安定性の証拠には使うが、30分SLO認定には使わない。
+- [Next] 長prefix並列時のTTFT最大11894.346 msをprofileし、chunked prefillまたはscheduler設定でdecode／短requestを阻害せず10秒SLOへ収める。修正後に同じ1800秒gateを再実行し、全件SLO合格後に標準serve採用と8時間混合負荷・障害注入へ進む。
 - [Next] cancelはbackendの安全な実行境界で処理する。解放完了まで予約を維持し、stream公開済みrequestの黙った再実行やtoken重複を禁止する。OOM retryは副作用と状態復元が証明できる経路だけに限定する。
 - [Next] watchdogとrestart backoffを整備する。ハング時はworkerを回収し、失敗をclientへ通知して新規requestを回復する。過負荷拒否と内部障害を別集計する。
 

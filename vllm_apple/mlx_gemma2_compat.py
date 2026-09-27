@@ -7,11 +7,19 @@ from __future__ import annotations
 
 import hashlib
 import importlib.metadata
+import json
+import re
+import threading
 from functools import wraps
 from pathlib import Path
 from typing import Any
 
 GEMMA2_SOURCE_SHA256 = "64b0935b06fe2c4d5d4ed23a9cf62deb6218c55a88b9403a657afe9e2be8f251"
+SERVER_SOURCE_SHA256 = "8514178d18ee7e5edd1db8b8077ab97079ec72d1db666b85c110fb33cdc55147"
+REQUEST_ID = re.compile(r"[A-Za-z0-9._-]{1,64}")
+_ACTIVE: dict[str, tuple[Any, Any]] = {}
+_ACTIVE_LOCK = threading.Lock()
+_REQUEST = threading.local()
 
 
 def grouped_query_mask(mask: Any, repeats: int) -> Any:
@@ -44,10 +52,123 @@ def install_gemma2_batch_mask_fix() -> bool:
     return True
 
 
+def _register_context(request_id: str, context: Any, response_queue: Any) -> None:
+    with _ACTIVE_LOCK:
+        if request_id in _ACTIVE:
+            context.stop()
+            response_queue.put(None)
+            raise ValueError("request ID is already active")
+        _ACTIVE[request_id] = (context, response_queue)
+
+
+def _release_context(request_id: str, context: Any) -> None:
+    with _ACTIVE_LOCK:
+        active = _ACTIVE.get(request_id)
+        if active is not None and active[0] is context:
+            _ACTIVE.pop(request_id, None)
+
+
+def cancel_request(request_id: str) -> bool:
+    if REQUEST_ID.fullmatch(request_id) is None:
+        return False
+    with _ACTIVE_LOCK:
+        active = _ACTIVE.get(request_id)
+        if active is None:
+            return False
+        context, response_queue = active
+        context.stop()
+        response_queue.put(None)
+    return True
+
+
+def install_cancel_api() -> type[Any]:
+    """Install an opt-in cancellation bridge for the reviewed upstream server."""
+    from mlx_lm import server
+
+    if hashlib.sha256(Path(server.__file__).read_bytes()).hexdigest() != SERVER_SOURCE_SHA256:
+        raise ValueError("MLX-LM server source changed; review the cancellation bridge")
+    if getattr(server.ResponseGenerator.generate, "_vllm_apple_cancel_bridge", False):
+        return server.APIHandler
+
+    def generate(self: Any, request: Any, generation_args: Any,
+                 progress_callback: Any = None) -> tuple[Any, Any]:
+        response_queue = server.Queue()
+        self.requests.put((response_queue, request, generation_args))
+
+        def responses() -> Any:
+            while True:
+                response = response_queue.get()
+                if response is None:
+                    break
+                if isinstance(response, Exception):
+                    raise response
+                if isinstance(response, tuple):
+                    if progress_callback is not None:
+                        progress_callback(*response)
+                    continue
+                yield response
+
+        context = response_queue.get()
+        if isinstance(context, Exception):
+            raise context
+        request_id = getattr(_REQUEST, "request_id", None)
+        if request_id is None:
+            return context, responses()
+        _register_context(request_id, context, response_queue)
+
+        def tracked_responses() -> Any:
+            try:
+                yield from responses()
+            finally:
+                _release_context(request_id, context)
+
+        return context, tracked_responses()
+
+    generate._vllm_apple_cancel_bridge = True
+    server.ResponseGenerator.generate = generate
+
+    class CompatHandler(server.APIHandler):
+        def handle_completion(self, request: Any, stop_words: list[str]) -> None:
+            supplied = self.headers.get("X-VLLM-Apple-Request-ID")
+            if supplied is not None and REQUEST_ID.fullmatch(supplied) is None:
+                self._set_completion_headers(400)
+                self.end_headers()
+                self.wfile.write(b'{"error":"invalid request ID"}')
+                return
+            _REQUEST.request_id = supplied
+            try:
+                super().handle_completion(request, stop_words)
+            finally:
+                _REQUEST.request_id = None
+
+        def do_DELETE(self) -> None:
+            prefix = "/vllm-apple/requests/"
+            request_id = self.path.removeprefix(prefix) if self.path.startswith(prefix) else ""
+            cancelled = cancel_request(request_id)
+            status = 202 if cancelled else 404
+            payload = json.dumps({"request_id": request_id, "cancel_requested": cancelled},
+                                 separators=(",", ":")).encode()
+            self._set_completion_headers(status)
+            self.send_header("Content-Length", str(len(payload)))
+            self.send_header("Cache-Control", "no-store")
+            self.end_headers()
+            self.wfile.write(payload)
+            self.wfile.flush()
+
+    return CompatHandler
+
+
 if __name__ == "__main__":
     # Explicit experimental entry point; use the upstream parser and lifecycle.
     # Never alter the installed package or implicitly promote managed serving.
     install_gemma2_batch_mask_fix()
-    from mlx_lm.server import main
+    from mlx_lm import server
 
-    main()
+    handler = install_cancel_api()
+    defaults = server._run_http_server.__defaults__
+    if defaults is None or len(defaults) != 2:
+        raise RuntimeError("reviewed MLX-LM HTTP server signature changed")
+    # server.run currently does not forward its handler_class argument. Bind
+    # the reviewed private HTTP helper directly instead.
+    server._run_http_server.__defaults__ = (defaults[0], handler)
+    server.main()

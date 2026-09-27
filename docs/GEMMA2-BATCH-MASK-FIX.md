@@ -46,8 +46,21 @@ VLLM_APPLE_TEST_GEMMA2_MASK=1 /opt/homebrew/opt/vllm-metal/libexec/bin/python \
 継続負荷のgoodputは19.283 output tokens/s、観測peak RSSは2,232,991,744 bytesだった。
 長文側p95 TTFTはhistogram範囲外の`>5000 ms`、最大7,249.752 msであり、短い入力の
 性能値として扱わない。SSEを最初のdata受信後にclientから閉じ、1秒後の正常応答も確認した。
-ただしupstream serverからcancel完了通知は得られず、backend処理の停止・KV解放完了は未確認。
-結果は[qualification report](evaluation/gemma2-batch-mask-m4-qualification-2026-09-26.json)に保存した。
+初回の切断試験ではupstream serverからcancel完了通知を得られなかった。そのため確認済み
+`server.py`のsource hashに限定し、`X-VLLM-Apple-Request-ID`でactive generation contextと
+request専用response queueを一時登録する実験用bridgeを追加した。次のendpointはactive requestへ
+`stop()`を通知し、同じrequestのresponse queueへ終了を送る。GPU batchからのremoveはupstreamの
+safe pointで行われ、cancelled requestのpartial cacheを保存しない。
+
+```text
+DELETE /vllm-apple/requests/{request-id}
+```
+
+未知・完了済みIDは404、active IDは202。IDはASCII英数字と`._-`の1〜64文字に制限し、
+重複IDの新規requestはその新規contextだけを停止する。標準MLX serverにはendpointを追加しない。
+[2026-09-27 report](evaluation/gemma2-batch-mask-cancel-slow-m4-2026-09-27.json)では最初のSSE data後に
+cancelし、HTTP 202から0.759 msで`[DONE]`を観測した。1 KiB receive bufferで最初の読み取りを
+1秒止めたslow consumerも48,651 bytesを完走し、その後の正常応答に合格した。
 
 再現コマンド：
 
@@ -55,13 +68,31 @@ VLLM_APPLE_TEST_GEMMA2_MASK=1 /opt/homebrew/opt/vllm-metal/libexec/bin/python \
 .venv/bin/python scripts/qualify_gemma2_batch_mask.py \
   --python /opt/homebrew/opt/vllm-metal/libexec/bin/python \
   --model models/gemma-2-2b-it-4bit \
-  --output docs/evaluation/gemma2-batch-mask-m4-qualification-2026-09-26.json \
-  --port 19097 --sustained-requests 100 --long-requests 12
+  --output docs/evaluation/gemma2-batch-mask-cancel-slow-m4-2026-09-27.json \
+  --port 19100 --sustained-requests 100 --long-requests 12
 ```
 
 runnerは固定数workerを使い、reportをatomic保存する。仮想環境launcherのsymlinkを保持して
 `sys.prefix`を変えず、local modelだけをofflineで起動する。これは約36秒の回帰試験であり、
-30分認定、明示的cancel、遅いconsumer、一般的な長文品質は未認定。
+30分認定、cancel反復負荷、一般的な長文品質は未認定。
+
+30分の混合負荷は次の明示的な時間gateで実行できる。
+
+```bash
+.venv/bin/python scripts/qualify_gemma2_batch_mask.py \
+  --python /opt/homebrew/opt/vllm-metal/libexec/bin/python \
+  --model models/gemma-2-2b-it-4bit \
+  --output docs/evaluation/gemma2-batch-mask-30min-m4-2026-09-27.json \
+  --port 19102 --sustained-requests 100 --long-requests 12 \
+  --duration-seconds 1800 --require-30-minute-window
+```
+
+[2026-09-27の30分report](evaluation/gemma2-batch-mask-30min-m4-2026-09-27.json)は
+通常応答3162/3162正答、cancel 310/310、slow consumer 32/32、正常終了を確認した。
+RSSは開始2,219,130,880 bytes、peak 2,239,053,824 bytes、終了2,023,309,312 bytesだった。
+ただし長prefixの102件がTTFT 10秒SLOを超え、SLO内は3060/3162だったため、総合判定は
+**不合格**である。最終長prefix窓のTTFTは平均8026.096 ms、最大11894.346 msだった。
+安定性の証拠としては利用できるが、30分SLO認定や標準serveへの昇格には利用しない。
 
 ## English
 
@@ -69,15 +100,19 @@ An explicit, version- and source-hash-bound launcher reshapes shared-head batche
 Gemma 2 masks for grouped-query scores. It preserves upstream computation and never
 modifies installed packages. M4 HTTP smoke passed 30/30 requests at concurrency 1
 and 2; eight GPU cases matched unpatched per-row attention within 1e-5 tolerance.
-A short M4 regression passed 12 shared-prefix edits and 100 sustained concurrent
-requests, then recovered after a client-side stream disconnect. Backend cancellation
-completion, slow consumers and a 30-minute mixed load remain unqualified. Managed
-serving is unchanged.
+A short M4 regression passed 12 shared-prefix edits, 100 sustained concurrent
+requests, explicit active cancellation, a bounded slow consumer, and recovery after
+a client-side disconnect. A 30-minute mixed run completed 3,162/3,162 correct
+responses, 310/310 cancellations, and 32/32 slow consumers with clean shutdown and
+no RSS growth. It failed qualification because 102 long-prefix requests exceeded
+the 10-second TTFT SLO (3,060/3,162 within SLO). Managed serving is unchanged.
 
 ## 简体中文
 
 专用启动入口仅对版本和源码哈希匹配的Gemma 2补齐批处理mask的分组维度，保留上游计算，
 不修改已安装的软件包。M4上的并发度1和2各通过30/30次HTTP测试，8组GPU数值测试与未修改的
 逐条attention在1e-5容差内一致。追加测试通过12次共享前缀编辑、100次并发持续请求，
-并在客户端中断stream后恢复。后端取消完成、慢速客户端及30分钟混合负载仍未认证，
-标准托管启动路径保持不变。
+并通过显式活动请求取消、有界慢速客户端及客户端中断后的恢复。30分钟混合负载完成了
+3162/3162个正确响应、310/310次取消和32/32个慢速consumer，正常退出且RSS没有增长。
+但有102个长前缀请求超过10秒TTFT SLO（SLO内为3060/3162），因此总体认证失败。
+该结果仅作为稳定性证据，不用于升级标准serve。
