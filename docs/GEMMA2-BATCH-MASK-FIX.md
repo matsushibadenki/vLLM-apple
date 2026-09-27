@@ -94,6 +94,47 @@ RSSは開始2,219,130,880 bytes、peak 2,239,053,824 bytes、終了2,023,309,312
 **不合格**である。最終長prefix窓のTTFTは平均8026.096 ms、最大11894.346 msだった。
 安定性の証拠としては利用できるが、30分SLO認定や標準serveへの昇格には利用しない。
 
+[設定matrix](evaluation/gemma2-prefill-settings-m4-2026-09-27.json)では
+`prompt_concurrency=2 / prefill_step_size=512`が短時間の最大TTFTを
+7579.311 msから7363.242 msへ改善したが、同時長prompt 2件の5分試験はSLO内496/510、
+`prompt_concurrency=1`でも500/510に留まった。そこで短文は並列度2を維持し、約2K-tokenの
+長promptだけを並列度1へ制限するprofileを追加した。これはbackendのdecode concurrencyを
+下げず、workload admissionだけを実機容量に合わせる。
+
+```bash
+.venv/bin/python scripts/qualify_gemma2_batch_mask.py \
+  --python /opt/homebrew/opt/vllm-metal/libexec/bin/python \
+  --model models/gemma-2-2b-it-4bit \
+  --output docs/evaluation/gemma2-batch-mask-long-c1-prefill512-30min-m4-2026-09-27.json \
+  --port 19118 --sustained-requests 100 --long-requests 12 \
+  --duration-seconds 1800 --require-30-minute-window \
+  --decode-concurrency 2 --prompt-concurrency 2 \
+  --prefill-step-size 512 --long-concurrency 1
+```
+
+[再認定report](evaluation/gemma2-batch-mask-long-c1-prefill512-30min-m4-2026-09-27.json)は
+1800.211秒で通常応答3924/3924件が正答かつSLO内、cancel 384/384、slow consumer 39/39、
+切断後回復、SIGINT正常終了に合格した。開始時からthermalは全385 sampleで`fair`、
+`serious`／`critical`は0件。RSSは2,216,345,600 bytesから2,241,167,360 bytesへ
+24,821,760 bytes増加した。このprofileはM4 Air／32 GiB、Gemma 2 2B 4-bit、短文c2、
+約2K-token長prompt c1に限定して30分認定する。長prompt c2や一般品質は認定しない。
+
+障害注入の短時間gateも追加した。`X-VLLM-Apple-Request-ID`付きrequestはcontext生成前から
+pending registryへ登録し、cancel済み項目をsource-hash確認済みのupstream `_next_request`
+入口で破棄する。dequeueとの競合でcontext生成へ進んだ場合も、active化時に`stop()`して
+同じ安全境界で除去する。`X-VLLM-Apple-Timeout-Ms`は1〜600,000 msに制限し、request IDを
+必須として同じcancel経路を使う。
+
+[queued cancel／timeout report](evaluation/gemma2-queued-cancel-timeout-m4-2026-09-27.json)は、
+queued requestのDELETE 202と`request_state=queued`、model実行前のHTTP 404終了、active
+blockerの停止、100 ms timeoutの122.589 msでのstream完了、後続回復、正常終了に合格した。
+
+既存`BackendProcess`にはreview済みcompat moduleだけを`python -m`で管理できる限定起動契約を
+追加した。[worker crash report](evaluation/gemma2-worker-restart-qualified-m4-2026-09-27.json)は
+SIGKILL 3/3回を検出し、0.25／0.5／1.0秒backoff後に各2.596〜2.798秒で別PIDをreadyへ戻し、
+毎回の算術品質と最終shutdownに合格した。これは明示的supervisor restartの証拠であり、daemon
+watchdog、inflight request replay、sleep／wakeの認定ではない。
+
 ## English
 
 An explicit, version- and source-hash-bound launcher reshapes shared-head batched
@@ -107,6 +148,20 @@ responses, 310/310 cancellations, and 32/32 slow consumers with clean shutdown a
 no RSS growth. It failed qualification because 102 long-prefix requests exceeded
 the 10-second TTFT SLO (3,060/3,162 within SLO). Managed serving is unchanged.
 
+A workload-aware profile keeps short requests at concurrency 2 and admits the
+approximately 2K-token long prompts at concurrency 1, with a 512-token prefill step.
+Its 30-minute rerun passed 3,924/3,924 responses within quality and latency SLOs,
+384/384 cancellations, 39/39 slow consumers, recovery, and clean shutdown. All 385
+thermal samples were `fair`; none were `serious` or `critical`. Qualification is
+limited to this M4 Air, model, and workload envelope.
+
+The bounded fault gate now cancels requests while they are still queued and supports
+a 1–600,000 ms request timeout through the same cancellation path. Real HTTP tests
+passed queued cancellation, a 100 ms timeout, and subsequent recovery. Three injected
+SIGKILL crashes were restored under the existing managed process lifecycle with new
+PIDs and correct recovery responses. Automatic daemon watchdog and in-flight replay
+remain unqualified.
+
 ## 简体中文
 
 专用启动入口仅对版本和源码哈希匹配的Gemma 2补齐批处理mask的分组维度，保留上游计算，
@@ -116,3 +171,12 @@ the 10-second TTFT SLO (3,060/3,162 within SLO). Managed serving is unchanged.
 3162/3162个正确响应、310/310次取消和32/32个慢速consumer，正常退出且RSS没有增长。
 但有102个长前缀请求超过10秒TTFT SLO（SLO内为3060/3162），因此总体认证失败。
 该结果仅作为稳定性证据，不用于升级标准serve。
+
+新的工作负载profile保持短请求并发度2，只把约2K-token的长prompt限制为并发度1，并使用
+512-token prefill step。30分钟复测中3924/3924个响应全部通过质量及延迟SLO，取消384/384、
+慢速consumer 39/39，并通过恢复及正常退出。385个thermal sample全部为`fair`，没有
+`serious`或`critical`。该认证仅适用于本机M4 Air、当前模型及此工作负载范围。
+
+有界故障测试现在可以在请求仍处于queue时取消，并通过同一取消路径支持1–600,000 ms超时。
+真实HTTP测试通过了queued取消、100 ms超时及后续恢复。现有managed process生命周期在3次
+SIGKILL后都以新PID恢复，并返回正确答案。daemon自动watchdog和处理中请求重放仍未认证。

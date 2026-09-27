@@ -1,6 +1,7 @@
 import importlib.util
 import unittest
 from pathlib import Path
+from unittest.mock import Mock, patch
 
 SCRIPT = Path(__file__).resolve().parents[1] / "scripts" / "qualify_gemma2_batch_mask.py"
 SPEC = importlib.util.spec_from_file_location("gemma2_qualification", SCRIPT)
@@ -20,7 +21,11 @@ class Gemma2QualificationTests(unittest.TestCase):
             qualification._validate_duration(1799.9, True)
 
     def test_window_aggregation_is_constant_shape_and_requires_all_results(self):
-        summary = qualification._new_stability_summary(10, 100)
+        with patch.object(
+            qualification, "detect_thermal_state",
+            return_value=Mock(value="nominal")
+        ):
+            summary = qualification._new_stability_summary(10, 100)
         first = {"requests": 2, "completed": 2, "failed": 0,
                  "quality_passed": 2, "slo_quality_passed": 2, "errors": []}
         last = {"requests": 1, "completed": 1, "failed": 0,
@@ -38,13 +43,31 @@ class Gemma2QualificationTests(unittest.TestCase):
             summary, require_fault_checks=True))
 
     def test_failed_window_rejects_stability(self):
-        summary = qualification._new_stability_summary(10, 100)
+        with patch.object(
+            qualification, "detect_thermal_state",
+            return_value=Mock(value="nominal")
+        ):
+            summary = qualification._new_stability_summary(10, 100)
         qualification._accumulate_window(summary, {
             "requests": 2, "completed": 1, "failed": 1,
             "quality_passed": 1, "slo_quality_passed": 1,
             "errors": [{"code": "timeout"}],
         })
         self.assertEqual(summary["errors"], {"timeout": 1})
+        self.assertFalse(qualification._stability_passed(
+            summary, require_fault_checks=False))
+
+    def test_unsafe_thermal_sample_rejects_stability(self):
+        with patch.object(
+            qualification, "detect_thermal_state",
+            return_value=Mock(value="nominal")
+        ):
+            summary = qualification._new_stability_summary(10, 100)
+        qualification._accumulate_window(summary, {
+            "requests": 1, "completed": 1, "failed": 0,
+            "quality_passed": 1, "slo_quality_passed": 1, "errors": [],
+        })
+        summary["unsafe_thermal_samples"] = 1
         self.assertFalse(qualification._stability_passed(
             summary, require_fault_checks=False))
 

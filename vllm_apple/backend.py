@@ -81,6 +81,7 @@ class BackendConfig:
     extra_arguments: tuple[str, ...] = ()
     enable_kernel_tuning_middleware: bool = False
     backend_kind: str = "vllm_metal"
+    python_module: str | None = None
 
     def __post_init__(self) -> None:
         if not self.model.strip():
@@ -95,6 +96,11 @@ class BackendConfig:
             raise BackendConfigurationError("startup_timeout must be positive")
         if self.backend_kind not in {"vllm_metal", "mlx_lm"}:
             raise BackendConfigurationError("unsupported managed backend kind")
+        if self.python_module is not None:
+            if self.backend_kind != "mlx_lm":
+                raise BackendConfigurationError("python module launch is limited to MLX-LM")
+            if self.python_module != "vllm_apple.mlx_gemma2_compat":
+                raise BackendConfigurationError("unreviewed MLX-LM Python module")
         reserved = {
             "--host",
             "--port",
@@ -107,8 +113,10 @@ class BackendConfig:
 
     def command(self) -> list[str]:
         if self.backend_kind == "mlx_lm":
-            return [
-                str(self.executable),
+            command = [str(self.executable)]
+            if self.python_module is not None:
+                command.extend(("-m", self.python_module))
+            command.extend([
                 "--model",
                 self.model,
                 "--host",
@@ -118,7 +126,8 @@ class BackendConfig:
                 "--log-level",
                 "WARNING",
                 *self.extra_arguments,
-            ]
+            ])
+            return command
         command = [
             str(self.executable),
             "serve",

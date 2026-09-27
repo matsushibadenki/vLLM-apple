@@ -12,12 +12,14 @@ import signal
 import socket
 import subprocess
 import tempfile
+import threading
 import time
 import urllib.request
 from dataclasses import replace
 from pathlib import Path
 from typing import Any
 
+from vllm_apple.hardware import detect_thermal_state
 from vllm_apple.phase_probe import PhaseProbeConfig, _resident_bytes, measure_stream
 from vllm_apple.text_benchmark import run_text_benchmark
 
@@ -54,8 +56,10 @@ def _wait_ready(base_url: str, process: subprocess.Popen[bytes], timeout: float)
 
 
 def _stream_request(port: int, model: str, *, request_id: str | None = None,
-                    max_tokens: int = 512) -> tuple[http.client.HTTPConnection, Any]:
-    body = json.dumps({
+                    max_tokens: int = 512,
+                    seed: int | None = None,
+                    timeout_ms: int | None = None) -> tuple[http.client.HTTPConnection, Any]:
+    payload = {
         "model": model,
         "messages": [{"role": "user", "content":
                       "Write a detailed 400-word explanation of addition."}],
@@ -63,11 +67,16 @@ def _stream_request(port: int, model: str, *, request_id: str | None = None,
         "temperature": 0,
         "stream": True,
         "stream_options": {"include_usage": True},
-    }, separators=(",", ":")).encode()
+    }
+    if seed is not None:
+        payload["seed"] = seed
+    body = json.dumps(payload, separators=(",", ":")).encode()
     connection = http.client.HTTPConnection("127.0.0.1", port, timeout=10)
     headers = {"Content-Type": "application/json"}
     if request_id is not None:
         headers["X-VLLM-Apple-Request-ID"] = request_id
+    if timeout_ms is not None:
+        headers["X-VLLM-Apple-Timeout-Ms"] = str(timeout_ms)
     connection.request("POST", "/v1/chat/completions", body=body, headers=headers)
     response = connection.getresponse()
     return connection, response
@@ -137,6 +146,97 @@ def _slow_consumer(port: int, model: str) -> dict[str, object]:
             "receive_buffer_bytes": 1024, "completed": done, "response_bytes": total}
 
 
+def _delete_request(port: int, request_id: str) -> tuple[int, dict[str, object]]:
+    connection = http.client.HTTPConnection("127.0.0.1", port, timeout=10)
+    connection.request("DELETE", f"/vllm-apple/requests/{request_id}")
+    response = connection.getresponse()
+    status = response.status
+    payload = json.loads(response.read(4096))
+    connection.close()
+    return status, payload
+
+
+def _queued_cancel(port: int, model: str) -> dict[str, object]:
+    blocker_id = "qualification-queue-blocker"
+    queued_id = "qualification-queued-cancel"
+    blocker, blocker_response = _stream_request(
+        port, model, request_id=blocker_id, max_tokens=512, seed=7)
+    blocker_first = blocker_response.readline(1024)
+    submitted = threading.Event()
+    queued_result: dict[str, object] = {}
+
+    def submit_queued() -> None:
+        try:
+            connection = http.client.HTTPConnection("127.0.0.1", port, timeout=20)
+            body = json.dumps({
+                "model": model,
+                "messages": [{"role": "user", "content": "Reply only 2 to 1+1."}],
+                "max_tokens": 16,
+                "temperature": 0,
+                "stream": True,
+            }, separators=(",", ":")).encode()
+            connection.request("POST", "/v1/chat/completions", body=body, headers={
+                "Content-Type": "application/json",
+                "X-VLLM-Apple-Request-ID": queued_id,
+            })
+            submitted.set()
+            response = connection.getresponse()
+            queued_result["http_status"] = response.status
+            queued_result["body_bytes"] = len(response.read(64 * 1024))
+            connection.close()
+        except Exception as error:
+            queued_result["error"] = type(error).__name__
+            submitted.set()
+
+    thread = threading.Thread(target=submit_queued, daemon=True)
+    thread.start()
+    if not submitted.wait(timeout=5):
+        raise RuntimeError("queued cancellation request was not submitted")
+    time.sleep(0.1)
+    queued_status, queued_payload = _delete_request(port, queued_id)
+    blocker_status, blocker_payload = _delete_request(port, blocker_id)
+    blocker.close()
+    thread.join(timeout=10)
+    return {
+        "blocker_first_stream_data": bool(blocker_first),
+        "queued_cancel_http_status": queued_status,
+        "queued_cancel_requested": queued_payload.get("cancel_requested") is True,
+        "queued_request_state": queued_payload.get("request_state"),
+        "blocker_cancel_http_status": blocker_status,
+        "blocker_request_state": blocker_payload.get("request_state"),
+        "queued_handler_finished": not thread.is_alive(),
+        "queued_handler_http_status": queued_result.get("http_status"),
+        "queued_handler_body_bytes": queued_result.get("body_bytes"),
+    }
+
+
+def _timeout_stream(port: int, model: str) -> dict[str, object]:
+    started = time.monotonic()
+    connection, response = _stream_request(
+        port, model, request_id="qualification-timeout", max_tokens=512,
+        seed=11, timeout_ms=100)
+    total = 0
+    done = False
+    while True:
+        line = response.readline(1024 * 1024 + 1)
+        if not line:
+            break
+        total += len(line)
+        if line.strip() == b"data: [DONE]":
+            done = True
+            break
+        if total > 4 * 1024 * 1024:
+            raise RuntimeError("timeout response exceeded 4 MiB")
+    connection.close()
+    return {
+        "timeout_ms": 100,
+        "http_status": response.status,
+        "completion_observed": done,
+        "elapsed_ms": round((time.monotonic() - started) * 1000, 3),
+        "response_bytes": total,
+    }
+
+
 def _long_prefix_cases() -> tuple[tuple[str, str, str], ...]:
     prefix = " ".join(f"Reference marker {index:04d}." for index in range(256))
     return (
@@ -154,6 +254,7 @@ def _validate_duration(duration_seconds: float, require_30_minute_window: bool) 
 
 
 def _new_stability_summary(duration_seconds: float, rss_bytes: int) -> dict[str, object]:
+    thermal = detect_thermal_state().value
     return {
         "requested_duration_seconds": duration_seconds,
         "elapsed_seconds": 0.0,
@@ -174,6 +275,9 @@ def _new_stability_summary(duration_seconds: float, rss_bytes: int) -> dict[str,
         "rss_start_bytes": rss_bytes,
         "rss_end_bytes": rss_bytes,
         "rss_peak_bytes": rss_bytes,
+        "thermal_start": thermal,
+        "thermal_end": thermal,
+        "thermal_samples": {thermal: 1},
         "first_window": None,
         "last_window": None,
     }
@@ -205,6 +309,7 @@ def _stability_passed(summary: dict[str, object], *, require_fault_checks: bool)
         and int(summary["quality_passed"]) == requests
         and int(summary["slo_quality_passed"]) == requests
         and int(summary["failed"]) == 0
+        and int(summary.get("unsafe_thermal_samples", 0)) == 0
     )
     if require_fault_checks:
         passed = passed and (
@@ -217,7 +322,8 @@ def _stability_passed(summary: dict[str, object], *, require_fault_checks: bool)
 
 
 def _run_stability_window(config: PhaseProbeConfig, *, port: int, model: str,
-                          process_pid: int, duration_seconds: float) -> dict[str, object]:
+                          process_pid: int, duration_seconds: float,
+                          long_concurrency: int = 2) -> dict[str, object]:
     started = time.monotonic()
     deadline = started + duration_seconds
     summary = _new_stability_summary(duration_seconds, _resident_bytes(process_pid))
@@ -228,7 +334,8 @@ def _run_stability_window(config: PhaseProbeConfig, *, port: int, model: str,
         # cancellation and recovery checks frequent during a bounded soak.
         if cycle % 5 == 0:
             window = run_text_benchmark(
-                config, requests=3, concurrency=2, cases=_long_prefix_cases(),
+                config, requests=3, concurrency=long_concurrency,
+                cases=_long_prefix_cases(),
                 ttft_slo_ms=10_000, e2e_slo_ms=20_000)
         else:
             window = run_text_benchmark(
@@ -259,11 +366,20 @@ def _run_stability_window(config: PhaseProbeConfig, *, port: int, model: str,
         rss = _resident_bytes(process_pid)
         summary["rss_end_bytes"] = rss
         summary["rss_peak_bytes"] = max(int(summary["rss_peak_bytes"]), rss)
+        thermal = detect_thermal_state().value
+        thermal_samples = summary["thermal_samples"]
+        assert isinstance(thermal_samples, dict)
+        thermal_samples[thermal] = int(thermal_samples.get(thermal, 0)) + 1
+        summary["thermal_end"] = thermal
         summary["cycles"] = cycle
 
     summary["elapsed_seconds"] = time.monotonic() - started
     summary["rss_growth_bytes"] = (
         int(summary["rss_end_bytes"]) - int(summary["rss_start_bytes"]))
+    thermal_samples = summary["thermal_samples"]
+    assert isinstance(thermal_samples, dict)
+    summary["unsafe_thermal_samples"] = sum(
+        int(thermal_samples.get(state, 0)) for state in ("serious", "critical"))
     summary["passed"] = _stability_passed(summary, require_fault_checks=True)
     return summary
 
@@ -278,6 +394,10 @@ def main() -> int:
     parser.add_argument("--long-requests", type=int, default=12)
     parser.add_argument("--duration-seconds", type=float, default=0)
     parser.add_argument("--require-30-minute-window", action="store_true")
+    parser.add_argument("--decode-concurrency", type=int, default=2)
+    parser.add_argument("--prompt-concurrency", type=int, default=2)
+    parser.add_argument("--prefill-step-size", type=int, default=2048)
+    parser.add_argument("--long-concurrency", type=int, default=2)
     args = parser.parse_args()
     if not args.python.is_file() or not os.access(args.python, os.X_OK):
         parser.error("--python must be an executable regular file")
@@ -291,6 +411,12 @@ def main() -> int:
         _validate_duration(args.duration_seconds, args.require_30_minute_window)
     except ValueError as error:
         parser.error(str(error))
+    if not 1 <= args.decode_concurrency <= 32 or not 1 <= args.prompt_concurrency <= 8:
+        parser.error("backend concurrency is outside bounded limits")
+    if not 1 <= args.long_concurrency <= 2:
+        parser.error("--long-concurrency must be 1 or 2")
+    if not 128 <= args.prefill_step_size <= 4096:
+        parser.error("--prefill-step-size must be between 128 and 4096")
 
     repository = Path(__file__).resolve().parents[1]
     model = args.model.resolve()
@@ -300,7 +426,9 @@ def main() -> int:
     python_executable = str(args.python.absolute())
     command = [python_executable, "-m", "vllm_apple.mlx_gemma2_compat",
                "--model", str(model), "--host", "127.0.0.1", "--port", str(args.port),
-               "--decode-concurrency", "2", "--prompt-concurrency", "2",
+               "--decode-concurrency", str(args.decode_concurrency),
+               "--prompt-concurrency", str(args.prompt_concurrency),
+               "--prefill-step-size", str(args.prefill_step_size),
                "--prompt-cache-size", "4", "--log-level", "ERROR"]
     environment = dict(os.environ, PYTHONPATH=str(repository), HF_HUB_OFFLINE="1")
     started_at = time.time()
@@ -323,17 +451,21 @@ def main() -> int:
                                   target_pid=process.pid)
         report["warmup"] = run_text_benchmark(config, requests=3)
         report["long_prefix_edit"] = run_text_benchmark(
-            config, requests=args.long_requests, concurrency=2, cases=_long_prefix_cases(),
+            config, requests=args.long_requests, concurrency=args.long_concurrency,
+            cases=_long_prefix_cases(),
             ttft_slo_ms=10_000, e2e_slo_ms=20_000)
         report["sustained"] = run_text_benchmark(
             config, requests=args.sustained_requests, concurrency=2,
             ttft_slo_ms=5_000, e2e_slo_ms=10_000)
         report["explicit_cancel"] = _cancel_stream(args.port, str(model))
         report["slow_consumer"] = _slow_consumer(args.port, str(model))
+        report["queued_cancel"] = _queued_cancel(args.port, str(model))
+        report["request_timeout"] = _timeout_stream(args.port, str(model))
         if args.duration_seconds:
             report["stability_window"] = _run_stability_window(
                 config, port=args.port, model=str(model), process_pid=process.pid,
-                duration_seconds=args.duration_seconds)
+                duration_seconds=args.duration_seconds,
+                long_concurrency=args.long_concurrency)
         report["disconnect"] = _disconnect_stream(args.port, str(model))
         time.sleep(1)
         recovery = measure_stream(
@@ -370,6 +502,8 @@ def main() -> int:
     recovery = report.get("post_disconnect_recovery", {})
     explicit_cancel = report.get("explicit_cancel", {})
     slow_consumer = report.get("slow_consumer", {})
+    queued_cancel = report.get("queued_cancel", {})
+    request_timeout = report.get("request_timeout", {})
     stability = report.get("stability_window")
     duration_passed = (
         args.duration_seconds == 0
@@ -392,6 +526,17 @@ def main() -> int:
         and explicit_cancel.get("cancel_requested") is True
         and isinstance(slow_consumer, dict)
         and slow_consumer.get("completed") is True
+        and isinstance(queued_cancel, dict)
+        and queued_cancel.get("queued_cancel_http_status") == 202
+        and queued_cancel.get("queued_cancel_requested") is True
+        and queued_cancel.get("queued_request_state") == "queued"
+        and queued_cancel.get("blocker_cancel_http_status") == 202
+        and queued_cancel.get("queued_handler_finished") is True
+        and queued_cancel.get("queued_handler_http_status") == 404
+        and isinstance(request_timeout, dict)
+        and request_timeout.get("http_status") == 200
+        and request_timeout.get("completion_observed") is True
+        and float(request_timeout.get("elapsed_ms", 60_000)) < 5_000
         and duration_passed
         and clean_shutdown
     )

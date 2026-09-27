@@ -5,8 +5,11 @@ import unittest
 from unittest.mock import Mock, patch
 
 from vllm_apple.mlx_gemma2_compat import (
+    _activate_pending,
     _register_context,
+    _register_pending,
     _release_context,
+    _RequestQueue,
     cancel_request,
     grouped_query_mask,
     install_gemma2_batch_mask_fix,
@@ -24,8 +27,9 @@ class Mask:
 
 class Gemma2CompatTests(unittest.TestCase):
     def tearDown(self):
-        from vllm_apple.mlx_gemma2_compat import _ACTIVE
+        from vllm_apple.mlx_gemma2_compat import _ACTIVE, _PENDING
         _ACTIVE.clear()
+        _PENDING.clear()
 
     def test_only_grouped_batch_shared_head_masks_are_changed(self):
         mask = Mask((3, 1, 4, 7))
@@ -98,6 +102,29 @@ class Gemma2CompatTests(unittest.TestCase):
         self.assertTrue(duplicate.stopped)
         first_queue.put.assert_not_called()
         duplicate_queue.put.assert_called_once_with(None)
+
+    def test_queued_cancel_is_stopped_when_context_activates(self):
+        class Context:
+            stopped = False
+
+            def stop(self):
+                self.stopped = True
+
+        queue = _RequestQueue(__import__("queue").Queue)
+        _register_pending("queued-1", queue)
+        self.assertTrue(cancel_request("queued-1"))
+        context = Context()
+        self.assertFalse(_activate_pending("queued-1", context, queue))
+        self.assertTrue(context.stopped)
+        self.assertIsNone(queue.get())
+        self.assertFalse(cancel_request("queued-1"))
+
+    def test_duplicate_pending_request_id_is_rejected(self):
+        first = _RequestQueue(__import__("queue").Queue)
+        duplicate = _RequestQueue(__import__("queue").Queue)
+        _register_pending("same", first)
+        with self.assertRaises(ValueError):
+            _register_pending("same", duplicate)
 
 
 @unittest.skipUnless(os.environ.get('VLLM_APPLE_TEST_GEMMA2_MASK') == '1',

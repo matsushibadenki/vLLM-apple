@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "report_kind": "gemma2_worker_restart_qualification",
+  "started_at_unix": 1790487029.163542,
+  "hardware": "Apple M4 / 32 GiB",
+  "initial_probe": {
+    "completed": true,
+    "quality_passed": true
+  },
+  "cycles": [
+    {
+      "index": 1,
+      "old_pid": 63187,
+      "new_pid": 63207,
+      "pid_changed": true,
+      "crash_observed": true,
+      "backoff_seconds": 0.25,
+      "restart_seconds": 2.798465333002241,
+      "recovery": {
+        "completed": true,
+        "quality_passed": true
+      }
+    },
+    {
+      "index": 2,
+      "old_pid": 63207,
+      "new_pid": 63228,
+      "pid_changed": true,
+      "crash_observed": true,
+      "backoff_seconds": 0.5,
+      "restart_seconds": 2.7974563329989905,
+      "recovery": {
+        "completed": true,
+        "quality_passed": true
+      }
+    },
+    {
+      "index": 3,
+      "old_pid": 63228,
+      "new_pid": 63250,
+      "pid_changed": true,
+      "crash_observed": true,
+      "backoff_seconds": 1.0,
+      "restart_seconds": 2.596971916002076,
+      "recovery": {
+        "completed": true,
+        "quality_passed": true
+      }
+    }
+  ],
+  "shutdown_clean": true,
+  "elapsed_seconds": 12.868890762329102,
+  "passed": true,
+  "limits": [
+    "explicit_supervisor_restart",
+    "not_daemon_watchdog",
+    "no_inflight_request_replay"
+  ]
+}

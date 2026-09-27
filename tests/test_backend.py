@@ -158,6 +158,23 @@ class BackendConfigTests(unittest.TestCase):
             ],
         )
 
+    def test_reviewed_mlx_python_module_uses_managed_lifecycle(self) -> None:
+        config = BackendConfig(
+            model="/models/gemma",
+            executable=Path("/venv/bin/python"),
+            port=8123,
+            backend_kind="mlx_lm",
+            python_module="vllm_apple.mlx_gemma2_compat",
+            extra_arguments=("--prefill-step-size", "512"),
+        )
+        self.assertEqual(config.command()[:4], [
+            "/venv/bin/python", "-m", "vllm_apple.mlx_gemma2_compat", "--model"])
+        self.assertEqual(config.command()[-2:], ["--prefill-step-size", "512"])
+        with self.assertRaises(BackendConfigurationError):
+            BackendConfig(
+                "model", Path("/venv/bin/python"), backend_kind="mlx_lm",
+                python_module="unreviewed.module")
+
     def test_command_is_explicit_and_managed_options_cannot_be_overridden(self) -> None:
         config = BackendConfig(
             model="mlx-community/test",
