@@ -37,6 +37,7 @@ from .version import API_VERSION, MINIMUM_CLIENT_VERSION, SCHEMA_VERSION, __vers
 
 MAX_REQUEST_BYTES = 4 * 1024 * 1024
 MAX_OPTIMIZER_REQUEST_BYTES = 1 * 1024 * 1024
+DEFAULT_MAX_INFLIGHT_REQUEST_BYTES = 16 * 1024 * 1024
 
 # Adapted from vLLM PR #54684: validation failures must not echo an
 # attacker-controlled value into an unbounded response. This API normalizes
@@ -45,6 +46,47 @@ MAX_ERROR_MESSAGE_CHARS = 1000
 _ERROR_TRUNCATION_MARKER = "...[truncated]"
 _CACHE_SALT_FORBIDDEN_CHARS = frozenset("@/\\\x00")
 _MAX_CACHE_SALT_LENGTH = 128
+
+
+class RequestByteBudget:
+    """Shared bounded accounting for request bodies retained by HTTP listeners."""
+
+    def __init__(self, maximum_bytes: int = DEFAULT_MAX_INFLIGHT_REQUEST_BYTES) -> None:
+        if not MAX_REQUEST_BYTES <= maximum_bytes <= 1024**3:
+            raise ValueError("request byte budget is outside bounded limits")
+        self.maximum_bytes = maximum_bytes
+        self._current_bytes = 0
+        self._peak_bytes = 0
+        self._rejections = 0
+        self._lock = threading.Lock()
+
+    def reserve(self, requested: int) -> bool:
+        if not 0 <= requested <= MAX_REQUEST_BYTES:
+            raise ValueError("request byte reservation is outside bounded limits")
+        with self._lock:
+            if self._current_bytes + requested > self.maximum_bytes:
+                self._rejections += 1
+                return False
+            self._current_bytes += requested
+            self._peak_bytes = max(self._peak_bytes, self._current_bytes)
+            return True
+
+    def release(self, released: int) -> None:
+        if released < 0:
+            raise ValueError("released request bytes cannot be negative")
+        with self._lock:
+            self._current_bytes -= released
+            if self._current_bytes < 0:
+                raise RuntimeError("request byte reservation accounting underflow")
+
+    def snapshot(self) -> dict[str, int]:
+        with self._lock:
+            return {
+                "inflight_request_bytes": self._current_bytes,
+                "peak_inflight_request_bytes": self._peak_bytes,
+                "max_inflight_request_bytes": self.maximum_bytes,
+                "rejected_input_byte_reservations": self._rejections,
+            }
 
 
 def _bounded_error_message(message: str) -> str:
@@ -115,8 +157,13 @@ class _BoundedRuntimeServerMixin:
         session_token: str | None,
         client_certificate_policy: ClientCertificatePolicyStore | None = None,
         optimizer_controller: OptimizerController | None = None,
+        max_inflight_request_bytes: int = DEFAULT_MAX_INFLIGHT_REQUEST_BYTES,
+        request_byte_budget: RequestByteBudget | None = None,
     ) -> None:
-        if max_concurrent_requests <= 0 or socket_timeout <= 0:
+        if (
+            max_concurrent_requests <= 0
+            or socket_timeout <= 0
+        ):
             raise ValueError("server limits must be positive")
         self.service = service
         self.authenticator = SessionAuthenticator(session_token)
@@ -131,16 +178,26 @@ class _BoundedRuntimeServerMixin:
         self._peak_active_requests = 0
         self._completed_requests = 0
         self._rejected_requests = 0
+        self._request_byte_budget = request_byte_budget or RequestByteBudget(
+            max_inflight_request_bytes
+        )
         self.request_log = StructuredRequestLog()
 
     def request_metrics(self) -> dict[str, int]:
         with self._request_metrics_lock:
-            return {
+            metrics = {
                 "active_requests": self._active_requests,
                 "peak_active_requests": self._peak_active_requests,
                 "completed_requests": self._completed_requests,
                 "rejected_requests": self._rejected_requests,
             }
+        return {**metrics, **self._request_byte_budget.snapshot()}
+
+    def reserve_request_bytes(self, requested: int) -> bool:
+        return self._request_byte_budget.reserve(requested)
+
+    def release_request_bytes(self, released: int) -> None:
+        self._request_byte_budget.release(released)
 
     def _release_request_slot(self, *, completed: bool) -> None:
         with self._drain_condition:
@@ -238,11 +295,15 @@ class RuntimeHTTPServer(_BoundedRuntimeServerMixin, ThreadingHTTPServer):
         session_token: str | None = None,
         client_certificate_policy: ClientCertificatePolicyStore | None = None,
         optimizer_controller: OptimizerController | None = None,
+        max_inflight_request_bytes: int = DEFAULT_MAX_INFLIGHT_REQUEST_BYTES,
+        request_byte_budget: RequestByteBudget | None = None,
     ):
         self._initialize_runtime(
             service, max_concurrent_requests, socket_timeout, session_token,
             client_certificate_policy,
             optimizer_controller,
+            max_inflight_request_bytes,
+            request_byte_budget,
         )
         super().__init__(address, RuntimeRequestHandler)
 
@@ -262,6 +323,8 @@ class RuntimeUnixHTTPServer(
         socket_timeout: float = 30.0,
         session_token: str | None = None,
         optimizer_controller: OptimizerController | None = None,
+        max_inflight_request_bytes: int = DEFAULT_MAX_INFLIGHT_REQUEST_BYTES,
+        request_byte_budget: RequestByteBudget | None = None,
     ):
         self.socket_path = socket_path
         if len(os.fsencode(socket_path)) >= 104:
@@ -278,6 +341,8 @@ class RuntimeUnixHTTPServer(
         self._initialize_runtime(
             service, max_concurrent_requests, socket_timeout, session_token,
             optimizer_controller=optimizer_controller,
+            max_inflight_request_bytes=max_inflight_request_bytes,
+            request_byte_budget=request_byte_budget,
         )
         super().__init__(socket_path, RuntimeRequestHandler)
         os.chmod(socket_path, 0o600)
@@ -398,6 +463,14 @@ class RuntimeRequestHandler(BaseHTTPRequestHandler):
                 HTTPStatus.REQUEST_ENTITY_TOO_LARGE, "request_too_large", "request is too large"
             )
             return None
+        if not self.server.reserve_request_bytes(length):
+            self._error(
+                HTTPStatus.SERVICE_UNAVAILABLE,
+                "request_bytes_exhausted",
+                "concurrent request byte budget is exhausted",
+            )
+            return None
+        self._reserved_request_bytes = length
         try:
             decoded = json.loads(self.rfile.read(length))
         except (UnicodeDecodeError, json.JSONDecodeError):
@@ -432,7 +505,13 @@ class RuntimeRequestHandler(BaseHTTPRequestHandler):
             status = HTTPStatus.OK if snapshot.control_ready else HTTPStatus.SERVICE_UNAVAILABLE
             self._send(status, self._control_payload({"ready": snapshot.control_ready}))
         elif path == "/v1/runtime":
-            self._send(HTTPStatus.OK, self._control_payload(snapshot.to_dict()))
+            self._send(
+                HTTPStatus.OK,
+                self._control_payload({
+                    **snapshot.to_dict(),
+                    "http": self.server.request_metrics(),
+                }),
+            )
         elif path == "/v1/execution-plan/preview":
             self._send(
                 HTTPStatus.OK,
@@ -461,8 +540,14 @@ class RuntimeRequestHandler(BaseHTTPRequestHandler):
             self._error(HTTPStatus.NOT_FOUND, "not_found", "endpoint not found")
 
     def do_POST(self) -> None:
-        with request_scope(self._request_id()):
-            self._handle_post()
+        try:
+            with request_scope(self._request_id()):
+                self._handle_post()
+        finally:
+            reserved = getattr(self, "_reserved_request_bytes", 0)
+            if reserved:
+                self.server.release_request_bytes(reserved)
+                self._reserved_request_bytes = 0
 
     def _handle_post(self) -> None:
         if not self._authorize():
@@ -828,6 +913,8 @@ def create_server(
     socket_timeout: float = 30.0,
     client_certificate_policy: ClientCertificatePolicyStore | None = None,
     optimizer_controller: OptimizerController | None = None,
+    max_inflight_request_bytes: int = DEFAULT_MAX_INFLIGHT_REQUEST_BYTES,
+    request_byte_budget: RequestByteBudget | None = None,
 ) -> RuntimeHTTPServer:
     return RuntimeHTTPServer(
         (host, port),
@@ -837,6 +924,8 @@ def create_server(
         socket_timeout=socket_timeout,
         client_certificate_policy=client_certificate_policy,
         optimizer_controller=optimizer_controller,
+        max_inflight_request_bytes=max_inflight_request_bytes,
+        request_byte_budget=request_byte_budget,
     )
 
 
@@ -847,6 +936,8 @@ def create_unix_server(
     session_token: str | None = None,
     socket_timeout: float = 30.0,
     optimizer_controller: OptimizerController | None = None,
+    max_inflight_request_bytes: int = DEFAULT_MAX_INFLIGHT_REQUEST_BYTES,
+    request_byte_budget: RequestByteBudget | None = None,
 ) -> RuntimeUnixHTTPServer:
     return RuntimeUnixHTTPServer(
         socket_path,
@@ -855,4 +946,6 @@ def create_unix_server(
         session_token=session_token,
         socket_timeout=socket_timeout,
         optimizer_controller=optimizer_controller,
+        max_inflight_request_bytes=max_inflight_request_bytes,
+        request_byte_budget=request_byte_budget,
     )

@@ -7,7 +7,7 @@ import urllib.request
 from contextlib import redirect_stdout
 from unittest.mock import patch
 
-from vllm_apple.api import create_server
+from vllm_apple.api import MAX_REQUEST_BYTES, RequestByteBudget, create_server
 from vllm_apple.cli import main
 from vllm_apple.execution_preview_client import fetch_execution_preview
 from vllm_apple.service import RuntimeService
@@ -98,6 +98,55 @@ class APITests(unittest.TestCase):
         self.assertEqual(raised.exception.code, 503)
         payload = json.load(raised.exception)
         self.assertEqual(payload["error"]["code"], "backend_unavailable")
+
+    def test_aggregate_request_byte_budget_rejects_and_recovers(self) -> None:
+        server = create_server(
+            "127.0.0.1", 0, RuntimeService(),
+            max_inflight_request_bytes=MAX_REQUEST_BYTES,
+        )
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        try:
+            self.assertTrue(server.reserve_request_bytes(MAX_REQUEST_BYTES))
+            request = urllib.request.Request(
+                f"http://127.0.0.1:{server.server_port}/v1/chat/completions",
+                data=b'{}', headers={"Content-Type": "application/json"}, method="POST",
+            )
+            with self.assertRaises(urllib.error.HTTPError) as raised:
+                urllib.request.urlopen(request, timeout=2)
+            self.assertEqual(raised.exception.code, 503)
+            self.assertEqual(
+                json.load(raised.exception)["error"]["code"],
+                "request_bytes_exhausted",
+            )
+            metrics = server.request_metrics()
+            self.assertEqual(metrics["rejected_input_byte_reservations"], 1)
+            self.assertEqual(metrics["inflight_request_bytes"], MAX_REQUEST_BYTES)
+            server.release_request_bytes(MAX_REQUEST_BYTES)
+            self.assertEqual(server.request_metrics()["inflight_request_bytes"], 0)
+        finally:
+            server.shutdown()
+            server.server_close()
+            thread.join(timeout=2)
+
+    def test_request_byte_budget_can_be_shared_across_listeners(self) -> None:
+        budget = RequestByteBudget(MAX_REQUEST_BYTES)
+        first = create_server(
+            "127.0.0.1", 0, RuntimeService(), request_byte_budget=budget
+        )
+        second = create_server(
+            "127.0.0.1", 0, RuntimeService(), request_byte_budget=budget
+        )
+        try:
+            self.assertTrue(first.reserve_request_bytes(MAX_REQUEST_BYTES))
+            self.assertFalse(second.reserve_request_bytes(1))
+            self.assertEqual(second.request_metrics()["rejected_input_byte_reservations"], 1)
+            first.release_request_bytes(MAX_REQUEST_BYTES)
+            self.assertTrue(second.reserve_request_bytes(1))
+            second.release_request_bytes(1)
+        finally:
+            first.server_close()
+            second.server_close()
 
     def test_chat_rejects_cache_salt_before_backend(self) -> None:
         for stream in (False, True):

@@ -10,15 +10,20 @@ import math
 import os
 import signal
 import socket
-import subprocess
 import tempfile
 import threading
 import time
-import urllib.request
 from dataclasses import replace
 from pathlib import Path
 from typing import Any, Callable
 
+from vllm_apple.backend import (
+    BackendConfig,
+    BackendHTTPError,
+    BackendProcess,
+    BackendSupervisor,
+    OpenAIProxyEngine,
+)
 from vllm_apple.hardware import detect_thermal_state
 from vllm_apple.phase_probe import PhaseProbeConfig, _resident_bytes, measure_stream
 from vllm_apple.text_benchmark import run_text_benchmark
@@ -40,19 +45,6 @@ def _atomic_json(path: Path, payload: object) -> None:
         except FileNotFoundError:
             pass
         raise
-
-
-def _wait_ready(base_url: str, process: subprocess.Popen[bytes], timeout: float) -> None:
-    deadline = time.monotonic() + timeout
-    while time.monotonic() < deadline:
-        if process.poll() is not None:
-            raise RuntimeError("backend exited during startup")
-        try:
-            with urllib.request.urlopen(base_url + "/v1/models", timeout=1):
-                return
-        except OSError:
-            time.sleep(0.25)
-    raise RuntimeError("backend startup deadline exceeded")
 
 
 def _stream_request(port: int, model: str, *, request_id: str | None = None,
@@ -261,12 +253,16 @@ def _validate_duration(
 
 def _rss_trend(samples: list[dict[str, float | int]]) -> dict[str, object]:
     """Summarize recent RSS direction without treating a peak as a leak."""
-    if len(samples) < 4:
+    latest_pid = samples[-1].get("pid") if samples else None
+    current_epoch = [item for item in samples if item.get("pid") == latest_pid]
+    if len(current_epoch) < 4:
         return {
             "sample_count": len(samples), "slope_bytes_per_hour": None,
+            "current_pid": latest_pid,
+            "current_pid_sample_count": len(current_epoch),
             "recent_growth_bytes": None, "plateau_observed": False,
         }
-    recent = samples[len(samples) // 2:]
+    recent = current_epoch[len(current_epoch) // 2:]
     origin = float(recent[0]["elapsed_seconds"])
     points = [
         (float(item["elapsed_seconds"]) - origin, float(item["rss_bytes"]))
@@ -284,6 +280,8 @@ def _rss_trend(samples: list[dict[str, float | int]]) -> dict[str, object]:
     slope_per_hour = slope * 3600
     return {
         "sample_count": len(samples),
+        "current_pid": latest_pid,
+        "current_pid_sample_count": len(current_epoch),
         "recent_sample_count": count,
         "slope_bytes_per_hour": round(slope_per_hour, 3),
         "recent_growth_bytes": recent_growth,
@@ -294,7 +292,9 @@ def _rss_trend(samples: list[dict[str, float | int]]) -> dict[str, object]:
     }
 
 
-def _new_stability_summary(duration_seconds: float, rss_bytes: int) -> dict[str, object]:
+def _new_stability_summary(
+    duration_seconds: float, rss_bytes: int, process_pid: int | None = None
+) -> dict[str, object]:
     thermal = detect_thermal_state().value
     return {
         "requested_duration_seconds": duration_seconds,
@@ -325,7 +325,9 @@ def _new_stability_summary(duration_seconds: float, rss_bytes: int) -> dict[str,
         "thermal_samples": {thermal: 1},
         "first_window": None,
         "last_window": None,
-        "rss_samples": [{"elapsed_seconds": 0.0, "rss_bytes": rss_bytes}],
+        "rss_samples": [{
+            "elapsed_seconds": 0.0, "rss_bytes": rss_bytes, "pid": process_pid,
+        }],
     }
 
 
@@ -376,25 +378,38 @@ def _stability_passed(
             and summary["timeout_attempts"] == summary["timeout_passed"]
             and isinstance(rss_trend, dict)
             and rss_trend.get("plateau_observed") is True
+            and int(summary.get("worker_crash_attempts", 0)) > 0
+            and summary["worker_crash_attempts"] == summary["worker_crash_passed"]
         )
     return bool(passed)
 
 
 def _run_stability_window(config: PhaseProbeConfig, *, port: int, model: str,
-                          process_pid: int, duration_seconds: float,
+                          process: BackendProcess, supervisor: BackendSupervisor,
+                          duration_seconds: float,
                           long_concurrency: int = 2,
                           require_long_window_checks: bool = False,
                           fault_check_interval_cycles: int = 10,
                           checkpoint: Callable[[dict[str, object]], None] | None = None,
-                          require_sleep_wake: bool = False) -> dict[str, object]:
+                          require_sleep_wake: bool = False,
+                          worker_crash_interval_seconds: float = 0) -> dict[str, object]:
     started = time.monotonic()
     deadline = started + duration_seconds
-    summary = _new_stability_summary(duration_seconds, _resident_bytes(process_pid))
+    process_pid = process.pid
+    if process_pid is None:
+        raise RuntimeError("managed backend PID unavailable")
+    summary = _new_stability_summary(
+        duration_seconds, _resident_bytes(process_pid), process_pid
+    )
     cycle = 0
     previous_wall = time.time()
     previous_monotonic = time.monotonic()
     summary["sleep_wake_observations"] = 0
     summary["maximum_suspend_gap_seconds"] = 0.0
+    summary["worker_crash_attempts"] = 0
+    summary["worker_crash_passed"] = 0
+    summary["worker_crashes"] = []
+    next_worker_crash = worker_crash_interval_seconds
     while time.monotonic() < deadline:
         cycle += 1
         current_wall = time.time()
@@ -414,14 +429,18 @@ def _run_stability_window(config: PhaseProbeConfig, *, port: int, model: str,
         previous_monotonic = current_monotonic
         # Long-prefix edits regularly exercise prompt batching; short windows keep
         # cancellation and recovery checks frequent during a bounded soak.
+        current_pid = process.pid
+        if current_pid is None:
+            raise RuntimeError("managed backend PID unavailable during soak")
+        cycle_config = replace(config, target_pid=current_pid)
         if cycle % 5 == 0:
             window = run_text_benchmark(
-                config, requests=3, concurrency=long_concurrency,
+                cycle_config, requests=3, concurrency=long_concurrency,
                 cases=_long_prefix_cases(),
                 ttft_slo_ms=10_000, e2e_slo_ms=20_000)
         else:
             window = run_text_benchmark(
-                config, requests=12, concurrency=2,
+                cycle_config, requests=12, concurrency=2,
                 ttft_slo_ms=5_000, e2e_slo_ms=10_000)
         _accumulate_window(summary, window)
 
@@ -468,7 +487,72 @@ def _run_stability_window(config: PhaseProbeConfig, *, port: int, model: str,
             )
             summary["timeout_passed"] = int(summary["timeout_passed"]) + int(timeout_ok)
 
-        rss = _resident_bytes(process_pid)
+        elapsed = time.monotonic() - started
+        if worker_crash_interval_seconds and elapsed >= next_worker_crash:
+            old_pid = process.pid
+            if old_pid is None:
+                raise RuntimeError("managed backend PID unavailable before crash")
+            previous_restart_count = int(supervisor.snapshot()["restart_count"])
+            crash_started = time.monotonic()
+            os.kill(old_pid, signal.SIGKILL)
+            unavailable: dict[str, object] = {
+                "observed": False, "status": None, "code": None,
+            }
+            not_ready_deadline = time.monotonic() + 2
+            while process.ready and time.monotonic() < not_ready_deadline:
+                time.sleep(0.005)
+            try:
+                OpenAIProxyEngine(process.base_url, process).open_chat_stream({
+                    "model": model,
+                    "messages": [{"role": "user", "content": "ping"}],
+                    "stream": True,
+                })
+            except BackendHTTPError as error:
+                unavailable = {
+                    "observed": True, "status": error.status, "code": error.code,
+                }
+            restarted = supervisor.wait_for_restart(previous_restart_count, timeout=30)
+            new_pid = process.pid
+            recovery_passed = False
+            if restarted and new_pid is not None:
+                recovery = measure_stream(
+                    replace(
+                        config, target_pid=new_pid,
+                        prompt="What is 1+1? Reply with only the digit.",
+                    ),
+                    expected_text="2", expected_match_mode="trimmed_exact",
+                )
+                recovery_passed = bool(
+                    recovery.measurement.stream_done_ns is not None
+                    and recovery.expected_text_matched
+                )
+            crash_passed = bool(
+                restarted and new_pid is not None and new_pid != old_pid
+                and recovery_passed
+                and unavailable == {
+                    "observed": True, "status": 503, "code": "backend_unavailable"
+                }
+            )
+            summary["worker_crash_attempts"] = int(summary["worker_crash_attempts"]) + 1
+            summary["worker_crash_passed"] = (
+                int(summary["worker_crash_passed"]) + int(crash_passed)
+            )
+            crashes = summary["worker_crashes"]
+            assert isinstance(crashes, list)
+            crashes.append({
+                "old_pid": old_pid,
+                "new_pid": new_pid,
+                "restart_seconds": round(time.monotonic() - crash_started, 3),
+                "client_during_restart": unavailable,
+                "recovery_quality_passed": recovery_passed,
+                "passed": crash_passed,
+            })
+            next_worker_crash += worker_crash_interval_seconds
+
+        current_pid = process.pid
+        if current_pid is None:
+            raise RuntimeError("managed backend PID unavailable after fault checks")
+        rss = _resident_bytes(current_pid)
         summary["rss_end_bytes"] = rss
         summary["rss_peak_bytes"] = max(int(summary["rss_peak_bytes"]), rss)
         rss_samples = summary["rss_samples"]
@@ -476,6 +560,7 @@ def _run_stability_window(config: PhaseProbeConfig, *, port: int, model: str,
         rss_samples.append({
             "elapsed_seconds": round(time.monotonic() - started, 3),
             "rss_bytes": rss,
+            "pid": current_pid,
         })
         if len(rss_samples) > 512:
             del rss_samples[1::2]
@@ -521,6 +606,7 @@ def main() -> int:
     parser.add_argument("--require-8-hour-window", action="store_true")
     parser.add_argument("--require-sleep-wake", action="store_true")
     parser.add_argument("--fault-check-interval-cycles", type=int, default=10)
+    parser.add_argument("--worker-crash-interval-seconds", type=float, default=0)
     parser.add_argument("--decode-concurrency", type=int, default=2)
     parser.add_argument("--prompt-concurrency", type=int, default=2)
     parser.add_argument("--prefill-step-size", type=int, default=2048)
@@ -550,6 +636,18 @@ def main() -> int:
         parser.error("--fault-check-interval-cycles must be between 1 and 100")
     if args.require_sleep_wake and not args.require_8_hour_window:
         parser.error("--require-sleep-wake requires --require-8-hour-window")
+    if (
+        not math.isfinite(args.worker_crash_interval_seconds)
+        or not 0 <= args.worker_crash_interval_seconds <= 7_200
+    ):
+        parser.error("--worker-crash-interval-seconds must be between 0 and 7200")
+    if args.require_8_hour_window and args.worker_crash_interval_seconds < 300:
+        parser.error("8-hour qualification requires worker crashes every 300-7200 seconds")
+    if (
+        args.worker_crash_interval_seconds
+        and args.duration_seconds / args.worker_crash_interval_seconds > 100
+    ):
+        parser.error("worker crash schedule exceeds the bounded 100-restart limit")
     if not 128 <= args.prefill_step_size <= 4096:
         parser.error("--prefill-step-size must be between 128 and 4096")
 
@@ -559,13 +657,23 @@ def main() -> int:
     # Keep a virtual-environment launcher path intact. Resolving its symlink to
     # the base interpreter changes sys.prefix and can hide the MLX packages.
     python_executable = str(args.python.absolute())
-    command = [python_executable, "-m", "vllm_apple.mlx_gemma2_compat",
-               "--model", str(model), "--host", "127.0.0.1", "--port", str(args.port),
-               "--decode-concurrency", str(args.decode_concurrency),
-               "--prompt-concurrency", str(args.prompt_concurrency),
-               "--prefill-step-size", str(args.prefill_step_size),
-               "--prompt-cache-size", "4", "--log-level", "ERROR"]
-    environment = dict(os.environ, PYTHONPATH=str(repository), HF_HUB_OFFLINE="1")
+    backend_config = BackendConfig(
+        model=str(model), executable=Path(python_executable), host="127.0.0.1",
+        port=args.port, startup_timeout=90, backend_kind="mlx_lm",
+        python_module="vllm_apple.mlx_gemma2_compat",
+        extra_arguments=(
+            "--decode-concurrency", str(args.decode_concurrency),
+            "--prompt-concurrency", str(args.prompt_concurrency),
+            "--prefill-step-size", str(args.prefill_step_size),
+            "--prompt-cache-size", "4",
+        ),
+    )
+    process = BackendProcess(backend_config)
+    supervisor = BackendSupervisor(
+        process, poll_interval=0.05, initial_backoff=0.25,
+        maximum_backoff=2, maximum_restarts=100,
+    )
+    command = backend_config.command()
     started_at = time.time()
     report: dict[str, object] = {
         "schema_version": 1, "report_kind": "gemma2_batch_mask_qualification",
@@ -575,11 +683,15 @@ def main() -> int:
         "stores_prompt": False, "stores_generated_text": False,
         "cancel_acknowledgement_available": True,
     }
-    log = tempfile.TemporaryFile()
-    process = subprocess.Popen(command, cwd=repository, env=environment, stdout=log, stderr=log)
     clean_shutdown = False
+    original_pythonpath = os.environ.get("PYTHONPATH")
+    original_offline = os.environ.get("HF_HUB_OFFLINE")
+    os.environ["PYTHONPATH"] = str(repository)
+    os.environ["HF_HUB_OFFLINE"] = "1"
     try:
-        _wait_ready(base_url, process, 90)
+        supervisor.start()
+        if process.pid is None:
+            raise RuntimeError("managed backend PID unavailable after startup")
         config = PhaseProbeConfig(base_url, str(model), "Apple-M4-32GiB",
                                   backend="mlx_lm_gemma2_mask_fix",
                                   maximum_output_tokens=16, timeout_seconds=30,
@@ -606,43 +718,47 @@ def main() -> int:
                 })
 
             report["stability_window"] = _run_stability_window(
-                config, port=args.port, model=str(model), process_pid=process.pid,
+                config, port=args.port, model=str(model), process=process,
+                supervisor=supervisor,
                 duration_seconds=args.duration_seconds,
                 long_concurrency=args.long_concurrency,
                 require_long_window_checks=args.require_8_hour_window,
                 fault_check_interval_cycles=args.fault_check_interval_cycles,
                 checkpoint=checkpoint,
-                require_sleep_wake=args.require_sleep_wake)
+                require_sleep_wake=args.require_sleep_wake,
+                worker_crash_interval_seconds=args.worker_crash_interval_seconds)
         report["disconnect"] = _disconnect_stream(args.port, str(model))
         time.sleep(1)
+        recovery_pid = process.pid
+        if recovery_pid is None:
+            raise RuntimeError("managed backend PID unavailable for final recovery")
         recovery = measure_stream(
-            replace(config, prompt="What is 1+1? Reply with only the digit."),
+            replace(
+                config, target_pid=recovery_pid,
+                prompt="What is 1+1? Reply with only the digit.",
+            ),
             expected_text="2", expected_match_mode="trimmed_exact")
         report["post_disconnect_recovery"] = {
             "completed": recovery.measurement.stream_done_ns is not None,
             "quality_passed": recovery.expected_text_matched,
         }
     finally:
-        if process.poll() is None:
-            process.send_signal(signal.SIGINT)
-            try:
-                process.wait(timeout=15)
-            except subprocess.TimeoutExpired:
-                process.terminate()
-                try:
-                    process.wait(timeout=5)
-                except subprocess.TimeoutExpired:
-                    process.kill()
-                    process.wait(timeout=5)
-        clean_shutdown = process.returncode == 0
-        log.seek(0)
-        log_bytes = log.read(64 * 1024)
+        supervisor.stop()
+        clean_shutdown = not process.running
+        log_bytes = "\n".join(process.recent_logs()).encode()[:64 * 1024]
         report["backend_log_sha256"] = hashlib.sha256(log_bytes).hexdigest()
         report["backend_log_truncated"] = len(log_bytes) == 64 * 1024
-        report["backend_exit_code"] = process.returncode
+        report["supervisor"] = supervisor.snapshot()
         report["shutdown_clean"] = clean_shutdown
         report["elapsed_seconds"] = time.time() - started_at
-        log.close()
+        if original_pythonpath is None:
+            os.environ.pop("PYTHONPATH", None)
+        else:
+            os.environ["PYTHONPATH"] = original_pythonpath
+        if original_offline is None:
+            os.environ.pop("HF_HUB_OFFLINE", None)
+        else:
+            os.environ["HF_HUB_OFFLINE"] = original_offline
 
     long_report = report.get("long_prefix_edit", {})
     sustained = report.get("sustained", {})

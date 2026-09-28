@@ -158,7 +158,11 @@ exhaustionを固定した。[追加M4 fault report](evaluation/gemma2-worker-wat
 16 MiB/時以下かつ後半増加64 MiB以内をallocator plateauとする。`--require-sleep-wake`指定時は
 suspend gapの観測ゼロを不合格にする。[45秒smoke](evaluation/gemma2-8hour-runner-smoke-m4-2026-09-28.json)
 は通常応答75/75と4種類のfault各7/7に合格したが、8時間認定ではない。worker crashの同一窓
-反復注入と実8時間runは未完了である。
+反復注入も追加し、8時間gateでは注入0件または失敗を認めない。RSS回帰はworker再起動を跨がず
+最新PIDのepochだけを使う。[51秒worker-crash smoke](evaluation/gemma2-soak-worker-crash-smoke-m4-2026-09-28.json)
+は通常応答99/99とSIGKILL 2/2に合格し、restart中の`503 backend_unavailable`、別PID、算術品質を
+2.983〜3.204秒で回復した。最新PIDのRSS sampleは2点だけなのでplateauは未判定である。実際の
+8時間runと実sleep／wakeは未完了である。
 
 ## English
 
@@ -208,7 +212,13 @@ repeated active/queued cancellation, timeout and slow-consumer checks, and a bou
 below 16 MiB/hour and 64 MiB total growth. Optional sleep/wake qualification fails
 when no suspend gap is observed. A 45-second M4 smoke passed 75/75 normal responses
 and 7/7 of each fault check; it is not eight-hour evidence. Repeated worker crashes
-inside the same window and the actual eight-hour run remain unfinished.
+are now scheduled inside the same window, and the eight-hour gate rejects zero or
+failed injections. RSS regression uses only the latest worker PID epoch so a restart
+cannot look like allocator convergence. A 51-second M4 smoke passed 99/99 normal
+responses and 2/2 SIGKILL recoveries in 2.983–3.204 seconds, including the expected
+`503 backend_unavailable`, new PIDs, and correct arithmetic. Its latest PID has only
+two RSS samples, so plateau remains undetermined. The actual eight-hour and real
+sleep/wake runs remain unfinished.
 
 ## 简体中文
 
@@ -244,4 +254,8 @@ crash diagnostic，其中只包含有界日志元数据和摘要；次数耗尽�
 取消、timeout、slow consumer，以及最多512点的RSS时间序列。8小时gate要求后半段趋势不超过
 16 MiB/小时且总增长不超过64 MiB。启用sleep／wake认证时，如果没有观测到suspend gap则失败。
 45秒M4 smoke通过了75/75个正常响应和每类7/7次故障检查，但不属于8小时认证。同一窗口内
-反复注入worker crash及实际8小时运行仍未完成。
+现已支持定期注入worker crash，8小时gate会拒绝零次注入或任何失败。RSS回归只使用最新worker
+PID的epoch，避免把重启后的RSS下降误判为allocator收敛。51秒M4 smoke通过99/99个正常响应和
+2/2次SIGKILL恢复；在2.983–3.204秒内确认了预期的`503 backend_unavailable`、新PID和正确算术
+结果。最新PID只有两个RSS sample，因此plateau仍为未判定。实际8小时运行及真实sleep／wake
+仍未完成。

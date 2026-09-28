@@ -13,7 +13,12 @@ from dataclasses import replace
 from pathlib import Path
 from typing import Callable
 
-from .api import create_server, create_unix_server
+from .api import (
+    DEFAULT_MAX_INFLIGHT_REQUEST_BYTES,
+    RequestByteBudget,
+    create_server,
+    create_unix_server,
+)
 from .architecture_evidence import verify_startup_evidence
 from .auth import load_or_create_token_file
 from .backend import (
@@ -108,6 +113,11 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--tls-client-policy", type=Path)
     parser.add_argument("--port", type=int, default=8000)
     parser.add_argument("--max-concurrent-requests", type=int, default=32)
+    parser.add_argument(
+        "--max-inflight-request-bytes",
+        type=int,
+        default=DEFAULT_MAX_INFLIGHT_REQUEST_BYTES,
+    )
     parser.add_argument("model", nargs="?")
     parser.add_argument("--backend-executable")
     parser.add_argument("--backend-kind", choices=("vllm_metal", "mlx_lm"), default="vllm_metal")
@@ -722,6 +732,7 @@ def serve(
     tls_client_policy: Path | None = None,
     port: int = 8000,
     max_concurrent_requests: int = 32,
+    max_inflight_request_bytes: int = DEFAULT_MAX_INFLIGHT_REQUEST_BYTES,
     model: str | None = None,
     backend_executable: str | None = None,
     backend_kind: str = "vllm_metal",
@@ -1073,11 +1084,14 @@ def serve(
     service.configure_scheduling_preference(
         scheduling_preference_path or default_scheduling_preference_path()
     )
+    request_byte_budget = RequestByteBudget(max_inflight_request_bytes)
     server = create_server(
         host,
         port,
         service,
         max_concurrent_requests=max_concurrent_requests,
+        max_inflight_request_bytes=max_inflight_request_bytes,
+        request_byte_budget=request_byte_budget,
         session_token=session_token,
         client_certificate_policy=client_certificate_policy,
         optimizer_controller=optimizer_controller,
@@ -1093,6 +1107,8 @@ def serve(
             str(Path(socket_path).expanduser()),
             service,
             max_concurrent_requests=max_concurrent_requests,
+            max_inflight_request_bytes=max_inflight_request_bytes,
+            request_byte_budget=request_byte_budget,
             session_token=session_token,
             optimizer_controller=optimizer_controller,
         )
@@ -1273,6 +1289,7 @@ def main(argv: list[str] | None = None) -> int:
         tls_client_policy=arguments.tls_client_policy,
         port=arguments.port,
         max_concurrent_requests=arguments.max_concurrent_requests,
+        max_inflight_request_bytes=arguments.max_inflight_request_bytes,
         model=arguments.model,
         backend_executable=arguments.backend_executable,
         backend_kind=arguments.backend_kind,

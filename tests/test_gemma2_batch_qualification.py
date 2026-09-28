@@ -35,6 +35,14 @@ class Gemma2QualificationTests(unittest.TestCase):
             for index in range(8)
         ])
         self.assertFalse(growing["plateau_observed"])
+        restarted = qualification._rss_trend([
+            {"elapsed_seconds": 0, "rss_bytes": 900_000_000, "pid": 1},
+            {"elapsed_seconds": 1, "rss_bytes": 950_000_000, "pid": 1},
+            {"elapsed_seconds": 2, "rss_bytes": 100_000_000, "pid": 2},
+            {"elapsed_seconds": 3, "rss_bytes": 101_000_000, "pid": 2},
+        ])
+        self.assertFalse(restarted["plateau_observed"])
+        self.assertEqual(restarted["current_pid_sample_count"], 2)
         insufficient = qualification._rss_trend([
             {"elapsed_seconds": 0, "rss_bytes": 1},
         ])
@@ -66,6 +74,7 @@ class Gemma2QualificationTests(unittest.TestCase):
             queued_cancel_attempts=1, queued_cancel_passed=1,
             timeout_attempts=1, timeout_passed=1,
             rss_trend={"plateau_observed": True},
+            worker_crash_attempts=1, worker_crash_passed=1,
         )
         self.assertTrue(qualification._stability_passed(
             summary, require_fault_checks=True, require_long_window_checks=True))

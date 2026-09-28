@@ -28,6 +28,7 @@
     "device_placement",
     "device_resources",
     "scheduling_observability",
+    "http",
     "last_error",
     "failure"
   ],
@@ -60,6 +61,30 @@
         "message_key": {"type": "string", "minLength": 1, "maxLength": 128},
         "recoverability": {"enum": ["retryable", "user_action_required", "fatal"]},
         "detail_fingerprint": {"type": "string", "minLength": 24, "maxLength": 24}
+      },
+      "additionalProperties": false
+    },
+    "http": {
+      "type": "object",
+      "required": [
+        "active_requests",
+        "peak_active_requests",
+        "completed_requests",
+        "rejected_requests",
+        "inflight_request_bytes",
+        "peak_inflight_request_bytes",
+        "max_inflight_request_bytes",
+        "rejected_input_byte_reservations"
+      ],
+      "properties": {
+        "active_requests": {"type": "integer", "minimum": 0},
+        "peak_active_requests": {"type": "integer", "minimum": 0},
+        "completed_requests": {"type": "integer", "minimum": 0},
+        "rejected_requests": {"type": "integer", "minimum": 0},
+        "inflight_request_bytes": {"type": "integer", "minimum": 0},
+        "peak_inflight_request_bytes": {"type": "integer", "minimum": 0},
+        "max_inflight_request_bytes": {"type": "integer", "minimum": 4194304},
+        "rejected_input_byte_reservations": {"type": "integer", "minimum": 0}
       },
       "additionalProperties": false
     },
