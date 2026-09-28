@@ -18,6 +18,7 @@ from .architecture_evidence import verify_startup_evidence
 from .auth import load_or_create_token_file
 from .backend import (
     BackendProcess,
+    BackendStartupError,
     BackendSupervisor,
     OpenAIProxyEngine,
     make_backend_config,
@@ -136,6 +137,51 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--optimizer-model-root", type=Path, action="append", default=[])
     parser.add_argument("--optimizer-output-root", type=Path, action="append", default=[])
     return parser
+
+
+def build_backend_watchdog_event_handler(
+    service: RuntimeService,
+    backend: BackendProcess,
+    *,
+    diagnostic_root: Path | None = None,
+) -> Callable[[str, dict[str, object], BaseException | None], None]:
+    """Bridge watchdog outcomes into runtime events, failure state, and diagnostics."""
+
+    def record(
+        event: str,
+        payload: dict[str, object],
+        error: BaseException | None,
+    ) -> None:
+        service.events.publish(f"runtime.backend_watchdog.{event}", payload)
+        if event not in {"restart_failed", "restart_exhausted"}:
+            return
+        diagnostic_error = error or BackendStartupError(
+            "managed backend restart attempts exhausted", code="backend_exited"
+        )
+        failure = classify_runtime_failure(diagnostic_error)
+        if event == "restart_exhausted":
+            service.set_failure(failure)
+        try:
+            diagnostic = persist_crash_diagnostic(
+                failure, backend.recent_logs(), root=diagnostic_root
+            )
+        except (OSError, ValueError):
+            service.events.publish(
+                "runtime.crash_diagnostic",
+                {"status": "failed", "code": failure.code.value, "source": event},
+            )
+        else:
+            service.events.publish(
+                "runtime.crash_diagnostic",
+                {
+                    "status": "persisted",
+                    "code": failure.code.value,
+                    "diagnostic_id": diagnostic.stem,
+                    "source": event,
+                },
+            )
+
+    return record
 
 
 def apply_startup_kv_calibration(
@@ -885,7 +931,6 @@ def serve(
                 available_features=frozenset(compatibility.architecture_features),
             )
         backend = BackendProcess(config)
-        backend_supervisor = BackendSupervisor(backend)
         profile = build_profile(hardware, recommendation)
         proxy_engine = OpenAIProxyEngine(backend.base_url, backend)
         service = RuntimeService(
@@ -900,6 +945,11 @@ def serve(
                 if backend_kind == "vllm_metal" and compatibility.compatible
                 else None
             ),
+        )
+
+        backend_supervisor = BackendSupervisor(
+            backend,
+            event_handler=build_backend_watchdog_event_handler(service, backend),
         )
         restore_startup_contention_profile(service)
         service.configure_device_contention_control(

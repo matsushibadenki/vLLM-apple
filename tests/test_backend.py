@@ -251,6 +251,80 @@ class BackendConfigTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             BackendSupervisor(process, maximum_restarts=0)
 
+    def test_backend_supervisor_reports_failures_and_exhaustion(self) -> None:
+        class Process:
+            running = False
+            ready = False
+            pid = None
+
+            def start(self):
+                self.running = True
+                self.ready = True
+                self.pid = 101
+
+            def stop(self):
+                self.running = False
+                self.ready = False
+
+            def restart(self):
+                raise BackendStartupError("restart failed", code="backend_exited")
+
+        events: list[tuple[str, dict, BaseException | None]] = []
+        process = Process()
+        supervisor = BackendSupervisor(
+            process,
+            poll_interval=0.01,
+            initial_backoff=0,
+            maximum_backoff=0,
+            maximum_restarts=2,
+            event_handler=lambda event, payload, error: events.append(
+                (event, payload, error)
+            ),
+        )
+        try:
+            supervisor.start()
+            process.running = False
+            process.ready = False
+            self.assertTrue(supervisor.wait_for_exhaustion(timeout=1))
+            snapshot = supervisor.snapshot()
+            self.assertEqual(snapshot["restart_count"], 2)
+            self.assertEqual(snapshot["restart_failures"], 2)
+            self.assertTrue(snapshot["exhausted"])
+            self.assertEqual(
+                [event for event, _, _ in events],
+                ["restart_failed", "restart_failed", "restart_exhausted"],
+            )
+            self.assertTrue(all(events[index][2] is not None for index in (0, 1)))
+            self.assertIsNone(events[2][2])
+        finally:
+            supervisor.stop()
+
+    def test_backend_supervisor_ignores_event_handler_failure(self) -> None:
+        process = Mock()
+        process.running = False
+        process.ready = False
+        process.pid = None
+        process.start.side_effect = lambda: setattr(process, "running", True)
+
+        def restart():
+            process.running = True
+            process.ready = True
+
+        process.restart.side_effect = restart
+        supervisor = BackendSupervisor(
+            process,
+            poll_interval=0.01,
+            initial_backoff=0,
+            maximum_backoff=0,
+            event_handler=lambda *_args: (_ for _ in ()).throw(RuntimeError("observer")),
+        )
+        try:
+            supervisor.start()
+            process.running = False
+            self.assertTrue(supervisor.wait_for_restart(0, timeout=1))
+        finally:
+            supervisor.stop()
+
     def test_planned_restart_uses_supervisor_lifecycle_transaction(self) -> None:
         process = Mock()
         process.running = True

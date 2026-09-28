@@ -145,6 +145,21 @@ readyへ復帰、restart failure 0、毎回の算術品質、最終shutdownに�
 restart中の新規requestはupstreamへ送らず`503 backend_unavailable`、接続後のworker消失も
 同じretryable errorへ変換する。proxyはinflight requestを自動再送しない。
 
+watchdogはrestart成功・失敗・上限到達をdaemon eventへ橋渡しする。各restart失敗では
+raw logを保存せずdigestだけを含むprivate crash diagnosticを生成し、上限到達時は
+`backend_exited`の構造化failureをserviceへ設定する。mock worker試験で2回のrestart失敗と
+exhaustionを固定した。[追加M4 fault report](evaluation/gemma2-worker-watchdog-fault-qualified-m4-2026-09-28.json)
+では、SIGKILL 3/3回のrestart中に新規clientが実際に`503 backend_unavailable`を受け、
+3.096〜3.738秒で別PID・readiness・算術品質を回復し、正常終了した。
+
+8時間認定に向け、同じrunnerへ`--require-8-hour-window`を追加した。このgateは28,800秒未満を
+拒否し、active／queued cancel、timeout、slow consumerを試験中に反復する。各cycle後に
+原子的checkpointを保存し、RSSは最大512点の時系列から後半の傾きを算出する。8時間gateでは
+16 MiB/時以下かつ後半増加64 MiB以内をallocator plateauとする。`--require-sleep-wake`指定時は
+suspend gapの観測ゼロを不合格にする。[45秒smoke](evaluation/gemma2-8hour-runner-smoke-m4-2026-09-28.json)
+は通常応答75/75と4種類のfault各7/7に合格したが、8時間認定ではない。worker crashの同一窓
+反復注入と実8時間runは未完了である。
+
 ## English
 
 An explicit, version- and source-hash-bound launcher reshapes shared-head batched
@@ -180,6 +195,21 @@ native-v2 tuning, restore, and rollback now share the same supervisor transactio
 New requests during restart receive `503 backend_unavailable`; transport failures are
 not replayed automatically, avoiding duplicate in-flight execution.
 
+Watchdog restart successes, failures, and exhaustion now flow into daemon events.
+Every failed restart persists a private crash diagnostic containing only bounded log
+metadata and a digest; exhaustion also sets a structured `backend_exited` runtime
+failure. A mock worker test covers two failed attempts and exhaustion. The additional
+M4 fault run observed `503 backend_unavailable` during all three injected crashes,
+then recovered a new PID, readiness, and response quality in 3.096–3.738 seconds.
+
+The soak runner now has an explicit 28,800-second gate, atomic per-cycle checkpoints,
+repeated active/queued cancellation, timeout and slow-consumer checks, and a bounded
+512-sample RSS series. The eight-hour gate requires the latter half to remain at or
+below 16 MiB/hour and 64 MiB total growth. Optional sleep/wake qualification fails
+when no suspend gap is observed. A 45-second M4 smoke passed 75/75 normal responses
+and 7/7 of each fault check; it is not eight-hour evidence. Repeated worker crashes
+inside the same window and the actual eight-hour run remain unfinished.
+
 ## 简体中文
 
 专用启动入口仅对版本和源码哈希匹配的Gemma 2补齐批处理mask的分组维度，保留上游计算，
@@ -203,3 +233,15 @@ SIGKILL后都以新PID恢复，并返回正确答案。daemon自动watchdog和�
 无需手动调用restart，M4测试在三次SIGKILL后均于2.95–3.71秒内恢复，重启失败为0且回答正确。
 daemon启动、停止、native-v2调优、恢复及rollback现在共用同一个supervisor transaction。
 重启期间的新请求返回`503 backend_unavailable`；传输中断的请求不会被自动重放，以避免重复执行。
+
+watchdog的重启成功、失败和次数耗尽现在都会发送到daemon事件。每次重启失败都会保存private
+crash diagnostic，其中只包含有界日志元数据和摘要；次数耗尽时还会设置结构化的
+`backend_exited` runtime failure。mock worker测试覆盖了两次重启失败及exhaustion。
+新增M4故障测试在三次SIGKILL的重启期间都观测到`503 backend_unavailable`，随后在
+3.096–3.738秒内恢复新PID、readiness和回答质量，并正常退出。
+
+长时间runner现在提供明确的28,800秒gate、每个cycle的原子checkpoint、反复active／queued
+取消、timeout、slow consumer，以及最多512点的RSS时间序列。8小时gate要求后半段趋势不超过
+16 MiB/小时且总增长不超过64 MiB。启用sleep／wake认证时，如果没有观测到suspend gap则失败。
+45秒M4 smoke通过了75/75个正常响应和每类7/7次故障检查，但不属于8小时认证。同一窗口内
+反复注入worker crash及实际8小时运行仍未完成。

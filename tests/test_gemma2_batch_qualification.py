@@ -14,11 +14,32 @@ class Gemma2QualificationTests(unittest.TestCase):
     def test_duration_validation(self):
         qualification._validate_duration(0, False)
         qualification._validate_duration(1800, True)
+        qualification._validate_duration(28_800, False, True)
         for value in (-1, float("inf"), float("nan"), 28_801):
             with self.subTest(value=value), self.assertRaises(ValueError):
                 qualification._validate_duration(value, False)
         with self.assertRaises(ValueError):
             qualification._validate_duration(1799.9, True)
+        with self.assertRaises(ValueError):
+            qualification._validate_duration(28_799.9, False, True)
+
+    def test_rss_trend_requires_recent_plateau(self):
+        plateau = qualification._rss_trend([
+            {"elapsed_seconds": index * 3600, "rss_bytes": 100_000_000 + index * 1024}
+            for index in range(8)
+        ])
+        self.assertTrue(plateau["plateau_observed"])
+        growing = qualification._rss_trend([
+            {"elapsed_seconds": index * 3600,
+             "rss_bytes": 100_000_000 + index * 32 * 1024 * 1024}
+            for index in range(8)
+        ])
+        self.assertFalse(growing["plateau_observed"])
+        insufficient = qualification._rss_trend([
+            {"elapsed_seconds": 0, "rss_bytes": 1},
+        ])
+        self.assertIsNone(insufficient["slope_bytes_per_hour"])
+        self.assertFalse(insufficient["plateau_observed"])
 
     def test_window_aggregation_is_constant_shape_and_requires_all_results(self):
         with patch.object(
@@ -41,6 +62,16 @@ class Gemma2QualificationTests(unittest.TestCase):
                        slow_consumer_attempts=1, slow_consumer_passed=1)
         self.assertTrue(qualification._stability_passed(
             summary, require_fault_checks=True))
+        summary.update(
+            queued_cancel_attempts=1, queued_cancel_passed=1,
+            timeout_attempts=1, timeout_passed=1,
+            rss_trend={"plateau_observed": True},
+        )
+        self.assertTrue(qualification._stability_passed(
+            summary, require_fault_checks=True, require_long_window_checks=True))
+        summary["rss_trend"] = {"plateau_observed": False}
+        self.assertFalse(qualification._stability_passed(
+            summary, require_fault_checks=True, require_long_window_checks=True))
 
     def test_failed_window_rejects_stability(self):
         with patch.object(

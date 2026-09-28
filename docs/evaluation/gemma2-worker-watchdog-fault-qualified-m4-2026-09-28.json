@@ -1,0 +1,113 @@
+{
+  "schema_version": 1,
+  "report_kind": "gemma2_worker_restart_qualification",
+  "started_at_unix": 1790554674.86742,
+  "hardware": "Apple M4 / 32 GiB",
+  "initial_probe": {
+    "completed": true,
+    "quality_passed": true
+  },
+  "cycles": [
+    {
+      "index": 1,
+      "old_pid": 9283,
+      "new_pid": 9317,
+      "pid_changed": true,
+      "crash_observed": true,
+      "client_during_restart": {
+        "observed": true,
+        "status": 503,
+        "code": "backend_unavailable"
+      },
+      "backoff_seconds": 0.25,
+      "restart_seconds": 3.0961441670001477,
+      "recovery": {
+        "completed": true,
+        "quality_passed": true
+      },
+      "supervisor": {
+        "restart_count": 1,
+        "restart_failures": 0,
+        "planned_restart_count": 0,
+        "last_error": null,
+        "exhausted": false,
+        "ready": true,
+        "running": true,
+        "pid": 9317
+      }
+    },
+    {
+      "index": 2,
+      "old_pid": 9317,
+      "new_pid": 9338,
+      "pid_changed": true,
+      "crash_observed": true,
+      "client_during_restart": {
+        "observed": true,
+        "status": 503,
+        "code": "backend_unavailable"
+      },
+      "backoff_seconds": 0.5,
+      "restart_seconds": 3.289147959000047,
+      "recovery": {
+        "completed": true,
+        "quality_passed": true
+      },
+      "supervisor": {
+        "restart_count": 2,
+        "restart_failures": 0,
+        "planned_restart_count": 0,
+        "last_error": null,
+        "exhausted": false,
+        "ready": true,
+        "running": true,
+        "pid": 9338
+      }
+    },
+    {
+      "index": 3,
+      "old_pid": 9338,
+      "new_pid": 9366,
+      "pid_changed": true,
+      "crash_observed": true,
+      "client_during_restart": {
+        "observed": true,
+        "status": 503,
+        "code": "backend_unavailable"
+      },
+      "backoff_seconds": 1.0,
+      "restart_seconds": 3.737748750000037,
+      "recovery": {
+        "completed": true,
+        "quality_passed": true
+      },
+      "supervisor": {
+        "restart_count": 3,
+        "restart_failures": 0,
+        "planned_restart_count": 0,
+        "last_error": null,
+        "exhausted": false,
+        "ready": true,
+        "running": true,
+        "pid": 9366
+      }
+    }
+  ],
+  "shutdown_clean": true,
+  "elapsed_seconds": 14.771311044692993,
+  "passed": true,
+  "supervisor": {
+    "restart_count": 3,
+    "restart_failures": 0,
+    "planned_restart_count": 0,
+    "last_error": null,
+    "exhausted": false,
+    "ready": false,
+    "running": false,
+    "pid": null
+  },
+  "limits": [
+    "standalone_watchdog",
+    "no_inflight_request_replay"
+  ]
+}

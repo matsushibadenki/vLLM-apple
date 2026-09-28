@@ -11,7 +11,13 @@ import time
 from dataclasses import replace
 from pathlib import Path
 
-from vllm_apple.backend import BackendConfig, BackendProcess, BackendSupervisor
+from vllm_apple.backend import (
+    BackendConfig,
+    BackendHTTPError,
+    BackendProcess,
+    BackendSupervisor,
+    OpenAIProxyEngine,
+)
 from vllm_apple.phase_probe import PhaseProbeConfig, measure_stream
 
 
@@ -75,6 +81,7 @@ def main() -> int:
             "--prefill-step-size", "512", "--prompt-cache-size", "4"),
     )
     process = BackendProcess(config)
+    proxy = OpenAIProxyEngine(process.base_url, process)
     supervisor = BackendSupervisor(
         process, poll_interval=0.05, initial_backoff=0.25,
         maximum_backoff=2.0, maximum_restarts=args.crashes)
@@ -89,6 +96,22 @@ def main() -> int:
             if old_pid is None:
                 raise RuntimeError("managed backend PID unavailable")
             os.kill(old_pid, signal.SIGKILL)
+            unavailable: dict[str, object] = {
+                "observed": False, "status": None, "code": None,
+            }
+            unavailable_deadline = time.monotonic() + 2
+            while process.ready and time.monotonic() < unavailable_deadline:
+                time.sleep(0.005)
+            try:
+                proxy.open_chat_stream({
+                    "model": str(args.model.resolve()),
+                    "messages": [{"role": "user", "content": "ping"}],
+                    "stream": True,
+                })
+            except BackendHTTPError as error:
+                unavailable = {
+                    "observed": True, "status": error.status, "code": error.code,
+                }
             backoff_seconds = min(0.25 * (2 ** index), 2.0)
             restart_started = time.monotonic()
             restarted = supervisor.wait_for_restart(index, timeout=30)
@@ -102,6 +125,7 @@ def main() -> int:
                 "new_pid": new_pid,
                 "pid_changed": new_pid is not None and new_pid != old_pid,
                 "crash_observed": restarted,
+                "client_during_restart": unavailable,
                 "backoff_seconds": backoff_seconds,
                 "restart_seconds": time.monotonic() - restart_started,
                 "recovery": recovery,
@@ -121,6 +145,9 @@ def main() -> int:
         and all(cycle["pid_changed"] and cycle["crash_observed"]
                 and cycle["recovery"]["completed"]
                 and cycle["recovery"]["quality_passed"] for cycle in cycles)
+        and all(cycle["client_during_restart"] == {
+            "observed": True, "status": 503, "code": "backend_unavailable"
+        } for cycle in cycles)
     )
     report = {
         "schema_version": 1,
@@ -133,8 +160,7 @@ def main() -> int:
         "elapsed_seconds": time.time() - started,
         "passed": passed,
         "supervisor": supervisor.snapshot(),
-        "limits": ["standalone_watchdog", "not_yet_wired_to_daemon",
-                   "no_inflight_request_replay"],
+        "limits": ["standalone_watchdog", "no_inflight_request_replay"],
     }
     _atomic_json(args.output.resolve(), report)
     return 0 if passed else 1

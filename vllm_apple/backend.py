@@ -15,7 +15,7 @@ from collections import deque
 from contextlib import AbstractContextManager
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, BinaryIO, Iterable
+from typing import Any, BinaryIO, Callable, Iterable
 
 from .compat import resolve_vllm_executable
 from .kernel_context import KERNEL_TUNING_ACCEPTED_HEADER, InferenceKernelContext
@@ -307,6 +307,8 @@ class BackendSupervisor:
         initial_backoff: float = 0.25,
         maximum_backoff: float = 5.0,
         maximum_restarts: int = 5,
+        event_handler: Callable[[str, dict[str, Any], BaseException | None], None]
+        | None = None,
     ) -> None:
         if not 0.01 <= poll_interval <= 5:
             raise ValueError("watchdog poll interval is outside bounded limits")
@@ -319,6 +321,7 @@ class BackendSupervisor:
         self._initial_backoff = initial_backoff
         self._maximum_backoff = maximum_backoff
         self._maximum_restarts = maximum_restarts
+        self._event_handler = event_handler
         self._stop = threading.Event()
         self._changed = threading.Condition()
         self._lifecycle_lock = threading.Lock()
@@ -328,6 +331,20 @@ class BackendSupervisor:
         self._planned_restart_count = 0
         self._last_error: str | None = None
         self._exhausted = False
+
+    def _emit_event(
+        self,
+        event: str,
+        payload: dict[str, Any],
+        error: BaseException | None = None,
+    ) -> None:
+        if self._event_handler is None:
+            return
+        try:
+            self._event_handler(event, payload, error)
+        except Exception:
+            # Diagnostics and observers must never terminate the watchdog.
+            return
 
     def start(self) -> None:
         with self._lifecycle_lock:
@@ -346,8 +363,17 @@ class BackendSupervisor:
                 if self._restart_count >= self._maximum_restarts:
                     self._exhausted = True
                     self._changed.notify_all()
-                    return
-                attempt = self._restart_count
+                    exhausted = {
+                        "restart_count": self._restart_count,
+                        "restart_failures": self._restart_failures,
+                        "maximum_restarts": self._maximum_restarts,
+                    }
+                else:
+                    exhausted = None
+                    attempt = self._restart_count
+            if exhausted is not None:
+                self._emit_event("restart_exhausted", exhausted)
+                return
             backoff = min(self._initial_backoff * (2 ** attempt), self._maximum_backoff)
             if self._stop.wait(backoff):
                 return
@@ -360,15 +386,27 @@ class BackendSupervisor:
                     self.process.restart()
                 error = None
             except Exception as restart_error:
-                error = f"{type(restart_error).__name__}: {restart_error}"
+                error = restart_error
             with self._changed:
                 self._restart_count += 1
                 if error is not None:
                     self._restart_failures += 1
-                    self._last_error = error
+                    self._last_error = f"{type(error).__name__}: {error}"
                 else:
                     self._last_error = None
+                event_payload = {
+                    "attempt": self._restart_count,
+                    "backoff_seconds": backoff,
+                    "restart_failures": self._restart_failures,
+                    "maximum_restarts": self._maximum_restarts,
+                    "pid": self.process.pid,
+                }
                 self._changed.notify_all()
+            self._emit_event(
+                "restart_failed" if error is not None else "restart_succeeded",
+                event_payload,
+                error,
+            )
 
     def wait_for_restart(self, previous_count: int, timeout: float) -> bool:
         if timeout <= 0:
@@ -381,6 +419,18 @@ class BackendSupervisor:
                     return False
                 self._changed.wait(remaining)
             return self._restart_count > previous_count and self.process.ready
+
+    def wait_for_exhaustion(self, timeout: float) -> bool:
+        if timeout <= 0:
+            raise ValueError("watchdog wait timeout must be positive")
+        deadline = time.monotonic() + timeout
+        with self._changed:
+            while not self._exhausted:
+                remaining = deadline - time.monotonic()
+                if remaining <= 0:
+                    return False
+                self._changed.wait(remaining)
+            return True
 
     def snapshot(self) -> dict[str, Any]:
         with self._changed:

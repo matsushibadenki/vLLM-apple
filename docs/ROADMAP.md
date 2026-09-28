@@ -1,6 +1,6 @@
 # vLLM-Apple Runtime Roadmap
 
-更新日：2026-09-27
+更新日：2026-09-28
 
 ## 目標と優先順位
 
@@ -123,9 +123,11 @@ RSS・allocator・KV・OS pressure・swap差分は別系列で記録し、重複
 - [Done] source-hash限定compat経路へqueued cancelと1〜600,000 msのrequest timeoutを追加。[短時間実HTTP report](evaluation/gemma2-queued-cancel-timeout-m4-2026-09-27.json)でqueued DELETE 202、実行前破棄、active blocker停止、100 ms timeout、後続回復、正常終了に合格。review済みcompat moduleを既存`BackendProcess`で管理する限定起動契約も追加し、[SIGKILL 3回のrestart report](evaluation/gemma2-worker-restart-qualified-m4-2026-09-27.json)で別PID・readiness・算術品質を毎回回復した。daemon自動watchdogやinflight replayの認定には広げない。
 - [Done] bounded poll・指数backoff・最大restart回数・lifecycle lock・状態snapshotを持つ`BackendSupervisor`を追加。[自動watchdog実測](evaluation/gemma2-worker-watchdog-qualified-m4-2026-09-27.json)は手動restartなしでSIGKILL 3/3回を検出し、backoff込み2.953〜3.710秒で別PID・readiness・算術品質を回復。restart failure 0、exhaustionなし、正常終了に合格した。standalone supervisorの認定であり、daemon統合ではない。
 - [Done] daemonのbackend起動・停止とnative v2 tuning／restore／quarantine rollbackを同じsupervisor transactionへ一本化。planned restart後にprocessが稼働していればwatchdogは二重restartしない。restart中の新規requestはupstream接続前に`503 backend_unavailable`を返し、接続後のworker消失も同じretryable errorへ変換する。proxy内でinflight requestを自動再送しないことを回帰テストで固定した。
-- [Next] 認定profileで8時間の短長混合・timeout・queued／active cancel・worker crash・sleep／wakeを反復する。supervisorの最大回数到達、restart失敗、crash diagnosticとclient errorの実HTTP観測を含め、RSSの30分増加24,821,760 bytesが継続増加かallocator安定域かを判定する。
+- [Done] watchdogのrestart成功・失敗・上限到達をdaemonへ通知し、失敗ごとのprivate crash diagnosticを保存する。上限到達時は`backend_exited`の構造化runtime failureを公開し、診断callbackの例外はwatchdogを停止させない。mock workerでrestart失敗2/2回とexhaustionを再現し、service状態と診断を検証した。[M4実機fault report](evaluation/gemma2-worker-watchdog-fault-qualified-m4-2026-09-28.json)ではSIGKILL 3/3回の待機中にclientが`503 backend_unavailable`を受け、3.096〜3.738秒で別PID・算術品質を回復した。
+- [Done] 8時間runnerへ明示的な28,800秒gate、各cycleの原子的checkpoint、反復queued／active cancel・timeout・slow consumer、最大512点のRSS時系列と後半線形傾向、sleep／wake観測gateを追加した。8時間RSS合格条件は後半16 MiB/時以下かつ増加64 MiB以内。[45秒M4 smoke](evaluation/gemma2-8hour-runner-smoke-m4-2026-09-28.json)は通常応答75/75、各fault 7/7、RSS増加3,637,248 bytes、後半推定9,417,299.695 bytes/時、正常終了に合格した。短時間値は8時間安定性の認定には使わない。
+- [Next] 認定profileで実際の8時間runを行い、worker crashを同じ試験窓へ反復注入する。蓋を閉じる等の実sleep／wakeを含むrunでは`--require-sleep-wake`を指定し、観測ゼロを合格にしない。RSSがallocator安定域へ収束するか最終判定する。
 - [Next] cancelはbackendの安全な実行境界で処理する。解放完了まで予約を維持し、stream公開済みrequestの黙った再実行やtoken重複を禁止する。OOM retryは副作用と状態復元が証明できる経路だけに限定する。
-- [Next] watchdogとrestart backoffを整備する。ハング時はworkerを回収し、失敗をclientへ通知して新規requestを回復する。過負荷拒否と内部障害を別集計する。
+- [Done] watchdogとrestart backoff、clientへの503通知、上限到達時の構造化failureとprivate diagnosticを整備した。過負荷拒否とworker内部障害は別code／eventとして集計できる。
 
 **完了条件：** 30分smokeを入口に、認定profileで8時間の混合負荷と障害注入を完走する。正常負荷では予期しないcrash／OOM／hang／状態混入0件、成功率99.9%以上を目標とする。意図したcancel／admission拒否は別に件数を出し、分母操作で成功率を上げない。
 warm-up・cache充填後の同一負荷窓とidle回復時を比較し、RSS／allocator／queue／handleに継続的な増加がないことを確認する。注入後の予約・worker・一時file回収と後続正常応答も必須。

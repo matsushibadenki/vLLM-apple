@@ -17,7 +17,7 @@ import time
 import urllib.request
 from dataclasses import replace
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 from vllm_apple.hardware import detect_thermal_state
 from vllm_apple.phase_probe import PhaseProbeConfig, _resident_bytes, measure_stream
@@ -246,11 +246,52 @@ def _long_prefix_cases() -> tuple[tuple[str, str, str], ...]:
     )
 
 
-def _validate_duration(duration_seconds: float, require_30_minute_window: bool) -> None:
+def _validate_duration(
+    duration_seconds: float,
+    require_30_minute_window: bool,
+    require_8_hour_window: bool = False,
+) -> None:
     if not math.isfinite(duration_seconds) or not 0 <= duration_seconds <= 28_800:
         raise ValueError("--duration-seconds must be finite and between 0 and 28800")
     if require_30_minute_window and duration_seconds < 1_800:
         raise ValueError("--require-30-minute-window requires at least 1800 seconds")
+    if require_8_hour_window and duration_seconds < 28_800:
+        raise ValueError("--require-8-hour-window requires 28800 seconds")
+
+
+def _rss_trend(samples: list[dict[str, float | int]]) -> dict[str, object]:
+    """Summarize recent RSS direction without treating a peak as a leak."""
+    if len(samples) < 4:
+        return {
+            "sample_count": len(samples), "slope_bytes_per_hour": None,
+            "recent_growth_bytes": None, "plateau_observed": False,
+        }
+    recent = samples[len(samples) // 2:]
+    origin = float(recent[0]["elapsed_seconds"])
+    points = [
+        (float(item["elapsed_seconds"]) - origin, float(item["rss_bytes"]))
+        for item in recent
+    ]
+    count = len(points)
+    x_mean = sum(x for x, _ in points) / count
+    y_mean = sum(y for _, y in points) / count
+    denominator = sum((x - x_mean) ** 2 for x, _ in points)
+    slope = (
+        sum((x - x_mean) * (y - y_mean) for x, y in points) / denominator
+        if denominator > 0 else 0.0
+    )
+    recent_growth = int(points[-1][1] - points[0][1])
+    slope_per_hour = slope * 3600
+    return {
+        "sample_count": len(samples),
+        "recent_sample_count": count,
+        "slope_bytes_per_hour": round(slope_per_hour, 3),
+        "recent_growth_bytes": recent_growth,
+        "plateau_observed": (
+            slope_per_hour <= 16 * 1024 * 1024
+            and recent_growth <= 64 * 1024 * 1024
+        ),
+    }
 
 
 def _new_stability_summary(duration_seconds: float, rss_bytes: int) -> dict[str, object]:
@@ -272,6 +313,10 @@ def _new_stability_summary(duration_seconds: float, rss_bytes: int) -> dict[str,
         "slow_consumer_attempts": 0,
         "slow_consumer_passed": 0,
         "slow_consumer_elapsed_max_ms": 0.0,
+        "queued_cancel_attempts": 0,
+        "queued_cancel_passed": 0,
+        "timeout_attempts": 0,
+        "timeout_passed": 0,
         "rss_start_bytes": rss_bytes,
         "rss_end_bytes": rss_bytes,
         "rss_peak_bytes": rss_bytes,
@@ -280,6 +325,7 @@ def _new_stability_summary(duration_seconds: float, rss_bytes: int) -> dict[str,
         "thermal_samples": {thermal: 1},
         "first_window": None,
         "last_window": None,
+        "rss_samples": [{"elapsed_seconds": 0.0, "rss_bytes": rss_bytes}],
     }
 
 
@@ -301,7 +347,10 @@ def _accumulate_window(summary: dict[str, object], window: dict[str, object]) ->
     summary["last_window"] = window
 
 
-def _stability_passed(summary: dict[str, object], *, require_fault_checks: bool) -> bool:
+def _stability_passed(
+    summary: dict[str, object], *, require_fault_checks: bool,
+    require_long_window_checks: bool = False,
+) -> bool:
     requests = int(summary["requests"])
     passed = (
         requests > 0
@@ -318,18 +367,51 @@ def _stability_passed(summary: dict[str, object], *, require_fault_checks: bool)
             and int(summary["slow_consumer_attempts"]) > 0
             and summary["slow_consumer_attempts"] == summary["slow_consumer_passed"]
         )
+    if require_long_window_checks:
+        rss_trend = summary.get("rss_trend")
+        passed = passed and (
+            int(summary["queued_cancel_attempts"]) > 0
+            and summary["queued_cancel_attempts"] == summary["queued_cancel_passed"]
+            and int(summary["timeout_attempts"]) > 0
+            and summary["timeout_attempts"] == summary["timeout_passed"]
+            and isinstance(rss_trend, dict)
+            and rss_trend.get("plateau_observed") is True
+        )
     return bool(passed)
 
 
 def _run_stability_window(config: PhaseProbeConfig, *, port: int, model: str,
                           process_pid: int, duration_seconds: float,
-                          long_concurrency: int = 2) -> dict[str, object]:
+                          long_concurrency: int = 2,
+                          require_long_window_checks: bool = False,
+                          fault_check_interval_cycles: int = 10,
+                          checkpoint: Callable[[dict[str, object]], None] | None = None,
+                          require_sleep_wake: bool = False) -> dict[str, object]:
     started = time.monotonic()
     deadline = started + duration_seconds
     summary = _new_stability_summary(duration_seconds, _resident_bytes(process_pid))
     cycle = 0
+    previous_wall = time.time()
+    previous_monotonic = time.monotonic()
+    summary["sleep_wake_observations"] = 0
+    summary["maximum_suspend_gap_seconds"] = 0.0
     while time.monotonic() < deadline:
         cycle += 1
+        current_wall = time.time()
+        current_monotonic = time.monotonic()
+        suspend_gap = max(
+            0.0,
+            (current_wall - previous_wall) - (current_monotonic - previous_monotonic),
+        )
+        if suspend_gap >= 5:
+            summary["sleep_wake_observations"] = (
+                int(summary["sleep_wake_observations"]) + 1
+            )
+        summary["maximum_suspend_gap_seconds"] = max(
+            float(summary["maximum_suspend_gap_seconds"]), suspend_gap
+        )
+        previous_wall = current_wall
+        previous_monotonic = current_monotonic
         # Long-prefix edits regularly exercise prompt batching; short windows keep
         # cancellation and recovery checks frequent during a bounded soak.
         if cycle % 5 == 0:
@@ -353,7 +435,7 @@ def _run_stability_window(config: PhaseProbeConfig, *, port: int, model: str,
             float(summary["cancel_completion_max_ms"]),
             float(cancel.get("completion_after_cancel_ms", 0)))
 
-        if cycle % 10 == 0 or cycle == 1:
+        if cycle % fault_check_interval_cycles == 0 or cycle == 1:
             slow = _slow_consumer(port, model)
             summary["slow_consumer_attempts"] = int(summary["slow_consumer_attempts"]) + 1
             slow_ok = slow.get("completed") is True
@@ -363,15 +445,48 @@ def _run_stability_window(config: PhaseProbeConfig, *, port: int, model: str,
                 float(summary["slow_consumer_elapsed_max_ms"]),
                 float(slow.get("elapsed_to_completion_ms", 0)))
 
+        if cycle % fault_check_interval_cycles == 0:
+            queued = _queued_cancel(port, model)
+            summary["queued_cancel_attempts"] = int(summary["queued_cancel_attempts"]) + 1
+            queued_ok = (
+                queued.get("queued_cancel_http_status") == 202
+                and queued.get("queued_cancel_requested") is True
+                and queued.get("queued_request_state") == "queued"
+                and queued.get("blocker_cancel_http_status") == 202
+                and queued.get("queued_handler_finished") is True
+                and queued.get("queued_handler_http_status") == 404
+            )
+            summary["queued_cancel_passed"] = (
+                int(summary["queued_cancel_passed"]) + int(queued_ok)
+            )
+            timeout = _timeout_stream(port, model)
+            summary["timeout_attempts"] = int(summary["timeout_attempts"]) + 1
+            timeout_ok = (
+                timeout.get("http_status") == 200
+                and timeout.get("completion_observed") is True
+                and float(timeout.get("elapsed_ms", 60_000)) < 5_000
+            )
+            summary["timeout_passed"] = int(summary["timeout_passed"]) + int(timeout_ok)
+
         rss = _resident_bytes(process_pid)
         summary["rss_end_bytes"] = rss
         summary["rss_peak_bytes"] = max(int(summary["rss_peak_bytes"]), rss)
+        rss_samples = summary["rss_samples"]
+        assert isinstance(rss_samples, list)
+        rss_samples.append({
+            "elapsed_seconds": round(time.monotonic() - started, 3),
+            "rss_bytes": rss,
+        })
+        if len(rss_samples) > 512:
+            del rss_samples[1::2]
         thermal = detect_thermal_state().value
         thermal_samples = summary["thermal_samples"]
         assert isinstance(thermal_samples, dict)
         thermal_samples[thermal] = int(thermal_samples.get(thermal, 0)) + 1
         summary["thermal_end"] = thermal
         summary["cycles"] = cycle
+        if checkpoint is not None:
+            checkpoint(summary)
 
     summary["elapsed_seconds"] = time.monotonic() - started
     summary["rss_growth_bytes"] = (
@@ -380,7 +495,16 @@ def _run_stability_window(config: PhaseProbeConfig, *, port: int, model: str,
     assert isinstance(thermal_samples, dict)
     summary["unsafe_thermal_samples"] = sum(
         int(thermal_samples.get(state, 0)) for state in ("serious", "critical"))
-    summary["passed"] = _stability_passed(summary, require_fault_checks=True)
+    rss_samples = summary["rss_samples"]
+    assert isinstance(rss_samples, list)
+    summary["rss_trend"] = _rss_trend(rss_samples)
+    summary["sleep_wake_passed"] = (
+        not require_sleep_wake or int(summary["sleep_wake_observations"]) > 0
+    )
+    summary["passed"] = _stability_passed(
+        summary, require_fault_checks=True,
+        require_long_window_checks=require_long_window_checks,
+    ) and bool(summary["sleep_wake_passed"])
     return summary
 
 
@@ -394,6 +518,9 @@ def main() -> int:
     parser.add_argument("--long-requests", type=int, default=12)
     parser.add_argument("--duration-seconds", type=float, default=0)
     parser.add_argument("--require-30-minute-window", action="store_true")
+    parser.add_argument("--require-8-hour-window", action="store_true")
+    parser.add_argument("--require-sleep-wake", action="store_true")
+    parser.add_argument("--fault-check-interval-cycles", type=int, default=10)
     parser.add_argument("--decode-concurrency", type=int, default=2)
     parser.add_argument("--prompt-concurrency", type=int, default=2)
     parser.add_argument("--prefill-step-size", type=int, default=2048)
@@ -408,13 +535,21 @@ def main() -> int:
     if not 1 <= args.sustained_requests <= 10_000 or not 1 <= args.long_requests <= 1_000:
         parser.error("request counts are outside bounded limits")
     try:
-        _validate_duration(args.duration_seconds, args.require_30_minute_window)
+        _validate_duration(
+            args.duration_seconds,
+            args.require_30_minute_window,
+            args.require_8_hour_window,
+        )
     except ValueError as error:
         parser.error(str(error))
     if not 1 <= args.decode_concurrency <= 32 or not 1 <= args.prompt_concurrency <= 8:
         parser.error("backend concurrency is outside bounded limits")
     if not 1 <= args.long_concurrency <= 2:
         parser.error("--long-concurrency must be 1 or 2")
+    if not 1 <= args.fault_check_interval_cycles <= 100:
+        parser.error("--fault-check-interval-cycles must be between 1 and 100")
+    if args.require_sleep_wake and not args.require_8_hour_window:
+        parser.error("--require-sleep-wake requires --require-8-hour-window")
     if not 128 <= args.prefill_step_size <= 4096:
         parser.error("--prefill-step-size must be between 128 and 4096")
 
@@ -462,10 +597,22 @@ def main() -> int:
         report["queued_cancel"] = _queued_cancel(args.port, str(model))
         report["request_timeout"] = _timeout_stream(args.port, str(model))
         if args.duration_seconds:
+            def checkpoint(summary: dict[str, object]) -> None:
+                _atomic_json(args.output.resolve(), {
+                    **report,
+                    "status": "running",
+                    "stability_window": summary,
+                    "passed": False,
+                })
+
             report["stability_window"] = _run_stability_window(
                 config, port=args.port, model=str(model), process_pid=process.pid,
                 duration_seconds=args.duration_seconds,
-                long_concurrency=args.long_concurrency)
+                long_concurrency=args.long_concurrency,
+                require_long_window_checks=args.require_8_hour_window,
+                fault_check_interval_cycles=args.fault_check_interval_cycles,
+                checkpoint=checkpoint,
+                require_sleep_wake=args.require_sleep_wake)
         report["disconnect"] = _disconnect_stream(args.port, str(model))
         time.sleep(1)
         recovery = measure_stream(
@@ -541,10 +688,13 @@ def main() -> int:
         and clean_shutdown
     )
     report["qualification_scope"] = (
-        "30-minute M4 mixed-load qualification"
+        "8-hour M4 mixed-load qualification"
+        if args.require_8_hour_window
+        else "30-minute M4 mixed-load qualification"
         if args.require_30_minute_window
         else "bounded M4 regression; not 30-minute certification"
     )
+    report["status"] = "complete"
     _atomic_json(args.output.resolve(), report)
     return 0 if report["passed"] else 1
 
