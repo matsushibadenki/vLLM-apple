@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vllm-apple.local/schemas/runtime/text-route-comparison-series-v1.schema.json",
+  "title": "Repeated direct-versus-proxy text comparison series v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "report_kind", "workload_sha256", "artifact_identity_sha256", "backend_build_sha256", "pair_count", "order", "pairs", "proxy_to_direct_goodput", "p99_reference_only", "conclusion", "qualification"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "report_kind": {"const": "text_route_comparison_series"},
+    "workload_sha256": {"type": "string", "minLength": 64, "maxLength": 64},
+    "artifact_identity_sha256": {"type": "string", "minLength": 64, "maxLength": 64},
+    "backend_build_sha256": {"type": "string", "minLength": 64, "maxLength": 64},
+    "pair_count": {"type": "integer", "minimum": 3, "maximum": 21},
+    "order": {
+      "type": "object", "additionalProperties": false,
+      "required": ["direct", "proxy", "balanced"],
+      "properties": {
+        "direct": {"type": "integer", "minimum": 0, "maximum": 21},
+        "proxy": {"type": "integer", "minimum": 0, "maximum": 21},
+        "balanced": {"type": "boolean"}
+      }
+    },
+    "pairs": {
+      "type": "array", "minItems": 3, "maxItems": 21,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["report_sha256", "first_route", "proxy_to_direct_goodput"],
+        "properties": {
+          "report_sha256": {"type": "string", "minLength": 64, "maxLength": 64},
+          "first_route": {"enum": ["direct", "proxy"]},
+          "proxy_to_direct_goodput": {"type": "number", "minimum": 0}
+        }
+      }
+    },
+    "proxy_to_direct_goodput": {
+      "type": "object", "additionalProperties": false,
+      "required": ["median", "minimum", "maximum", "relative_spread", "maximum_allowed_relative_spread"],
+      "properties": {
+        "median": {"type": "number", "minimum": 0},
+        "minimum": {"type": "number", "minimum": 0},
+        "maximum": {"type": "number", "minimum": 0},
+        "relative_spread": {"type": "number", "minimum": 0},
+        "maximum_allowed_relative_spread": {"const": 0.05}
+      }
+    },
+    "p99_reference_only": {"type": "boolean"},
+    "conclusion": {"enum": ["comparable_stable_reference", "blocked_order_unbalanced", "blocked_variance"]},
+    "qualification": {"const": false}
+  }
+}

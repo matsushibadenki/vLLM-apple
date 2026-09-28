@@ -52,6 +52,8 @@ def run_text_benchmark(
     config: PhaseProbeConfig, *, requests: int = 30, concurrency: int = 1,
     ttft_slo_ms: float = 1000, e2e_slo_ms: float = 5000,
     cases: Sequence[BenchmarkCase] = CASES,
+    artifact_identity_sha256: str | None = None,
+    backend_build_sha256: str | None = None,
 ) -> dict[str, Any]:
     """Run exactly requests attempts, retaining failures in the denominator.
 
@@ -68,6 +70,16 @@ def run_text_benchmark(
             raise ValueError("SLO limits must be finite and positive")
     if not math.isfinite(config.timeout_seconds) or config.timeout_seconds <= 0:
         raise ValueError("timeout must be finite and positive")
+    for name, digest in (
+        ("artifact identity", artifact_identity_sha256),
+        ("backend build", backend_build_sha256),
+    ):
+        if digest is not None and (
+            len(digest) != 64 or any(character not in "0123456789abcdef" for character in digest)
+        ):
+            raise ValueError(f"{name} must be a lowercase SHA-256 digest")
+    if (artifact_identity_sha256 is None) != (backend_build_sha256 is None):
+        raise ValueError("artifact identity and backend build must be provided together")
     selected_cases = _validated_cases(cases)
     profiler = ExecutionPhaseProfiler(config.hardware_fingerprint, config.model, config.backend)
     lock = threading.Lock()
@@ -129,9 +141,12 @@ def run_text_benchmark(
                 "ttft_slo_ms": ttft_slo_ms, "e2e_slo_ms": e2e_slo_ms}
     return {
         "schema_version": 1, "report_kind": "text_http_benchmark",
+        "route": config.backend,
         "started_at": started_at,
         "cache_policy": "backend_managed_uncontrolled",
-        "artifact_identity_verified": False,
+        "artifact_identity_verified": artifact_identity_sha256 is not None,
+        "artifact_identity_sha256": artifact_identity_sha256,
+        "backend_build_sha256": backend_build_sha256,
         "workload_sha256": hashlib.sha256(json.dumps(
             workload, sort_keys=True, ensure_ascii=False).encode()).hexdigest(),
         "load_policy": "closed_loop", "quality_policy": "arithmetic_trimmed_exact",
@@ -171,6 +186,8 @@ def main() -> int:
     parser.add_argument("--e2e-slo-ms", type=float, default=5000)
     parser.add_argument("--target-pid", type=int)
     parser.add_argument("--session-token-file", type=Path)
+    parser.add_argument("--artifact-identity-sha256")
+    parser.add_argument("--backend-build-sha256")
     args = parser.parse_args()
     try:
         config = PhaseProbeConfig(
@@ -182,7 +199,9 @@ def main() -> int:
             if args.session_token_file else None,
         )
         result = run_text_benchmark(config, requests=args.requests, concurrency=args.concurrency,
-                                    ttft_slo_ms=args.ttft_slo_ms, e2e_slo_ms=args.e2e_slo_ms)
+                                    ttft_slo_ms=args.ttft_slo_ms, e2e_slo_ms=args.e2e_slo_ms,
+                                    artifact_identity_sha256=args.artifact_identity_sha256,
+                                    backend_build_sha256=args.backend_build_sha256)
     except (ValueError, OSError) as error:
         parser.error(str(error))
     print(json.dumps(result, ensure_ascii=False, indent=2, allow_nan=False))

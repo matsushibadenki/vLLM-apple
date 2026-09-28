@@ -8,8 +8,9 @@ import sys
 from dataclasses import asdict
 from pathlib import Path
 
-from .architecture_registry import inspect_architecture
+from .architecture_registry import attach_backend_capabilities, inspect_architecture
 from .artifact_admission import assess_artifact_admission_for_path
+from .backend_fingerprint import fingerprint_backend
 from .compat import assess_candidate_backend, inspect_backend, inspect_mlx_lm_backend
 from .context import recommend_context
 from .daemon import serve
@@ -528,6 +529,8 @@ def build_parser() -> argparse.ArgumentParser:
         "inspect-architecture", help="describe local architecture metadata without certifying execution"
     )
     architecture.add_argument("model", type=Path)
+    architecture.add_argument("--backend", choices=("mlx_lm", "vllm_metal"))
+    architecture.add_argument("--backend-executable", type=Path)
 
     inspect = commands.add_parser(
         "inspect-model", help="inspect local metadata and recommend a safe configuration"
@@ -2222,7 +2225,28 @@ def main(argv: list[str] | None = None) -> int:
         return 0 if not arguments.url or result["status"] in {"references_valid", "abstained"} else 1
     if arguments.command == "inspect-architecture":
         try:
+            if (arguments.backend is None) != (arguments.backend_executable is None):
+                raise ValueError("backend name and executable must be provided together")
             report = inspect_architecture(arguments.model)
+            if arguments.backend is not None:
+                build = fingerprint_backend(arguments.backend_executable)
+                if arguments.backend == "mlx_lm":
+                    compatibility = inspect_mlx_lm_backend(arguments.backend_executable)
+                    versions = {"mlx_lm": compatibility.mlx_lm_version}
+                else:
+                    compatibility = inspect_backend(arguments.backend_executable)
+                    versions = {
+                        "vllm": compatibility.vllm_version,
+                        "vllm_metal": compatibility.vllm_metal_version,
+                        "transformers": compatibility.transformers_version,
+                    }
+                attach_backend_capabilities(
+                    report, name=arguments.backend, build_sha256=build,
+                    versions=versions,
+                    declared_features=compatibility.architecture_features,
+                    probe_compatible=compatibility.compatible,
+                    issues=compatibility.issues,
+                )
         except (OSError, ModelInspectionError, ValueError) as error:
             _json({"error_code": "architecture_inspection_failed", "detail": str(error)})
             return 2

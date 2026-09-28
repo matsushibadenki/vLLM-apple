@@ -72,6 +72,9 @@
 ## A0の初期実装：metadata診断（2026-09-26）
 
 - [Done] `inspect-architecture` CLIとversion 1 JSON schemaを追加。`llama`、`qwen2`、`qwen3`、`mixtral`、`gemma2`の正確なmodel typeから構造を記述する。
+- [Done] registry version 2はmodel directory直下を有界走査し、`safetensors`／GGUF／PyTorch binの形式、file数、総byte、metadata manifest digestとtokenizer関連file名を記録する。manifest digestはfilename・sizeの変更検出用であり、weight内容のidentityや完全性を保証しない。配置済みGemma 2で`safetensors` 1 file／1,470,988,882 bytesを確認した。
+- [Done] `--backend`と`--backend-executable`指定時は、backend環境全体のSHA-256、version、明示operator集合、不足operator、probe issueを同じreportへ結合する。`declared_complete`は静的集合が一致した意味に限り、load／correctness／service／performanceは`unverified`のままとする。MLX-LM version probeはpackageをimportせず、GPUのない診断環境でもmetadataを取得する。
+- [Done] tokenizer関連fileは合計256 MiBを上限に内容をhashし、file名・byte数・内容SHA-256から一つのmanifest identityを作る。読み取り中の変更とregular fileでない対象を拒否する。配置済みGemma 2では4 file、21,813,831 bytesを確認した。これはtokenizerの意味的互換性やchat template品質の認定ではない。
 - [Done] MHA／MQA／GQA、明示head dimension、layer別full／sliding attention、全expert数／active expert数、KVの論理所有layerを出力する。windowの実保持量・dtype・allocation bytesは未認定として残す。
 - [Done] 未登録model type、未知のwrapper、未対応layer／RoPE、破損・不足metadataを区別し、構造を推測で完成させない。config内容のSHA-256で比較対象を識別する。
 - [Done] 5系列の固定synthetic fixtureと回帰試験。weight読込・GPU probe・network accessなしで診断する。
@@ -83,6 +86,27 @@
 - [Done] 証跡付き通常起動に限り、MLX-LMのversion matrix範囲外を限定許可する。
 - [Done] 変更後runtimeの30分再認定は5,995件すべて成功。証跡付き通常serveの実HTTP検証も三言語・stream一致・正常終了に合格。
 - [Next] 追加モデル・長文・並列負荷・cancel／recoveryの検証。
+
+**English:** Registry version 2 adds a bounded, immediate-directory artifact inventory.
+It records weight formats, file count, total bytes, a filename-and-size metadata digest,
+and tokenizer-related filenames. These fields do not certify content integrity,
+loadability, backend compatibility, or performance; all qualification fields remain
+`unverified`.
+An optional backend inventory binds the report to a full-environment SHA-256 and
+records versions, declared operators, missing operators, and probe issues. Even
+complete declaration coverage does not promote execution qualification. The MLX-LM
+version probe reads package metadata without importing the GPU runtime.
+Tokenizer-related files are content-hashed within a 256 MiB aggregate bound. Their
+names, sizes, and content digests form one manifest identity with mutation detection;
+this identity does not certify tokenizer semantics or chat-template quality.
+
+**简体中文：** Registry version 2新增了有界的模型目录清单，记录权重格式、文件数、
+总字节数、基于文件名和大小的metadata digest，以及tokenizer相关文件名。这些字段不证明
+内容完整性、可加载性、后端兼容性或性能；所有认证状态仍保持`unverified`。
+可选backend inventory还会记录整个环境的SHA-256、版本、声明operator、缺失operator和probe
+问题。即使静态声明完整，也不会提升执行认证。MLX-LM版本probe无需导入GPU runtime。
+Tokenizer相关文件在合计256 MiB上限内进行内容hash，并由文件名、大小和内容digest组成一个
+manifest identity，同时检测读取期间的变化。该identity不认证tokenizer语义或chat template质量。
 
 ```bash
 python3 -m vllm_apple inspect-architecture /path/to/model/config.json

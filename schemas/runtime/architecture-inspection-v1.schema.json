@@ -17,6 +17,7 @@
     "state_layout",
     "backend",
     "qualification",
+    "artifact",
     "artifact_status",
     "issues",
     "source"
@@ -26,7 +27,7 @@
       "const": 1
     },
     "registry_version": {
-      "const": 1
+      "const": 2
     },
     "model_type": {
       "type": "string",
@@ -204,17 +205,39 @@
       "required": [
         "name",
         "build",
+        "versions",
+        "declared_features",
+        "missing_features",
+        "issues",
         "compatibility"
       ],
       "properties": {
         "name": {
-          "const": null
+          "enum": ["mlx_lm", "vllm_metal", null]
         },
         "build": {
-          "const": null
+          "type": ["string", "null"],
+          "minLength": 64,
+          "maxLength": 64
+        },
+        "versions": {
+          "type": "object",
+          "additionalProperties": {"type": ["string", "null"], "maxLength": 128}
+        },
+        "declared_features": {
+          "type": "array", "maxItems": 64,
+          "items": {"type": "string", "minLength": 1, "maxLength": 128}
+        },
+        "missing_features": {
+          "type": "array", "maxItems": 64,
+          "items": {"type": "string", "minLength": 1, "maxLength": 128}
+        },
+        "issues": {
+          "type": "array", "maxItems": 32,
+          "items": {"type": "string", "minLength": 1, "maxLength": 256}
         },
         "compatibility": {
-          "const": "unverified"
+          "enum": ["unverified", "declared_complete", "declared_incomplete"]
         }
       }
     },
@@ -239,6 +262,46 @@
         },
         "performance": {
           "const": "unverified"
+        }
+      }
+    },
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "inventory_status",
+        "weight_formats",
+        "weight_file_count",
+        "weight_bytes",
+        "metadata_manifest_sha256",
+        "tokenizer_files",
+        "tokenizer_bytes",
+        "tokenizer_manifest_sha256"
+      ],
+      "properties": {
+        "inventory_status": {"enum": ["described", "unavailable"]},
+        "weight_formats": {
+          "type": "array",
+          "maxItems": 3,
+          "items": {"enum": ["safetensors", "gguf", "pytorch_bin"]}
+        },
+        "weight_file_count": {"type": "integer", "minimum": 0, "maximum": 4096},
+        "weight_bytes": {"type": "integer", "minimum": 0},
+        "metadata_manifest_sha256": {
+          "type": ["string", "null"],
+          "minLength": 64,
+          "maxLength": 64
+        },
+        "tokenizer_files": {
+          "type": "array",
+          "maxItems": 6,
+          "items": {"type": "string", "minLength": 1, "maxLength": 64}
+        },
+        "tokenizer_bytes": {"type": "integer", "minimum": 0, "maximum": 268435456},
+        "tokenizer_manifest_sha256": {
+          "type": ["string", "null"],
+          "minLength": 64,
+          "maxLength": 64
         }
       }
     },

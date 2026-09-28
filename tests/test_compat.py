@@ -154,8 +154,10 @@ class BackendVersionMatrixTests(unittest.TestCase):
                 }
             )
             completed = CompletedProcess([], 0, stdout=payload, stderr="")
-            with patch("vllm_apple.compat.subprocess.run", return_value=completed):
+            with patch("vllm_apple.compat.subprocess.run", return_value=completed) as run:
                 result = inspect_mlx_lm_backend(executable)
+            command = run.call_args.args[0]
+            self.assertNotIn("import mlx_lm", command[-1])
         self.assertTrue(result.compatible)
         self.assertEqual(
             result.architecture_features,

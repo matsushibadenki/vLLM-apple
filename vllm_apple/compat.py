@@ -95,11 +95,11 @@ def inspect_mlx_lm_backend(executable: str | Path) -> MLXBackendCompatibility:
                 str(python),
                 "-c",
                 (
-                    "import importlib.metadata as m,json;import mlx_lm;"
-                    "f=getattr(mlx_lm,'VLLM_APPLE_ARCHITECTURE_FEATURES',());"
-                    "f=f if isinstance(f,(list,tuple,frozenset)) else ();"
+                    "import importlib.metadata as m,json;"
+                    # Importing mlx_lm initializes Metal in current releases. A
+                    # compatibility inventory must still work without GPU access.
                     "print(json.dumps({'version':m.version('mlx-lm'),"
-                    "'architecture_features':list(f)}))"
+                    "'architecture_features':[]}))"
                 ),
             ],
             capture_output=True,

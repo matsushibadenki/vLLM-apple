@@ -3,6 +3,8 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
+import stat
 from dataclasses import dataclass
 from pathlib import Path
 from types import MappingProxyType
@@ -10,8 +12,19 @@ from typing import Any
 
 from .model import ModelInspectionError, _bounded_config
 
-REGISTRY_VERSION = 1
+REGISTRY_VERSION = 2
 MAX_LAYERS = 512
+MAX_ARTIFACT_FILES = 4096
+MAX_TOKENIZER_BYTES = 256 * 1024 * 1024
+_WEIGHT_FORMATS = MappingProxyType({
+    ".safetensors": "safetensors",
+    ".gguf": "gguf",
+    ".bin": "pytorch_bin",
+})
+_TOKENIZER_FILES = frozenset({
+    "tokenizer.json", "tokenizer.model", "tokenizer_config.json",
+    "special_tokens_map.json", "vocab.json", "merges.txt",
+})
 
 
 @dataclass(frozen=True, slots=True)
@@ -110,7 +123,139 @@ def inspect_architecture(path: str | Path) -> dict[str, object]:
     """
     root = Path(path).expanduser()
     config = _bounded_config(root / "config.json" if root.is_dir() else root)
-    return describe_architecture(config)
+    report = describe_architecture(config)
+    report["artifact"] = _inspect_artifact_inventory(root) if root.is_dir() else _empty_artifact()
+    return report
+
+
+def _empty_artifact() -> dict[str, object]:
+    return {
+        "inventory_status": "unavailable",
+        "weight_formats": [],
+        "weight_file_count": 0,
+        "weight_bytes": 0,
+        "metadata_manifest_sha256": None,
+        "tokenizer_files": [],
+        "tokenizer_bytes": 0,
+        "tokenizer_manifest_sha256": None,
+    }
+
+
+def _hash_regular_file(path: Path, *, maximum_bytes: int) -> tuple[int, str]:
+    try:
+        descriptor = os.open(path, os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0))
+    except OSError as error:
+        raise ModelInspectionError("architecture_tokenizer_inventory_unreadable") from error
+    digest = hashlib.sha256()
+    try:
+        before = os.fstat(descriptor)
+        if not stat.S_ISREG(before.st_mode) or before.st_size > maximum_bytes:
+            raise ModelInspectionError("architecture_tokenizer_inventory_too_large")
+        remaining = before.st_size
+        while remaining:
+            chunk = os.read(descriptor, min(1024 * 1024, remaining))
+            if not chunk:
+                raise ModelInspectionError("architecture_tokenizer_inventory_changed")
+            digest.update(chunk)
+            remaining -= len(chunk)
+        after = os.fstat(descriptor)
+        if (before.st_size, before.st_mtime_ns, before.st_ctime_ns) != (
+            after.st_size, after.st_mtime_ns, after.st_ctime_ns
+        ):
+            raise ModelInspectionError("architecture_tokenizer_inventory_changed")
+        return before.st_size, digest.hexdigest()
+    finally:
+        os.close(descriptor)
+
+
+def _inspect_artifact_inventory(root: Path) -> dict[str, object]:
+    """Inventory bounded, immediate metadata without claiming artifact integrity."""
+    try:
+        entries = sorted(root.iterdir(), key=lambda item: item.name)
+    except OSError as error:
+        raise ModelInspectionError("architecture_artifact_inventory_unreadable") from error
+    if len(entries) > MAX_ARTIFACT_FILES:
+        raise ModelInspectionError("architecture_artifact_inventory_too_large")
+    weights: list[tuple[str, int, str]] = []
+    tokenizer_files: list[str] = []
+    tokenizer_manifest: list[dict[str, object]] = []
+    tokenizer_bytes = 0
+    for entry in entries:
+        try:
+            if entry.is_symlink() or not entry.is_file():
+                continue
+            size = entry.stat().st_size
+        except OSError as error:
+            raise ModelInspectionError("architecture_artifact_inventory_unreadable") from error
+        weight_format = _WEIGHT_FORMATS.get(entry.suffix.lower())
+        if weight_format is not None:
+            weights.append((entry.name, size, weight_format))
+        if entry.name in _TOKENIZER_FILES:
+            tokenizer_files.append(entry.name)
+            remaining = MAX_TOKENIZER_BYTES - tokenizer_bytes
+            size, content_sha256 = _hash_regular_file(entry, maximum_bytes=remaining)
+            tokenizer_bytes += size
+            tokenizer_manifest.append({
+                "name": entry.name, "bytes": size, "sha256": content_sha256,
+            })
+    manifest = [
+        {"name": name, "bytes": size, "format": weight_format}
+        for name, size, weight_format in weights
+    ]
+    digest = None
+    if manifest:
+        encoded = json.dumps(manifest, sort_keys=True, separators=(",", ":")).encode()
+        digest = hashlib.sha256(encoded).hexdigest()
+    tokenizer_digest = None
+    if tokenizer_manifest:
+        encoded = json.dumps(
+            tokenizer_manifest, sort_keys=True, separators=(",", ":")
+        ).encode()
+        tokenizer_digest = hashlib.sha256(encoded).hexdigest()
+    return {
+        "inventory_status": "described" if weights else "unavailable",
+        "weight_formats": sorted({item[2] for item in weights}),
+        "weight_file_count": len(weights),
+        "weight_bytes": sum(item[1] for item in weights),
+        "metadata_manifest_sha256": digest,
+        "tokenizer_files": tokenizer_files,
+        "tokenizer_bytes": tokenizer_bytes,
+        "tokenizer_manifest_sha256": tokenizer_digest,
+    }
+
+
+def attach_backend_capabilities(
+    report: dict[str, object], *, name: str, build_sha256: str,
+    versions: dict[str, str | None], declared_features: tuple[str, ...],
+    probe_compatible: bool, issues: tuple[str, ...],
+) -> dict[str, object]:
+    """Attach probed build metadata without promoting execution qualification."""
+    if name not in {"mlx_lm", "vllm_metal"}:
+        raise ValueError("unsupported architecture backend")
+    if len(build_sha256) != 64 or any(c not in "0123456789abcdef" for c in build_sha256):
+        raise ValueError("backend build digest is invalid")
+    if len(declared_features) > 64 or any(
+        not feature or len(feature) > 128 for feature in declared_features
+    ):
+        raise ValueError("backend feature declarations are invalid")
+    required = report.get("required_features")
+    if not isinstance(required, list) or any(not isinstance(item, str) for item in required):
+        raise ValueError("architecture report required features are invalid")
+    missing = sorted(set(required) - set(declared_features))
+    compatibility = (
+        "declared_complete" if probe_compatible and not missing
+        else "declared_incomplete"
+    )
+    report["backend"] = {
+        "name": name,
+        "build": build_sha256,
+        "versions": versions,
+        "declared_features": sorted(set(declared_features)),
+        "missing_features": missing,
+        "issues": list(issues),
+        "compatibility": compatibility,
+    }
+    return report
 
 
 def describe_architecture(config: dict[str, Any]) -> dict[str, object]:
@@ -132,10 +277,15 @@ def describe_architecture(config: dict[str, Any]) -> dict[str, object]:
         "required_features": [],
         "layers": [],
         "state_layout": [],
-        "backend": {"name": None, "build": None, "compatibility": "unverified"},
+        "backend": {
+            "name": None, "build": None, "versions": {},
+            "declared_features": [], "missing_features": [], "issues": [],
+            "compatibility": "unverified",
+        },
         "qualification": dict.fromkeys(
             ("loadable", "correct", "service", "performance"), "unverified"
         ),
+        "artifact": _empty_artifact(),
         "artifact_status": "unverified",
         "issues": [],
         "source": recipe.source if recipe else None,

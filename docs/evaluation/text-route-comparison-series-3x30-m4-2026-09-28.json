@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "report_kind": "text_route_comparison_series",
+  "workload_sha256": "11c4b26006a3e15ca8ede1950648a1bb5ebf835ef1b2e7519be7da6cc5dc2d09",
+  "artifact_identity_sha256": "4f69654cb373cc4392fd048acf60d51d39d67e8176648a3e52a7936b0776cd14",
+  "backend_build_sha256": "fbe49ebc3429bb6e5f3ffacaed9ba735f1101d01cd5068724ef9fc0fe174e643",
+  "pair_count": 3,
+  "order": {
+    "direct": 2,
+    "proxy": 1,
+    "balanced": true
+  },
+  "pairs": [
+    {
+      "report_sha256": "848c96f5f938512336c6849ee36bd8e420d724c85a3ce8037adb40f3c5e66ef2",
+      "first_route": "direct",
+      "proxy_to_direct_goodput": 1.011736
+    },
+    {
+      "report_sha256": "d1fc7ce7dd0e9d439a2d3810e9d7a4fb6ed329394d97c42f2bafef08db652d6a",
+      "first_route": "proxy",
+      "proxy_to_direct_goodput": 1.005702
+    },
+    {
+      "report_sha256": "912e014f2dcc5f71f9bc7e2b377ac0e4aebb9e4c166eb1303f41201042d02e74",
+      "first_route": "direct",
+      "proxy_to_direct_goodput": 1.006541
+    }
+  ],
+  "proxy_to_direct_goodput": {
+    "median": 1.006541,
+    "minimum": 1.005702,
+    "maximum": 1.011736,
+    "relative_spread": 0.005995,
+    "maximum_allowed_relative_spread": 0.05
+  },
+  "p99_reference_only": true,
+  "conclusion": "comparable_stable_reference",
+  "qualification": false
+}

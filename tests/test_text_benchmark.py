@@ -31,6 +31,7 @@ class TextBenchmarkTests(unittest.TestCase):
         self.assertEqual(report["goodput_tokens_per_second"], 2)
         self.assertEqual(report["output_tokens_per_second"], 8)
         self.assertEqual(report["errors"], {"backend_unavailable": 1})
+        self.assertEqual(report["route"], "mlx")
         self.assertEqual(report["phase_profile"]["transport"]["unavailable_sample_count"], 1)
         self.assertTrue(report["e2e_p99_reference_only"])
         self.assertNotIn("private failure", str(report))
@@ -81,6 +82,19 @@ class TextBenchmarkTests(unittest.TestCase):
         self.assertEqual(result["failed"], 3)
         self.assertEqual(result["goodput_tokens_per_second"], 0)
         self.assertIsNone(result["e2e_p99_upper_bound_ms"])
+
+    def test_verified_identities_are_explicit_and_paired(self):
+        with patch("vllm_apple.text_benchmark.measure_stream", return_value=self.result()):
+            result = run_text_benchmark(
+                self.config, requests=1, artifact_identity_sha256="a" * 64,
+                backend_build_sha256="b" * 64,
+            )
+        self.assertTrue(result["artifact_identity_verified"])
+        self.assertEqual(result["artifact_identity_sha256"], "a" * 64)
+        with self.assertRaisesRegex(ValueError, "provided together"):
+            run_text_benchmark(
+                self.config, requests=1, artifact_identity_sha256="a" * 64
+            )
 
     def test_invalid_bounds(self):
         for kwargs in ({"requests": True}, {"requests": 0}, {"concurrency": 33},

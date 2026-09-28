@@ -54,6 +54,9 @@ Intel Macは互換性の別枠とし、Apple Siliconの性能認定を適用し�
 - [Done] 変更後runtimeの[30分再認定](evaluation/architecture-gemma2-homebrew-serving-bound-2026-09-26.json)で5,995/5,995件成功。新しい証跡で`--skip-backend-check`なしの[通常serve実HTTP検証](evaluation/architecture-gemma2-homebrew-managed-serve-2026-09-26.json)も合格（三言語・greedy反復・stream一致・正常終了）。
 - [Next] 追加のDense／window／MoEモデルと、長文・並列負荷・cancel／recoveryを認定する。今回の通常serve確認は短いHTTP smokeであり、frontend全体の30分soakや性能優位の証明ではない。
 - [Next] P0のcapability matrixへ、モデル名だけでなくlayer構成・必須operator・weight形式・state layout・backend buildを登録し、unknownを対応済みと扱わない。
+- [Done] architecture registry v2で、model directory直下を最大4,096 entryに制限して走査し、weight形式、file数、総byte、filename／size由来のmetadata manifest digest、tokenizer関連file名を記録する。配置済みGemma 2は`safetensors` 1 file／1,470,988,882 bytesとして実機確認した。これは内容hash、完全性、load可否、backend互換性の証拠ではなく、`artifact_status`と全qualificationは`unverified`を維持する。
+- [Done] `inspect-architecture`へ任意のbackend build inventoryを接続した。環境全体のSHA-256、version、backendが明示したoperator、architecture側の不足operator、probe issueを分離し、静的宣言が揃っても実行qualificationは昇格させない。MLX-LM probeはMetalを初期化せずpackage metadataを読むためheadlessでもversionを取得できる。現行MLX-LM 0.32.0／build `fbe49ebc…e643`はoperator宣言なし・verified version matrix外なので`declared_incomplete`と実測した。既存のidentity付きGemma限定証跡とは別のfail-closed診断である。
+- [Done] tokenizer identityを同じartifact inventoryへ追加した。既知のtokenizer関連fileだけを合計256 MiBまでrace検出付きで読み、fileごとの内容SHA-256からmanifest digestを作る。同名・同sizeの差し替えも検出する。配置済みGemma 2は4 file／21,813,831 bytes／manifest `ae37b56a…8217`として確認した。tokenizer動作やchat template品質の認定には広げない。
 - [Next] Dense MHA／MQA／GQA、local/global混在、標準MoEを代表モデルで認定する。
 - [Later] MLA、KV共有、Gated DeltaNet／KDA、SSM、短いconvを個別state契約で広げ、その後に高度な疎・圧縮Attentionと再帰実行へ進む。
 
@@ -84,6 +87,9 @@ MLX / vLLM-Metal / qualified optional backend → Metal GPU
 - [Next] 既存phase probe・qualification・soakを共通reportへ接続する。直接backendとdaemon経由を同じ入力で比較し、queue、tokenize、prefill、decode、serialization／SSE、model loadを分離する。
 - [Done] P0のstream通信計測：phase probeで最終生成contentと`[DONE]`到着を分離し、end-to-end／stream tailを固定容量histogramへ集計。未取得sampleは欠測として区別する。既存のdecode計算を維持し、HTTP・schema・qualification回帰49件で検証。[仕様・再現手順](PHASE-TRANSPORT-METRICS.md)。実モデルの性能比較は未実施。
 - [Done] P0のbounded HTTP benchmark runner：三言語・固定workload hash、並列度1〜32、失敗を含む件数、品質とTTFT／E2E SLOを満たすgoodput、言語別集計、参考値表示付きp99を実装。関連54テスト合格。[仕様](TEXT-BENCHMARK.md)。[M4実測](evaluation/text-benchmark-m4-smoke-2026-09-26.json)のGemma 2 2B／MLX-LMで並列度1は30/30正答。並列度2は応答停止後に手動回収し、不完全な失敗runとして保存。性能優位・batching認定は付与しない。
+- [Done] direct／proxy benchmarkの比較manifestを追加した。同じworkload、request数、concurrency、SLO、model artifact digest、backend build digestだけを比較し、失敗・品質不合格を分母に残す。goodput／throughput／p99比は保存するが、artifact identity未指定、品質失敗、metric欠測なら性能結論を明示的に保留する。既存reportはidentity未検証なので自動昇格しない。[仕様](TEXT-BENCHMARK.md)。
+- [Done] M4／Gemma 2 2B／MLX-LM 0.32.0でidentity-bound direct／daemon短時間比較を実施した。最低30件gate導入前の[9件report](evaluation/text-route-comparison-m4-2026-09-28.json)は`blocked_insufficient_samples`へ降格。[30件比較](evaluation/text-route-comparison-30req-m4-2026-09-28.json)は両経路30/30正答・SLO合格、direct 17.452、daemon 17.657 goodput tokens/s、proxy/direct比1.011736、p99 histogram上限は双方500 msで`comparable`。ただしclosed-loop c1、cache非制御、単一runでp99も参考値のため、約1.2%差を性能改善またはproxy overheadゼロの証拠にしない。runtime変更で旧30分証跡はidentity mismatchとして拒否されたためdaemonは明示的なbackend check skipで起動し、qualificationはfalseである。
+- [Done] direct／proxy比較の反復series gateを追加した。3〜21 pairを同じworkload／artifact／backend buildへ束縛し、direct-first／proxy-firstを両方含み件数差1以内、goodput比の最大相対幅5%以内を要求する。[M4 3×30件series](evaluation/text-route-comparison-series-3x30-m4-2026-09-28.json)は順序2:1、全pairで両経路30/30正答・SLO合格、proxy/direct goodput比1.011736／1.005702／1.006541、中央値1.006541、相対幅0.5995%で`comparable_stable_reference`。p99は各30件なので参考値、cache非制御、c1限定であり、0.65%差を性能優位として認定しない。
 - [Next] モデル・データ・tokenizer・chat template・量子化方式／group size・KV dtype・sampling・依存versionを固定する。reportへrevision／hash、再現コマンド、power／thermal、失敗・除外理由を保存する。
 - [Next] 実MLX cacheでmetadata計測の完全性と負荷を確認し、viewの共有storageを二重計上し得る限界を明記する。queueキャンセルの長時間負荷とp95待ち時間を測る。
 

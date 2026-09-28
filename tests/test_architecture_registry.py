@@ -7,7 +7,11 @@ from pathlib import Path
 from unittest.mock import patch
 
 from tests.schema_validator import validate_instance
-from vllm_apple.architecture_registry import ARCHITECTURE_RECIPES, inspect_architecture
+from vllm_apple.architecture_registry import (
+    ARCHITECTURE_RECIPES,
+    attach_backend_capabilities,
+    inspect_architecture,
+)
 from vllm_apple.cli import main
 from vllm_apple.model import MAX_MODEL_CONFIG_BYTES, ModelInspectionError
 
@@ -126,6 +130,56 @@ class ArchitectureRegistryTests(unittest.TestCase):
         config["head_dim"] += 1
         self.assertNotEqual(before, self.inspect(config)["config_sha256"])
 
+    def test_directory_inventory_records_weight_format_without_certifying_artifact(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            (root / "config.json").write_text(json.dumps(self.config()))
+            (root / "model-00002-of-00002.safetensors").write_bytes(b"bb")
+            (root / "model-00001-of-00002.safetensors").write_bytes(b"a")
+            (root / "tokenizer.json").write_text("{}")
+            report = inspect_architecture(root)
+            artifact = report["artifact"]
+            self.assertEqual(artifact["inventory_status"], "described")
+            self.assertEqual(artifact["weight_formats"], ["safetensors"])
+            self.assertEqual(artifact["weight_file_count"], 2)
+            self.assertEqual(artifact["weight_bytes"], 3)
+            self.assertEqual(len(artifact["metadata_manifest_sha256"]), 64)
+            self.assertEqual(artifact["tokenizer_files"], ["tokenizer.json"])
+            self.assertEqual(artifact["tokenizer_bytes"], 2)
+            self.assertEqual(len(artifact["tokenizer_manifest_sha256"]), 64)
+            self.assertEqual(report["artifact_status"], "unverified")
+
+            first_tokenizer = artifact["tokenizer_manifest_sha256"]
+            (root / "tokenizer.json").write_text("[]")
+            changed = inspect_architecture(root)["artifact"]
+            self.assertEqual(changed["tokenizer_bytes"], 2)
+            self.assertNotEqual(first_tokenizer, changed["tokenizer_manifest_sha256"])
+
+    def test_config_only_inventory_is_explicitly_unavailable(self):
+        report = inspect_architecture(FIXTURES / "qwen3.json")
+        self.assertEqual(report["artifact"]["inventory_status"], "unavailable")
+        self.assertIsNone(report["artifact"]["metadata_manifest_sha256"])
+        self.assertIsNone(report["artifact"]["tokenizer_manifest_sha256"])
+
+    def test_backend_build_requires_complete_declared_feature_coverage(self):
+        report = self.inspect(self.config())
+        required = tuple(report["required_features"])
+        attach_backend_capabilities(
+            report, name="mlx_lm", build_sha256="a" * 64,
+            versions={"mlx_lm": "0.32.0"}, declared_features=required,
+            probe_compatible=True, issues=(),
+        )
+        self.assertEqual(report["backend"]["compatibility"], "declared_complete")
+        self.assertEqual(report["qualification"]["loadable"], "unverified")
+        report = self.inspect(self.config())
+        attach_backend_capabilities(
+            report, name="mlx_lm", build_sha256="b" * 64,
+            versions={"mlx_lm": "0.32.0"}, declared_features=(),
+            probe_compatible=False, issues=("version_unverified",),
+        )
+        self.assertEqual(report["backend"]["compatibility"], "declared_incomplete")
+        self.assertEqual(report["backend"]["missing_features"], report["required_features"])
+
     def test_bounded_read_and_nonfinite_json(self):
         with tempfile.TemporaryDirectory() as temporary:
             path = Path(temporary) / "config.json"
@@ -145,6 +199,42 @@ class ArchitectureRegistryTests(unittest.TestCase):
         report = json.loads(output.getvalue())
         self.assertEqual(report["qualification"]["loadable"], "unverified")
         self.assertNotIn("path", report)
+
+    def test_cli_binds_probed_backend_without_promoting_qualification(self):
+        output = StringIO()
+        compatibility = type("Compatibility", (), {
+            "mlx_lm_version": "0.32.0",
+            "architecture_features": (),
+            "compatible": False,
+            "issues": ("mlx_lm_version_outside_verified_matrix",),
+        })()
+        with patch(
+            "vllm_apple.cli.fingerprint_backend", return_value="a" * 64
+        ), patch(
+            "vllm_apple.cli.inspect_mlx_lm_backend", return_value=compatibility
+        ), redirect_stdout(output):
+            code = main([
+                "inspect-architecture", str(FIXTURES / "qwen3.json"),
+                "--backend", "mlx_lm", "--backend-executable", "/synthetic/server",
+            ])
+        self.assertEqual(code, 0)
+        report = json.loads(output.getvalue())
+        self.assertEqual(report["backend"]["build"], "a" * 64)
+        self.assertEqual(report["backend"]["compatibility"], "declared_incomplete")
+        self.assertEqual(report["qualification"]["loadable"], "unverified")
+
+    def test_cli_rejects_partial_backend_arguments(self):
+        output = StringIO()
+        with redirect_stdout(output):
+            code = main([
+                "inspect-architecture", str(FIXTURES / "qwen3.json"),
+                "--backend", "mlx_lm",
+            ])
+        self.assertEqual(code, 2)
+        self.assertEqual(
+            json.loads(output.getvalue())["error_code"],
+            "architecture_inspection_failed",
+        )
 
     def test_cli_unknown_and_invalid_file_exit_codes(self):
         with tempfile.TemporaryDirectory() as temporary:

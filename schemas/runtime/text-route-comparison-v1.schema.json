@@ -1,0 +1,80 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vllm-apple.local/schemas/runtime/text-route-comparison-v1.schema.json",
+  "title": "Bounded direct-versus-proxy text comparison v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "report_kind", "workload_sha256", "identity_fields_matched", "artifact_identity_verified", "quality_comparable", "first_route", "minimum_requests_per_route", "sample_gate_passed", "p99_reference_only", "direct", "proxy", "ratios", "conclusion", "qualification"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "report_kind": {"const": "text_route_comparison"},
+    "workload_sha256": {"type": "string", "minLength": 64, "maxLength": 64},
+    "identity_fields_matched": {"const": true},
+    "artifact_identity_verified": {"type": "boolean"},
+    "quality_comparable": {"type": "boolean"},
+    "first_route": {"enum": ["direct", "proxy"]},
+    "minimum_requests_per_route": {"const": 30},
+    "sample_gate_passed": {"type": "boolean"},
+    "p99_reference_only": {"type": "boolean"},
+    "direct": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["report_sha256", "route", "started_at", "artifact_identity_verified", "artifact_identity_sha256", "backend_build_sha256", "requests", "completed", "failed", "quality_passed", "slo_quality_passed", "errors", "elapsed_seconds", "output_tokens_per_second", "goodput_tokens_per_second", "e2e_p99_upper_bound_ms", "e2e_p99_reference_only"],
+      "properties": {
+        "report_sha256": {"type": "string", "minLength": 64, "maxLength": 64},
+        "route": {"type": "string", "minLength": 1, "maxLength": 128},
+        "started_at": {"type": "string", "minLength": 20, "maxLength": 64},
+        "artifact_identity_verified": {"type": "boolean"},
+        "artifact_identity_sha256": {"type": ["string", "null"], "minLength": 64, "maxLength": 64},
+        "backend_build_sha256": {"type": ["string", "null"], "minLength": 64, "maxLength": 64},
+        "requests": {"type": "integer", "minimum": 1, "maximum": 100000},
+        "completed": {"type": "integer", "minimum": 0, "maximum": 100000},
+        "failed": {"type": "integer", "minimum": 0, "maximum": 100000},
+        "quality_passed": {"type": "integer", "minimum": 0, "maximum": 100000},
+        "slo_quality_passed": {"type": "integer", "minimum": 0, "maximum": 100000},
+        "errors": {"type": "object", "additionalProperties": {"type": "integer", "minimum": 0}},
+        "elapsed_seconds": {"type": ["number", "null"], "minimum": 0},
+        "output_tokens_per_second": {"type": ["number", "null"], "minimum": 0},
+        "goodput_tokens_per_second": {"type": ["number", "null"], "minimum": 0},
+        "e2e_p99_upper_bound_ms": {"type": ["number", "null"], "minimum": 0}
+        ,"e2e_p99_reference_only": {"type": "boolean"}
+      }
+    },
+    "proxy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["report_sha256", "route", "started_at", "artifact_identity_verified", "artifact_identity_sha256", "backend_build_sha256", "requests", "completed", "failed", "quality_passed", "slo_quality_passed", "errors", "elapsed_seconds", "output_tokens_per_second", "goodput_tokens_per_second", "e2e_p99_upper_bound_ms", "e2e_p99_reference_only"],
+      "properties": {
+        "report_sha256": {"type": "string", "minLength": 64, "maxLength": 64},
+        "route": {"type": "string", "minLength": 1, "maxLength": 128},
+        "started_at": {"type": "string", "minLength": 20, "maxLength": 64},
+        "artifact_identity_verified": {"type": "boolean"},
+        "artifact_identity_sha256": {"type": ["string", "null"], "minLength": 64, "maxLength": 64},
+        "backend_build_sha256": {"type": ["string", "null"], "minLength": 64, "maxLength": 64},
+        "requests": {"type": "integer", "minimum": 1, "maximum": 100000},
+        "completed": {"type": "integer", "minimum": 0, "maximum": 100000},
+        "failed": {"type": "integer", "minimum": 0, "maximum": 100000},
+        "quality_passed": {"type": "integer", "minimum": 0, "maximum": 100000},
+        "slo_quality_passed": {"type": "integer", "minimum": 0, "maximum": 100000},
+        "errors": {"type": "object", "additionalProperties": {"type": "integer", "minimum": 0}},
+        "elapsed_seconds": {"type": ["number", "null"], "minimum": 0},
+        "output_tokens_per_second": {"type": ["number", "null"], "minimum": 0},
+        "goodput_tokens_per_second": {"type": ["number", "null"], "minimum": 0},
+        "e2e_p99_upper_bound_ms": {"type": ["number", "null"], "minimum": 0}
+        ,"e2e_p99_reference_only": {"type": "boolean"}
+      }
+    },
+    "ratios": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["proxy_to_direct_goodput", "proxy_to_direct_output_throughput", "proxy_to_direct_e2e_p99"],
+      "properties": {
+        "proxy_to_direct_goodput": {"type": ["number", "null"], "minimum": 0},
+        "proxy_to_direct_output_throughput": {"type": ["number", "null"], "minimum": 0},
+        "proxy_to_direct_e2e_p99": {"type": ["number", "null"], "minimum": 0}
+      }
+    },
+    "conclusion": {"enum": ["comparable", "blocked_quality_failure", "blocked_artifact_identity_unverified", "blocked_metric_unavailable", "blocked_insufficient_samples"]},
+    "qualification": {"const": false}
+  }
+}
