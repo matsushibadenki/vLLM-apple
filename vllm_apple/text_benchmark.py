@@ -13,6 +13,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Sequence
 
+from .benchmark_context import observe_benchmark_context
 from .phase_probe import PhaseProbeConfig, PhaseProbeError, measure_stream
 from .phase_profile import ExecutionPhaseProfiler, _BoundedLatency
 from .soak import _read_private_token
@@ -54,6 +55,8 @@ def run_text_benchmark(
     cases: Sequence[BenchmarkCase] = CASES,
     artifact_identity_sha256: str | None = None,
     backend_build_sha256: str | None = None,
+    warmup_requests: int = 0,
+    collect_operating_context: bool = False,
 ) -> dict[str, Any]:
     """Run exactly requests attempts, retaining failures in the denominator.
 
@@ -65,6 +68,8 @@ def run_text_benchmark(
         raise ValueError("requests must be an integer between 1 and 100000")
     if type(concurrency) is not int or not 1 <= concurrency <= min(requests, 32):
         raise ValueError("concurrency must be between 1 and min(requests, 32)")
+    if type(warmup_requests) is not int or not 0 <= warmup_requests <= 100:
+        raise ValueError("warmup requests must be an integer between 0 and 100")
     for value in (ttft_slo_ms, e2e_slo_ms):
         if not math.isfinite(value) or value <= 0:
             raise ValueError("SLO limits must be finite and positive")
@@ -81,6 +86,26 @@ def run_text_benchmark(
     if (artifact_identity_sha256 is None) != (backend_build_sha256 is None):
         raise ValueError("artifact identity and backend build must be provided together")
     selected_cases = _validated_cases(cases)
+    context = {"before_warmup": observe_benchmark_context(config.target_pid)} \
+        if collect_operating_context else None
+    warmup = {"attempted": warmup_requests, "completed": 0, "quality_passed": 0,
+              "errors": {}}
+    for index in range(warmup_requests):
+        _, prompt, expected = selected_cases[index % len(selected_cases)]
+        try:
+            result = measure_stream(
+                replace(config, prompt=prompt), expected_text=expected,
+                expected_match_mode="trimmed_exact",
+            )
+        except PhaseProbeError as error:
+            errors = warmup["errors"]
+            assert isinstance(errors, dict)
+            errors[error.code] = errors.get(error.code, 0) + 1
+            continue
+        warmup["completed"] += 1
+        warmup["quality_passed"] += int(result.expected_text_matched is True)
+    if context is not None:
+        context["before_measurement"] = observe_benchmark_context(config.target_pid)
     profiler = ExecutionPhaseProfiler(config.hardware_fingerprint, config.model, config.backend)
     lock = threading.Lock()
     next_index = 0
@@ -135,7 +160,10 @@ def run_text_benchmark(
         for future in futures:
             future.result()
     elapsed = (time.monotonic_ns() - started) / 1_000_000_000
+    if context is not None:
+        context["after_measurement"] = observe_benchmark_context(config.target_pid)
     workload = {"cases": selected_cases, "requests": requests, "concurrency": concurrency,
+                "warmup_requests": warmup_requests,
                 "maximum_output_tokens": config.maximum_output_tokens, "temperature": 0,
                 "timeout_seconds": config.timeout_seconds,
                 "ttft_slo_ms": ttft_slo_ms, "e2e_slo_ms": e2e_slo_ms}
@@ -143,7 +171,13 @@ def run_text_benchmark(
         "schema_version": 1, "report_kind": "text_http_benchmark",
         "route": config.backend,
         "started_at": started_at,
-        "cache_policy": "backend_managed_uncontrolled",
+        "cache_policy": (
+            "backend_managed_conditioned" if warmup_requests
+            else "backend_managed_uncontrolled"
+        ),
+        "warmup_requests": warmup_requests,
+        "warmup": warmup,
+        "operating_context": context,
         "artifact_identity_verified": artifact_identity_sha256 is not None,
         "artifact_identity_sha256": artifact_identity_sha256,
         "backend_build_sha256": backend_build_sha256,
@@ -166,7 +200,9 @@ def run_text_benchmark(
         "phase_profile": profiler.snapshot(),
         "unavailable": ["backend_token_timestamps", "queue_time", "tokenize_time",
                         "model_load_time", "energy_per_token", "gpu_utilization",
-                        "mlx_allocator", "swap_delta", "memory_pressure", "thermal"]
+                        "mlx_allocator", "swap_delta", "memory_pressure", "cache_hit_rate",
+                        "continuous_thermal_observation"]
+                       + (["operating_context"] if context is None else [])
                        + (["rss"] if config.target_pid is None else []),
         "qualification": False, "stores_prompt": False, "stores_generated_text": False,
     }
@@ -180,6 +216,8 @@ def main() -> int:
     parser.add_argument("--hardware-fingerprint", required=True)
     parser.add_argument("--requests", type=int, default=30)
     parser.add_argument("--concurrency", type=int, default=1)
+    parser.add_argument("--warmup-requests", type=int, default=0)
+    parser.add_argument("--collect-operating-context", action="store_true")
     parser.add_argument("--max-tokens", type=int, default=16)
     parser.add_argument("--timeout", type=float, default=60)
     parser.add_argument("--ttft-slo-ms", type=float, default=1000)
@@ -201,7 +239,9 @@ def main() -> int:
         result = run_text_benchmark(config, requests=args.requests, concurrency=args.concurrency,
                                     ttft_slo_ms=args.ttft_slo_ms, e2e_slo_ms=args.e2e_slo_ms,
                                     artifact_identity_sha256=args.artifact_identity_sha256,
-                                    backend_build_sha256=args.backend_build_sha256)
+                                    backend_build_sha256=args.backend_build_sha256,
+                                    warmup_requests=args.warmup_requests,
+                                    collect_operating_context=args.collect_operating_context)
     except (ValueError, OSError) as error:
         parser.error(str(error))
     print(json.dumps(result, ensure_ascii=False, indent=2, allow_nan=False))

@@ -18,6 +18,8 @@ def report(**changes):
         "load_policy": "closed_loop", "quality_policy": "arithmetic_trimmed_exact",
         "artifact_identity_verified": True, "completed": 30, "failed": 0,
         "artifact_identity_sha256": "d" * 64, "backend_build_sha256": "e" * 64,
+        "warmup_requests": 3,
+        "warmup": {"attempted": 3, "completed": 3, "quality_passed": 3, "errors": {}},
         "quality_passed": 30, "slo_quality_passed": 30, "errors": {},
         "elapsed_seconds": 3.0, "output_tokens_per_second": 20.0,
         "goodput_tokens_per_second": 18.0, "e2e_p99_upper_bound_ms": 100.0,
@@ -74,6 +76,28 @@ class TextBenchmarkComparisonTests(unittest.TestCase):
         )
         self.assertEqual(comparison["conclusion"], "blocked_quality_failure")
         self.assertEqual(comparison["proxy"]["quality_passed"], 29)
+
+    def test_warmup_failure_blocks_comparison(self):
+        failed_warmup = {
+            "attempted": 3, "completed": 2, "quality_passed": 2,
+            "errors": {"backend_unavailable": 1},
+        }
+        comparison = compare_text_benchmarks(
+            report(), report(warmup=failed_warmup),
+            direct_sha256="b" * 64, proxy_sha256="c" * 64,
+        )
+        self.assertEqual(comparison["conclusion"], "blocked_warmup_failure")
+        self.assertFalse(comparison["warmup_comparable"])
+
+    def test_warmup_summary_must_match_configured_count(self):
+        malformed = report(warmup={
+            "attempted": 2, "completed": 2, "quality_passed": 2, "errors": {},
+        })
+        with self.assertRaisesRegex(ValueError, "warmup summary"):
+            compare_text_benchmarks(
+                report(), malformed,
+                direct_sha256="b" * 64, proxy_sha256="c" * 64,
+            )
 
     def test_short_smoke_retains_ratios_but_blocks_conclusion(self):
         comparison = compare_text_benchmarks(

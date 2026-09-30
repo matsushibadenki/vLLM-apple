@@ -16,6 +16,7 @@ _BOUND_FIELDS = (
     "workload_sha256", "requests", "concurrency", "maximum_output_tokens",
     "timeout_seconds", "slo", "load_policy", "quality_policy",
     "artifact_identity_sha256", "backend_build_sha256",
+    "warmup_requests",
 )
 
 
@@ -105,6 +106,29 @@ def _summary(report: dict[str, Any], digest: str) -> dict[str, object]:
     p99_reference_only = report.get("e2e_p99_reference_only")
     if type(p99_reference_only) is not bool:
         raise ValueError("benchmark p99 reference flag is invalid")
+    warmup = report.get("warmup", {
+        "attempted": 0, "completed": 0, "quality_passed": 0, "errors": {},
+    })
+    if not isinstance(warmup, dict) or set(warmup) != {
+        "attempted", "completed", "quality_passed", "errors",
+    }:
+        raise ValueError("benchmark warmup summary is invalid")
+    attempted = warmup["attempted"]
+    completed = warmup["completed"]
+    warmup_quality = warmup["quality_passed"]
+    warmup_errors = warmup["errors"]
+    configured_warmup = report.get("warmup_requests", 0)
+    if (
+        type(configured_warmup) is not int or not 0 <= configured_warmup <= 100
+        or type(attempted) is not int or attempted != configured_warmup
+        or type(completed) is not int or not 0 <= completed <= attempted
+        or type(warmup_quality) is not int or not 0 <= warmup_quality <= completed
+        or not isinstance(warmup_errors, dict)
+        or any(not isinstance(key, str) or type(value) is not int or value < 0
+               for key, value in warmup_errors.items())
+        or sum(warmup_errors.values()) != attempted - completed
+    ):
+        raise ValueError("benchmark warmup summary is invalid")
     return {
         "report_sha256": _sha256(digest, "report digest"),
         "route": route,
@@ -123,6 +147,8 @@ def _summary(report: dict[str, Any], digest: str) -> dict[str, object]:
         "goodput_tokens_per_second": _metric(report, "goodput_tokens_per_second"),
         "e2e_p99_upper_bound_ms": _metric(report, "e2e_p99_upper_bound_ms"),
         "e2e_p99_reference_only": p99_reference_only,
+        "warmup": warmup,
+        "warmup_passed": completed == attempted and warmup_quality == attempted,
     }
 
 
@@ -157,7 +183,12 @@ def compare_text_benchmarks(
         direct_summary["requests"] >= MINIMUM_COMPARISON_REQUESTS
         and proxy_summary["requests"] >= MINIMUM_COMPARISON_REQUESTS
     )
-    if not quality_comparable:
+    warmup_comparable = bool(
+        direct_summary["warmup_passed"] and proxy_summary["warmup_passed"]
+    )
+    if not warmup_comparable:
+        conclusion = "blocked_warmup_failure"
+    elif not quality_comparable:
         conclusion = "blocked_quality_failure"
     elif not artifact_verified:
         conclusion = "blocked_artifact_identity_unverified"
@@ -174,6 +205,7 @@ def compare_text_benchmarks(
         "identity_fields_matched": True,
         "artifact_identity_verified": artifact_verified,
         "quality_comparable": quality_comparable,
+        "warmup_comparable": warmup_comparable,
         "first_route": (
             "direct"
             if datetime.fromisoformat(str(direct_summary["started_at"]))

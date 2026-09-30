@@ -96,6 +96,44 @@ class TextBenchmarkTests(unittest.TestCase):
                 self.config, requests=1, artifact_identity_sha256="a" * 64
             )
 
+    def test_warmup_is_excluded_from_measured_counts_and_binds_workload(self):
+        with patch("vllm_apple.text_benchmark.measure_stream", return_value=self.result()) as measure:
+            warmed = run_text_benchmark(self.config, requests=3, warmup_requests=3)
+            cold = run_text_benchmark(self.config, requests=3)
+        self.assertEqual(measure.call_count, 9)
+        self.assertEqual(warmed["warmup"], {
+            "attempted": 3, "completed": 3, "quality_passed": 3, "errors": {},
+        })
+        self.assertEqual(warmed["requests"], 3)
+        self.assertEqual(warmed["cache_policy"], "backend_managed_conditioned")
+        self.assertNotEqual(warmed["workload_sha256"], cold["workload_sha256"])
+
+    def test_context_probes_are_outside_measured_window(self):
+        events = []
+
+        def observe(pid):
+            events.append("observe")
+            return {"target_process_age_seconds": 12}
+
+        def measure(*args, **kwargs):
+            events.append("request")
+            return self.result()
+
+        def clock():
+            events.append("clock")
+            return 0 if events.count("clock") == 1 else 1_000_000_000
+
+        with patch("vllm_apple.text_benchmark.observe_benchmark_context", side_effect=observe), \
+                patch("vllm_apple.text_benchmark.measure_stream", side_effect=measure), \
+                patch("vllm_apple.text_benchmark.time.monotonic_ns", side_effect=clock):
+            result = run_text_benchmark(
+                self.config, requests=1, warmup_requests=1, collect_operating_context=True,
+            )
+        self.assertEqual(events, ["observe", "request", "observe", "clock",
+                                  "request", "clock", "observe"])
+        self.assertEqual(result["elapsed_seconds"], 1)
+        self.assertEqual(len(result["operating_context"]), 3)
+
     def test_invalid_bounds(self):
         for kwargs in ({"requests": True}, {"requests": 0}, {"concurrency": 33},
                        {"requests": 1, "concurrency": 2}, {"ttft_slo_ms": float("nan")},

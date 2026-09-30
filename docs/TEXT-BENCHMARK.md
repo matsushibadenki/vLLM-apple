@@ -9,21 +9,31 @@
   --base-url http://127.0.0.1:19096 \
   --model /absolute/path/to/model --backend mlx_lm_direct \
   --hardware-fingerprint Apple-M4-32GiB \
+  --warmup-requests 3 \
   --requests 30 --concurrency 2 --max-tokens 16 \
   --ttft-slo-ms 1000 --e2e-slo-ms 5000 > /tmp/text-benchmark.json
 ```
 
 認証が必要なら`--session-token-file`、RSSを観測するならbackendの`--target-pid`を指定する。token・endpoint・prompt・生成本文はreportに保存しない。モデル識別子は保存するので、共有するreportのローカルパスには注意する。
 
+`--collect-operating-context`でwarmup前・測定直前・測定直後の3点にUTC時刻、温度状態、
+電源供給元、電源モードを保存する。`--target-pid`を併用すると対象processの起動後経過秒数も記録する。
+PIDには推論workerを指定する。daemon frontendのPIDではworkerの経過時間を表さない。
+probeは各command 1秒timeoutで、goodputの計測窓外に実行する。取得不能は`unknown`／`null`で残す。
+これは3点の観測であり、途中の温度変化、cache hit率、processの入れ替わりは認定しない。
+比較器は現時点でこの情報を条件gateへ使用しない。[M4観測smoke](evaluation/benchmark-context-m4-2026-10-01.json)
+では温度nominal、Battery Power、automaticと観測process自身のage 0秒を取得した。推論性能は未測定である。
+
 - 固定数のworkerだけを作るclosed-loop方式。requestは1〜100,000、並列度は1〜32かつrequest数以下。request数に比例するfutureや生成本文を保持しない。
 - HTTP／usage／途中切断の失敗は件数とcodeを保存する。完了率の分母から除外しない。
 - goodputは、前後の空白を除いた答えが`2`で、TTFTと`[DONE]`までの時間が指定SLO以内のrequestのusage output tokensを、負荷実行全体のwall timeで割る。並列requestの時間を加算して分母にしない。
 - 言語別の試行・完了・品質・SLO合格件数を保存する。全件正答でCLI終了code 0、失敗／品質不合格があれば1。SLO未達はreportで別に判定する。
-- workload hashはprompt・期待値・request数・並列度・sampling・timeout・SLOを固定する。endpointを含めないのでdirect／daemon間で照合できるが、同一artifactやbackend buildの証明にはならない。
+- workload hashはprompt・期待値・warmup件数・request数・並列度・sampling・timeout・SLOを固定する。endpointを含めないのでdirect／daemon間で照合できるが、同一artifactやbackend buildの証明にはならない。
 - 検証済みのmodel integrity root digestとbackend環境digestがある場合だけ、`--artifact-identity-sha256`と`--backend-build-sha256`を同時指定できる。片方だけ、64桁小文字hex以外は拒否する。指定なしの既存reportはidentity未検証のままである。
 - Python APIの`cases=`には最大64件の`(label, prompt, expected)`を渡せる。labelは重複不可、64 bytes以下。prompt 8 MiB、expected 1 KiBを上限とし、内容をreportへ保存せずworkload hashへ結合する。CLIは固定三言語workloadだけを実行する。
 - p99はhistogram上限であり、測定完了数1,000未満は参考値。backend内部token timestamp、queue、tokenize、allocator、swap、thermal、energyは未取得と明記する。RSSを指定していない場合、phase profileの既存0値は実測ゼロではない。
-- backend cacheは制御しない。cold／warm／prefix hitの認定や純粋なdecode速度比較ではない。HTTPタイムアウトはsocket待機の上限で、request全体のhard deadlineではない。
+- `--warmup-requests`は0〜100件。同じ三言語caseを順番に送ってからtimerとprofilerを開始する。warmupの試行・完了・品質・errorをreportへ保存し、測定request数とgoodputから除外する。比較器は両routeのwarmup件数が同じで全件成功した場合だけ比較を許可し、失敗時は`blocked_warmup_failure`にする。
+- warmupは起動直後のcache条件を近づけるが、prefix hit率やcache容量を直接固定しない。`cache_policy=backend_managed_conditioned`はcold／warm／prefix hitや純粋なdecode速度の認定ではない。warmup 0件では従来どおりcache非制御である。HTTPタイムアウトはsocket待機の上限で、request全体のhard deadlineではない。
 
 M4 smokeの起動条件は[実測report](evaluation/text-benchmark-m4-smoke-2026-09-26.json)の`command`に保存した。Homebrewの既存MLX-LM serverでGemma 2 2Bを起動し、3件warmup後、並列度1と2で各30件実行する。試験後は起動したbackendだけを終了・回収する。これは配線と三言語算術の確認であり、一般品質、continuous batching、性能優位、長時間安定性を認定しない。
 
@@ -72,6 +82,19 @@ seriesは同じworkload／artifact／backend buildだけを受け付け、direct
 `comparable_stable_reference`だった。全90件／routeが品質・SLO合格だが、各pairはcache非制御の
 c1でp99も参考値である。約0.65%差を性能優位として認定せず、series自体も`qualification=false`とする。
 
+[warmup 3件後のM4比較](evaluation/text-route-comparison-warm3-30req-m4-2026-09-29.json)は、
+両routeでwarmup 3/3、測定30/30が品質・SLO合格した。direct 18.448、daemon 18.783
+goodput tokens/s、proxy/direct比1.018188、p99 histogram上限は双方250 msで`comparable`だった。
+これはwarmup実装と比較gateの実機確認である。direct-firstの単一pair、closed-loop c1、backend管理cache、
+各30件の参考p99に限定されるため、約1.8%差を性能改善として認定しない。
+
+[warmup固定の3×30件series](evaluation/text-route-comparison-series-warm3-3x30-m4-2026-09-30.json)では、
+各routeのwarmup 9/9と測定90/90が品質・SLO合格し、実行順序はdirect-first 2／proxy-first 1だった。
+proxy/direct goodput比は1.018188／1.071009／0.956578、中央値1.018188、相対幅11.2387%で
+5% gateを超え、`blocked_variance`となった。warmupだけでは変動を抑えられない。
+このseriesは2日間にまたがり、power／thermal、起動後経過時間、実際のcache hit率を束縛していない。
+差の原因を特定したとは扱わず、性能改善は未認定とする。
+
 ### M4で見つかった並列失敗
 
 MLX 0.32.1／MLX-LM 0.32.0、Gemma 2 2B、serverのprompt／decode concurrencyを2に設定した。並列度1は30/30正答。並列度2の最初の試験は30秒timeoutが続いたためbackendを手動停止した。停止後の接続失敗を含み、比較baselineとして使用しない。
@@ -86,10 +109,19 @@ ValueError: [broadcast_shapes] Shapes (2,1,1,20) and (2,4,2,1,20) cannot be broa
 
 ## English
 
+Use `--collect-operating-context` to record UTC time, thermal state, power source,
+and power mode before warmup, before measurement, and after measurement. With
+`--target-pid`, worker process age is also recorded. Probes run outside the goodput
+window; unavailable values remain unknown/null. Three snapshots do not establish
+continuous thermal stability or cache hits. The comparison gate does not yet bind these observations.
+
 Run a bounded closed-loop workload against an existing local HTTP backend. Reports
 retain failures, per-language arithmetic quality, client timings, and quality-gated
-SLO goodput using total wall time. Workload hashes enable input matching but do not
-verify artifact identity. Cache state is uncontrolled; internal timings are unavailable.
+SLO goodput using total wall time. Optional bounded warmups run before measurement;
+their counts, quality, and errors are reported, bound into the workload, and excluded
+from measured goodput. Workload hashes enable input matching but do not verify artifact
+identity. Warmups condition backend-managed caches but do not certify a cache state;
+internal timings are unavailable.
 This smoke benchmark does not certify general quality, batching or performance superiority.
 Verified model and backend SHA-256 identities can be bound explicitly. The comparison
 tool rejects mismatched workloads or identities, retains failures, and blocks a performance
@@ -104,12 +136,27 @@ run is comparable input, not evidence of a performance improvement; p99 remains 
 An order-balanced 3×30 series produced proxy/direct goodput ratios of 1.011736,
 1.005702, and 1.006541. The median was 1.006541 with 0.5995% relative spread.
 This is stable reference evidence for the bounded c1 workload, not a performance qualification.
+A warmup-conditioned M4 pair passed 3/3 warmups and 30/30 measured requests on each
+route. Direct and daemon goodput were 18.448 and 18.783 tokens/s, a 1.018188 ratio.
+This direct-first single pair validates the warmup gate; it does not establish a performance gain.
+The three-pair warmup series passed 9/9 warmups and 90/90 measured requests per route,
+with direct-first and proxy-first orders represented. Goodput ratios were 1.018188,
+1.071009, and 0.956578; the 11.2387% relative spread exceeded the 5% gate and
+yielded `blocked_variance`. Power, thermal state, process age, and actual cache hits
+remain unbound, so no performance gain is certified.
 
 ## 简体中文
 
+使用`--collect-operating-context`可在warmup前、正式测量前后记录UTC时间、温度状态、
+电源来源和电源模式。配合`--target-pid`可记录推理worker启动后的秒数。
+探测在goodput计时窗口之外运行；无法获取的值保留为unknown／null。
+三次快照不能证明持续温度稳定或缓存命中；比较gate目前尚未绑定这些观测值。
+
 对已启动的本地HTTP后端运行有界闭环负载，保留失败、各语言算术质量、客户端延迟，
-并按总墙钟时间计算满足质量及SLO条件的有效吞吐。工作负载哈希用于核对输入，
-不证明模型文件相同。缓存状态未受控制，后端内部计时不可用。
+并按总墙钟时间计算满足质量及SLO条件的有效吞吐。可选的有界warmup在正式测量前运行；
+报告保存其数量、质量和错误，将数量绑定到工作负载，并从测量吞吐中排除。
+工作负载哈希用于核对输入，不证明模型文件相同。warmup只能使后端管理的缓存条件更接近，
+不代表缓存状态认证；后端内部计时不可用。
 此冒烟测试不代表一般质量、连续批处理或性能优势认证。
 可以显式绑定已验证的模型及后端SHA-256 identity。比较工具拒绝不同workload或identity，
 保留所有失败，并在identity、质量或必要指标缺失时阻止性能结论。
@@ -120,3 +167,10 @@ tokens/s，比值为1.023544。仅9个闭环样本且cache未受控制，不能�
 比值为1.011736。该单次、cache未受控制的结果只表示输入可比较，不证明性能提升；p99仍仅供参考。
 交替顺序的3×30 series得到1.011736、1.005702和1.006541三个proxy/direct goodput比，
 中位数为1.006541，相对范围为0.5995%。这只是有界c1工作负载的稳定参考，不属于性能认证。
+加入3次warmup后的M4比较中，两条route均通过3/3次warmup及30/30个测量请求。
+direct与daemon goodput分别为18.448和18.783 tokens/s，比值为1.018188。
+该direct-first单组结果只验证warmup gate，不证明性能提升。
+固定warmup的三组比较中，每条route的warmup 9/9及测量90/90均通过，并包含两种执行顺序。
+goodput比值为1.018188、1.071009和0.956578；相对范围11.2387%超过5%的门槛，
+结果为`blocked_variance`。电源、温度、进程启动后的时间及实际缓存命中率尚未绑定，
+因此不能认定性能提升。

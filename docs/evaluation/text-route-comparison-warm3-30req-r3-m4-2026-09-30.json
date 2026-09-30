@@ -1,0 +1,72 @@
+{
+  "schema_version": 1,
+  "report_kind": "text_route_comparison",
+  "workload_sha256": "1bea74cc2afc9a07098308b520051c96254bd85b0abb419fe43f97e9c23f9257",
+  "identity_fields_matched": true,
+  "artifact_identity_verified": true,
+  "quality_comparable": true,
+  "warmup_comparable": true,
+  "first_route": "direct",
+  "minimum_requests_per_route": 30,
+  "sample_gate_passed": true,
+  "p99_reference_only": true,
+  "direct": {
+    "report_sha256": "235b9b0fdc7c7641772d28515fb6f16c9064597f345e3a7041d3227091841751",
+    "route": "mlx_lm_direct",
+    "started_at": "2026-09-30T00:21:17.546895+00:00",
+    "artifact_identity_verified": true,
+    "artifact_identity_sha256": "4f69654cb373cc4392fd048acf60d51d39d67e8176648a3e52a7936b0776cd14",
+    "backend_build_sha256": "fbe49ebc3429bb6e5f3ffacaed9ba735f1101d01cd5068724ef9fc0fe174e643",
+    "requests": 30,
+    "completed": 30,
+    "failed": 0,
+    "quality_passed": 30,
+    "slo_quality_passed": 30,
+    "errors": {},
+    "elapsed_seconds": 6.473686542,
+    "output_tokens_per_second": 18.53657868997266,
+    "goodput_tokens_per_second": 18.53657868997266,
+    "e2e_p99_upper_bound_ms": 250.0,
+    "e2e_p99_reference_only": true,
+    "warmup": {
+      "attempted": 3,
+      "completed": 3,
+      "quality_passed": 3,
+      "errors": {}
+    },
+    "warmup_passed": true
+  },
+  "proxy": {
+    "report_sha256": "66b82c6f30036b408a16e3c2dea7778225b0900a1c5736ae7e3431e543bcc5d1",
+    "route": "mlx_lm_daemon",
+    "started_at": "2026-09-30T00:21:53.741525+00:00",
+    "artifact_identity_verified": true,
+    "artifact_identity_sha256": "4f69654cb373cc4392fd048acf60d51d39d67e8176648a3e52a7936b0776cd14",
+    "backend_build_sha256": "fbe49ebc3429bb6e5f3ffacaed9ba735f1101d01cd5068724ef9fc0fe174e643",
+    "requests": 30,
+    "completed": 30,
+    "failed": 0,
+    "quality_passed": 30,
+    "slo_quality_passed": 30,
+    "errors": {},
+    "elapsed_seconds": 6.767547167,
+    "output_tokens_per_second": 17.73168284443521,
+    "goodput_tokens_per_second": 17.73168284443521,
+    "e2e_p99_upper_bound_ms": 500.0,
+    "e2e_p99_reference_only": true,
+    "warmup": {
+      "attempted": 3,
+      "completed": 3,
+      "quality_passed": 3,
+      "errors": {}
+    },
+    "warmup_passed": true
+  },
+  "ratios": {
+    "proxy_to_direct_goodput": 0.956578,
+    "proxy_to_direct_output_throughput": 0.956578,
+    "proxy_to_direct_e2e_p99": 2.0
+  },
+  "conclusion": "comparable",
+  "qualification": false
+}
