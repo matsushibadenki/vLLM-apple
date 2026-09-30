@@ -4,7 +4,7 @@ from html.parser import HTMLParser
 from pathlib import Path
 from urllib.parse import urlparse
 
-WEBSITE = Path("website")
+WEBSITE = Path(__file__).resolve().parents[1] / "website" / "source"
 LOCALES = {
     "jp": "ja",
     "en": "en",
@@ -84,6 +84,16 @@ def local_asset(page: Path, reference: str) -> Path | None:
 
 
 class WebsiteLocalizationTests(unittest.TestCase):
+    def test_portable_sources_do_not_depend_on_deployment_symlinks(self) -> None:
+        self.assertTrue(WEBSITE.is_dir())
+        self.assertFalse(WEBSITE.is_symlink())
+        for locale in LOCALES:
+            with self.subTest(locale=locale):
+                directory = WEBSITE / locale
+                self.assertTrue(directory.is_dir())
+                self.assertFalse(directory.is_symlink())
+                self.assertFalse((directory / "index.html").is_symlink())
+
     def test_pages_declare_language_metadata_and_alternates(self) -> None:
         for locale, expected_lang in LOCALES.items():
             with self.subTest(locale=locale):

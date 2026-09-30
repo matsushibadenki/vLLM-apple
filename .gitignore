@@ -24,13 +24,5 @@ qualification-private/
 # Model weights and locally fetched model metadata can be very large.
 models/
 
-# Keep published locales available in clean CI checkouts.
-# Do not ignore website/ itself: Git cannot re-include its children otherwise.
-
 # Local design drafts and preview renders are not published site assets.
-/website/*/desktop-preview.png
-/website/*/mobile-preview.png
-/website/*/assets/design-concept.png
-/website/*/assets/img/design-concept.png
-/website/*/assets/img/desktop-preview.png
-/website/*/assets/img/mobile-preview.png
+website/
