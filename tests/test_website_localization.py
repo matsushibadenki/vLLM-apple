@@ -11,7 +11,7 @@ LOCALES = {
     "zh": "zh-CN",
 }
 ALTERNATES = {
-    "ja": "../jp/",
+    "ja": "../ja/",
     "en": "../en/",
     "zh-Hans": "../zh/",
     "x-default": "../en/",
@@ -84,6 +84,14 @@ def local_asset(page: Path, reference: str) -> Path | None:
 
 
 class WebsiteLocalizationTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        # The published website is managed outside this repository. Only run
+        # these source tests when an optional portable snapshot is available.
+        if not WEBSITE.exists():
+            raise unittest.SkipTest(
+                "optional website/source snapshot is not present")
+
     def test_portable_sources_do_not_depend_on_deployment_symlinks(self) -> None:
         self.assertTrue(WEBSITE.is_dir())
         self.assertFalse(WEBSITE.is_symlink())
@@ -130,7 +138,8 @@ class WebsiteLocalizationTests(unittest.TestCase):
     def test_every_local_asset_reference_resolves_to_a_regular_file(self) -> None:
         for locale in LOCALES:
             page, _, parser = parse_page(locale)
-            references = parser.scripts + parser.stylesheets + [src for src, _ in parser.images]
+            references = parser.scripts + parser.stylesheets + \
+                [src for src, _ in parser.images]
             for reference in references:
                 with self.subTest(locale=locale, reference=reference):
                     asset = local_asset(page, reference)
