@@ -1,7 +1,6 @@
 import socket
 import tempfile
 import threading
-import time
 import unittest
 from pathlib import Path
 from unittest.mock import patch
@@ -118,12 +117,14 @@ class Qwen4RuntimeTransportTests(unittest.TestCase):
         _, _, reader = protocol_tests.Qwen4RuntimeProtocolTests.numeric_fixture()
         store = protocol_tests.FakeStore()
         started = threading.Event()
+        release_load = threading.Event()
 
         def blocked_load(*args, cancellation=None, **kwargs):
             started.set()
-            deadline = time.monotonic() + 2
-            while time.monotonic() < deadline and not cancellation.is_set():
-                time.sleep(0.001)
+            # Keep the request active until the client has received the cancel
+            # acknowledgement, rather than relying on CI thread scheduling.
+            if not release_load.wait(timeout=10):
+                raise RuntimeError("test load release deadline exceeded")
             if not cancellation.is_set():
                 raise RuntimeError("test cancellation deadline exceeded")
             raise ValueError("cancelled")
@@ -132,6 +133,8 @@ class Qwen4RuntimeTransportTests(unittest.TestCase):
         service = Qwen4RuntimeCommandService("a" * 32, store, reader)
         server = Qwen4RuntimeUnixServer("/tmp/not-bound.sock", service)
         pairs = [socket.socketpair() for _ in range(3)]
+        for _, client_socket in pairs:
+            client_socket.settimeout(10)
         workers = [
             threading.Thread(target=server.serve_connection, args=(server_socket,))
             for server_socket, _ in pairs
@@ -145,13 +148,14 @@ class Qwen4RuntimeTransportTests(unittest.TestCase):
                 target_dtype="F16", tile_bytes=1, buffer_count=1,
             )
             send_qwen4_runtime_frame(pairs[0][1], load)
-            self.assertTrue(started.wait(timeout=1))
+            self.assertTrue(started.wait(timeout=10))
             send_qwen4_runtime_frame(pairs[1][1], {
                 "abi_version": 1, "session_id": "a" * 32, "sequence": 99,
                 "request_id": "2" * 32, "operation": "cancel",
                 "target_request_id": "1" * 32,
             })
             self.assertTrue(receive_qwen4_runtime_frame(pairs[1][1])["result"]["cancelled"])
+            release_load.set()
             send_qwen4_runtime_frame(pairs[2][1], {
                 "abi_version": 1, "session_id": "a" * 32, "sequence": 2,
                 "request_id": "3" * 32, "operation": "shutdown",
@@ -161,6 +165,7 @@ class Qwen4RuntimeTransportTests(unittest.TestCase):
                 receive_qwen4_runtime_frame(pairs[2][1])["result"]["shutdown"]
             )
         finally:
+            release_load.set()
             for server_socket, client_socket in pairs:
                 client_socket.close()
                 server_socket.close()
