@@ -158,9 +158,65 @@ def _ratio(candidate: float | None, baseline: float | None) -> float | None:
     return round(candidate / baseline, 6)
 
 
+def _operating_context_issues(direct: dict, proxy: dict) -> list[str]:
+    issues: list[str] = []
+    starts = []
+    power = set()
+    dates = set()
+    for route, report in (("direct", direct), ("proxy", proxy)):
+        context = report.get("operating_context")
+        if not isinstance(context, dict):
+            issues.append(f"{route}:context_missing")
+            continue
+        previous_time = None
+        previous_age = None
+        for phase in ("before_warmup", "before_measurement", "after_measurement"):
+            sample = context.get(phase)
+            if not isinstance(sample, dict):
+                issues.append(f"{route}:{phase}:missing")
+                continue
+            if sample.get("thermal_state") != "nominal":
+                issues.append(f"{route}:{phase}:thermal_not_nominal")
+            source, mode = sample.get("power_source"), sample.get("power_mode")
+            if source not in ("AC Power", "Battery Power") or mode not in (
+                "automatic", "low_power", "high_power",
+            ):
+                issues.append(f"{route}:{phase}:power_unknown")
+            else:
+                power.add((source, mode))
+            try:
+                observed = datetime.fromisoformat(sample["observed_at"])
+                if observed.utcoffset() is None or observed.utcoffset().total_seconds() != 0:
+                    raise ValueError("UTC required")
+                if previous_time is not None and observed < previous_time:
+                    raise ValueError("time reversal")
+                previous_time = observed
+                if phase == "before_measurement":
+                    dates.add(observed.date())
+            except (KeyError, TypeError, ValueError):
+                issues.append(f"{route}:{phase}:timestamp_invalid")
+            age = sample.get("target_process_age_seconds")
+            if type(age) is not int or age < 0:
+                issues.append(f"{route}:{phase}:process_age_missing")
+            else:
+                if previous_age is not None and age < previous_age:
+                    issues.append(f"{route}:{phase}:process_age_reversed")
+                previous_age = age
+                if phase == "before_measurement":
+                    starts.append(age)
+    if len(power) > 1:
+        issues.append("power_conditions_changed")
+    if len(dates) > 1:
+        issues.append("measurement_dates_differ")
+    if len(starts) == 2 and abs(starts[0] - starts[1]) > 5:
+        issues.append("process_age_difference_exceeds_5_seconds")
+    return issues
+
+
 def compare_text_benchmarks(
     direct: dict[str, Any], proxy: dict[str, Any], *,
     direct_sha256: str, proxy_sha256: str,
+    require_operating_context: bool = False,
 ) -> dict[str, object]:
     for field in _BOUND_FIELDS:
         if direct.get(field) != proxy.get(field):
@@ -186,6 +242,7 @@ def compare_text_benchmarks(
     warmup_comparable = bool(
         direct_summary["warmup_passed"] and proxy_summary["warmup_passed"]
     )
+    context_issues = _operating_context_issues(direct, proxy) if require_operating_context else []
     if not warmup_comparable:
         conclusion = "blocked_warmup_failure"
     elif not quality_comparable:
@@ -196,6 +253,8 @@ def compare_text_benchmarks(
         conclusion = "blocked_metric_unavailable"
     elif not sample_gate_passed:
         conclusion = "blocked_insufficient_samples"
+    elif context_issues:
+        conclusion = "blocked_operating_context"
     else:
         conclusion = "comparable"
     return {
@@ -206,6 +265,10 @@ def compare_text_benchmarks(
         "artifact_identity_verified": artifact_verified,
         "quality_comparable": quality_comparable,
         "warmup_comparable": warmup_comparable,
+        **({"operating_context_gate": {
+            "passed": not context_issues, "issues": context_issues,
+            "maximum_process_age_difference_seconds": 5,
+        }} if require_operating_context else {}),
         "first_route": (
             "direct"
             if datetime.fromisoformat(str(direct_summary["started_at"]))
@@ -237,12 +300,14 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--direct", required=True, type=Path)
     parser.add_argument("--proxy", required=True, type=Path)
+    parser.add_argument("--require-operating-context", action="store_true")
     arguments = parser.parse_args()
     try:
         direct, direct_digest = _read_report(arguments.direct)
         proxy, proxy_digest = _read_report(arguments.proxy)
         result = compare_text_benchmarks(
-            direct, proxy, direct_sha256=direct_digest, proxy_sha256=proxy_digest
+            direct, proxy, direct_sha256=direct_digest, proxy_sha256=proxy_digest,
+            require_operating_context=arguments.require_operating_context,
         )
     except ValueError as error:
         parser.error(str(error))

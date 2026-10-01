@@ -21,7 +21,11 @@
 PIDには推論workerを指定する。daemon frontendのPIDではworkerの経過時間を表さない。
 probeは各command 1秒timeoutで、goodputの計測窓外に実行する。取得不能は`unknown`／`null`で残す。
 これは3点の観測であり、途中の温度変化、cache hit率、processの入れ替わりは認定しない。
-比較器は現時点でこの情報を条件gateへ使用しない。[M4観測smoke](evaluation/benchmark-context-m4-2026-10-01.json)
+比較器の`--require-operating-context`で観測条件のgateを有効にできる。両routeの3点で温度nominal、
+同じ既知の電源供給元・電源モード、UTC時刻の順序、測定前の同一UTC日、worker ageの非減少と
+測定前の経過時間差5秒以内を要求する。欠測・条件変化は`blocked_operating_context`と理由を保存する。
+5秒は比較条件として固定した許容値であり、最適値の実測ではない。gate通過後も連続温度安定性や
+性能優位の認定には広げない。[M4観測smoke](evaluation/benchmark-context-m4-2026-10-01.json)
 では温度nominal、Battery Power、automaticと観測process自身のage 0秒を取得した。推論性能は未測定である。
 
 - 固定数のworkerだけを作るclosed-loop方式。requestは1〜100,000、並列度は1〜32かつrequest数以下。request数に比例するfutureや生成本文を保持しない。
@@ -95,6 +99,16 @@ proxy/direct goodput比は1.018188／1.071009／0.956578、中央値1.018188、�
 このseriesは2日間にまたがり、power／thermal、起動後経過時間、実際のcache hit率を束縛していない。
 差の原因を特定したとは扱わず、性能改善は未認定とする。
 
+2026-10-01の[operating context付き3×30件series](evaluation/text-route-comparison-series-context-3x30-m4-2026-10-01.json)
+では、各routeをfresh processで起動し、worker age 30秒以降にwarmupを開始した。測定前ageは
+30〜31秒、全18観測でnominal／AC Power／automatic、各routeのwarmup 9/9と測定90/90が
+品質・SLO合格し、3 pairともcontext gateを通過した。goodput比は1.006013／0.984572／1.170932、
+相対幅18.5246%で`blocked_variance`となった。電源・温度・ageの一致だけでは変動を解消できない。
+CPU負荷やcache hitは未取得なので原因を特定せず、性能改善は未認定とする。
+[起動flagsと再現条件](evaluation/text-context-series-protocol-m4-2026-10-01.json)を保存した。
+各benchmarkに`--collect-operating-context --target-pid <worker-pid>`を付け、比較器には
+`--require-operating-context`を指定する。daemonはbackend check skipを明示し、資格認定を付与しない。
+
 ### M4で見つかった並列失敗
 
 MLX 0.32.1／MLX-LM 0.32.0、Gemma 2 2B、serverのprompt／decode concurrencyを2に設定した。並列度1は30/30正答。並列度2の最初の試験は30秒timeoutが続いたためbackendを手動停止した。停止後の接続失敗を含み、比較baselineとして使用しない。
@@ -109,11 +123,21 @@ ValueError: [broadcast_shapes] Shapes (2,1,1,20) and (2,4,2,1,20) cannot be broa
 
 ## English
 
+The context-gated M4 3×30 series passed all three pair gates, 9/9 warmups and 90/90
+measured requests per route. All 18 snapshots were nominal / AC Power / automatic;
+starting worker ages were 30–31 seconds. Ratios were 1.006013, 0.984572, and 1.170932.
+The 18.5246% spread exceeded 5%, yielding `blocked_variance`. Matching these observations
+did not establish stable performance. CPU load and actual cache hits remain unobserved.
+
 Use `--collect-operating-context` to record UTC time, thermal state, power source,
 and power mode before warmup, before measurement, and after measurement. With
 `--target-pid`, worker process age is also recorded. Probes run outside the goodput
 window; unavailable values remain unknown/null. Three snapshots do not establish
-continuous thermal stability or cache hits. The comparison gate does not yet bind these observations.
+continuous thermal stability or cache hits. `--require-operating-context` requires
+nominal thermal snapshots, identical known power conditions, ordered UTC timestamps,
+the same UTC measurement date, nondecreasing worker ages, and starting ages within
+five seconds. Missing or changed conditions yield `blocked_operating_context` with
+reasons. The five-second tolerance is a fixed comparison policy, not a measured optimum.
 
 Run a bounded closed-loop workload against an existing local HTTP backend. Reports
 retain failures, per-language arithmetic quality, client timings, and quality-gated
@@ -147,10 +171,17 @@ remain unbound, so no performance gain is certified.
 
 ## 简体中文
 
+M4的context gate三组比较全部通过条件检查，每条route的warmup 9/9及测量90/90均通过。
+18次快照均为nominal／AC Power／automatic，测量前worker运行时间为30〜31秒。
+比值为1.006013、0.984572及1.170932，相对范围18.5246%超过5%，结果为`blocked_variance`。
+这些观测条件一致仍不能证明稳定性能；CPU负载及实际缓存命中尚未获取。
+
 使用`--collect-operating-context`可在warmup前、正式测量前后记录UTC时间、温度状态、
 电源来源和电源模式。配合`--target-pid`可记录推理worker启动后的秒数。
 探测在goodput计时窗口之外运行；无法获取的值保留为unknown／null。
-三次快照不能证明持续温度稳定或缓存命中；比较gate目前尚未绑定这些观测值。
+三次快照不能证明持续温度稳定或缓存命中。`--require-operating-context`要求温度均为nominal、
+已知电源条件一致、UTC时间有序、测量日期一致、worker运行时间不减少且测量前差值不超过5秒。
+缺失或变化会产生`blocked_operating_context`及原因。5秒是固定比较策略，尚未实测其最优性。
 
 对已启动的本地HTTP后端运行有界闭环负载，保留失败、各语言算术质量、客户端延迟，
 并按总墙钟时间计算满足质量及SLO条件的有效吞吐。可选的有界warmup在正式测量前运行；

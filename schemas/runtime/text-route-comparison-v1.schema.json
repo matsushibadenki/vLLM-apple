@@ -97,7 +97,16 @@
         "proxy_to_direct_e2e_p99": {"type": ["number", "null"], "minimum": 0}
       }
     },
-    "conclusion": {"enum": ["comparable", "blocked_warmup_failure", "blocked_quality_failure", "blocked_artifact_identity_unverified", "blocked_metric_unavailable", "blocked_insufficient_samples"]},
+    "operating_context_gate": {
+      "type": "object", "additionalProperties": false,
+      "required": ["passed", "issues", "maximum_process_age_difference_seconds"],
+      "properties": {
+        "passed": {"type": "boolean"},
+        "issues": {"type": "array", "items": {"type": "string"}},
+        "maximum_process_age_difference_seconds": {"const": 5}
+      }
+    },
+    "conclusion": {"enum": ["comparable", "blocked_operating_context", "blocked_warmup_failure", "blocked_quality_failure", "blocked_artifact_identity_unverified", "blocked_metric_unavailable", "blocked_insufficient_samples"]},
     "qualification": {"const": false}
   }
 }

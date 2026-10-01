@@ -30,6 +30,32 @@ def report(**changes):
 
 
 class TextBenchmarkComparisonTests(unittest.TestCase):
+    def test_operating_context_gate_blocks_missing_and_accepts_matched_conditions(self):
+        def compare(a, b):
+            return compare_text_benchmarks(
+                a, b, direct_sha256="b" * 64, proxy_sha256="c" * 64,
+                require_operating_context=True,
+            )
+        self.assertEqual(compare(report(), report())["conclusion"], "blocked_operating_context")
+        context = {phase: {
+            "observed_at": "2026-10-01T00:00:00+00:00", "thermal_state": "nominal",
+            "power_source": "Battery Power", "power_mode": "automatic",
+            "target_process_age_seconds": 20,
+        } for phase in ("before_warmup", "before_measurement", "after_measurement")}
+        a = report(operating_context=context)
+        matched = compare(a, a)
+        self.assertEqual(matched["conclusion"], "comparable")
+        schema = json.loads(Path("schemas/runtime/text-route-comparison-v1.schema.json").read_text())
+        validate_instance(matched, schema)
+        for field, value in (("thermal_state", "unknown"), ("power_source", "AC Power"),
+                             ("target_process_age_seconds", 30),
+                             ("observed_at", "2026-10-02T00:00:00+00:00")):
+            changed = json.loads(json.dumps(context))
+            changed["before_measurement"][field] = value
+            with self.subTest(field=field):
+                self.assertEqual(compare(a, report(operating_context=changed))["conclusion"],
+                                 "blocked_operating_context")
+
     def test_matching_quality_reports_are_compared_and_schema_valid(self):
         comparison = compare_text_benchmarks(
             report(), report(

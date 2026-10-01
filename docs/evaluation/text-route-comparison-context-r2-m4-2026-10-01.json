@@ -1,0 +1,77 @@
+{
+  "schema_version": 1,
+  "report_kind": "text_route_comparison",
+  "workload_sha256": "dfec19a7edfeca065d8315df067257521c8c976ff0683b1f266e3b7d29554e03",
+  "identity_fields_matched": true,
+  "artifact_identity_verified": true,
+  "quality_comparable": true,
+  "warmup_comparable": true,
+  "operating_context_gate": {
+    "passed": true,
+    "issues": [],
+    "maximum_process_age_difference_seconds": 5
+  },
+  "first_route": "proxy",
+  "minimum_requests_per_route": 30,
+  "sample_gate_passed": true,
+  "p99_reference_only": true,
+  "direct": {
+    "report_sha256": "4f9770f0cd399bfb2091b2cc99656dbb66f9634291339f160fdcff024350ae28",
+    "route": "mlx_lm_direct",
+    "started_at": "2026-10-01T04:20:38.101737+00:00",
+    "artifact_identity_verified": true,
+    "artifact_identity_sha256": "4f69654cb373cc4392fd048acf60d51d39d67e8176648a3e52a7936b0776cd14",
+    "backend_build_sha256": "fbe49ebc3429bb6e5f3ffacaed9ba735f1101d01cd5068724ef9fc0fe174e643",
+    "requests": 30,
+    "completed": 30,
+    "failed": 0,
+    "quality_passed": 30,
+    "slo_quality_passed": 30,
+    "errors": {},
+    "elapsed_seconds": 6.731721458,
+    "output_tokens_per_second": 17.82604951032126,
+    "goodput_tokens_per_second": 17.82604951032126,
+    "e2e_p99_upper_bound_ms": 250.0,
+    "e2e_p99_reference_only": true,
+    "warmup": {
+      "attempted": 3,
+      "completed": 3,
+      "quality_passed": 3,
+      "errors": {}
+    },
+    "warmup_passed": true
+  },
+  "proxy": {
+    "report_sha256": "04fb2e98896098601dbb11032e93de1b593150c039147e7f51ac8c71610fc816",
+    "route": "mlx_lm_daemon",
+    "started_at": "2026-10-01T04:20:01.001207+00:00",
+    "artifact_identity_verified": true,
+    "artifact_identity_sha256": "4f69654cb373cc4392fd048acf60d51d39d67e8176648a3e52a7936b0776cd14",
+    "backend_build_sha256": "fbe49ebc3429bb6e5f3ffacaed9ba735f1101d01cd5068724ef9fc0fe174e643",
+    "requests": 30,
+    "completed": 30,
+    "failed": 0,
+    "quality_passed": 30,
+    "slo_quality_passed": 30,
+    "errors": {},
+    "elapsed_seconds": 6.837208791,
+    "output_tokens_per_second": 17.55102172072896,
+    "goodput_tokens_per_second": 17.55102172072896,
+    "e2e_p99_upper_bound_ms": 250.0,
+    "e2e_p99_reference_only": true,
+    "warmup": {
+      "attempted": 3,
+      "completed": 3,
+      "quality_passed": 3,
+      "errors": {}
+    },
+    "warmup_passed": true
+  },
+  "ratios": {
+    "proxy_to_direct_goodput": 0.984572,
+    "proxy_to_direct_output_throughput": 0.984572,
+    "proxy_to_direct_e2e_p99": 1.0
+  },
+  "conclusion": "comparable",
+  "qualification": false
+}

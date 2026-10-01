@@ -1,0 +1,149 @@
+{
+  "schema_version": 1,
+  "report_kind": "text_http_benchmark",
+  "route": "mlx_lm_daemon",
+  "started_at": "2026-10-01T04:19:22.993860+00:00",
+  "cache_policy": "backend_managed_conditioned",
+  "warmup_requests": 3,
+  "warmup": {
+    "attempted": 3,
+    "completed": 3,
+    "quality_passed": 3,
+    "errors": {}
+  },
+  "operating_context": {
+    "before_warmup": {
+      "observed_at": "2026-10-01T04:19:22.046008+00:00",
+      "thermal_state": "nominal",
+      "power_source": "AC Power",
+      "power_mode": "automatic",
+      "target_process_age_seconds": 30
+    },
+    "before_measurement": {
+      "observed_at": "2026-10-01T04:19:22.991231+00:00",
+      "thermal_state": "nominal",
+      "power_source": "AC Power",
+      "power_mode": "automatic",
+      "target_process_age_seconds": 30
+    },
+    "after_measurement": {
+      "observed_at": "2026-10-01T04:19:29.552732+00:00",
+      "thermal_state": "nominal",
+      "power_source": "AC Power",
+      "power_mode": "automatic",
+      "target_process_age_seconds": 37
+    }
+  },
+  "artifact_identity_verified": true,
+  "artifact_identity_sha256": "4f69654cb373cc4392fd048acf60d51d39d67e8176648a3e52a7936b0776cd14",
+  "backend_build_sha256": "fbe49ebc3429bb6e5f3ffacaed9ba735f1101d01cd5068724ef9fc0fe174e643",
+  "workload_sha256": "dfec19a7edfeca065d8315df067257521c8c976ff0683b1f266e3b7d29554e03",
+  "load_policy": "closed_loop",
+  "quality_policy": "arithmetic_trimmed_exact",
+  "requests": 30,
+  "concurrency": 1,
+  "maximum_output_tokens": 16,
+  "timeout_seconds": 30,
+  "slo": {
+    "ttft_ms": 1000,
+    "e2e_ms": 5000
+  },
+  "completed": 30,
+  "failed": 0,
+  "errors": {},
+  "quality_passed": 30,
+  "slo_quality_passed": 30,
+  "output_tokens": 120,
+  "slo_quality_output_tokens": 120,
+  "elapsed_seconds": 6.545036583,
+  "output_tokens_per_second": 18.33450408996744,
+  "goodput_tokens_per_second": 18.33450408996744,
+  "languages": {
+    "en": {
+      "attempted": 10,
+      "completed": 10,
+      "quality_passed": 10,
+      "slo_passed": 10
+    },
+    "ja": {
+      "attempted": 10,
+      "completed": 10,
+      "quality_passed": 10,
+      "slo_passed": 10
+    },
+    "zh": {
+      "attempted": 10,
+      "completed": 10,
+      "quality_passed": 10,
+      "slo_passed": 10
+    }
+  },
+  "e2e_p99_upper_bound_ms": 250.0,
+  "e2e_p99_reference_only": true,
+  "phase_profile": {
+    "schema_version": 1,
+    "profile_id": "e89c9b71d463fcf60d88136f",
+    "hardware_fingerprint": "Apple-M4-32GiB",
+    "model_id": "models/gemma-2-2b-it-4bit",
+    "backend": "mlx_lm_daemon",
+    "sample_count": 30,
+    "prefill": {
+      "prompt_tokens": 610,
+      "ttft": {
+        "mean_ms": 155.533,
+        "p50_upper_bound_ms": 250.0,
+        "p95_upper_bound_ms": 250.0,
+        "max_ms": 161.475
+      }
+    },
+    "decode": {
+      "output_tokens": 120,
+      "token_intervals": 90,
+      "duration_ms": 1076.036,
+      "tpot": {
+        "mean_ms": 11.956,
+        "p50_upper_bound_ms": 25.0,
+        "p95_upper_bound_ms": 25.0,
+        "max_ms": 13.117
+      },
+      "tokens_per_second": 83.64
+    },
+    "peak_memory_bytes": 2203156480,
+    "transport": {
+      "sample_count": 30,
+      "unavailable_sample_count": 0,
+      "end_to_end": {
+        "mean_ms": 213.181,
+        "p50_upper_bound_ms": 250.0,
+        "p95_upper_bound_ms": 250.0,
+        "max_ms": 219.708
+      },
+      "stream_tail": {
+        "mean_ms": 21.781,
+        "p50_upper_bound_ms": 25.0,
+        "p95_upper_bound_ms": 25.0,
+        "max_ms": 23.51
+      }
+    },
+    "storage": {
+      "latency_bucket_count": 52,
+      "raw_sample_count": 0
+    }
+  },
+  "unavailable": [
+    "backend_token_timestamps",
+    "queue_time",
+    "tokenize_time",
+    "model_load_time",
+    "energy_per_token",
+    "gpu_utilization",
+    "mlx_allocator",
+    "swap_delta",
+    "memory_pressure",
+    "cache_hit_rate",
+    "continuous_thermal_observation"
+  ],
+  "qualification": false,
+  "stores_prompt": false,
+  "stores_generated_text": false
+}
