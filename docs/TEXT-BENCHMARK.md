@@ -1,5 +1,42 @@
 # Bounded text HTTP benchmark
 
+[M4 two-client trickle validation](evaluation/wrapper-multi-trickle-body-m4-2026-10-03.json)
+used queue capacity one, two connections declaring 100-byte bodies, and one-byte
+uploads every 200 ms. Both requests returned 408 at about 10.002 seconds despite
+continued uploads; an additional request returned 503. Inflight returned to zero,
+no generation started, and three recovery generations passed quality. This verifies
+the absolute body deadline and capacity recovery in this short test, not total HTTP
+thread limits, header-read deadlines, or long-run stability.
+
+上記M4試験は待機枠1、100 bytesを宣言する2接続、200 msごとに1 byteを送る条件で実施した。
+送信が続いていても双方約10.002秒で408、追加要求503、最終使用枠0、不要な生成開始0、
+後続3/3品質合格を確認した。短時間のbody絶対deadlineと枠回収の検証であり、
+全HTTP thread上限、header読取りdeadline、長時間安定性の認定ではない。
+
+上述M4测试使用等待名额1、声明100 bytes的2个连接、每200 ms发送1 byte。
+持续上传未延长deadline，两者约10.002秒返回408，追加请求503，最终名额0，未启动多余生成，
+后续3/3通过质量检查。这只验证短时body绝对deadline及名额回收，不认证全部HTTP thread上限、header读取deadline或长期稳定性。
+
+Body reads now recheck the absolute deadline after each chunk, including the final
+chunk; receiving a complete body after the deadline cannot bypass rejection.
+[M4 slow-body smoke](evaluation/wrapper-slow-body-m4-2026-10-03.json) sent one byte
+of a declared 100-byte body. With zero waiting slots, an additional request returned
+503, the incomplete body returned 408 after about 10.002 seconds, and admission
+returned to zero without starting generation. Three subsequent generation requests
+passed quality. CPU regression tests ran concurrently; this is recovery evidence,
+not a performance comparison. Multiple slow clients, trickle uploads and total
+HTTP thread limits remain unverified.
+
+bodyの最終chunkを含め、読取り後にも絶対deadlineを確認し、期限後の完全bodyを拒否する。
+上記M4試験では100 bytes宣言のbodyを1 byteだけ送り、待機枠0で追加要求503、
+未完bodyは約10.002秒後に408、生成開始なしで使用枠0に戻り、後続3/3品質合格を確認した。
+CPU回帰を並行実行した回復確認であり、性能比較ではない。複数slow client、trickle送信、全HTTP thread上限は未検証。
+
+每次读取chunk后（包括最终chunk）重新检查绝对deadline，拒绝期限后才完整到达的body。
+上述M4测试声明100 bytes但只发送1 byte；等待名额0时追加请求返回503，不完整body约10.002秒后返回408，
+未启动生成且名额归零，后续3/3通过质量检查。CPU回归同时运行，因此只是恢复验证，不是性能比较。
+多个slow client、trickle上传和全部HTTP thread上限尚未验证。
+
 Serialized admission now serves FIFO after body preparation finishes. This orders
 ready requests, not connections or slow body uploads. Cancelled/timed-out tickets
 are removed and followers notified. FIFO and cancelled-head tests passed 200

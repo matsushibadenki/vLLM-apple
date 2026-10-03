@@ -81,6 +81,10 @@ MLX / vLLM-Metal / qualified optional backend → Metal GPU
 
 ## P0 — 比較可能な基準と実行経路の監査 [Next]
 
+- [Done] [M4複数trickle body試験](evaluation/wrapper-multi-trickle-body-m4-2026-10-03.json)で待機枠1・使用枠2の状態を確認した。100 bytes宣言のbodyを2本同時に200 ms間隔で送信してもdeadlineは延びず、双方約10.002秒で408、追加要求503、最終使用枠0・生成開始0・準備失敗2・拒否1。後続3/3品質合格。全HTTP threadの上限や長時間soakは未認定。[Next] request header段階も含むHTTP処理の資源上限と長時間負荷を検証する。
+
+- [Done] body読取りの最終chunk後にも絶対deadlineを検証し、期限超過の完全bodyを受理しないよう修正した。timeout引数の有限正数検証も追加。[M4遅いbody試験](evaluation/wrapper-slow-body-m4-2026-10-03.json)で未完bodyは約10.002秒後に408、待機枠0での追加要求は503、最終使用枠0・生成開始0・準備失敗1・拒否1を確認し、後続3/3品質合格。CPU回帰も並行実行したため性能比較には使わない。[Next] trickle送信・複数slow client・長時間soakとHTTP全体のthread上限を検証する。
+
 - [Done] wrapper admissionをbody準備完了後のFIFOへ変更した。先頭の取消／timeoutはticketを除去し後続へ通知する。順序保持と先頭取消のtestを200回反復合格。[M4回帰](evaluation/wrapper-fifo-queue-cancel-m4-2026-10-03.json)で待機切断1・生成開始は先行1のみ・最終枠0・後続3/3品質合格を確認した。接続時刻順・body読取り中のFIFOではなく、実backend token schedulerの認定でもない。[Next] 長時間負荷と遅いbody送信時のadmissionを検証する。
 
 - [Done] 全回帰でQwen4 cancel／shutdown socket競合テストのthread終了待ちが失敗したため、test cleanupをclient shutdown→join→server closeへ修正した。別threadのblocking readをcloseだけで起こす前提を除去し、該当テスト200回反復合格。Qwen4 runtime実装は変更していない。

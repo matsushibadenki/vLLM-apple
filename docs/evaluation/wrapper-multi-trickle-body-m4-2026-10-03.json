@@ -1,0 +1,66 @@
+{
+  "report_kind": "wrapper_multiple_trickle_body_deadline_smoke",
+  "initial": {
+    "inflight": 0,
+    "active": 0,
+    "started": 0,
+    "cancelled": 0,
+    "timed_out": 0,
+    "rejected": 0,
+    "preparation_failed": 0,
+    "active_disconnects": 0
+  },
+  "preparing": {
+    "inflight": 2,
+    "active": 0,
+    "started": 0,
+    "cancelled": 0,
+    "timed_out": 0,
+    "rejected": 0,
+    "preparation_failed": 0,
+    "active_disconnects": 0
+  },
+  "settled": {
+    "inflight": 0,
+    "active": 0,
+    "started": 0,
+    "cancelled": 0,
+    "timed_out": 0,
+    "rejected": 1,
+    "preparation_failed": 2,
+    "active_disconnects": 0
+  },
+  "overload_http_status": 503,
+  "slow_body_responses": [
+    {
+      "status": 408,
+      "elapsed_seconds": 10.00184787499893
+    },
+    {
+      "status": 408,
+      "elapsed_seconds": 10.001682791997155
+    }
+  ],
+  "trickle_interval_seconds": 0.2,
+  "declared_body_bytes": 100,
+  "recovery": {
+    "completed": 3,
+    "quality_passed": 3,
+    "errors": {}
+  },
+  "backend_command": [
+    "/opt/homebrew/opt/vllm-metal/libexec/bin/python",
+    "-m",
+    "vllm_apple.mlx_server",
+    "--model",
+    "models/gemma-2-2b-it-4bit",
+    "--host",
+    "127.0.0.1",
+    "--port",
+    "19130",
+    "--generation-queue-capacity",
+    "1"
+  ],
+  "qualification": false,
+  "active_generation_cancel_tested": false
+}

@@ -22,6 +22,9 @@ class GenerationBodyError(GenerationAdmissionError):
 
 
 def read_generation_body(handler: Any, timeout_seconds: float = 10) -> bytes:
+    if (isinstance(timeout_seconds, bool) or not math.isfinite(timeout_seconds)
+            or not 0 < timeout_seconds <= 300):
+        raise ValueError("body timeout must be finite and between 0 and 300 seconds")
     lengths = handler.headers.get_all("Content-Length", [])
     if len(lengths) != 1 or handler.headers.get("Transfer-Encoding") is not None:
         raise GenerationBodyError("generation_body_framing", 400)
@@ -41,6 +44,8 @@ def read_generation_body(handler: Any, timeout_seconds: float = 10) -> bytes:
                 raise GenerationBodyError("generation_body_timeout", 408)
             handler.connection.settimeout(remaining)
             chunk = handler.rfile.read1(min(65536, length - len(body)))
+            if time.monotonic() >= deadline:
+                raise GenerationBodyError("generation_body_timeout", 408)
             if not chunk:
                 raise GenerationBodyError("generation_body_incomplete", 400)
             body.extend(chunk)

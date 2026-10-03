@@ -73,6 +73,16 @@ class GenerationBodyTests(unittest.TestCase):
             with self.assertRaisesRegex(GenerationBodyError, 'timeout'):
                 read_generation_body(handler)
 
+    def test_final_chunk_cannot_bypass_absolute_deadline(self):
+        handler = self.handler()
+        with patch('vllm_apple.mlx_server.time.monotonic', side_effect=[0, 0, 11]):
+            with self.assertRaisesRegex(GenerationBodyError, 'timeout'):
+                read_generation_body(handler)
+        self.assertIsNone(handler.connection.settimeout.call_args.args[0])
+        for timeout in (True, 0, float('nan'), float('inf'), 301):
+            with self.subTest(timeout=timeout), self.assertRaises(ValueError):
+                read_generation_body(self.handler(), timeout)
+
 
 class FakeArray:
     def __init__(self, nbytes: int) -> None:
