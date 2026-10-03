@@ -1,11 +1,77 @@
 import io
 import json
+import socket
 import unittest
+from email.message import Message
 from types import SimpleNamespace
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 from vllm_apple.backend_memory import MLXMemoryMetricsAdapter
-from vllm_apple.mlx_server import bounded_cache_nbytes, prompt_cache_metrics, tokenize_chat_request
+from vllm_apple.generation_admission import (
+    GenerationAdmission,
+    GenerationAdmissionError,
+    peer_disconnected,
+)
+from vllm_apple.mlx_server import (
+    GenerationBodyError,
+    bounded_cache_nbytes,
+    prompt_cache_metrics,
+    read_generation_body,
+    tokenize_chat_request,
+)
+
+
+class GenerationBodyTests(unittest.TestCase):
+    def test_closed_peer_with_unread_body_is_cancelled_before_generation(self):
+        receiver, sender = socket.socketpair()
+        try:
+            sender.sendall(b'{}')
+            sender.close()
+            self.assertFalse(peer_disconnected(receiver))
+            handler = self.handler()
+            handler.connection = receiver
+            with receiver.makefile('rb') as stream:
+                handler.rfile = stream
+                gate = GenerationAdmission(1, 1)
+                with gate.admit():
+                    with self.assertRaisesRegex(GenerationAdmissionError, 'cancelled'):
+                        with gate.admit(lambda: peer_disconnected(receiver),
+                                        lambda: read_generation_body(handler)):
+                            self.fail('disconnected request generated')
+                with gate.admit():
+                    pass
+        finally:
+            sender.close()
+            receiver.close()
+
+    def handler(self, body=b'{}', length='2'):
+        headers = Message()
+        headers['Content-Length'] = length
+        connection = Mock()
+        connection.gettimeout.return_value = None
+        return SimpleNamespace(headers=headers, connection=connection, rfile=io.BytesIO(body))
+
+    def test_body_replay_and_timeout_restoration(self):
+        handler = self.handler()
+        self.assertEqual(read_generation_body(handler), b'{}')
+        self.assertIsNone(handler.connection.settimeout.call_args.args[0])
+        handler = self.handler(b'{')
+        with self.assertRaisesRegex(GenerationBodyError, 'incomplete'):
+            read_generation_body(handler)
+        self.assertIsNone(handler.connection.settimeout.call_args.args[0])
+
+    def test_framing_size_and_deadline(self):
+        for length in ('invalid', '-1', '8388609'):
+            with self.subTest(length=length), self.assertRaises(GenerationBodyError):
+                read_generation_body(self.handler(length=length))
+        handler = self.handler()
+        handler.headers['Content-Length'] = '2'
+        with self.assertRaisesRegex(GenerationBodyError, 'framing'):
+            read_generation_body(handler)
+        handler = self.handler()
+        with patch('vllm_apple.mlx_server.time.monotonic', side_effect=[0, 11]):
+            with self.assertRaisesRegex(GenerationBodyError, 'timeout'):
+                read_generation_body(handler)
 
 
 class FakeArray:

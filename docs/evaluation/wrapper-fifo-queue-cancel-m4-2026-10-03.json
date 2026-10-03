@@ -1,0 +1,75 @@
+{
+  "report_kind": "real_model_waiting_disconnect_smoke",
+  "initial": {
+    "inflight": 0,
+    "active": 0,
+    "started": 0,
+    "cancelled": 0,
+    "timed_out": 0,
+    "rejected": 0,
+    "preparation_failed": 0,
+    "active_disconnects": 0
+  },
+  "active": {
+    "inflight": 1,
+    "active": 1,
+    "started": 1,
+    "cancelled": 0,
+    "timed_out": 0,
+    "rejected": 0,
+    "preparation_failed": 0,
+    "active_disconnects": 0
+  },
+  "queued": {
+    "inflight": 2,
+    "active": 1,
+    "started": 1,
+    "cancelled": 0,
+    "timed_out": 0,
+    "rejected": 0,
+    "preparation_failed": 0,
+    "active_disconnects": 0
+  },
+  "cancelled": {
+    "inflight": 1,
+    "active": 1,
+    "started": 1,
+    "cancelled": 1,
+    "timed_out": 0,
+    "rejected": 0,
+    "preparation_failed": 0,
+    "active_disconnects": 0
+  },
+  "settled": {
+    "inflight": 0,
+    "active": 0,
+    "started": 1,
+    "cancelled": 1,
+    "timed_out": 0,
+    "rejected": 0,
+    "preparation_failed": 0,
+    "active_disconnects": 0
+  },
+  "first_generation": {
+    "status": 200,
+    "done": true
+  },
+  "recovery": {
+    "completed": 3,
+    "quality_passed": 3,
+    "errors": {}
+  },
+  "backend_command": [
+    "/opt/homebrew/opt/vllm-metal/libexec/bin/python",
+    "-m",
+    "vllm_apple.mlx_server",
+    "--model",
+    "models/gemma-2-2b-it-4bit",
+    "--host",
+    "127.0.0.1",
+    "--port",
+    "19130"
+  ],
+  "qualification": false,
+  "active_generation_cancel_tested": false
+}

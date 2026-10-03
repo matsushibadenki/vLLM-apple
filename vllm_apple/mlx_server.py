@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 import argparse
+import io
 import json
 import math
+import time
 from importlib.metadata import version
 from typing import Any
 
@@ -11,6 +13,42 @@ from .generation_admission import GenerationAdmission, GenerationAdmissionError,
 MAXIMUM_CACHE_NODES = 4096
 MAXIMUM_METRICS_BYTES = 4096
 MAXIMUM_TOKENIZE_REQUEST_BYTES = 8 * 1024 * 1024
+
+
+class GenerationBodyError(GenerationAdmissionError):
+    def __init__(self, code: str, status: int) -> None:
+        super().__init__(code)
+        self.status = status
+
+
+def read_generation_body(handler: Any, timeout_seconds: float = 10) -> bytes:
+    lengths = handler.headers.get_all("Content-Length", [])
+    if len(lengths) != 1 or handler.headers.get("Transfer-Encoding") is not None:
+        raise GenerationBodyError("generation_body_framing", 400)
+    try:
+        length = int(lengths[0])
+    except ValueError as error:
+        raise GenerationBodyError("generation_body_framing", 400) from error
+    if not 0 < length <= MAXIMUM_TOKENIZE_REQUEST_BYTES:
+        raise GenerationBodyError("generation_body_size", 413)
+    original_timeout = handler.connection.gettimeout()
+    deadline = time.monotonic() + timeout_seconds
+    body = bytearray()
+    try:
+        while len(body) < length:
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                raise GenerationBodyError("generation_body_timeout", 408)
+            handler.connection.settimeout(remaining)
+            chunk = handler.rfile.read1(min(65536, length - len(body)))
+            if not chunk:
+                raise GenerationBodyError("generation_body_incomplete", 400)
+            body.extend(chunk)
+    except TimeoutError as error:
+        raise GenerationBodyError("generation_body_timeout", 408) from error
+    finally:
+        handler.connection.settimeout(original_timeout)
+    return bytes(body)
 
 
 def prompt_cache_metrics(cache: object) -> dict[str, Any]:
@@ -151,21 +189,34 @@ def main(argv: list[str] | None = None) -> int:
             if self.path != "/tokenize":
                 if (self.path in {"/v1/chat/completions", "/v1/completions"}
                         and not arguments.allow_concurrent_generation):
+                    body = None
+                    def prepare_body() -> None:
+                        nonlocal body
+                        body = read_generation_body(self)
                     try:
-                        with admission.admit(lambda: peer_disconnected(self.connection)):
-                            super().do_POST()
+                        with admission.admit(lambda: peer_disconnected(self.connection), prepare_body):
+                            original_input = self.rfile
+                            self.rfile = io.BytesIO(body)
+                            try:
+                                super().do_POST()
+                            finally:
+                                self.rfile = original_input
                     except GenerationAdmissionError as error:
-                        if str(error) == "generation_queue_cancelled":
+                        if (str(error) == "generation_queue_cancelled"
+                                or peer_disconnected(self.connection)):
                             self.close_connection = True
                             return
                         encoded = json.dumps({"error": {"code": str(error)}}).encode()
                         self.close_connection = True
-                        self._set_completion_headers(503)
+                        self._set_completion_headers(getattr(error, "status", 503))
                         self.send_header("Content-Length", str(len(encoded)))
-                        self.send_header("Retry-After", "1")
+                        if not isinstance(error, GenerationBodyError):
+                            self.send_header("Retry-After", "1")
                         self.send_header("Connection", "close")
                         self.end_headers()
                         self.wfile.write(encoded)
+                    except (BrokenPipeError, ConnectionResetError):
+                        self.close_connection = True
                 else:
                     super().do_POST()
                 return
@@ -199,6 +250,8 @@ def main(argv: list[str] | None = None) -> int:
             payload: dict[str, Any] = {
                 "schema_version": 1,
                 "snapshot_consistency": "non_atomic",
+                "generation_admission": (None if arguments.allow_concurrent_generation
+                                         else admission.snapshot()),
                 "active_bytes": provider.get_active_memory(),
                 "cache_bytes": provider.get_cache_memory(),
                 "peak_bytes": provider.get_peak_memory(),

@@ -166,11 +166,16 @@ class Qwen4RuntimeTransportTests(unittest.TestCase):
             )
         finally:
             release_load.set()
-            for server_socket, client_socket in pairs:
+            for _, client_socket in pairs:
+                try:
+                    client_socket.shutdown(socket.SHUT_RDWR)
+                except OSError:
+                    pass
                 client_socket.close()
-                server_socket.close()
             for worker in workers:
                 worker.join(timeout=2)
+            for server_socket, _ in pairs:
+                server_socket.close()
         self.assertTrue(all(not worker.is_alive() for worker in workers))
         diagnostics = service.numeric_diagnostics_snapshot()
         self.assertEqual(diagnostics["active_requests"], 0)

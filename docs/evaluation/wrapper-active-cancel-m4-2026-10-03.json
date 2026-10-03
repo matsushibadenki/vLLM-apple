@@ -1,0 +1,67 @@
+{
+  "report_kind": "real_model_active_disconnect_smoke",
+  "initial": {
+    "inflight": 0,
+    "active": 0,
+    "started": 0,
+    "cancelled": 0,
+    "timed_out": 0,
+    "rejected": 0,
+    "preparation_failed": 0,
+    "active_disconnects": 0
+  },
+  "active": {
+    "inflight": 1,
+    "active": 1,
+    "started": 1,
+    "cancelled": 0,
+    "timed_out": 0,
+    "rejected": 0,
+    "preparation_failed": 0,
+    "active_disconnects": 0
+  },
+  "cancelled": {
+    "inflight": 0,
+    "active": 0,
+    "started": 1,
+    "cancelled": 0,
+    "timed_out": 0,
+    "rejected": 0,
+    "preparation_failed": 0,
+    "active_disconnects": 1
+  },
+  "settled": {
+    "inflight": 0,
+    "active": 0,
+    "started": 1,
+    "cancelled": 0,
+    "timed_out": 0,
+    "rejected": 0,
+    "preparation_failed": 0,
+    "active_disconnects": 1
+  },
+  "adapter_release_seconds": 0.05150583400245523,
+  "first_generation": {
+    "status": 200,
+    "received_generated_content": true,
+    "client_closed_after_content": true
+  },
+  "recovery": {
+    "completed": 3,
+    "quality_passed": 3,
+    "errors": {}
+  },
+  "backend_command": [
+    "/opt/homebrew/opt/vllm-metal/libexec/bin/python",
+    "-m",
+    "vllm_apple.mlx_server",
+    "--model",
+    "models/gemma-2-2b-it-4bit",
+    "--host",
+    "127.0.0.1",
+    "--port",
+    "19130"
+  ],
+  "qualification": false,
+  "backend_gpu_stop_latency_measured": false
+}

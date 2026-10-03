@@ -32,3 +32,13 @@ class BackendMemoryTests(unittest.TestCase):
         for raw in (b'{}', b'null', b'invalid', b'x' * 65537):
             with self.subTest(raw=raw[:10]):
                 self.assertEqual(self.observe(raw)['status'], 'unavailable')
+
+    def test_admission_counters_are_validated(self):
+        payload = dict(schema_version=1, active_bytes=1, cache_bytes=2, peak_bytes=3,
+                       kv_cache_bytes=4, traversal_complete=False)
+        counters = dict(inflight=1, active=1, started=3, cancelled=2, timed_out=0,
+                        rejected=1, preparation_failed=0)
+        payload['generation_admission'] = counters
+        self.assertEqual(self.observe(json.dumps(payload).encode())['generation_admission'], counters)
+        counters['cancelled'] = True
+        self.assertEqual(self.observe(json.dumps(payload).encode())['status'], 'unavailable')

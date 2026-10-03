@@ -1,0 +1,688 @@
+{
+  "schema_version": 1,
+  "report_kind": "text_http_benchmark",
+  "route": "mlx_lm_direct",
+  "started_at": "2026-10-03T10:08:45.172927+00:00",
+  "cache_policy": "backend_managed_conditioned",
+  "warmup_requests": 3,
+  "warmup": {
+    "attempted": 3,
+    "completed": 3,
+    "quality_passed": 3,
+    "errors": {}
+  },
+  "operating_context": {
+    "before_warmup": {
+      "observed_at": "2026-10-03T10:08:43.267047+00:00",
+      "thermal_state": "nominal",
+      "power_source": "AC Power",
+      "power_mode": "automatic",
+      "target_process_age_seconds": 3,
+      "system": {
+        "load_average_1_5_15_minutes": [
+          5.7802734375,
+          7.30810546875,
+          6.1650390625
+        ],
+        "logical_cpu_count": 10,
+        "memory": {
+          "total_bytes": 34359738368,
+          "available_bytes": 10528276480,
+          "source": "sysctl",
+          "available_is_estimate": true,
+          "available_is_fallback": false,
+          "pressure_estimate": "normal",
+          "pressure_method": "available_ratio_thresholds_0.08_0.18"
+        }
+      }
+    },
+    "before_measurement": {
+      "observed_at": "2026-10-03T10:08:45.156193+00:00",
+      "thermal_state": "nominal",
+      "power_source": "AC Power",
+      "power_mode": "automatic",
+      "target_process_age_seconds": 5,
+      "system": {
+        "load_average_1_5_15_minutes": [
+          6.1982421875,
+          7.369140625,
+          6.193359375
+        ],
+        "logical_cpu_count": 10,
+        "memory": {
+          "total_bytes": 34359738368,
+          "available_bytes": 10249568256,
+          "source": "sysctl",
+          "available_is_estimate": true,
+          "available_is_fallback": false,
+          "pressure_estimate": "normal",
+          "pressure_method": "available_ratio_thresholds_0.08_0.18"
+        }
+      }
+    },
+    "after_measurement": {
+      "observed_at": "2026-10-03T10:08:46.564243+00:00",
+      "thermal_state": "nominal",
+      "power_source": "AC Power",
+      "power_mode": "automatic",
+      "target_process_age_seconds": 6,
+      "system": {
+        "load_average_1_5_15_minutes": [
+          6.1982421875,
+          7.369140625,
+          6.193359375
+        ],
+        "logical_cpu_count": 10,
+        "memory": {
+          "total_bytes": 34359738368,
+          "available_bytes": 9848815616,
+          "source": "sysctl",
+          "available_is_estimate": true,
+          "available_is_fallback": false,
+          "pressure_estimate": "normal",
+          "pressure_method": "available_ratio_thresholds_0.08_0.18"
+        }
+      }
+    }
+  },
+  "backend_memory_observations": {
+    "before_measurement": {
+      "status": "observed",
+      "memory": {
+        "active_bytes": 1535795742,
+        "cache_bytes": 4635484,
+        "peak_bytes": 1559479866,
+        "kv_cache_bytes": 7774208
+      },
+      "kv_cache_tokens": null,
+      "kv_measurement_source": "backend_lru_accounting",
+      "snapshot_consistency": "non_atomic",
+      "traversal_complete": false,
+      "cache_hits": null,
+      "cache_evictions": null
+    },
+    "after_measurement": {
+      "status": "observed",
+      "memory": {
+        "active_bytes": 1563025950,
+        "cache_bytes": 79707978,
+        "peak_bytes": 1591854042,
+        "kv_cache_bytes": 7774208
+      },
+      "kv_cache_tokens": null,
+      "kv_measurement_source": "backend_lru_accounting",
+      "snapshot_consistency": "non_atomic",
+      "traversal_complete": false,
+      "cache_hits": null,
+      "cache_evictions": null
+    }
+  },
+  "artifact_identity_verified": false,
+  "artifact_identity_sha256": null,
+  "backend_build_sha256": null,
+  "workload_sha256": "4dfee8a65f18315d65f3a23e4047283beb029cdc42ec0b926d433bb105f39c9b",
+  "load_policy": "closed_loop",
+  "quality_policy": "arithmetic_trimmed_exact",
+  "requests": 6,
+  "concurrency": 2,
+  "maximum_output_tokens": 16,
+  "timeout_seconds": 5,
+  "slo": {
+    "ttft_ms": 1000,
+    "e2e_ms": 5000
+  },
+  "completed": 6,
+  "failed": 0,
+  "errors": {},
+  "quality_passed": 6,
+  "slo_quality_passed": 6,
+  "output_tokens": 24,
+  "slo_quality_output_tokens": 24,
+  "elapsed_seconds": 1.359357708,
+  "output_tokens_per_second": 17.655397000183854,
+  "goodput_tokens_per_second": 17.655397000183854,
+  "languages": {
+    "en": {
+      "attempted": 2,
+      "completed": 2,
+      "quality_passed": 2,
+      "slo_passed": 2
+    },
+    "ja": {
+      "attempted": 2,
+      "completed": 2,
+      "quality_passed": 2,
+      "slo_passed": 2
+    },
+    "zh": {
+      "attempted": 2,
+      "completed": 2,
+      "quality_passed": 2,
+      "slo_passed": 2
+    }
+  },
+  "prompt_cache_usage": {
+    "source": "response_usage_prompt_tokens_details_cached_tokens",
+    "observed_requests": 6,
+    "unavailable_attempts": 0,
+    "cached_prompt_tokens": 116,
+    "observed_prompt_tokens": 122,
+    "requests_with_reuse": 6,
+    "observed_token_reuse_ratio": 0.9508196721311475,
+    "evictions": null,
+    "includes_warmup": false
+  },
+  "e2e_p99_upper_bound_ms": 500.0,
+  "e2e_p99_reference_only": true,
+  "latency_distributions": {
+    "ttft": {
+      "sample_count": 6,
+      "unavailable_attempt_count": 0,
+      "bucket_upper_bounds_ms": [
+        1.0,
+        2.0,
+        5.0,
+        10.0,
+        25.0,
+        50.0,
+        100.0,
+        250.0,
+        500.0,
+        1000.0,
+        2500.0,
+        5000.0,
+        null
+      ],
+      "bucket_counts": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        5,
+        0,
+        0,
+        0,
+        0
+      ],
+      "bucket_policy": "disjoint_inclusive_upper_bound_last_is_overflow",
+      "mean_ms": 350.604,
+      "max_ms": 407.199
+    },
+    "e2e": {
+      "sample_count": 6,
+      "unavailable_attempt_count": 0,
+      "bucket_upper_bounds_ms": [
+        1.0,
+        2.0,
+        5.0,
+        10.0,
+        25.0,
+        50.0,
+        100.0,
+        250.0,
+        500.0,
+        1000.0,
+        2500.0,
+        5000.0,
+        null
+      ],
+      "bucket_counts": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        5,
+        0,
+        0,
+        0,
+        0
+      ],
+      "bucket_policy": "disjoint_inclusive_upper_bound_last_is_overflow",
+      "mean_ms": 409.983,
+      "max_ms": 465.79
+    },
+    "population": "completed_responses_including_quality_and_slo_failures",
+    "includes_warmup": false
+  },
+  "phase_profile": {
+    "schema_version": 1,
+    "profile_id": "9b42d71eb0cff1c3e239442a",
+    "hardware_fingerprint": "Apple-M4-32GiB",
+    "model_id": "models/gemma-2-2b-it-4bit",
+    "backend": "mlx_lm_direct",
+    "sample_count": 6,
+    "prefill": {
+      "prompt_tokens": 122,
+      "ttft": {
+        "mean_ms": 350.604,
+        "p50_upper_bound_ms": 500.0,
+        "p95_upper_bound_ms": 500.0,
+        "max_ms": 407.199
+      }
+    },
+    "decode": {
+      "output_tokens": 24,
+      "token_intervals": 18,
+      "duration_ms": 223.117,
+      "tpot": {
+        "mean_ms": 12.395,
+        "p50_upper_bound_ms": 25.0,
+        "p95_upper_bound_ms": 25.0,
+        "max_ms": 12.874
+      },
+      "tokens_per_second": 80.675
+    },
+    "peak_memory_bytes": 2211643392,
+    "transport": {
+      "sample_count": 6,
+      "unavailable_sample_count": 0,
+      "end_to_end": {
+        "mean_ms": 409.983,
+        "p50_upper_bound_ms": 500.0,
+        "p95_upper_bound_ms": 500.0,
+        "max_ms": 465.79
+      },
+      "stream_tail": {
+        "mean_ms": 22.194,
+        "p50_upper_bound_ms": 25.0,
+        "p95_upper_bound_ms": 25.0,
+        "max_ms": 22.622
+      }
+    },
+    "storage": {
+      "latency_bucket_count": 52,
+      "raw_sample_count": 0
+    }
+  },
+  "unavailable": [
+    "backend_token_timestamps",
+    "queue_time",
+    "tokenize_time",
+    "model_load_time",
+    "energy_per_token",
+    "gpu_utilization",
+    "mlx_allocator",
+    "swap_delta",
+    "memory_pressure",
+    "cache_hit_rate",
+    "continuous_thermal_observation"
+  ],
+  "qualification": false,
+  "stores_prompt": false,
+  "stores_generated_text": false,
+  "concurrent_memory_probe": {
+    "maximum_samples": 200,
+    "interval_after_probe_seconds": 0.1,
+    "samples": [
+      {
+        "duration_ms": 13.016834,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 524382736,
+            "cache_bytes": 3380,
+            "peak_bytes": 524382736,
+            "kv_cache_bytes": 0
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 11.1885,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 917797392,
+            "cache_bytes": 3380,
+            "peak_bytes": 917797392,
+            "kv_cache_bytes": 0
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 11.1125,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1473045008,
+            "cache_bytes": 3380,
+            "peak_bytes": 1473045008,
+            "kv_cache_bytes": 0
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 150.223334,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1473045008,
+            "cache_bytes": 3380,
+            "peak_bytes": 1473045008,
+            "kv_cache_bytes": 0
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 88.9435,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1473045008,
+            "cache_bytes": 3380,
+            "peak_bytes": 1473045008,
+            "kv_cache_bytes": 0
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 50.38125,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1473045008,
+            "cache_bytes": 3380,
+            "peak_bytes": 1473045008,
+            "kv_cache_bytes": 0
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 101.598959,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1473045008,
+            "cache_bytes": 3380,
+            "peak_bytes": 1473045008,
+            "kv_cache_bytes": 0
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 11.106875,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1529797104,
+            "cache_bytes": 3591700,
+            "peak_bytes": 1552002459,
+            "kv_cache_bytes": 2236416
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 145.763625,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1500832286,
+            "cache_bytes": 33769976,
+            "peak_bytes": 1552002459,
+            "kv_cache_bytes": 2768896
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 11.327833,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1535308857,
+            "cache_bytes": 5988293,
+            "peak_bytes": 1559479866,
+            "kv_cache_bytes": 4792320
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 109.943917,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1505124894,
+            "cache_bytes": 36192382,
+            "peak_bytes": 1559479866,
+            "kv_cache_bytes": 5324800
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 10.891584,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1538405126,
+            "cache_bytes": 2020810,
+            "peak_bytes": 1559479866,
+            "kv_cache_bytes": 7241728
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 93.175084,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507680798,
+            "cache_bytes": 32750428,
+            "peak_bytes": 1559479866,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 137.704708,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1534059038,
+            "cache_bytes": 36994886,
+            "peak_bytes": 1559479866,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 115.806875,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1561322346,
+            "cache_bytes": 39550458,
+            "peak_bytes": 1578503856,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 117.769167,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1563026282,
+            "cache_bytes": 67665402,
+            "peak_bytes": 1590198763,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 122.235209,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1563026282,
+            "cache_bytes": 79707642,
+            "peak_bytes": 1591854042,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 114.639375,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1563025950,
+            "cache_bytes": 79707978,
+            "peak_bytes": 1591854042,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 19.295042,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1563025950,
+            "cache_bytes": 79707978,
+            "peak_bytes": 1591854042,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      }
+    ],
+    "observed_count": 19,
+    "scope": "two_concurrent_generation_requests_with_telemetry",
+    "atomic_snapshot_verified": false,
+    "performance_impact_qualified": false
+  },
+  "reproduction": {
+    "backend_command": [
+      "/opt/homebrew/opt/vllm-metal/libexec/bin/python",
+      "-m",
+      "vllm_apple.mlx_server",
+      "--model",
+      "models/gemma-2-2b-it-4bit",
+      "--host",
+      "127.0.0.1",
+      "--port",
+      "19130"
+    ],
+    "HF_HUB_OFFLINE": "1",
+    "purpose": "observation_smoke_not_route_comparison"
+  }
+}

@@ -38,10 +38,25 @@ def observe_backend_memory(config: PhaseProbeConfig) -> dict[str, object]:
         consistency = payload.get('snapshot_consistency', 'unspecified')
         if consistency not in ('unspecified', 'non_atomic'):
             raise ValueError('consistency')
+        admission = payload.get('generation_admission')
+        if admission is not None:
+            keys = ('inflight', 'active', 'started', 'cancelled', 'timed_out',
+                    'rejected', 'preparation_failed')
+            if not isinstance(admission, dict) or any(
+                type(admission.get(key)) is not int or admission[key] < 0 for key in keys
+            ):
+                raise ValueError('admission')
+            admission = {key: admission[key] for key in keys}
+            disconnects = payload['generation_admission'].get('active_disconnects')
+            if disconnects is not None and (type(disconnects) is not int or disconnects < 0):
+                raise ValueError('disconnects')
+            if disconnects is not None:
+                admission['active_disconnects'] = disconnects
         return {'status': 'observed', 'memory': {key: payload[key] for key in fields},
                 'kv_cache_tokens': tokens,
                 'kv_measurement_source': source,
                 'snapshot_consistency': consistency,
+                'generation_admission': admission,
                 'traversal_complete': payload['traversal_complete'],
                 'cache_hits': None, 'cache_evictions': None}
     except urllib.error.HTTPError as error:

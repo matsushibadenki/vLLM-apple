@@ -1,5 +1,99 @@
 # Bounded text HTTP benchmark
 
+Serialized admission now serves FIFO after body preparation finishes. This orders
+ready requests, not connections or slow body uploads. Cancelled/timed-out tickets
+are removed and followers notified. FIFO and cancelled-head tests passed 200
+repetitions. [M4 regression](evaluation/wrapper-fifo-queue-cancel-m4-2026-10-03.json)
+confirmed a queued disconnect did not start generation, slots returned to zero,
+and three recovery requests passed quality. This is HTTP adapter scheduling;
+backend token scheduling, long-run fairness and slow uploads remain unqualified.
+
+直列化admissionはbody準備完了後のFIFOで処理する。接続順や遅いbody送信の開始順ではない。
+取消／timeout ticketを除去して後続へ通知し、FIFOと先頭取消testは200回反復合格。
+上記M4回帰で待機切断後の不要生成なし・最終枠0・後続3/3品質合格を確認した。
+HTTP adapterの順序制御であり、backend token scheduler・長時間の公平性・遅いuploadは未認定。
+
+串行admission按body准备完成后的FIFO顺序处理，不按连接建立或慢body上传的开始顺序。
+取消／timeout ticket移除后通知后续请求；FIFO及取消队首测试重复200次通过。
+上述M4回归确认等待断开后未启动多余生成、最终名额0、后续3/3通过质量检查。
+这是HTTP adapter调度，后端token scheduler、长期公平性及慢上传尚未认证。
+
+Regression validation also found a Qwen4 socket-race test cleanup failure.
+The test now shuts down clients before joining workers and closes server sockets
+afterward; the race case passed 200 repetitions. Qwen4 runtime behavior is unchanged.
+
+回帰検証でQwen4 socket競合テストのcleanup失敗を確認した。client shutdown後にworkerをjoinし、
+最後にserver socketをcloseするよう修正し、該当テスト200回反復合格。Qwen4 runtimeの動作は変更していない。
+
+回归验证发现Qwen4 socket竞争测试的cleanup失败。测试先shutdown client，再join worker，
+最后close server socket；该测试重复200次通过，Qwen4 runtime行为未修改。
+
+Streaming BrokenPipe/ConnectionReset now increments `active_disconnects` separately
+from queued cancellation, releases admission, and closes the handler without an
+expected-disconnect traceback. Older telemetry may omit this counter; omission is
+not zero. MLX-LM 0.32.0's completion finally calls `ctx.stop()`.
+[M4 active-disconnect smoke](evaluation/wrapper-active-cancel-m4-2026-10-03.json)
+received generated content before closing the client, observed admission return to
+zero in approximately 51.5 ms, and passed three recovery requests. This is observed
+adapter release time, not GPU stop latency. Non-stream cancellation, half-close,
+and long-run cancellation remain unverified.
+
+stream中のBrokenPipe／ConnectionResetは待機取消と別の`active_disconnects`へ記録し、枠を解放してhandlerを終了する。
+旧telemetryがcounterを返さない場合はゼロ扱いにしない。MLX-LM 0.32.0のcompletion finallyは`ctx.stop()`を呼ぶ。
+上記M4試験は生成content受信後に切断し、約51.5 msでadapter使用枠0、後続3/3品質合格を確認した。
+これはadapter枠回収の観測時間で、GPU停止latencyではない。非stream取消、half-close、長時間負荷は未検証。
+
+stream期间的BrokenPipe／ConnectionReset单独计入`active_disconnects`，释放名额并结束handler。
+旧telemetry缺少该counter时不视为零。MLX-LM 0.32.0的completion finally调用`ctx.stop()`。
+上述M4测试接收生成content后断开client，约51.5 ms观察到adapter名额归零，后续3/3通过质量检查。
+这是adapter回收观测时间，不是GPU停止latency。非stream取消、half-close及长期负载尚未验证。
+
+`generation_admission` exposes locked counters for inflight/active requests,
+generation starts, cancellations, queue timeouts, rejections and body preparation
+failures. The benchmark validates and preserves these counters; unsupported
+endpoints/bypass return null. Inflight includes body preparation and waiting.
+[M4 real-model queued disconnect](evaluation/wrapper-queue-cancel-m4-2026-10-03.json)
+observed two inflight requests, then one cancellation without starting a second
+generation. The first stream finished (200/DONE), slots returned to zero, and
+three recovery requests passed quality. This does not verify active cancellation,
+long soaks, FIFO or half-close. Admission's own snapshot is locked; the complete
+memory/admission response remains non-atomic.
+
+`generation_admission`に使用枠／active／生成開始／取消／queue timeout／拒否／body準備失敗を公開する。
+counterはlock付きsnapshotで、benchmarkが非負整数を検証し保存する。未対応とbypassはnull。
+使用枠にはbody準備と待機も含む。上記M4実model試験は使用枠2の後に待機clientを切断、
+取消1・生成開始は先行1件のみ、先行200／DONE、最終使用枠0、後続3/3品質合格を確認した。
+生成中cancel・長時間soak・FIFO・half-closeは未認定。admission単独snapshotはlock付きだが、応答全体はnon-atomic。
+
+`generation_admission`公开使用名额／active／生成开始／取消／queue timeout／拒绝／body准备失败计数。
+计数快照由lock保护，benchmark验证非负整数后保存；未支持及bypass为null，使用名额包含body准备和等待。
+上述M4真实模型测试在使用2个名额后断开等待client，确认取消1次且只有先行生成启动，
+先行200／DONE、最终名额0，后续3/3通过质量检查。生成中cancel、长时间soak、FIFO及half-close未认证。
+admission独立快照由lock保护，但整个响应仍为non-atomic。
+
+Serialized generation now reserves a capacity slot before buffering the request
+body, limited to 8 MiB and an absolute 10-second read deadline. It requires one
+Content-Length and rejects Transfer-Encoding. Invalid framing, oversized bodies,
+and read timeouts return 400, 413, and 408 respectively and close the connection.
+The body is replayed to MLX-LM after admission; socket timeout and input stream
+are restored. This removes unread body bytes that previously hid EOF during waiting.
+Real-socket tests verify cancellation and slot recovery; [M4 generation regression](evaluation/text-benchmark-body-admission-m4-2026-10-03.json)
+passed 6/6 at client concurrency two. Half-close, active generation cancellation,
+and long model queues remain unqualified. Body buffering is skipped by the experimental
+concurrent-generation bypass.
+
+直列化生成は容量枠を確保後、最大8 MiB・読取り絶対deadline 10秒でbodyを先読みする。
+Content-Lengthは1つ必須、Transfer-Encodingは拒否。不正framingは400、size超過は413、timeoutは408で
+connectionを閉じる。admission後にMLX-LMへbodyを再生し、socket timeoutと入力streamを復元する。
+未読bodyがEOF検出を妨げる経路を解消し、実socketテストでcancelと枠回収を確認した。
+上記M4正常生成はclient c2で6/6合格。half-close・生成中cancel・長いmodel queueは未認定。
+実験用同時生成bypassでは、このbody先読みも行わない。
+
+串行生成先预留容量名额，再读取body（最大8 MiB，绝对deadline 10秒）。要求单一Content-Length，拒绝Transfer-Encoding。
+无效framing返回400、超出size返回413、timeout返回408并关闭连接。admission后向MLX-LM重放body，恢复socket timeout和输入stream。
+解决未读body隐藏EOF的问题；真实socket测试验证cancel和名额回收，上述M4正常生成在client c2下6/6通过。
+half-close、生成中cancel和长model queue尚未认证。实验性并发bypass不执行body预读。
+
 Admission now checks cancellation while waiting (poll interval up to 50 ms) and
 again before generation. Cancelled requests release both waiting and worker slots.
 The wrapper uses a best-effort, non-consuming EOF/socket-error probe and does not
@@ -25,8 +119,8 @@ Serialized wrapper admission defaults to eight waiting generation requests and a
 `--generation-queue-timeout` accepts positive finite seconds up to 300. Full queues
 or expired waits return HTTP 503 with Retry-After and close the connection.
 Timeouts and handler errors release admission slots. This bounds admitted generation
-waiters, not all HTTP threads or inference duration. FIFO and immediate detection
-of disconnected waiting clients are not implemented. The experimental concurrency
+waiters, not all HTTP threads or inference duration. Ready requests use FIFO;
+waiting EOF checks are polled and do not qualify half-close behavior. The experimental concurrency
 bypass also bypasses these admission limits.
 [M4 overload smoke](evaluation/text-benchmark-admission-m4-2026-10-03.json) with zero
 waiters processed one request, rejected five with 503, then passed three recovery
@@ -35,13 +129,13 @@ requests. It is a recovery check, not a performance comparison.
 直列化wrapperは生成待機8件・待機30秒を既定とする。`--generation-queue-capacity`は0〜128、
 `--generation-queue-timeout`は有限の正数で最大300秒。満杯／待機timeoutは503＋Retry-Afterで
 connectionを閉じ、timeout・handler例外後も枠を解放する。生成待機の上限であり、全HTTP threadや
-推論時間の上限ではない。FIFOと待機中client切断の即時検知は未実装。実験用同時生成bypassはこの制限も迂回する。
+推論時間の上限ではない。準備済み要求はFIFO、待機EOFはpollで確認しhalf-closeは未認定。実験用同時生成bypassはこの制限も迂回する。
 上記M4待機枠0試験は1件処理・5件503拒否、後続3/3品質合格。性能比較ではなく回復確認である。
 
 串行wrapper默认允许8个生成等待请求、等待30秒。`--generation-queue-capacity`范围0〜128，
 `--generation-queue-timeout`为有限正数且不超过300秒。满队列或等待timeout返回503及Retry-After并关闭连接。
 timeout或handler异常后释放名额。这只限制生成等待者，不限制所有HTTP thread或推理时长。
-FIFO和等待client断开时的即时检测尚未实现；实验性并发bypass也绕过这些限制。
+准备完成的请求使用FIFO，等待EOF通过poll检查，half-close未认证；实验性并发bypass也绕过这些限制。
 上述M4零等待名额测试处理1个请求、拒绝5个请求（503），随后3/3恢复请求通过质量检查，不是性能比较。
 
 The MLX wrapper now serializes generation POSTs by default. On M4 / Gemma 2 2B /

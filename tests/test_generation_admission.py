@@ -10,6 +10,50 @@ from vllm_apple.generation_admission import (
 
 
 class GenerationAdmissionTests(unittest.TestCase):
+    def test_fifo_after_body_preparation_and_cancelled_head(self):
+        for cancel_head in (False, True):
+            gate = GenerationAdmission(3, 2)
+            order = []
+            entered = [threading.Event() for _ in range(3)]
+            cancel = threading.Event()
+            errors = []
+            def worker(index):
+                def cancelled():
+                    entered[index].set()
+                    return index == 0 and cancel.is_set()
+                try:
+                    with gate.admit(cancelled):
+                        order.append(index)
+                except GenerationAdmissionError as error:
+                    errors.append(str(error))
+            threads = []
+            with gate.admit():
+                for index in range(3):
+                    thread = threading.Thread(target=worker, args=(index,))
+                    threads.append(thread)
+                    thread.start()
+                    self.assertTrue(entered[index].wait(1))
+                if cancel_head:
+                    cancel.set()
+            for thread in threads:
+                thread.join(2)
+                self.assertFalse(thread.is_alive())
+            self.assertEqual(order, [1, 2] if cancel_head else [0, 1, 2])
+            self.assertEqual(errors, ['generation_queue_cancelled'] if cancel_head else [])
+            self.assertEqual(gate.snapshot()['inflight'], 0)
+
+    def test_active_disconnect_is_distinct_from_waiting_cancel(self):
+        gate = GenerationAdmission(0, 1)
+        with self.assertRaises(BrokenPipeError):
+            with gate.admit():
+                raise BrokenPipeError()
+        metrics = gate.snapshot()
+        self.assertEqual(metrics['active_disconnects'], 1)
+        self.assertEqual(metrics['cancelled'], 0)
+        self.assertEqual(metrics['inflight'], 0)
+        with gate.admit():
+            pass
+
     def test_eof_probe_never_consumes_pending_request_bytes(self):
         connection = Mock()
         with patch('vllm_apple.generation_admission.select.select',
@@ -61,6 +105,16 @@ class GenerationAdmissionTests(unittest.TestCase):
             with self.subTest(capacity=capacity, timeout=timeout), self.assertRaises(ValueError):
                 GenerationAdmission(capacity, timeout)
 
+    def test_prepare_failure_releases_capacity(self):
+        gate = GenerationAdmission(0, 1)
+        def fail():
+            raise ValueError('bad body')
+        with self.assertRaises(ValueError):
+            with gate.admit(prepare=fail):
+                self.fail('invalid request entered generation')
+        with gate.admit():
+            pass
+
     def test_cancelled_waiter_does_not_generate_and_releases_slot(self):
         gate = GenerationAdmission(1, 2)
         cancelled = threading.Event()
@@ -87,5 +141,8 @@ class GenerationAdmissionTests(unittest.TestCase):
                 with gate.admit(lambda: True):
                     pass
         self.assertEqual(results, ['generation_queue_cancelled'])
+        self.assertEqual(gate.snapshot()['cancelled'], 2)
+        self.assertEqual(gate.snapshot()['inflight'], 0)
+        self.assertEqual(gate.snapshot()['active'], 0)
         with gate.admit():
             pass

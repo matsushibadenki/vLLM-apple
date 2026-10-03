@@ -81,6 +81,16 @@ MLX / vLLM-Metal / qualified optional backend → Metal GPU
 
 ## P0 — 比較可能な基準と実行経路の監査 [Next]
 
+- [Done] wrapper admissionをbody準備完了後のFIFOへ変更した。先頭の取消／timeoutはticketを除去し後続へ通知する。順序保持と先頭取消のtestを200回反復合格。[M4回帰](evaluation/wrapper-fifo-queue-cancel-m4-2026-10-03.json)で待機切断1・生成開始は先行1のみ・最終枠0・後続3/3品質合格を確認した。接続時刻順・body読取り中のFIFOではなく、実backend token schedulerの認定でもない。[Next] 長時間負荷と遅いbody送信時のadmissionを検証する。
+
+- [Done] 全回帰でQwen4 cancel／shutdown socket競合テストのthread終了待ちが失敗したため、test cleanupをclient shutdown→join→server closeへ修正した。別threadのblocking readをcloseだけで起こす前提を除去し、該当テスト200回反復合格。Qwen4 runtime実装は変更していない。
+
+- [Done] wrapperのstream生成中BrokenPipe／ConnectionResetを正常な切断として扱い、`active_disconnects`を待機取消と分けて公開・保存する。MLX-LM 0.32.0の`ctx.stop()` finally経路をlocal sourceで確認。[M4実model試験](evaluation/wrapper-active-cancel-m4-2026-10-03.json)でcontent受信後に切断、active_disconnects 1・adapter使用枠0を約51.5 msで観測し、後続3/3品質合格。GPU停止latency、非stream切断、半切断と長時間soakは未認定。
+
+- [Done] wrapper admissionの使用枠・active・生成開始・取消・timeout・拒否・body準備失敗counterをlock付きsnapshotとして公開し、benchmarkは非負整数を検証して保存する。[M4実model待機切断試験](evaluation/wrapper-queue-cancel-m4-2026-10-03.json)は先行生成中に2枠使用を確認して待機clientを切断、取消1・生成開始1のみ・最終使用枠0を確認した。先行streamは200／DONE、後続3/3品質合格。生成開始後cancel・長時間soak・half-close・FIFOは未認定。
+
+- [Done] wrapper生成admissionで容量枠確保後にbodyを最大8 MiB・絶対deadline 10秒で先読みし、worker待機後は元のbackendへ再生する。重複Content-Length／Transfer-Encoding、不正size、部分EOF、timeoutを拒否し、元socket timeoutと入力streamを復元する。実socketテストで未読body後の切断を生成前に検出し枠回収。[M4正常経路](evaluation/text-benchmark-body-admission-m4-2026-10-03.json)はclient c2で6/6品質／SLO合格、telemetry 19/19成功。CPU回帰同時実行のため性能比較には使わない。[Next] 実modelの長いqueue切断・生成中cancel・half-closeを確認する。
+
 - [Done] wrapper admissionへ50 ms以下の待機pollと生成開始直前のcancel callback確認を追加した。検出後は生成せず枠を解放し、wrapperはEOF／socket errorをbest-effortで確認して切断済み応答を書かない。callback cancel・枠回収・後続admissionと、未読byteを消費しないprobeをテストした。実modelの切断cancelは未検証で、未読bodyが残る切断は検出が遅れ、read-side EOFもcancelとして扱う。[Next] body読取りとcancel検出を一体化し、half-close、長時間queue、生成中cancelを実機検証する。
 
 - [Done] wrapper生成admissionへ待機件数（既定8、0〜128）と待機時間（既定30秒、最大300秒）の上限を追加した。超過／timeoutは503＋Retry-After、未読bodyを残さないようconnectionを閉じ、例外・timeout後も枠を解放する。[M4待機枠0試験](evaluation/text-benchmark-admission-m4-2026-10-03.json)は同時6件中1件成功・5件503（server log確認）、後続3/3品質合格、telemetry 19/19成功。CPU回帰も同時実行したため性能比較には使わない。[Next] client切断の待機中検知、FIFO、公平性、長時間cancel負荷を検証する。
