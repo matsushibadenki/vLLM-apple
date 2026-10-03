@@ -1,0 +1,2840 @@
+{
+  "schema_version": 1,
+  "report_kind": "text_http_benchmark",
+  "route": "mlx_lm_direct",
+  "started_at": "2026-10-03T09:24:24.737400+00:00",
+  "cache_policy": "backend_managed_conditioned",
+  "warmup_requests": 3,
+  "warmup": {
+    "attempted": 3,
+    "completed": 3,
+    "quality_passed": 3,
+    "errors": {}
+  },
+  "operating_context": {
+    "before_warmup": {
+      "observed_at": "2026-10-03T09:24:21.839879+00:00",
+      "thermal_state": "nominal",
+      "power_source": "AC Power",
+      "power_mode": "automatic",
+      "target_process_age_seconds": 4,
+      "system": {
+        "load_average_1_5_15_minutes": [
+          6.6123046875,
+          4.49072265625,
+          4.03515625
+        ],
+        "logical_cpu_count": 10,
+        "memory": {
+          "total_bytes": 34359738368,
+          "available_bytes": 10769612800,
+          "source": "sysctl",
+          "available_is_estimate": true,
+          "available_is_fallback": false,
+          "pressure_estimate": "normal",
+          "pressure_method": "available_ratio_thresholds_0.08_0.18"
+        }
+      }
+    },
+    "before_measurement": {
+      "observed_at": "2026-10-03T09:24:24.714327+00:00",
+      "thermal_state": "nominal",
+      "power_source": "AC Power",
+      "power_mode": "automatic",
+      "target_process_age_seconds": 7,
+      "system": {
+        "load_average_1_5_15_minutes": [
+          6.6123046875,
+          4.49072265625,
+          4.03515625
+        ],
+        "logical_cpu_count": 10,
+        "memory": {
+          "total_bytes": 34359738368,
+          "available_bytes": 9919004672,
+          "source": "sysctl",
+          "available_is_estimate": true,
+          "available_is_fallback": false,
+          "pressure_estimate": "normal",
+          "pressure_method": "available_ratio_thresholds_0.08_0.18"
+        }
+      }
+    },
+    "after_measurement": {
+      "observed_at": "2026-10-03T09:24:40.142096+00:00",
+      "thermal_state": "nominal",
+      "power_source": "AC Power",
+      "power_mode": "automatic",
+      "target_process_age_seconds": 23,
+      "system": {
+        "load_average_1_5_15_minutes": [
+          7.54052734375,
+          4.7939453125,
+          4.150390625
+        ],
+        "logical_cpu_count": 10,
+        "memory": {
+          "total_bytes": 34359738368,
+          "available_bytes": 10766417920,
+          "source": "sysctl",
+          "available_is_estimate": true,
+          "available_is_fallback": false,
+          "pressure_estimate": "normal",
+          "pressure_method": "available_ratio_thresholds_0.08_0.18"
+        }
+      }
+    }
+  },
+  "backend_memory_observations": {
+    "before_measurement": {
+      "status": "observed",
+      "memory": {
+        "active_bytes": 1535795742,
+        "cache_bytes": 4636490,
+        "peak_bytes": 1559299642,
+        "kv_cache_bytes": 7774208
+      },
+      "kv_cache_tokens": null,
+      "kv_measurement_source": "backend_lru_accounting",
+      "snapshot_consistency": "non_atomic",
+      "traversal_complete": false,
+      "cache_hits": null,
+      "cache_evictions": null
+    },
+    "after_measurement": {
+      "status": "observed",
+      "memory": {
+        "active_bytes": 1507156488,
+        "cache_bytes": 33276816,
+        "peak_bytes": 1559299642,
+        "kv_cache_bytes": 7774208
+      },
+      "kv_cache_tokens": null,
+      "kv_measurement_source": "backend_lru_accounting",
+      "snapshot_consistency": "non_atomic",
+      "traversal_complete": false,
+      "cache_hits": null,
+      "cache_evictions": null
+    }
+  },
+  "artifact_identity_verified": false,
+  "artifact_identity_sha256": null,
+  "backend_build_sha256": null,
+  "workload_sha256": "4dfee8a65f18315d65f3a23e4047283beb029cdc42ec0b926d433bb105f39c9b",
+  "load_policy": "closed_loop",
+  "quality_policy": "arithmetic_trimmed_exact",
+  "requests": 6,
+  "concurrency": 2,
+  "maximum_output_tokens": 16,
+  "timeout_seconds": 5,
+  "slo": {
+    "ttft_ms": 1000,
+    "e2e_ms": 5000
+  },
+  "completed": 0,
+  "failed": 6,
+  "errors": {
+    "backend_unavailable": 6
+  },
+  "quality_passed": 0,
+  "slo_quality_passed": 0,
+  "output_tokens": 0,
+  "slo_quality_output_tokens": 0,
+  "elapsed_seconds": 15.37602075,
+  "output_tokens_per_second": 0.0,
+  "goodput_tokens_per_second": 0.0,
+  "languages": {
+    "en": {
+      "attempted": 2,
+      "completed": 0,
+      "quality_passed": 0,
+      "slo_passed": 0
+    },
+    "ja": {
+      "attempted": 2,
+      "completed": 0,
+      "quality_passed": 0,
+      "slo_passed": 0
+    },
+    "zh": {
+      "attempted": 2,
+      "completed": 0,
+      "quality_passed": 0,
+      "slo_passed": 0
+    }
+  },
+  "prompt_cache_usage": {
+    "source": "response_usage_prompt_tokens_details_cached_tokens",
+    "observed_requests": 0,
+    "unavailable_attempts": 6,
+    "cached_prompt_tokens": null,
+    "observed_prompt_tokens": null,
+    "requests_with_reuse": null,
+    "observed_token_reuse_ratio": null,
+    "evictions": null,
+    "includes_warmup": false
+  },
+  "e2e_p99_upper_bound_ms": null,
+  "e2e_p99_reference_only": true,
+  "latency_distributions": {
+    "ttft": {
+      "sample_count": 0,
+      "unavailable_attempt_count": 6,
+      "bucket_upper_bounds_ms": [
+        1.0,
+        2.0,
+        5.0,
+        10.0,
+        25.0,
+        50.0,
+        100.0,
+        250.0,
+        500.0,
+        1000.0,
+        2500.0,
+        5000.0,
+        null
+      ],
+      "bucket_counts": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "bucket_policy": "disjoint_inclusive_upper_bound_last_is_overflow",
+      "mean_ms": null,
+      "max_ms": null
+    },
+    "e2e": {
+      "sample_count": 0,
+      "unavailable_attempt_count": 6,
+      "bucket_upper_bounds_ms": [
+        1.0,
+        2.0,
+        5.0,
+        10.0,
+        25.0,
+        50.0,
+        100.0,
+        250.0,
+        500.0,
+        1000.0,
+        2500.0,
+        5000.0,
+        null
+      ],
+      "bucket_counts": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "bucket_policy": "disjoint_inclusive_upper_bound_last_is_overflow",
+      "mean_ms": null,
+      "max_ms": null
+    },
+    "population": "completed_responses_including_quality_and_slo_failures",
+    "includes_warmup": false
+  },
+  "phase_profile": {
+    "schema_version": 1,
+    "profile_id": "6dbb373954ee8797ff42f84b",
+    "hardware_fingerprint": "Apple-M4-32GiB",
+    "model_id": "models/gemma-2-2b-it-4bit",
+    "backend": "mlx_lm_direct",
+    "sample_count": 0,
+    "prefill": {
+      "prompt_tokens": 0,
+      "ttft": {
+        "mean_ms": 0.0,
+        "p50_upper_bound_ms": 0.0,
+        "p95_upper_bound_ms": 0.0,
+        "max_ms": 0.0
+      }
+    },
+    "decode": {
+      "output_tokens": 0,
+      "token_intervals": 0,
+      "duration_ms": 0.0,
+      "tpot": {
+        "mean_ms": 0.0,
+        "p50_upper_bound_ms": 0.0,
+        "p95_upper_bound_ms": 0.0,
+        "max_ms": 0.0
+      },
+      "tokens_per_second": 0.0
+    },
+    "peak_memory_bytes": 0,
+    "transport": {
+      "sample_count": 0,
+      "unavailable_sample_count": 0,
+      "end_to_end": null,
+      "stream_tail": null
+    },
+    "storage": {
+      "latency_bucket_count": 52,
+      "raw_sample_count": 0
+    }
+  },
+  "unavailable": [
+    "backend_token_timestamps",
+    "queue_time",
+    "tokenize_time",
+    "model_load_time",
+    "energy_per_token",
+    "gpu_utilization",
+    "mlx_allocator",
+    "swap_delta",
+    "memory_pressure",
+    "cache_hit_rate",
+    "continuous_thermal_observation"
+  ],
+  "qualification": false,
+  "stores_prompt": false,
+  "stores_generated_text": false,
+  "concurrent_memory_probe": {
+    "maximum_samples": 200,
+    "interval_after_probe_seconds": 0.1,
+    "samples": [
+      {
+        "duration_ms": 22.420792,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 348803600,
+            "cache_bytes": 3380,
+            "peak_bytes": 351162896,
+            "kv_cache_bytes": 0
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 17.095834,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 715643408,
+            "cache_bytes": 3380,
+            "peak_bytes": 715643408,
+            "kv_cache_bytes": 0
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 20.176792,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1133421072,
+            "cache_bytes": 3380,
+            "peak_bytes": 1133421072,
+            "kv_cache_bytes": 0
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 18.211833,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1473045008,
+            "cache_bytes": 3380,
+            "peak_bytes": 1473045008,
+            "kv_cache_bytes": 0
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 207.910042,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1473045008,
+            "cache_bytes": 3380,
+            "peak_bytes": 1473045008,
+            "kv_cache_bytes": 0
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 166.942292,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1473045008,
+            "cache_bytes": 3380,
+            "peak_bytes": 1473045008,
+            "kv_cache_bytes": 0
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 292.18675,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1473045008,
+            "cache_bytes": 3380,
+            "peak_bytes": 1473045008,
+            "kv_cache_bytes": 0
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 197.028542,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1473045008,
+            "cache_bytes": 3380,
+            "peak_bytes": 1473045008,
+            "kv_cache_bytes": 0
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 14.192958,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1549830457,
+            "cache_bytes": 1178923,
+            "peak_bytes": 1549830457,
+            "kv_cache_bytes": 0
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 78.117166,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1529195454,
+            "cache_bytes": 5396072,
+            "peak_bytes": 1552002459,
+            "kv_cache_bytes": 2236416
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 154.60875,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1500832286,
+            "cache_bytes": 33770970,
+            "peak_bytes": 1552002459,
+            "kv_cache_bytes": 2768896
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 18.797416,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1535305958,
+            "cache_bytes": 4736102,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 4792320
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 161.0235,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1505124894,
+            "cache_bytes": 35078908,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 5324800
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 33.441166,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1531416072,
+            "cache_bytes": 23268266,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 5324800
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 13.989291,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1536895922,
+            "cache_bytes": 3531020,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7241728
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 288.144875,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507680798,
+            "cache_bytes": 32751434,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 10.74075,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 10.43475,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 10.701084,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 20.87075,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 14.131166,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 19.206375,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 15.743958,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 12.797375,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 16.322291,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 76.47775,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 83.358041,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 22.154833,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 15.435709,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 15.413792,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 10.877,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 10.841625,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 10.099917,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 10.279875,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 11.1865,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 13.146084,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 10.88625,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 10.67325,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 10.568959,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 10.186125,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 10.654875,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 10.324209,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 10.880417,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 10.915791,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 10.357875,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 10.785541,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 11.660625,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 10.860625,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 10.516791,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 10.8975,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 11.404,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 10.879792,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 16.479708,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 30.495958,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 22.744833,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 27.087709,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 26.674667,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 34.796667,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 19.88775,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 20.241667,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 33.577542,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 21.675959,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 23.728834,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 23.95075,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 20.4055,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 24.81875,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 64.010916,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 14.149833,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 19.183542,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 14.852459,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 18.176083,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 32.621083,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 35.698083,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 24.242208,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 16.683667,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 16.695583,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 18.2815,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 22.022417,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 24.07625,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 15.206625,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 14.716459,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 15.65675,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 15.711291,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 21.700667,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 14.227791,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 11.257084,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 12.171584,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 12.112125,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 11.495125,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 17.816041,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 14.361083,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 11.83275,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 10.957792,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 13.185459,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 11.411833,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 11.126875,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 10.8655,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 11.170541,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 10.500084,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 10.643209,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 10.808875,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 13.731125,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 71.575459,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 23.234417,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 17.38775,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 35.509334,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 14.671875,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 41.496292,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 52.880333,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 25.43475,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 22.448542,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 34.670166,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 26.94725,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 22.625792,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 12.584583,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 10.040166,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 11.698083,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 21.074959,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 20.239458,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 18.796166,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 13.572584,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 13.5805,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 13.478292,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 11.474958,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 11.018375,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 15.602125,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 16.503625,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 11.159458,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 10.784958,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 10.806417,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 10.818291,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 10.897292,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 10.525667,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 10.560167,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 10.827083,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 10.974541,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 10.594084,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 10.551417,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      },
+      {
+        "duration_ms": 10.624542,
+        "observation": {
+          "status": "observed",
+          "memory": {
+            "active_bytes": 1507156488,
+            "cache_bytes": 33276816,
+            "peak_bytes": 1559299642,
+            "kv_cache_bytes": 7774208
+          },
+          "kv_cache_tokens": null,
+          "kv_measurement_source": "backend_lru_accounting",
+          "snapshot_consistency": "non_atomic",
+          "traversal_complete": false,
+          "cache_hits": null,
+          "cache_evictions": null
+        }
+      }
+    ],
+    "observed_count": 139,
+    "scope": "two_concurrent_generation_requests_with_telemetry",
+    "atomic_snapshot_verified": false,
+    "performance_impact_qualified": false
+  },
+  "reproduction": {
+    "backend_command": [
+      "/opt/homebrew/opt/vllm-metal/libexec/bin/python",
+      "-m",
+      "vllm_apple.mlx_server",
+      "--model",
+      "models/gemma-2-2b-it-4bit",
+      "--host",
+      "127.0.0.1",
+      "--port",
+      "19130"
+    ],
+    "HF_HUB_OFFLINE": "1",
+    "purpose": "observation_smoke_not_route_comparison"
+  }
+}

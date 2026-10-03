@@ -1,5 +1,193 @@
 # Bounded text HTTP benchmark
 
+Admission now checks cancellation while waiting (poll interval up to 50 ms) and
+again before generation. Cancelled requests release both waiting and worker slots.
+The wrapper uses a best-effort, non-consuming EOF/socket-error probe and does not
+write an error to a detected disconnected peer. This is partial cancellation:
+unread request body bytes can hide EOF, TCP read-side EOF is treated as withdrawal,
+and active generation is not interrupted. Half-closed clients that still expect a
+response are not qualified. Callback and recovery tests pass; real-model disconnect
+and long-queue behavior remain unverified.
+
+待機中（poll間隔最大50 ms）と生成直前にcancelを確認し、検出時は待機枠とworker枠を解放する。
+wrapperはbyteを消費しないEOF／socket errorのbest-effort確認を行い、検出済み切断先へerrorを書かない。
+部分的なcancel対応であり、未読bodyがEOFを隠す場合がある。TCP read-side EOFも取消とみなし、
+応答を待つhalf-close clientは未認定。生成中の処理は中断しない。
+callback・回復テストは合格、実model切断と長時間queueは未検証。
+
+等待期间（poll间隔最大50 ms）及生成前检查cancel，检测后释放等待和worker名额。
+wrapper使用不消耗byte的EOF／socket error尽力检测，不向已检测断开的peer写入error。
+这只是部分cancel支持：未读body可能隐藏EOF，TCP读侧EOF也视为取消；仍等待响应的half-close client未认证。
+不终止正在进行的生成。callback和恢复测试通过，真实模型断开及长队列行为尚未验证。
+
+Serialized wrapper admission defaults to eight waiting generation requests and a
+30-second queue timeout. `--generation-queue-capacity` accepts 0–128;
+`--generation-queue-timeout` accepts positive finite seconds up to 300. Full queues
+or expired waits return HTTP 503 with Retry-After and close the connection.
+Timeouts and handler errors release admission slots. This bounds admitted generation
+waiters, not all HTTP threads or inference duration. FIFO and immediate detection
+of disconnected waiting clients are not implemented. The experimental concurrency
+bypass also bypasses these admission limits.
+[M4 overload smoke](evaluation/text-benchmark-admission-m4-2026-10-03.json) with zero
+waiters processed one request, rejected five with 503, then passed three recovery
+requests. It is a recovery check, not a performance comparison.
+
+直列化wrapperは生成待機8件・待機30秒を既定とする。`--generation-queue-capacity`は0〜128、
+`--generation-queue-timeout`は有限の正数で最大300秒。満杯／待機timeoutは503＋Retry-Afterで
+connectionを閉じ、timeout・handler例外後も枠を解放する。生成待機の上限であり、全HTTP threadや
+推論時間の上限ではない。FIFOと待機中client切断の即時検知は未実装。実験用同時生成bypassはこの制限も迂回する。
+上記M4待機枠0試験は1件処理・5件503拒否、後続3/3品質合格。性能比較ではなく回復確認である。
+
+串行wrapper默认允许8个生成等待请求、等待30秒。`--generation-queue-capacity`范围0〜128，
+`--generation-queue-timeout`为有限正数且不超过300秒。满队列或等待timeout返回503及Retry-After并关闭连接。
+timeout或handler异常后释放名额。这只限制生成等待者，不限制所有HTTP thread或推理时长。
+FIFO和等待client断开时的即时检测尚未实现；实验性并发bypass也绕过这些限制。
+上述M4零等待名额测试处理1个请求、拒绝5个请求（503），随后3/3恢复请求通过质量检查，不是性能比较。
+
+The MLX wrapper now serializes generation POSTs by default. On M4 / Gemma 2 2B /
+MLX-LM 0.32.0, [two-client concurrent generation](evaluation/text-benchmark-c2-memory-m4-2026-10-03.json)
+timed out on all six measured attempts despite successful warmup and memory probes.
+[With the serialization gate](evaluation/text-benchmark-c2-serialized-memory-m4-2026-10-03.json),
+all six passed quality/SLO and 16/16 memory probes succeeded. Telemetry remains
+accessible during generation. `--allow-concurrent-generation` bypasses the gate
+for experimental tests. This is sequential HTTP adapter processing, not qualified
+backend batching. Queue cancellation, overload bounds and long soaks remain unverified.
+
+MLX wrapperの生成POSTを既定で直列化した。M4／Gemma 2 2B／MLX-LM 0.32.0のclient並列度2試験は、
+修正前に本測定6件がすべてtimeoutしたが、直列化後は6/6品質／SLO合格、telemetry 16/16成功。
+生成中もtelemetryは取得できる。`--allow-concurrent-generation`は実験用にgateを無効化する。
+HTTP adapterの順次処理であり、backend batching認定ではない。queue cancel、過負荷制限、長時間soakは未検証。
+
+MLX wrapper默认串行处理生成POST。M4／Gemma 2 2B／MLX-LM 0.32.0的双client测试中，
+修复前6次正式请求全部timeout；串行化后6/6通过质量和SLO检查，telemetry 16/16成功。
+生成期间仍可获取telemetry。`--allow-concurrent-generation`仅用于实验性绕过gate。
+这是HTTP adapter顺序处理，不是后端batching认证。queue cancel、过载限制和长时间soak尚未验证。
+
+Memory snapshots now declare `snapshot_consistency=non_atomic`; absent declarations
+remain `unspecified`. Counters are not guaranteed to represent the same instant.
+[M4 concurrent telemetry smoke](evaluation/text-benchmark-concurrent-memory-m4-2026-10-03.json)
+passed 30/30 measured generation quality/SLO checks and 50/50 memory probes, with
+100 ms waits between probes and a cap of 200. This overlaps one generation worker
+with telemetry; it does not qualify multiple concurrent generations or performance
+impact. CPU regression tests also ran during this final smoke, so timing is not a
+performance comparison. All reported counters remain advisory.
+
+メモリsnapshotに`snapshot_consistency=non_atomic`を明示し、旧endpointの欠落値は`unspecified`とする。
+counterが同一時点を表す保証はない。上記M4同時取得試験は測定30/30品質／SLO合格、
+取得後100 ms待機・上限200回のprobe 50/50成功。単一生成workerとtelemetryを重ねた試験であり、
+複数同時生成や性能影響の認定ではない。最終試験中はCPU回帰テストも動作しており、速度比較には使わない。
+
+内存快照显式声明`snapshot_consistency=non_atomic`，旧endpoint缺失该字段时保留`unspecified`。
+各计数不保证来自同一时刻。上述M4测试30/30生成通过质量和SLO检查，probe 50/50成功，
+每次采集后等待100 ms且最多200次。这是单一生成worker与telemetry并行的测试，不能认证多请求并行生成或性能影响。
+最终测试期间CPU回归测试也在运行，因此不可用于速度比较。
+
+[M4 tokenize / idle telemetry validation](evaluation/wrapper-tokenize-memory-smoke-m4-2026-10-03.json)
+matched English/Japanese/Simplified Chinese token counts (22/20/19) to actual generation
+usage, with 3/3 quality checks passed. An invalid model returned HTTP 400 and the
+next valid tokenize request succeeded. Thirty idle memory probes took mean 9.672 ms
+and maximum 12.663 ms. These are HTTP collection durations, not measured inference
+interference, performance gains, or concurrent snapshot consistency.
+
+上記M4試験でtokenize結果は英語22・日本語20・简体中文19 tokenとなり、実生成usageと一致、
+3/3品質合格。不正modelはHTTP 400で拒否され、その後の正常要求は成功した。
+idle memory取得30回は平均9.672 ms／最大12.663 ms。HTTP取得時間であり、
+推論への干渉、性能改善、並列snapshot一貫性の検証ではない。
+
+上述M4测试中，英语／日语／简体中文tokenize计数22／20／19与实际生成usage一致，3/3通过质量检查。
+无效model返回HTTP 400，后续正常请求成功。30次idle memory采集平均9.672 ms、最大12.663 ms。
+这是HTTP采集耗时，不能证明推理干扰、性能提升或并发快照一致性。
+
+MLX-LM 0.32.0 wrapper compatibility is repaired for a single local worker, using
+an explicit telemetry handler. [M4 wrapper validation](evaluation/text-benchmark-wrapper-memory-m4-2026-10-03.json)
+passed 3/3 warmups and 30/30 measured quality/SLO checks. Both memory probes
+observed 7,774,208 KV bytes from `backend_lru_accounting`. Token counts remain null
+and traversal completeness false: this is backend bookkeeping, not an array audit.
+Concurrent snapshot consistency, collection overhead, the tokenize endpoint and
+other new API versions remain unverified. No speed improvement is claimed.
+
+MLX-LM 0.32.0のwrapper互換性を単一local workerで修正し、telemetry handlerを明示接続した。
+上記M4実測はwarmup 3/3・測定30/30品質／SLO合格、前後のKV容量7,774,208 bytesを取得した。
+取得元は`backend_lru_accounting`で、token数null・traversal完全性falseを維持する。
+backend管理値であり配列監査ではない。並列snapshot一貫性、取得負荷、tokenize endpoint、他の新API versionは未検証。速度改善は主張しない。
+
+已修复MLX-LM 0.32.0单一本地worker的wrapper兼容性，并显式连接telemetry handler。
+上述M4测试warmup 3/3及正式测量30/30通过质量和SLO检查，前后均获取7,774,208 KV bytes。
+来源为`backend_lru_accounting`，token数量保留null，遍历完整性为false；这是后端管理值而非数组审计。
+并发快照一致性、采集开销、tokenize endpoint和其他新API版本尚未验证，不主张速度提升。
+
+`prompt_cache_usage` aggregates validated response usage `prompt_tokens_details.cached_tokens`.
+Missing, boolean, negative, or larger-than-prompt values remain unavailable; warmup is excluded.
+The reuse ratio covers observed prompt tokens only, not missing attempts. Eviction counts
+remain null. [M4 MLX-LM smoke](evaluation/text-benchmark-cache-usage-m4-2026-10-03.json)
+passed 30/30 measured requests and reported 580/610 reused prompt tokens. This is
+backend-reported reuse, not an independent KV correctness or performance certification.
+The stock memory endpoint returned 404. The wrapper failed startup on installed
+MLX-LM 0.32.0 (`prompt_cache_size` missing); compatibility repair remains pending.
+
+`prompt_cache_usage`は応答usageの`prompt_tokens_details.cached_tokens`を検証して集計する。
+欠測・bool・負数・prompt token数超過は未取得に残し、warmupを除外する。
+再利用比率の分母は取得済みprompt tokenのみで、evictionはnull。
+上記M4試験は30/30品質・SLO合格、backend報告で580/610 prompt token再利用を取得した。
+KV正確性や性能改善の独立認定ではない。標準memory endpointは404。
+実wrapperはMLX-LM 0.32.0で`prompt_cache_size`欠落により起動失敗し、互換性修正が残る。
+
+`prompt_cache_usage`验证并汇总响应usage中的`prompt_tokens_details.cached_tokens`。
+缺失、bool、负值及超过prompt token数的值保留为未获取，排除warmup。
+复用比例仅以已获取的prompt token为分母，eviction为null。上述M4测试30/30通过质量和SLO检查，
+后端报告580/610 prompt token复用；这不是KV正确性或性能提升的独立认证。
+标准memory endpoint返回404。MLX-LM 0.32.0的wrapper因缺少`prompt_cache_size`启动失败，兼容性修复尚未完成。
+
+`--collect-backend-memory` optionally reads the wrapper's `/v1/vllm-apple/memory`
+before and after measurement, outside the goodput timer. Reads are limited to
+64 KiB and one second; redirects are refused. Only validated capacity counters
+and traversal completeness are stored. Unsupported endpoints and invalid payloads
+remain unavailable. KV hits/evictions are null, not inferred from token counts.
+Allocator cache bytes are not prefix-cache hit statistics. Support beyond the
+0.32.0 single-worker smoke and collection overhead remain unverified.
+
+`--collect-backend-memory`でwrapperの`/v1/vllm-apple/memory`を測定前後に任意取得する。
+goodput計測窓外で、64 KiB・1秒に制限しredirectを拒否する。検証済み容量counterと
+traversal完全性のみ保存し、未対応・不正payloadは欠測にする。KV hit／evictionはnullで、
+token数から推測しない。allocator cache容量はprefix hit統計ではない。0.32.0単一workerのsmokeを超える対応と取得負荷は未検証。
+
+`--collect-backend-memory`可在测量前后读取wrapper的`/v1/vllm-apple/memory`，位于goodput计时窗口之外。
+读取限制为64 KiB及1秒，拒绝重定向。只保存验证后的容量计数和遍历完整性；未支持或无效数据保留为缺失。
+KV hit／eviction为null，不根据token数量推断。allocator cache容量不是prefix命中统计。超出0.32.0单一worker smoke的支持和采集开销尚未验证。
+
+M4実機確認（2026-10-03）：[Gemma 2 2B／MLX-LM direct report](evaluation/text-benchmark-distribution-m4-2026-10-03.json)でwarmup 3/3、測定30/30が品質・SLO合格。
+TTFT平均165.639 ms／最大256.815 ms、E2E平均225.022 ms／最大348.379 msで、各histogramは30 sample・欠測0。
+3点のsystem観測も取得でき、温度nominal／AC Power／automatic、メモリpressure推定normalだった。
+単一路線の短時間smokeであり、速度改善・ばらつき原因・cache hitは認定しない。artifact／build digest未指定のため比較資格も付与しない。
+
+M4 validation (2026-10-03): the linked Gemma 2 2B / MLX-LM direct report passed
+3/3 warmups and 30/30 measured quality and SLO checks. TTFT mean/max were
+165.639/256.815 ms; E2E mean/max were 225.022/348.379 ms. Both histograms contain
+30 samples with no missing observations. All three system snapshots were saved.
+This single-route smoke does not establish faster inference, variance causes,
+or cache hits. Artifact/build digests were omitted, so comparison is unqualified.
+
+M4实机验证（2026-10-03）：上述Gemma 2 2B／MLX-LM direct报告中，warmup 3/3和正式测量30/30通过质量及SLO检查。
+TTFT平均／最大为165.639／256.815 ms，E2E平均／最大为225.022／348.379 ms；两个直方图均有30个样本且无缺失。
+三次system快照均已保存。这是单一路径短时验证，不能证明速度提升、波动原因或缓存命中。
+未指定artifact／build digest，因此不授予比较资格。
+
+`latency_distributions` saves constant-memory TTFT and E2E histograms: disjoint
+buckets include their upper boundary; a final null boundary denotes overflow.
+Counts include completed responses that fail quality or SLO, and exclude warmup.
+Failed attempts and missing E2E `[DONE]` timestamps remain unavailable, never zero
+latency. Mean/max are null when no samples exist. These distributions describe
+client arrival times, not internal backend phases or cache hits.
+
+`latency_distributions`は固定容量のTTFT／E2E histogramを保存する。各bucketは上限を含み、
+最後のnull上限はoverflowを示す。品質・SLO不合格の完了応答も含み、warmupは除外する。
+失敗とE2Eの`[DONE]`欠測は未取得件数に残し、遅延ゼロとして扱わない。
+sampleなしのmean／maxはnull。backend内部phaseやcache hitの計測ではなく、クライアント到着時間を示す。
+
+`latency_distributions`保存固定容量的TTFT／E2E直方图。各区间包含上限，最后的null上限表示溢出。
+统计包含质量或SLO不合格的完整响应，不包含warmup。失败和E2E的`[DONE]`缺失保留为未获取次数，
+不会被计为零延迟。没有样本时mean／max为null。这是客户端到达时间，不是后端内部阶段或缓存命中测量。
+
 ## 日本語
 
 `python -m vllm_apple.text_benchmark`は、既に起動したloopback HTTP backendに同じ英語・日本語・简体中文の算術promptを送り、並列負荷と通信latencyを計測する。モデルの起動・download・更新は行わない。
@@ -20,6 +208,8 @@
 電源供給元、電源モードを保存する。`--target-pid`を併用すると対象processの起動後経過秒数も記録する。
 PIDには推論workerを指定する。daemon frontendのPIDではworkerの経過時間を表さない。
 probeは各command 1秒timeoutで、goodputの計測窓外に実行する。取得不能は`unknown`／`null`で残す。
+各snapshotの`system`に1／5／15分のload average、logical CPU数、利用可能メモリの推定値と取得元を保存する。load averageはCPU使用率やbackend単独の負荷ではない。`pressure_estimate`は利用可能メモリ比率8%／18%から算出した推定で、OSの正式なpressure判定ではない。取得不能はnull、保守的なメモリfallbackは`available_is_fallback`で区別する。これらは原因調査用で、比較gateや自動調整の認定条件には追加しない。
+
 これは3点の観測であり、途中の温度変化、cache hit率、processの入れ替わりは認定しない。
 比較器の`--require-operating-context`で観測条件のgateを有効にできる。両routeの3点で温度nominal、
 同じ既知の電源供給元・電源モード、UTC時刻の順序、測定前の同一UTC日、worker ageの非減少と
@@ -139,6 +329,13 @@ the same UTC measurement date, nondecreasing worker ages, and starting ages with
 five seconds. Missing or changed conditions yield `blocked_operating_context` with
 reasons. The five-second tolerance is a fixed comparison policy, not a measured optimum.
 
+Each snapshot also stores `system`: 1/5/15-minute load averages, logical CPU count,
+and estimated available memory with its source and fallback flag. Load average is
+neither CPU utilization nor backend-only load. `pressure_estimate` uses available
+memory ratio thresholds of 8% and 18%; it is not the OS pressure classification.
+Missing observations are null. These diagnostic fields do not change comparison
+gates or qualify automatic tuning.
+
 Run a bounded closed-loop workload against an existing local HTTP backend. Reports
 retain failures, per-language arithmetic quality, client timings, and quality-gated
 SLO goodput using total wall time. Optional bounded warmups run before measurement;
@@ -182,6 +379,11 @@ M4的context gate三组比较全部通过条件检查，每条route的warmup 9/9
 三次快照不能证明持续温度稳定或缓存命中。`--require-operating-context`要求温度均为nominal、
 已知电源条件一致、UTC时间有序、测量日期一致、worker运行时间不减少且测量前差值不超过5秒。
 缺失或变化会产生`blocked_operating_context`及原因。5秒是固定比较策略，尚未实测其最优性。
+
+每次快照还在`system`中保存1／5／15分钟平均负载、逻辑CPU数量、可用内存估计及来源。
+平均负载不是CPU使用率或后端独占负载。`pressure_estimate`使用可用内存比例8%／18%的阈值，
+不是操作系统正式的内存压力判定。缺失值为null，保守回退由`available_is_fallback`标识。
+这些字段仅用于诊断，不改变比较gate，也不认证自动调优。
 
 对已启动的本地HTTP后端运行有界闭环负载，保留失败、各语言算术质量、客户端延迟，
 并按总墙钟时间计算满足质量及SLO条件的有效吞吐。可选的有界warmup在正式测量前运行；

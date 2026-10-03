@@ -13,9 +13,10 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Sequence
 
+from .benchmark_backend_memory import observe_backend_memory
 from .benchmark_context import observe_benchmark_context
 from .phase_probe import PhaseProbeConfig, PhaseProbeError, measure_stream
-from .phase_profile import ExecutionPhaseProfiler, _BoundedLatency
+from .phase_profile import LATENCY_BUCKETS_NS, ExecutionPhaseProfiler, _BoundedLatency
 from .soak import _read_private_token
 
 # Identical tasks across languages, with an explicit quality gate for goodput.
@@ -25,6 +26,19 @@ CASES = (
     ("zh", "1+1等于几？只回答数字。", "2"),
 )
 BenchmarkCase = tuple[str, str, str]
+
+
+def _latency_distribution(histogram: _BoundedLatency, attempts: int) -> dict[str, Any]:
+    """Disjoint, inclusive-upper-bound buckets; the last bucket is overflow."""
+    return {
+        "sample_count": histogram.count,
+        "unavailable_attempt_count": attempts - histogram.count,
+        "bucket_upper_bounds_ms": [value / 1_000_000 for value in LATENCY_BUCKETS_NS] + [None],
+        "bucket_counts": list(histogram.counts),
+        "bucket_policy": "disjoint_inclusive_upper_bound_last_is_overflow",
+        "mean_ms": histogram.snapshot()["mean_ms"] if histogram.count else None,
+        "max_ms": histogram.snapshot()["max_ms"] if histogram.count else None,
+    }
 
 
 def _validated_cases(cases: Sequence[BenchmarkCase]) -> tuple[BenchmarkCase, ...]:
@@ -57,6 +71,7 @@ def run_text_benchmark(
     backend_build_sha256: str | None = None,
     warmup_requests: int = 0,
     collect_operating_context: bool = False,
+    collect_backend_memory: bool = False,
 ) -> dict[str, Any]:
     """Run exactly requests attempts, retaining failures in the denominator.
 
@@ -106,6 +121,8 @@ def run_text_benchmark(
         warmup["quality_passed"] += int(result.expected_text_matched is True)
     if context is not None:
         context["before_measurement"] = observe_benchmark_context(config.target_pid)
+    backend_memory = {"before_measurement": observe_backend_memory(config)} \
+        if collect_backend_memory else None
     profiler = ExecutionPhaseProfiler(config.hardware_fingerprint, config.model, config.backend)
     lock = threading.Lock()
     next_index = 0
@@ -114,11 +131,14 @@ def run_text_benchmark(
     slices = {language: {"attempted": 0, "completed": 0, "quality_passed": 0,
                          "slo_passed": 0} for language, _, _ in selected_cases}
     latencies = _BoundedLatency()
+    ttft_latencies = _BoundedLatency()
+    cache_samples = cached_tokens = cache_prompt_tokens = cache_hit_requests = 0
     started_at = datetime.now(timezone.utc).isoformat()
     started = time.monotonic_ns()
 
     def worker() -> None:
         nonlocal next_index, successes, quality_passes, slo_passes, output_tokens, good_tokens
+        nonlocal cache_samples, cached_tokens, cache_prompt_tokens, cache_hit_requests
         while True:
             with lock:
                 if next_index >= requests:
@@ -140,6 +160,12 @@ def run_text_benchmark(
             with lock:
                 profiler.record(measurement)
                 successes += 1
+                ttft_latencies.record(measurement.ttft_ns)
+                if result.cached_prompt_tokens is not None:
+                    cache_samples += 1
+                    cached_tokens += result.cached_prompt_tokens
+                    cache_prompt_tokens += measurement.prompt_tokens
+                    cache_hit_requests += int(result.cached_prompt_tokens > 0)
                 output_tokens += measurement.output_tokens
                 slices[language]["completed"] += 1
                 quality = result.expected_text_matched is True
@@ -160,6 +186,8 @@ def run_text_benchmark(
         for future in futures:
             future.result()
     elapsed = (time.monotonic_ns() - started) / 1_000_000_000
+    if backend_memory is not None:
+        backend_memory["after_measurement"] = observe_backend_memory(config)
     if context is not None:
         context["after_measurement"] = observe_benchmark_context(config.target_pid)
     workload = {"cases": selected_cases, "requests": requests, "concurrency": concurrency,
@@ -178,6 +206,7 @@ def run_text_benchmark(
         "warmup_requests": warmup_requests,
         "warmup": warmup,
         "operating_context": context,
+        "backend_memory_observations": backend_memory,
         "artifact_identity_verified": artifact_identity_sha256 is not None,
         "artifact_identity_sha256": artifact_identity_sha256,
         "backend_build_sha256": backend_build_sha256,
@@ -195,8 +224,25 @@ def run_text_benchmark(
         "output_tokens_per_second": output_tokens / elapsed if elapsed > 0 else None,
         "goodput_tokens_per_second": good_tokens / elapsed if elapsed > 0 else None,
         "languages": slices,
+        "prompt_cache_usage": {
+            "source": "response_usage_prompt_tokens_details_cached_tokens",
+            "observed_requests": cache_samples,
+            "unavailable_attempts": requests - cache_samples,
+            "cached_prompt_tokens": cached_tokens if cache_samples else None,
+            "observed_prompt_tokens": cache_prompt_tokens if cache_samples else None,
+            "requests_with_reuse": cache_hit_requests if cache_samples else None,
+            "observed_token_reuse_ratio": cached_tokens / cache_prompt_tokens
+            if cache_prompt_tokens else None,
+            "evictions": None, "includes_warmup": False,
+        },
         "e2e_p99_upper_bound_ms": latencies.percentile_ms(.99) if latencies.count else None,
         "e2e_p99_reference_only": latencies.count < 1000,
+        "latency_distributions": {
+            "ttft": _latency_distribution(ttft_latencies, requests),
+            "e2e": _latency_distribution(latencies, requests),
+            "population": "completed_responses_including_quality_and_slo_failures",
+            "includes_warmup": False,
+        },
         "phase_profile": profiler.snapshot(),
         "unavailable": ["backend_token_timestamps", "queue_time", "tokenize_time",
                         "model_load_time", "energy_per_token", "gpu_utilization",
@@ -218,6 +264,7 @@ def main() -> int:
     parser.add_argument("--concurrency", type=int, default=1)
     parser.add_argument("--warmup-requests", type=int, default=0)
     parser.add_argument("--collect-operating-context", action="store_true")
+    parser.add_argument("--collect-backend-memory", action="store_true")
     parser.add_argument("--max-tokens", type=int, default=16)
     parser.add_argument("--timeout", type=float, default=60)
     parser.add_argument("--ttft-slo-ms", type=float, default=1000)
@@ -241,7 +288,8 @@ def main() -> int:
                                     artifact_identity_sha256=args.artifact_identity_sha256,
                                     backend_build_sha256=args.backend_build_sha256,
                                     warmup_requests=args.warmup_requests,
-                                    collect_operating_context=args.collect_operating_context)
+                                    collect_operating_context=args.collect_operating_context,
+                                    collect_backend_memory=args.collect_backend_memory)
     except (ValueError, OSError) as error:
         parser.error(str(error))
     print(json.dumps(result, ensure_ascii=False, indent=2, allow_nan=False))

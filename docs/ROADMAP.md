@@ -81,6 +81,23 @@ MLX / vLLM-Metal / qualified optional backend → Metal GPU
 
 ## P0 — 比較可能な基準と実行経路の監査 [Next]
 
+- [Done] wrapper admissionへ50 ms以下の待機pollと生成開始直前のcancel callback確認を追加した。検出後は生成せず枠を解放し、wrapperはEOF／socket errorをbest-effortで確認して切断済み応答を書かない。callback cancel・枠回収・後続admissionと、未読byteを消費しないprobeをテストした。実modelの切断cancelは未検証で、未読bodyが残る切断は検出が遅れ、read-side EOFもcancelとして扱う。[Next] body読取りとcancel検出を一体化し、half-close、長時間queue、生成中cancelを実機検証する。
+
+- [Done] wrapper生成admissionへ待機件数（既定8、0〜128）と待機時間（既定30秒、最大300秒）の上限を追加した。超過／timeoutは503＋Retry-After、未読bodyを残さないようconnectionを閉じ、例外・timeout後も枠を解放する。[M4待機枠0試験](evaluation/text-benchmark-admission-m4-2026-10-03.json)は同時6件中1件成功・5件503（server log確認）、後続3/3品質合格、telemetry 19/19成功。CPU回帰も同時実行したため性能比較には使わない。[Next] client切断の待機中検知、FIFO、公平性、長時間cancel負荷を検証する。
+
+- [Done] M4／Gemma 2 2B／MLX-LM 0.32.0 wrapperでclient並列度2を検証した。[直列化前](evaluation/text-benchmark-c2-memory-m4-2026-10-03.json)はwarmup 3/3合格後、測定0/6完了・6件timeout、telemetry 139/139成功。生成POSTを既定で直列化し、[修正後](evaluation/text-benchmark-c2-serialized-memory-m4-2026-10-03.json)は同条件6/6品質／SLO合格、telemetry 16/16成功。`--allow-concurrent-generation`は実験用opt-inとした。backend batching認定・性能改善ではなく、HTTP adapterでの安全な順次処理である。[Next] 長時間cancel／queue負荷、client切断と複数model条件を検証する。
+
+- [Done] wrapper容量telemetryとbenchmark reportへ`snapshot_consistency=non_atomic`を明示した。[M4生成＋同時telemetry試験](evaluation/text-benchmark-concurrent-memory-m4-2026-10-03.json)でwarmup 3/3・測定30/30品質／SLO合格、100 ms待機間隔のbounded probe 50/50取得成功。単一生成workerに取得要求を重ねた短時間試験であり、原子的snapshot、複数同時生成、取得による性能影響は未認定。最終試験中はCPU回帰テストも実行したため速度比較には使わない。[Next] 独立条件でtelemetry有無の比較と複数生成要求時の動作を確認する。
+
+- [Done] [M4 wrapper tokenize／idle telemetry実測](evaluation/wrapper-tokenize-memory-smoke-m4-2026-10-03.json)で英語22・日本語20・简体中文19 tokenが実生成usageと一致し、3/3品質合格。不正modelは400、続く正常tokenizeは成功した。idle memory取得30回は平均9.672 ms／最大12.663 ms。これはHTTP取得の所要時間で、推論中の干渉・overhead差や性能改善は未認定。[Next] 並列生成中のsnapshot一貫性とtelemetry有無の比較、eviction公開を検証する。
+
+- [Done] benchmarkへ応答usageのcached prompt token集計を追加した。欠測・bool・負数・prompt数超過は未取得とし、warmupを除外する。[M4実測](evaluation/text-benchmark-cache-usage-m4-2026-10-03.json)でwarmup 3/3・測定30/30品質／SLO合格、30件すべてから580/610 prompt token再利用を取得した。backend報告値であり、evictionとKV正確性・性能改善は未認定。
+- [Done] 実wrapperのMLX-LM 0.32.0互換性を修正した。欠落server設定を補い、単一workerのResponseGeneratorとHTTP起動へtelemetry handlerを明示接続した。LRU容量を`backend_lru_accounting`として区別し、token数null・traversal完全性falseを維持する。[M4実測](evaluation/text-benchmark-wrapper-memory-m4-2026-10-03.json)はwarmup 3/3・測定30/30品質／SLO合格、前後のKV容量7,774,208 bytes取得。0.32.0以外の新APIは自動認定しない。[Next] 計測負荷、tokenize endpointの実機検証、並列時のsnapshot一貫性とeviction公開を確認する。
+
+- [Done] benchmarkへ任意の`--collect-backend-memory`を追加し、測定窓外の前後2点でwrapper容量telemetryを取得する契約を実装した。1秒・64 KiB・redirect拒否、schemaと非負整数・traversal完全性を検証し、取得不能は理由付き欠測にする。KV hit／evictionはnullで容量から推測しない。[Next] 実wrapper経路での取得と負荷、hit／eviction counterの公開を検証する。
+
+- [Done] [Magnitude参照評価](magnitude-review.md)に基づき、evidence-only runtime autotunerへ任意のphase別ばらつきgateとbaseline改善marginを追加した。全sampleとpolicyをreport IDへ束縛し、noisyな最速候補と僅差の設定切替を防ぐ。synthetic検証であり、実LLM性能・daemon自動適用は未認定。[Next] 独立確認測定とE2E回帰へ接続する。
+
 依存：なし。次の開発サイクルの最優先。成果物はbenchmark suite、capability matrix、再現可能なbaseline report。
 
 - [Next] 起動から最終tokenまでの経路を追い、backendごとにstreaming、usage、cancel、prefix reuse、continuous batching、chunked prefill、KV精度、structured outputの「未対応／adapterのみ／実機合格」を記録する。フラグの存在だけでは有効と判定しない。
@@ -95,7 +112,10 @@ MLX / vLLM-Metal / qualified optional backend → Metal GPU
 - [Done] benchmarkへ`--collect-operating-context`を追加した。warmup前・測定前後の3点で温度状態、電源供給元、電源モード、UTC時刻を記録し、`--target-pid`指定時には対象processの経過秒数も保存する。probeをgoodput計測窓から除外し、取得不能をunknown／nullで維持する。[M4観測smoke](evaluation/benchmark-context-m4-2026-10-01.json)でnominal／Battery Power／automatic／観測process ageを取得した。推論性能、連続温度、cache hit率は未測定である。
 - [Done] 比較器へ`--require-operating-context`を追加した。両routeの3点でnominal温度・同じ既知の電源供給元と電源モード、UTC timestampの順序、測定前の同一UTC日、worker ageの非減少と測定前の経過時間差5秒以内を要求する。欠測・条件変化は`blocked_operating_context`として理由を保存する。任意gateとして既存reportとの互換性を維持し、性能qualificationはfalseのままとする。
 - [Done] operating context gateを有効にして同一UTC日の独立3 pairをM4で測定した。[3×30件series](evaluation/text-route-comparison-series-context-3x30-m4-2026-10-01.json)は各routeのwarmup 9/9、測定90/90が品質・SLO合格し、全pairでgate合格。各routeをfresh processで起動し、worker age 30秒以降にwarmup開始、測定前age 30〜31秒、全18観測でnominal／AC Power／automatic、順序2:1を確認した。goodput比1.006013／0.984572／1.170932、相対幅18.5246%で`blocked_variance`。観測条件一致だけでは安定した速度比較を保証できず、性能改善は未認定。[再現条件](evaluation/text-context-series-protocol-m4-2026-10-01.json)。
-- [Next] 短いclosed-loop測定の変動原因を調べるため、CPU／background負荷、memory pressure、request latency分布とcache hit／evictionを取得する。測定時間を延ばす比較は取得した条件と失敗理由を揃えて行い、同じ短時間試験の反復だけで性能認定しない。
+- [Done] benchmarkの測定窓外snapshotへ1／5／15分load average、logical CPU数、利用可能メモリ推定値・取得元・fallback表示を追加した。pressureは利用可能比率からの推定と明記し、OS判定やCPU使用率には認定しない。欠測はnull、比較gateは維持する。[仕様](TEXT-BENCHMARK.md)。[M4観測smoke](evaluation/benchmark-context-system-m4-2026-10-02.json)でload／10 logical CPU／メモリ推定を取得した。推論速度の改善は未測定。
+- [Done] benchmark reportへ固定容量のTTFT／E2E histogramを追加した。bucket境界・overflow・sample数・未取得件数・mean／maxを保存し、品質／SLO不合格も含め、warmupを除外する。失敗と`[DONE]`欠測は遅延ゼロにしない。境界・overflow・全失敗・欠測・warmupの関連検証を実施。[仕様](TEXT-BENCHMARK.md)。実モデルでの分布取得と性能改善は未測定。
+- [Done] [M4実モデル観測smoke](evaluation/text-benchmark-distribution-m4-2026-10-03.json)でGemma 2 2B／MLX-LM directのwarmup 3/3・測定30/30が品質／SLO合格し、TTFT／E2E histogram各30 sample・欠測0と3点のsystem観測を取得した。E2E平均225.022 ms／最大348.379 ms。単一路線・identity未指定の短時間検証であり、速度改善や変動原因は未認定。試験backendは終了後に停止した。
+- [Next] 短いclosed-loop測定の変動原因を調べるため、追加したsystem観測とrequest latency分布、cache hit／evictionを揃えて取得する。CPU使用率とbackground process別負荷は未取得。MLX-LM標準HTTPでcache hit／evictionは現在欠測であり、取得契約を先に整える。測定時間を延ばす比較は取得した条件と失敗理由を揃えて行い、同じ短時間試験の反復だけで性能認定しない。
 - [Next] モデル・データ・tokenizer・chat template・量子化方式／group size・KV dtype・sampling・依存versionを固定する。reportへrevision／hash、再現コマンド、power／thermal、失敗・除外理由を保存する。
 - [Next] 実MLX cacheでmetadata計測の完全性と負荷を確認し、viewの共有storageを二重計上し得る限界を明記する。queueキャンセルの長時間負荷とp95待ち時間を測る。
 

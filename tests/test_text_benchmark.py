@@ -35,6 +35,12 @@ class TextBenchmarkTests(unittest.TestCase):
         self.assertEqual(report["phase_profile"]["transport"]["unavailable_sample_count"], 1)
         self.assertTrue(report["e2e_p99_reference_only"])
         self.assertNotIn("private failure", str(report))
+        distributions = report["latency_distributions"]
+        self.assertEqual(distributions["ttft"]["sample_count"], 4)
+        self.assertEqual(distributions["e2e"]["sample_count"], 3)
+        self.assertEqual(distributions["e2e"]["unavailable_attempt_count"], 2)
+        self.assertEqual(sum(distributions["e2e"]["bucket_counts"]), 3)
+        self.assertEqual(distributions["e2e"]["max_ms"], 90)
 
     def test_concurrent_requests_have_bounded_workers_and_language_coverage(self):
         barrier = threading.Barrier(3)
@@ -82,6 +88,28 @@ class TextBenchmarkTests(unittest.TestCase):
         self.assertEqual(result["failed"], 3)
         self.assertEqual(result["goodput_tokens_per_second"], 0)
         self.assertIsNone(result["e2e_p99_upper_bound_ms"])
+        self.assertIsNone(result["latency_distributions"]["e2e"]["mean_ms"])
+        self.assertEqual(result["latency_distributions"]["ttft"]["unavailable_attempt_count"], 3)
+
+    def test_cache_usage_coverage_and_validation(self):
+        from dataclasses import replace
+
+        from vllm_apple.phase_probe import _cached_prompt_tokens
+        for value in (True, -1, 10, "2", None):
+            self.assertIsNone(_cached_prompt_tokens(
+                {"prompt_tokens_details": {"cached_tokens": value}}, 9))
+        self.assertEqual(_cached_prompt_tokens(
+            {"prompt_tokens_details": {"cached_tokens": 0}}, 9), 0)
+        with patch("vllm_apple.text_benchmark.measure_stream", side_effect=[
+            replace(self.result(), cached_prompt_tokens=6),
+            replace(self.result(), cached_prompt_tokens=0), self.result(),
+        ]):
+            report = run_text_benchmark(self.config, requests=3)
+        usage = report["prompt_cache_usage"]
+        self.assertEqual(usage["observed_requests"], 2)
+        self.assertEqual(usage["unavailable_attempts"], 1)
+        self.assertEqual(usage["requests_with_reuse"], 1)
+        self.assertEqual(usage["observed_token_reuse_ratio"], 6 / 18)
 
     def test_verified_identities_are_explicit_and_paired(self):
         with patch("vllm_apple.text_benchmark.measure_stream", return_value=self.result()):
@@ -107,6 +135,22 @@ class TextBenchmarkTests(unittest.TestCase):
         self.assertEqual(warmed["requests"], 3)
         self.assertEqual(warmed["cache_policy"], "backend_managed_conditioned")
         self.assertNotEqual(warmed["workload_sha256"], cold["workload_sha256"])
+        self.assertEqual(warmed["latency_distributions"]["e2e"]["sample_count"], 3)
+
+    def test_latency_distribution_boundaries_and_overflow(self):
+        from vllm_apple.phase_profile import LATENCY_BUCKETS_NS
+        boundary = LATENCY_BUCKETS_NS[0]
+        # Use valid timestamps even for the smallest histogram boundary.
+        responses = [StreamProbeResult(
+            PhaseMeasurement(0, 0, 0, 1, 1, 0, boundary), True, 0,
+        ), self.result(done=LATENCY_BUCKETS_NS[-1] + 1)]
+        with patch("vllm_apple.text_benchmark.measure_stream", side_effect=responses):
+            result = run_text_benchmark(self.config, requests=2)
+        distribution = result["latency_distributions"]["e2e"]
+        self.assertEqual(distribution["bucket_counts"][0], 1)
+        self.assertEqual(distribution["bucket_counts"][-1], 1)
+        self.assertIsNone(distribution["bucket_upper_bounds_ms"][-1])
+        self.assertEqual(len(distribution["bucket_counts"]), len(LATENCY_BUCKETS_NS) + 1)
 
     def test_context_probes_are_outside_measured_window(self):
         events = []
@@ -149,6 +193,21 @@ class TextBenchmarkTests(unittest.TestCase):
         for cases in invalid_cases:
             with self.subTest(cases=cases), self.assertRaises(ValueError):
                 run_text_benchmark(self.config, cases=cases)
+
+    def test_backend_observations_are_outside_timer(self):
+        events = []
+        def observe(config):
+            events.append('observe')
+            return {'status': 'unavailable'}
+        def clock():
+            events.append('clock')
+            return 0 if events.count('clock') == 1 else 1_000_000_000
+        with patch('vllm_apple.text_benchmark.observe_backend_memory', side_effect=observe), \
+                patch('vllm_apple.text_benchmark.time.monotonic_ns', side_effect=clock), \
+                patch('vllm_apple.text_benchmark.measure_stream', return_value=self.result()):
+            result = run_text_benchmark(self.config, requests=1, collect_backend_memory=True)
+        self.assertEqual(events, ['observe', 'clock', 'clock', 'observe'])
+        self.assertEqual(len(result['backend_memory_observations']), 2)
 
 
 if __name__ == "__main__":

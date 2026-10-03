@@ -1,0 +1,80 @@
+{
+  "report_kind": "wrapper_tokenize_and_idle_memory_smoke",
+  "language_checks": [
+    {
+      "language": "en",
+      "tokenize_count": 22,
+      "usage_prompt_tokens": 22,
+      "matches": true,
+      "quality_passed": true
+    },
+    {
+      "language": "ja",
+      "tokenize_count": 20,
+      "usage_prompt_tokens": 20,
+      "matches": true,
+      "quality_passed": true
+    },
+    {
+      "language": "zh",
+      "tokenize_count": 19,
+      "usage_prompt_tokens": 19,
+      "matches": true,
+      "quality_passed": true
+    }
+  ],
+  "invalid_model_http_status": 400,
+  "recovery_count": 10,
+  "idle_memory_probe_samples": 30,
+  "idle_memory_probe_mean_ms": 9.672391633333332,
+  "idle_memory_probe_max_ms": 12.663459,
+  "idle_memory_probe_duration_ms": [
+    10.216042,
+    9.900375,
+    9.5445,
+    9.512041,
+    9.359041,
+    9.320042,
+    9.728875,
+    9.561125,
+    9.47775,
+    9.199041,
+    12.47475,
+    9.442625,
+    9.403291,
+    9.7395,
+    9.512625,
+    9.567542,
+    9.428958,
+    9.57525,
+    9.183709,
+    9.603,
+    9.480792,
+    9.402041,
+    9.206,
+    9.326,
+    9.102458,
+    9.270625,
+    9.321042,
+    9.273041,
+    9.376209,
+    12.663459
+  ],
+  "qualification": false,
+  "inference_overhead_measured": false,
+  "reproduction": {
+    "backend_command": [
+      "/opt/homebrew/opt/vllm-metal/libexec/bin/python",
+      "-m",
+      "vllm_apple.mlx_server",
+      "--model",
+      "models/gemma-2-2b-it-4bit",
+      "--host",
+      "127.0.0.1",
+      "--port",
+      "19130"
+    ],
+    "HF_HUB_OFFLINE": "1",
+    "purpose": "observation_smoke_not_route_comparison"
+  }
+}

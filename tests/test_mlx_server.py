@@ -5,12 +5,26 @@ from types import SimpleNamespace
 from unittest.mock import patch
 
 from vllm_apple.backend_memory import MLXMemoryMetricsAdapter
-from vllm_apple.mlx_server import bounded_cache_nbytes, tokenize_chat_request
+from vllm_apple.mlx_server import bounded_cache_nbytes, prompt_cache_metrics, tokenize_chat_request
 
 
 class FakeArray:
     def __init__(self, nbytes: int) -> None:
         self.nbytes = nbytes
+
+
+class PromptCacheMetricsTests(unittest.TestCase):
+    def test_legacy_and_lru_sources_are_distinct(self):
+        legacy = prompt_cache_metrics(SimpleNamespace(cache=[FakeArray(24)], tokens=[1, 2]))
+        self.assertEqual(legacy['kv_cache_bytes'], 24)
+        self.assertTrue(legacy['traversal_complete'])
+        modern = prompt_cache_metrics(SimpleNamespace(nbytes=48))
+        self.assertEqual(modern['kv_cache_bytes'], 48)
+        self.assertIsNone(modern['kv_cache_tokens'])
+        self.assertFalse(modern['traversal_complete'])
+        self.assertEqual(modern['kv_measurement_source'], 'backend_lru_accounting')
+        with self.assertRaises(ValueError):
+            prompt_cache_metrics(SimpleNamespace(nbytes=True))
 
 
 class FakeCache:

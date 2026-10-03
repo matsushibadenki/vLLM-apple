@@ -1,0 +1,27 @@
+{
+  "observed_at": "2026-10-01T23:57:13.917717+00:00",
+  "thermal_state": "nominal",
+  "power_source": "AC Power",
+  "power_mode": "automatic",
+  "target_process_age_seconds": null,
+  "system": {
+    "load_average_1_5_15_minutes": [
+      3.20068359375,
+      3.6083984375,
+      3.56005859375
+    ],
+    "logical_cpu_count": 10,
+    "memory": {
+      "total_bytes": 34359738368,
+      "available_bytes": 14145961984,
+      "source": "sysconf",
+      "available_is_estimate": true,
+      "available_is_fallback": false,
+      "pressure_estimate": "normal",
+      "pressure_method": "available_ratio_thresholds_0.08_0.18"
+    }
+  },
+  "report_kind": "benchmark_context_system_smoke",
+  "inference_measured": false,
+  "qualification": false
+}

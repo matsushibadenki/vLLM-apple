@@ -8,6 +8,61 @@ from vllm_apple.runtime_autotuner import (
 
 
 class RuntimeAutotunerTests(unittest.TestCase):
+    def test_rejects_noisy_fast_candidate_and_retains_baseline_for_small_gain(self):
+        def measurement(kernel, samples):
+            return RuntimeTuningMeasurement(
+                RuntimeTuningConfiguration(1, 64, 16, 256, kernel),
+                samples, samples, 100, "d" * 64,
+            )
+        baseline = measurement("safe", (100, 100, 100))
+        small_gain = measurement("small", (99, 99, 99))
+        noisy = measurement("noisy", (1, 50, 90))
+        result = tune_runtime_configuration(
+            "a" * 24, "b" * 64, (baseline, small_gain, noisy),
+            baseline_output_digest="d" * 64, maximum_peak_memory_bytes=100,
+            maximum_relative_spread=.05, baseline_configuration=baseline.configuration,
+        )
+        self.assertEqual(result.winner, baseline.configuration)
+        self.assertTrue(result.baseline_retained)
+        self.assertEqual(result.rejected_candidates, 1)
+        with self.assertRaisesRegex(ValueError, "baseline configuration"):
+            tune_runtime_configuration(
+                "a" * 24, "b" * 64, (baseline, noisy),
+                baseline_output_digest="d" * 64, maximum_peak_memory_bytes=100,
+                maximum_relative_spread=.05, baseline_configuration=noisy.configuration,
+            )
+
+    def test_report_identity_binds_sample_evidence(self):
+        configuration = RuntimeTuningConfiguration(1, 64, 16, 256, "safe")
+        reports = [tune_runtime_configuration(
+            "a" * 24, "b" * 64,
+            (RuntimeTuningMeasurement(configuration, samples, samples, 100, "d" * 64),),
+            baseline_output_digest="d" * 64, maximum_peak_memory_bytes=100,
+        ) for samples in ((99, 100, 101), (98, 100, 102))]
+        self.assertNotEqual(reports[0].report_id, reports[1].report_id)
+
+    def test_stable_large_gain_is_selected_and_invalid_policy_rejected(self):
+        baseline = RuntimeTuningMeasurement(
+            RuntimeTuningConfiguration(1, 64, 16, 256, "safe"),
+            (100, 100, 100), (100, 100, 100), 100, "d" * 64,
+        )
+        fast = RuntimeTuningMeasurement(
+            RuntimeTuningConfiguration(1, 64, 16, 256, "fast"),
+            (80, 80, 80), (80, 80, 80), 100, "d" * 64,
+        )
+        kwargs = dict(baseline_output_digest="d" * 64, maximum_peak_memory_bytes=100,
+                      baseline_configuration=baseline.configuration)
+        result = tune_runtime_configuration(
+            "a" * 24, "b" * 64, (baseline, fast), maximum_relative_spread=.05, **kwargs,
+        )
+        self.assertEqual(result.winner, fast.configuration)
+        self.assertFalse(result.baseline_retained)
+        for bad in (True, float("nan"), -1, 2):
+            with self.subTest(bad=bad), self.assertRaisesRegex(ValueError, "stability policy"):
+                tune_runtime_configuration(
+                    "a" * 24, "b" * 64, (baseline,), maximum_relative_spread=bad, **kwargs,
+                )
+
     def test_selects_fastest_correct_candidate_within_memory_ceiling(self):
         digest = "d" * 64
         slow = RuntimeTuningMeasurement(

@@ -1,11 +1,38 @@
 """Bounded observations outside the benchmark measurement window."""
 from __future__ import annotations
 
+import math
+import os
 import re
 import subprocess
 from datetime import datetime, timezone
 
-from .hardware import _parse_power_mode, _pmset, detect_thermal_state
+from .hardware import _parse_power_mode, _pmset, detect_memory, detect_thermal_state
+
+
+def _system_context() -> dict[str, object]:
+    try:
+        values = os.getloadavg()
+        load = list(values) if all(math.isfinite(v) and v >= 0 for v in values) else None
+    except (AttributeError, OSError):
+        load = None
+    try:
+        memory = detect_memory()
+    except (OSError, RuntimeError, ValueError, subprocess.SubprocessError):
+        memory = None
+    return {
+        "load_average_1_5_15_minutes": load,
+        "logical_cpu_count": os.cpu_count(),
+        "memory": None if memory is None else {
+            "total_bytes": memory.total_bytes,
+            "available_bytes": memory.available_bytes,
+            "source": memory.source,
+            "available_is_estimate": True,
+            "available_is_fallback": "available-conservative-estimate" in memory.source,
+            "pressure_estimate": memory.pressure.value,
+            "pressure_method": "available_ratio_thresholds_0.08_0.18",
+        },
+    }
 
 
 def _process_age_seconds(pid: int | None) -> int | None:
@@ -42,4 +69,5 @@ def observe_benchmark_context(pid: int | None = None) -> dict[str, object]:
         "power_source": source_match.group(1) if source_match else "unknown",
         "power_mode": _parse_power_mode(source or "", settings or "").value,
         "target_process_age_seconds": _process_age_seconds(pid),
+        "system": _system_context(),
     }

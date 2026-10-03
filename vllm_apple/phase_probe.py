@@ -60,6 +60,7 @@ class StreamProbeResult:
     measurement: PhaseMeasurement
     expected_text_matched: bool | None
     steady_memory_bytes: int
+    cached_prompt_tokens: int | None = None
 
 
 def run_phase_probe(config: PhaseProbeConfig) -> dict[str, Any]:
@@ -249,6 +250,7 @@ def measure_stream(
         ),
         expected_text_matched=expected_matched if expected_text is not None else None,
         steady_memory_bytes=_resident_bytes(config.target_pid),
+        cached_prompt_tokens=_cached_prompt_tokens(usage, prompt_tokens),
     )
 
 
@@ -276,6 +278,12 @@ def _answer_text(event: dict[str, Any]) -> str:
         if isinstance(value, str) and value:
             return value
     return ""
+
+
+def _cached_prompt_tokens(usage: dict[str, Any] | None, prompt_tokens: int) -> int | None:
+    details = usage.get("prompt_tokens_details") if usage else None
+    value = _usage_integer(details, "cached_tokens") if isinstance(details, dict) else None
+    return value if value is not None and value <= prompt_tokens else None
 
 
 def _usage_integer(usage: dict[str, Any] | None, name: str) -> int | None:
