@@ -1,0 +1,955 @@
+{
+  "schema_version": 1,
+  "report_kind": "p0_baseline_audit",
+  "baseline_gate_passed": true,
+  "issues": [],
+  "backends": {
+    "mlx_lm": {
+      "runs": [
+        {
+          "report_sha256": "5d14c70fcea5a7ac2d232f64894926ae41b0a426b92b17e50115e2cb951514ca",
+          "started_at": "2026-10-04T02:01:53.198887+00:00",
+          "backend_build_sha256": "41ccb8c2363d7138db468dfd01adac061ec36158a93570cb01e589f281c95b76",
+          "completed": 102,
+          "languages": {
+            "en": {
+              "attempted": 34,
+              "completed": 34,
+              "quality_passed": 34,
+              "slo_passed": 34
+            },
+            "ja": {
+              "attempted": 34,
+              "completed": 34,
+              "quality_passed": 34,
+              "slo_passed": 34
+            },
+            "zh": {
+              "attempted": 34,
+              "completed": 34,
+              "quality_passed": 34,
+              "slo_passed": 34
+            }
+          },
+          "goodput": 18.108373254649493,
+          "phase_profile": {
+            "schema_version": 1,
+            "profile_id": "f2c08f161f79193425058e07",
+            "hardware_fingerprint": "Apple-M4-32GiB",
+            "model_id": "models/gemma-2-2b-it-4bit",
+            "backend": "mlx_lm",
+            "sample_count": 102,
+            "prefill": {
+              "prompt_tokens": 2074,
+              "ttft": {
+                "mean_ms": 157.668,
+                "p50_upper_bound_ms": 250.0,
+                "p95_upper_bound_ms": 250.0,
+                "max_ms": 208.883
+              }
+            },
+            "decode": {
+              "output_tokens": 408,
+              "token_intervals": 306,
+              "duration_ms": 3711.94,
+              "tpot": {
+                "mean_ms": 12.131,
+                "p50_upper_bound_ms": 25.0,
+                "p95_upper_bound_ms": 25.0,
+                "max_ms": 15.314
+              },
+              "tokens_per_second": 82.437
+            },
+            "peak_memory_bytes": 2201436160,
+            "transport": {
+              "sample_count": 102,
+              "unavailable_sample_count": 0,
+              "end_to_end": {
+                "mean_ms": 216.141,
+                "p50_upper_bound_ms": 250.0,
+                "p95_upper_bound_ms": 250.0,
+                "max_ms": 267.234
+              },
+              "stream_tail": {
+                "mean_ms": 22.082,
+                "p50_upper_bound_ms": 25.0,
+                "p95_upper_bound_ms": 25.0,
+                "max_ms": 30.5
+              }
+            },
+            "storage": {
+              "latency_bucket_count": 52,
+              "raw_sample_count": 0
+            }
+          },
+          "operating_context": {
+            "before_warmup": {
+              "observed_at": "2026-10-04T02:01:51.571805+00:00",
+              "thermal_state": "nominal",
+              "power_source": "AC Power",
+              "power_mode": "automatic",
+              "target_process_age_seconds": 3,
+              "system": {
+                "load_average_1_5_15_minutes": [
+                  3.20068359375,
+                  3.29345703125,
+                  3.2568359375
+                ],
+                "logical_cpu_count": 10,
+                "memory": {
+                  "total_bytes": 34359738368,
+                  "available_bytes": 24962809856,
+                  "source": "sysctl",
+                  "available_is_estimate": true,
+                  "available_is_fallback": false,
+                  "pressure_estimate": "normal",
+                  "pressure_method": "available_ratio_thresholds_0.08_0.18"
+                }
+              }
+            },
+            "before_measurement": {
+              "observed_at": "2026-10-04T02:01:53.193191+00:00",
+              "thermal_state": "nominal",
+              "power_source": "AC Power",
+              "power_mode": "automatic",
+              "target_process_age_seconds": 5,
+              "system": {
+                "load_average_1_5_15_minutes": [
+                  3.0244140625,
+                  3.25537109375,
+                  3.2431640625
+                ],
+                "logical_cpu_count": 10,
+                "memory": {
+                  "total_bytes": 34359738368,
+                  "available_bytes": 23914332160,
+                  "source": "sysctl",
+                  "available_is_estimate": true,
+                  "available_is_fallback": false,
+                  "pressure_estimate": "normal",
+                  "pressure_method": "available_ratio_thresholds_0.08_0.18"
+                }
+              }
+            },
+            "after_measurement": {
+              "observed_at": "2026-10-04T02:02:15.743148+00:00",
+              "thermal_state": "nominal",
+              "power_source": "AC Power",
+              "power_mode": "automatic",
+              "target_process_age_seconds": 27,
+              "system": {
+                "load_average_1_5_15_minutes": [
+                  2.744140625,
+                  3.17333984375,
+                  3.2138671875
+                ],
+                "logical_cpu_count": 10,
+                "memory": {
+                  "total_bytes": 34359738368,
+                  "available_bytes": 23062347776,
+                  "source": "sysctl",
+                  "available_is_estimate": true,
+                  "available_is_fallback": false,
+                  "pressure_estimate": "normal",
+                  "pressure_method": "available_ratio_thresholds_0.08_0.18"
+                }
+              }
+            }
+          },
+          "p99_reference_only": true
+        },
+        {
+          "report_sha256": "0bc1d07620f6db39da0dc130b42d12266da2a1c3b79a5d79b2618daa3172535d",
+          "started_at": "2026-10-04T02:02:20.138248+00:00",
+          "backend_build_sha256": "41ccb8c2363d7138db468dfd01adac061ec36158a93570cb01e589f281c95b76",
+          "completed": 102,
+          "languages": {
+            "en": {
+              "attempted": 34,
+              "completed": 34,
+              "quality_passed": 34,
+              "slo_passed": 34
+            },
+            "ja": {
+              "attempted": 34,
+              "completed": 34,
+              "quality_passed": 34,
+              "slo_passed": 34
+            },
+            "zh": {
+              "attempted": 34,
+              "completed": 34,
+              "quality_passed": 34,
+              "slo_passed": 34
+            }
+          },
+          "goodput": 18.431340600636226,
+          "phase_profile": {
+            "schema_version": 1,
+            "profile_id": "213fb1cfa72ed8a380ca03c3",
+            "hardware_fingerprint": "Apple-M4-32GiB",
+            "model_id": "models/gemma-2-2b-it-4bit",
+            "backend": "mlx_lm",
+            "sample_count": 102,
+            "prefill": {
+              "prompt_tokens": 2074,
+              "ttft": {
+                "mean_ms": 155.281,
+                "p50_upper_bound_ms": 250.0,
+                "p95_upper_bound_ms": 250.0,
+                "max_ms": 180.644
+              }
+            },
+            "decode": {
+              "output_tokens": 408,
+              "token_intervals": 306,
+              "duration_ms": 3632.827,
+              "tpot": {
+                "mean_ms": 11.872,
+                "p50_upper_bound_ms": 25.0,
+                "p95_upper_bound_ms": 25.0,
+                "max_ms": 12.234
+              },
+              "tokens_per_second": 84.232
+            },
+            "peak_memory_bytes": 2205138944,
+            "transport": {
+              "sample_count": 102,
+              "unavailable_sample_count": 0,
+              "end_to_end": {
+                "mean_ms": 212.474,
+                "p50_upper_bound_ms": 250.0,
+                "p95_upper_bound_ms": 250.0,
+                "max_ms": 237.664
+              },
+              "stream_tail": {
+                "mean_ms": 21.577,
+                "p50_upper_bound_ms": 25.0,
+                "p95_upper_bound_ms": 25.0,
+                "max_ms": 22.534
+              }
+            },
+            "storage": {
+              "latency_bucket_count": 52,
+              "raw_sample_count": 0
+            }
+          },
+          "operating_context": {
+            "before_warmup": {
+              "observed_at": "2026-10-04T02:02:19.240653+00:00",
+              "thermal_state": "nominal",
+              "power_source": "AC Power",
+              "power_mode": "automatic",
+              "target_process_age_seconds": 3,
+              "system": {
+                "load_average_1_5_15_minutes": [
+                  2.60400390625,
+                  3.13720703125,
+                  3.20068359375
+                ],
+                "logical_cpu_count": 10,
+                "memory": {
+                  "total_bytes": 34359738368,
+                  "available_bytes": 23189553152,
+                  "source": "sysctl",
+                  "available_is_estimate": true,
+                  "available_is_fallback": false,
+                  "pressure_estimate": "normal",
+                  "pressure_method": "available_ratio_thresholds_0.08_0.18"
+                }
+              }
+            },
+            "before_measurement": {
+              "observed_at": "2026-10-04T02:02:20.132199+00:00",
+              "thermal_state": "nominal",
+              "power_source": "AC Power",
+              "power_mode": "automatic",
+              "target_process_age_seconds": 4,
+              "system": {
+                "load_average_1_5_15_minutes": [
+                  2.60400390625,
+                  3.13720703125,
+                  3.20068359375
+                ],
+                "logical_cpu_count": 10,
+                "memory": {
+                  "total_bytes": 34359738368,
+                  "available_bytes": 23148363776,
+                  "source": "sysctl",
+                  "available_is_estimate": true,
+                  "available_is_fallback": false,
+                  "pressure_estimate": "normal",
+                  "pressure_method": "available_ratio_thresholds_0.08_0.18"
+                }
+              }
+            },
+            "after_measurement": {
+              "observed_at": "2026-10-04T02:02:42.286923+00:00",
+              "thermal_state": "nominal",
+              "power_source": "AC Power",
+              "power_mode": "automatic",
+              "target_process_age_seconds": 26,
+              "system": {
+                "load_average_1_5_15_minutes": [
+                  2.345703125,
+                  3.0458984375,
+                  3.16552734375
+                ],
+                "logical_cpu_count": 10,
+                "memory": {
+                  "total_bytes": 34359738368,
+                  "available_bytes": 22910255104,
+                  "source": "sysctl",
+                  "available_is_estimate": true,
+                  "available_is_fallback": false,
+                  "pressure_estimate": "normal",
+                  "pressure_method": "available_ratio_thresholds_0.08_0.18"
+                }
+              }
+            }
+          },
+          "p99_reference_only": true
+        },
+        {
+          "report_sha256": "f98ac1dc006c2d8d887e82a34d07ba0094aca2398beed81a5d1ad360ac5e2d8e",
+          "started_at": "2026-10-04T02:03:56.539661+00:00",
+          "backend_build_sha256": "41ccb8c2363d7138db468dfd01adac061ec36158a93570cb01e589f281c95b76",
+          "completed": 102,
+          "languages": {
+            "en": {
+              "attempted": 34,
+              "completed": 34,
+              "quality_passed": 34,
+              "slo_passed": 34
+            },
+            "ja": {
+              "attempted": 34,
+              "completed": 34,
+              "quality_passed": 34,
+              "slo_passed": 34
+            },
+            "zh": {
+              "attempted": 34,
+              "completed": 34,
+              "quality_passed": 34,
+              "slo_passed": 34
+            }
+          },
+          "goodput": 18.341143997164405,
+          "phase_profile": {
+            "schema_version": 1,
+            "profile_id": "03b9ac2f559544b460f3bcab",
+            "hardware_fingerprint": "Apple-M4-32GiB",
+            "model_id": "models/gemma-2-2b-it-4bit",
+            "backend": "mlx_lm",
+            "sample_count": 102,
+            "prefill": {
+              "prompt_tokens": 2074,
+              "ttft": {
+                "mean_ms": 156.069,
+                "p50_upper_bound_ms": 250.0,
+                "p95_upper_bound_ms": 250.0,
+                "max_ms": 179.536
+              }
+            },
+            "decode": {
+              "output_tokens": 408,
+              "token_intervals": 306,
+              "duration_ms": 3644.24,
+              "tpot": {
+                "mean_ms": 11.909,
+                "p50_upper_bound_ms": 25.0,
+                "p95_upper_bound_ms": 25.0,
+                "max_ms": 12.519
+              },
+              "tokens_per_second": 83.968
+            },
+            "peak_memory_bytes": 2198781952,
+            "transport": {
+              "sample_count": 102,
+              "unavailable_sample_count": 0,
+              "end_to_end": {
+                "mean_ms": 213.442,
+                "p50_upper_bound_ms": 250.0,
+                "p95_upper_bound_ms": 250.0,
+                "max_ms": 235.98
+              },
+              "stream_tail": {
+                "mean_ms": 21.645,
+                "p50_upper_bound_ms": 25.0,
+                "p95_upper_bound_ms": 25.0,
+                "max_ms": 23.072
+              }
+            },
+            "storage": {
+              "latency_bucket_count": 52,
+              "raw_sample_count": 0
+            }
+          },
+          "operating_context": {
+            "before_warmup": {
+              "observed_at": "2026-10-04T02:03:54.854521+00:00",
+              "thermal_state": "nominal",
+              "power_source": "AC Power",
+              "power_mode": "automatic",
+              "target_process_age_seconds": 2,
+              "system": {
+                "load_average_1_5_15_minutes": [
+                  2.49560546875,
+                  2.94189453125,
+                  3.115234375
+                ],
+                "logical_cpu_count": 10,
+                "memory": {
+                  "total_bytes": 34359738368,
+                  "available_bytes": 26487635968,
+                  "source": "sysctl",
+                  "available_is_estimate": true,
+                  "available_is_fallback": false,
+                  "pressure_estimate": "normal",
+                  "pressure_method": "available_ratio_thresholds_0.08_0.18"
+                }
+              }
+            },
+            "before_measurement": {
+              "observed_at": "2026-10-04T02:03:56.534130+00:00",
+              "thermal_state": "nominal",
+              "power_source": "AC Power",
+              "power_mode": "automatic",
+              "target_process_age_seconds": 4,
+              "system": {
+                "load_average_1_5_15_minutes": [
+                  2.49560546875,
+                  2.94189453125,
+                  3.115234375
+                ],
+                "logical_cpu_count": 10,
+                "memory": {
+                  "total_bytes": 34359738368,
+                  "available_bytes": 25136627712,
+                  "source": "sysctl",
+                  "available_is_estimate": true,
+                  "available_is_fallback": false,
+                  "pressure_estimate": "normal",
+                  "pressure_method": "available_ratio_thresholds_0.08_0.18"
+                }
+              }
+            },
+            "after_measurement": {
+              "observed_at": "2026-10-04T02:04:18.797787+00:00",
+              "thermal_state": "fair",
+              "power_source": "AC Power",
+              "power_mode": "automatic",
+              "target_process_age_seconds": 26,
+              "system": {
+                "load_average_1_5_15_minutes": [
+                  2.14453125,
+                  2.818359375,
+                  3.064453125
+                ],
+                "logical_cpu_count": 10,
+                "memory": {
+                  "total_bytes": 34359738368,
+                  "available_bytes": 23976656896,
+                  "source": "sysctl",
+                  "available_is_estimate": true,
+                  "available_is_fallback": false,
+                  "pressure_estimate": "normal",
+                  "pressure_method": "available_ratio_thresholds_0.08_0.18"
+                }
+              }
+            }
+          },
+          "p99_reference_only": true
+        }
+      ],
+      "completed": 306,
+      "language_completions": {
+        "en": 102,
+        "ja": 102,
+        "zh": 102
+      },
+      "median_goodput": 18.341143997164405,
+      "relative_spread": 0.017608898661755478
+    },
+    "vllm_metal": {
+      "runs": [
+        {
+          "report_sha256": "83adac3efe24514cfb6cfc54737832dc0cc4e1da0aa76318ede07bedc5182bb0",
+          "started_at": "2026-10-04T02:01:29.403926+00:00",
+          "backend_build_sha256": "9caab4016fdb688f1dbb7cbe8fee3a5a38d37add211ed5fa09fe89872fda267f",
+          "completed": 102,
+          "languages": {
+            "en": {
+              "attempted": 34,
+              "completed": 34,
+              "quality_passed": 34,
+              "slo_passed": 34
+            },
+            "ja": {
+              "attempted": 34,
+              "completed": 34,
+              "quality_passed": 34,
+              "slo_passed": 34
+            },
+            "zh": {
+              "attempted": 34,
+              "completed": 34,
+              "quality_passed": 34,
+              "slo_passed": 34
+            }
+          },
+          "goodput": 24.701963694107228,
+          "phase_profile": {
+            "schema_version": 1,
+            "profile_id": "0be3148fe8dfa9dd296e0b71",
+            "hardware_fingerprint": "Apple-M4-32GiB",
+            "model_id": "models/gemma-2-2b-it-4bit",
+            "backend": "vllm_metal",
+            "sample_count": 102,
+            "prefill": {
+              "prompt_tokens": 2074,
+              "ttft": {
+                "mean_ms": 82.134,
+                "p50_upper_bound_ms": 100.0,
+                "p95_upper_bound_ms": 100.0,
+                "max_ms": 731.916
+              }
+            },
+            "decode": {
+              "output_tokens": 408,
+              "token_intervals": 306,
+              "duration_ms": 4905.606,
+              "tpot": {
+                "mean_ms": 16.031,
+                "p50_upper_bound_ms": 25.0,
+                "p95_upper_bound_ms": 25.0,
+                "max_ms": 18.921
+              },
+              "tokens_per_second": 62.378
+            },
+            "peak_memory_bytes": 62128128,
+            "transport": {
+              "sample_count": 102,
+              "unavailable_sample_count": 0,
+              "end_to_end": {
+                "mean_ms": 152.819,
+                "p50_upper_bound_ms": 250.0,
+                "p95_upper_bound_ms": 250.0,
+                "max_ms": 805.599
+              },
+              "stream_tail": {
+                "mean_ms": 22.59,
+                "p50_upper_bound_ms": 25.0,
+                "p95_upper_bound_ms": 25.0,
+                "max_ms": 30.813
+              }
+            },
+            "storage": {
+              "latency_bucket_count": 52,
+              "raw_sample_count": 0
+            }
+          },
+          "operating_context": {
+            "before_warmup": {
+              "observed_at": "2026-10-04T02:01:25.028265+00:00",
+              "thermal_state": "nominal",
+              "power_source": "AC Power",
+              "power_mode": "automatic",
+              "target_process_age_seconds": 121,
+              "system": {
+                "load_average_1_5_15_minutes": [
+                  2.9169921875,
+                  3.2509765625,
+                  3.2421875
+                ],
+                "logical_cpu_count": 10,
+                "memory": {
+                  "total_bytes": 34359738368,
+                  "available_bytes": 14049607680,
+                  "source": "sysctl",
+                  "available_is_estimate": true,
+                  "available_is_fallback": false,
+                  "pressure_estimate": "normal",
+                  "pressure_method": "available_ratio_thresholds_0.08_0.18"
+                }
+              }
+            },
+            "before_measurement": {
+              "observed_at": "2026-10-04T02:01:29.393943+00:00",
+              "thermal_state": "nominal",
+              "power_source": "AC Power",
+              "power_mode": "automatic",
+              "target_process_age_seconds": 125,
+              "system": {
+                "load_average_1_5_15_minutes": [
+                  3.00341796875,
+                  3.26318359375,
+                  3.24658203125
+                ],
+                "logical_cpu_count": 10,
+                "memory": {
+                  "total_bytes": 34359738368,
+                  "available_bytes": 1681211392,
+                  "source": "sysctl",
+                  "available_is_estimate": true,
+                  "available_is_fallback": false,
+                  "pressure_estimate": "critical",
+                  "pressure_method": "available_ratio_thresholds_0.08_0.18"
+                }
+              }
+            },
+            "after_measurement": {
+              "observed_at": "2026-10-04T02:01:45.942992+00:00",
+              "thermal_state": "nominal",
+              "power_source": "AC Power",
+              "power_mode": "automatic",
+              "target_process_age_seconds": 141,
+              "system": {
+                "load_average_1_5_15_minutes": [
+                  3.13134765625,
+                  3.28173828125,
+                  3.2529296875
+                ],
+                "logical_cpu_count": 10,
+                "memory": {
+                  "total_bytes": 34359738368,
+                  "available_bytes": 1426358272,
+                  "source": "sysctl",
+                  "available_is_estimate": true,
+                  "available_is_fallback": false,
+                  "pressure_estimate": "critical",
+                  "pressure_method": "available_ratio_thresholds_0.08_0.18"
+                }
+              }
+            }
+          },
+          "p99_reference_only": true
+        },
+        {
+          "report_sha256": "2b06339167ae576967b23679895ae774b0d6f3826469fb48d2c23964308e9bcc",
+          "started_at": "2026-10-04T02:03:00.403806+00:00",
+          "backend_build_sha256": "9caab4016fdb688f1dbb7cbe8fee3a5a38d37add211ed5fa09fe89872fda267f",
+          "completed": 102,
+          "languages": {
+            "en": {
+              "attempted": 34,
+              "completed": 34,
+              "quality_passed": 34,
+              "slo_passed": 34
+            },
+            "ja": {
+              "attempted": 34,
+              "completed": 34,
+              "quality_passed": 34,
+              "slo_passed": 34
+            },
+            "zh": {
+              "attempted": 34,
+              "completed": 34,
+              "quality_passed": 34,
+              "slo_passed": 34
+            }
+          },
+          "goodput": 26.29543124857692,
+          "phase_profile": {
+            "schema_version": 1,
+            "profile_id": "4a0e6ac65ed11e3c76c9fb9e",
+            "hardware_fingerprint": "Apple-M4-32GiB",
+            "model_id": "models/gemma-2-2b-it-4bit",
+            "backend": "vllm_metal",
+            "sample_count": 102,
+            "prefill": {
+              "prompt_tokens": 2074,
+              "ttft": {
+                "mean_ms": 74.873,
+                "p50_upper_bound_ms": 100.0,
+                "p95_upper_bound_ms": 100.0,
+                "max_ms": 91.39
+              }
+            },
+            "decode": {
+              "output_tokens": 408,
+              "token_intervals": 306,
+              "duration_ms": 4784.966,
+              "tpot": {
+                "mean_ms": 15.637,
+                "p50_upper_bound_ms": 25.0,
+                "p95_upper_bound_ms": 25.0,
+                "max_ms": 18.24
+              },
+              "tokens_per_second": 63.95
+            },
+            "peak_memory_bytes": 414318592,
+            "transport": {
+              "sample_count": 102,
+              "unavailable_sample_count": 0,
+              "end_to_end": {
+                "mean_ms": 143.804,
+                "p50_upper_bound_ms": 250.0,
+                "p95_upper_bound_ms": 250.0,
+                "max_ms": 165.024
+              },
+              "stream_tail": {
+                "mean_ms": 22.019,
+                "p50_upper_bound_ms": 25.0,
+                "p95_upper_bound_ms": 25.0,
+                "max_ms": 24.268
+              }
+            },
+            "storage": {
+              "latency_bucket_count": 52,
+              "raw_sample_count": 0
+            }
+          },
+          "operating_context": {
+            "before_warmup": {
+              "observed_at": "2026-10-04T02:02:59.337523+00:00",
+              "thermal_state": "nominal",
+              "power_source": "AC Power",
+              "power_mode": "automatic",
+              "target_process_age_seconds": 17,
+              "system": {
+                "load_average_1_5_15_minutes": [
+                  2.4638671875,
+                  3.02587890625,
+                  3.1552734375
+                ],
+                "logical_cpu_count": 10,
+                "memory": {
+                  "total_bytes": 34359738368,
+                  "available_bytes": 2963914752,
+                  "source": "sysctl",
+                  "available_is_estimate": true,
+                  "available_is_fallback": false,
+                  "pressure_estimate": "warning",
+                  "pressure_method": "available_ratio_thresholds_0.08_0.18"
+                }
+              }
+            },
+            "before_measurement": {
+              "observed_at": "2026-10-04T02:03:00.396165+00:00",
+              "thermal_state": "nominal",
+              "power_source": "AC Power",
+              "power_mode": "automatic",
+              "target_process_age_seconds": 18,
+              "system": {
+                "load_average_1_5_15_minutes": [
+                  2.4638671875,
+                  3.02587890625,
+                  3.1552734375
+                ],
+                "logical_cpu_count": 10,
+                "memory": {
+                  "total_bytes": 34359738368,
+                  "available_bytes": 1385037824,
+                  "source": "sysctl",
+                  "available_is_estimate": true,
+                  "available_is_fallback": false,
+                  "pressure_estimate": "critical",
+                  "pressure_method": "available_ratio_thresholds_0.08_0.18"
+                }
+              }
+            },
+            "after_measurement": {
+              "observed_at": "2026-10-04T02:03:15.938703+00:00",
+              "thermal_state": "nominal",
+              "power_source": "AC Power",
+              "power_mode": "automatic",
+              "target_process_age_seconds": 33,
+              "system": {
+                "load_average_1_5_15_minutes": [
+                  2.63720703125,
+                  3.0400390625,
+                  3.158203125
+                ],
+                "logical_cpu_count": 10,
+                "memory": {
+                  "total_bytes": 34359738368,
+                  "available_bytes": 1392607232,
+                  "source": "sysctl",
+                  "available_is_estimate": true,
+                  "available_is_fallback": false,
+                  "pressure_estimate": "critical",
+                  "pressure_method": "available_ratio_thresholds_0.08_0.18"
+                }
+              }
+            }
+          },
+          "p99_reference_only": true
+        },
+        {
+          "report_sha256": "42136bd928899ee3be8e28227207fbca08a4d18fc53eae2028c42e6068deb892",
+          "started_at": "2026-10-04T02:03:35.845888+00:00",
+          "backend_build_sha256": "9caab4016fdb688f1dbb7cbe8fee3a5a38d37add211ed5fa09fe89872fda267f",
+          "completed": 102,
+          "languages": {
+            "en": {
+              "attempted": 34,
+              "completed": 34,
+              "quality_passed": 34,
+              "slo_passed": 34
+            },
+            "ja": {
+              "attempted": 34,
+              "completed": 34,
+              "quality_passed": 34,
+              "slo_passed": 34
+            },
+            "zh": {
+              "attempted": 34,
+              "completed": 34,
+              "quality_passed": 34,
+              "slo_passed": 34
+            }
+          },
+          "goodput": 25.733693231538407,
+          "phase_profile": {
+            "schema_version": 1,
+            "profile_id": "9544fc5c5af69c9ea4eb97a4",
+            "hardware_fingerprint": "Apple-M4-32GiB",
+            "model_id": "models/gemma-2-2b-it-4bit",
+            "backend": "vllm_metal",
+            "sample_count": 102,
+            "prefill": {
+              "prompt_tokens": 2074,
+              "ttft": {
+                "mean_ms": 75.531,
+                "p50_upper_bound_ms": 100.0,
+                "p95_upper_bound_ms": 100.0,
+                "max_ms": 95.94
+              }
+            },
+            "decode": {
+              "output_tokens": 408,
+              "token_intervals": 306,
+              "duration_ms": 4942.204,
+              "tpot": {
+                "mean_ms": 16.151,
+                "p50_upper_bound_ms": 25.0,
+                "p95_upper_bound_ms": 25.0,
+                "max_ms": 19.718
+              },
+              "tokens_per_second": 61.916
+            },
+            "peak_memory_bytes": 79806464,
+            "transport": {
+              "sample_count": 102,
+              "unavailable_sample_count": 0,
+              "end_to_end": {
+                "mean_ms": 146.654,
+                "p50_upper_bound_ms": 250.0,
+                "p95_upper_bound_ms": 250.0,
+                "max_ms": 184.426
+              },
+              "stream_tail": {
+                "mean_ms": 22.67,
+                "p50_upper_bound_ms": 25.0,
+                "p95_upper_bound_ms": 50.0,
+                "max_ms": 33.667
+              }
+            },
+            "storage": {
+              "latency_bucket_count": 52,
+              "raw_sample_count": 0
+            }
+          },
+          "operating_context": {
+            "before_warmup": {
+              "observed_at": "2026-10-04T02:03:34.110503+00:00",
+              "thermal_state": "nominal",
+              "power_source": "AC Power",
+              "power_mode": "automatic",
+              "target_process_age_seconds": 18,
+              "system": {
+                "load_average_1_5_15_minutes": [
+                  2.23388671875,
+                  2.9228515625,
+                  3.11328125
+                ],
+                "logical_cpu_count": 10,
+                "memory": {
+                  "total_bytes": 34359738368,
+                  "available_bytes": 4401610752,
+                  "source": "sysctl",
+                  "available_is_estimate": true,
+                  "available_is_fallback": false,
+                  "pressure_estimate": "warning",
+                  "pressure_method": "available_ratio_thresholds_0.08_0.18"
+                }
+              }
+            },
+            "before_measurement": {
+              "observed_at": "2026-10-04T02:03:35.832809+00:00",
+              "thermal_state": "nominal",
+              "power_source": "AC Power",
+              "power_mode": "automatic",
+              "target_process_age_seconds": 19,
+              "system": {
+                "load_average_1_5_15_minutes": [
+                  2.23388671875,
+                  2.9228515625,
+                  3.11328125
+                ],
+                "logical_cpu_count": 10,
+                "memory": {
+                  "total_bytes": 34359738368,
+                  "available_bytes": 1214054400,
+                  "source": "sysctl",
+                  "available_is_estimate": true,
+                  "available_is_fallback": false,
+                  "pressure_estimate": "critical",
+                  "pressure_method": "available_ratio_thresholds_0.08_0.18"
+                }
+              }
+            },
+            "after_measurement": {
+              "observed_at": "2026-10-04T02:03:51.722241+00:00",
+              "thermal_state": "nominal",
+              "power_source": "AC Power",
+              "power_mode": "automatic",
+              "target_process_age_seconds": 35,
+              "system": {
+                "load_average_1_5_15_minutes": [
+                  2.5390625,
+                  2.9580078125,
+                  3.1220703125
+                ],
+                "logical_cpu_count": 10,
+                "memory": {
+                  "total_bytes": 34359738368,
+                  "available_bytes": 1738981376,
+                  "source": "sysctl",
+                  "available_is_estimate": true,
+                  "available_is_fallback": false,
+                  "pressure_estimate": "critical",
+                  "pressure_method": "available_ratio_thresholds_0.08_0.18"
+                }
+              }
+            }
+          },
+          "p99_reference_only": true
+        }
+      ],
+      "completed": 306,
+      "language_completions": {
+        "en": 102,
+        "ja": 102,
+        "zh": 102
+      },
+      "median_goodput": 25.733693231538407,
+      "relative_spread": 0.06192144827920735
+    }
+  },
+  "performance_qualification": false,
+  "capability_promotion": false,
+  "unavailable_internal_phases": [
+    "queue",
+    "tokenize",
+    "prefill",
+    "decode",
+    "serialization",
+    "model_load"
+  ],
+  "client_phase_note": "TTFT includes queue/tokenize/prefill; TPOT is a client-derived estimate"
+}

@@ -61,6 +61,7 @@ class RuntimeTuningReport:
     report_id: str
     baseline_retained: bool = False
     maximum_relative_spread: float | None = None
+    policy_sha256: str = ""
 
 
 def tune_runtime_configuration(
@@ -142,9 +143,30 @@ def tune_runtime_configuration(
         "minimum_relative_improvement": minimum_relative_improvement,
         "baseline_retained": baseline_retained,
     }
+    policy = {key: identity[key] for key in (
+        "hardware_fingerprint", "baseline_output_digest", "maximum_peak_memory_bytes",
+        "prefill_weight", "decode_weight", "maximum_relative_spread",
+        "baseline_configuration", "minimum_relative_improvement")}
     return RuntimeTuningReport(
         hardware_fingerprint, phase_profile_id, winner, score, len(qualified),
         len(measurements) - len(qualified),
         hashlib.sha256(json.dumps(identity, sort_keys=True, separators=(",", ":")).encode()).hexdigest(),
         baseline_retained, maximum_relative_spread,
+        hashlib.sha256(json.dumps(policy, sort_keys=True).encode()).hexdigest(),
     )
+
+
+def confirm_runtime_tuning(proposal: RuntimeTuningReport, confirmation: RuntimeTuningReport) -> dict:
+    """Bind separately identified rounds; this is not proof of independent acquisition."""
+    if (proposal.hardware_fingerprint != confirmation.hardware_fingerprint
+            or proposal.phase_profile_id == confirmation.phase_profile_id
+            or len(proposal.policy_sha256) != 64
+            or proposal.policy_sha256 != confirmation.policy_sha256):
+        raise ValueError("confirmation requires distinct rounds with identical hardware and policy")
+    payload = dict(proposal_report_id=proposal.report_id, confirmation_report_id=confirmation.report_id,
+                   policy_sha256=proposal.policy_sha256,
+                   confirmed=proposal.winner == confirmation.winner,
+                   independent_acquisition_verified=False, e2e_verified=False,
+                   automatic_application=False)
+    payload['report_id'] = hashlib.sha256(json.dumps(payload, sort_keys=True).encode()).hexdigest()
+    return payload

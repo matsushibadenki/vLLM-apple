@@ -3,11 +3,31 @@ import unittest
 from vllm_apple.runtime_autotuner import (
     RuntimeTuningConfiguration,
     RuntimeTuningMeasurement,
+    confirm_runtime_tuning,
     tune_runtime_configuration,
 )
 
 
 class RuntimeAutotunerTests(unittest.TestCase):
+    def test_confirmation_binds_policy_and_separate_rounds(self):
+        safe = RuntimeTuningMeasurement(RuntimeTuningConfiguration(1, 64, 16, 256, 'safe'),
+                                        (100, 100, 100), (100, 100, 100), 100, 'd'*64)
+        fast = RuntimeTuningMeasurement(RuntimeTuningConfiguration(1, 64, 16, 256, 'fast'),
+                                        (80, 80, 80), (80, 80, 80), 100, 'd'*64)
+        def run(round_id, candidates, margin=.02):
+            return tune_runtime_configuration('a'*24, round_id*64, candidates,
+                baseline_output_digest='d'*64, maximum_peak_memory_bytes=100,
+                baseline_configuration=safe.configuration, minimum_relative_improvement=margin)
+        proposal = run('b', (safe, fast))
+        confirmed = confirm_runtime_tuning(proposal, run('c', (safe, fast)))
+        self.assertTrue(confirmed['confirmed'])
+        self.assertFalse(confirmed['automatic_application'])
+        self.assertFalse(confirm_runtime_tuning(proposal, run('c', (safe,)))['confirmed'])
+        with self.assertRaises(ValueError):
+            confirm_runtime_tuning(proposal, proposal)
+        with self.assertRaises(ValueError):
+            confirm_runtime_tuning(proposal, run('c', (safe, fast), margin=.1))
+
     def test_rejects_noisy_fast_candidate_and_retains_baseline_for_small_gain(self):
         def measurement(kernel, samples):
             return RuntimeTuningMeasurement(
