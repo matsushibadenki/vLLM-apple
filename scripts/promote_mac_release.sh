@@ -35,7 +35,8 @@ archive="${bundle_directory}/VLLMAppleChat-notarized-arm64.zip"
 checksum="${bundle_directory}/VLLMAppleChat-notarized-arm64.zip.sha256"
 notary_report="${bundle_directory}/notary-result.json"
 manifest="${bundle_directory}/release-manifest-v1.json"
-for evidence in "${archive}" "${checksum}" "${notary_report}" "${manifest}"; do
+certification="${bundle_directory}/certification/p4-certification-v1.json"
+for evidence in "${archive}" "${checksum}" "${notary_report}" "${manifest}" "${certification}"; do
     if [ ! -f "${evidence}" ] || [ -L "${evidence}" ]; then
         echo "error: release evidence must be a regular file, not a symlink: ${evidence}" >&2
         exit 1
@@ -60,11 +61,19 @@ if [ "${manifest_commit}" != "${tag_commit}" ]; then
     exit 1
 fi
 
+artifact_sha256=$(python3 -c \
+    'import json,sys; print(json.load(open(sys.argv[1], encoding="utf-8"))["artifact"]["sha256"])' \
+    "${manifest}")
+python3 -m vllm_apple.p4_certification "${certification}" \
+    --source-commit "${manifest_commit}" \
+    --artifact-sha256 "${artifact_sha256}"
+
 gh release create "${release_tag}" \
     "${archive}" \
     "${checksum}" \
     "${notary_report}" \
     "${manifest}" \
+    "${certification}" \
     --repo "${repository}" \
     --draft \
     --verify-tag \

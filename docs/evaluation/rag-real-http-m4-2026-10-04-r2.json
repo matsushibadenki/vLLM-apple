@@ -1,0 +1,136 @@
+{
+  "schema_version": 1,
+  "scope": "Gemma2/M4/three-language fixed support-code HTTP smoke",
+  "model": "models/gemma-2-2b-it-4bit",
+  "cases": [
+    {
+      "language": "en",
+      "passed": true,
+      "result": {
+        "schema_version": 1,
+        "language": "en",
+        "sources": [
+          {
+            "reference": "S1",
+            "id": "manual",
+            "title": "Manual",
+            "sha256": "5dbc2168998d2418c1af9b6d25b76b36061993969c93c399229b074def8ad318"
+          }
+        ],
+        "omitted_document_ids": [],
+        "source_bytes": 78,
+        "token_budget_verified": true,
+        "prompt_tokens": 126,
+        "reserved_output_tokens": 64,
+        "context_tokens": 4096,
+        "grounding_verified": false,
+        "answer": "12347 [S1] \n",
+        "citations": [
+          {
+            "reference": "S1",
+            "id": "manual",
+            "title": "Manual",
+            "sha256": "5dbc2168998d2418c1af9b6d25b76b36061993969c93c399229b074def8ad318"
+          }
+        ],
+        "status": "references_valid",
+        "generation_performed": true,
+        "unknown_references": []
+      }
+    },
+    {
+      "language": "en",
+      "case": "no_sources",
+      "passed": true
+    },
+    {
+      "language": "ja",
+      "passed": true,
+      "result": {
+        "schema_version": 1,
+        "language": "ja",
+        "sources": [
+          {
+            "reference": "S1",
+            "id": "manual",
+            "title": "Manual",
+            "sha256": "e58f50b41a314d3e80ab924c94e5d011d5fc67c9e24c6e2d38ce96db8feca527"
+          }
+        ],
+        "omitted_document_ids": [],
+        "source_bytes": 90,
+        "token_budget_verified": true,
+        "prompt_tokens": 125,
+        "reserved_output_tokens": 64,
+        "context_tokens": 4096,
+        "grounding_verified": false,
+        "answer": "サポートコードは12347です。[S1] \n",
+        "citations": [
+          {
+            "reference": "S1",
+            "id": "manual",
+            "title": "Manual",
+            "sha256": "e58f50b41a314d3e80ab924c94e5d011d5fc67c9e24c6e2d38ce96db8feca527"
+          }
+        ],
+        "status": "references_valid",
+        "generation_performed": true,
+        "unknown_references": []
+      }
+    },
+    {
+      "language": "ja",
+      "case": "no_sources",
+      "passed": true
+    },
+    {
+      "language": "zh",
+      "passed": true,
+      "result": {
+        "schema_version": 1,
+        "language": "zh",
+        "sources": [
+          {
+            "reference": "S1",
+            "id": "manual",
+            "title": "Manual",
+            "sha256": "a23b0629694d95453f8674483ecbece570bed05154d5780b62dc237926737e34"
+          }
+        ],
+        "omitted_document_ids": [],
+        "source_bytes": 75,
+        "token_budget_verified": true,
+        "prompt_tokens": 121,
+        "reserved_output_tokens": 64,
+        "context_tokens": 4096,
+        "grounding_verified": false,
+        "answer": "支持代码：12347  [S1] \n",
+        "citations": [
+          {
+            "reference": "S1",
+            "id": "manual",
+            "title": "Manual",
+            "sha256": "a23b0629694d95453f8674483ecbece570bed05154d5780b62dc237926737e34"
+          }
+        ],
+        "status": "references_valid",
+        "generation_performed": true,
+        "unknown_references": []
+      }
+    },
+    {
+      "language": "zh",
+      "case": "no_sources",
+      "passed": true
+    }
+  ],
+  "backend_returncode": 0,
+  "general_grounding_qualified": false,
+  "performance_qualified": false,
+  "source_sha256": {
+    "vllm_apple/rag.py": "0e232aa1177e5806954080165a88a33c71781b7c1d31ec293a153125b2aab5aa",
+    "vllm_apple/mlx_server.py": "1b9ae220b79f0de173dbb5538df582db906130b687e9dc2bc2d138d77e166ba5",
+    "/Users/Shared/Program/vLLM-apple/scripts/probe_rag_http.py": "ba31aae90eb34e579a3be8d53689c6fd0c98399c1925acd7cbc609df72a8d53a"
+  },
+  "passed": true
+}

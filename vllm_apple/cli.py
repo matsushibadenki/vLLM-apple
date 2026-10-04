@@ -524,6 +524,10 @@ def build_parser() -> argparse.ArgumentParser:
     rag.add_argument("--model", default="default_model")
     rag.add_argument("--max-source-bytes", type=int, default=32768)
     rag.add_argument("--max-tokens", type=int, default=256)
+    rag.add_argument("--context-tokens", type=int,
+                     help="verify full chat token budget through the server /tokenize endpoint")
+    rag.add_argument("--no-system-role", action="store_true",
+                     help="combine instructions and data in one user turn for templates without system roles")
 
     architecture = commands.add_parser(
         "inspect-architecture", help="describe local architecture metadata without certifying execution"
@@ -2215,7 +2219,11 @@ def main(argv: list[str] | None = None) -> int:
                 raise ValueError("RAG input exceeds 1 MiB")
             payload = json.loads(raw)
             options = dict(model=arguments.model, max_source_bytes=arguments.max_source_bytes,
-                           max_tokens=arguments.max_tokens)
+                           max_tokens=arguments.max_tokens, system_role=not arguments.no_system_role)
+            if arguments.context_tokens is not None:
+                if not arguments.url:
+                    raise ValueError("--context-tokens requires --url for backend tokenization")
+                options["context_tokens"] = arguments.context_tokens
             result = (answer_rag(payload, base_url=arguments.url, **options) if arguments.url
                       else prepare_rag(payload, **options))
         except (OSError, ValueError, http.client.HTTPException) as error:

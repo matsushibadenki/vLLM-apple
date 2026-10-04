@@ -133,6 +133,7 @@ def run_text_benchmark(
     latencies = _BoundedLatency()
     ttft_latencies = _BoundedLatency()
     cache_samples = cached_tokens = cache_prompt_tokens = cache_hit_requests = 0
+    failure_diagnostics = {"observed": 0, "samples": [], "sample_limit": 64}
     started_at = datetime.now(timezone.utc).isoformat()
     started = time.monotonic_ns()
 
@@ -171,6 +172,7 @@ def run_text_benchmark(
                 quality = result.expected_text_matched is True
                 quality_passes += int(quality)
                 slices[language]["quality_passed"] += int(quality)
+                e2e_ns = None
                 if measurement.stream_done_ns is not None:
                     e2e_ns = measurement.stream_done_ns - measurement.started_ns
                     latencies.record(e2e_ns)
@@ -180,6 +182,26 @@ def run_text_benchmark(
                         slo_passes += 1
                         good_tokens += measurement.output_tokens
                         slices[language]["slo_passed"] += 1
+                reasons = []
+                if not quality:
+                    reasons.append("quality_failed")
+                if measurement.ttft_ns > ttft_slo_ms * 1_000_000:
+                    reasons.append("ttft_slo_exceeded")
+                if e2e_ns is None:
+                    reasons.append("stream_done_missing")
+                elif e2e_ns > e2e_slo_ms * 1_000_000:
+                    reasons.append("e2e_slo_exceeded")
+                if reasons:
+                    failure_diagnostics["observed"] += 1
+                    if len(failure_diagnostics["samples"]) < 64:
+                        failure_diagnostics["samples"].append(dict(
+                            request_index=index, language=language, reasons=reasons,
+                            elapsed_seconds=(measurement.started_ns-started)/1e9,
+                            ttft_ms=measurement.ttft_ns/1e6,
+                            e2e_ms=e2e_ns/1e6 if e2e_ns is not None else None,
+                            prompt_tokens=measurement.prompt_tokens,
+                            output_tokens=measurement.output_tokens,
+                            cached_prompt_tokens=result.cached_prompt_tokens))
 
     with ThreadPoolExecutor(max_workers=concurrency) as pool:
         futures = [pool.submit(worker) for _ in range(concurrency)]
@@ -197,6 +219,7 @@ def run_text_benchmark(
                 "ttft_slo_ms": ttft_slo_ms, "e2e_slo_ms": e2e_slo_ms}
     return {
         "schema_version": 1, "report_kind": "text_http_benchmark",
+        "failure_diagnostics": failure_diagnostics,
         "route": config.backend,
         "started_at": started_at,
         "cache_policy": (

@@ -11,6 +11,10 @@ on:
         description: Existing exact release tag such as v0.1.0
         required: true
         type: string
+      certification-run-id:
+        description: Reviewed run containing P4-certification evidence for the exact notarized artifact
+        required: true
+        type: string
 
 permissions:
   actions: read
@@ -35,9 +39,11 @@ jobs:
         env:
           RELEASE_RUN_ID: ${{ inputs['notarization-run-id'] }}
           RELEASE_TAG: ${{ inputs['release-tag'] }}
+          CERTIFICATION_RUN_ID: ${{ inputs['certification-run-id'] }}
         run: |
           printf '%s\n' "$RELEASE_RUN_ID" | grep -Eq '^[0-9]{1,20}$'
           printf '%s\n' "$RELEASE_TAG" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+$'
+          printf '%s\n' "$CERTIFICATION_RUN_ID" | grep -Eq '^[0-9]{1,20}$'
       - name: Install release verifier
         run: python -m pip install .
       - name: Download notarized release evidence
@@ -50,6 +56,16 @@ jobs:
             --repo "$GITHUB_REPOSITORY" \
             --name VLLMAppleChat-notarized-arm64 \
             --dir "$RUNNER_TEMP/release-bundle"
+      - name: Download hardware certification evidence
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CERTIFICATION_RUN_ID: ${{ inputs['certification-run-id'] }}
+        run: |
+          install -d -m 700 "$RUNNER_TEMP/release-bundle/certification"
+          gh run download "$CERTIFICATION_RUN_ID" \
+            --repo "$GITHUB_REPOSITORY" \
+            --name P4-certification \
+            --dir "$RUNNER_TEMP/release-bundle/certification"
       - name: Verify evidence and create draft release
         env:
           GH_TOKEN: ${{ github.token }}

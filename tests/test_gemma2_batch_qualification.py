@@ -11,6 +11,21 @@ SPEC.loader.exec_module(qualification)
 
 
 class Gemma2QualificationTests(unittest.TestCase):
+    def test_failed_windows_survive_later_success_and_remain_bounded(self):
+        with patch.object(qualification, "detect_thermal_state") as thermal:
+            thermal.return_value.value = "fair"
+            summary = qualification._new_stability_summary(90, 100)
+        failed = dict(requests=3, completed=3, failed=0, quality_passed=3,
+                      slo_quality_passed=2, errors={}, started_at="failure",
+                      failure_diagnostics={"observed": 1})
+        for _ in range(70):
+            qualification._accumulate_window(summary, failed)
+        qualification._accumulate_window(summary, dict(failed, slo_quality_passed=3,
+                                                       started_at="success"))
+        self.assertEqual(summary["failed_windows_observed"], 70)
+        self.assertEqual(len(summary["failed_windows"]), 64)
+        self.assertEqual(summary["last_window"]["started_at"], "success")
+        self.assertEqual(summary["failed_windows"][0]["started_at"], "failure")
     def test_resource_growth_and_undrained_registry_fail(self):
         samples = [dict(pid=1, threads=4, open_fds=8, allocator_active_bytes=100,
                         allocator_cache_bytes=100, registry_active=0, registry_queued=0)

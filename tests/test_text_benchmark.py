@@ -35,6 +35,11 @@ class TextBenchmarkTests(unittest.TestCase):
         self.assertEqual(report["phase_profile"]["transport"]["unavailable_sample_count"], 1)
         self.assertTrue(report["e2e_p99_reference_only"])
         self.assertNotIn("private failure", str(report))
+        diagnostics = report["failure_diagnostics"]
+        self.assertEqual(diagnostics["observed"], 3)
+        self.assertEqual([s["reasons"] for s in diagnostics["samples"]],
+                         [["quality_failed"], ["e2e_slo_exceeded"], ["stream_done_missing"]])
+        self.assertNotIn("prompt", diagnostics["samples"][0])
         distributions = report["latency_distributions"]
         self.assertEqual(distributions["ttft"]["sample_count"], 4)
         self.assertEqual(distributions["e2e"]["sample_count"], 3)

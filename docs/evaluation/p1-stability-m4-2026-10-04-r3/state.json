@@ -1,11 +1,11 @@
 {
-  "status": "interrupted",
+  "status": "failed",
   "passed": false,
-  "pid": 46507,
+  "pid": 63759,
   "stages": [
     {
       "name": "30min",
-      "status": "running",
+      "status": "failed",
       "command": [
         "/Users/Shared/Program/vLLM-apple/.venv/bin/python",
         "/Users/Shared/Program/vLLM-apple/scripts/qualify_gemma2_batch_mask.py",
@@ -14,7 +14,7 @@
         "--model",
         "/Users/Shared/Program/vLLM-apple/models/gemma-2-2b-it-4bit",
         "--output",
-        "/Users/Shared/Program/vLLM-apple/docs/evaluation/p1-stability-m4-2026-10-04/30min.json",
+        "/Users/Shared/Program/vLLM-apple/docs/evaluation/p1-stability-m4-2026-10-04-r3/30min.json",
         "--port",
         "19146",
         "--sustained-requests",
@@ -38,10 +38,13 @@
         "0",
         "--p1-profile"
       ],
-      "report": "/Users/Shared/Program/vLLM-apple/docs/evaluation/p1-stability-m4-2026-10-04/30min.json"
+      "report": "/Users/Shared/Program/vLLM-apple/docs/evaluation/p1-stability-m4-2026-10-04-r3/30min.json",
+      "passed": false,
+      "returncode": 1
     }
   ],
   "scope": "P1 awake mixed-load candidate; sleep/wake remains unqualified",
   "automatic_promotion": false,
-  "interruption_note": "On continuation, the recorded runner and backend PIDs were absent and the checkpoint was stale. No final shutdown evidence; termination cause unknown."
+  "error_type": "RuntimeError",
+  "error": "30min qualification failed; later stages will not start"
 }

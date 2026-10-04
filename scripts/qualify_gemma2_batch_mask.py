@@ -456,6 +456,9 @@ def _new_stability_summary(
         "thermal_samples": {thermal: 1},
         "first_window": None,
         "last_window": None,
+        "failed_windows_observed": 0,
+        "failed_windows": [],
+        "failed_window_limit": 64,
         "rss_samples": [{
             "elapsed_seconds": 0.0, "rss_bytes": rss_bytes, "pid": process_pid,
         }],
@@ -484,6 +487,15 @@ def _accumulate_window(summary: dict[str, object], window: dict[str, object]) ->
     if summary["first_window"] is None:
         summary["first_window"] = window
     summary["last_window"] = window
+    if (int(window.get("failed", 0)) > 0
+            or int(window.get("slo_quality_passed", 0)) != int(window.get("requests", 0))):
+        summary["failed_windows_observed"] = int(summary.get("failed_windows_observed", 0)) + 1
+        retained = summary.setdefault("failed_windows", [])
+        if len(retained) < 64:
+            retained.append({key: window.get(key) for key in (
+                "started_at", "workload_sha256", "requests", "concurrency", "slo",
+                "completed", "failed", "quality_passed", "slo_quality_passed", "errors",
+                "languages", "latency_distributions", "failure_diagnostics")})
 
 
 def _stability_passed(

@@ -1,7 +1,7 @@
 {
-  "status": "interrupted",
+  "status": "running",
   "passed": false,
-  "pid": 46507,
+  "pid": 58734,
   "stages": [
     {
       "name": "30min",
@@ -14,7 +14,7 @@
         "--model",
         "/Users/Shared/Program/vLLM-apple/models/gemma-2-2b-it-4bit",
         "--output",
-        "/Users/Shared/Program/vLLM-apple/docs/evaluation/p1-stability-m4-2026-10-04/30min.json",
+        "/Users/Shared/Program/vLLM-apple/docs/evaluation/p1-stability-m4-2026-10-04-r2/30min.json",
         "--port",
         "19146",
         "--sustained-requests",
@@ -38,10 +38,9 @@
         "0",
         "--p1-profile"
       ],
-      "report": "/Users/Shared/Program/vLLM-apple/docs/evaluation/p1-stability-m4-2026-10-04/30min.json"
+      "report": "/Users/Shared/Program/vLLM-apple/docs/evaluation/p1-stability-m4-2026-10-04-r2/30min.json"
     }
   ],
   "scope": "P1 awake mixed-load candidate; sleep/wake remains unqualified",
-  "automatic_promotion": false,
-  "interruption_note": "On continuation, the recorded runner and backend PIDs were absent and the checkpoint was stale. No final shutdown evidence; termination cause unknown."
+  "automatic_promotion": false
 }

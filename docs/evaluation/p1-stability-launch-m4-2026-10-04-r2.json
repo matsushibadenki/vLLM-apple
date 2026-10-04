@@ -1,0 +1,25 @@
+{
+  "label": "com.vllm-apple.p1.bbe808a9b248404c80d17e6d597e2229",
+  "output_directory": "/Users/Shared/Program/vLLM-apple/docs/evaluation/p1-stability-m4-2026-10-04-r2",
+  "command": [
+    "/usr/bin/env",
+    "PYTHONPATH=/Users/Shared/Program/vLLM-apple",
+    "/Users/Shared/Program/vLLM-apple/.venv/bin/python",
+    "/Users/Shared/Program/vLLM-apple/scripts/run_p1_stability.py",
+    "--python",
+    "/opt/homebrew/opt/vllm-metal/libexec/bin/python",
+    "--model",
+    "/Users/Shared/Program/vLLM-apple/models/gemma-2-2b-it-4bit",
+    "--output-directory",
+    "/Users/Shared/Program/vLLM-apple/docs/evaluation/p1-stability-m4-2026-10-04-r2",
+    "--port",
+    "19146"
+  ],
+  "log": "/Users/Shared/Program/vLLM-apple/docs/evaluation/p1-stability-m4-2026-10-04-r2.launchd.log",
+  "submitted": true,
+  "automatic_restart": true,
+  "qualification": false,
+  "returncode": 0,
+  "diagnostic": "",
+  "audit_note": "Legacy launchctl submit was empirically found to restart failed jobs; removed this job before qualification and replaced with explicit KeepAlive=false bootstrap."
+}

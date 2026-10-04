@@ -19,6 +19,9 @@ def main() -> int:
     parser.add_argument('--output-directory', required=True, type=Path)
     parser.add_argument('--port', type=int, default=19146)
     args = parser.parse_args()
+    def terminate(signum: int, frame: object) -> None:
+        raise KeyboardInterrupt(f'test orchestration received signal {signum}')
+    signal.signal(signal.SIGTERM, terminate)
     root = Path(__file__).resolve().parents[1]
     output = args.output_directory.resolve()
     output.mkdir(parents=True, exist_ok=False)

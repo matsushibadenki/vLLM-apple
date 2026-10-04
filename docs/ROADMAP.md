@@ -28,6 +28,33 @@ Intel Macは互換性の別枠とし、Apple Siliconの性能認定を適用し�
 新規項目の完了にはコード／テスト、対象の実行経路、再現コマンド、認定範囲を必要とする。性能項目は実モデルの比較reportも必要とする。
 以下の数値は**今後の受け入れ目標**であり、達成済みの測定値ではない。
 
+### 全体監査：現在の筐体での完了と残作業
+
+2026-10-04。実装済みの契約・runnerと実機認定を分ける。websiteは変更しない。
+
+| 状態 | 範囲 | 確認結果／残作業 |
+| --- | --- | --- |
+| [Done] | P0限定基準・経路監査 | M4／Gemma 2／c1／三言語算術、2 backend各3回。全モデル・全Macの認定ではない |
+| [Done] | P1資源上限・cancel／回復runner | bounded HTTP・入力・allocator・queue・cancelと短時間smoke。最新30分は品質3312/3312だがSLO3298/3312で不合格 |
+| [Next] | P1長時間認定 | 上記14件のSLO失敗を調査・修正し、30分再試験→合格時8時間。このM4で可能なので[pending]にしない |
+| [Done] | P2実continuous batching／identity付きKV実験 | 実batch幅4と再prefill提出減少を確認。標準採用・数値／性能認定は未完了 |
+| [Next] | P2数値・p95／goodput gate | c4 SLOと全prompt基準とのlogit差を解消し再測定。このM4で試験可能 |
+| [Done] | P3選択・P4認定gateとrelease昇格接続 | 証拠不足・不合格はfallback／昇格拒否。合成fixtureのテストを実性能・24時間認定に代用しない |
+| [Next] | P3実計測／P4目的別profile・24時間認定 | 実collector接続、P1／P2前提の合格後に本筐体で実施。未知profileを自動採用しない |
+| [Done] | R0完全templateのtoken予算・固定三言語HTTP smoke | 実Gemma tokenizerで境界・丸ごと資料除外・基本prompt拒否。実HTTPは固定support codeと資料なしの6ケース成功・正常終了 |
+| [Next] | R0一般品質／L0固定LoRA | 資料不足・悪意ある資料・長文引用のsuiteとadapter互換性／memory／実MLXの検証。未実装を環境不足へ移さない |
+| [Later] | R1／L1／RL2・追加architecture | 検索・学習・複数adapter等は前提作業後。現在の筐体で可能な範囲は開発候補のまま |
+| [pending] | 別SoC／RAM・M5 NAX・分散・容量超過 | 対象実機・network・model artifactが必要。詳細は下記環境待ち表 |
+| [pending] | 実署名／notarization・独立clean-machine install | Developer ID／notary資格情報と独立検証環境が必要。既存workflowは実配布認定ではない |
+| [pending] | ANE互換draft | 互換Core ML draft artifactが必要。既存encoderの検証で代用しない |
+
+English: Local failures and unfinished implementation remain [Next]/[Later]. Only tests
+requiring unavailable hardware, artifacts, credentials or independent environments are
+[pending]. Completed tooling is not completed runtime qualification.
+
+简体中文：本机试验失败和未实现项仍保留[Next]／[Later]。仅缺少目标硬件、artifact、
+资格信息或独立环境的试验标为[pending]。工具已实现不等于实际运行认证完成。
+
 ## 現在地：再利用できる基盤と不足している証拠
 
 | 状態 | 基盤・証拠 | 認定の限界と次の仕事 |
@@ -113,9 +140,12 @@ RSS・allocator・KV・OS pressure・swap差分は別系列で記録し、重複
 
 ## P1 — 標準text経路と持続的な安定性 [Next]
 
+- [Done] P1失敗診断：benchmarkに最初の64失敗requestのTTFT／E2E・言語・token数・未達理由、soakに最初の64失敗windowと総失敗window数を保存する。本文を保存せず、後続成功で失敗を消さない。旧r3の途中window欠落を補うための再測定基盤であり、既存14件の原因解明・SLO改善は未達。
+- [Done] 診断追加後の[90秒実機混合負荷](evaluation/p1-failure-diagnostics-m4-2026-10-04.json)は品質・SLO204/204、identity不変・正常shutdown。全回帰1432 tests成功（11 skip）。[Next] [r4独立job](evaluation/p1-stability-m4-2026-10-04-r4/state.json)で30分→合格時8時間の再測定を開始。実行中は未認定、runtime編集と競合GPU試験を避ける。
+
 - [Done] [P1限定candidateと試験手順](P1-STABILITY.md)：HTTP全体の接続上限16、header絶対期限5秒、body上限とdeadlineをwrapper／Gemma互換経路へ適用。model固定・prompt＋output 4,096 tokens・output 512・GPU allocator 8 GiB／cache 256 MiBのopt-in profileを追加した。全worker epochのRSS／allocator／thread／FD／registryを検証し、queue待機p95の計測scopeを公開する。任意model／shapeやdaemon全体の認定ではない。
 - [Done] 固定sourceの[M4短時間smoke](evaluation/p1-profile-90sec-m4-2026-10-04-r3.json)で正常189/189品質・SLO合格、active cancel 18/18、queued cancel／timeout各6/6、worker crash回復2/2、half-close、profile拒否と正常shutdownを確認。全回帰1,407 tests合格（11 skip）。短時間の資源plateauと8時間安定性は未認定。
-- [Next] [連続試験状態](evaluation/p1-stability-m4-2026-10-04/state.json)で30分→合格時に8時間を実行する。実行中のpassed=falseを維持し、全epoch・回収・同一identityを最終監査する。実sleep／wakeとdaemon標準経路の残課題を含め、完了まではP1を[Done]にしない。
+- [Next] [最新の連続試験状態](evaluation/p1-stability-m4-2026-10-04-r3/state.json)：30分試験は品質3312/3312、SLO3298/3312で不合格。8時間は未開始、backend／runnerは終了しlaunchd jobも回収済み。14件のSLO失敗を調査・修正後に30分→合格時8時間へ進む。以前の408件後中断reportも未認定として保存した。PID command・checkpoint鮮度・全epoch資源・同一identityを確認し、実sleep／wakeとdaemon標準経路を含め、完了までP1を[Done]にしない。
 
 - [Next] P0監査の残課題：request headerを含むHTTP全体のthread／資源上限、長時間queue cancelとp95待ち時間、half-close、telemetry有無の独立比較を検証する。現在のM4で試験可能であり[pending]にはしない。旧30分soakの資格は現buildへ転用しない。
 
@@ -145,6 +175,9 @@ warm-up・cache充填後の同一負荷窓とidle回復時を比較し、RSS／a
 
 ## P2 — Continuous batchingと実KV再利用 [Next]
 
+- [Done] [P2実験用backend](P2-BATCHING-KV.md)へnative continuous batching／chunked prefillとidentity付き実KV LRUを接続した。実schedulerでdecode幅4・複数sequence step 39回、prefix再入場でprefill提出545 tokens減少を確認。品質36/36合格だがc4 SLOは初回28/30・最終source22/30で未達。P1／標準経路は変更せずopt-inに留める。全CPU回帰1,411 tests合格（11 skip）。
+- [Done] 実Gemma 2／float16 KVで分割fresh参考とのlogit差0、branchコピー後のprefix保持、trim後missを確認。全prompt一括計算とは最大差0.0390625で既定の数値gate未達、argmax一致だけで認定しない。性能・数値qualificationはfalse、P2完了条件は未達として残す。
+
 - [Next] P0監査で未認定のprefix hit／eviction、KV数値正確性・dtype、chunked prefillと実batchingを検証する。adapter直列化とcached usageだけで機能の正確性や性能を認定しない。
 
 依存：P0の計測、P1の所有権・cancel契約。成果物はinteractive／throughput profile。既存backend機能を先に利用し、不足だけを実装する。
@@ -159,9 +192,10 @@ warm-up・cache充填後の同一負荷窓とidle回復時を比較し、RSS／a
 
 **完了条件：** prefixなしconcurrency 1のp95 TTFT／TPOT悪化を5%以内に抑え、代表concurrency 4でgoodput 20%以上改善を目標とする。prefix hitではprefill実行token数の減少とTTFT改善を確認する。未達なら標準有効化せず、改善するprofileだけを残す。
 
-## P3 — 計測で選ぶkernel・量子化・speculative実行 [Later]
+## P3 — 計測で選ぶkernel・量子化・speculative実行 [Next]
 
-- [Next] P0監査の未取得内部phase（queue／tokenize／prefill／decode／serialization／model load）をinstrumentationで分離し、CPU使用率・cache／eviction・energy取得と変動原因を調べる。autotuner確認契約を実候補の独立確認測定とE2E回帰へ接続する。native build内容の固定も強化する。欠測をclient phase値で補わず、今回の速度差は性能認定しない。
+- [Done] [P3共通E2E選択判定](P3-SELECTION.md)：kernel／量子化／speculative候補に独立3回、事前固定品質slice、memory、中央値5%改善、run範囲分離、TTFT／TPOT p95悪化5%以内を要求する。証拠不足ならbaseline保持。全trialとpolicyをreport hashへ結び付け、P1／P2前提と標準採用を別判定。CPU判定テストのみで高速化は未測定。
+- [Next] P0監査の未取得内部phase（queue／tokenize／prefill／decode／serialization／model load）をinstrumentationで分離し、CPU使用率・cache／eviction・energy取得と変動原因を調べる。autotuner確認契約とP3共通判定を実候補の独立確認測定とE2E回帰へ接続する。native build内容の固定も強化する。欠測をclient phase値で補わず、今回の速度差は性能認定しない。
 
 依存：調査開始には対象経路のP0 baseline、標準採用にはP1の安定性と対象P2 workloadの回帰report。成果物は対象shapeに限定した高速化profileと安全なfallback。P2全体の完了前でも、baselineで支配時間が分かった経路の調査は並行できる。
 
@@ -192,9 +226,12 @@ splitting and a native engine remain conditional research, not committed replace
 及工作负载回归测试。增加Agent工具等待与再次进入推理的测试，优先使用现有后端策略。
 跨后端阶段拆分和原生引擎仍是有条件的研究方向，不是已确定的替代方案。
 
-## P4 — Mac別自動選択と配布認定 [Later]
+## P4 — Mac別自動選択と配布認定 [Next]
 
 依存：P1の安定性、P2／P3で合格したprofile。
+
+- [Done] [P4認定証拠gate](P4-CERTIFICATION.md)とrelease昇格の接続。全対応matrixセルのsource／署名artifact／identity、raw evidence hash、品質slice、P3性能判定、24時間soak、recovery／rollback／clean-machine／lock／license証拠を要求。欠落・失敗時は昇格を拒否する。profile activationのexact identity／thermal／memory fallbackと三言語診断契約も実装（runtime／SDK／UI接続は未完了）。認定済みセルはまだない。
+- [Next] 実collectorをこのgateへ接続し、P1／P2／P3の未達解消後に対象構成の独立性能認定・24時間soak・復旧／rollbackを実施する。workflowから証拠を取得できることは実機認定の完了を意味しない。
 
 - [Later] interactiveはp95 TTFT／TPOT、throughputはgoodput、省電力は取得可能なenergy/tokenを目的にする。未知hardwareではbounded calibrationを行い、発熱やmemory pressureを性能目的より優先する。
 - [Later] hardware／OS／model／backend fingerprint別の既知正常profileを配布し、変更時は再認定する。独立3回のqualificationは同じcandidateでも別process・別runで実施し、次release待ちを条件にしない。
@@ -212,7 +249,7 @@ splitting and a native engine remain conditional research, not committed replace
 
 - [Done] `rag` CLIとPython APIで、検索済みチャンクから三言語の生成リクエストを構成する。資料のUTF-8 byte上限、丸ごとの除外、資料なし時のローカル回答不能、ループバックHTTP生成、出典ID／内容hashと参照IDの照合を実装。[利用手順](RAG-LORA.md)と`tests/test_rag.py`を参照。
 - [Done] 引用IDの存在確認と回答の事実性を分離する。`references_valid`でも`grounding_verified=false`とし、未知参照・引用なし・生成未完了を区別する。模擬HTTP試験は実モデルの品質認定に含めない。
-- [Next] 実tokenizerとchat templateでsystem／質問／資料／出力予約を含むcontext予算を検証する。モデル上限を超える資料選別と多言語境界条件をテストする。
+- [Done] 実tokenizerと完全chat templateによるcontext予算を実装。`rag --url --context-tokens`は同backend `/tokenize`で出力予約込み上限を確認し、低優先度資料を丸ごと除外、基本prompt超過・tokenize失敗なら生成拒否。system role非対応のGemmaは明示`--no-system-role`。三言語の[実tokenizer境界](evaluation/rag-real-token-budget-m4-2026-10-04-r2.json)と[実HTTP固定task](evaluation/rag-real-http-m4-2026-10-04-r2.json)6ケース・正常終了を確認。指定contextは固定model／server上限以下とし、一般grounding／性能認定へ広げない。
 - [Next] 英語・日本語・简体中文の実モデル評価を追加。回答正確性、引用箇所との意味的整合性、資料不足時の回答不能、悪意ある資料への耐性を別指標で記録する。構成を固定したbaselineと比較し、runtime変更後のevidenceを再取得する。
 
 ### L0 — 一つの固定LoRAを安全に配信
@@ -296,8 +333,8 @@ The goal is the fastest **qualified** route for each Apple Silicon Mac, model an
 - [Done] P0: [audit and reproducible baseline](P0-AUDIT.md), two backends × three runs × 102 requests; each backend completed 102 requests per language. Internal phases remain unavailable. Metal spread exceeds 5%; performance and general capabilities are not certified. Historical proxy/soak evidence retains its original scope.
 - [Next] P1: qualify the standard text route, cancellation, bounded queues, memory admission and failure recovery under an eight-hour mixed workload.
 - [Next] P2: validate backend-owned continuous batching, chunked prefill and actual KV reuse. Target 20% higher concurrency-four goodput with no more than 5% regression in single-request p95 TTFT/TPOT.
-- [Later] P3: optimize measured hot paths, quantization and speculative decoding only after quality and end-to-end gates. Target at least 5% reproducible E2E improvement beyond measurement noise.
-- [Later] P4: certify hardware-specific profiles with 24-hour soaks, dependency pinning, rollback, signing and clean-machine installation. Additional hardware, compatible artifacts and signing credentials are explicit prerequisites.
+- [Next] P3: the [common E2E selection gate](P3-SELECTION.md) is implemented; real collector integration and measured optimization remain unfinished. Require at least 5% reproducible E2E improvement beyond noise and verified stability before adoption.
+- [Next] P4: [release certification gate](P4-CERTIFICATION.md) is connected to draft promotion; no matrix cell is certified yet. Complete real 24-hour soaks, profile selection, rollback, signing and clean-machine installation. Additional hardware and credentials remain prerequisites.
 
 All targets are prospective. Unsupported combinations, insufficient samples and failed candidates remain visible; no benchmark result is extrapolated to all Macs or models.
 
@@ -309,8 +346,8 @@ All targets are prospective. Unsupported combinations, insufficient samples and 
 - [Done] P0：[路径审计和可复现基准](P0-AUDIT.md)，两个后端各3次、每次102个请求，每个后端各语言完成102个请求。内部计时仍缺测，Metal波动超过5%，不认证性能领先或通用能力。旧proxy／soak证据保留原适用范围。
 - [Next] P1：认证标准文本路径，完成取消、有界队列、内存准入、故障恢复及8小时混合负载测试。
 - [Next] P2：验证后端拥有的连续批处理、分块prefill和真实KV复用。目标为并发4时有效吞吐提升20%，单请求p95 TTFT／TPOT退化不超过5%。
-- [Later] P3：根据测量结果优化热点、量化和推测解码。只有质量通过且端到端提升至少5%、超过测量噪声时才采用。
-- [Later] P4：进行各硬件配置的24小时稳定性认证，固定依赖，验证回滚、签名及全新环境安装。额外硬件、兼容模型文件和签名凭据是明确的前提条件。
+- [Next] P3：[共用E2E选择判定](P3-SELECTION.md)已实现；实际采集器对接及性能优化仍未完成。只有质量、稳定性通过且端到端提升至少5%、超过测量噪声时才采用。
+- [Next] P4：[发布认证gate](P4-CERTIFICATION.md)已接入草稿提升流程，目前没有已认证单元。仍需实际24小时测试、profile选择、回滚、签名和独立环境安装。额外硬件和资格信息仍是前提条件。
 
 以上数字均为未来验收目标。保留不支持的组合、样本不足和失败候选，不把局部结果推广到所有Mac或模型。
 

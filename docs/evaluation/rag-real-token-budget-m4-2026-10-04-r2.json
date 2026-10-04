@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "scope": "CPU real tokenizer/context fitting only",
+  "generation_quality_qualified": false,
+  "transformers": "5.17.0",
+  "model_context_limit": 8192,
+  "source_sha256": {
+    "vllm_apple/rag.py": "0e232aa1177e5806954080165a88a33c71781b7c1d31ec293a153125b2aab5aa",
+    "models/gemma-2-2b-it-4bit/config.json": "41c1077a8a8b14f3e016c0000365aae99fb9eb128596c8378a178f717dca1640",
+    "models/gemma-2-2b-it-4bit/tokenizer_config.json": "f3a9ecd05833ba49de8432fff27b66bb061ad6a69d17df158de03dc07420e02a",
+    "models/gemma-2-2b-it-4bit/tokenizer.json": "3f289bc05132635a8bc7aca7aa21255efd5e18f3710f43e3cdb96bcd41be4922",
+    "models/gemma-2-2b-it-4bit/special_tokens_map.json": "db82f8bd9b25d14f9c788e6bde64de84d42f1c2538f1c245ba6cb3e872d14b18"
+  },
+  "cases": [
+    {
+      "language": "en",
+      "passed": true,
+      "prompt_tokens": 113,
+      "context_tokens": 241,
+      "omitted_document_ids": [
+        "oversized"
+      ],
+      "base_overflow_rejected": true
+    },
+    {
+      "language": "ja",
+      "passed": true,
+      "prompt_tokens": 117,
+      "context_tokens": 245,
+      "omitted_document_ids": [
+        "oversized"
+      ],
+      "base_overflow_rejected": true
+    },
+    {
+      "language": "zh",
+      "passed": true,
+      "prompt_tokens": 115,
+      "context_tokens": 243,
+      "omitted_document_ids": [
+        "oversized"
+      ],
+      "base_overflow_rejected": true
+    }
+  ],
+  "passed": true
+}

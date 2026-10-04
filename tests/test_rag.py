@@ -20,6 +20,41 @@ def payload(language="ja"):
 
 
 class RagTests(unittest.TestCase):
+    def test_template_without_system_role_is_explicit_and_preserved_during_trimming(self):
+        plan = prepare_rag(payload(), system_role=False, max_tokens=20, context_tokens=120,
+                           token_counter=lambda r: 100 if '"sources": []' in
+                           r["messages"][0]["content"] else 121)
+        self.assertEqual(len(plan["request"]["messages"]), 1)
+        self.assertEqual(plan["request"]["messages"][0]["role"], "user")
+        self.assertFalse(plan["sources"])
+        self.assertTrue(plan["token_budget_verified"])
+    def test_complete_template_budget_drops_whole_low_priority_chunks(self):
+        data = payload()
+        data["documents"].append(dict(id="second", title="第二", text="追加資料"))
+        seen = []
+
+        def counter(request):
+            seen.append(request)
+            self.assertEqual(request["messages"][0]["role"], "system")
+            chunks = json.loads(request["messages"][1]["content"])["sources"]
+            return 100 + len(chunks) * 30
+
+        plan = prepare_rag(data, max_tokens=20, context_tokens=150, token_counter=counter)
+        self.assertTrue(plan["token_budget_verified"])
+        self.assertEqual(plan["prompt_tokens"] + plan["reserved_output_tokens"], 150)
+        self.assertEqual(plan["omitted_document_ids"], ["second"])
+        self.assertEqual([s["id"] for s in plan["sources"]], ["manual:1"])
+        self.assertEqual(len(seen), 2)
+
+    def test_base_prompt_overflow_invalid_count_and_missing_tokenizer(self):
+        for count in (True, 0, -1, 1.5, 1048577):
+            with self.assertRaises(ValueError):
+                prepare_rag(payload(), context_tokens=100, token_counter=lambda r: count)
+        with self.assertRaises(ValueError):
+            prepare_rag(payload(), max_tokens=20, context_tokens=30, token_counter=lambda r: 31)
+        with self.assertRaises(ValueError):
+            prepare_rag(payload(), context_tokens=100)
+
     def test_languages_and_provenance(self):
         for language in ABSTAIN:
             plan = prepare_rag(payload(language))
@@ -81,12 +116,27 @@ class RagTests(unittest.TestCase):
 
 
 class RagHTTPTests(unittest.TestCase):
+    def test_tokenization_precedes_generation_with_same_messages_and_auth(self):
+        result = answer_rag(payload(), base_url=self.url, session_token="test-token",
+                            context_tokens=356)
+        self.assertTrue(result["token_budget_verified"])
+        self.assertEqual([r[0] for r in self.requests], ["/tokenize", "/v1/chat/completions"])
+        self.assertEqual(self.requests[0][1]["messages"], self.requests[1][1]["messages"])
+        self.assertTrue(all(r[2] == "Bearer test-token" for r in self.requests))
+
+    def test_failed_tokenization_never_generates(self):
+        self.token_count = True
+        with self.assertRaises(ValueError):
+            answer_rag(payload(), base_url=self.url, context_tokens=512)
+        self.assertEqual([r[0] for r in self.requests], ["/tokenize"])
+
     def setUp(self):
         owner = self
         self.response = {"choices": [{"message": {"content": "3言語です。[S1]"}, "finish_reason": "stop"}]}
         self.status = 200
         self.raw = None
         self.requests = []
+        self.token_count = 100
 
         class Handler(BaseHTTPRequestHandler):
             def do_POST(self):
@@ -94,6 +144,9 @@ class RagHTTPTests(unittest.TestCase):
                 owner.requests.append((self.path, body, self.headers.get("Authorization")))
                 self.send_response(owner.status)
                 self.end_headers()
+                if self.path == "/tokenize":
+                    self.wfile.write(json.dumps({"count": owner.token_count}).encode())
+                    return
                 self.wfile.write(owner.raw if owner.raw is not None else json.dumps(owner.response).encode())
 
             def log_message(self, *args):
