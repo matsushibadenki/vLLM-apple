@@ -8,6 +8,7 @@ import time
 from importlib.metadata import version
 from typing import Any
 
+from .bounded_http import BoundedHTTPServer, HeaderDeadlineMixin
 from .generation_admission import GenerationAdmission, GenerationAdmissionError, peer_disconnected
 
 MAXIMUM_CACHE_NODES = 4096
@@ -189,7 +190,7 @@ def main(argv: list[str] | None = None) -> int:
     if not hasattr(provider, "get_active_memory") and hasattr(mx, "metal"):
         provider = mx.metal
 
-    class TelemetryHandler(APIHandler):
+    class TelemetryHandler(HeaderDeadlineMixin, APIHandler):
         def do_POST(self) -> None:
             if self.path != "/tokenize":
                 if (self.path in {"/v1/chat/completions", "/v1/completions"}
@@ -254,6 +255,7 @@ def main(argv: list[str] | None = None) -> int:
             cache_metrics = prompt_cache_metrics(cache)
             payload: dict[str, Any] = {
                 "schema_version": 1,
+                "http_resources": self.server.resource_snapshot(),
                 "snapshot_consistency": "non_atomic",
                 "generation_admission": (None if arguments.allow_concurrent_generation
                                          else admission.snapshot()),
@@ -305,7 +307,8 @@ def main(argv: list[str] | None = None) -> int:
             raise RuntimeError("MLX telemetry wrapper supports a single local worker")
         generator = ResponseGenerator(ModelProvider(cli_args), LRUPromptCache(cli_args.prompt_cache_size))
         try:
-            _run_http_server(arguments.host, arguments.port, generator, handler_class=TelemetryHandler)
+            _run_http_server(arguments.host, arguments.port, generator,
+                             server_class=BoundedHTTPServer, handler_class=TelemetryHandler)
         finally:
             generator.stop_and_join()
         return 0
@@ -313,6 +316,7 @@ def main(argv: list[str] | None = None) -> int:
         arguments.host,
         arguments.port,
         ModelProvider(cli_args),
+        server_class=BoundedHTTPServer,
         handler_class=TelemetryHandler,
     )
     return 0

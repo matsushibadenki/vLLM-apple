@@ -13,6 +13,7 @@ import socket
 import tempfile
 import threading
 import time
+import urllib.request
 from dataclasses import replace
 from pathlib import Path
 from typing import Any, Callable
@@ -45,6 +46,14 @@ def _atomic_json(path: Path, payload: object) -> None:
         except FileNotFoundError:
             pass
         raise
+
+
+def _file_sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open('rb') as handle:
+        for chunk in iter(lambda: handle.read(1024*1024), b''):
+            digest.update(chunk)
+    return digest.hexdigest()
 
 
 def _stream_request(port: int, model: str, *, request_id: str | None = None,
@@ -292,6 +301,128 @@ def _rss_trend(samples: list[dict[str, float | int]]) -> dict[str, object]:
     }
 
 
+def _resources(port: int) -> dict[str, object]:
+    with urllib.request.urlopen(f'http://127.0.0.1:{port}/vllm-apple/resources', timeout=5) as response:
+        raw = response.read(65537)
+    if len(raw) > 65536:
+        raise ValueError('resource snapshot exceeds bound')
+    snapshot = json.loads(raw)
+    for group, fields in (('http', ('limit', 'active', 'peak', 'rejected', 'header_expirations')),
+                          ('registry', ('active', 'queued')),
+                          ('allocator', ('active_bytes', 'cache_bytes', 'peak_bytes'))):
+        for field in fields:
+            value = snapshot[group][field]
+            if type(value) is not int or value < 0:
+                raise ValueError('invalid resource observation')
+    for field in ('threads', 'open_fds'):
+        if type(snapshot[field]) is not int or snapshot[field] <= 0:
+            raise ValueError('invalid process resource observation')
+    return snapshot
+
+
+def _half_close(port: int, model: str) -> dict[str, object]:
+    body = json.dumps(dict(model=model, messages=[dict(role='user', content='What is 1+1? Reply with only the digit.')],
+                           max_tokens=16, temperature=0, stream=True)).encode()
+    with socket.create_connection(('127.0.0.1', port), timeout=10) as client:
+        client.sendall(b'POST /v1/chat/completions HTTP/1.1\r\nHost: localhost\r\n'
+                       b'Content-Type: application/json\r\nConnection: close\r\nContent-Length: '+
+                       str(len(body)).encode()+b'\r\n\r\n'+body)
+        client.shutdown(socket.SHUT_WR)
+        response = http.client.HTTPResponse(client)
+        response.begin()
+        raw = response.read(65537)
+        pieces = []
+        done = False
+        for line in raw.splitlines():
+            if line == b'data: [DONE]':
+                done = True
+            elif line.startswith(b'data: '):
+                event = json.loads(line[6:])
+                for choice in event.get('choices', []):
+                    pieces.append(choice.get('delta', {}).get('content', ''))
+        return dict(status=response.status, stream_done=done,
+                    passed=response.status == 200 and done and ''.join(pieces).strip() == '2')
+
+
+def _profile_rejections(port: int, model: str) -> dict[str, object]:
+    statuses = {}
+    for name, override in (('output', dict(max_tokens=513)), ('model', dict(model='unqualified-model')),
+                            ('context', dict(messages=[dict(role='user', content='word '*5000)]))):
+        payload = dict(model=model, messages=[dict(role='user', content='1+1?')], max_tokens=16, stream=False)
+        payload.update(override)
+        connection = http.client.HTTPConnection('127.0.0.1', port, timeout=10)
+        try:
+            connection.request('POST', '/v1/chat/completions', json.dumps(payload),
+                               {'Content-Type': 'application/json'})
+            response = connection.getresponse()
+            statuses[name] = response.status
+            response.read(65536)
+        finally:
+            connection.close()
+    return dict(statuses=statuses, passed=all(400 <= status < 500 for status in statuses.values()))
+
+
+def _http_exhaustion(port: int) -> dict[str, object]:
+    clients = []
+    try:
+        for _ in range(16):
+            client = socket.create_connection(('127.0.0.1', port), timeout=10)
+            client.sendall(b'GET /v1/models HTTP/1.1\r\nHost:')
+            clients.append(client)
+            time.sleep(.01)
+        time.sleep(.1)
+        with socket.create_connection(('127.0.0.1', port), timeout=10) as overflow:
+            overflow_status = overflow.recv(1024).split(b'\r\n', 1)[0].decode('ascii')
+        started = time.monotonic()
+        for _ in range(10):
+            time.sleep(.5)
+            for client in clients:
+                try:
+                    client.sendall(b'x')
+                except OSError:
+                    pass
+        reclaimed = 0
+        for client in clients:
+            try:
+                reclaimed += int(client.recv(1024) == b'')
+            except ConnectionResetError:
+                reclaimed += 1
+        snapshot = _idle_resources(port)
+        return dict(overflow_status=overflow_status, reclaimed=reclaimed,
+                    elapsed_seconds=time.monotonic()-started, snapshot=snapshot,
+                    passed='503' in overflow_status and reclaimed == 16
+                           and snapshot['http']['peak'] == 16 and snapshot['http']['rejected'] >= 1)
+    finally:
+        for client in clients:
+            client.close()
+
+
+def _idle_resources(port: int) -> dict[str, object]:
+    deadline = time.monotonic() + 5
+    while True:
+        snapshot = _resources(port)
+        if snapshot['registry'] == dict(active=0, queued=0) and snapshot['http']['active'] == 1:
+            return snapshot
+        if time.monotonic() >= deadline:
+            raise RuntimeError('request registry or HTTP connections did not drain')
+        time.sleep(.05)
+
+
+def _resource_plateau(samples: list[dict[str, object]]) -> dict[str, object]:
+    latest_pid = samples[-1]['pid'] if samples else None
+    epoch = [s for s in samples if s['pid'] == latest_pid]
+    recent = epoch[len(epoch)//2:]
+    deltas = {}
+    for field in ('threads', 'open_fds', 'allocator_active_bytes', 'allocator_cache_bytes'):
+        deltas[field] = recent[-1][field] - recent[0][field] if len(recent) >= 2 else None
+    passed = (len(epoch) >= 4 and all(s['registry_active'] == s['registry_queued'] == 0 for s in epoch)
+              and deltas['threads'] <= 4 and deltas['open_fds'] <= 4
+              and deltas['allocator_active_bytes'] <= 64*1024*1024
+              and deltas['allocator_cache_bytes'] <= 64*1024*1024)
+    return dict(sample_count=len(epoch), current_pid=latest_pid, deltas=deltas,
+                plateau_observed=passed, snapshot_consistency='non_atomic')
+
+
 def _new_stability_summary(
     duration_seconds: float, rss_bytes: int, process_pid: int | None = None
 ) -> dict[str, object]:
@@ -338,7 +469,13 @@ def _accumulate_window(summary: dict[str, object], window: dict[str, object]) ->
         summary[key] = int(summary[key]) + int(window.get(key, 0))
     errors = summary["errors"]
     assert isinstance(errors, dict)
-    for item in window.get("errors", []):
+    recorded_errors = window.get('errors', {})
+    if isinstance(recorded_errors, dict):
+        for code, count in recorded_errors.items():
+            if type(count) is not int or count < 0:
+                raise ValueError('invalid benchmark error count')
+            errors[str(code)] = int(errors.get(str(code), 0)) + count
+    for item in recorded_errors if isinstance(recorded_errors, list) else []:
         if isinstance(item, dict):
             code = str(item.get("code", item.get("error", "unknown")))
         else:
@@ -380,6 +517,7 @@ def _stability_passed(
             and rss_trend.get("plateau_observed") is True
             and int(summary.get("worker_crash_attempts", 0)) > 0
             and summary["worker_crash_attempts"] == summary["worker_crash_passed"]
+            and summary.get('all_epoch_resources_passed') is True
         )
     return bool(passed)
 
@@ -409,6 +547,8 @@ def _run_stability_window(config: PhaseProbeConfig, *, port: int, model: str,
     summary["worker_crash_attempts"] = 0
     summary["worker_crash_passed"] = 0
     summary["worker_crashes"] = []
+    summary['completed_epochs'] = []
+    summary['resource_samples'] = []
     next_worker_crash = worker_crash_interval_seconds
     while time.monotonic() < deadline:
         cycle += 1
@@ -488,7 +628,11 @@ def _run_stability_window(config: PhaseProbeConfig, *, port: int, model: str,
             summary["timeout_passed"] = int(summary["timeout_passed"]) + int(timeout_ok)
 
         elapsed = time.monotonic() - started
-        if worker_crash_interval_seconds and elapsed >= next_worker_crash:
+        if (worker_crash_interval_seconds and elapsed >= next_worker_crash
+                and (not require_long_window_checks or deadline-time.monotonic() >= 300)):
+            summary['completed_epochs'].append(dict(
+                rss=_rss_trend(summary['rss_samples']),
+                resources=_resource_plateau(summary['resource_samples'])))
             old_pid = process.pid
             if old_pid is None:
                 raise RuntimeError("managed backend PID unavailable before crash")
@@ -564,6 +708,16 @@ def _run_stability_window(config: PhaseProbeConfig, *, port: int, model: str,
         })
         if len(rss_samples) > 512:
             del rss_samples[1::2]
+        resources = _idle_resources(port)
+        summary['last_idle_resources'] = resources
+        resource_samples = summary['resource_samples']
+        resource_samples.append(dict(pid=current_pid, elapsed_seconds=round(time.monotonic()-started, 3),
+            threads=resources['threads'], open_fds=resources['open_fds'],
+            allocator_active_bytes=resources['allocator']['active_bytes'],
+            allocator_cache_bytes=resources['allocator']['cache_bytes'],
+            registry_active=resources['registry']['active'], registry_queued=resources['registry']['queued']))
+        if len(resource_samples) > 512:
+            del resource_samples[1::2]
         thermal = detect_thermal_state().value
         thermal_samples = summary["thermal_samples"]
         assert isinstance(thermal_samples, dict)
@@ -583,6 +737,11 @@ def _run_stability_window(config: PhaseProbeConfig, *, port: int, model: str,
     rss_samples = summary["rss_samples"]
     assert isinstance(rss_samples, list)
     summary["rss_trend"] = _rss_trend(rss_samples)
+    summary['resource_trend'] = _resource_plateau(summary['resource_samples'])
+    epochs = [*summary['completed_epochs'], dict(rss=summary['rss_trend'], resources=summary['resource_trend'])]
+    summary['all_epoch_resources_passed'] = all(
+        epoch['rss']['plateau_observed'] is True and epoch['resources']['plateau_observed'] is True
+        for epoch in epochs)
     summary["sleep_wake_passed"] = (
         not require_sleep_wake or int(summary["sleep_wake_observations"]) > 0
     )
@@ -605,6 +764,7 @@ def main() -> int:
     parser.add_argument("--require-30-minute-window", action="store_true")
     parser.add_argument("--require-8-hour-window", action="store_true")
     parser.add_argument("--require-sleep-wake", action="store_true")
+    parser.add_argument('--p1-profile', action='store_true')
     parser.add_argument("--fault-check-interval-cycles", type=int, default=10)
     parser.add_argument("--worker-crash-interval-seconds", type=float, default=0)
     parser.add_argument("--decode-concurrency", type=int, default=2)
@@ -612,6 +772,8 @@ def main() -> int:
     parser.add_argument("--prefill-step-size", type=int, default=2048)
     parser.add_argument("--long-concurrency", type=int, default=2)
     args = parser.parse_args()
+    if args.output.exists():
+        parser.error('--output must be a new evidence file')
     if not args.python.is_file() or not os.access(args.python, os.X_OK):
         parser.error("--python must be an executable regular file")
     if not args.model.is_dir():
@@ -682,21 +844,41 @@ def main() -> int:
             (model / "config.json").read_bytes()).hexdigest(),
         "stores_prompt": False, "stores_generated_text": False,
         "cancel_acknowledgement_available": True,
+        'p1_profile_enabled': args.p1_profile,
+        'p1_limits': (dict(context_tokens=4096, output_tokens=512, allocator_bytes=8*1024**3,
+                           cache_bytes=256*1024**2, http_connections=16, header_deadline_seconds=5)
+                      if args.p1_profile else None),
+        'require_sleep_wake': args.require_sleep_wake,
+        'runtime_sources': {
+            str(path.relative_to(repository)): hashlib.sha256(path.read_bytes()).hexdigest()
+            for path in sorted((repository/'vllm_apple').glob('*.py'))},
+        'runner_source_sha256': _file_sha256(Path(__file__)),
+        'model_files': {path.name: _file_sha256(path)
+                        for path in sorted(model.iterdir()) if path.is_file()},
     }
     clean_shutdown = False
     original_pythonpath = os.environ.get("PYTHONPATH")
     original_offline = os.environ.get("HF_HUB_OFFLINE")
+    original_profile = os.environ.get('VLLM_APPLE_P1_PROFILE')
+    if args.p1_profile:
+        os.environ['VLLM_APPLE_P1_PROFILE'] = '1'
+    else:
+        os.environ.pop('VLLM_APPLE_P1_PROFILE', None)
     os.environ["PYTHONPATH"] = str(repository)
     os.environ["HF_HUB_OFFLINE"] = "1"
     try:
         supervisor.start()
         if process.pid is None:
             raise RuntimeError("managed backend PID unavailable after startup")
+        report.update(status='running', passed=False, runner_pid=os.getpid(), backend_pid=process.pid)
+        _atomic_json(args.output.resolve(), report)
         config = PhaseProbeConfig(base_url, str(model), "Apple-M4-32GiB",
                                   backend="mlx_lm_gemma2_mask_fix",
                                   maximum_output_tokens=16, timeout_seconds=30,
                                   target_pid=process.pid)
         report["warmup"] = run_text_benchmark(config, requests=3)
+        if report['warmup']['completed'] != 3 or report['warmup']['quality_passed'] != 3:
+            raise RuntimeError('warmup failed; refusing sustained qualification')
         report["long_prefix_edit"] = run_text_benchmark(
             config, requests=args.long_requests, concurrency=args.long_concurrency,
             cases=_long_prefix_cases(),
@@ -708,6 +890,16 @@ def main() -> int:
         report["slow_consumer"] = _slow_consumer(args.port, str(model))
         report["queued_cancel"] = _queued_cancel(args.port, str(model))
         report["request_timeout"] = _timeout_stream(args.port, str(model))
+        report['half_close'] = _half_close(args.port, str(model))
+        if args.p1_profile:
+            report['profile_rejections'] = _profile_rejections(args.port, str(model))
+            if report['profile_rejections']['passed'] is not True:
+                raise RuntimeError('profile bounds were not enforced')
+            report['http_exhaustion'] = _http_exhaustion(args.port)
+            if report['http_exhaustion']['passed'] is not True:
+                raise RuntimeError('HTTP connection bound or header deadline failed')
+        if report['half_close']['passed'] is not True:
+            raise RuntimeError('half-close response did not complete correctly')
         if args.duration_seconds:
             def checkpoint(summary: dict[str, object]) -> None:
                 _atomic_json(args.output.resolve(), {
@@ -742,6 +934,10 @@ def main() -> int:
             "completed": recovery.measurement.stream_done_ns is not None,
             "quality_passed": recovery.expected_text_matched,
         }
+    except BaseException as error:
+        report.update(status='failed', passed=False, error_type=type(error).__name__,
+                      error=str(error)[:2048])
+        raise
     finally:
         supervisor.stop()
         clean_shutdown = not process.running
@@ -751,6 +947,15 @@ def main() -> int:
         report["supervisor"] = supervisor.snapshot()
         report["shutdown_clean"] = clean_shutdown
         report["elapsed_seconds"] = time.time() - started_at
+        report['runtime_identity_unchanged'] = all(
+            (repository/path).is_file() and _file_sha256(repository/path) == digest
+            for path, digest in report['runtime_sources'].items()) and (
+                _file_sha256(Path(__file__)) == report['runner_source_sha256'])
+        report['model_identity_unchanged'] = all(
+            (model/name).is_file() and _file_sha256(model/name) == digest
+            for name, digest in report['model_files'].items())
+        if report.get('status') == 'failed':
+            _atomic_json(args.output.resolve(), report)
         if original_pythonpath is None:
             os.environ.pop("PYTHONPATH", None)
         else:
@@ -759,6 +964,10 @@ def main() -> int:
             os.environ.pop("HF_HUB_OFFLINE", None)
         else:
             os.environ["HF_HUB_OFFLINE"] = original_offline
+        if original_profile is None:
+            os.environ.pop('VLLM_APPLE_P1_PROFILE', None)
+        else:
+            os.environ['VLLM_APPLE_P1_PROFILE'] = original_profile
 
     long_report = report.get("long_prefix_edit", {})
     sustained = report.get("sustained", {})
@@ -802,6 +1011,8 @@ def main() -> int:
         and float(request_timeout.get("elapsed_ms", 60_000)) < 5_000
         and duration_passed
         and clean_shutdown
+        and report['runtime_identity_unchanged'] is True
+        and report['model_identity_unchanged'] is True
     )
     report["qualification_scope"] = (
         "8-hour M4 mixed-load qualification"

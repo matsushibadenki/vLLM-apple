@@ -2,6 +2,7 @@ import hashlib
 import os
 import types
 import unittest
+from types import SimpleNamespace
 from unittest.mock import Mock, patch
 
 from vllm_apple.mlx_gemma2_compat import (
@@ -13,6 +14,7 @@ from vllm_apple.mlx_gemma2_compat import (
     cancel_request,
     grouped_query_mask,
     install_gemma2_batch_mask_fix,
+    validate_p1_request,
 )
 
 
@@ -23,6 +25,22 @@ class Mask:
 
     def reshape(self, *shape):
         return Mask(shape)
+
+
+class P1ProfileTests(unittest.TestCase):
+    def test_model_and_output_bounds_precede_generation(self):
+        args = SimpleNamespace(model=SimpleNamespace(model='gemma', adapter=None, draft=None), max_tokens=512)
+        validate_p1_request(args, 'gemma')
+        args.model.draft = 'default_model'
+        validate_p1_request(args, 'gemma')
+        for value in (0, 513, True):
+            args.max_tokens = value
+            with self.subTest(value=value), self.assertRaises(ValueError):
+                validate_p1_request(args, 'gemma')
+        args.max_tokens = 16
+        args.model.model = 'other'
+        with self.assertRaises(ValueError):
+            validate_p1_request(args, 'gemma')
 
 
 class Gemma2CompatTests(unittest.TestCase):
@@ -77,6 +95,7 @@ class Gemma2CompatTests(unittest.TestCase):
         context = Context()
         queue = Mock()
         _register_context("request-1", context, queue)
+        self.assertTrue(cancel_request("request-1"))
         self.assertTrue(cancel_request("request-1"))
         self.assertEqual(context.stopped, 1)
         queue.put.assert_called_once_with(None)

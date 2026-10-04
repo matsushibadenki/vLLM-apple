@@ -11,6 +11,17 @@ SPEC.loader.exec_module(qualification)
 
 
 class Gemma2QualificationTests(unittest.TestCase):
+    def test_resource_growth_and_undrained_registry_fail(self):
+        samples = [dict(pid=1, threads=4, open_fds=8, allocator_active_bytes=100,
+                        allocator_cache_bytes=100, registry_active=0, registry_queued=0)
+                   for _ in range(8)]
+        self.assertTrue(qualification._resource_plateau(samples)['plateau_observed'])
+        samples[-1]['open_fds'] = 20
+        self.assertFalse(qualification._resource_plateau(samples)['plateau_observed'])
+        samples[-1]['open_fds'] = 8
+        samples[-1]['registry_queued'] = 1
+        self.assertFalse(qualification._resource_plateau(samples)['plateau_observed'])
+        self.assertFalse(qualification._resource_plateau(samples[:2])['plateau_observed'])
     def test_duration_validation(self):
         qualification._validate_duration(0, False)
         qualification._validate_duration(1800, True)
@@ -75,9 +86,14 @@ class Gemma2QualificationTests(unittest.TestCase):
             timeout_attempts=1, timeout_passed=1,
             rss_trend={"plateau_observed": True},
             worker_crash_attempts=1, worker_crash_passed=1,
+            all_epoch_resources_passed=True,
         )
         self.assertTrue(qualification._stability_passed(
             summary, require_fault_checks=True, require_long_window_checks=True))
+        summary['all_epoch_resources_passed'] = False
+        self.assertFalse(qualification._stability_passed(
+            summary, require_fault_checks=True, require_long_window_checks=True))
+        summary['all_epoch_resources_passed'] = True
         summary["rss_trend"] = {"plateau_observed": False}
         self.assertFalse(qualification._stability_passed(
             summary, require_fault_checks=True, require_long_window_checks=True))

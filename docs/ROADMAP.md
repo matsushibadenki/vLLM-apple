@@ -113,6 +113,10 @@ RSS・allocator・KV・OS pressure・swap差分は別系列で記録し、重複
 
 ## P1 — 標準text経路と持続的な安定性 [Next]
 
+- [Done] [P1限定candidateと試験手順](P1-STABILITY.md)：HTTP全体の接続上限16、header絶対期限5秒、body上限とdeadlineをwrapper／Gemma互換経路へ適用。model固定・prompt＋output 4,096 tokens・output 512・GPU allocator 8 GiB／cache 256 MiBのopt-in profileを追加した。全worker epochのRSS／allocator／thread／FD／registryを検証し、queue待機p95の計測scopeを公開する。任意model／shapeやdaemon全体の認定ではない。
+- [Done] 固定sourceの[M4短時間smoke](evaluation/p1-profile-90sec-m4-2026-10-04-r3.json)で正常189/189品質・SLO合格、active cancel 18/18、queued cancel／timeout各6/6、worker crash回復2/2、half-close、profile拒否と正常shutdownを確認。全回帰1,407 tests合格（11 skip）。短時間の資源plateauと8時間安定性は未認定。
+- [Next] [連続試験状態](evaluation/p1-stability-m4-2026-10-04/state.json)で30分→合格時に8時間を実行する。実行中のpassed=falseを維持し、全epoch・回収・同一identityを最終監査する。実sleep／wakeとdaemon標準経路の残課題を含め、完了まではP1を[Done]にしない。
+
 - [Next] P0監査の残課題：request headerを含むHTTP全体のthread／資源上限、長時間queue cancelとp95待ち時間、half-close、telemetry有無の独立比較を検証する。現在のM4で試験可能であり[pending]にはしない。旧30分soakの資格は現buildへ転用しない。
 
 依存：P0で選んだ基準経路。成果物は認定text profileと、運用上の失敗から復帰できる標準server。
