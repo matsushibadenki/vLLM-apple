@@ -18,6 +18,7 @@ def main() -> int:
     parser.add_argument('--model', required=True, type=Path)
     parser.add_argument('--output-directory', required=True, type=Path)
     parser.add_argument('--port', type=int, default=19146)
+    parser.add_argument('--prefill-step-size', type=int, choices=(128, 256, 512), default=512)
     args = parser.parse_args()
     def terminate(signum: int, frame: object) -> None:
         raise KeyboardInterrupt(f'test orchestration received signal {signum}')
@@ -40,7 +41,7 @@ def main() -> int:
                 '--python', str(args.python.absolute()), '--model', str(args.model.resolve()),
                 '--output', str(report), '--port', str(args.port), '--sustained-requests', '100',
                 '--long-requests', '12', '--duration-seconds', str(duration), gate,
-                '--decode-concurrency', '2', '--prompt-concurrency', '2', '--prefill-step-size', '512',
+                '--decode-concurrency', '2', '--prompt-concurrency', '2', '--prefill-step-size', str(args.prefill_step_size),
                 '--long-concurrency', '1', '--fault-check-interval-cycles', '10',
                 '--worker-crash-interval-seconds', crash_interval, '--p1-profile']
             stage = dict(name=name, status='running', command=command, report=str(report))

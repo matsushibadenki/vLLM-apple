@@ -76,6 +76,19 @@ class Gemma2QualificationTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             qualification._validate_duration(28_799.9, False, True)
 
+    def test_rss_plateau_rejects_invalid_sample_time_and_value(self):
+        samples = [dict(elapsed_seconds=i, rss_bytes=100, pid=1) for i in range(4)]
+        for field, value in (('elapsed_seconds', 2), ('elapsed_seconds', 1),
+                             ('elapsed_seconds', float('nan')), ('elapsed_seconds', float('inf')),
+                             ('elapsed_seconds', -1), ('rss_bytes', -1), ('rss_bytes', None)):
+            changed = [dict(row) for row in samples]
+            changed[-1][field] = value
+            result = qualification._rss_trend(changed)
+            self.assertFalse(result['plateau_observed'])
+            self.assertIsNone(result['slope_bytes_per_hour'])
+            self.assertEqual(result['rejection_reason'], 'invalid_epoch_samples')
+        self.assertTrue(qualification._rss_trend(samples)['plateau_observed'])
+
     def test_rss_trend_requires_recent_plateau(self):
         plateau = qualification._rss_trend([
             {"elapsed_seconds": index * 3600, "rss_bytes": 100_000_000 + index * 1024}

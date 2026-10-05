@@ -2,6 +2,25 @@
 
 ## 日本語
 
+[Done] 長時間launcher／runnerに`--prefill-step-size {128,256,512}`を接続し、
+30分・8時間の両段階で指定値を固定する。既定512と認定閾値は維持。
+全回帰1447 tests成功（11 skip）、Ruff成功。
+[prefill256実機smoke](evaluation/p1-prefill256-m4-2026-10-05.json)は90秒指定／98.85秒、
+品質・SLO 204/204、awake・identity・正常終了合格。初期長文12件のTTFT最大3.56秒。
+短時間のall_epoch_resources_passedはfalseで、RSS収束・512比の性能優位は未認定。
+[Next] [r7の状態](evaluation/p1-stability-m4-2026-10-05-r7/state.json)：prefill256候補で
+30分→全条件合格時8時間の専用launchd jobを開始。command・checkpoint鮮度でrunning確認済み。
+[receipt](evaluation/p1-stability-launch-m4-2026-10-05-r7.json)にparameterとjob identityを保存し、
+既存定期監視もr7へ更新。実行中はruntime編集・追加GPU負荷を避け、資格は昇格しない。
+
+[Done] RSS認定で時刻の重複・逆行・NaN／Infinity・欠測・負のRSSを拒否する。
+従来は同じ時刻のsampleでも回帰分母ゼロを傾きゼロとしてplateauにできたため、
+現在epochの全sampleを計算前に検証し、invalid_epoch_samplesとして未認定にする。
+RSSの傾き／成長上限やSLOは変更していない。全回帰1446 tests成功（11 skip）、Ruff成功。
+[既存実測への再適用](evaluation/p1-rss-sample-validation-2026-10-05.json)でr5／r6の
+RSS判定と数値は完全に同じ。r6のRSS plateau未達・長文TTFT失敗は未解消で[Next]。
+この修正はCPU上の認定処理であり、GPU性能や実安定性の改善を主張しない。
+
 2026-10-05 r6終了：[最終監査](evaluation/p1-r6-final-audit-2026-10-05.json)。
 品質3276/3276、SLO3275/3276、長文prefix missのTTFT 11.97秒で不合格、8時間未開始。
 642観測でAC／automatic不変、suspend gap 0、awake条件は合格。
@@ -127,6 +146,20 @@ launchctl submitの一時jobを実測すると失敗時の再起動があった�
 
 ## English
 
+[Done] The long-run launcher accepts explicit prefill sizes 128/256/512 and preserves the
+selected value through both stages; default 512 and qualification thresholds are unchanged.
+Full regression: 1,447 tests, 11 skipped. The 256 smoke passed quality/SLO for 204/204 requests,
+awake conditions, identity and graceful shutdown. Its short resource plateau did not pass;
+RSS convergence and superiority over 512 remain unqualified. [Next] R7 is running 30 minutes
+with prefill256 and proceeds to eight hours only if all gates pass. Monitoring targets R7;
+no runtime edits or competing GPU tests while active.
+
+[Done] RSS qualification now rejects duplicate/backward timestamps, nonfinite or missing
+samples and negative RSS before regression. Previously zero time variance could appear as
+zero slope and qualify a plateau. Limits remain unchanged. Reprocessing r5/r6 leaves their
+RSS values and decisions unchanged; r6 stability and latency failures remain [Next].
+This is validation of measurement evidence, not a runtime performance improvement.
+
 R6 finished: quality 3,276/3,276, SLO 3,275/3,276; one long-prefix TTFT was 11.97 seconds.
 Awake conditions passed, but recent RSS plateau failed. Net RSS decreased, so this does not
 prove a leak. Identity and shutdown passed; the job was removed. Eight-hour testing did not start.
@@ -177,6 +210,16 @@ Update: the replacement 30-minute run completed all 3,312 quality requests but o
 All worker epochs must pass RSS and allocator/thread/FD/registry stability checks; a healthy final worker cannot hide earlier growth. The report retains model/runtime hashes and rejects changes during measurement. Queue p95 covers ingress to first scheduler dequeue, including cancelled requests, rather than total generation wait. Snapshots are non-atomic. The process temporarily inhibits idle sleep; actual sleep/wake and daemon integration remain [Next]. Additional hardware remains [Later][pending]. Final CPU regression: 1,407 tests passed, 11 skipped.
 
 ## 简体中文
+
+[Done] 长时间launcher可明确指定prefill128／256／512，并在两个阶段保持相同值，默认512及
+认证阈值不变。全回归1447项通过，11项跳过。256短测的质量／SLO为204/204，awake条件、
+identity及正常退出通过；短时间资源plateau未通过，RSS收敛及相比512的优势仍未认证。
+[Next] r7以prefill256进行30分钟试验，仅全部gate通过后进入8小时。监控已转向r7，
+运行期间避免runtime修改或竞争GPU试验。
+
+[Done] RSS认证在回归计算前拒绝重复／倒退时间、非有限值、缺失值及负RSS。
+此前时间方差为零可能被视为零斜率并通过plateau。未放宽阈值。重新处理r5／r6后
+RSS数值及判定完全一致，r6的稳定性及延迟失败仍为[Next]，不宣称GPU性能改善。
 
 r6结束：质量3276/3276，SLO3275/3276，长prefix TTFT为11.97秒。awake条件通过，
 但近期RSS plateau未通过；总体RSS下降，不能据此断定泄漏。identity及正常退出通过，

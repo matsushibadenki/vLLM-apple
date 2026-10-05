@@ -265,6 +265,21 @@ def _rss_trend(samples: list[dict[str, float | int]]) -> dict[str, object]:
     """Summarize recent RSS direction without treating a peak as a leak."""
     latest_pid = samples[-1].get("pid") if samples else None
     current_epoch = [item for item in samples if item.get("pid") == latest_pid]
+    previous = None
+    invalid = False
+    for item in current_epoch:
+        elapsed, rss = item.get('elapsed_seconds'), item.get('rss_bytes')
+        if (type(elapsed) not in (int, float) or not math.isfinite(elapsed) or elapsed < 0
+                or type(rss) is not int or rss < 0
+                or (previous is not None and elapsed <= previous)):
+            invalid = True
+            break
+        previous = elapsed
+    if invalid:
+        return dict(sample_count=len(samples), current_pid=latest_pid,
+                    current_pid_sample_count=len(current_epoch), slope_bytes_per_hour=None,
+                    recent_growth_bytes=None, plateau_observed=False,
+                    rejection_reason='invalid_epoch_samples')
     if len(current_epoch) < 4:
         return {
             "sample_count": len(samples), "slope_bytes_per_hour": None,

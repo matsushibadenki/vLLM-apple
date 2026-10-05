@@ -35,8 +35,8 @@ Intel Macは互換性の別枠とし、Apple Siliconの性能認定を適用し�
 | 状態 | 範囲 | 確認結果／残作業 |
 | --- | --- | --- |
 | [Done] | P0限定基準・経路監査 | M4／Gemma 2／c1／三言語算術、2 backend各3回。全モデル・全Macの認定ではない |
-| [Done] | P1資源上限・cancel／回復runner | bounded HTTP・入力・allocator・queue・cancelと短時間smoke。最新30分は品質3312/3312だがSLO3298/3312で不合格 |
-| [Next] | P1長時間認定 | 上記14件のSLO失敗を調査・修正し、30分再試験→合格時8時間。このM4で可能なので[pending]にしない |
+| [Done] | P1資源上限・cancel／回復runner | bounded HTTP・入力・allocator・queue・cancelと短時間smoke。最新r6の30分は品質3276/3276、SLO3275/3276、awake条件合格だが長文TTFT・RSS plateau未達 |
+| [Next] | P1長時間認定 | r6の長文TTFT超過とRSS未収束を調査・修正し、30分再試験→合格時8時間。このM4で可能なので[pending]にしない |
 | [Done] | P2実continuous batching／identity付きKV実験 | 実batch幅4と再prefill提出減少を確認。標準採用・数値／性能認定は未完了 |
 | [Next] | P2数値・p95／goodput gate | c4 SLOと全prompt基準とのlogit差を解消し再測定。このM4で試験可能 |
 | [Done] | P3選択・P4認定gateとrelease昇格接続 | 証拠不足・不合格はfallback／昇格拒否。合成fixtureのテストを実性能・24時間認定に代用しない |
@@ -139,6 +139,10 @@ RSS・allocator・KV・OS pressure・swap差分は別系列で記録し、重複
 **完了条件：** 手元のMacで少なくとも2 backend・同一品質基準のモデルについて、独立した3 runを再現できる。各主要ケースは合計100以上の完了requestを目安とし、sample数とばらつきを公開する。p99は1,000未満なら参考値扱い。比較不能・未対応条件も残す。上記M4／Gemma 2／c1／三言語算術scopeで達成。
 
 ## P1 — 標準text経路と持続的な安定性 [Next]
+
+- [Done] 長時間runnerでprefill128／256／512を明示指定し両段階へ固定伝達、既定512・閾値は維持。全回帰1447 tests成功（11 skip）。[256実機smoke](evaluation/p1-prefill256-m4-2026-10-05.json)は204/204品質・SLO・awake・identity・正常終了合格、短期RSS plateau未達。性能優位は未測定。[Next] [r7](evaluation/p1-stability-m4-2026-10-05-r7/state.json)で30分→全条件合格時8時間を測定中、認定保留、競合編集／GPU負荷を避ける。
+
+- [Done] RSS plateau認定にsample検証を追加し、時刻重複／逆行、NaN／Infinity、欠測、負RSSを拒否。分母ゼロを傾きゼロとして誤認定しない。閾値は維持。[既存r5／r6再監査](evaluation/p1-rss-sample-validation-2026-10-05.json)の数値と判定は不変。[Next] r6の長文TTFT及びRSS未収束の解消。
 
 - [Done] [r4診断監査](evaluation/p1-r4-slo-audit-2026-10-05.json)：品質3327/3327、SLO3319/3327。短文TTFT超過8件を全数記録、資源・identity・正常終了は合格、8時間未開始。queue累積最大1.629秒ではTTFT 5〜6.85秒を説明しきれず、原因は未特定。[Next] source固定のscheduler step host時間とwindow前後の環境・資源snapshotを追加して再測定。GPU kernel単体時間や性能改善として扱わない。
 

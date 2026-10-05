@@ -1,0 +1,35 @@
+{
+  "scope": "offline audit; no new runtime or performance qualification",
+  "reports": [
+    {
+      "report": "docs/evaluation/p1-stability-m4-2026-10-05-r5/30min.json",
+      "sha256": "72ae4176afc4be2f74555bde122a8ab7ff54f4918ef851dfcaa4152a81d1437c",
+      "rss_decision_unchanged": true,
+      "trend": {
+        "sample_count": 360,
+        "current_pid": 20944,
+        "current_pid_sample_count": 360,
+        "recent_sample_count": 180,
+        "slope_bytes_per_hour": 12436852.187,
+        "recent_growth_bytes": 2506752,
+        "plateau_observed": true
+      },
+      "original_passed": false
+    },
+    {
+      "report": "docs/evaluation/p1-stability-m4-2026-10-05-r6/30min.json",
+      "sha256": "756689ab9493470e94f40be9db5271066a241beda3fb498abdd1998cb55fc565",
+      "rss_decision_unchanged": true,
+      "trend": {
+        "sample_count": 322,
+        "current_pid": 79541,
+        "current_pid_sample_count": 322,
+        "recent_sample_count": 161,
+        "slope_bytes_per_hour": 277495445.859,
+        "recent_growth_bytes": 58507264,
+        "plateau_observed": false
+      },
+      "original_passed": false
+    }
+  ]
+}
