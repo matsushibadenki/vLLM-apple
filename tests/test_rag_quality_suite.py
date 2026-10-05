@@ -47,3 +47,21 @@ class RagQualitySuiteTests(unittest.TestCase):
         cases = build_cases()
         self.assertTrue(cases[1]['payload']['documents'])
         self.assertGreater(len(cases[3]['payload']['documents'][0]['text']), 2000)
+
+    def test_comparison_rejects_higher_total_with_abstention_regression(self):
+        from scripts.rag_quality_suite import compare_reports
+        suite = score_results(self.rows())
+        baseline = dict(quality_suite=copy.deepcopy(suite), error=None, backend_returncode=0)
+        candidate = copy.deepcopy(baseline)
+        baseline['quality_suite']['cases'][0]['passed'] = False
+        baseline['quality_suite']['cases'][2]['passed'] = False
+        candidate['quality_suite']['cases'][1]['passed'] = False
+        comparison = compare_reports(baseline, candidate)
+        self.assertGreater(comparison['candidate_passes'], comparison['baseline_passes'])
+        self.assertFalse(comparison['task_improvement_accepted'])
+        self.assertEqual(comparison['lost_cases'], ['en-insufficient'])
+        candidate['quality_suite']['cases'][1]['passed'] = True
+        self.assertTrue(compare_reports(baseline, candidate)['task_improvement_accepted'])
+        candidate['quality_suite']['cases'].pop()
+        with self.assertRaises(ValueError):
+            compare_reports(baseline, candidate)

@@ -251,6 +251,14 @@ splitting and a native engine remain conditional research, not committed replace
 
 ### R0 — 外部検索との接続
 
+- [Done] opt-in SIGUSR1 thread stack診断とcollectorの終了deadline後診断要求を実装。入力本文／locals／tensorを採取せず、signal記録と保存成功を区別。[実機6ケース](evaluation/rag-shutdown-diagnostics-m4-2026-10-05.json)・正常終了、CPU実processとmock timeout回帰成功。[Next] 終了遅延再現時のstack監査。今回未再現のため原因解消とは扱わない。
+
+- [Done] 新候補r5は回答不能が悪化し不採用。r6は6/12・既存5件維持だが独立再試験でshutdown deadline超過（kill/-9）のため不採用、r4 promptへ復元。[Done] HTTP collectorへgraceful／forced-killの独立記録を追加、deadline超過回帰を含む7 tests・Ruff成功。[Next] [再試験](evaluation/rag-quality-m4-2026-10-05-r6-repeat.json)の終了遅延と残る品質失敗を調査。
+
+- [Done] system roleなしの経路で資料後に元の質問・instructionを再提示し、完全template token予算へ含めた。[r4](evaluation/rag-quality-m4-2026-10-05-r4.json)／[独立再試験](evaluation/rag-quality-m4-2026-10-05-r4-repeat.json)とも5/12、baseline合格4件を維持し中国語長文が改善。全回帰1441 tests成功（11 skip）、Ruff成功。[Next] 残る7ケース、一般grounding・性能・変更後runtimeの認定。追加promptのcontextコストあり、旧identity証拠を転用しない。
+
+- [Done] RAG prompt候補2種を同一12ケースで実測（8/12・7/12）。回答不能の既存合格ケースが悪化したため不採用、runtime promptを復元。`compare_reports`で同一suite・完全な結果・正常終了と既存合格維持を検証し、総合点だけで採用しない。[比較監査](evaluation/rag-quality-candidate-comparison-2026-10-05.json)。[Next] 回帰なしの改善候補を検証。
+
 - [Done] 実HTTP collectorへ12ケースsuiteを接続し、[実モデルbaseline](evaluation/rag-quality-m4-2026-10-05.json)を保存。正常終了、厳密合格4/12。[Next] 回答形式5件、長文引用欠落2件、中国語の資料不足誤答1件を改善。一般grounding未認定、採点基準は維持。
 
 - [Done] `rag` CLIとPython APIで、検索済みチャンクから三言語の生成リクエストを構成する。資料のUTF-8 byte上限、丸ごとの除外、資料なし時のローカル回答不能、ループバックHTTP生成、出典ID／内容hashと参照IDの照合を実装。[利用手順](RAG-LORA.md)と`tests/test_rag.py`を参照。

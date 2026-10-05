@@ -1,0 +1,143 @@
+{
+  "schema_version": 1,
+  "scope": "Gemma2/M4/three-language fixed support-code HTTP smoke",
+  "model": "models/gemma-2-2b-it-4bit",
+  "cases": [
+    {
+      "language": "en",
+      "passed": true,
+      "result": {
+        "schema_version": 1,
+        "language": "en",
+        "sources": [
+          {
+            "reference": "S1",
+            "id": "manual",
+            "title": "Manual",
+            "sha256": "5dbc2168998d2418c1af9b6d25b76b36061993969c93c399229b074def8ad318"
+          }
+        ],
+        "omitted_document_ids": [],
+        "source_bytes": 78,
+        "token_budget_verified": true,
+        "prompt_tokens": 215,
+        "reserved_output_tokens": 64,
+        "context_tokens": 4096,
+        "grounding_verified": false,
+        "answer": "12347 [S1] \n",
+        "citations": [
+          {
+            "reference": "S1",
+            "id": "manual",
+            "title": "Manual",
+            "sha256": "5dbc2168998d2418c1af9b6d25b76b36061993969c93c399229b074def8ad318"
+          }
+        ],
+        "status": "references_valid",
+        "generation_performed": true,
+        "unknown_references": []
+      }
+    },
+    {
+      "language": "en",
+      "case": "no_sources",
+      "passed": true
+    },
+    {
+      "language": "ja",
+      "passed": true,
+      "result": {
+        "schema_version": 1,
+        "language": "ja",
+        "sources": [
+          {
+            "reference": "S1",
+            "id": "manual",
+            "title": "Manual",
+            "sha256": "e58f50b41a314d3e80ab924c94e5d011d5fc67c9e24c6e2d38ce96db8feca527"
+          }
+        ],
+        "omitted_document_ids": [],
+        "source_bytes": 90,
+        "token_budget_verified": true,
+        "prompt_tokens": 213,
+        "reserved_output_tokens": 64,
+        "context_tokens": 4096,
+        "grounding_verified": false,
+        "answer": "サポートコードは12347です。[S1] \n",
+        "citations": [
+          {
+            "reference": "S1",
+            "id": "manual",
+            "title": "Manual",
+            "sha256": "e58f50b41a314d3e80ab924c94e5d011d5fc67c9e24c6e2d38ce96db8feca527"
+          }
+        ],
+        "status": "references_valid",
+        "generation_performed": true,
+        "unknown_references": []
+      }
+    },
+    {
+      "language": "ja",
+      "case": "no_sources",
+      "passed": true
+    },
+    {
+      "language": "zh",
+      "passed": true,
+      "result": {
+        "schema_version": 1,
+        "language": "zh",
+        "sources": [
+          {
+            "reference": "S1",
+            "id": "manual",
+            "title": "Manual",
+            "sha256": "a23b0629694d95453f8674483ecbece570bed05154d5780b62dc237926737e34"
+          }
+        ],
+        "omitted_document_ids": [],
+        "source_bytes": 75,
+        "token_budget_verified": true,
+        "prompt_tokens": 206,
+        "reserved_output_tokens": 64,
+        "context_tokens": 4096,
+        "grounding_verified": false,
+        "answer": "支持代码为12347. [S1] \n",
+        "citations": [
+          {
+            "reference": "S1",
+            "id": "manual",
+            "title": "Manual",
+            "sha256": "a23b0629694d95453f8674483ecbece570bed05154d5780b62dc237926737e34"
+          }
+        ],
+        "status": "references_valid",
+        "generation_performed": true,
+        "unknown_references": []
+      }
+    },
+    {
+      "language": "zh",
+      "case": "no_sources",
+      "passed": true
+    }
+  ],
+  "backend_returncode": 0,
+  "error": null,
+  "shutdown": {
+    "graceful": true,
+    "forced_kill": false,
+    "sigint_deadline_seconds": 15,
+    "stack_dump_requested": false
+  },
+  "general_grounding_qualified": false,
+  "performance_qualified": false,
+  "source_sha256": {
+    "vllm_apple/rag.py": "7cb60271a0c4244dd744936937b92f9386f31dae3ad95b83f05d26bff5e94d8b",
+    "vllm_apple/mlx_server.py": "4dfc5743cd6dcde622ce7834a44a970c10b68a8b2f4a877ec0db75f6b340a3ae",
+    "/Users/Shared/Program/vLLM-apple/scripts/probe_rag_http.py": "d4d32b0b7bcce5216281c229e6403807638b4daae05c9827107f6d4464769693"
+  },
+  "passed": true
+}

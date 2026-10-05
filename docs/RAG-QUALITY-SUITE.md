@@ -67,3 +67,105 @@ of abstaining. Token budgets and retained support passed. General grounding rema
 5例未遵守回答格式；日语／中文长资料缺少引用，中文信息不足案例回答营业时间而未拒答。
 所有案例均确认token预算及根拠保留，但一般grounding仍未认证。
 [Next] 在不放宽评分的情况下比较prompt／资料构成候选与固定baseline。
+
+## Candidate audit / 候補監査 / 候选审计
+
+2026-10-05：[r2](evaluation/rag-quality-m4-2026-10-05-r2.json)は8/12、
+[r3](evaluation/rag-quality-m4-2026-10-05-r3.json)は7/12、両方正常終了。
+ただしbaselineで成功していた回答不能がr2では英語、r3では日本語で悪化したため、
+両候補を不採用とし、runtime promptは元に戻した。採点基準は変更していない。
+[Done] `compare_reports`で同一suite・全ケース・正常終了を要求し、総合点が増えても
+既存合格ケースの悪化を拒否する。[比較証拠](evaluation/rag-quality-candidate-comparison-2026-10-05.json)。
+[Next] 別のprompt／資料構成を検証する。今回の2候補から性能や一般品質改善は主張しない。
+
+English: Candidates scored 8/12 and 7/12 but regressed English and Japanese abstention,
+respectively. Both were rejected and the runtime prompt restored. The comparison gate requires
+matching suites, complete cases, clean termination, and no loss of baseline passes, even when the
+total rises. General quality and performance remain unqualified.
+
+简体中文：候选得分8/12及7/12，但分别使英语和日语的拒答退化。两者均未采用，
+runtime prompt已恢复。比较gate要求suite一致、案例完整、正常退出，并拒绝既有成功案例退化，
+即使总分提高也不接受。一般质量及性能仍未认证。
+
+## Adopted limited improvement / 限定改善の採用 / 采用有限改进
+
+2026-10-05：[r4](evaluation/rag-quality-m4-2026-10-05-r4.json)と
+[独立process再試験](evaluation/rag-quality-m4-2026-10-05-r4-repeat.json)は両方5/12。
+baselineの合格4ケースは維持、中国語long_sourceが新たに合格。
+[Done] system roleを使わない経路で、資料の後に元のinstructionとquestionを再提示する。
+末尾の条件も完全chat templateのtoken計測へ含め、context不足時の資料除外でも保持する。
+合成固定taskでの改善であり一般grounding／広範な攻撃耐性／性能改善ではない。
+[Next] 残る7ケース（形式、情報不足時の誤答）の改善と、固定task以外の評価を進める。
+追加prompt分のcontextを消費する。runtime sourceが変わったため旧RAG／P1のidentity証拠を
+新buildの認定へ転用しない。P1は元から未認定で、次回試験でidentityを取り直す。
+
+English: Two fresh backend processes both scored 5/12, preserving all four baseline passes and
+adding Chinese long-source success. The no-system-role path now repeats the original instruction
+and question after source data. Complete-template token budgeting includes the added text and
+preserves it when dropping whole sources. This consumes extra context; it is a limited synthetic
+task improvement, not general grounding or performance certification. Seven cases remain [Next].
+Old runtime-identity evidence cannot certify the changed build.
+
+简体中文：两个独立backend进程均为5/12，保留baseline全部4个成功案例，新增中文长资料成功。
+无system role路径在资料后重复原instruction及question，新增文本计入完整template的token预算，
+删除资料时仍保留这些条件。这会消耗额外context，仅证明合成任务的有限改善，不代表一般grounding
+或性能认证。剩余7例为[Next]。旧runtime identity证据不能认证新的build。
+
+Validation / 検証 / 验证：全回帰1441 tests成功（11 skipped）、Ruff・diff check成功。
+
+## 2026-10-05 continued audit / 継続監査 / 后续审计
+
+[r5](evaluation/rag-quality-m4-2026-10-05-r5.json)は6/12だがEN／JA回答不能が悪化し不採用。
+[r6](evaluation/rag-quality-m4-2026-10-05-r6.json)は既存5件を維持して6/12、正常終了。
+ただし[独立再試験](evaluation/rag-quality-m4-2026-10-05-r6-repeat.json)は回答6/12を再現しても
+SIGINT後15秒以内に終了せずkill、returncode=-9。候補は採用せず、r4 promptへ復元した。
+[Done] collectorはshutdown.graceful／forced_kill／sigint_deadline_secondsを保存し、
+生成時のerrorなしと終了失敗を分離する。模擬deadline超過の回帰を含む7テスト・Ruff成功。
+[Next] 実backendの終了遅延原因と、既存回答不能ケースを維持する品質改善を調査する。
+P1／一般grounding／性能は未認定で、これらの失敗は[pending]にしない。
+
+English: R5 regressed abstention and was rejected. R6 scored 6/12 without losing baseline
+passes; its independent repeat reproduced those answers but exceeded the 15-second SIGINT
+shutdown deadline and was killed (exit -9). R6 was not adopted; the r4 prompt was restored.
+The collector now reports graceful/forced shutdown separately from generation errors, with a
+mock deadline regression test. Shutdown diagnosis and quality improvement remain [Next].
+
+简体中文：r5的拒答退化，未采用。r6在保留baseline成功案例的情况下达到6/12，
+但独立重试虽重复相同答案，SIGINT后15秒仍未退出，被强制结束（-9）。未采用r6，
+已恢复r4 prompt。collector现在分别记录正常／强制退出及生成错误，并加入模拟deadline回归。
+退出延迟原因及质量改善仍为[Next]，不归为[pending]。
+
+## Shutdown diagnosis / 終了診断 / 退出诊断
+
+[Done] `mlx-server --diagnostic-signal`はSIGUSR1で全Python threadのstackをstderrへ保存する。
+診断は明示opt-in、locals／request本文／tensorを採取しない。stackにはfile pathを含む。
+collectorの`--shutdown-diagnostics`はこのoptionを接続し、SIGINT後15秒を超えた場合のみ
+SIGUSR1を送り、0.5秒の記録猶予後に既存のkillへ進む。stack_dump_requestedはsignal送信の
+記録であり、stack保存成功や原因特定の証明ではない。signal対応のPOSIX環境に限定。
+
+[実機smoke](evaluation/rag-shutdown-diagnostics-m4-2026-10-05.json)は既存6ケース・正常終了合格。
+今回の終了遅延は未再現。CPU実process試験でsignal後もworkerが生存しstackを保存することを
+確認し、模擬終了deadline試験でSIGUSR1要求とkillの記録を確認した。
+[Next] 長いsuiteで遅延を再現した際にstackを監査し、join待ち／GPU待ちなどの原因を特定する。
+今回の診断実装だけで原因解消やR0／P1認定とは扱わない。
+
+```sh
+/opt/homebrew/opt/vllm-metal/libexec/bin/python scripts/probe_rag_http.py \
+  --model models/gemma-2-2b-it-4bit --quality-suite --shutdown-diagnostics \
+  --output /tmp/rag-diagnostic-new.json
+```
+
+English: Opt-in `--diagnostic-signal` records Python thread stacks on SIGUSR1, without
+locals, request bodies or tensors; file paths are included. The collector's
+`--shutdown-diagnostics` requests a dump only after the 15-second SIGINT deadline, then allows
+0.5 seconds before its existing kill fallback. A requested dump does not prove successful capture.
+The real six-case smoke shut down cleanly; the previous delay was not reproduced. CPU process
+and mock timeout tests verify signal survival and diagnostic requests. Root cause remains [Next].
+
+简体中文：显式`--diagnostic-signal`在SIGUSR1时记录Python thread stack，不记录locals、
+请求正文或tensor，但包含file path。collector的`--shutdown-diagnostics`仅在SIGINT超过15秒
+时请求stack，等待0.5秒后执行既有kill回退。请求记录不能证明stack已保存或原因已确定。
+实机6例正常退出，未重复之前的延迟。CPU进程及模拟timeout验证signal不终止worker及诊断请求。
+根因调查仍为[Next]，未认证R0／P1。
+
+Validation / 検証 / 验证：全回帰1443 tests成功（11 skipped）、Ruff・diff check成功。

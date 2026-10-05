@@ -243,3 +243,35 @@ class MLXServerTelemetryTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class StackDiagnosticTests(unittest.TestCase):
+    def test_opt_in_signal_dumps_stack_without_stopping_worker(self):
+        import signal
+        import subprocess
+        import sys
+        import tempfile
+
+        if not hasattr(signal, 'SIGUSR1'):
+            self.skipTest('POSIX diagnostic signal required')
+        code = (
+            'from vllm_apple.mlx_server import enable_stack_diagnostics; '
+            'import signal; enable_stack_diagnostics(); '
+            'print("ready", flush=True); signal.pause(); '
+            'print("dumped", flush=True); signal.pause()'
+        )
+        with tempfile.TemporaryFile(mode='w+') as log:
+            process = subprocess.Popen([sys.executable, '-c', code], stdout=subprocess.PIPE,
+                                       stderr=log, text=True)
+            try:
+                self.assertEqual(process.stdout.readline().strip(), 'ready')
+                process.send_signal(signal.SIGUSR1)
+                self.assertEqual(process.stdout.readline().strip(), 'dumped')
+                self.assertIsNone(process.poll())
+                log.seek(0)
+                self.assertIn('line 1 in <module>', log.read())
+            finally:
+                if process.poll() is None:
+                    process.terminate()
+                process.wait(timeout=5)
+                process.stdout.close()

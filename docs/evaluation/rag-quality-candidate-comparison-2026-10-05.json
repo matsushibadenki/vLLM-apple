@@ -1,0 +1,95 @@
+{
+  "r2": {
+    "baseline_passes": 4,
+    "candidate_passes": 8,
+    "lost_cases": [
+      "en-insufficient"
+    ],
+    "gained_cases": [
+      "en-long_source",
+      "ja-supported",
+      "zh-injection",
+      "zh-long_source",
+      "zh-supported"
+    ],
+    "task_improvement_accepted": false,
+    "general_grounding_qualified": false,
+    "automatic_runtime_adoption": false
+  },
+  "r3": {
+    "baseline_passes": 4,
+    "candidate_passes": 7,
+    "lost_cases": [
+      "ja-insufficient"
+    ],
+    "gained_cases": [
+      "en-long_source",
+      "ja-injection",
+      "ja-long_source",
+      "ja-supported"
+    ],
+    "task_improvement_accepted": false,
+    "general_grounding_qualified": false,
+    "automatic_runtime_adoption": false
+  },
+  "r4": {
+    "baseline_passes": 4,
+    "candidate_passes": 5,
+    "lost_cases": [],
+    "gained_cases": [
+      "zh-long_source"
+    ],
+    "task_improvement_accepted": true,
+    "general_grounding_qualified": false,
+    "automatic_runtime_adoption": false
+  },
+  "r4-repeat": {
+    "baseline_passes": 4,
+    "candidate_passes": 5,
+    "lost_cases": [],
+    "gained_cases": [
+      "zh-long_source"
+    ],
+    "task_improvement_accepted": true,
+    "general_grounding_qualified": false,
+    "automatic_runtime_adoption": false
+  },
+  "r5": {
+    "baseline_report": "rag-quality-m4-2026-10-05-r4.json",
+    "baseline_passes": 5,
+    "candidate_passes": 6,
+    "lost_cases": [
+      "en-insufficient",
+      "ja-insufficient"
+    ],
+    "gained_cases": [
+      "en-long_source",
+      "zh-injection",
+      "zh-supported"
+    ],
+    "task_improvement_accepted": false,
+    "general_grounding_qualified": false,
+    "automatic_runtime_adoption": false
+  },
+  "r6": {
+    "baseline_report": "rag-quality-m4-2026-10-05-r4.json",
+    "baseline_passes": 5,
+    "candidate_passes": 6,
+    "lost_cases": [],
+    "gained_cases": [
+      "zh-injection"
+    ],
+    "task_improvement_accepted": true,
+    "general_grounding_qualified": false,
+    "automatic_runtime_adoption": false,
+    "adopted": false,
+    "reason": "independent repeat failed clean shutdown"
+  },
+  "r6-repeat": {
+    "task_improvement_accepted": false,
+    "reason": "backend did not exit within 15 seconds; forced kill returncode -9",
+    "cases_completed": 12,
+    "synthetic_passes": 6,
+    "automatic_runtime_adoption": false
+  }
+}

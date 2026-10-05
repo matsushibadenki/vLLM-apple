@@ -87,7 +87,9 @@ def prepare_rag(payload: dict, *, model: str = "default_model", max_source_bytes
     }
     if not system_role:
         plan["request"]["messages"] = [{"role": "user", "content": instruction + "\n\n"
-                                        + plan["request"]["messages"][1]["content"]}]
+                                        + plan["request"]["messages"][1]["content"]
+                                        + "\n\nEnd of source data.\n" + instruction
+                                        + "\nOriginal question: " + question}]
     if context_tokens is None and token_counter is None:
         return plan
     if (type(context_tokens) is not int or not 1 <= context_tokens <= 1048576

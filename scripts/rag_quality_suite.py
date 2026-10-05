@@ -90,6 +90,29 @@ def score_results(rows):
                 runtime_identity_verified=False)
 
 
+def compare_reports(baseline, candidate):
+    """Reject improvements that lose an existing case or compare different suites."""
+    reports = []
+    for report in (baseline, candidate):
+        suite = report.get('quality_suite', {})
+        rows = suite.get('cases', [])
+        ids = [row.get('id') for row in rows]
+        expected = {case['id'] for case in build_cases()}
+        if (len(ids) != len(expected) or set(ids) != expected
+                or any(type(row.get('passed')) is not bool for row in rows)
+                or not suite.get('suite_sha256') or report.get('error') is not None
+                or report.get('backend_returncode') != 0):
+            raise ValueError('comparison requires complete, clean suite reports')
+        reports.append({row['id'] for row in rows if row['passed']})
+    if baseline['quality_suite']['suite_sha256'] != candidate['quality_suite']['suite_sha256']:
+        raise ValueError('suite identities differ')
+    lost = sorted(reports[0] - reports[1])
+    gained = sorted(reports[1] - reports[0])
+    return dict(baseline_passes=len(reports[0]), candidate_passes=len(reports[1]),
+                lost_cases=lost, gained_cases=gained, task_improvement_accepted=bool(gained) and not lost,
+                general_grounding_qualified=False, automatic_runtime_adoption=False)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--results', type=Path, help='Score JSON list of {id, result}; otherwise export cases')

@@ -21,6 +21,7 @@ def main():
     parser.add_argument("--model", required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--quality-suite", action="store_true")
+    parser.add_argument("--shutdown-diagnostics", action="store_true")
     args = parser.parse_args()
     if args.output.exists():
         parser.error("output must be new")
@@ -31,9 +32,12 @@ def main():
     log = args.output.with_suffix(".backend.log")
     cases = []
     error = None
+    forced_kill = False
+    stack_dump_requested = False
     with log.open("x") as handle:
         process = subprocess.Popen([sys.executable, "-m", "vllm_apple.mlx_server", "--model",
-                                    args.model, "--host", "127.0.0.1", "--port", str(port)],
+                                    args.model, "--host", "127.0.0.1", "--port", str(port)]
+                                   + (["--diagnostic-signal"] if args.shutdown_diagnostics else []),
                                    stdout=handle, stderr=subprocess.STDOUT)
         try:
             deadline = time.monotonic() + 120
@@ -81,11 +85,22 @@ def main():
             try:
                 process.wait(timeout=15)
             except subprocess.TimeoutExpired:
+                forced_kill = True
+                if args.shutdown_diagnostics and process.poll() is None:
+                    try:
+                        process.send_signal(signal.SIGUSR1)
+                        stack_dump_requested = True
+                        time.sleep(0.5)
+                    except ProcessLookupError:
+                        pass
                 process.kill()
                 process.wait(timeout=5)
     report = dict(schema_version=1, scope="Gemma2/M4/three-language fixed support-code HTTP smoke",
                   model=args.model, cases=cases, backend_returncode=process.returncode,
                   error=error,
+                  shutdown=dict(graceful=process.returncode == 0 and not forced_kill,
+                                forced_kill=forced_kill, sigint_deadline_seconds=15,
+                                stack_dump_requested=stack_dump_requested),
                   general_grounding_qualified=False, performance_qualified=False,
                   source_sha256={str(p): hashlib.sha256(p.read_bytes()).hexdigest() for p in (
                       Path("vllm_apple/rag.py"), Path("vllm_apple/mlx_server.py"), Path(__file__))},

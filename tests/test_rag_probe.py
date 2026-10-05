@@ -30,3 +30,34 @@ class RagProbeTests(unittest.TestCase):
             self.assertIn("readiness failed", report["error"])
             process.send_signal.assert_called_once_with(signal.SIGINT)
             process.wait.assert_called_once_with(timeout=15)
+
+    def test_shutdown_timeout_is_separate_from_generation_error(self):
+        path = Path("scripts/probe_rag_http.py")
+        spec = importlib.util.spec_from_file_location("rag_shutdown_probe", path)
+        probe = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(probe)
+        process = Mock(returncode=-9)
+        process.poll.return_value = None
+        process.wait.side_effect = [probe.subprocess.TimeoutExpired("backend", 15), -9]
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory) / "shutdown.json"
+            response = Mock(status=200)
+            response.__enter__ = Mock(return_value=response)
+            response.__exit__ = Mock(return_value=False)
+            with patch("sys.argv", [str(path), "--model", "unused", "--output", str(output), "--shutdown-diagnostics"]), \
+                 patch.object(probe.subprocess, "Popen", return_value=process), \
+                 patch.object(probe, "urlopen", return_value=response), \
+                 patch.object(probe, "answer_rag", side_effect=[
+                     dict(status="references_valid", answer="12347 [S1]", token_budget_verified=True),
+                     dict(status="abstained", generation_performed=False)] * 3), \
+                 patch.object(probe.socket, "socket") as sockets:
+                sockets.return_value.__enter__.return_value.getsockname.return_value = ("127.0.0.1", 12345)
+                self.assertEqual(probe.main(), 1)
+            report = json.loads(output.read_text())
+            self.assertIsNone(report['error'])
+            self.assertTrue(report['shutdown']['forced_kill'])
+            self.assertFalse(report['shutdown']['graceful'])
+            self.assertFalse(report['passed'])
+            self.assertTrue(report['shutdown']['stack_dump_requested'])
+            self.assertEqual(process.send_signal.call_args_list[-1].args, (signal.SIGUSR1,))
+            process.kill.assert_called_once()

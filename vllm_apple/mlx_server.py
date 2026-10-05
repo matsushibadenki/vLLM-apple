@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 import argparse
+import faulthandler
 import io
 import json
 import math
+import signal
 import time
 from importlib.metadata import version
 from typing import Any
@@ -162,12 +164,21 @@ def tokenize_chat_request(model_provider: object, payload: object) -> int:
     return count
 
 
+def enable_stack_diagnostics() -> None:
+    """Opt-in thread stacks only: no locals or request contents."""
+    if not hasattr(signal, 'SIGUSR1'):
+        raise ValueError('stack diagnostic signal is unavailable')
+    faulthandler.register(signal.SIGUSR1, all_threads=True, chain=False)
+
+
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="vllm-apple-mlx-server")
     parser.add_argument("--model", required=True)
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=8080)
     parser.add_argument("--log-level", default="WARNING")
+    parser.add_argument("--diagnostic-signal", action="store_true",
+                        help="Opt in to thread stack dumps on SIGUSR1")
     parser.add_argument("--allow-concurrent-generation", action="store_true",
                         help="Experimental: bypass the safe generation serialization gate")
     parser.add_argument("--generation-queue-capacity", type=int, default=8)
@@ -177,6 +188,8 @@ def _parser() -> argparse.ArgumentParser:
 
 def main(argv: list[str] | None = None) -> int:
     arguments = _parser().parse_args(argv)
+    if arguments.diagnostic_signal:
+        enable_stack_diagnostics()
     if arguments.host not in {"127.0.0.1", "::1", "localhost"}:
         raise SystemExit("MLX telemetry server must be loopback-only")
     admission = GenerationAdmission(arguments.generation_queue_capacity,
