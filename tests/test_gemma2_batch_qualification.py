@@ -11,6 +11,33 @@ SPEC.loader.exec_module(qualification)
 
 
 class Gemma2QualificationTests(unittest.TestCase):
+    def test_awake_gate_rejects_suspend_unknown_and_transient_power_change(self):
+        summary = dict(requests=1, completed=1, quality_passed=1, slo_quality_passed=1,
+                       failed=0, sleep_wake_observations=0)
+        self.assertFalse(qualification._stability_passed(
+            summary, require_fault_checks=False, require_awake_conditions=True))
+        ac = dict(power_source='AC Power', power_mode='automatic')
+        qualification._record_operating_conditions(summary, ac)
+        self.assertTrue(qualification._stability_passed(
+            summary, require_fault_checks=False, require_awake_conditions=True))
+        summary['sleep_wake_observations'] = 1
+        self.assertIn('suspend_gap_observed', qualification._awake_condition_rejections(summary))
+        self.assertFalse(qualification._stability_passed(
+            summary, require_fault_checks=False, require_awake_conditions=True))
+        summary['sleep_wake_observations'] = 0
+        qualification._record_operating_conditions(summary, dict(ac, power_source='Battery Power'))
+        qualification._record_operating_conditions(summary, ac)
+        self.assertFalse(qualification._stability_passed(
+            summary, require_fault_checks=False, require_awake_conditions=True))
+        self.assertTrue(summary['operating_conditions']['changed'])
+
+    def test_unknown_observation_does_not_become_known_later(self):
+        summary = {}
+        qualification._record_operating_conditions(summary, dict(power_source='unknown'))
+        qualification._record_operating_conditions(summary, dict(
+            power_source='AC Power', power_mode='automatic'))
+        self.assertIn('operating_conditions_unverified',
+                      qualification._awake_condition_rejections(summary))
     def test_failed_windows_survive_later_success_and_remain_bounded(self):
         with patch.object(qualification, "detect_thermal_state") as thermal:
             thermal.return_value.value = "fair"

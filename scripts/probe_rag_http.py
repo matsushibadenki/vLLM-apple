@@ -12,6 +12,7 @@ from pathlib import Path
 from urllib.request import urlopen
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from scripts.rag_quality_suite import build_cases, score_results
 from vllm_apple.rag import answer_rag
 
 
@@ -19,6 +20,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--model", required=True)
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--quality-suite", action="store_true")
     args = parser.parse_args()
     if args.output.exists():
         parser.error("output must be new")
@@ -47,25 +49,31 @@ def main():
                 if time.monotonic() > deadline:
                     raise RuntimeError("backend readiness deadline exceeded")
                 time.sleep(0.25)
-            for language, question, text in (
-                ("en", "What is the support code? Reply only with the code and citation.",
-                 "The support code is 12347."),
-                ("ja", "サポートコードは何ですか？コードと引用だけ答えてください。",
-                 "サポートコードは12347です。"),
-                ("zh", "支持代码是什么？仅回答代码和引用。", "支持代码为12347。"),
-            ):
-                payload = dict(question=question, language=language,
-                               documents=[dict(id="manual", title="Manual", text=text)])
-                result = answer_rag(payload, base_url=url, max_tokens=64,
-                                    context_tokens=4096, system_role=False)
-                passed = (result["status"] == "references_valid" and "12347" in result["answer"]
-                          and result["token_budget_verified"])
-                cases.append(dict(language=language, passed=passed, result=result))
-                empty = answer_rag(dict(payload, documents=[]), base_url=url, max_tokens=64,
-                                   context_tokens=4096, system_role=False)
-                cases.append(dict(language=language, case="no_sources",
-                                  passed=not empty["generation_performed"]
-                                  and empty["status"] == "abstained"))
+            if args.quality_suite:
+                for case in build_cases():
+                    result = answer_rag(case['payload'], base_url=url, max_tokens=64,
+                                        context_tokens=4096, system_role=False)
+                    cases.append(dict(id=case['id'], result=result))
+            else:
+                for language, question, text in (
+                    ("en", "What is the support code? Reply only with the code and citation.",
+                     "The support code is 12347."),
+                    ("ja", "サポートコードは何ですか？コードと引用だけ答えてください。",
+                     "サポートコードは12347です。"),
+                    ("zh", "支持代码是什么？仅回答代码和引用。", "支持代码为12347。"),
+                ):
+                    payload = dict(question=question, language=language,
+                                   documents=[dict(id="manual", title="Manual", text=text)])
+                    result = answer_rag(payload, base_url=url, max_tokens=64,
+                                        context_tokens=4096, system_role=False)
+                    passed = (result["status"] == "references_valid" and "12347" in result["answer"]
+                              and result["token_budget_verified"])
+                    cases.append(dict(language=language, passed=passed, result=result))
+                    empty = answer_rag(dict(payload, documents=[]), base_url=url, max_tokens=64,
+                                       context_tokens=4096, system_role=False)
+                    cases.append(dict(language=language, case="no_sources",
+                                      passed=not empty["generation_performed"]
+                                      and empty["status"] == "abstained"))
         except Exception as failure:
             error = f"{type(failure).__name__}: {str(failure)[:512]}"
         finally:
@@ -83,6 +91,10 @@ def main():
                       Path("vllm_apple/rag.py"), Path("vllm_apple/mlx_server.py"), Path(__file__))},
                   passed=error is None and len(cases) == 6
                   and all(c["passed"] for c in cases) and process.returncode == 0)
+    if args.quality_suite:
+        report['quality_suite'] = score_results(cases)
+        report['scope'] = 'Gemma2/M4 synthetic three-language RAG quality suite'
+        report['passed'] = error is None and report['quality_suite']['passed'] and process.returncode == 0
     args.output.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n")
     return 0 if report["passed"] else 1
 

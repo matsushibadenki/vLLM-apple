@@ -25,6 +25,7 @@ from vllm_apple.backend import (
     BackendSupervisor,
     OpenAIProxyEngine,
 )
+from vllm_apple.benchmark_context import observe_benchmark_context
 from vllm_apple.hardware import detect_thermal_state
 from vllm_apple.phase_probe import PhaseProbeConfig, _resident_bytes, measure_stream
 from vllm_apple.text_benchmark import run_text_benchmark
@@ -495,12 +496,43 @@ def _accumulate_window(summary: dict[str, object], window: dict[str, object]) ->
             retained.append({key: window.get(key) for key in (
                 "started_at", "workload_sha256", "requests", "concurrency", "slo",
                 "completed", "failed", "quality_passed", "slo_quality_passed", "errors",
-                "languages", "latency_distributions", "failure_diagnostics")})
+                "languages", "latency_distributions", "failure_diagnostics",
+                "diagnostic_context")})
+
+
+def _record_operating_conditions(summary: dict, observation: dict) -> None:
+    conditions = summary.setdefault('operating_conditions', dict(
+        observations=0, initial=None, changed=False, unknown=False))
+    conditions['observations'] += 1
+    source, mode = observation.get('power_source'), observation.get('power_mode')
+    if (not isinstance(source, str) or source not in {'AC Power', 'Battery Power'}
+            or not isinstance(mode, str) or mode not in {'automatic', 'low_power', 'high_power'}):
+        conditions['unknown'] = True
+        return
+    current = dict(power_source=source, power_mode=mode)
+    if conditions['initial'] is None:
+        conditions['initial'] = current
+    elif conditions['initial'] != current:
+        conditions['changed'] = True
+
+
+def _awake_condition_rejections(summary: dict) -> list[str]:
+    reasons = []
+    if int(summary.get('sleep_wake_observations', 0)) != 0:
+        reasons.append('suspend_gap_observed')
+    conditions = summary.get('operating_conditions', {})
+    if (not conditions.get('observations') or conditions.get('unknown')
+            or conditions.get('initial') is None):
+        reasons.append('operating_conditions_unverified')
+    if conditions.get('changed'):
+        reasons.append('power_conditions_changed')
+    return reasons
 
 
 def _stability_passed(
     summary: dict[str, object], *, require_fault_checks: bool,
     require_long_window_checks: bool = False,
+    require_awake_conditions: bool = False,
 ) -> bool:
     requests = int(summary["requests"])
     passed = (
@@ -531,6 +563,8 @@ def _stability_passed(
             and summary["worker_crash_attempts"] == summary["worker_crash_passed"]
             and summary.get('all_epoch_resources_passed') is True
         )
+    if require_awake_conditions:
+        passed = passed and not _awake_condition_rejections(summary)
     return bool(passed)
 
 
@@ -542,6 +576,7 @@ def _run_stability_window(config: PhaseProbeConfig, *, port: int, model: str,
                           fault_check_interval_cycles: int = 10,
                           checkpoint: Callable[[dict[str, object]], None] | None = None,
                           require_sleep_wake: bool = False,
+                          require_awake_conditions: bool = False,
                           worker_crash_interval_seconds: float = 0) -> dict[str, object]:
     started = time.monotonic()
     deadline = started + duration_seconds
@@ -551,6 +586,7 @@ def _run_stability_window(config: PhaseProbeConfig, *, port: int, model: str,
     summary = _new_stability_summary(
         duration_seconds, _resident_bytes(process_pid), process_pid
     )
+    summary['require_awake_conditions'] = require_awake_conditions
     cycle = 0
     previous_wall = time.time()
     previous_monotonic = time.monotonic()
@@ -585,6 +621,9 @@ def _run_stability_window(config: PhaseProbeConfig, *, port: int, model: str,
         if current_pid is None:
             raise RuntimeError("managed backend PID unavailable during soak")
         cycle_config = replace(config, target_pid=current_pid)
+        before_resources = _resources(port)
+        before_context = observe_benchmark_context(current_pid)
+        _record_operating_conditions(summary, before_context)
         if cycle % 5 == 0:
             window = run_text_benchmark(
                 cycle_config, requests=3, concurrency=long_concurrency,
@@ -594,6 +633,11 @@ def _run_stability_window(config: PhaseProbeConfig, *, port: int, model: str,
             window = run_text_benchmark(
                 cycle_config, requests=12, concurrency=2,
                 ttft_slo_ms=5_000, e2e_slo_ms=10_000)
+        window['diagnostic_context'] = dict(
+            before=dict(resources=before_resources, environment=before_context),
+            after=dict(resources=_resources(port), environment=observe_benchmark_context(current_pid)),
+            scope='outside request measurement; non-atomic; no causality claim')
+        _record_operating_conditions(summary, window['diagnostic_context']['after']['environment'])
         _accumulate_window(summary, window)
 
         cancel = _cancel_stream(port, model)
@@ -757,9 +801,12 @@ def _run_stability_window(config: PhaseProbeConfig, *, port: int, model: str,
     summary["sleep_wake_passed"] = (
         not require_sleep_wake or int(summary["sleep_wake_observations"]) > 0
     )
+    summary['awake_condition_rejections'] = _awake_condition_rejections(summary)
+    summary['awake_conditions_verified'] = not summary['awake_condition_rejections']
     summary["passed"] = _stability_passed(
         summary, require_fault_checks=True,
         require_long_window_checks=require_long_window_checks,
+        require_awake_conditions=require_awake_conditions,
     ) and bool(summary["sleep_wake_passed"])
     return summary
 
@@ -930,6 +977,7 @@ def main() -> int:
                 fault_check_interval_cycles=args.fault_check_interval_cycles,
                 checkpoint=checkpoint,
                 require_sleep_wake=args.require_sleep_wake,
+                require_awake_conditions=args.p1_profile and not args.require_sleep_wake,
                 worker_crash_interval_seconds=args.worker_crash_interval_seconds)
         report["disconnect"] = _disconnect_stream(args.port, str(model))
         time.sleep(1)

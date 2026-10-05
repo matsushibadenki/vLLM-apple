@@ -1,6 +1,6 @@
 # vLLM-Apple Runtime Roadmap
 
-更新日：2026-10-04
+更新日：2026-10-05
 
 ## 目標と優先順位
 
@@ -140,8 +140,12 @@ RSS・allocator・KV・OS pressure・swap差分は別系列で記録し、重複
 
 ## P1 — 標準text経路と持続的な安定性 [Next]
 
+- [Done] [r4診断監査](evaluation/p1-r4-slo-audit-2026-10-05.json)：品質3327/3327、SLO3319/3327。短文TTFT超過8件を全数記録、資源・identity・正常終了は合格、8時間未開始。queue累積最大1.629秒ではTTFT 5〜6.85秒を説明しきれず、原因は未特定。[Next] source固定のscheduler step host時間とwindow前後の環境・資源snapshotを追加して再測定。GPU kernel単体時間や性能改善として扱わない。
+
 - [Done] P1失敗診断：benchmarkに最初の64失敗requestのTTFT／E2E・言語・token数・未達理由、soakに最初の64失敗windowと総失敗window数を保存する。本文を保存せず、後続成功で失敗を消さない。旧r3の途中window欠落を補うための再測定基盤であり、既存14件の原因解明・SLO改善は未達。
-- [Done] 診断追加後の[90秒実機混合負荷](evaluation/p1-failure-diagnostics-m4-2026-10-04.json)は品質・SLO204/204、identity不変・正常shutdown。全回帰1432 tests成功（11 skip）。[Next] [r4独立job](evaluation/p1-stability-m4-2026-10-04-r4/state.json)で30分→合格時8時間の再測定を開始。実行中は未認定、runtime編集と競合GPU試験を避ける。
+- [Done] 診断追加後の[90秒実機混合負荷](evaluation/p1-failure-diagnostics-m4-2026-10-04.json)は品質・SLO204/204、identity不変・正常shutdown。全回帰1432 tests成功（11 skip）。r4の30分再測定は上記TTFT失敗で不合格、8時間未開始。
+- [Done] [step診断smoke](evaluation/p1-step-diagnostics-m4-2026-10-05.json)：90秒240/240品質・SLO、scheduler step3187回、前後環境snapshotと正常終了を確認。短時間でTTFT超過は未再現。[Next] 同診断で長時間再測定し、原因を確認してから修正する。
+- [Done] [r5最終監査](evaluation/p1-r5-final-awake-audit-2026-10-05.json)：品質3669/3669、SLO3667/3669、資源・identity・正常終了は合格。11回のsuspend gapとBattery→AC変化を確認し、固定awake認定は拒否、8時間未開始。[Done] P1 runnerへsuspend／power変化／unknownを拒否するawake gateを接続し、全回帰1436 tests成功（11 skip）。[Done] awake gate実機90秒smokeは品質・SLO 204/204、40観測のAC／automatic不変、suspend gap 0、identity・shutdown合格。[Next] [r6](evaluation/p1-stability-m4-2026-10-05-r6/state.json)は終了：品質3276/3276、SLO3275/3276、awake条件合格だが長文TTFT 11.97秒とRSS plateau未達で不合格。8時間未開始。r4短文失敗とr5のsleep中長文失敗を同一原因とは扱わない。
 
 - [Done] [P1限定candidateと試験手順](P1-STABILITY.md)：HTTP全体の接続上限16、header絶対期限5秒、body上限とdeadlineをwrapper／Gemma互換経路へ適用。model固定・prompt＋output 4,096 tokens・output 512・GPU allocator 8 GiB／cache 256 MiBのopt-in profileを追加した。全worker epochのRSS／allocator／thread／FD／registryを検証し、queue待機p95の計測scopeを公開する。任意model／shapeやdaemon全体の認定ではない。
 - [Done] 固定sourceの[M4短時間smoke](evaluation/p1-profile-90sec-m4-2026-10-04-r3.json)で正常189/189品質・SLO合格、active cancel 18/18、queued cancel／timeout各6/6、worker crash回復2/2、half-close、profile拒否と正常shutdownを確認。全回帰1,407 tests合格（11 skip）。短時間の資源plateauと8時間安定性は未認定。
@@ -247,9 +251,12 @@ splitting and a native engine remain conditional research, not committed replace
 
 ### R0 — 外部検索との接続
 
+- [Done] 実HTTP collectorへ12ケースsuiteを接続し、[実モデルbaseline](evaluation/rag-quality-m4-2026-10-05.json)を保存。正常終了、厳密合格4/12。[Next] 回答形式5件、長文引用欠落2件、中国語の資料不足誤答1件を改善。一般grounding未認定、採点基準は維持。
+
 - [Done] `rag` CLIとPython APIで、検索済みチャンクから三言語の生成リクエストを構成する。資料のUTF-8 byte上限、丸ごとの除外、資料なし時のローカル回答不能、ループバックHTTP生成、出典ID／内容hashと参照IDの照合を実装。[利用手順](RAG-LORA.md)と`tests/test_rag.py`を参照。
 - [Done] 引用IDの存在確認と回答の事実性を分離する。`references_valid`でも`grounding_verified=false`とし、未知参照・引用なし・生成未完了を区別する。模擬HTTP試験は実モデルの品質認定に含めない。
 - [Done] 実tokenizerと完全chat templateによるcontext予算を実装。`rag --url --context-tokens`は同backend `/tokenize`で出力予約込み上限を確認し、低優先度資料を丸ごと除外、基本prompt超過・tokenize失敗なら生成拒否。system role非対応のGemmaは明示`--no-system-role`。三言語の[実tokenizer境界](evaluation/rag-real-token-budget-m4-2026-10-04-r2.json)と[実HTTP固定task](evaluation/rag-real-http-m4-2026-10-04-r2.json)6ケース・正常終了を確認。指定contextは固定model／server上限以下とし、一般grounding／性能認定へ広げない。
+- [Done] [三言語の合成品質suite](RAG-QUALITY-SUITE.md)：正しい資料・非空の情報不足資料・悪意ある追加資料・長い資料の12ケースと厳密な採点を実装。固定答案／引用／根拠資料保持／token予算／実生成を別判定し、欠測・誤答・余計な事実を拒否。CPU・既存模擬HTTP回帰20件成功。実モデル・一般grounding・性能は未認定。P1実行中のruntime編集・GPU負荷は追加していない。
 - [Next] 英語・日本語・简体中文の実モデル評価を追加。回答正確性、引用箇所との意味的整合性、資料不足時の回答不能、悪意ある資料への耐性を別指標で記録する。構成を固定したbaselineと比較し、runtime変更後のevidenceを再取得する。
 
 ### L0 — 一つの固定LoRAを安全に配信
@@ -352,6 +359,10 @@ All targets are prospective. Unsupported combinations, insufficient samples and 
 以上数字均为未来验收目标。保留不支持的组合、样本不足和失败候选，不把局部结果推广到所有Mac或模型。
 
 ## 一次資料と更新方針
+
+2026-10-05：[公式更新確認と採用判断](upstream-review-2026-10-05.md)。P1 r5実行中はruntime／依存を維持。
+Metal 0.30.0のMLX 0.32.1 ABI固定、MLX 0.32.3のbuffer／stream／GQA修正を分けて比較候補にした。
+公開release／tagの存在だけで現projectの能力・性能・互換性を認定しない。
 
 2026-09-26参照。[最新確認と採用判断](upstream-review-2026-09-26.md)。以下は比較候補の技術資料であり、このrepositoryでの性能認定の証拠ではない。実装時は参照commitとlicenseを固定する。
 

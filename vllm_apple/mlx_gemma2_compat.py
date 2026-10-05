@@ -20,6 +20,7 @@ from typing import Any
 from .bounded_http import BoundedHTTPServer, HeaderDeadlineMixin
 from .mlx_server import GenerationBodyError, read_generation_body
 from .phase_profile import _BoundedLatency
+from .step_diagnostics import StepDiagnostics
 
 GEMMA2_SOURCE_SHA256 = "64b0935b06fe2c4d5d4ed23a9cf62deb6218c55a88b9403a657afe9e2be8f251"
 SERVER_SOURCE_SHA256 = "8514178d18ee7e5edd1db8b8077ab97079ec72d1db666b85c110fb33cdc55147"
@@ -32,6 +33,7 @@ MAX_TIMEOUT_MS = 600_000
 P1_MAX_CONTEXT = 4096
 P1_MAX_OUTPUT = 512
 _QUEUE_WAIT = _BoundedLatency()
+_STEP_DIAGNOSTICS = StepDiagnostics()
 
 
 def validate_p1_request(args: Any, model: str) -> None:
@@ -284,7 +286,7 @@ def install_cancel_api() -> type[Any]:
                                   scope='ingress_to_first_scheduler_dequeue_including_cancelled')
             import mlx.core as mx
             encoded = json.dumps(dict(http=self.server.resource_snapshot(), registry=registry,
-                queue_wait=queue_wait,
+                queue_wait=queue_wait, scheduler_step=_STEP_DIAGNOSTICS.snapshot(),
                 allocator=dict(active_bytes=mx.get_active_memory(), cache_bytes=mx.get_cache_memory(),
                                peak_bytes=mx.get_peak_memory(), snapshot_consistency='non_atomic'),
                 threads=threading.active_count(), open_fds=len(os.listdir('/dev/fd')))).encode()
@@ -352,6 +354,11 @@ if __name__ == "__main__":
             raise RuntimeError('P1 profile requires reviewed MLX 0.32.1 and GPU default device')
         mx.set_memory_limit(8 * 1024**3)
         mx.set_cache_limit(256 * 1024**2)
+        generation = importlib.import_module('mlx_lm.generate')
+        if hashlib.sha256(Path(generation.__file__).read_bytes()).hexdigest() != (
+                '5a57043b5a6497450bce14447db3caf570ffdd22adaab34e659b31aceddda522'):
+            raise RuntimeError('P1 step timing requires the reviewed MLX-LM generate source')
+        generation.BatchGenerator.next = _STEP_DIAGNOSTICS.wrap(generation.BatchGenerator.next)
         original_init = server.ResponseGenerator.__init__
 
         def profile_init(self: Any, model_provider: Any, prompt_cache: Any) -> None:

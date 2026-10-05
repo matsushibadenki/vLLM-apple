@@ -1,0 +1,68 @@
+{
+  "schema_version": 1,
+  "source": "docs/evaluation/p1-stability-m4-2026-10-05-r6/30min.json",
+  "source_sha256": "756689ab9493470e94f40be9db5271066a241beda3fb498abdd1998cb55fc565",
+  "passed": false,
+  "root_cause_verified": false,
+  "summary": {
+    "requests": 3276,
+    "quality_passed": 3276,
+    "slo_quality_passed": 3275,
+    "awake_conditions_verified": true,
+    "operating_conditions": {
+      "observations": 642,
+      "initial": {
+        "power_source": "AC Power",
+        "power_mode": "automatic"
+      },
+      "changed": false,
+      "unknown": false
+    },
+    "rss_trend": {
+      "sample_count": 322,
+      "current_pid": 79541,
+      "current_pid_sample_count": 322,
+      "recent_sample_count": 161,
+      "slope_bytes_per_hour": 277495445.859,
+      "recent_growth_bytes": 58507264,
+      "plateau_observed": false
+    },
+    "resource_trend": {
+      "sample_count": 321,
+      "current_pid": 79541,
+      "deltas": {
+        "threads": 0,
+        "open_fds": 0,
+        "allocator_active_bytes": 114304,
+        "allocator_cache_bytes": 37490907
+      },
+      "plateau_observed": true,
+      "snapshot_consistency": "non_atomic"
+    },
+    "all_epoch_resources_passed": false
+  },
+  "shutdown_clean": true,
+  "runtime_identity_unchanged": true,
+  "model_identity_unchanged": true,
+  "failure_diagnostics": [
+    {
+      "observed": 1,
+      "samples": [
+        {
+          "request_index": 0,
+          "language": "prefix-edit-a",
+          "reasons": [
+            "ttft_slo_exceeded"
+          ],
+          "elapsed_seconds": 0.003703792,
+          "ttft_ms": 11966.370791,
+          "e2e_ms": 12133.660041,
+          "prompt_tokens": 2073,
+          "output_tokens": 4,
+          "cached_prompt_tokens": 4
+        }
+      ],
+      "sample_limit": 64
+    }
+  ]
+}

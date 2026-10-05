@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "source_path": "docs/evaluation/p1-stability-m4-2026-10-05-r5/30min.json",
+  "source_sha256": "72ae4176afc4be2f74555bde122a8ab7ff54f4918ef851dfcaa4152a81d1437c",
+  "completed": 3669,
+  "quality_passed": 3669,
+  "slo_quality_passed": 3667,
+  "shutdown_clean": true,
+  "runtime_identity_unchanged": true,
+  "model_identity_unchanged": true,
+  "all_epoch_resources_passed": true,
+  "observed_conditions": {
+    "sleep_wake_observations": 11,
+    "operating_conditions": {
+      "observations": 8,
+      "initial": {
+        "power_source": "Battery Power",
+        "power_mode": "automatic"
+      },
+      "changed": true,
+      "unknown": false
+    }
+  },
+  "awake_condition_rejections": [
+    "suspend_gap_observed",
+    "power_conditions_changed"
+  ],
+  "condition_observations_scope": "first/failed/last retained windows; subset, sufficient to reject, not to certify consistency",
+  "qualification": false,
+  "root_cause_verified": false
+}

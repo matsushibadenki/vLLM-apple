@@ -1,0 +1,1730 @@
+{
+  "schema_version": 1,
+  "observed_at_utc": "2026-10-05T00:05:04.395134+00:00",
+  "status": "interim_running_audit",
+  "qualification": false,
+  "checkpoint_source": "docs/evaluation/p1-stability-m4-2026-10-05-r5/30min.json",
+  "checkpoint_sha256": "7c95476b8ec1e214fb8e17a4b554e2c19d5b91b7b2648e1502c9fba87a146e2f",
+  "checkpoint_status": "running",
+  "completed": 3174,
+  "slo_quality_passed": 3172,
+  "suspend_gap_observations": 11,
+  "maximum_suspend_gap_seconds": 259.7003768041991,
+  "first_environment": {
+    "observed_at": "2026-10-04T23:22:35.125944+00:00",
+    "thermal_state": "nominal",
+    "power_source": "Battery Power",
+    "power_mode": "automatic",
+    "target_process_age_seconds": 45,
+    "system": {
+      "load_average_1_5_15_minutes": [
+        3.41748046875,
+        3.087890625,
+        4.087890625
+      ],
+      "logical_cpu_count": 10,
+      "memory": {
+        "total_bytes": 34359738368,
+        "available_bytes": 14871740416,
+        "source": "sysctl",
+        "available_is_estimate": true,
+        "available_is_fallback": false,
+        "pressure_estimate": "normal",
+        "pressure_method": "available_ratio_thresholds_0.08_0.18"
+      }
+    }
+  },
+  "last_environment": {
+    "observed_at": "2026-10-05T00:05:00.258943+00:00",
+    "thermal_state": "fair",
+    "power_source": "AC Power",
+    "power_mode": "automatic",
+    "target_process_age_seconds": 2590,
+    "system": {
+      "load_average_1_5_15_minutes": [
+        6.5576171875,
+        4.77880859375,
+        4.19921875
+      ],
+      "logical_cpu_count": 10,
+      "memory": {
+        "total_bytes": 34359738368,
+        "available_bytes": 14327578624,
+        "source": "sysctl",
+        "available_is_estimate": true,
+        "available_is_fallback": false,
+        "pressure_estimate": "normal",
+        "pressure_method": "available_ratio_thresholds_0.08_0.18"
+      }
+    }
+  },
+  "failed_windows": [
+    {
+      "started_at": "2026-10-04T23:53:20.410140+00:00",
+      "failure_diagnostics": {
+        "observed": 1,
+        "samples": [
+          {
+            "request_index": 0,
+            "language": "prefix-edit-a",
+            "reasons": [
+              "ttft_slo_exceeded"
+            ],
+            "elapsed_seconds": 0.004472084,
+            "ttft_ms": 10363.410916,
+            "e2e_ms": 10442.8465,
+            "prompt_tokens": 2073,
+            "output_tokens": 4,
+            "cached_prompt_tokens": 4
+          }
+        ],
+        "sample_limit": 64
+      },
+      "diagnostic_context": {
+        "before": {
+          "resources": {
+            "http": {
+              "limit": 16,
+              "active": 1,
+              "peak": 16,
+              "rejected": 1,
+              "header_expirations": 16
+            },
+            "registry": {
+              "active": 0,
+              "queued": 0
+            },
+            "queue_wait": {
+              "sample_count": 2147,
+              "statistics": {
+                "mean_ms": 146.052,
+                "p50_upper_bound_ms": 250.0,
+                "p95_upper_bound_ms": 1000.0,
+                "max_ms": 901.679
+              },
+              "scope": "ingress_to_first_scheduler_dequeue_including_cancelled"
+            },
+            "scheduler_step": {
+              "sample_count": 17659,
+              "statistics": {
+                "mean_ms": 21.779,
+                "p50_upper_bound_ms": 25.0,
+                "p95_upper_bound_ms": 50.0,
+                "max_ms": 3862.85
+              },
+              "slow_steps_observed": 141,
+              "exceptions": 0,
+              "recent_slow_steps": [
+                {
+                  "started_at_unix_ns": 1791156563625036000,
+                  "elapsed_ms": 888.276959,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156564513352000,
+                  "elapsed_ms": 1067.720875,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156565581130000,
+                  "elapsed_ms": 1307.577666,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156585231722000,
+                  "elapsed_ms": 1072.543625,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156586310178000,
+                  "elapsed_ms": 1094.395709,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156587404617000,
+                  "elapsed_ms": 1087.767375,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156588492431000,
+                  "elapsed_ms": 1141.016458,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156608735933000,
+                  "elapsed_ms": 870.274834,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156609610413000,
+                  "elapsed_ms": 1170.644167,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156610781099000,
+                  "elapsed_ms": 953.893584,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156611735030000,
+                  "elapsed_ms": 972.614708,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156628455784000,
+                  "elapsed_ms": 936.098625,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156629396187000,
+                  "elapsed_ms": 1046.282584,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156630442515000,
+                  "elapsed_ms": 1215.525458,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156631658095000,
+                  "elapsed_ms": 1123.535042,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156652708305000,
+                  "elapsed_ms": 802.46975,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156653515567000,
+                  "elapsed_ms": 884.057125,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156654399718000,
+                  "elapsed_ms": 997.75,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156655397506000,
+                  "elapsed_ms": 1059.414417,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156671804000000,
+                  "elapsed_ms": 902.868042,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156672711397000,
+                  "elapsed_ms": 1007.777417,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156673719218000,
+                  "elapsed_ms": 1151.626458,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156674870881000,
+                  "elapsed_ms": 1120.286958,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156697078122000,
+                  "elapsed_ms": 1057.651042,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156698139941000,
+                  "elapsed_ms": 1393.2125,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156699533190000,
+                  "elapsed_ms": 1321.54425,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156700854770000,
+                  "elapsed_ms": 1235.741666,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156719204027000,
+                  "elapsed_ms": 807.954792,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156720016560000,
+                  "elapsed_ms": 890.445125,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156720907044000,
+                  "elapsed_ms": 1000.118834,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156721907214000,
+                  "elapsed_ms": 1066.433666,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156742796119000,
+                  "elapsed_ms": 762.3295,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156743562913000,
+                  "elapsed_ms": 843.501709,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156744406457000,
+                  "elapsed_ms": 1048.806542,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156745455305000,
+                  "elapsed_ms": 1068.121709,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156761126492000,
+                  "elapsed_ms": 776.470833,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156761907131000,
+                  "elapsed_ms": 892.173916,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156762799344000,
+                  "elapsed_ms": 984.592208,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156763783972000,
+                  "elapsed_ms": 1029.080583,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156783903836000,
+                  "elapsed_ms": 749.438666,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156784657697000,
+                  "elapsed_ms": 781.014292,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156785438746000,
+                  "elapsed_ms": 818.45925,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156786257247000,
+                  "elapsed_ms": 917.113417,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156803511879000,
+                  "elapsed_ms": 966.856208,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156804483290000,
+                  "elapsed_ms": 1433.264208,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156805917094000,
+                  "elapsed_ms": 1223.998334,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156807141955000,
+                  "elapsed_ms": 1086.165083,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791157344736634000,
+                  "elapsed_ms": 3420.253292,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791157348167229000,
+                  "elapsed_ms": 1894.374875,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791157350061786000,
+                  "elapsed_ms": 1673.897458,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791157406000310000,
+                  "elapsed_ms": 1673.417167,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791157409913450000,
+                  "elapsed_ms": 1016.427291,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791157484793159000,
+                  "elapsed_ms": 3859.942542,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791157488661311000,
+                  "elapsed_ms": 1801.917917,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791157490463293000,
+                  "elapsed_ms": 1708.183208,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791157507029858000,
+                  "elapsed_ms": 1672.945208,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791157573622017000,
+                  "elapsed_ms": 3862.850041,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791157577492046000,
+                  "elapsed_ms": 1792.482167,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791157579284585000,
+                  "elapsed_ms": 1576.179334,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791157582077308000,
+                  "elapsed_ms": 817.714209,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791157846505516000,
+                  "elapsed_ms": 1527.2305,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791157848038979000,
+                  "elapsed_ms": 1753.688958,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791157849792724000,
+                  "elapsed_ms": 2415.770541,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791157852208545000,
+                  "elapsed_ms": 1784.85375,
+                  "failed": false
+                }
+              ],
+              "sample_limit": 64,
+              "slow_threshold_ms": 250,
+              "scope": "BatchGenerator.next host wall time; not GPU kernel or request latency"
+            },
+            "allocator": {
+              "active_bytes": 1610148808,
+              "cache_bytes": 226850401,
+              "peak_bytes": 2360284738,
+              "snapshot_consistency": "non_atomic"
+            },
+            "threads": 3,
+            "open_fds": 12
+          },
+          "environment": {
+            "observed_at": "2026-10-04T23:53:20.397259+00:00",
+            "thermal_state": "nominal",
+            "power_source": "Battery Power",
+            "power_mode": "automatic",
+            "target_process_age_seconds": 1890,
+            "system": {
+              "load_average_1_5_15_minutes": [
+                2.2119140625,
+                3.236328125,
+                3.8662109375
+              ],
+              "logical_cpu_count": 10,
+              "memory": {
+                "total_bytes": 34359738368,
+                "available_bytes": 20140556288,
+                "source": "sysctl",
+                "available_is_estimate": true,
+                "available_is_fallback": false,
+                "pressure_estimate": "normal",
+                "pressure_method": "available_ratio_thresholds_0.08_0.18"
+              }
+            }
+          }
+        },
+        "after": {
+          "resources": {
+            "http": {
+              "limit": 16,
+              "active": 1,
+              "peak": 16,
+              "rejected": 1,
+              "header_expirations": 16
+            },
+            "registry": {
+              "active": 0,
+              "queued": 0
+            },
+            "queue_wait": {
+              "sample_count": 2150,
+              "statistics": {
+                "mean_ms": 146.037,
+                "p50_upper_bound_ms": 250.0,
+                "p95_upper_bound_ms": 1000.0,
+                "max_ms": 901.679
+              },
+              "scope": "ingress_to_first_scheduler_dequeue_including_cancelled"
+            },
+            "scheduler_step": {
+              "sample_count": 17706,
+              "statistics": {
+                "mean_ms": 22.309,
+                "p50_upper_bound_ms": 25.0,
+                "p95_upper_bound_ms": 50.0,
+                "max_ms": 3978.264
+              },
+              "slow_steps_observed": 145,
+              "exceptions": 0,
+              "recent_slow_steps": [
+                {
+                  "started_at_unix_ns": 1791156586310178000,
+                  "elapsed_ms": 1094.395709,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156587404617000,
+                  "elapsed_ms": 1087.767375,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156588492431000,
+                  "elapsed_ms": 1141.016458,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156608735933000,
+                  "elapsed_ms": 870.274834,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156609610413000,
+                  "elapsed_ms": 1170.644167,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156610781099000,
+                  "elapsed_ms": 953.893584,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156611735030000,
+                  "elapsed_ms": 972.614708,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156628455784000,
+                  "elapsed_ms": 936.098625,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156629396187000,
+                  "elapsed_ms": 1046.282584,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156630442515000,
+                  "elapsed_ms": 1215.525458,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156631658095000,
+                  "elapsed_ms": 1123.535042,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156652708305000,
+                  "elapsed_ms": 802.46975,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156653515567000,
+                  "elapsed_ms": 884.057125,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156654399718000,
+                  "elapsed_ms": 997.75,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156655397506000,
+                  "elapsed_ms": 1059.414417,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156671804000000,
+                  "elapsed_ms": 902.868042,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156672711397000,
+                  "elapsed_ms": 1007.777417,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156673719218000,
+                  "elapsed_ms": 1151.626458,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156674870881000,
+                  "elapsed_ms": 1120.286958,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156697078122000,
+                  "elapsed_ms": 1057.651042,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156698139941000,
+                  "elapsed_ms": 1393.2125,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156699533190000,
+                  "elapsed_ms": 1321.54425,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156700854770000,
+                  "elapsed_ms": 1235.741666,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156719204027000,
+                  "elapsed_ms": 807.954792,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156720016560000,
+                  "elapsed_ms": 890.445125,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156720907044000,
+                  "elapsed_ms": 1000.118834,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156721907214000,
+                  "elapsed_ms": 1066.433666,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156742796119000,
+                  "elapsed_ms": 762.3295,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156743562913000,
+                  "elapsed_ms": 843.501709,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156744406457000,
+                  "elapsed_ms": 1048.806542,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156745455305000,
+                  "elapsed_ms": 1068.121709,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156761126492000,
+                  "elapsed_ms": 776.470833,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156761907131000,
+                  "elapsed_ms": 892.173916,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156762799344000,
+                  "elapsed_ms": 984.592208,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156763783972000,
+                  "elapsed_ms": 1029.080583,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156783903836000,
+                  "elapsed_ms": 749.438666,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156784657697000,
+                  "elapsed_ms": 781.014292,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156785438746000,
+                  "elapsed_ms": 818.45925,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156786257247000,
+                  "elapsed_ms": 917.113417,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156803511879000,
+                  "elapsed_ms": 966.856208,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156804483290000,
+                  "elapsed_ms": 1433.264208,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156805917094000,
+                  "elapsed_ms": 1223.998334,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156807141955000,
+                  "elapsed_ms": 1086.165083,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791157344736634000,
+                  "elapsed_ms": 3420.253292,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791157348167229000,
+                  "elapsed_ms": 1894.374875,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791157350061786000,
+                  "elapsed_ms": 1673.897458,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791157406000310000,
+                  "elapsed_ms": 1673.417167,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791157409913450000,
+                  "elapsed_ms": 1016.427291,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791157484793159000,
+                  "elapsed_ms": 3859.942542,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791157488661311000,
+                  "elapsed_ms": 1801.917917,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791157490463293000,
+                  "elapsed_ms": 1708.183208,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791157507029858000,
+                  "elapsed_ms": 1672.945208,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791157573622017000,
+                  "elapsed_ms": 3862.850041,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791157577492046000,
+                  "elapsed_ms": 1792.482167,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791157579284585000,
+                  "elapsed_ms": 1576.179334,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791157582077308000,
+                  "elapsed_ms": 817.714209,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791157846505516000,
+                  "elapsed_ms": 1527.2305,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791157848038979000,
+                  "elapsed_ms": 1753.688958,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791157849792724000,
+                  "elapsed_ms": 2415.770541,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791157852208545000,
+                  "elapsed_ms": 1784.85375,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791158001086688000,
+                  "elapsed_ms": 3978.264291,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791158005075099000,
+                  "elapsed_ms": 2081.986625,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791158007157146000,
+                  "elapsed_ms": 1674.804959,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791158011871164000,
+                  "elapsed_ms": 1745.375833,
+                  "failed": false
+                }
+              ],
+              "sample_limit": 64,
+              "slow_threshold_ms": 250,
+              "scope": "BatchGenerator.next host wall time; not GPU kernel or request latency"
+            },
+            "allocator": {
+              "active_bytes": 1967710760,
+              "cache_bytes": 227267224,
+              "peak_bytes": 2360284738,
+              "snapshot_consistency": "non_atomic"
+            },
+            "threads": 3,
+            "open_fds": 12
+          },
+          "environment": {
+            "observed_at": "2026-10-04T23:53:34.773950+00:00",
+            "thermal_state": "nominal",
+            "power_source": "Battery Power",
+            "power_mode": "automatic",
+            "target_process_age_seconds": 1904,
+            "system": {
+              "load_average_1_5_15_minutes": [
+                1.87158203125,
+                3.12890625,
+                3.8203125
+              ],
+              "logical_cpu_count": 10,
+              "memory": {
+                "total_bytes": 34359738368,
+                "available_bytes": 19777323008,
+                "source": "sysctl",
+                "available_is_estimate": true,
+                "available_is_fallback": false,
+                "pressure_estimate": "normal",
+                "pressure_method": "available_ratio_thresholds_0.08_0.18"
+              }
+            }
+          }
+        },
+        "scope": "outside request measurement; non-atomic; no causality claim"
+      }
+    },
+    {
+      "started_at": "2026-10-04T23:54:04.663080+00:00",
+      "failure_diagnostics": {
+        "observed": 1,
+        "samples": [
+          {
+            "request_index": 0,
+            "language": "prefix-edit-a",
+            "reasons": [
+              "ttft_slo_exceeded"
+            ],
+            "elapsed_seconds": 0.008066875,
+            "ttft_ms": 12470.60975,
+            "e2e_ms": 12559.711833,
+            "prompt_tokens": 2073,
+            "output_tokens": 4,
+            "cached_prompt_tokens": 4
+          }
+        ],
+        "sample_limit": 64
+      },
+      "diagnostic_context": {
+        "before": {
+          "resources": {
+            "http": {
+              "limit": 16,
+              "active": 1,
+              "peak": 16,
+              "rejected": 1,
+              "header_expirations": 16
+            },
+            "registry": {
+              "active": 0,
+              "queued": 0
+            },
+            "queue_wait": {
+              "sample_count": 2203,
+              "statistics": {
+                "mean_ms": 147.804,
+                "p50_upper_bound_ms": 250.0,
+                "p95_upper_bound_ms": 1000.0,
+                "max_ms": 999.999
+              },
+              "scope": "ingress_to_first_scheduler_dequeue_including_cancelled"
+            },
+            "scheduler_step": {
+              "sample_count": 18041,
+              "statistics": {
+                "mean_ms": 22.393,
+                "p50_upper_bound_ms": 25.0,
+                "p95_upper_bound_ms": 50.0,
+                "max_ms": 3978.264
+              },
+              "slow_steps_observed": 147,
+              "exceptions": 0,
+              "recent_slow_steps": [
+                {
+                  "started_at_unix_ns": 1791156588492431000,
+                  "elapsed_ms": 1141.016458,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156608735933000,
+                  "elapsed_ms": 870.274834,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156609610413000,
+                  "elapsed_ms": 1170.644167,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156610781099000,
+                  "elapsed_ms": 953.893584,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156611735030000,
+                  "elapsed_ms": 972.614708,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156628455784000,
+                  "elapsed_ms": 936.098625,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156629396187000,
+                  "elapsed_ms": 1046.282584,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156630442515000,
+                  "elapsed_ms": 1215.525458,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156631658095000,
+                  "elapsed_ms": 1123.535042,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156652708305000,
+                  "elapsed_ms": 802.46975,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156653515567000,
+                  "elapsed_ms": 884.057125,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156654399718000,
+                  "elapsed_ms": 997.75,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156655397506000,
+                  "elapsed_ms": 1059.414417,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156671804000000,
+                  "elapsed_ms": 902.868042,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156672711397000,
+                  "elapsed_ms": 1007.777417,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156673719218000,
+                  "elapsed_ms": 1151.626458,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156674870881000,
+                  "elapsed_ms": 1120.286958,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156697078122000,
+                  "elapsed_ms": 1057.651042,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156698139941000,
+                  "elapsed_ms": 1393.2125,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156699533190000,
+                  "elapsed_ms": 1321.54425,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156700854770000,
+                  "elapsed_ms": 1235.741666,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156719204027000,
+                  "elapsed_ms": 807.954792,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156720016560000,
+                  "elapsed_ms": 890.445125,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156720907044000,
+                  "elapsed_ms": 1000.118834,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156721907214000,
+                  "elapsed_ms": 1066.433666,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156742796119000,
+                  "elapsed_ms": 762.3295,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156743562913000,
+                  "elapsed_ms": 843.501709,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156744406457000,
+                  "elapsed_ms": 1048.806542,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156745455305000,
+                  "elapsed_ms": 1068.121709,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156761126492000,
+                  "elapsed_ms": 776.470833,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156761907131000,
+                  "elapsed_ms": 892.173916,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156762799344000,
+                  "elapsed_ms": 984.592208,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156763783972000,
+                  "elapsed_ms": 1029.080583,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156783903836000,
+                  "elapsed_ms": 749.438666,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156784657697000,
+                  "elapsed_ms": 781.014292,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156785438746000,
+                  "elapsed_ms": 818.45925,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156786257247000,
+                  "elapsed_ms": 917.113417,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156803511879000,
+                  "elapsed_ms": 966.856208,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156804483290000,
+                  "elapsed_ms": 1433.264208,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156805917094000,
+                  "elapsed_ms": 1223.998334,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156807141955000,
+                  "elapsed_ms": 1086.165083,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791157344736634000,
+                  "elapsed_ms": 3420.253292,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791157348167229000,
+                  "elapsed_ms": 1894.374875,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791157350061786000,
+                  "elapsed_ms": 1673.897458,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791157406000310000,
+                  "elapsed_ms": 1673.417167,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791157409913450000,
+                  "elapsed_ms": 1016.427291,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791157484793159000,
+                  "elapsed_ms": 3859.942542,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791157488661311000,
+                  "elapsed_ms": 1801.917917,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791157490463293000,
+                  "elapsed_ms": 1708.183208,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791157507029858000,
+                  "elapsed_ms": 1672.945208,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791157573622017000,
+                  "elapsed_ms": 3862.850041,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791157577492046000,
+                  "elapsed_ms": 1792.482167,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791157579284585000,
+                  "elapsed_ms": 1576.179334,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791157582077308000,
+                  "elapsed_ms": 817.714209,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791157846505516000,
+                  "elapsed_ms": 1527.2305,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791157848038979000,
+                  "elapsed_ms": 1753.688958,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791157849792724000,
+                  "elapsed_ms": 2415.770541,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791157852208545000,
+                  "elapsed_ms": 1784.85375,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791158001086688000,
+                  "elapsed_ms": 3978.264291,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791158005075099000,
+                  "elapsed_ms": 2081.986625,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791158007157146000,
+                  "elapsed_ms": 1674.804959,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791158011871164000,
+                  "elapsed_ms": 1745.375833,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791158015779026000,
+                  "elapsed_ms": 881.610917,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791158017783665000,
+                  "elapsed_ms": 345.888125,
+                  "failed": false
+                }
+              ],
+              "sample_limit": 64,
+              "slow_threshold_ms": 250,
+              "scope": "BatchGenerator.next host wall time; not GPU kernel or request latency"
+            },
+            "allocator": {
+              "active_bytes": 1597735600,
+              "cache_bytes": 200681892,
+              "peak_bytes": 2360284738,
+              "snapshot_consistency": "non_atomic"
+            },
+            "threads": 3,
+            "open_fds": 12
+          },
+          "environment": {
+            "observed_at": "2026-10-04T23:54:04.636300+00:00",
+            "thermal_state": "nominal",
+            "power_source": "Battery Power",
+            "power_mode": "automatic",
+            "target_process_age_seconds": 1934,
+            "system": {
+              "load_average_1_5_15_minutes": [
+                2.0546875,
+                3.05126953125,
+                3.767578125
+              ],
+              "logical_cpu_count": 10,
+              "memory": {
+                "total_bytes": 34359738368,
+                "available_bytes": 20121452544,
+                "source": "sysctl",
+                "available_is_estimate": true,
+                "available_is_fallback": false,
+                "pressure_estimate": "normal",
+                "pressure_method": "available_ratio_thresholds_0.08_0.18"
+              }
+            }
+          }
+        },
+        "after": {
+          "resources": {
+            "http": {
+              "limit": 16,
+              "active": 1,
+              "peak": 16,
+              "rejected": 1,
+              "header_expirations": 16
+            },
+            "registry": {
+              "active": 0,
+              "queued": 0
+            },
+            "queue_wait": {
+              "sample_count": 2206,
+              "statistics": {
+                "mean_ms": 147.768,
+                "p50_upper_bound_ms": 250.0,
+                "p95_upper_bound_ms": 1000.0,
+                "max_ms": 999.999
+              },
+              "scope": "ingress_to_first_scheduler_dequeue_including_cancelled"
+            },
+            "scheduler_step": {
+              "sample_count": 18084,
+              "statistics": {
+                "mean_ms": 23.017,
+                "p50_upper_bound_ms": 25.0,
+                "p95_upper_bound_ms": 50.0,
+                "max_ms": 3978.264
+              },
+              "slow_steps_observed": 151,
+              "exceptions": 0,
+              "recent_slow_steps": [
+                {
+                  "started_at_unix_ns": 1791156611735030000,
+                  "elapsed_ms": 972.614708,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156628455784000,
+                  "elapsed_ms": 936.098625,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156629396187000,
+                  "elapsed_ms": 1046.282584,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156630442515000,
+                  "elapsed_ms": 1215.525458,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156631658095000,
+                  "elapsed_ms": 1123.535042,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156652708305000,
+                  "elapsed_ms": 802.46975,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156653515567000,
+                  "elapsed_ms": 884.057125,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156654399718000,
+                  "elapsed_ms": 997.75,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156655397506000,
+                  "elapsed_ms": 1059.414417,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156671804000000,
+                  "elapsed_ms": 902.868042,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156672711397000,
+                  "elapsed_ms": 1007.777417,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156673719218000,
+                  "elapsed_ms": 1151.626458,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156674870881000,
+                  "elapsed_ms": 1120.286958,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156697078122000,
+                  "elapsed_ms": 1057.651042,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156698139941000,
+                  "elapsed_ms": 1393.2125,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156699533190000,
+                  "elapsed_ms": 1321.54425,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156700854770000,
+                  "elapsed_ms": 1235.741666,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156719204027000,
+                  "elapsed_ms": 807.954792,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156720016560000,
+                  "elapsed_ms": 890.445125,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156720907044000,
+                  "elapsed_ms": 1000.118834,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156721907214000,
+                  "elapsed_ms": 1066.433666,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156742796119000,
+                  "elapsed_ms": 762.3295,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156743562913000,
+                  "elapsed_ms": 843.501709,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156744406457000,
+                  "elapsed_ms": 1048.806542,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156745455305000,
+                  "elapsed_ms": 1068.121709,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156761126492000,
+                  "elapsed_ms": 776.470833,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156761907131000,
+                  "elapsed_ms": 892.173916,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156762799344000,
+                  "elapsed_ms": 984.592208,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156763783972000,
+                  "elapsed_ms": 1029.080583,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156783903836000,
+                  "elapsed_ms": 749.438666,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156784657697000,
+                  "elapsed_ms": 781.014292,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156785438746000,
+                  "elapsed_ms": 818.45925,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156786257247000,
+                  "elapsed_ms": 917.113417,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156803511879000,
+                  "elapsed_ms": 966.856208,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156804483290000,
+                  "elapsed_ms": 1433.264208,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156805917094000,
+                  "elapsed_ms": 1223.998334,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791156807141955000,
+                  "elapsed_ms": 1086.165083,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791157344736634000,
+                  "elapsed_ms": 3420.253292,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791157348167229000,
+                  "elapsed_ms": 1894.374875,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791157350061786000,
+                  "elapsed_ms": 1673.897458,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791157406000310000,
+                  "elapsed_ms": 1673.417167,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791157409913450000,
+                  "elapsed_ms": 1016.427291,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791157484793159000,
+                  "elapsed_ms": 3859.942542,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791157488661311000,
+                  "elapsed_ms": 1801.917917,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791157490463293000,
+                  "elapsed_ms": 1708.183208,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791157507029858000,
+                  "elapsed_ms": 1672.945208,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791157573622017000,
+                  "elapsed_ms": 3862.850041,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791157577492046000,
+                  "elapsed_ms": 1792.482167,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791157579284585000,
+                  "elapsed_ms": 1576.179334,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791157582077308000,
+                  "elapsed_ms": 817.714209,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791157846505516000,
+                  "elapsed_ms": 1527.2305,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791157848038979000,
+                  "elapsed_ms": 1753.688958,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791157849792724000,
+                  "elapsed_ms": 2415.770541,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791157852208545000,
+                  "elapsed_ms": 1784.85375,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791158001086688000,
+                  "elapsed_ms": 3978.264291,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791158005075099000,
+                  "elapsed_ms": 2081.986625,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791158007157146000,
+                  "elapsed_ms": 1674.804959,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791158011871164000,
+                  "elapsed_ms": 1745.375833,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791158015779026000,
+                  "elapsed_ms": 881.610917,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791158017783665000,
+                  "elapsed_ms": 345.888125,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791158045650033000,
+                  "elapsed_ms": 3523.538917,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791158049184363000,
+                  "elapsed_ms": 2391.39175,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791158051575795000,
+                  "elapsed_ms": 2602.113708,
+                  "failed": false
+                },
+                {
+                  "started_at_unix_ns": 1791158054177950000,
+                  "elapsed_ms": 2734.897875,
+                  "failed": false
+                }
+              ],
+              "sample_limit": 64,
+              "slow_threshold_ms": 250,
+              "scope": "BatchGenerator.next host wall time; not GPU kernel or request latency"
+            },
+            "allocator": {
+              "active_bytes": 1970299432,
+              "cache_bytes": 227271832,
+              "peak_bytes": 2360284738,
+              "snapshot_consistency": "non_atomic"
+            },
+            "threads": 3,
+            "open_fds": 12
+          },
+          "environment": {
+            "observed_at": "2026-10-04T23:54:31.904584+00:00",
+            "thermal_state": "nominal",
+            "power_source": "Battery Power",
+            "power_mode": "automatic",
+            "target_process_age_seconds": 1961,
+            "system": {
+              "load_average_1_5_15_minutes": [
+                1.89208984375,
+                2.9833984375,
+                3.734375
+              ],
+              "logical_cpu_count": 10,
+              "memory": {
+                "total_bytes": 34359738368,
+                "available_bytes": 19629686784,
+                "source": "sysctl",
+                "available_is_estimate": true,
+                "available_is_fallback": false,
+                "pressure_estimate": "normal",
+                "pressure_method": "available_ratio_thresholds_0.08_0.18"
+              }
+            }
+          }
+        },
+        "scope": "outside request measurement; non-atomic; no causality claim"
+      }
+    }
+  ],
+  "os_power_events": [
+    "2026-10-05 08:33:29 +0900 Sleep               \tEntering Sleep state due to 'Software Sleep pid=415':TCPKeepAlive=active Using Batt (Charge:86%) 248 secs  ",
+    "2026-10-05 08:37:37 +0900 DarkWake            \tDarkWake from Deep Idle [CDNP] : due to NUB.SPMI0.SW3 nub-spmi0.0x02 rtc/Maintenance Using BATT (Charge:86%) 14 secs   ",
+    "2026-10-05 08:37:51 +0900 Sleep               \tEntering Sleep state due to 'Maintenance Sleep':TCPKeepAlive=active Using Batt (Charge:86%) 262 secs  ",
+    "2026-10-05 08:42:13 +0900 DarkWake            \tDarkWake from Deep Idle [CDNP] : due to NUB.SPMI0.SW3 nub-spmi0.0x02 rtc/Maintenance Using BATT (Charge:86%) 15 secs   ",
+    "2026-10-05 08:42:28 +0900 Sleep               \tEntering Sleep state due to 'Maintenance Sleep':TCPKeepAlive=active Using Batt (Charge:86%) 57 secs   ",
+    "2026-10-05 08:43:25 +0900 DarkWake            \tDarkWake from Deep Idle [CDNP] : due to NUB.SPMI0.SW3 nub-spmi0.0x02 rtc/Maintenance Using BATT (Charge:86%) 9 secs    ",
+    "2026-10-05 08:43:34 +0900 Sleep               \tEntering Sleep state due to 'Maintenance Sleep':TCPKeepAlive=active Using Batt (Charge:86%) 51 secs   ",
+    "2026-10-05 08:44:25 +0900 DarkWake            \tDarkWake from Deep Idle [CDNP] : due to smc.sysState.Wake(0x70070000) wifibt SMC.OutboxNotEmpty bluetooth-pcie/ Using BATT (Charge:86%) 10 secs   ",
+    "2026-10-05 08:44:35 +0900 Sleep               \tEntering Sleep state due to 'Maintenance Sleep':TCPKeepAlive=active Using Batt (Charge:86%) 5 secs    ",
+    "2026-10-05 08:44:40 +0900 DarkWake            \tDarkWake from Deep Idle [CDNP] : due to smc.sysState.Wake(0x70070000) wifibt SMC.OutboxNotEmpty bluetooth-pcie/ Using BATT (Charge:86%) 9 secs    ",
+    "2026-10-05 08:44:49 +0900 Sleep               \tEntering Sleep state due to 'Maintenance Sleep':TCPKeepAlive=active Using Batt (Charge:86%) 16 secs   ",
+    "2026-10-05 08:45:05 +0900 DarkWake            \tDarkWake from Deep Idle [CDNP] : due to smc.sysState.Wake(0x70070000) wifibt SMC.OutboxNotEmpty bluetooth-pcie/ Using BATT (Charge:85%) 10 secs   ",
+    "2026-10-05 08:45:15 +0900 Sleep               \tEntering Sleep state due to 'Maintenance Sleep':TCPKeepAlive=active Using Batt (Charge:85%) 23 secs   ",
+    "2026-10-05 08:45:38 +0900 DarkWake            \tDarkWake from Deep Idle [CDNP] : due to smc.sysState.Wake(0x70070000) wifibt SMC.OutboxNotEmpty bluetooth-pcie/ Using BATT (Charge:85%) 6 secs    ",
+    "2026-10-05 08:45:44 +0900 Sleep               \tEntering Sleep state due to 'Maintenance Sleep':TCPKeepAlive=active Using Batt (Charge:85%) 7 secs    ",
+    "2026-10-05 08:45:51 +0900 DarkWake            \tDarkWake from Deep Idle [CDNP] : due to smc.sysState.Wake(0x70070000) wifibt SMC.OutboxNotEmpty bluetooth-pcie/ Using BATT (Charge:85%) 8 secs    ",
+    "2026-10-05 08:45:59 +0900 Sleep               \tEntering Sleep state due to 'Maintenance Sleep':TCPKeepAlive=active Using Batt (Charge:85%) 10 secs   ",
+    "2026-10-05 08:46:09 +0900 DarkWake            \tDarkWake from Deep Idle [CDNP] : due to smc.sysState.Wake(0x70070000) wifibt SMC.OutboxNotEmpty bluetooth-pcie/ Using BATT (Charge:85%) 8 secs    ",
+    "2026-10-05 08:46:17 +0900 Sleep               \tEntering Sleep state due to 'Maintenance Sleep':TCPKeepAlive=active Using Batt (Charge:85%) 4 secs    ",
+    "2026-10-05 08:46:21 +0900 DarkWake            \tDarkWake from Deep Idle [CDNP] : due to smc.sysState.Wake(0x70070000) wifibt SMC.OutboxNotEmpty bluetooth-pcie/ Using BATT (Charge:85%) 12 secs   ",
+    "2026-10-05 08:46:33 +0900 Sleep               \tEntering Sleep state due to 'Maintenance Sleep':TCPKeepAlive=active Using Batt (Charge:85%) 232 secs  ",
+    "2026-10-05 08:50:25 +0900 DarkWake            \tDarkWake from Deep Idle [CDNP] : due to smc.sysState.Wake(0x70070000) wifibt SMC.OutboxNotEmpty bluetooth-pcie/ Using BATT (Charge:85%) 9 secs    ",
+    "2026-10-05 08:50:34 +0900 Sleep               \tEntering Sleep state due to 'Maintenance Sleep':TCPKeepAlive=active Using Batt (Charge:85%) 12 secs   ",
+    "2026-10-05 08:50:46 +0900 DarkWake            \tDarkWake from Deep Idle [CDNP] : due to smc.sysState.Wake(0x70070000) wifibt SMC.OutboxNotEmpty bluetooth-pcie/ Using BATT (Charge:85%) 5 secs    ",
+    "2026-10-05 08:50:51 +0900 Sleep               \tEntering Sleep state due to 'Maintenance Sleep':TCPKeepAlive=active Using Batt (Charge:85%) 29 secs   ",
+    "2026-10-05 08:51:20 +0900 DarkWake            \tDarkWake from Deep Idle [CDNP] : due to smc.sysState.Wake(0x70070000) wifibt SMC.OutboxNotEmpty bluetooth-pcie/ Using BATT (Charge:85%) 6 secs    ",
+    "2026-10-05 08:51:26 +0900 Sleep               \tEntering Sleep state due to 'Maintenance Sleep':TCPKeepAlive=active Using Batt (Charge:85%) 15 secs   ",
+    "2026-10-05 08:51:41 +0900 DarkWake            \tDarkWake from Deep Idle [CDNP] : due to smc.sysState.Wake(0x70070000) wifibt SMC.OutboxNotEmpty bluetooth-pcie/ Using BATT (Charge:85%) 6 secs    ",
+    "2026-10-05 08:51:47 +0900 Sleep               \tEntering Sleep state due to 'Maintenance Sleep':TCPKeepAlive=active Using Batt (Charge:85%) 63 secs   ",
+    "2026-10-05 08:52:50 +0900 DarkWake            \tDarkWake from Deep Idle [CDNP] : due to smc.sysState.Wake(0x70070000) wifibt SMC.OutboxNotEmpty bluetooth-pcie/ Using BATT (Charge:85%) 8 secs    ",
+    "2026-10-05 08:52:58 +0900 Sleep               \tEntering Sleep state due to 'Maintenance Sleep':TCPKeepAlive=active Using Batt (Charge:85%) 18 secs   ",
+    "2026-10-05 08:53:16 +0900 DarkWake            \tDarkWake from Deep Idle [CDNP] : due to smc.sysState.Wake(0x70070000) wifibt SMC.OutboxNotEmpty bluetooth-pcie/ Using BATT (Charge:85%) 10 secs   ",
+    "2026-10-05 08:53:26 +0900 Sleep               \tEntering Sleep state due to 'Maintenance Sleep':TCPKeepAlive=active Using Batt (Charge:85%) 5 secs    ",
+    "2026-10-05 08:53:31 +0900 DarkWake            \tDarkWake from Deep Idle [CDNP] : due to smc.sysState.Wake(0x70070000) wifibt SMC.OutboxNotEmpty/ Using BATT (Charge:85%) 45 secs   ",
+    "2026-10-05 08:54:16 +0900 Sleep               \tEntering Sleep state due to 'Maintenance Sleep':TCPKeepAlive=active Using Batt (Charge:85%) 16 secs   ",
+    "2026-10-05 08:54:32 +0900 DarkWake            \tDarkWake from Deep Idle [CDNP] : due to smc.sysState.Wake(0x70070000) wifibt SMC.OutboxNotEmpty bluetooth-pcie/ Using BATT (Charge:85%) 5 secs    ",
+    "2026-10-05 08:54:37 +0900 Sleep               \tEntering Sleep state due to 'Maintenance Sleep':TCPKeepAlive=active Using Batt (Charge:85%) 41 secs   ",
+    "2026-10-05 08:55:18 +0900 DarkWake            \tDarkWake from Deep Idle [CDNP] : due to smc.sysState.Wake(0x70070000) USB-C_plug SMC.OutboxNotEmpty nub-spmi-a0.0x3F/ Using BATT (Charge:85%) 0 secs    ",
+    "2026-10-05 08:55:18 +0900 Wake                \tDarkWake to FullWake from Deep Idle [CDNVAP] : due to Notification Using AC (Charge:85%) 2 secs    ",
+    "2026-10-05 08:55:29 +0900 Wake                \tDarkWake to FullWake from Deep Idle [CDNVA] : due to UserActivity Assertion Using AC (Charge:85%)           "
+  ],
+  "os_event_limit": 64,
+  "root_cause_verified": false,
+  "assessment": "TTFT failures overlap OS sleep/darkwake activity. Mixed Battery/AC conditions; not a controlled awake performance comparison. No kernel or scheduler policy change justified yet."
+}

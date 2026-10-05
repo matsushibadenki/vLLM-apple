@@ -2,6 +2,62 @@
 
 ## 日本語
 
+2026-10-05 r6終了：[最終監査](evaluation/p1-r6-final-audit-2026-10-05.json)。
+品質3276/3276、SLO3275/3276、長文prefix missのTTFT 11.97秒で不合格、8時間未開始。
+642観測でAC／automatic不変、suspend gap 0、awake条件は合格。
+RSS直近成長58,507,264 bytes／傾き277,495,446 bytes毎時でplateau未達。
+全期間RSSは15.6MB減少しており、直近傾きだけからmemory leakとは断定しない。
+thread／FD／allocatorのresource plateau・identity・shutdownは合格、専用jobは回収済み。
+[Next] sleep混入なしの長文TTFT超過とRSS収束を調査する。認定や閾値は変更しない。
+
+2026-10-05 r5終了：[最終awake監査](evaluation/p1-r5-final-awake-audit-2026-10-05.json)。
+active計測1801秒、品質3669/3669、SLO3667/3669、資源・identity・正常shutdownは合格、
+8時間は未開始。失敗2件は2073-token prefix missのTTFT 10.36／12.47秒。
+[途中OS電源ログ監査](evaluation/p1-r5-suspend-audit-2026-10-05.json)でSleep／DarkWakeとの
+時間的重なりを確認。11回のsuspend gapとBattery→AC変化があり、固定awake条件の比較ではない。
+GPU／kernelの性能不足やsleep単独原因とは断定せず、過去r4の短文失敗の原因にも転用しない。
+
+[Done] P1 profileの通常試験へawake条件gateを接続した。各window前後のpower_sourceと
+power_modeを全期間追跡し、一時的な変化が後で元に戻っても拒否する。
+suspend gap観測、power条件変化、unknown／欠測はawake認定を拒否する。
+理由はsuspend_gap_observed／power_conditions_changed／operating_conditions_unverifiedとして保存。
+観測はwindow境界だけであり、その間の全電源イベントを証明するものではない。
+sleep／wake専用試験を明示した場合はawake条件を要求せず、別scopeの検証として残す。
+このgateはP1 runnerの認定判断であり、モデル演算・SLO閾値・OS電源設定を変更しない。
+全回帰1436 tests成功（11 skip）。P1の30分／8時間認定は依然[Next]。
+
+[awake gate実機smoke](evaluation/p1-awake-gate-m4-2026-10-05.json)：90秒指定の混合負荷で
+品質・SLO 204/204、AC／automaticの40観測に変化・unknownなし、suspend gap 0、
+awake gate・identity不変・正常shutdownが合格。30分認定ではない。
+[r6](evaluation/p1-stability-m4-2026-10-05-r6/state.json)を30分→合格時8時間で起動し、
+PID commandとcheckpoint鮮度によるrunning確認済み。既存定期監視もr6へ更新。
+試験中は未認定で、runtime編集・追加GPU負荷を避ける。
+
+2026-10-05：[r4監査](evaluation/p1-r4-slo-audit-2026-10-05.json)で品質3327/3327、
+SLO3319/3327、失敗window 4、失敗request 8件を全て保存できた。
+8件は全て短文のTTFT >5秒で、品質／E2E上限は合格。ほぼ全prefix hitでも発生した。
+queue全期間最大は1.629秒なので、ingress→最初のdequeueだけでは遅延全体を説明できない。
+これはrequestごとのqueue分解ではなく、原因はまだ未特定。資源・identity・shutdownは合格。
+8時間は未開始。r4のlaunchd labelは既に存在せず、残存jobは確認されなかった。
+
+[Done] P1 profile限定のscheduler step診断を追加。MLX-LM generate.pyの既知hashを確認して
+`BatchGenerator.next`のhost wall時間を記録する。250ms以上のstepの総数と直近64件の
+開始unix ns・経過ms・例外有無を保存し、入力・出力tensor／本文を取得しない。
+GPU同期・CPU処理を分離したkernel計測ではない。collectorは各windowの前後に
+queue／allocator／registry／HTTP資源とthermal／power／memory推定を取得し、失敗windowへ
+保存する。snapshotはnon-atomic、測定の前後であり因果関係を証明しない。
+観測が追加されたため、旧runとのcycle数・goodputの単純比較で改善を主張しない。
+
+[実scheduler診断smoke](evaluation/p1-step-diagnostics-m4-2026-10-05.json)で90秒混合負荷
+240/240件の品質・SLO成功、step 3187回、window前後の環境snapshot・identity不変・正常終了を
+確認した。step p95はhistogram上限25ms、最大868.536ms。短時間ではTTFT超過未再現。
+これは計測の動作確認であり、r4の8件の原因解消・性能優位・長時間安定性を認定しない。
+
+全回帰1434 tests成功（11 skip）、Ruff成功後に[r5](evaluation/p1-stability-m4-2026-10-05-r5/state.json)
+を起動し、PID commandとcheckpoint鮮度でrunningを確認した。30分→合格時8時間。
+当時の定期監視はr5を対象とした。r5は終了し、専用jobは削除済み。
+専用jobのreceiptは[p1-stability-launch-m4-2026-10-05-r5.json](evaluation/p1-stability-launch-m4-2026-10-05-r5.json)。
+
 P1は[Next]。完了条件は実際の8時間混合負荷・障害注入と資源回収の合格であり、短時間smokeやrunnerの実装だけでは完了扱いにしない。
 
 [Done] 検証候補をM4／32 GiB、配置済みGemma 2 2B 4-bit、MLX 0.32.1／MLX-LM 0.32.0へ限定した。既存source hash限定のGemma 2 mask／cancel互換経路を使用し、`--p1-profile`で次の上限を明示適用する。標準daemon全体を認定したものではなく、限定backend candidateである。
@@ -71,6 +127,35 @@ launchctl submitの一時jobを実測すると失敗時の再起動があった�
 
 ## English
 
+R6 finished: quality 3,276/3,276, SLO 3,275/3,276; one long-prefix TTFT was 11.97 seconds.
+Awake conditions passed, but recent RSS plateau failed. Net RSS decreased, so this does not
+prove a leak. Identity and shutdown passed; the job was removed. Eight-hour testing did not start.
+
+R5 finished with 3,669/3,669 quality passes and 3,667 SLO passes; resources, identity
+and clean shutdown passed. Eight-hour testing did not start. Two long-prefix misses
+overlapped OS sleep/darkwake activity, with eleven suspend gaps and Battery-to-AC
+change, so this is not a controlled awake comparison or proof of a kernel defect.
+The new P1 awake gate rejects suspend, changing power conditions and unknown observations.
+Transient changes remain rejected even after returning to the initial state. Explicit
+sleep/wake testing is separate. No SLO thresholds or OS power settings were changed.
+The 90-second actual smoke passed quality and SLO for 204/204 requests; all 40 power
+observations stayed AC/automatic, with no suspend gaps. Identity and shutdown passed.
+The r6 30-minute trial is running and proceeds to eight hours only if it passes.
+Neither the short smoke nor a running checkpoint certifies P1. Full regression: 1,436 tests, 11 skipped.
+
+The r4 audit retained all eight failed requests across four windows: all were short
+requests exceeding the five-second TTFT limit. Quality passed 3,327/3,327, SLO passed
+3,319/3,327; resources, identity and shutdown passed, so eight-hour testing did not start.
+The cumulative ingress-to-first-dequeue maximum was 1.629 seconds; this is insufficient
+to explain the entire latency but is not a per-request decomposition or root-cause proof.
+New source-pinned profiling measures `BatchGenerator.next` host-wall duration, retains
+the latest 64 slow steps, and captures pre/post window environment and resource snapshots.
+It does not measure isolated GPU kernels or certify performance improvement.
+
+The 90-second instrumented smoke passed 240/240 quality/SLO requests and clean shutdown,
+recording 3,187 scheduler steps and environment snapshots. The TTFT failure did not recur;
+this validates observation, not a fix or sustained qualification.
+
 Failure diagnostics now retain up to 64 failed requests per benchmark and 64 failed
 windows per soak, with uncapped failure counters. They preserve timing, language,
 token counts and failure reasons without storing prompt or generated text. Later
@@ -92,6 +177,28 @@ Update: the replacement 30-minute run completed all 3,312 quality requests but o
 All worker epochs must pass RSS and allocator/thread/FD/registry stability checks; a healthy final worker cannot hide earlier growth. The report retains model/runtime hashes and rejects changes during measurement. Queue p95 covers ingress to first scheduler dequeue, including cancelled requests, rather than total generation wait. Snapshots are non-atomic. The process temporarily inhibits idle sleep; actual sleep/wake and daemon integration remain [Next]. Additional hardware remains [Later][pending]. Final CPU regression: 1,407 tests passed, 11 skipped.
 
 ## 简体中文
+
+r6结束：质量3276/3276，SLO3275/3276，长prefix TTFT为11.97秒。awake条件通过，
+但近期RSS plateau未通过；总体RSS下降，不能据此断定泄漏。identity及正常退出通过，
+专用job已清理，未启动8小时试验。
+
+r5结束：质量3669/3669通过，SLO3667项通过，资源、identity和正常退出通过，未启动8小时试验。
+2个长prefix miss与OS Sleep／DarkWake时间重叠，存在11次suspend gap及Battery→AC变化。
+因此不是受控awake比较，也不能证明kernel缺陷。新P1 awake gate拒绝suspend、
+电源条件变化及未知观测，即使之后恢复原状态也不会清除失败。显式sleep／wake试验另行验证。
+未修改SLO阈值或OS电源设置。
+90秒实机smoke的质量与SLO均为204/204，40次观测均为AC／automatic，
+无suspend gap，identity及正常退出通过。r6的30分钟试验已启动，仅通过后进入8小时。
+短期smoke或running状态不代表P1认证。全回归1436项通过，11项跳过。
+
+r4保留了4个window的全部8个失败request，均为短输入的TTFT超过5秒。
+质量3327/3327通过，SLO3319/3327；资源、identity及退出通过，未启动8小时试验。
+整个运行的首次dequeue前最大等待为1.629秒，不足以解释完整延迟，但不能替代逐request分解或原因证明。
+新诊断限定source hash，记录BatchGenerator.next的host wall时间、最近64个慢step，
+及window前后的环境与资源。它不是独立GPU kernel计时，也不认证性能改善。
+
+90秒诊断smoke通过240/240个质量及SLO请求并正常退出，记录3187个scheduler step及环境snapshot。
+未复现TTFT失败，此结果仅验证观测功能，不代表问题已修复或长期认证完成。
 
 失败诊断现保存每个benchmark最先的64个失败request及每次soak最先的64个失败window，
 另保留完整失败计数。记录时间、语言、token数和失败原因，不保存prompt或回答正文。
