@@ -90,6 +90,53 @@ def score_results(rows):
                 runtime_identity_verified=False)
 
 
+def comparison_identity_rejections(baseline, candidate):
+    """Check selected-source/model boundary evidence, not dependency binary identity."""
+    reasons = []
+    required_sources = {'vllm_apple/rag.py', 'vllm_apple/mlx_server.py',
+                        'scripts/probe_rag_http.py', 'scripts/rag_quality_suite.py'}
+    snapshots = []
+    for label, report in (('baseline', baseline), ('candidate', candidate)):
+        before, after = report.get('identity_before'), report.get('identity_after')
+        if not isinstance(before, dict) or not isinstance(after, dict):
+            reasons.append(label + '_identity_missing')
+            continue
+        files = before.get('model_files_sha256')
+        sources = before.get('source_sha256')
+        packages = before.get('packages')
+        def hashes(mapping):
+            return isinstance(mapping, dict) and bool(mapping) and all(
+                isinstance(key, str) and isinstance(value, str)
+                and re.fullmatch(r'[0-9a-f]{64}', value) for key, value in mapping.items())
+        complete_model = (hashes(files) and 'config.json' in files
+                          and 'tokenizer_config.json' in files
+                          and ('tokenizer.json' in files or 'tokenizer.model' in files)
+                          and any(name.endswith('.safetensors') for name in files))
+        known_packages = isinstance(packages, dict) and all(
+            isinstance(packages.get(name), str) and bool(packages[name].strip())
+            for name in ('mlx', 'mlx-lm', 'transformers'))
+        valid = (report.get('runtime_identity_verified') is True
+                 and report.get('identity_error') is None
+                 and before.get('model_complete') is True and after.get('model_complete') is True
+                 and complete_model and hashes(sources) and required_sources <= set(sources)
+                 and known_packages and before == after)
+        if not valid:
+            reasons.append(label + '_identity_unverified_or_changed')
+        shutdown = report.get('shutdown')
+        if not isinstance(shutdown, dict) or shutdown.get('graceful') is not True:
+            reasons.append(label + '_shutdown_unverified')
+        if valid:
+            snapshots.append(before)
+    if len(snapshots) == 2:
+        if snapshots[0].get('model_files_sha256') != snapshots[1].get('model_files_sha256'):
+            reasons.append('model_artifacts_differ')
+        if snapshots[0].get('packages') != snapshots[1].get('packages'):
+            reasons.append('dependency_versions_differ')
+        if snapshots[0].get('source_sha256', {}).get('scripts/rag_quality_suite.py') != snapshots[1].get('source_sha256', {}).get('scripts/rag_quality_suite.py'):
+            reasons.append('evaluator_source_differ')
+    return reasons
+
+
 def compare_reports(baseline, candidate):
     """Reject improvements that lose an existing case or compare different suites."""
     reports = []
@@ -108,7 +155,10 @@ def compare_reports(baseline, candidate):
         raise ValueError('suite identities differ')
     lost = sorted(reports[0] - reports[1])
     gained = sorted(reports[1] - reports[0])
-    return dict(baseline_passes=len(reports[0]), candidate_passes=len(reports[1]),
+    identity_rejections = comparison_identity_rejections(baseline, candidate)
+    return dict(identity_rejections=identity_rejections,
+                adoption_evidence_accepted=bool(gained) and not lost and not identity_rejections,
+                baseline_passes=len(reports[0]), candidate_passes=len(reports[1]),
                 lost_cases=lost, gained_cases=gained, task_improvement_accepted=bool(gained) and not lost,
                 general_grounding_qualified=False, automatic_runtime_adoption=False)
 

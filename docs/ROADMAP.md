@@ -251,6 +251,10 @@ splitting and a native engine remain conditional research, not committed replace
 
 ### R0 — 外部検索との接続
 
+- [Done] RAG比較で点数改善と採用根拠を分離。後者は完全な前後identity、同一model artifact・既知依存version・evaluator source、正常shutdownを要求し、不足／変化の理由を保存。candidate prompt変更は許容、試験中変更は拒否。関連24 tests・Ruff成功。[Next] [現evaluator基準](evaluation/rag-identity-quality-m4-2026-10-05-r2.json)は厳密5/12・前後identity確認・正常終了合格。[Next] 基準から残る7ケースの品質改善を比較。
+
+- [Done] RAG collectorへlocal model全file／tokenizer及選択source 4件の試験前後hash、依存version比較を追加。関連23 tests・Ruff成功。artifact不足・変化・終了後hash失敗を拒否。[実機6ケース](evaluation/rag-identity-m4-2026-10-05.json)は品質・identity不変・正常終了合格。依存binary全体／ABI／試験中に戻された変更は未保証。[Next] identity付き12ケースbaselineと候補再評価。旧reportを遡及認定しない。
+
 - [Done] opt-in SIGUSR1 thread stack診断とcollectorの終了deadline後診断要求を実装。入力本文／locals／tensorを採取せず、signal記録と保存成功を区別。[実機6ケース](evaluation/rag-shutdown-diagnostics-m4-2026-10-05.json)・正常終了、CPU実processとmock timeout回帰成功。[Next] 終了遅延再現時のstack監査。今回未再現のため原因解消とは扱わない。
 
 - [Done] 新候補r5は回答不能が悪化し不採用。r6は6/12・既存5件維持だが独立再試験でshutdown deadline超過（kill/-9）のため不採用、r4 promptへ復元。[Done] HTTP collectorへgraceful／forced-killの独立記録を追加、deadline超過回帰を含む7 tests・Ruff成功。[Next] [再試験](evaluation/rag-quality-m4-2026-10-05-r6-repeat.json)の終了遅延と残る品質失敗を調査。

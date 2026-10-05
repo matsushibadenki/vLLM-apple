@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "baseline_report": "docs/evaluation/rag-identity-quality-m4-2026-10-05-r2.json",
+  "baseline_sha256": "28d040b5f166da2949f3447c092d4836fc20fc3c70b57ade88be7dced55c9536",
+  "quality_passes": 5,
+  "case_count": 12,
+  "shutdown": {
+    "graceful": true,
+    "forced_kill": false,
+    "sigint_deadline_seconds": 15,
+    "stack_dump_requested": false
+  },
+  "identity_boundary_verified": true,
+  "identity_gate_self_check": {
+    "identity_rejections": [],
+    "adoption_evidence_accepted": false,
+    "baseline_passes": 5,
+    "candidate_passes": 5,
+    "lost_cases": [],
+    "gained_cases": [],
+    "task_improvement_accepted": false,
+    "general_grounding_qualified": false,
+    "automatic_runtime_adoption": false
+  },
+  "general_grounding_qualified": false,
+  "performance_qualified": false
+}

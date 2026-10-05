@@ -169,3 +169,69 @@ and mock timeout tests verify signal survival and diagnostic requests. Root caus
 根因调查仍为[Next]，未认证R0／P1。
 
 Validation / 検証 / 验证：全回帰1443 tests成功（11 skipped）、Ruff・diff check成功。
+
+## Identity audit / 同一性監査 / 一致性审计
+
+[Done] collectorは試験前後でlocal model directoryの全file（最大256）をchunk読込でSHA-256化し、
+config／tokenizer／safetensorsの存在を要求する。選択したsource 4件（rag.py、mlx_server.py、
+probe_rag_http.py、rag_quality_suite.py）とMLX／MLX-LM／Transformersのversionも比較する。
+未知・不足のmodel、前後の変化、終了後のhash取得失敗は合格にしない。
+model_files_sha256とsource_sha256を前後とも保存する。これは前後snapshotであり、試験中に変更して
+元へ戻した場合の検出や依存binary全体のbuild同一性・ABI／能力認定を保証しない。
+
+[実機6ケース](evaluation/rag-identity-m4-2026-10-05.json)：品質・正常終了合格、model 44 files及び
+source 4件の前後不変を確認。MLX 0.32.1、MLX-LM 0.32.0、Transformers 5.17.0を記録。
+CPU回帰はweight／tokenizer変更・不足artifact・version変化の拒否を検証。
+前後identityを持たない過去の候補reportへ、今回の結果を遡って付与しない。
+[Next] identityを束縛した12ケースの新baselineと候補比較、終了遅延の原因特定。
+
+English: The collector hashes all local model files (up to 256) before and after the trial,
+requires config, tokenizer and safetensors, and compares four selected source files plus package
+versions. Missing artifacts, changed identity or post-run hashing failure prevent a pass. The real
+six-case smoke passed with unchanged identities and graceful shutdown. These are boundary snapshots,
+not complete dependency binary identity, ABI certification or detection of changes later reverted.
+Old reports do not gain identity evidence retroactively. Identity-bound quality comparison remains [Next].
+
+简体中文：collector在试验前后对local model全部文件（最多256）计算hash，要求config、tokenizer及
+safetensors，并比较4个指定source及依赖version。缺少artifact、identity变化或试验后hash失败
+均拒绝合格。实机6例通过，identity不变并正常退出。前后snapshot不能证明依赖binary整体一致、
+ABI能力认证或检测中途修改后恢复。不会为旧report补认identity。绑定identity的质量比较仍为[Next]。
+
+Validation / 検証 / 验证：関連23 tests・Ruff・diff check成功。
+
+## Comparison evidence gate / 比較証拠gate / 比较证据gate
+
+[Done] `compare_reports`は固定taskの点数改善と、採用根拠としての比較可能性を分離する。
+`task_improvement_accepted`は既存合格を維持して合格が増えたかを表す。
+`adoption_evidence_accepted`はさらに、両reportの完全な前後identity、model artifact同一、
+既知の依存version同一、evaluator source同一、正常shutdownを要求する。
+理由はidentity_rejectionsへ保存。未知versionを対応済みへ昇格せず、自動採用も行わない。
+候補のrag.py変更は許容し、各試験中のsource不変を要求する。依存binary全体の同一性は未保証。
+
+関連24 tests成功。model変更、試験中tokenizer変更、依存version差／unknown、evaluator差、
+shutdown情報の欠落は、固定taskの点数が良くても採用根拠として拒否する。
+[Next] このgateで今後のprompt候補を比較し、残る品質失敗を改善する。
+
+English: Task improvement and comparable adoption evidence are separate. Adoption evidence
+requires unchanged complete boundary identities, the same model artifacts, known matching package
+versions, matching evaluator source and graceful shutdown. Rejection reasons are recorded.
+Unknown versions are not promoted; runtime adoption remains manual. Candidate prompt changes are
+allowed, but sources must stay unchanged within each trial. Dependency binary identity is not proven.
+Twenty-four related tests pass, including improved scores with mismatched or missing evidence.
+
+简体中文：固定任务分数改善与可用于采用的证据分开判定。采用证据要求完整前后identity不变、
+model artifact相同、已知依赖version相同、evaluator source相同及正常退出，记录拒绝原因。
+不提升未知version，也不自动采用。允许候选prompt变化，但单次试验期间source必须保持不变。
+未证明依赖binary整体一致。24项相关测试通过，包含分数提高但证据不一致／不足时的拒绝。
+
+[現evaluator基準](evaluation/rag-identity-quality-m4-2026-10-05-r2.json)は12ケース、厳密5/12、
+前後identity確認・正常終了合格。[基準監査](evaluation/rag-identity-baseline-audit-2026-10-05.json)に
+raw report hashを保存。自己比較でidentity拒否なし、改善なしのため採用改善とは判定しない。
+一般groundingと性能は未認定、残る7ケースは[Next]。
+
+English: The current evaluator baseline completed 12 cases, scoring 5/12, with verified
+boundary identity and graceful shutdown. Its audit binds the raw report hash. Self-comparison
+has no identity rejection and correctly claims no improvement. Seven cases remain [Next].
+
+简体中文：当前evaluator基准完成12例，严格5/12，前后identity确认并正常退出。
+审计保存raw report hash。自比较无identity拒绝，并正确判定为无改善。剩余7例为[Next]。

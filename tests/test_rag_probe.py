@@ -61,3 +61,20 @@ class RagProbeTests(unittest.TestCase):
             self.assertTrue(report['shutdown']['stack_dump_requested'])
             self.assertEqual(process.send_signal.call_args_list[-1].args, (signal.SIGUSR1,))
             process.kill.assert_called_once()
+
+    def test_model_identity_detects_weight_tokenizer_changes_and_missing_artifacts(self):
+        from scripts.probe_rag_http import evidence_snapshot, verify_identity
+
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            self.assertFalse(evidence_snapshot(root)['model_complete'])
+            for name in ('config.json', 'tokenizer_config.json', 'tokenizer.json', 'model.safetensors'):
+                (root / name).write_bytes(b'original')
+            before = evidence_snapshot(root)
+            self.assertTrue(verify_identity(before, evidence_snapshot(root))['model_identity_unchanged'])
+            for name in ('model.safetensors', 'tokenizer.json'):
+                (root / name).write_bytes(b'changed')
+                self.assertFalse(verify_identity(before, evidence_snapshot(root))['model_identity_unchanged'])
+                (root / name).write_bytes(b'original')
+            changed_runtime = dict(before, packages=dict(before['packages'], mlx='unverified-version'))
+            self.assertFalse(verify_identity(before, changed_runtime)['runtime_identity_unchanged'])

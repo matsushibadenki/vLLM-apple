@@ -65,3 +65,45 @@ class RagQualitySuiteTests(unittest.TestCase):
         candidate['quality_suite']['cases'].pop()
         with self.assertRaises(ValueError):
             compare_reports(baseline, candidate)
+
+    def test_adoption_requires_unchanged_model_known_versions_and_clean_shutdown(self):
+        from scripts.rag_quality_suite import compare_reports
+        digest = 'a' * 64
+        snapshot = dict(model_complete=True,
+                        model_files_sha256={name: digest for name in
+                                            ('config.json', 'tokenizer_config.json',
+                                             'tokenizer.json', 'model.safetensors')},
+                        source_sha256={name: digest for name in
+                                       ('vllm_apple/rag.py', 'vllm_apple/mlx_server.py',
+                                        'scripts/probe_rag_http.py', 'scripts/rag_quality_suite.py')},
+                        packages=dict(mlx='0.32.1', **{'mlx-lm': '0.32.0', 'transformers': '5.17.0'}))
+        baseline = dict(quality_suite=score_results(self.rows()), error=None, backend_returncode=0,
+                        runtime_identity_verified=True, identity_before=copy.deepcopy(snapshot),
+                        identity_after=copy.deepcopy(snapshot), shutdown=dict(graceful=True))
+        baseline['quality_suite']['cases'][0]['passed'] = False
+        candidate = copy.deepcopy(baseline)
+        candidate['quality_suite']['cases'][0]['passed'] = True
+        self.assertTrue(compare_reports(baseline, candidate)['adoption_evidence_accepted'])
+        for mutation in ('model', 'versions', 'during_run', 'shutdown', 'unknown', 'evaluator'):
+            modified = copy.deepcopy(candidate)
+            if mutation == 'model':
+                for key in ('identity_before', 'identity_after'):
+                    modified[key]['model_files_sha256']['model.safetensors'] = 'b' * 64
+            elif mutation == 'versions':
+                for key in ('identity_before', 'identity_after'):
+                    modified[key]['packages']['mlx'] = 'different'
+            elif mutation == 'during_run':
+                modified['identity_after']['model_files_sha256']['tokenizer.json'] = 'b' * 64
+            elif mutation == 'shutdown':
+                modified['shutdown'] = None
+            elif mutation == 'unknown':
+                for key in ('identity_before', 'identity_after'):
+                    modified[key]['packages']['mlx'] = None
+            else:
+                for key in ('identity_before', 'identity_after'):
+                    modified[key]['source_sha256']['scripts/rag_quality_suite.py'] = 'b' * 64
+            result = compare_reports(baseline, modified)
+            self.assertTrue(result['task_improvement_accepted'])
+            self.assertFalse(result['adoption_evidence_accepted'], mutation)
+            self.assertTrue(result['identity_rejections'])
+            self.assertFalse(result['automatic_runtime_adoption'])

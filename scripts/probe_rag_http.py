@@ -8,12 +8,50 @@ import socket
 import subprocess
 import sys
 import time
+from importlib.metadata import PackageNotFoundError, version
 from pathlib import Path
 from urllib.request import urlopen
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from scripts.rag_quality_suite import build_cases, score_results
 from vllm_apple.rag import answer_rag
+
+
+def file_hash(path):
+    digest = hashlib.sha256()
+    with path.open('rb') as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b''):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def evidence_snapshot(model):
+    root = Path(__file__).resolve().parents[1]
+    sources = ('vllm_apple/rag.py', 'vllm_apple/mlx_server.py',
+               'scripts/probe_rag_http.py', 'scripts/rag_quality_suite.py')
+    directory = Path(model)
+    files = sorted(path for path in directory.rglob('*') if path.is_file()) if directory.is_dir() else []
+    if len(files) > 256:
+        raise ValueError('model identity file limit exceeded')
+    model_files = {str(path.relative_to(directory)): file_hash(path) for path in files}
+    packages = {}
+    for name in ('mlx', 'mlx-lm', 'transformers'):
+        try:
+            packages[name] = version(name)
+        except PackageNotFoundError:
+            packages[name] = None
+    complete = ('config.json' in model_files and 'tokenizer_config.json' in model_files
+                and ('tokenizer.json' in model_files or 'tokenizer.model' in model_files)
+                and any(name.endswith('.safetensors') for name in model_files))
+    return dict(source_sha256={name: file_hash(root / name) for name in sources},
+                model_files_sha256=model_files, model_complete=complete, packages=packages)
+
+
+def verify_identity(before, after):
+    return dict(runtime_identity_unchanged=before['source_sha256'] == after['source_sha256']
+                and before['packages'] == after['packages'],
+                model_identity_unchanged=before['model_complete'] and after['model_complete']
+                and before['model_files_sha256'] == after['model_files_sha256'])
 
 
 def main():
@@ -25,6 +63,7 @@ def main():
     args = parser.parse_args()
     if args.output.exists():
         parser.error("output must be new")
+    identity_before = evidence_snapshot(args.model)
     with socket.socket() as reservation:
         reservation.bind(("127.0.0.1", 0))
         port = reservation.getsockname()[1]
@@ -95,6 +134,14 @@ def main():
                         pass
                 process.kill()
                 process.wait(timeout=5)
+    identity_error = None
+    try:
+        identity_after = evidence_snapshot(args.model)
+        identity = verify_identity(identity_before, identity_after)
+    except (OSError, ValueError) as failure:
+        identity_after = None
+        identity_error = type(failure).__name__
+        identity = dict(runtime_identity_unchanged=False, model_identity_unchanged=False)
     report = dict(schema_version=1, scope="Gemma2/M4/three-language fixed support-code HTTP smoke",
                   model=args.model, cases=cases, backend_returncode=process.returncode,
                   error=error,
@@ -110,6 +157,10 @@ def main():
         report['quality_suite'] = score_results(cases)
         report['scope'] = 'Gemma2/M4 synthetic three-language RAG quality suite'
         report['passed'] = error is None and report['quality_suite']['passed'] and process.returncode == 0
+    report.update(identity_before=identity_before, identity_after=identity_after,
+                  identity_error=identity_error, **identity)
+    report['runtime_identity_verified'] = all(identity.values())
+    report['passed'] = report['passed'] and report['runtime_identity_verified']
     args.output.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n")
     return 0 if report["passed"] else 1
 
