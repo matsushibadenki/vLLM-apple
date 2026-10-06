@@ -12,6 +12,7 @@ class StepDiagnostics:
     def __init__(self) -> None:
         self._lock = threading.Lock()
         self._latencies = _BoundedLatency()
+        self._cpu_latencies = _BoundedLatency()
         self._slow_count = 0
         self._exceptions = 0
         self._samples: list[dict] = []
@@ -20,6 +21,7 @@ class StepDiagnostics:
         @wraps(method)
         def timed(*args, **kwargs):
             wall = time.time_ns()
+            cpu_start = time.thread_time_ns()
             start = time.monotonic_ns()
             failed = False
             try:
@@ -29,13 +31,15 @@ class StepDiagnostics:
                 raise
             finally:
                 elapsed = max(0, time.monotonic_ns()-start)
+                cpu_elapsed = max(0, time.thread_time_ns()-cpu_start)
                 with self._lock:
                     self._latencies.record(elapsed)
+                    self._cpu_latencies.record(cpu_elapsed)
                     self._exceptions += int(failed)
                     if elapsed >= 250_000_000:
                         self._slow_count += 1
                         self._samples.append(dict(started_at_unix_ns=wall,
-                                                  elapsed_ms=elapsed/1e6, failed=failed))
+                                                  elapsed_ms=elapsed/1e6, thread_cpu_ms=cpu_elapsed/1e6, failed=failed))
                         del self._samples[:-64]
         return timed
 
@@ -43,6 +47,8 @@ class StepDiagnostics:
         with self._lock:
             return dict(sample_count=self._latencies.count,
                         statistics=self._latencies.snapshot() if self._latencies.count else None,
+                        thread_cpu_statistics=self._cpu_latencies.snapshot() if self._cpu_latencies.count else None,
+                        thread_cpu_scope="calling thread CPU only; excludes GPU and other threads",
                         slow_steps_observed=self._slow_count, exceptions=self._exceptions,
                         recent_slow_steps=[dict(s) for s in self._samples], sample_limit=64,
                         slow_threshold_ms=250,

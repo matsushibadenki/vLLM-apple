@@ -35,7 +35,7 @@ Intel Macは互換性の別枠とし、Apple Siliconの性能認定を適用し�
 | 状態 | 範囲 | 確認結果／残作業 |
 | --- | --- | --- |
 | [Done] | P0限定基準・経路監査 | M4／Gemma 2／c1／三言語算術、2 backend各3回。全モデル・全Macの認定ではない |
-| [Done] | P1資源上限・cancel／回復runner | bounded HTTP・入力・allocator・queue・cancelと短時間smoke。最新r6の30分は品質3276/3276、SLO3275/3276、awake条件合格だが長文TTFT・RSS plateau未達 |
+| [Done] | P1資源上限・cancel／回復runner | bounded HTTP・入力・allocator・queue・cancelと短時間smoke。最新r7の30分は品質3162/3162、SLO3153/3162、awake条件・RSS plateau合格だがTTFTとallocator資源gate未達 |
 | [Next] | P1長時間認定 | r6の長文TTFT超過とRSS未収束を調査・修正し、30分再試験→合格時8時間。このM4で可能なので[pending]にしない |
 | [Done] | P2実continuous batching／identity付きKV実験 | 実batch幅4と再prefill提出減少を確認。標準採用・数値／性能認定は未完了 |
 | [Next] | P2数値・p95／goodput gate | c4 SLOと全prompt基準とのlogit差を解消し再測定。このM4で試験可能 |
@@ -139,6 +139,10 @@ RSS・allocator・KV・OS pressure・swap差分は別系列で記録し、重複
 **完了条件：** 手元のMacで少なくとも2 backend・同一品質基準のモデルについて、独立した3 runを再現できる。各主要ケースは合計100以上の完了requestを目安とし、sample数とばらつきを公開する。p99は1,000未満なら参考値扱い。比較不能・未対応条件も残す。上記M4／Gemma 2／c1／三言語算術scopeで達成。
 
 ## P1 — 標準text経路と持続的な安定性 [Next]
+
+- [Done] [r7 host-load監査](evaluation/p1-r7-host-load-audit-2026-10-06.json)は10 CPUに対しload34〜43の境界観測を確認、load約7の失敗もあり根因未特定。[Done] scheduler stepのcalling-thread CPU時間をwall時間から分離してbounded記録、SLO／認定閾値は維持。差値をGPU時間とは扱わず、計測overhead未測定。[Done] 実機smoke48/48品質・SLO・正常終了、614 stepでCPU／wall分離記録、全回帰1449 tests成功（11 skip）。[Next] [r8](evaluation/p1-stability-m4-2026-10-06-r8/state.json)をprefill512で30分→全条件合格時8時間として実行中。失敗のCPU／wall／環境を突き合わせ修正候補を選ぶ。
+
+- [Done] [r7最終監査](evaluation/p1-r7-final-audit-2026-10-06.json)：品質3162/3162、SLO3153/3162、awake・identity・正常終了合格、RSS plateau合格だがallocator資源gate未達、8時間未開始。prefill256の優位は未認定。[Done] workload hash付き資源sampleと同負荷別診断を追加、既存認定閾値は維持。実機短時間smoke87/87品質・SLO・正常終了、label欠落0、全回帰1448 tests成功（11 skip）。[Next] 新実測で状態差と増加、短文／長文TTFT超過の原因を調査。旧sampleへlabelを推測付与しない。
 
 - [Done] 長時間runnerでprefill128／256／512を明示指定し両段階へ固定伝達、既定512・閾値は維持。全回帰1447 tests成功（11 skip）。[256実機smoke](evaluation/p1-prefill256-m4-2026-10-05.json)は204/204品質・SLO・awake・identity・正常終了合格、短期RSS plateau未達。性能優位は未測定。[Next] [r7](evaluation/p1-stability-m4-2026-10-05-r7/state.json)で30分→全条件合格時8時間を測定中、認定保留、競合編集／GPU負荷を避ける。
 

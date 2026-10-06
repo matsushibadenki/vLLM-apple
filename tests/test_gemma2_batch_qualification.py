@@ -53,6 +53,20 @@ class Gemma2QualificationTests(unittest.TestCase):
         self.assertEqual(len(summary["failed_windows"]), 64)
         self.assertEqual(summary["last_window"]["started_at"], "success")
         self.assertEqual(summary["failed_windows"][0]["started_at"], "failure")
+    def test_workload_diagnostic_separates_phases_without_relaxing_gate(self):
+        samples = [dict(pid=1, workload_sha256=label * 64, threads=3, open_fds=12,
+                        allocator_active_bytes=size, allocator_cache_bytes=0,
+                        registry_active=0, registry_queued=0)
+                   for _ in range(8) for label, size in (('a', 100), ('b', 200 * 1024 * 1024))]
+        self.assertFalse(qualification._resource_plateau(samples)['plateau_observed'])
+        diagnostic = qualification._resource_by_workload(samples)
+        self.assertFalse(diagnostic['qualification'])
+        self.assertTrue(all(r['plateau_observed'] for r in diagnostic['workloads'].values()))
+        samples[-1]['allocator_active_bytes'] += 100 * 1024 * 1024
+        self.assertFalse(qualification._resource_by_workload(samples)['workloads']['b'*64]['plateau_observed'])
+        samples[-1].pop('workload_sha256')
+        self.assertEqual(qualification._resource_by_workload(samples)['unlabelled_samples'], 1)
+
     def test_resource_growth_and_undrained_registry_fail(self):
         samples = [dict(pid=1, threads=4, open_fds=8, allocator_active_bytes=100,
                         allocator_cache_bytes=100, registry_active=0, registry_queued=0)

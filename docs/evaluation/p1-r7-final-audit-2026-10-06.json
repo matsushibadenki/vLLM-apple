@@ -1,0 +1,191 @@
+{
+  "schema_version": 1,
+  "source": "docs/evaluation/p1-stability-m4-2026-10-05-r7/30min.json",
+  "source_sha256": "81110f5b4920592dd81995515d663dcf46df3af2aecb34cb803f38fab0885660",
+  "passed": false,
+  "root_cause_verified": false,
+  "summary": {
+    "completed": 3162,
+    "quality_passed": 3162,
+    "slo_quality_passed": 3153,
+    "awake_conditions_verified": true,
+    "rss_trend": {
+      "sample_count": 311,
+      "current_pid": 56541,
+      "current_pid_sample_count": 311,
+      "recent_sample_count": 156,
+      "slope_bytes_per_hour": -207307013.199,
+      "recent_growth_bytes": -46678016,
+      "plateau_observed": true
+    },
+    "resource_trend": {
+      "sample_count": 310,
+      "current_pid": 56541,
+      "deltas": {
+        "threads": 0,
+        "open_fds": 0,
+        "allocator_active_bytes": 169803343,
+        "allocator_cache_bytes": -119198237
+      },
+      "plateau_observed": false,
+      "snapshot_consistency": "non_atomic"
+    }
+  },
+  "shutdown_clean": true,
+  "runtime_identity_unchanged": true,
+  "model_identity_unchanged": true,
+  "failures": [
+    {
+      "observed": 1,
+      "samples": [
+        {
+          "request_index": 0,
+          "language": "prefix-edit-a",
+          "reasons": [
+            "ttft_slo_exceeded"
+          ],
+          "elapsed_seconds": 0.009630958,
+          "ttft_ms": 11225.050375,
+          "e2e_ms": 11811.157417,
+          "prompt_tokens": 2073,
+          "output_tokens": 4,
+          "cached_prompt_tokens": 4
+        }
+      ],
+      "sample_limit": 64
+    },
+    {
+      "observed": 4,
+      "samples": [
+        {
+          "request_index": 0,
+          "language": "en",
+          "reasons": [
+            "ttft_slo_exceeded"
+          ],
+          "elapsed_seconds": 0.011549125,
+          "ttft_ms": 8272.5135,
+          "e2e_ms": 9522.135917,
+          "prompt_tokens": 22,
+          "output_tokens": 4,
+          "cached_prompt_tokens": 4
+        },
+        {
+          "request_index": 1,
+          "language": "ja",
+          "reasons": [
+            "ttft_slo_exceeded"
+          ],
+          "elapsed_seconds": 0.010533625,
+          "ttft_ms": 8267.523042,
+          "e2e_ms": 9519.05425,
+          "prompt_tokens": 20,
+          "output_tokens": 4,
+          "cached_prompt_tokens": 4
+        },
+        {
+          "request_index": 3,
+          "language": "en",
+          "reasons": [
+            "ttft_slo_exceeded",
+            "e2e_slo_exceeded"
+          ],
+          "elapsed_seconds": 9.671888875,
+          "ttft_ms": 12530.720542,
+          "e2e_ms": 15688.585542,
+          "prompt_tokens": 22,
+          "output_tokens": 4,
+          "cached_prompt_tokens": 21
+        },
+        {
+          "request_index": 2,
+          "language": "zh",
+          "reasons": [
+            "ttft_slo_exceeded",
+            "e2e_slo_exceeded"
+          ],
+          "elapsed_seconds": 9.610776875,
+          "ttft_ms": 12887.621709,
+          "e2e_ms": 18326.703292,
+          "prompt_tokens": 19,
+          "output_tokens": 4,
+          "cached_prompt_tokens": 7
+        }
+      ],
+      "sample_limit": 64
+    },
+    {
+      "observed": 1,
+      "samples": [
+        {
+          "request_index": 6,
+          "language": "en",
+          "reasons": [
+            "ttft_slo_exceeded"
+          ],
+          "elapsed_seconds": 3.000572458,
+          "ttft_ms": 5019.482,
+          "e2e_ms": 5589.489625,
+          "prompt_tokens": 22,
+          "output_tokens": 4,
+          "cached_prompt_tokens": 21
+        }
+      ],
+      "sample_limit": 64
+    },
+    {
+      "observed": 2,
+      "samples": [
+        {
+          "request_index": 0,
+          "language": "en",
+          "reasons": [
+            "ttft_slo_exceeded",
+            "e2e_slo_exceeded"
+          ],
+          "elapsed_seconds": 0.00388175,
+          "ttft_ms": 13303.414875,
+          "e2e_ms": 13389.205458,
+          "prompt_tokens": 22,
+          "output_tokens": 4,
+          "cached_prompt_tokens": 21
+        },
+        {
+          "request_index": 1,
+          "language": "ja",
+          "reasons": [
+            "ttft_slo_exceeded",
+            "e2e_slo_exceeded"
+          ],
+          "elapsed_seconds": 0.005078416,
+          "ttft_ms": 13303.986042,
+          "e2e_ms": 13390.028,
+          "prompt_tokens": 20,
+          "output_tokens": 4,
+          "cached_prompt_tokens": 19
+        }
+      ],
+      "sample_limit": 64
+    },
+    {
+      "observed": 1,
+      "samples": [
+        {
+          "request_index": 0,
+          "language": "prefix-edit-a",
+          "reasons": [
+            "ttft_slo_exceeded"
+          ],
+          "elapsed_seconds": 0.00391225,
+          "ttft_ms": 10369.575458,
+          "e2e_ms": 10476.289042,
+          "prompt_tokens": 2073,
+          "output_tokens": 4,
+          "cached_prompt_tokens": 4
+        }
+      ],
+      "sample_limit": 64
+    }
+  ],
+  "old_samples_have_workload_labels": false
+}

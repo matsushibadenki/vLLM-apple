@@ -29,3 +29,15 @@ class StepDiagnosticTests(unittest.TestCase):
             diagnostics.wrap(failure)()
         self.assertEqual(diagnostics.snapshot()["exceptions"], 1)
         self.assertNotIn("private model detail", str(diagnostics.snapshot()))
+
+    def test_thread_cpu_is_separate_from_wall_and_does_not_change_result(self):
+        diagnostics = StepDiagnostics()
+        result = object()
+        with patch('vllm_apple.step_diagnostics.time.monotonic_ns', side_effect=[0, 300_000_000]), \
+             patch('vllm_apple.step_diagnostics.time.thread_time_ns', side_effect=[0, 10_000_000]):
+            self.assertIs(diagnostics.wrap(lambda: result)(), result)
+        snapshot = diagnostics.snapshot()
+        self.assertEqual(snapshot['statistics']['mean_ms'], 300)
+        self.assertEqual(snapshot['thread_cpu_statistics']['mean_ms'], 10)
+        self.assertEqual(snapshot['recent_slow_steps'][0]['thread_cpu_ms'], 10)
+        self.assertEqual(snapshot['sample_count'], 1)

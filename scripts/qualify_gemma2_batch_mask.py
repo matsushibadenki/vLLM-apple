@@ -439,6 +439,25 @@ def _resource_plateau(samples: list[dict[str, object]]) -> dict[str, object]:
                 plateau_observed=passed, snapshot_consistency='non_atomic')
 
 
+def _resource_by_workload(samples):
+    """Diagnostic only; the existing aggregate qualification gate is unchanged."""
+    latest_pid = samples[-1]['pid'] if samples else None
+    groups = {}
+    unknown = 0
+    for sample in samples:
+        if sample['pid'] != latest_pid:
+            continue
+        label = sample.get('workload_sha256')
+        if not isinstance(label, str) or len(label) != 64 or any(c not in '0123456789abcdef' for c in label):
+            unknown += 1
+            continue
+        groups.setdefault(label, []).append(sample)
+    return dict(current_pid=latest_pid, unlabelled_samples=unknown,
+                retention_scope='retained snapshots only; not every observation',
+                qualification=False,
+                workloads={label: _resource_plateau(group) for label, group in groups.items()})
+
+
 def _new_stability_summary(
     duration_seconds: float, rss_bytes: int, process_pid: int | None = None
 ) -> dict[str, object]:
@@ -782,7 +801,7 @@ def _run_stability_window(config: PhaseProbeConfig, *, port: int, model: str,
         resources = _idle_resources(port)
         summary['last_idle_resources'] = resources
         resource_samples = summary['resource_samples']
-        resource_samples.append(dict(pid=current_pid, elapsed_seconds=round(time.monotonic()-started, 3),
+        resource_samples.append(dict(pid=current_pid, workload_sha256=window.get('workload_sha256'), elapsed_seconds=round(time.monotonic()-started, 3),
             threads=resources['threads'], open_fds=resources['open_fds'],
             allocator_active_bytes=resources['allocator']['active_bytes'],
             allocator_cache_bytes=resources['allocator']['cache_bytes'],
@@ -809,6 +828,7 @@ def _run_stability_window(config: PhaseProbeConfig, *, port: int, model: str,
     assert isinstance(rss_samples, list)
     summary["rss_trend"] = _rss_trend(rss_samples)
     summary['resource_trend'] = _resource_plateau(summary['resource_samples'])
+    summary['resource_by_workload'] = _resource_by_workload(summary['resource_samples'])
     epochs = [*summary['completed_epochs'], dict(rss=summary['rss_trend'], resources=summary['resource_trend'])]
     summary['all_epoch_resources_passed'] = all(
         epoch['rss']['plateau_observed'] is True and epoch['resources']['plateau_observed'] is True

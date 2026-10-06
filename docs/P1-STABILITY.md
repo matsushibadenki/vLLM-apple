@@ -2,6 +2,30 @@
 
 ## 日本語
 
+[Done] [r7 host-load監査](evaluation/p1-r7-host-load-audit-2026-10-06.json)：失敗window付近で
+10 logical CPUに対し1分load average 34〜43を観測。一方load約7でも失敗があり、
+全失敗の原因や外部process競合と断定しない。load averageはCPU使用率ではなくwindow境界の観測。
+
+[Done] scheduler stepへ`time.thread_time_ns`によるcalling thread CPU時間を追加。
+全stepのbounded histogramと、既存の直近64 slow stepへthread_cpu_msを記録する。
+host wall時間・250ms閾値・SLO・認定gateは維持し、戻り値／例外／入力tensorは変更しない。
+CPU時間は別thread／GPU処理を含まない。wallとの差はGPU時間ではなく、待ちやdescheduleなどを
+含み得るため、kernel時間や原因特定として扱わない。追加clock読込の測定overheadは未測定。
+[Next] 長時間の失敗stepでCPUとwallを突き合わせ、原因確認後に実装を修正する。
+
+2026-10-06：[r7最終監査](evaluation/p1-r7-final-audit-2026-10-06.json)。
+prefill256の30分は品質3162/3162、SLO3153/3162で不合格。8時間未開始。
+awake・identity・shutdownは合格、RSS plateauは合格だがallocator active差169.8MBで資源gate未達。
+短文と長文のTTFT超過が残っており、256を512より優れているとは認定しない。
+終了した専用launchd labelは既に不在、runnerの終了を確認した。
+
+[Done] 資源sampleへworkload hashを保存し、最新worker epoch内で同じ負荷のsampleを
+比較する`resource_by_workload`診断を追加。保持されたsampleだけが対象であり、
+欠測・labelなし・各負荷のsample不足は明示する。従来のaggregate gateは変更しない。
+短文／長文の状態差と継続的な増加を調査するための診断で、memory leakや改善を証明しない。
+r7の旧sampleにはworkload labelがないため、負荷別結果を推測で遡及付与しない。
+[Next] 長文／短文遅延と資源gate未達の原因を、同一負荷の新しい実測で確認する。
+
 [Done] 長時間launcher／runnerに`--prefill-step-size {128,256,512}`を接続し、
 30分・8時間の両段階で指定値を固定する。既定512と認定閾値は維持。
 全回帰1447 tests成功（11 skip）、Ruff成功。
@@ -146,6 +170,21 @@ launchctl submitの一時jobを実測すると失敗時の再起動があった�
 
 ## English
 
+[Done] R7 boundary load reached 34–43 on ten logical CPUs near some failures, but failures
+also occurred around load seven. Load average is not CPU utilization or proof of contention.
+Scheduler diagnostics now record calling-thread CPU time separately from host wall time, using
+bounded histograms and the existing latest-64 slow-step records. Other threads and GPU work
+are excluded from the CPU clock; the difference is not GPU kernel time. Return/exception
+behavior and qualification thresholds remain unchanged. Instrumentation overhead is unmeasured.
+[Next] Correlate long-run failed steps before choosing a fix.
+
+R7 failed: quality 3,162/3,162, SLO 3,153/3,162; eight-hour testing did not start.
+Awake conditions, identity and shutdown passed. RSS plateau passed, but allocator active
+change failed the resource gate. Prefill256 is not certified superior to 512.
+[Done] Resource samples now carry workload hashes; diagnostic groups compare retained samples
+within the latest worker epoch and the same workload. The aggregate qualification gate remains
+unchanged. Older unlabelled samples do not gain inferred labels. Latency and resource causes remain [Next].
+
 [Done] The long-run launcher accepts explicit prefill sizes 128/256/512 and preserves the
 selected value through both stages; default 512 and qualification thresholds are unchanged.
 Full regression: 1,447 tests, 11 skipped. The 256 smoke passed quality/SLO for 204/204 requests,
@@ -211,6 +250,17 @@ All worker epochs must pass RSS and allocator/thread/FD/registry stability check
 
 ## 简体中文
 
+[Done] r7部分失败附近，10个logical CPU的一分钟load为34〜43，但load约7时也失败。
+load不是CPU使用率，也不证明竞争process。scheduler诊断新增calling thread CPU时间，
+使用bounded histogram并记录既有最近64个slow step；CPU clock不包含其他thread及GPU工作。
+wall与CPU差值不是GPU kernel时间。返回值／异常及认证阈值不变，新增计测开销未测量。
+[Next] 对照长时间失败step的CPU与wall后确定修正。
+
+r7失败：质量3162/3162，SLO3153/3162，未启动8小时。awake、identity及退出通过，
+RSS plateau通过，但allocator active变化未通过资源gate。不认证256优于512。
+[Done] 资源sample记录workload hash，诊断按最新worker epoch及相同负荷比较保留的sample，
+原有aggregate认证gate不变。不会推测旧sample的label。延迟及资源问题根因仍为[Next]。
+
 [Done] 长时间launcher可明确指定prefill128／256／512，并在两个阶段保持相同值，默认512及
 认证阈值不变。全回归1447项通过，11项跳过。256短测的质量／SLO为204/204，awake条件、
 identity及正常退出通过；短时间资源plateau未通过，RSS收敛及相比512的优势仍未认证。
@@ -259,3 +309,38 @@ P1仍为[Next]。限定候选固定M4／32 GiB上的Gemma 2 2B及已审查MLX版
 更新：重新执行的30分钟测试完成3,312个质量合格请求，但仅3,298个满足SLO。资源及回收gate通过，总gate不合格，因此未启动8小时stage；已移除结束的launchd job。
 
 每个worker epoch都必须通过RSS、allocator、thread、FD和registry稳定性检查，不能只看最后一个worker。报告保存模型与runtime hash，并拒绝测量期间的变更。queue p95仅表示入队到首次scheduler dequeue，包含已取消请求，并非完整生成等待。snapshot不是原子的。测试期间暂时阻止idle sleep；实际sleep／wake、daemon集成仍为[Next]。其他未持有硬件为[Later][pending]。最终CPU回归1,407 tests通过、11 skip。
+
+2026-10-06 diagnostic validation / 診断検証 / 诊断验证：
+[実機30秒指定smoke](evaluation/p1-workload-resources-m4-2026-10-06.json)は品質・SLO87/87、
+正常終了合格。workload label欠落0、短文7 sample、長文1 sampleを分離。
+長文はsample不足でplateau=false、診断自体のqualification=falseを維持する。
+長時間・資源収束認定ではない。全回帰1448 tests成功（11 skipped）、Ruff・diff check成功。
+
+English: The 30-second diagnostic smoke passed quality/SLO for 87/87 and shut down cleanly.
+All retained samples were labelled; seven short-workload and one long-workload sample were
+separated. The long group fails plateau for insufficient samples; diagnostics do not qualify
+stability. Full regression: 1,448 tests, 11 skipped.
+
+简体中文：30秒诊断smoke的质量／SLO为87/87，正常退出。label缺失0，分开7个短负荷sample
+与1个长负荷sample。长负荷因样本不足而plateau=false，诊断不认证稳定性。
+全回归1448项通过，11项跳过。
+
+2026-10-06 CPU/wall validation / 診断検証 / 诊断验证：
+[実機smoke](evaluation/p1-step-cpu-m4-2026-10-06.json)は48/48品質・SLO、正常終了成功。
+614 stepでwall平均21.978ms、calling-thread CPU平均8.266msを別々に記録。
+slow step例はwall841.954ms／CPU33.745ms。差の内訳は未特定でGPU時間とは扱わない。
+全回帰1449 tests成功（11 skipped）、Ruff・diff check成功。
+[Next] [r8](evaluation/p1-stability-m4-2026-10-06-r8/state.json)をprefill512で
+30分→全条件合格時8時間として開始。command・checkpoint鮮度でrunningを確認し、定期監視更新。
+実行中は資格保留、runtime編集／追加GPU負荷を避ける。
+
+English: The actual smoke passed 48/48 quality/SLO with clean shutdown. Across 614 steps,
+wall and calling-thread CPU means were 21.978ms and 8.266ms; one slow step was
+841.954ms wall versus 33.745ms CPU. The difference remains unattributed. Full regression:
+1,449 tests, 11 skipped. R8 is running with prefill512, proceeding from 30 minutes to eight
+hours only on full success; qualification remains withheld and monitoring targets R8.
+
+简体中文：实机smoke的质量／SLO为48/48，正常退出。614个step的wall与calling-thread CPU
+均值分别为21.978ms及8.266ms；一个slow step为wall841.954ms／CPU33.745ms，差值原因未知。
+全回归1449项通过，11项跳过。r8以prefill512进行30分钟试验，仅全部通过后进入8小时，
+运行中不提升资格，监控已转向r8。
