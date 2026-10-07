@@ -1,0 +1,37 @@
+{
+  "date": "2026-10-07",
+  "scope": "EventBus history replay and Python regression; no inference or energy qualification",
+  "decision": "keep",
+  "source_sha256": {
+    "vllm_apple/events.py": "8d517311bdfca02e9f30b4d6956a10daac02e1124885334fe3d8b90978fdef53",
+    "tests/test_events.py": "06b4a756f5ec7611a6aeea5405fb86d5fbeb0374c18fb7e796213a7afde6e8e1",
+    "scripts/benchmark_event_history.py": "e751d004536454c016b51289990df40fc45accd79ab30bc62117682e5c692bdd"
+  },
+  "comparison": "event-history-comparison-2026-10-07.json",
+  "target_tests": {
+    "command": "python3 -m unittest tests.test_events -v",
+    "run": 8,
+    "failed": 0
+  },
+  "regression": {
+    "command": "python3 -m unittest discover -s tests -q",
+    "run": 1463,
+    "skipped": 11,
+    "failed": 0,
+    "duration_seconds": 34.935,
+    "includes": "authenticated HTTP SSE and event schema tests"
+  },
+  "ruff": {
+    "command": "python3 -m ruff check .",
+    "passed": true
+  },
+  "long_run_started": false,
+  "long_run_start_constraint": "09:00 Asia/Tokyo",
+  "inference_speed_qualified": false,
+  "energy_measured": false,
+  "tradeoffs": [
+    "publish median at default capacity +0.042 us",
+    "10000-event shallow container +2184 bytes",
+    "single-event maximum latency not improved at every size"
+  ]
+}

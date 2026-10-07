@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 import threading
-from collections import deque
 from dataclasses import dataclass
 from datetime import datetime, timezone
+from operator import index
 from typing import Any, Iterator
 
 from .observability import current_request_id
@@ -70,7 +70,8 @@ class EventBus:
             raise ValueError("event bus limits must be positive")
         self.capacity = capacity
         self.max_subscribers = max_subscribers
-        self._events: deque[RuntimeEvent] = deque(maxlen=capacity)
+        self._history_capacity = index(capacity)
+        self._events: list[RuntimeEvent] = []
         self._sequence = 0
         self._subscribers = 0
         self._condition = threading.Condition()
@@ -91,7 +92,10 @@ class EventBus:
                 timestamp=datetime.now(timezone.utc).isoformat(),
                 payload=event_payload,
             )
-            self._events.append(event)
+            if len(self._events) < self._history_capacity:
+                self._events.append(event)
+            else:
+                self._events[(event.sequence - 1) % self._history_capacity] = event
             self._condition.notify_all()
             return event
 
@@ -124,7 +128,7 @@ class EventBus:
         while True:
             output: RuntimeEvent | None
             with self._condition:
-                oldest = self._events[0].sequence if self._events else self._sequence + 1
+                oldest = self._sequence - len(self._events) + 1
                 if next_sequence < oldest:
                     dropped = oldest - next_sequence
                     next_sequence = oldest
@@ -136,11 +140,9 @@ class EventBus:
                         payload={"dropped_events": dropped},
                     )
                 else:
-                    available = next(
-                        (event for event in self._events if event.sequence >= next_sequence),
-                        None,
-                    )
-                    if available is not None:
+                    if next_sequence <= self._sequence:
+                        # Sequence numbers are contiguous; one ring slot is enough.
+                        available = self._events[(next_sequence - 1) % self._history_capacity]
                         next_sequence = available.sequence + 1
                         output = available
                     else:

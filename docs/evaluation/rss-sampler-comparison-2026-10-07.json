@@ -1,0 +1,359 @@
+{
+  "scope": "RSS sampling only; no inference/GPU/power qualification",
+  "rows": [
+    {
+      "allocation_mib": 8,
+      "rss_agreement_pairs": [
+        [
+          26689536,
+          26689536
+        ],
+        [
+          26689536,
+          26689536
+        ],
+        [
+          26689536,
+          26689536
+        ],
+        [
+          26689536,
+          26689536
+        ],
+        [
+          26689536,
+          26689536
+        ]
+      ],
+      "maximum_difference_bytes": 0,
+      "timings": {
+        "ps": {
+          "samples": 300,
+          "median_ms": 1.818563,
+          "p95_ms": 2.249792,
+          "p99_ms": 2.423375,
+          "max_ms": 2.913125,
+          "p99_reference_only": true
+        },
+        "native": {
+          "samples": 300,
+          "median_ms": 0.000958,
+          "p95_ms": 0.001042,
+          "p99_ms": 0.002292,
+          "max_ms": 0.023375,
+          "p99_reference_only": true
+        }
+      },
+      "costs": [
+        {
+          "method": "ps",
+          "repeat": 1,
+          "parent_cpu_ms": 74.543,
+          "child_cpu_ms": 101.696,
+          "subprocesses": 100
+        },
+        {
+          "method": "native",
+          "repeat": 1,
+          "parent_cpu_ms": 0.14,
+          "child_cpu_ms": 0.0,
+          "subprocesses": 0
+        },
+        {
+          "method": "native",
+          "repeat": 2,
+          "parent_cpu_ms": 0.112,
+          "child_cpu_ms": 0.0,
+          "subprocesses": 0
+        },
+        {
+          "method": "ps",
+          "repeat": 2,
+          "parent_cpu_ms": 74.702,
+          "child_cpu_ms": 98.964,
+          "subprocesses": 100
+        },
+        {
+          "method": "ps",
+          "repeat": 3,
+          "parent_cpu_ms": 77.452,
+          "child_cpu_ms": 103.71900000000001,
+          "subprocesses": 100
+        },
+        {
+          "method": "native",
+          "repeat": 3,
+          "parent_cpu_ms": 0.133,
+          "child_cpu_ms": 0.0,
+          "subprocesses": 0
+        }
+      ]
+    },
+    {
+      "allocation_mib": 64,
+      "rss_agreement_pairs": [
+        [
+          93831168,
+          93831168
+        ],
+        [
+          93831168,
+          93831168
+        ],
+        [
+          93831168,
+          93831168
+        ],
+        [
+          93831168,
+          93831168
+        ],
+        [
+          93831168,
+          93831168
+        ]
+      ],
+      "maximum_difference_bytes": 0,
+      "timings": {
+        "ps": {
+          "samples": 300,
+          "median_ms": 1.870625,
+          "p95_ms": 2.467084,
+          "p99_ms": 2.726792,
+          "max_ms": 3.451375,
+          "p99_reference_only": true
+        },
+        "native": {
+          "samples": 300,
+          "median_ms": 0.000959,
+          "p95_ms": 0.001084,
+          "p99_ms": 0.002208,
+          "max_ms": 0.021708,
+          "p99_reference_only": true
+        }
+      },
+      "costs": [
+        {
+          "method": "ps",
+          "repeat": 1,
+          "parent_cpu_ms": 79.331,
+          "child_cpu_ms": 107.13700000000004,
+          "subprocesses": 100
+        },
+        {
+          "method": "native",
+          "repeat": 1,
+          "parent_cpu_ms": 0.132,
+          "child_cpu_ms": 0.0,
+          "subprocesses": 0
+        },
+        {
+          "method": "native",
+          "repeat": 2,
+          "parent_cpu_ms": 0.11,
+          "child_cpu_ms": 0.0,
+          "subprocesses": 0
+        },
+        {
+          "method": "ps",
+          "repeat": 2,
+          "parent_cpu_ms": 82.402,
+          "child_cpu_ms": 107.32599999999992,
+          "subprocesses": 100
+        },
+        {
+          "method": "ps",
+          "repeat": 3,
+          "parent_cpu_ms": 78.044,
+          "child_cpu_ms": 102.34800000000006,
+          "subprocesses": 100
+        },
+        {
+          "method": "native",
+          "repeat": 3,
+          "parent_cpu_ms": 0.128,
+          "child_cpu_ms": 5.551115123125783e-14,
+          "subprocesses": 0
+        }
+      ]
+    },
+    {
+      "allocation_mib": 256,
+      "rss_agreement_pairs": [
+        [
+          362299392,
+          362299392
+        ],
+        [
+          362299392,
+          362299392
+        ],
+        [
+          362299392,
+          362299392
+        ],
+        [
+          362299392,
+          362299392
+        ],
+        [
+          362299392,
+          362299392
+        ]
+      ],
+      "maximum_difference_bytes": 0,
+      "timings": {
+        "ps": {
+          "samples": 300,
+          "median_ms": 1.8538335,
+          "p95_ms": 2.329625,
+          "p99_ms": 2.553833,
+          "max_ms": 3.003333,
+          "p99_reference_only": true
+        },
+        "native": {
+          "samples": 300,
+          "median_ms": 0.001,
+          "p95_ms": 0.001083,
+          "p99_ms": 0.002333,
+          "max_ms": 0.02875,
+          "p99_reference_only": true
+        }
+      },
+      "costs": [
+        {
+          "method": "ps",
+          "repeat": 1,
+          "parent_cpu_ms": 79.288,
+          "child_cpu_ms": 101.90099999999997,
+          "subprocesses": 100
+        },
+        {
+          "method": "native",
+          "repeat": 1,
+          "parent_cpu_ms": 0.132,
+          "child_cpu_ms": 0.0,
+          "subprocesses": 0
+        },
+        {
+          "method": "native",
+          "repeat": 2,
+          "parent_cpu_ms": 0.109,
+          "child_cpu_ms": 0.0,
+          "subprocesses": 0
+        },
+        {
+          "method": "ps",
+          "repeat": 2,
+          "parent_cpu_ms": 77.333,
+          "child_cpu_ms": 101.38800000000003,
+          "subprocesses": 100
+        },
+        {
+          "method": "ps",
+          "repeat": 3,
+          "parent_cpu_ms": 79.911,
+          "child_cpu_ms": 104.36099999999993,
+          "subprocesses": 100
+        },
+        {
+          "method": "native",
+          "repeat": 3,
+          "parent_cpu_ms": 0.145,
+          "child_cpu_ms": 0.0,
+          "subprocesses": 0
+        }
+      ]
+    },
+    {
+      "allocation_mib": 512,
+      "rss_agreement_pairs": [
+        [
+          899203072,
+          899203072
+        ],
+        [
+          899203072,
+          899203072
+        ],
+        [
+          899203072,
+          899203072
+        ],
+        [
+          899203072,
+          899203072
+        ],
+        [
+          899203072,
+          899203072
+        ]
+      ],
+      "maximum_difference_bytes": 0,
+      "timings": {
+        "ps": {
+          "samples": 300,
+          "median_ms": 1.828729,
+          "p95_ms": 2.318459,
+          "p99_ms": 2.740209,
+          "max_ms": 6.903791,
+          "p99_reference_only": true
+        },
+        "native": {
+          "samples": 300,
+          "median_ms": 0.000958,
+          "p95_ms": 0.001166,
+          "p99_ms": 0.002291,
+          "max_ms": 0.025584,
+          "p99_reference_only": true
+        }
+      },
+      "costs": [
+        {
+          "method": "ps",
+          "repeat": 1,
+          "parent_cpu_ms": 77.734,
+          "child_cpu_ms": 99.77899999999995,
+          "subprocesses": 100
+        },
+        {
+          "method": "native",
+          "repeat": 1,
+          "parent_cpu_ms": 0.14,
+          "child_cpu_ms": 0.0,
+          "subprocesses": 0
+        },
+        {
+          "method": "native",
+          "repeat": 2,
+          "parent_cpu_ms": 0.115,
+          "child_cpu_ms": 0.0,
+          "subprocesses": 0
+        },
+        {
+          "method": "ps",
+          "repeat": 2,
+          "parent_cpu_ms": 87.834,
+          "child_cpu_ms": 102.79099999999985,
+          "subprocesses": 100
+        },
+        {
+          "method": "ps",
+          "repeat": 3,
+          "parent_cpu_ms": 79.871,
+          "child_cpu_ms": 101.00600000000004,
+          "subprocesses": 100
+        },
+        {
+          "method": "native",
+          "repeat": 3,
+          "parent_cpu_ms": 0.129,
+          "child_cpu_ms": 0.0,
+          "subprocesses": 0
+        }
+      ]
+    }
+  ],
+  "exited_pid_rejected": true,
+  "watts_measured": false
+}

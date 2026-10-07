@@ -12,6 +12,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from .phase_profile import ExecutionPhaseProfiler, PhaseMeasurement
+from .process_memory import resident_bytes
 from .soak import _validated_base_url
 
 MAX_SSE_LINE_BYTES = 1024 * 1024
@@ -295,14 +296,7 @@ def _resident_bytes(pid: int | None) -> int:
     if pid is None:
         return 0
     try:
-        result = subprocess.run(
-            ["/bin/ps", "-o", "rss=", "-p", str(pid)],
-            capture_output=True,
-            check=True,
-            text=True,
-            timeout=2,
-        )
-        return int(result.stdout.strip()) * 1024
+        return resident_bytes(pid)
     except (OSError, ValueError, subprocess.SubprocessError) as error:
         raise PhaseProbeError("rss_unavailable", f"unable to inspect pid {pid}") from error
 

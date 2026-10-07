@@ -1,5 +1,14 @@
 # P1 standard text candidate — 2026-10-04
 
+## RSS collectorの負荷削減：2026-10-07
+
+[Done] [RSS最適化報告](OPTIMIZATION-REPORT-2026-10-07.md)：macOSでsampleごとのps起動をなくし、
+同じRSS byte値をOS APIから読む。4規模で一致、短時間実機45/45品質・SLO・正常停止に合格。
+50 ms sampling周期・認定閾値を維持。過去のSLO超過の全原因が解消したとは扱わない。
+次回試験は新collectorを含む新しいruntime identityで記録し、旧reportをそのまま再認定しない。
+English: The native RSS collector reduces measurement overhead; it does not certify inference speed or resolve all prior failures.
+简体中文：native RSS collector减少测量开销，不代表推理加速认证或已解决全部历史失败。
+
 ## 長時間試験の開始時刻：09:00 JST
 
 ユーザー指定（2026-10-07）により、長時間試験の一連の実行は日本時間の朝9:00から開始する。

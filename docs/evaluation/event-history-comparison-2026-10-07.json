@@ -1,0 +1,843 @@
+{
+  "scope": "EventBus wrapped backlog replay; not UI or inference throughput",
+  "payload_source": "docs/evaluation/p1-stability-m4-2026-10-07-r9/30min.json",
+  "payload_source_sha256": "fe275ec125dbabbaab9be94ca19c4cafb0b15fbe44c4a643d30c104c26806c9a",
+  "implementation_sha256": {
+    "current": "8d517311bdfca02e9f30b4d6956a10daac02e1124885334fe3d8b90978fdef53",
+    "baseline": "f7cd8001f1878c5aa32b663d8a60683259885af18d0fcd9cb73570d1fa09f860"
+  },
+  "benchmark_sha256": "e751d004536454c016b51289990df40fc45accd79ab30bc62117682e5c692bdd",
+  "python": "3.10.18",
+  "debug_build": false,
+  "rows": [
+    {
+      "implementation": "baseline",
+      "capacity": 100,
+      "latency": {
+        "samples": 900,
+        "median_us": 1.25,
+        "p95_us": 2.042,
+        "p99_us": 2.167,
+        "maximum_us": 32.292
+      },
+      "runs": [
+        {
+          "wall_ms": 0.178792,
+          "cpu_ms": 0.182
+        },
+        {
+          "wall_ms": 0.159458,
+          "cpu_ms": 0.163
+        },
+        {
+          "wall_ms": 0.157041,
+          "cpu_ms": 0.158
+        },
+        {
+          "wall_ms": 0.201417,
+          "cpu_ms": 0.196
+        },
+        {
+          "wall_ms": 0.157625,
+          "cpu_ms": 0.159
+        },
+        {
+          "wall_ms": 0.144167,
+          "cpu_ms": 0.146
+        },
+        {
+          "wall_ms": 0.133709,
+          "cpu_ms": 0.135
+        },
+        {
+          "wall_ms": 0.137583,
+          "cpu_ms": 0.141
+        },
+        {
+          "wall_ms": 0.135541,
+          "cpu_ms": 0.136
+        }
+      ],
+      "publish_latency": {
+        "samples": 9000,
+        "median_us": 1.542,
+        "p95_us": 1.625,
+        "p99_us": 1.709,
+        "maximum_us": 16.417
+      },
+      "container_bytes": 1680,
+      "snapshot": {
+        "capacity": 100,
+        "retained_events": 100,
+        "latest_sequence": 9200,
+        "active_subscribers": 0,
+        "max_subscribers": 8
+      },
+      "correctness_passed": true,
+      "trial_orders": [
+        [
+          "baseline",
+          "current"
+        ],
+        [
+          "current",
+          "baseline"
+        ],
+        [
+          "baseline",
+          "current"
+        ],
+        [
+          "current",
+          "baseline"
+        ],
+        [
+          "baseline",
+          "current"
+        ],
+        [
+          "current",
+          "baseline"
+        ],
+        [
+          "baseline",
+          "current"
+        ],
+        [
+          "current",
+          "baseline"
+        ],
+        [
+          "baseline",
+          "current"
+        ]
+      ]
+    },
+    {
+      "implementation": "current",
+      "capacity": 100,
+      "latency": {
+        "samples": 900,
+        "median_us": 0.417,
+        "p95_us": 0.5,
+        "p99_us": 0.75,
+        "maximum_us": 2.708
+      },
+      "runs": [
+        {
+          "wall_ms": 0.06,
+          "cpu_ms": 0.064
+        },
+        {
+          "wall_ms": 0.060583,
+          "cpu_ms": 0.065
+        },
+        {
+          "wall_ms": 0.059542,
+          "cpu_ms": 0.06
+        },
+        {
+          "wall_ms": 0.060458,
+          "cpu_ms": 0.062
+        },
+        {
+          "wall_ms": 0.068709,
+          "cpu_ms": 0.073
+        },
+        {
+          "wall_ms": 0.059209,
+          "cpu_ms": 0.061
+        },
+        {
+          "wall_ms": 0.065667,
+          "cpu_ms": 0.067
+        },
+        {
+          "wall_ms": 0.058959,
+          "cpu_ms": 0.06
+        },
+        {
+          "wall_ms": 0.058583,
+          "cpu_ms": 0.063
+        }
+      ],
+      "publish_latency": {
+        "samples": 9000,
+        "median_us": 1.583,
+        "p95_us": 1.708,
+        "p99_us": 1.792,
+        "maximum_us": 20.584
+      },
+      "container_bytes": 920,
+      "snapshot": {
+        "capacity": 100,
+        "retained_events": 100,
+        "latest_sequence": 9200,
+        "active_subscribers": 0,
+        "max_subscribers": 8
+      },
+      "correctness_passed": true,
+      "trial_orders": [
+        [
+          "baseline",
+          "current"
+        ],
+        [
+          "current",
+          "baseline"
+        ],
+        [
+          "baseline",
+          "current"
+        ],
+        [
+          "current",
+          "baseline"
+        ],
+        [
+          "baseline",
+          "current"
+        ],
+        [
+          "current",
+          "baseline"
+        ],
+        [
+          "baseline",
+          "current"
+        ],
+        [
+          "current",
+          "baseline"
+        ],
+        [
+          "baseline",
+          "current"
+        ]
+      ]
+    },
+    {
+      "implementation": "baseline",
+      "capacity": 256,
+      "latency": {
+        "samples": 2304,
+        "median_us": 2.042,
+        "p95_us": 3.417,
+        "p99_us": 3.541,
+        "maximum_us": 3.625
+      },
+      "runs": [
+        {
+          "wall_ms": 0.575459,
+          "cpu_ms": 0.578
+        },
+        {
+          "wall_ms": 0.568334,
+          "cpu_ms": 0.57
+        },
+        {
+          "wall_ms": 0.569167,
+          "cpu_ms": 0.573
+        },
+        {
+          "wall_ms": 0.569,
+          "cpu_ms": 0.569
+        },
+        {
+          "wall_ms": 0.561708,
+          "cpu_ms": 0.563
+        },
+        {
+          "wall_ms": 0.577084,
+          "cpu_ms": 0.579
+        },
+        {
+          "wall_ms": 0.568333,
+          "cpu_ms": 0.569
+        },
+        {
+          "wall_ms": 0.569917,
+          "cpu_ms": 0.571
+        },
+        {
+          "wall_ms": 0.570084,
+          "cpu_ms": 0.572
+        }
+      ],
+      "publish_latency": {
+        "samples": 9000,
+        "median_us": 1.541,
+        "p95_us": 1.625,
+        "p99_us": 1.708,
+        "maximum_us": 17.541
+      },
+      "container_bytes": 2736,
+      "snapshot": {
+        "capacity": 256,
+        "retained_events": 256,
+        "latest_sequence": 9512,
+        "active_subscribers": 0,
+        "max_subscribers": 8
+      },
+      "correctness_passed": true,
+      "trial_orders": [
+        [
+          "baseline",
+          "current"
+        ],
+        [
+          "current",
+          "baseline"
+        ],
+        [
+          "baseline",
+          "current"
+        ],
+        [
+          "current",
+          "baseline"
+        ],
+        [
+          "baseline",
+          "current"
+        ],
+        [
+          "current",
+          "baseline"
+        ],
+        [
+          "baseline",
+          "current"
+        ],
+        [
+          "current",
+          "baseline"
+        ],
+        [
+          "baseline",
+          "current"
+        ]
+      ]
+    },
+    {
+      "implementation": "current",
+      "capacity": 256,
+      "latency": {
+        "samples": 2304,
+        "median_us": 0.375,
+        "p95_us": 0.417,
+        "p99_us": 0.5,
+        "maximum_us": 7.792
+      },
+      "runs": [
+        {
+          "wall_ms": 0.149917,
+          "cpu_ms": 0.153
+        },
+        {
+          "wall_ms": 0.131083,
+          "cpu_ms": 0.135
+        },
+        {
+          "wall_ms": 0.1375,
+          "cpu_ms": 0.137
+        },
+        {
+          "wall_ms": 0.133625,
+          "cpu_ms": 0.135
+        },
+        {
+          "wall_ms": 0.141292,
+          "cpu_ms": 0.143
+        },
+        {
+          "wall_ms": 0.133125,
+          "cpu_ms": 0.134
+        },
+        {
+          "wall_ms": 0.138167,
+          "cpu_ms": 0.139
+        },
+        {
+          "wall_ms": 0.141292,
+          "cpu_ms": 0.144
+        },
+        {
+          "wall_ms": 0.135875,
+          "cpu_ms": 0.137
+        }
+      ],
+      "publish_latency": {
+        "samples": 9000,
+        "median_us": 1.583,
+        "p95_us": 1.667,
+        "p99_us": 1.916,
+        "maximum_us": 46.25
+      },
+      "container_bytes": 2200,
+      "snapshot": {
+        "capacity": 256,
+        "retained_events": 256,
+        "latest_sequence": 9512,
+        "active_subscribers": 0,
+        "max_subscribers": 8
+      },
+      "correctness_passed": true,
+      "trial_orders": [
+        [
+          "baseline",
+          "current"
+        ],
+        [
+          "current",
+          "baseline"
+        ],
+        [
+          "baseline",
+          "current"
+        ],
+        [
+          "current",
+          "baseline"
+        ],
+        [
+          "baseline",
+          "current"
+        ],
+        [
+          "current",
+          "baseline"
+        ],
+        [
+          "baseline",
+          "current"
+        ],
+        [
+          "current",
+          "baseline"
+        ],
+        [
+          "baseline",
+          "current"
+        ]
+      ]
+    },
+    {
+      "implementation": "baseline",
+      "capacity": 1000,
+      "latency": {
+        "samples": 9000,
+        "median_us": 6.209,
+        "p95_us": 11.458,
+        "p99_us": 11.917,
+        "maximum_us": 22.625
+      },
+      "runs": [
+        {
+          "wall_ms": 6.430333,
+          "cpu_ms": 6.432
+        },
+        {
+          "wall_ms": 6.363667,
+          "cpu_ms": 6.365
+        },
+        {
+          "wall_ms": 6.453375,
+          "cpu_ms": 6.45
+        },
+        {
+          "wall_ms": 6.416959,
+          "cpu_ms": 6.417
+        },
+        {
+          "wall_ms": 6.491916,
+          "cpu_ms": 6.493
+        },
+        {
+          "wall_ms": 6.410666,
+          "cpu_ms": 6.411
+        },
+        {
+          "wall_ms": 6.385,
+          "cpu_ms": 6.386
+        },
+        {
+          "wall_ms": 6.431291,
+          "cpu_ms": 6.426
+        },
+        {
+          "wall_ms": 6.361583,
+          "cpu_ms": 6.364
+        }
+      ],
+      "publish_latency": {
+        "samples": 9000,
+        "median_us": 1.542,
+        "p95_us": 1.667,
+        "p99_us": 1.792,
+        "maximum_us": 17.459
+      },
+      "container_bytes": 9072,
+      "snapshot": {
+        "capacity": 1000,
+        "retained_events": 1000,
+        "latest_sequence": 11000,
+        "active_subscribers": 0,
+        "max_subscribers": 8
+      },
+      "correctness_passed": true,
+      "trial_orders": [
+        [
+          "baseline",
+          "current"
+        ],
+        [
+          "current",
+          "baseline"
+        ],
+        [
+          "baseline",
+          "current"
+        ],
+        [
+          "current",
+          "baseline"
+        ],
+        [
+          "baseline",
+          "current"
+        ],
+        [
+          "current",
+          "baseline"
+        ],
+        [
+          "baseline",
+          "current"
+        ],
+        [
+          "current",
+          "baseline"
+        ],
+        [
+          "baseline",
+          "current"
+        ]
+      ]
+    },
+    {
+      "implementation": "current",
+      "capacity": 1000,
+      "latency": {
+        "samples": 9000,
+        "median_us": 0.375,
+        "p95_us": 0.417,
+        "p99_us": 0.5,
+        "maximum_us": 31.75
+      },
+      "runs": [
+        {
+          "wall_ms": 0.531458,
+          "cpu_ms": 0.533
+        },
+        {
+          "wall_ms": 0.518584,
+          "cpu_ms": 0.522
+        },
+        {
+          "wall_ms": 0.521416,
+          "cpu_ms": 0.523
+        },
+        {
+          "wall_ms": 0.545792,
+          "cpu_ms": 0.546
+        },
+        {
+          "wall_ms": 0.536708,
+          "cpu_ms": 0.538
+        },
+        {
+          "wall_ms": 0.528833,
+          "cpu_ms": 0.53
+        },
+        {
+          "wall_ms": 0.521875,
+          "cpu_ms": 0.522
+        },
+        {
+          "wall_ms": 0.5225,
+          "cpu_ms": 0.525
+        },
+        {
+          "wall_ms": 0.550959,
+          "cpu_ms": 0.552
+        }
+      ],
+      "publish_latency": {
+        "samples": 9000,
+        "median_us": 1.583,
+        "p95_us": 1.667,
+        "p99_us": 1.792,
+        "maximum_us": 17.833
+      },
+      "container_bytes": 8856,
+      "snapshot": {
+        "capacity": 1000,
+        "retained_events": 1000,
+        "latest_sequence": 11000,
+        "active_subscribers": 0,
+        "max_subscribers": 8
+      },
+      "correctness_passed": true,
+      "trial_orders": [
+        [
+          "baseline",
+          "current"
+        ],
+        [
+          "current",
+          "baseline"
+        ],
+        [
+          "baseline",
+          "current"
+        ],
+        [
+          "current",
+          "baseline"
+        ],
+        [
+          "baseline",
+          "current"
+        ],
+        [
+          "current",
+          "baseline"
+        ],
+        [
+          "baseline",
+          "current"
+        ],
+        [
+          "current",
+          "baseline"
+        ],
+        [
+          "baseline",
+          "current"
+        ]
+      ]
+    },
+    {
+      "implementation": "baseline",
+      "capacity": 10000,
+      "latency": {
+        "samples": 90000,
+        "median_us": 59.25,
+        "p95_us": 111.875,
+        "p99_us": 133.75,
+        "maximum_us": 4707.459
+      },
+      "runs": [
+        {
+          "wall_ms": 586.917167,
+          "cpu_ms": 584.811
+        },
+        {
+          "wall_ms": 626.752416,
+          "cpu_ms": 608.429
+        },
+        {
+          "wall_ms": 636.527667,
+          "cpu_ms": 613.604
+        },
+        {
+          "wall_ms": 615.028666,
+          "cpu_ms": 612.76
+        },
+        {
+          "wall_ms": 602.448333,
+          "cpu_ms": 601.528
+        },
+        {
+          "wall_ms": 595.915333,
+          "cpu_ms": 595.248
+        },
+        {
+          "wall_ms": 590.959875,
+          "cpu_ms": 590.127
+        },
+        {
+          "wall_ms": 599.766167,
+          "cpu_ms": 599.343
+        },
+        {
+          "wall_ms": 594.349917,
+          "cpu_ms": 594.095
+        }
+      ],
+      "publish_latency": {
+        "samples": 9000,
+        "median_us": 1.583,
+        "p95_us": 1.709,
+        "p99_us": 2.834,
+        "maximum_us": 33.792
+      },
+      "container_bytes": 82992,
+      "snapshot": {
+        "capacity": 10000,
+        "retained_events": 10000,
+        "latest_sequence": 29000,
+        "active_subscribers": 0,
+        "max_subscribers": 8
+      },
+      "correctness_passed": true,
+      "trial_orders": [
+        [
+          "baseline",
+          "current"
+        ],
+        [
+          "current",
+          "baseline"
+        ],
+        [
+          "baseline",
+          "current"
+        ],
+        [
+          "current",
+          "baseline"
+        ],
+        [
+          "baseline",
+          "current"
+        ],
+        [
+          "current",
+          "baseline"
+        ],
+        [
+          "baseline",
+          "current"
+        ],
+        [
+          "current",
+          "baseline"
+        ],
+        [
+          "baseline",
+          "current"
+        ]
+      ]
+    },
+    {
+      "implementation": "current",
+      "capacity": 10000,
+      "latency": {
+        "samples": 90000,
+        "median_us": 0.375,
+        "p95_us": 0.458,
+        "p99_us": 1.083,
+        "maximum_us": 621.083
+      },
+      "runs": [
+        {
+          "wall_ms": 5.273,
+          "cpu_ms": 5.255
+        },
+        {
+          "wall_ms": 7.073166,
+          "cpu_ms": 6.5
+        },
+        {
+          "wall_ms": 7.72575,
+          "cpu_ms": 6.516
+        },
+        {
+          "wall_ms": 5.430792,
+          "cpu_ms": 5.367
+        },
+        {
+          "wall_ms": 5.347375,
+          "cpu_ms": 5.339
+        },
+        {
+          "wall_ms": 5.18475,
+          "cpu_ms": 5.186
+        },
+        {
+          "wall_ms": 5.252792,
+          "cpu_ms": 5.253
+        },
+        {
+          "wall_ms": 5.16,
+          "cpu_ms": 5.16
+        },
+        {
+          "wall_ms": 5.409667,
+          "cpu_ms": 5.405
+        }
+      ],
+      "publish_latency": {
+        "samples": 9000,
+        "median_us": 1.583,
+        "p95_us": 1.75,
+        "p99_us": 3.75,
+        "maximum_us": 79.0
+      },
+      "container_bytes": 85176,
+      "snapshot": {
+        "capacity": 10000,
+        "retained_events": 10000,
+        "latest_sequence": 29000,
+        "active_subscribers": 0,
+        "max_subscribers": 8
+      },
+      "correctness_passed": true,
+      "trial_orders": [
+        [
+          "baseline",
+          "current"
+        ],
+        [
+          "current",
+          "baseline"
+        ],
+        [
+          "baseline",
+          "current"
+        ],
+        [
+          "current",
+          "baseline"
+        ],
+        [
+          "baseline",
+          "current"
+        ],
+        [
+          "current",
+          "baseline"
+        ],
+        [
+          "baseline",
+          "current"
+        ],
+        [
+          "current",
+          "baseline"
+        ],
+        [
+          "baseline",
+          "current"
+        ]
+      ]
+    }
+  ],
+  "profiles": {
+    "baseline": "         2817 function calls (2305 primitive calls) in 0.001 seconds\n\n   Ordered by: cumulative time\n\n   ncalls  tottime  percall  cumtime  percall filename:lineno(function)\n  768/256    0.000    0.000    0.001    0.000 {built-in method builtins.next}\n      256    0.000    0.000    0.001    0.000 /tmp/vllm-apple-events-before-20261007.py:44(__next__)\n      256    0.000    0.000    0.001    0.000 /tmp/vllm-apple-events-before-20261007.py:122(_iterate)\n      512    0.001    0.000    0.001    0.000 /tmp/vllm-apple-events-before-20261007.py:140(<genexpr>)\n      256    0.000    0.000    0.000    0.000 /Users/littlebuddha/.local/share/uv/python/cpython-3.10.18-macos-aarch64-none/lib/python3.10/threading.py:264(__enter__)\n      256    0.000    0.000    0.000    0.000 /Users/littlebuddha/.local/share/uv/python/cpython-3.10.18-macos-aarch64-none/lib/python3.10/threading.py:267(__exit__)\n      256    0.000    0.000    0.000    0.000 {method '__enter__' of '_thread.RLock' objects}\n      256    0.000    0.000    0.000    0.000 {method '__exit__' of '_thread.RLock' objects}\n        1    0.000    0.000    0.000    0.000 {method 'disable' of '_lsprof.Profiler' objects}\n\n\n",
+    "current": "         2305 function calls (2049 primitive calls) in 0.000 seconds\n\n   Ordered by: cumulative time\n\n   ncalls  tottime  percall  cumtime  percall filename:lineno(function)\n  512/256    0.000    0.000    0.000    0.000 {built-in method builtins.next}\n      256    0.000    0.000    0.000    0.000 /Users/Shared/Program/vLLM-apple/vllm_apple/events.py:44(__next__)\n      256    0.000    0.000    0.000    0.000 /Users/Shared/Program/vLLM-apple/vllm_apple/events.py:126(_iterate)\n      256    0.000    0.000    0.000    0.000 /Users/littlebuddha/.local/share/uv/python/cpython-3.10.18-macos-aarch64-none/lib/python3.10/threading.py:264(__enter__)\n      256    0.000    0.000    0.000    0.000 /Users/littlebuddha/.local/share/uv/python/cpython-3.10.18-macos-aarch64-none/lib/python3.10/threading.py:267(__exit__)\n      256    0.000    0.000    0.000    0.000 {method '__enter__' of '_thread.RLock' objects}\n      256    0.000    0.000    0.000    0.000 {method '__exit__' of '_thread.RLock' objects}\n      256    0.000    0.000    0.000    0.000 {built-in method builtins.len}\n        1    0.000    0.000    0.000    0.000 {method 'disable' of '_lsprof.Profiler' objects}\n\n\n"
+  },
+  "watts_measured": false
+}

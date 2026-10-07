@@ -2,6 +2,27 @@
 
 更新日：2026-10-07
 
+## 指示書の未着手項目：イベント履歴の全走査削減
+
+[Done] [EventBus実測・改善](EVENT-HISTORY-OPTIMIZATION-2026-10-07.md)：1件ごとの履歴全走査を直接参照へ変更し、全再送をO(N²)からO(N)へ。
+9回交互比較で標準256件の再送中央値0.569→0.138 ms（75.84%減）、10,000件599.766→5.347 ms（99.11%減）。
+全規模p95／p99改善、最大遅延は全規模での改善を認定せず。登録中央値+0.042 µs、10,000件container size+2.6%の代償を記録。
+順序・gap・heartbeat・保持上限を維持。全Python回帰1463 tests成功（11 skip）、Ruff成功。
+[Next] P1は次回09:00 JST開始の長時間試験で再検証。履歴取得の改善を推論速度・電力・長時間安定性の認定に広げない。
+[Later] supervisor polling、Swift main thread／SSEの実利用profile。未計測の変更は先に採用しない。
+English: [Done] Measured direct ring access; default replay median fell 75.84%. [Next] P1 qualification at 09:00 JST. [Later] Profile supervisor/UI paths; inference speed and energy remain unqualified.
+简体中文：[Done] 实测直接ring访问，默认重放中位耗时减少75.84%。[Next] 日本时间09:00进行P1认证。[Later] supervisor／UI profile；推理速度及电能未认证。
+
+## 指示書に基づく単一hotspot改善：RSS計測
+
+[Done] [構造調査・profile・前後比較](OPTIMIZATION-REPORT-2026-10-07.md)：macOS RSS取得をsampleごとのps起動からOS APIへ変更。
+4規模でRSS一致、1200 sampleのprocess起動1200→0、中央値約1.7–1.9 ms→0.001 ms。
+品質・SLOの短時間実機確認45/45、正常停止・identity不変。全回帰1457 tests成功（11 skip）、Ruff成功。
+GPU／モデルメモリは変更せず、推論速度・電力改善は未認定。
+[Next] 朝9:00開始の次回P1長時間試験で新collectorを含むidentityを検証する。
+English: [Done] Measured and removed per-sample ps spawning on macOS. [Next] P1 long-run verification at 09:00 JST; no inference-speed or energy claim.
+简体中文：[Done] 测量并消除macOS每次RSS采样启动ps的开销。[Next] 日本时间09:00进行P1长期验证，不宣称推理速度或功率提升。
+
 ## 速度・メモリ・待機処理の効率化：2026-10-07
 
 [Done] [効率化候補](P1-EFFICIENCY.md)：新要求受付のscheduler budget 500→50 ms、空idle queueの通知待ち、

@@ -1,0 +1,364 @@
+{
+  "scope": "RSS sampling only; no inference/GPU/power qualification",
+  "rows": [
+    {
+      "allocation_mib": 8,
+      "rss_agreement_pairs": [
+        [
+          26755072,
+          26755072
+        ],
+        [
+          26755072,
+          26755072
+        ],
+        [
+          26755072,
+          26755072
+        ],
+        [
+          26755072,
+          26755072
+        ],
+        [
+          26755072,
+          26755072
+        ]
+      ],
+      "maximum_difference_bytes": 0,
+      "timings": {
+        "ps": {
+          "samples": 300,
+          "median_ms": 1.6832705,
+          "p95_ms": 1.916291,
+          "p99_ms": 2.465292,
+          "max_ms": 3.355708,
+          "p99_reference_only": true
+        },
+        "native": {
+          "samples": 300,
+          "median_ms": 0.000917,
+          "p95_ms": 0.001,
+          "p99_ms": 0.002333,
+          "max_ms": 0.020791,
+          "p99_reference_only": true
+        }
+      },
+      "costs": [
+        {
+          "method": "ps",
+          "repeat": 1,
+          "parent_cpu_ms": 67.48,
+          "child_cpu_ms": 91.04899999999999,
+          "subprocesses": 100
+        },
+        {
+          "method": "native",
+          "repeat": 1,
+          "parent_cpu_ms": 0.128,
+          "child_cpu_ms": 0.0,
+          "subprocesses": 0
+        },
+        {
+          "method": "native",
+          "repeat": 2,
+          "parent_cpu_ms": 0.105,
+          "child_cpu_ms": 0.0,
+          "subprocesses": 0
+        },
+        {
+          "method": "ps",
+          "repeat": 2,
+          "parent_cpu_ms": 67.385,
+          "child_cpu_ms": 88.23199999999999,
+          "subprocesses": 100
+        },
+        {
+          "method": "ps",
+          "repeat": 3,
+          "parent_cpu_ms": 69.221,
+          "child_cpu_ms": 94.63700000000001,
+          "subprocesses": 100
+        },
+        {
+          "method": "native",
+          "repeat": 3,
+          "parent_cpu_ms": 0.125,
+          "child_cpu_ms": 2.7755575615628914e-14,
+          "subprocesses": 0
+        }
+      ]
+    },
+    {
+      "allocation_mib": 64,
+      "rss_agreement_pairs": [
+        [
+          93896704,
+          93896704
+        ],
+        [
+          93896704,
+          93896704
+        ],
+        [
+          93896704,
+          93896704
+        ],
+        [
+          93896704,
+          93896704
+        ],
+        [
+          93896704,
+          93896704
+        ]
+      ],
+      "maximum_difference_bytes": 0,
+      "timings": {
+        "ps": {
+          "samples": 300,
+          "median_ms": 1.8245415,
+          "p95_ms": 2.802333,
+          "p99_ms": 3.717458,
+          "max_ms": 8.68775,
+          "p99_reference_only": true
+        },
+        "native": {
+          "samples": 300,
+          "median_ms": 0.000958,
+          "p95_ms": 0.001084,
+          "p99_ms": 0.002292,
+          "max_ms": 0.043292,
+          "p99_reference_only": true
+        }
+      },
+      "costs": [
+        {
+          "method": "ps",
+          "repeat": 1,
+          "parent_cpu_ms": 83.443,
+          "child_cpu_ms": 117.78400000000005,
+          "subprocesses": 100
+        },
+        {
+          "method": "native",
+          "repeat": 1,
+          "parent_cpu_ms": 0.154,
+          "child_cpu_ms": 0.0,
+          "subprocesses": 0
+        },
+        {
+          "method": "native",
+          "repeat": 2,
+          "parent_cpu_ms": 0.107,
+          "child_cpu_ms": 0.0,
+          "subprocesses": 0
+        },
+        {
+          "method": "ps",
+          "repeat": 2,
+          "parent_cpu_ms": 74.017,
+          "child_cpu_ms": 102.2059999999999,
+          "subprocesses": 100
+        },
+        {
+          "method": "ps",
+          "repeat": 3,
+          "parent_cpu_ms": 73.756,
+          "child_cpu_ms": 97.4049999999999,
+          "subprocesses": 100
+        },
+        {
+          "method": "native",
+          "repeat": 3,
+          "parent_cpu_ms": 0.132,
+          "child_cpu_ms": -5.551115123125783e-14,
+          "subprocesses": 0
+        }
+      ]
+    },
+    {
+      "allocation_mib": 256,
+      "rss_agreement_pairs": [
+        [
+          362364928,
+          362364928
+        ],
+        [
+          362364928,
+          362364928
+        ],
+        [
+          362364928,
+          362364928
+        ],
+        [
+          362364928,
+          362364928
+        ],
+        [
+          362364928,
+          362364928
+        ]
+      ],
+      "maximum_difference_bytes": 0,
+      "timings": {
+        "ps": {
+          "samples": 300,
+          "median_ms": 1.7681255,
+          "p95_ms": 2.513,
+          "p99_ms": 3.800625,
+          "max_ms": 7.802583,
+          "p99_reference_only": true
+        },
+        "native": {
+          "samples": 300,
+          "median_ms": 0.000958,
+          "p95_ms": 0.001166,
+          "p99_ms": 0.002459,
+          "max_ms": 0.021417,
+          "p99_reference_only": true
+        }
+      },
+      "costs": [
+        {
+          "method": "ps",
+          "repeat": 1,
+          "parent_cpu_ms": 83.648,
+          "child_cpu_ms": 112.5139999999999,
+          "subprocesses": 100
+        },
+        {
+          "method": "native",
+          "repeat": 1,
+          "parent_cpu_ms": 0.126,
+          "child_cpu_ms": -5.551115123125783e-14,
+          "subprocesses": 0
+        },
+        {
+          "method": "native",
+          "repeat": 2,
+          "parent_cpu_ms": 0.111,
+          "child_cpu_ms": -5.551115123125783e-14,
+          "subprocesses": 0
+        },
+        {
+          "method": "ps",
+          "repeat": 2,
+          "parent_cpu_ms": 73.018,
+          "child_cpu_ms": 96.63400000000006,
+          "subprocesses": 100
+        },
+        {
+          "method": "ps",
+          "repeat": 3,
+          "parent_cpu_ms": 70.245,
+          "child_cpu_ms": 92.33800000000014,
+          "subprocesses": 100
+        },
+        {
+          "method": "native",
+          "repeat": 3,
+          "parent_cpu_ms": 0.13,
+          "child_cpu_ms": 1.1102230246251565e-13,
+          "subprocesses": 0
+        }
+      ]
+    },
+    {
+      "allocation_mib": 512,
+      "rss_agreement_pairs": [
+        [
+          899268608,
+          899268608
+        ],
+        [
+          899268608,
+          899268608
+        ],
+        [
+          899268608,
+          899268608
+        ],
+        [
+          899268608,
+          899268608
+        ],
+        [
+          899268608,
+          899268608
+        ]
+      ],
+      "maximum_difference_bytes": 0,
+      "timings": {
+        "ps": {
+          "samples": 300,
+          "median_ms": 1.850396,
+          "p95_ms": 2.621917,
+          "p99_ms": 3.312167,
+          "max_ms": 5.91075,
+          "p99_reference_only": true
+        },
+        "native": {
+          "samples": 300,
+          "median_ms": 0.000917,
+          "p95_ms": 0.001083,
+          "p99_ms": 0.003166,
+          "max_ms": 0.022958,
+          "p99_reference_only": true
+        }
+      },
+      "costs": [
+        {
+          "method": "ps",
+          "repeat": 1,
+          "parent_cpu_ms": 81.665,
+          "child_cpu_ms": 108.21099999999994,
+          "subprocesses": 100
+        },
+        {
+          "method": "native",
+          "repeat": 1,
+          "parent_cpu_ms": 0.136,
+          "child_cpu_ms": -1.1102230246251565e-13,
+          "subprocesses": 0
+        },
+        {
+          "method": "native",
+          "repeat": 2,
+          "parent_cpu_ms": 0.112,
+          "child_cpu_ms": -1.1102230246251565e-13,
+          "subprocesses": 0
+        },
+        {
+          "method": "ps",
+          "repeat": 2,
+          "parent_cpu_ms": 87.3,
+          "child_cpu_ms": 109.54300000000006,
+          "subprocesses": 100
+        },
+        {
+          "method": "ps",
+          "repeat": 3,
+          "parent_cpu_ms": 77.274,
+          "child_cpu_ms": 100.294,
+          "subprocesses": 100
+        },
+        {
+          "method": "native",
+          "repeat": 3,
+          "parent_cpu_ms": 0.118,
+          "child_cpu_ms": 0.0,
+          "subprocesses": 0
+        }
+      ]
+    }
+  ],
+  "exited_pid_rejected": true,
+  "watts_measured": false,
+  "python_version": "3.10.18",
+  "python_debug_build": false,
+  "system": "macOS-27.0.1-arm64-arm-64bit",
+  "script_sha256": "439e78ee1dd8a97f8bbeb6cc9bd4b063736a6263b108206d54d5f207069a366c",
+  "sampler_sha256": "2fbe050cfdbaa209d8066975907813d755c6ce2fd790ed73ffb6940d159cf911"
+}

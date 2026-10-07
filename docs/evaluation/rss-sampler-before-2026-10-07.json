@@ -1,0 +1,12 @@
+{
+  "samples": 100,
+  "wall_median_ms": 1.7313545,
+  "wall_p95_ms": 2.758792,
+  "wall_p99_ms": 3.730375,
+  "wall_max_ms": 3.857791,
+  "parent_cpu_ms": 77.207,
+  "child_cpu_ms": 100.84499999999998,
+  "subprocesses": 100,
+  "profile": "         19605 function calls in 0.184 seconds\n\n   Ordered by: cumulative time\n   List reduced from 104 to 8 due to restriction <8>\n\n   ncalls  tottime  percall  cumtime  percall filename:lineno(function)\n      100    0.001    0.000    0.184    0.002 /Users/Shared/Program/vLLM-apple/vllm_apple/phase_probe.py:294(_resident_bytes)\n      100    0.007    0.000    0.183    0.002 /Users/littlebuddha/.local/share/uv/python/cpython-3.10.18-macos-aarch64-none/lib/python3.10/subprocess.py:461(run)\n      100    0.002    0.000    0.095    0.001 /Users/littlebuddha/.local/share/uv/python/cpython-3.10.18-macos-aarch64-none/lib/python3.10/subprocess.py:758(__init__)\n      100    0.007    0.000    0.090    0.001 /Users/littlebuddha/.local/share/uv/python/cpython-3.10.18-macos-aarch64-none/lib/python3.10/subprocess.py:1703(_execute_child)\n      100    0.001    0.000    0.081    0.001 /Users/littlebuddha/.local/share/uv/python/cpython-3.10.18-macos-aarch64-none/lib/python3.10/subprocess.py:1110(communicate)\n      100    0.004    0.000    0.080    0.001 /Users/littlebuddha/.local/share/uv/python/cpython-3.10.18-macos-aarch64-none/lib/python3.10/subprocess.py:1968(_communicate)\n      200    0.001    0.000    0.070    0.000 /Users/littlebuddha/.local/share/uv/python/cpython-3.10.18-macos-aarch64-none/lib/python3.10/selectors.py:403(select)\n      200    0.069    0.000    0.069    0.000 {method 'poll' of 'select.poll' objects}\n\n\n",
+  "scope": "RSS sampler only; not inference throughput"
+}

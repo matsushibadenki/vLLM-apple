@@ -1,0 +1,145 @@
+{
+  "scope": "EventBus wrapped backlog replay; not UI or inference throughput",
+  "payload_source": "docs/evaluation/p1-stability-m4-2026-10-07-r9/30min.json",
+  "payload_source_sha256": "fe275ec125dbabbaab9be94ca19c4cafb0b15fbe44c4a643d30c104c26806c9a",
+  "implementation_sha256": "8d517311bdfca02e9f30b4d6956a10daac02e1124885334fe3d8b90978fdef53",
+  "benchmark_sha256": "92674fd4648c680087bcb1de3fb522587bc90bf836556fc8130e8b3f8caa468f",
+  "python": "3.10.18",
+  "debug_build": false,
+  "rows": [
+    {
+      "capacity": 100,
+      "latency": {
+        "samples": 300,
+        "median_us": 0.458,
+        "p95_us": 0.5,
+        "p99_us": 0.916,
+        "maximum_us": 75.125
+      },
+      "runs": [
+        {
+          "wall_ms": 0.1615,
+          "cpu_ms": 0.095
+        },
+        {
+          "wall_ms": 0.063209,
+          "cpu_ms": 0.064
+        },
+        {
+          "wall_ms": 0.062125,
+          "cpu_ms": 0.062
+        }
+      ],
+      "container_bytes": 920,
+      "snapshot": {
+        "capacity": 100,
+        "retained_events": 100,
+        "latest_sequence": 200,
+        "active_subscribers": 0,
+        "max_subscribers": 8
+      },
+      "correctness_passed": true
+    },
+    {
+      "capacity": 256,
+      "latency": {
+        "samples": 768,
+        "median_us": 0.459,
+        "p95_us": 1.0,
+        "p99_us": 12.208,
+        "maximum_us": 33.083
+      },
+      "runs": [
+        {
+          "wall_ms": 0.331666,
+          "cpu_ms": 0.273
+        },
+        {
+          "wall_ms": 0.252167,
+          "cpu_ms": 0.215
+        },
+        {
+          "wall_ms": 0.280291,
+          "cpu_ms": 0.182
+        }
+      ],
+      "container_bytes": 2200,
+      "snapshot": {
+        "capacity": 256,
+        "retained_events": 256,
+        "latest_sequence": 512,
+        "active_subscribers": 0,
+        "max_subscribers": 8
+      },
+      "correctness_passed": true
+    },
+    {
+      "capacity": 1000,
+      "latency": {
+        "samples": 3000,
+        "median_us": 0.458,
+        "p95_us": 0.916,
+        "p99_us": 1.125,
+        "maximum_us": 79.417
+      },
+      "runs": [
+        {
+          "wall_ms": 1.053917,
+          "cpu_ms": 0.796
+        },
+        {
+          "wall_ms": 0.698625,
+          "cpu_ms": 0.628
+        },
+        {
+          "wall_ms": 0.775834,
+          "cpu_ms": 0.688
+        }
+      ],
+      "container_bytes": 8856,
+      "snapshot": {
+        "capacity": 1000,
+        "retained_events": 1000,
+        "latest_sequence": 2000,
+        "active_subscribers": 0,
+        "max_subscribers": 8
+      },
+      "correctness_passed": true
+    },
+    {
+      "capacity": 10000,
+      "latency": {
+        "samples": 30000,
+        "median_us": 0.875,
+        "p95_us": 1.083,
+        "p99_us": 1.375,
+        "maximum_us": 323.792
+      },
+      "runs": [
+        {
+          "wall_ms": 11.32375,
+          "cpu_ms": 8.836
+        },
+        {
+          "wall_ms": 12.401125,
+          "cpu_ms": 11.641
+        },
+        {
+          "wall_ms": 12.144083,
+          "cpu_ms": 11.105
+        }
+      ],
+      "container_bytes": 85176,
+      "snapshot": {
+        "capacity": 10000,
+        "retained_events": 10000,
+        "latest_sequence": 20000,
+        "active_subscribers": 0,
+        "max_subscribers": 8
+      },
+      "correctness_passed": true
+    }
+  ],
+  "profile": "         2305 function calls (2049 primitive calls) in 0.000 seconds\n\n   Ordered by: cumulative time\n   List reduced from 9 to 8 due to restriction <8>\n\n   ncalls  tottime  percall  cumtime  percall filename:lineno(function)\n  512/256    0.000    0.000    0.000    0.000 {built-in method builtins.next}\n      256    0.000    0.000    0.000    0.000 /Users/Shared/Program/vLLM-apple/vllm_apple/events.py:44(__next__)\n      256    0.000    0.000    0.000    0.000 /Users/Shared/Program/vLLM-apple/vllm_apple/events.py:126(_iterate)\n      256    0.000    0.000    0.000    0.000 /Users/littlebuddha/.local/share/uv/python/cpython-3.10.18-macos-aarch64-none/lib/python3.10/threading.py:267(__exit__)\n      256    0.000    0.000    0.000    0.000 /Users/littlebuddha/.local/share/uv/python/cpython-3.10.18-macos-aarch64-none/lib/python3.10/threading.py:264(__enter__)\n      256    0.000    0.000    0.000    0.000 {method '__enter__' of '_thread.RLock' objects}\n      256    0.000    0.000    0.000    0.000 {method '__exit__' of '_thread.RLock' objects}\n      256    0.000    0.000    0.000    0.000 {built-in method builtins.len}\n\n\n",
+  "watts_measured": false
+}
