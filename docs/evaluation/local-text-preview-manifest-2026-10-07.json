@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "artifact": "vllm_apple-0.1.0-py3-none-any.whl",
+  "sha256": "21ecc6e5643fe2bedb0712b9471b9d76a4c28e84f8af3d23005e36811771eea0",
+  "scope": "local text preview, M4/32 GiB, pinned Gemma2 2B 4-bit",
+  "created_date": "2026-10-07",
+  "preview_validation_passed": true,
+  "production_qualified": false,
+  "performance_qualified": false,
+  "public_release_qualified": false,
+  "source_commit": "4ac1b2ac1d7f872f90a96f775de2054b5e6aaa0c",
+  "source_tree_dirty": true,
+  "source_sha256": {
+    "vllm_apple/local_text.py": "26f0bcc5b6703b07a9f9f01ebd29d04ec6ef850239dd6aca178a2db23934f61e",
+    "pyproject.toml": "14570bb9b9309890d0ce19636214bc0e10f76183b9de4761419c6b3ffab6bffb"
+  },
+  "evidence": "docs/evaluation/local-text-installed-wheel-m4-2026-10-07-final.json",
+  "evidence_sha256": "e2e58cb67442464d774a9efb9b66f0e246cdff705da442efddcd3e1bca82be73",
+  "validation": {
+    "python_tests": 1451,
+    "python_skipped": 11,
+    "swift_sdk_tests_passed": true,
+    "mac_sample_build_passed": true,
+    "temporary_venv_uninstall_passed": true
+  },
+  "independent_clean_machine": false,
+  "dependency_installation": "existing reviewed MLX dependencies reused in a temporary venv",
+  "uninstall_evidence": "docs/evaluation/local-text-install-uninstall-m4-2026-10-07.json",
+  "uninstall_evidence_sha256": "cd23b0c32205de73ee23559fcd2901a9582c7e8567bfc462bdad371ba99b82b1"
+}

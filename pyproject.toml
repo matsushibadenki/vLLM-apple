@@ -16,6 +16,7 @@ dev = ["ruff==0.16.0"]
 coreml = ["numpy>=1.26,<3"]
 
 [project.scripts]
+vllm-apple-local-text = "vllm_apple.local_text:main"
 vllm-apple = "vllm_apple.cli:main"
 vllm-appled = "vllm_apple.daemon:main"
 vllm-apple-soak = "vllm_apple.soak:main"

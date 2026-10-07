@@ -1,0 +1,37 @@
+ローカルtext previewです。長時間安定性と性能は未認定です。
+/opt/homebrew/Cellar/vllm-metal/0.29.0/libexec/lib/python3.12/site-packages/mlx_lm/server.py:1692: UserWarning: mlx_lm.server is not recommended for production as it only implements basic security checks.
+  warnings.warn(
+2026-10-07 10:08:04,889 - INFO - Starting httpd at 127.0.0.1 on port 19167...
+127.0.0.1 - - [07/Oct/2026 10:08:05] "GET /v1/models HTTP/1.1" 200 -
+2026-10-07 10:08:05,693 - INFO - Prompt Cache: 0 sequences, 0.00 GB
+2026-10-07 10:08:05,693 - INFO - - assistant: 0 sequences, 0.00 GB
+2026-10-07 10:08:05,694 - INFO - - user: 0 sequences, 0.00 GB
+2026-10-07 10:08:05,694 - INFO - - system: 0 sequences, 0.00 GB
+127.0.0.1 - - [07/Oct/2026 10:08:05] "POST /v1/chat/completions HTTP/1.1" 200 -
+2026-10-07 10:08:05,911 - INFO - Prompt processing progress: 21/22
+2026-10-07 10:08:05,933 - INFO - Prompt processing progress: 22/22
+2026-10-07 10:08:06,018 - INFO - Prompt Cache: 1 sequences, 0.00 GB
+2026-10-07 10:08:06,018 - INFO - - assistant: 1 sequences, 0.00 GB
+2026-10-07 10:08:06,018 - INFO - - user: 0 sequences, 0.00 GB
+2026-10-07 10:08:06,018 - INFO - - system: 0 sequences, 0.00 GB
+127.0.0.1 - - [07/Oct/2026 10:08:06] "POST /v1/chat/completions HTTP/1.1" 200 -
+2026-10-07 10:08:06,274 - INFO - Prompt processing progress: 15/16
+2026-10-07 10:08:06,296 - INFO - Prompt processing progress: 16/16
+2026-10-07 10:08:06,380 - INFO - Prompt Cache: 2 sequences, 0.01 GB
+2026-10-07 10:08:06,380 - INFO - - assistant: 2 sequences, 0.01 GB
+2026-10-07 10:08:06,380 - INFO - - user: 0 sequences, 0.00 GB
+2026-10-07 10:08:06,380 - INFO - - system: 0 sequences, 0.00 GB
+127.0.0.1 - - [07/Oct/2026 10:08:06] "POST /v1/chat/completions HTTP/1.1" 200 -
+2026-10-07 10:08:06,566 - INFO - Prompt processing progress: 10/11
+2026-10-07 10:08:06,587 - INFO - Prompt processing progress: 11/11
+127.0.0.1 - - [07/Oct/2026 10:08:06] "POST /v1/chat/completions HTTP/1.1" 404 -
+127.0.0.1 - - [07/Oct/2026 10:08:06] "POST /v1/chat/completions HTTP/1.1" 404 -
+127.0.0.1 - - [07/Oct/2026 10:08:06] "POST /v1/chat/completions HTTP/1.1" 404 -
+127.0.0.1 - - [07/Oct/2026 10:08:06] "GET /vllm-apple/resources HTTP/1.1" 200 -
+Exception ignored in: <function BatchGenerator.__del__ at 0x116c3a2a0>
+Traceback (most recent call last):
+  File "/opt/homebrew/Cellar/vllm-metal/0.29.0/libexec/lib/python3.12/site-packages/mlx_lm/generate.py", line 1640, in __del__
+    self.close()
+  File "/opt/homebrew/Cellar/vllm-metal/0.29.0/libexec/lib/python3.12/site-packages/mlx_lm/generate.py", line 1635, in close
+    mx.synchronize(self._stream)
+RuntimeError: There is no Stream(gpu, 0) in current thread.

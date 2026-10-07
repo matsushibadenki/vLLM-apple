@@ -1,5 +1,9 @@
 # vLLM-Apple Runtime
 
+Local text preview 0.1.0 is available for the measured M4/Gemma2 configuration.
+[Start here — English / 日本語 / 简体中文](docs/LOCAL-TEXT-PREVIEW.md).
+Long-run stability and performance remain unqualified; this is not a production-certified release.
+
 An AI runtime control plane designed for Apple Silicon with a strong emphasis on memory stability.
 
 Currently in Phase 1, it implements hardware/memory detection, safe context calculation, runtime profiling, a memory-reservation scheduler, a headless daemon, and a versioned local API.

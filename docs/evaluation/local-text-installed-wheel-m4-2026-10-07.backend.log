@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "scope": "local_text_preview",
+  "eligible_for_preview": false,
+  "rejection_reasons": [
+    "unreviewed_mlx",
+    "unreviewed_mlx-lm",
+    "unreviewed_transformers"
+  ],
+  "packages": {
+    "mlx": null,
+    "mlx-lm": null,
+    "transformers": null
+  },
+  "hardware": {
+    "platform": "Darwin",
+    "architecture": "arm64",
+    "soc": "Apple M4",
+    "physical_cpu_count": 10,
+    "logical_cpu_count": 10,
+    "gpu_core_count": 10,
+    "memory": {
+      "total_bytes": 34359738368,
+      "available_bytes": 14209105920,
+      "process_resident_bytes": 40894464,
+      "pressure": "normal",
+      "source": "sysctl"
+    },
+    "is_apple_silicon": true,
+    "os_version": "27.0.1",
+    "thermal_state": "nominal",
+    "power_mode": "automatic"
+  },
+  "source_sha256": {},
+  "model_sha256": {
+    "config.json": "41c1077a8a8b14f3e016c0000365aae99fb9eb128596c8378a178f717dca1640",
+    "model.safetensors": "f87c0f8cfa7bea0d01266bd04fae9b60babfa21a57eefbbaf5354321a0dabbf2",
+    "tokenizer.json": "3f289bc05132635a8bc7aca7aa21255efd5e18f3710f43e3cdb96bcd41be4922",
+    "tokenizer_config.json": "f3a9ecd05833ba49de8432fff27b66bb061ad6a69d17df158de03dc07420e02a",
+    "tokenizer.model": "61a7b147390c64585d6c3543dd6fc636906c9af3865a5548f27f31aee1d4c8e2",
+    "special_tokens_map.json": "db82f8bd9b25d14f9c788e6bde64de84d42f1c2538f1c245ba6cb3e872d14b18"
+  },
+  "launch_command": [
+    "/private/tmp/vllm-apple-preview-20261007/bin/python",
+    "-m",
+    "vllm_apple.mlx_gemma2_compat",
+    "--model",
+    "/Users/Shared/Program/vLLM-apple/models/gemma-2-2b-it-4bit",
+    "--host",
+    "127.0.0.1",
+    "--port",
+    "19167",
+    "--decode-concurrency",
+    "1",
+    "--prompt-concurrency",
+    "1",
+    "--prefill-step-size",
+    "512",
+    "--prompt-cache-size",
+    "4"
+  ],
+  "limits": {
+    "context_tokens": 4096,
+    "output_tokens": 512,
+    "allocator_bytes": 8589934592,
+    "cache_bytes": 268435456,
+    "connections": 16,
+    "concurrency": 1
+  },
+  "gpu_verified": false,
+  "production_qualified": false,
+  "performance_qualified": false,
+  "message": "ローカルtext previewです。長時間安定性と性能は未認定です。"
+}

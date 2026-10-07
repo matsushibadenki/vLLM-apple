@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "scope": "installed-wheel local text preview smoke",
+  "installed_origin": {
+    "prefix": "/private/tmp/vllm-apple-preview-20261007",
+    "origin": "/private/tmp/vllm-apple-preview-20261007/lib/python3.12/site-packages/vllm_apple/local_text.py"
+  },
+  "cases": [
+    {
+      "language": "en",
+      "passed": true
+    },
+    {
+      "language": "ja",
+      "passed": true
+    },
+    {
+      "language": "zh",
+      "passed": true
+    }
+  ],
+  "error": null,
+  "shutdown_clean": true,
+  "passed": true,
+  "production_qualified": false,
+  "performance_qualified": false,
+  "script_sha256": "9b047a9c6892f898c07fa31e8b8a878fb58ae2dfa8e79991373d3a3ff143105d"
+}

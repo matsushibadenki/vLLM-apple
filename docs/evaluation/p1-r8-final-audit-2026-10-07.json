@@ -1,0 +1,70 @@
+{
+  "schema_version": 1,
+  "source": "docs/evaluation/p1-stability-m4-2026-10-06-r8/30min.json",
+  "source_sha256": "09a5bc8cf6185224ecbd40ea2c9408a1ca43379d16cbee7f1cea4141f622beff",
+  "passed": false,
+  "summary": {
+    "completed": 2958,
+    "quality_passed": 2958,
+    "slo_quality_passed": 2943,
+    "all_epoch_resources_passed": false,
+    "awake_conditions_verified": true,
+    "rss_trend": {
+      "sample_count": 291,
+      "current_pid": 69203,
+      "current_pid_sample_count": 291,
+      "recent_sample_count": 146,
+      "slope_bytes_per_hour": 538952122.767,
+      "recent_growth_bytes": 131465216,
+      "plateau_observed": false
+    },
+    "resource_trend": {
+      "sample_count": 290,
+      "current_pid": 69203,
+      "deltas": {
+        "threads": 0,
+        "open_fds": 0,
+        "allocator_active_bytes": 175689489,
+        "allocator_cache_bytes": -121821345
+      },
+      "plateau_observed": false,
+      "snapshot_consistency": "non_atomic"
+    },
+    "resource_by_workload": {
+      "current_pid": 69203,
+      "unlabelled_samples": 0,
+      "retention_scope": "retained snapshots only; not every observation",
+      "qualification": false,
+      "workloads": {
+        "e65b47a8ac85138265385491ea6cca8afc557f3c7405591c1984c557d307ad9c": {
+          "sample_count": 232,
+          "current_pid": 69203,
+          "deltas": {
+            "threads": 0,
+            "open_fds": 0,
+            "allocator_active_bytes": 147981,
+            "allocator_cache_bytes": -103566296
+          },
+          "plateau_observed": true,
+          "snapshot_consistency": "non_atomic"
+        },
+        "139acd823d068e39bf07fd7e080f4395e0005c33514704481215ec665f3ce0e7": {
+          "sample_count": 58,
+          "current_pid": 69203,
+          "deltas": {
+            "threads": 0,
+            "open_fds": 0,
+            "allocator_active_bytes": 5204168,
+            "allocator_cache_bytes": -2394080
+          },
+          "plateau_observed": true,
+          "snapshot_consistency": "non_atomic"
+        }
+      }
+    }
+  },
+  "shutdown_clean": true,
+  "runtime_identity_unchanged": true,
+  "model_identity_unchanged": true,
+  "root_cause_verified": false
+}

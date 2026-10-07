@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "scope": "installed-wheel local text preview smoke",
+  "installed_origin": {
+    "prefix": "/private/tmp/vllm-apple-preview-20261007",
+    "origin": "/private/tmp/vllm-apple-preview-20261007/lib/python3.12/site-packages/vllm_apple/local_text.py"
+  },
+  "cases": [
+    {
+      "language": "en",
+      "passed": true
+    },
+    {
+      "language": "ja",
+      "passed": true
+    },
+    {
+      "language": "zh",
+      "passed": true
+    }
+  ],
+  "error": null,
+  "shutdown_clean": true,
+  "limit_rejections": [
+    {
+      "case": "output",
+      "status": 404,
+      "passed": true
+    },
+    {
+      "case": "context",
+      "status": 404,
+      "passed": true
+    },
+    {
+      "case": "model",
+      "status": 404,
+      "passed": true
+    }
+  ],
+  "resource_limits_verified": true,
+  "passed": true,
+  "production_qualified": false,
+  "performance_qualified": false,
+  "script_sha256": "a82af2adaa6b480698baa4809b9980946a9bf62ae8557047c86a621d0db63f05"
+}

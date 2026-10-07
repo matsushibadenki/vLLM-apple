@@ -1,5 +1,20 @@
 # P1 standard text candidate — 2026-10-04
 
+## 最新結果：2026-10-07
+
+[Done] [r8最終監査](evaluation/p1-r8-final-audit-2026-10-07.json)：30分終了、品質2958/2958、SLO2943/2958。
+awake・identity・正常終了は合格。SLOとaggregate資源gateが未達のため不合格、8時間未開始。
+同workloadの資源診断は2群ともplateauだが、認定gateを置き換えず、根因の証明にも使わない。
+[Next] 15件のSLO超過とaggregate資源gateの原因確認・修正・再試験。
+以下のrunning記録は起動時の履歴であり、現在の稼働状態を示さない。
+[ローカルtext preview](LOCAL-TEXT-PREVIEW.md)の短時間検証成功はP1長時間認定と別の範囲。
+
+English: R8 finished and failed: quality 2958/2958, SLO 2943/2958 and aggregate resource gate unmet.
+Eight-hour testing did not start. Earlier running statements are historical. Local preview validation does not certify P1.
+
+简体中文：r8已结束且未通过：质量2958/2958，SLO2943/2958，aggregate资源gate未达标。
+未开始8小时试验。下文running记录为启动时历史，本地preview验证不等于P1长期认证。
+
 ## 日本語
 
 [Done] [r7 host-load監査](evaluation/p1-r7-host-load-audit-2026-10-06.json)：失敗window付近で

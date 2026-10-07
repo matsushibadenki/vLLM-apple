@@ -1,6 +1,24 @@
 # vLLM-Apple Runtime Roadmap
 
-更新日：2026-10-05
+更新日：2026-10-07
+
+## Local text preview 0.1.0 — 最小利用版
+
+[Done] [ローカルtext preview](LOCAL-TEXT-PREVIEW.md)：M4／32 GiB・固定Gemma2 artifactの
+事前確認、一つの起動コマンド、loopback text API、concurrency 1・資源上限、停止、wheelを実装。
+新入口で未知依存／改変source／model／追加weight／未対象hardwareを拒否する。
+[最終wheel検証](evaluation/local-text-installed-wheel-m4-2026-10-07-final.json)で三言語SSE、拒否条件、
+資源上限、正常終了に合格。全Python回帰1451 tests成功（11 skip）、Swift SDK tests・Mac sample build成功。
+[配布manifest](evaluation/local-text-preview-manifest-2026-10-07.json)と一時venvのアンインストール確認を保存。
+この最小利用版の完了と、以下P0〜P4の本番・性能認定の完了は別のmilestoneである。
+[Next] このM4で未達の長時間SLO、数値／性能、RAG一般品質は残す。時間を理由に[pending]へ移さない。
+他hardware・署名資格情報・独立検証環境が必要な試験だけ[pending]にする。
+
+English: The usable local text preview milestone is implemented; production/performance
+qualification remains [Next]. Only unavailable hardware/credentials/environments are [pending].
+
+简体中文：可用的本地text preview milestone已实现，生产／性能认证仍为[Next]。
+仅缺少hardware／资格信息／独立环境的试验标为[pending]。
 
 ## 目標と優先順位
 
@@ -30,13 +48,13 @@ Intel Macは互換性の別枠とし、Apple Siliconの性能認定を適用し�
 
 ### 全体監査：現在の筐体での完了と残作業
 
-2026-10-04。実装済みの契約・runnerと実機認定を分ける。websiteは変更しない。
+2026-10-07。実装済みの契約・runnerと実機認定を分ける。websiteは変更しない。
 
 | 状態 | 範囲 | 確認結果／残作業 |
 | --- | --- | --- |
 | [Done] | P0限定基準・経路監査 | M4／Gemma 2／c1／三言語算術、2 backend各3回。全モデル・全Macの認定ではない |
-| [Done] | P1資源上限・cancel／回復runner | bounded HTTP・入力・allocator・queue・cancelと短時間smoke。最新r7の30分は品質3162/3162、SLO3153/3162、awake条件・RSS plateau合格だがTTFTとallocator資源gate未達 |
-| [Next] | P1長時間認定 | r6の長文TTFT超過とRSS未収束を調査・修正し、30分再試験→合格時8時間。このM4で可能なので[pending]にしない |
+| [Done] | P1資源上限・cancel／回復runner | bounded HTTP・入力・allocator・queue・cancelと短時間smoke。最新r8の30分は品質2958/2958、SLO2943/2958、awake・identity・shutdown合格だがSLOとaggregate資源gate未達 |
+| [Next] | P1長時間認定 | r8の15件のSLO超過とaggregate資源gate未達を調査・修正し、30分再試験→合格時8時間。このM4で可能なので[pending]にしない |
 | [Done] | P2実continuous batching／identity付きKV実験 | 実batch幅4と再prefill提出減少を確認。標準採用・数値／性能認定は未完了 |
 | [Next] | P2数値・p95／goodput gate | c4 SLOと全prompt基準とのlogit差を解消し再測定。このM4で試験可能 |
 | [Done] | P3選択・P4認定gateとrelease昇格接続 | 証拠不足・不合格はfallback／昇格拒否。合成fixtureのテストを実性能・24時間認定に代用しない |
