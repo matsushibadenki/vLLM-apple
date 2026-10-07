@@ -174,6 +174,10 @@ def install_cancel_api() -> type[Any]:
     if getattr(server.ResponseGenerator.generate, "_vllm_apple_cancel_bridge", False):
         return server.APIHandler
 
+    from .mlx_efficiency import install_idle_wait, settings
+    policy = settings(os.environ.get('VLLM_APPLE_P1_EFFICIENCY', 'baseline'))
+    if os.environ.get('VLLM_APPLE_P1_PROFILE') == '1' and policy['blocking_idle']:
+        install_idle_wait(server.ResponseGenerator)
     original_next_request = server.ResponseGenerator._next_request
     original_tokenize = server.ResponseGenerator._tokenize
 
@@ -294,6 +298,7 @@ def install_cancel_api() -> type[Any]:
             import mlx.core as mx
             encoded = json.dumps(dict(http=self.server.resource_snapshot(), registry=registry,
                 queue_wait=queue_wait, scheduler_step=_STEP_DIAGNOSTICS.snapshot(),
+                efficiency=(policy if os.environ.get('VLLM_APPLE_P1_PROFILE') == '1' else None),
                 allocator=dict(active_bytes=mx.get_active_memory(), cache_bytes=mx.get_cache_memory(),
                                peak_bytes=mx.get_peak_memory(), snapshot_consistency='non_atomic'),
                 threads=threading.active_count(), open_fds=len(os.listdir('/dev/fd')))).encode()
@@ -360,7 +365,9 @@ if __name__ == "__main__":
         if importlib.metadata.version('mlx') != '0.32.1' or mx.default_device() != mx.gpu:
             raise RuntimeError('P1 profile requires reviewed MLX 0.32.1 and GPU default device')
         mx.set_memory_limit(8 * 1024**3)
-        mx.set_cache_limit(256 * 1024**2)
+        from .mlx_efficiency import settings
+        policy = settings(os.environ.get('VLLM_APPLE_P1_EFFICIENCY', 'baseline'))
+        mx.set_cache_limit(policy['allocator_cache_bytes'])
         generation = importlib.import_module('mlx_lm.generate')
         if hashlib.sha256(Path(generation.__file__).read_bytes()).hexdigest() != (
                 '5a57043b5a6497450bce14447db3caf570ffdd22adaab34e659b31aceddda522'):
@@ -377,6 +384,7 @@ if __name__ == "__main__":
             cli.prompt_cache_bytes = 256 * 1024**2
             bound_p1_prompt_cache(prompt_cache)
             original_init(self, model_provider, prompt_cache)
+            self._time_budget._budget = policy['scheduler_budget_seconds']
 
         server.ResponseGenerator.__init__ = profile_init
 

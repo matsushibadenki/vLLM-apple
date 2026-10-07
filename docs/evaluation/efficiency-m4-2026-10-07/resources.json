@@ -1,0 +1,480 @@
+{
+  "scope": "short fixed requests; no long-run or energy qualification",
+  "watts_measured": false,
+  "observations": [
+    {
+      "candidate": "baseline",
+      "samples": [
+        {
+          "index": 0,
+          "quality_passed": true,
+          "e2e_ns": 3984218833,
+          "rss_bytes": 781533184,
+          "allocator": {
+            "active_bytes": 1528095262,
+            "cache_bytes": 6504796,
+            "peak_bytes": 1552002415,
+            "snapshot_consistency": "non_atomic"
+          },
+          "efficiency": {
+            "name": "baseline",
+            "scheduler_budget_seconds": 0.5,
+            "allocator_cache_bytes": 268435456,
+            "blocking_idle": false,
+            "energy_qualified": false
+          }
+        },
+        {
+          "index": 1,
+          "quality_passed": true,
+          "e2e_ns": 9447622917,
+          "rss_bytes": 735985664,
+          "allocator": {
+            "active_bytes": 1969414686,
+            "cache_bytes": 13944356,
+            "peak_bytes": 2271729208,
+            "snapshot_consistency": "non_atomic"
+          },
+          "efficiency": {
+            "name": "baseline",
+            "scheduler_budget_seconds": 0.5,
+            "allocator_cache_bytes": 268435456,
+            "blocking_idle": false,
+            "energy_qualified": false
+          }
+        },
+        {
+          "index": 2,
+          "quality_passed": true,
+          "e2e_ns": 1175689333,
+          "rss_bytes": 744243200,
+          "allocator": {
+            "active_bytes": 1967710750,
+            "cache_bytes": 267725360,
+            "peak_bytes": 2271729208,
+            "snapshot_consistency": "non_atomic"
+          },
+          "efficiency": {
+            "name": "baseline",
+            "scheduler_budget_seconds": 0.5,
+            "allocator_cache_bytes": 268435456,
+            "blocking_idle": false,
+            "energy_qualified": false
+          }
+        },
+        {
+          "index": 3,
+          "quality_passed": true,
+          "e2e_ns": 738392541,
+          "rss_bytes": 746799104,
+          "allocator": {
+            "active_bytes": 1967710750,
+            "cache_bytes": 227260404,
+            "peak_bytes": 2271729208,
+            "snapshot_consistency": "non_atomic"
+          },
+          "efficiency": {
+            "name": "baseline",
+            "scheduler_budget_seconds": 0.5,
+            "allocator_cache_bytes": 268435456,
+            "blocking_idle": false,
+            "energy_qualified": false
+          }
+        },
+        {
+          "index": 4,
+          "quality_passed": true,
+          "e2e_ns": 654653791,
+          "rss_bytes": 748388352,
+          "allocator": {
+            "active_bytes": 1529799198,
+            "cache_bytes": 242585359,
+            "peak_bytes": 2271729208,
+            "snapshot_consistency": "non_atomic"
+          },
+          "efficiency": {
+            "name": "baseline",
+            "scheduler_budget_seconds": 0.5,
+            "allocator_cache_bytes": 268435456,
+            "blocking_idle": false,
+            "energy_qualified": false
+          }
+        },
+        {
+          "index": 5,
+          "quality_passed": true,
+          "e2e_ns": 9240620834,
+          "rss_bytes": 751075328,
+          "allocator": {
+            "active_bytes": 1969529374,
+            "cache_bytes": 16345656,
+            "peak_bytes": 2271729208,
+            "snapshot_consistency": "non_atomic"
+          },
+          "efficiency": {
+            "name": "baseline",
+            "scheduler_budget_seconds": 0.5,
+            "allocator_cache_bytes": 268435456,
+            "blocking_idle": false,
+            "energy_qualified": false
+          }
+        },
+        {
+          "index": 6,
+          "quality_passed": true,
+          "e2e_ns": 658734584,
+          "rss_bytes": 753614848,
+          "allocator": {
+            "active_bytes": 1967710750,
+            "cache_bytes": 236785148,
+            "peak_bytes": 2271729208,
+            "snapshot_consistency": "non_atomic"
+          },
+          "efficiency": {
+            "name": "baseline",
+            "scheduler_budget_seconds": 0.5,
+            "allocator_cache_bytes": 268435456,
+            "blocking_idle": false,
+            "energy_qualified": false
+          }
+        },
+        {
+          "index": 7,
+          "quality_passed": true,
+          "e2e_ns": 674093500,
+          "rss_bytes": 756760576,
+          "allocator": {
+            "active_bytes": 1967710750,
+            "cache_bytes": 227272180,
+            "peak_bytes": 2271729208,
+            "snapshot_consistency": "non_atomic"
+          },
+          "efficiency": {
+            "name": "baseline",
+            "scheduler_budget_seconds": 0.5,
+            "allocator_cache_bytes": 268435456,
+            "blocking_idle": false,
+            "energy_qualified": false
+          }
+        }
+      ],
+      "process_stopped": true
+    },
+    {
+      "candidate": "responsive",
+      "samples": [
+        {
+          "index": 0,
+          "quality_passed": true,
+          "e2e_ns": 1056699583,
+          "rss_bytes": 2177171456,
+          "allocator": {
+            "active_bytes": 1528095262,
+            "cache_bytes": 6507004,
+            "peak_bytes": 1552002459,
+            "snapshot_consistency": "non_atomic"
+          },
+          "efficiency": {
+            "name": "responsive",
+            "scheduler_budget_seconds": 0.05,
+            "allocator_cache_bytes": 268435456,
+            "blocking_idle": true,
+            "energy_qualified": false
+          }
+        },
+        {
+          "index": 1,
+          "quality_passed": true,
+          "e2e_ns": 5705170833,
+          "rss_bytes": 2181595136,
+          "allocator": {
+            "active_bytes": 1969414686,
+            "cache_bytes": 16733340,
+            "peak_bytes": 2271581752,
+            "snapshot_consistency": "non_atomic"
+          },
+          "efficiency": {
+            "name": "responsive",
+            "scheduler_budget_seconds": 0.05,
+            "allocator_cache_bytes": 268435456,
+            "blocking_idle": true,
+            "energy_qualified": false
+          }
+        },
+        {
+          "index": 2,
+          "quality_passed": true,
+          "e2e_ns": 378130833,
+          "rss_bytes": 2183266304,
+          "allocator": {
+            "active_bytes": 1967710750,
+            "cache_bytes": 236721304,
+            "peak_bytes": 2271581752,
+            "snapshot_consistency": "non_atomic"
+          },
+          "efficiency": {
+            "name": "responsive",
+            "scheduler_budget_seconds": 0.05,
+            "allocator_cache_bytes": 268435456,
+            "blocking_idle": true,
+            "energy_qualified": false
+          }
+        },
+        {
+          "index": 3,
+          "quality_passed": true,
+          "e2e_ns": 365535500,
+          "rss_bytes": 2185658368,
+          "allocator": {
+            "active_bytes": 1967710750,
+            "cache_bytes": 227119768,
+            "peak_bytes": 2271581752,
+            "snapshot_consistency": "non_atomic"
+          },
+          "efficiency": {
+            "name": "responsive",
+            "scheduler_budget_seconds": 0.05,
+            "allocator_cache_bytes": 268435456,
+            "blocking_idle": true,
+            "energy_qualified": false
+          }
+        },
+        {
+          "index": 4,
+          "quality_passed": true,
+          "e2e_ns": 313889084,
+          "rss_bytes": 2187902976,
+          "allocator": {
+            "active_bytes": 1529799198,
+            "cache_bytes": 242751619,
+            "peak_bytes": 2271581752,
+            "snapshot_consistency": "non_atomic"
+          },
+          "efficiency": {
+            "name": "responsive",
+            "scheduler_budget_seconds": 0.05,
+            "allocator_cache_bytes": 268435456,
+            "blocking_idle": true,
+            "energy_qualified": false
+          }
+        },
+        {
+          "index": 5,
+          "quality_passed": true,
+          "e2e_ns": 7156708084,
+          "rss_bytes": 2190344192,
+          "allocator": {
+            "active_bytes": 1969529374,
+            "cache_bytes": 16749724,
+            "peak_bytes": 2271696440,
+            "snapshot_consistency": "non_atomic"
+          },
+          "efficiency": {
+            "name": "responsive",
+            "scheduler_budget_seconds": 0.05,
+            "allocator_cache_bytes": 268435456,
+            "blocking_idle": true,
+            "energy_qualified": false
+          }
+        },
+        {
+          "index": 6,
+          "quality_passed": true,
+          "e2e_ns": 364987042,
+          "rss_bytes": 2192900096,
+          "allocator": {
+            "active_bytes": 1967710750,
+            "cache_bytes": 236721304,
+            "peak_bytes": 2271696440,
+            "snapshot_consistency": "non_atomic"
+          },
+          "efficiency": {
+            "name": "responsive",
+            "scheduler_budget_seconds": 0.05,
+            "allocator_cache_bytes": 268435456,
+            "blocking_idle": true,
+            "energy_qualified": false
+          }
+        },
+        {
+          "index": 7,
+          "quality_passed": true,
+          "e2e_ns": 348303375,
+          "rss_bytes": 2195111936,
+          "allocator": {
+            "active_bytes": 1967710750,
+            "cache_bytes": 227250840,
+            "peak_bytes": 2271696440,
+            "snapshot_consistency": "non_atomic"
+          },
+          "efficiency": {
+            "name": "responsive",
+            "scheduler_budget_seconds": 0.05,
+            "allocator_cache_bytes": 268435456,
+            "blocking_idle": true,
+            "energy_qualified": false
+          }
+        }
+      ],
+      "process_stopped": true
+    },
+    {
+      "candidate": "compact",
+      "samples": [
+        {
+          "index": 0,
+          "quality_passed": true,
+          "e2e_ns": 810907542,
+          "rss_bytes": 2179416064,
+          "allocator": {
+            "active_bytes": 1528095262,
+            "cache_bytes": 6508028,
+            "peak_bytes": 1552002459,
+            "snapshot_consistency": "non_atomic"
+          },
+          "efficiency": {
+            "name": "compact",
+            "scheduler_budget_seconds": 0.05,
+            "allocator_cache_bytes": 67108864,
+            "blocking_idle": true,
+            "energy_qualified": false
+          }
+        },
+        {
+          "index": 1,
+          "quality_passed": true,
+          "e2e_ns": 5876758584,
+          "rss_bytes": 2182234112,
+          "allocator": {
+            "active_bytes": 1969414686,
+            "cache_bytes": 13963932,
+            "peak_bytes": 2271581752,
+            "snapshot_consistency": "non_atomic"
+          },
+          "efficiency": {
+            "name": "compact",
+            "scheduler_budget_seconds": 0.05,
+            "allocator_cache_bytes": 67108864,
+            "blocking_idle": true,
+            "energy_qualified": false
+          }
+        },
+        {
+          "index": 2,
+          "quality_passed": true,
+          "e2e_ns": 373137333,
+          "rss_bytes": 2184282112,
+          "allocator": {
+            "active_bytes": 1967710750,
+            "cache_bytes": 64012424,
+            "peak_bytes": 2271581752,
+            "snapshot_consistency": "non_atomic"
+          },
+          "efficiency": {
+            "name": "compact",
+            "scheduler_budget_seconds": 0.05,
+            "allocator_cache_bytes": 67108864,
+            "blocking_idle": true,
+            "energy_qualified": false
+          }
+        },
+        {
+          "index": 3,
+          "quality_passed": true,
+          "e2e_ns": 356378375,
+          "rss_bytes": 2186379264,
+          "allocator": {
+            "active_bytes": 1967710750,
+            "cache_bytes": 60739736,
+            "peak_bytes": 2271581752,
+            "snapshot_consistency": "non_atomic"
+          },
+          "efficiency": {
+            "name": "compact",
+            "scheduler_budget_seconds": 0.05,
+            "allocator_cache_bytes": 67108864,
+            "blocking_idle": true,
+            "energy_qualified": false
+          }
+        },
+        {
+          "index": 4,
+          "quality_passed": true,
+          "e2e_ns": 307630291,
+          "rss_bytes": 2187657216,
+          "allocator": {
+            "active_bytes": 1529799198,
+            "cache_bytes": 66867303,
+            "peak_bytes": 2271581752,
+            "snapshot_consistency": "non_atomic"
+          },
+          "efficiency": {
+            "name": "compact",
+            "scheduler_budget_seconds": 0.05,
+            "allocator_cache_bytes": 67108864,
+            "blocking_idle": true,
+            "energy_qualified": false
+          }
+        },
+        {
+          "index": 5,
+          "quality_passed": true,
+          "e2e_ns": 6186890041,
+          "rss_bytes": 2189049856,
+          "allocator": {
+            "active_bytes": 1969447454,
+            "cache_bytes": 13964956,
+            "peak_bytes": 2271614520,
+            "snapshot_consistency": "non_atomic"
+          },
+          "efficiency": {
+            "name": "compact",
+            "scheduler_budget_seconds": 0.05,
+            "allocator_cache_bytes": 67108864,
+            "blocking_idle": true,
+            "energy_qualified": false
+          }
+        },
+        {
+          "index": 6,
+          "quality_passed": true,
+          "e2e_ns": 373705000,
+          "rss_bytes": 2191736832,
+          "allocator": {
+            "active_bytes": 1967710750,
+            "cache_bytes": 64012426,
+            "peak_bytes": 2271614520,
+            "snapshot_consistency": "non_atomic"
+          },
+          "efficiency": {
+            "name": "compact",
+            "scheduler_budget_seconds": 0.05,
+            "allocator_cache_bytes": 67108864,
+            "blocking_idle": true,
+            "energy_qualified": false
+          }
+        },
+        {
+          "index": 7,
+          "quality_passed": true,
+          "e2e_ns": 342591250,
+          "rss_bytes": 2193702912,
+          "allocator": {
+            "active_bytes": 1967710750,
+            "cache_bytes": 64017048,
+            "peak_bytes": 2271614520,
+            "snapshot_consistency": "non_atomic"
+          },
+          "efficiency": {
+            "name": "compact",
+            "scheduler_budget_seconds": 0.05,
+            "allocator_cache_bytes": 67108864,
+            "blocking_idle": true,
+            "energy_qualified": false
+          }
+        }
+      ],
+      "process_stopped": true
+    }
+  ]
+}

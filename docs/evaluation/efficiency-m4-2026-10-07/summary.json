@@ -1,0 +1,183 @@
+{
+  "scope": "three rotated independent workers per candidate, short arithmetic and fault checks",
+  "same_runtime_model_runner": true,
+  "candidates": [
+    {
+      "candidate": "baseline",
+      "trials": [
+        {
+          "report": "baseline-1.json",
+          "sha256": "e91f9e87f208fb5f9000f0326699a5d94411ad067b458ea4b63eb5e8c4423f7c",
+          "passed": true,
+          "identity_unchanged": true,
+          "shutdown_clean": true,
+          "short_e2e_mean_ms": 1782.382,
+          "short_ttft_mean_ms": 1646.523,
+          "long_e2e_mean_ms": 1653.221,
+          "quality_passed": 72,
+          "completed": 72,
+          "slo_quality_passed": 72,
+          "allocator_peak_bytes": 2276857400
+        },
+        {
+          "report": "baseline-2.json",
+          "sha256": "822c7a08aa57e12bd9858b1d0ee13203f1a853ae4f8644d3eecb2e40b7d5dca9",
+          "passed": true,
+          "identity_unchanged": true,
+          "shutdown_clean": true,
+          "short_e2e_mean_ms": 729.176,
+          "short_ttft_mean_ms": 557.866,
+          "long_e2e_mean_ms": 1079.411,
+          "quality_passed": 72,
+          "completed": 72,
+          "slo_quality_passed": 72,
+          "allocator_peak_bytes": 2276791864
+        },
+        {
+          "report": "baseline-3.json",
+          "sha256": "ae457ae6c84c5bbbb52919577688e2434c355a22ff27c138d04b0d0ff2e8511c",
+          "passed": true,
+          "identity_unchanged": true,
+          "shutdown_clean": true,
+          "short_e2e_mean_ms": 905.305,
+          "short_ttft_mean_ms": 771.868,
+          "long_e2e_mean_ms": 1390.62,
+          "quality_passed": 72,
+          "completed": 72,
+          "slo_quality_passed": 72,
+          "allocator_peak_bytes": 2276808248
+        }
+      ],
+      "short_e2e_median_ms": 905.305,
+      "short_e2e_range_ms": [
+        729.176,
+        1782.382
+      ],
+      "relative_spread": 1.1633714604470318,
+      "long_e2e_median_ms": 1390.62,
+      "descriptive_short_e2e_change_percent": 0.0,
+      "range_separated_from_baseline": false
+    },
+    {
+      "candidate": "responsive",
+      "trials": [
+        {
+          "report": "responsive-1.json",
+          "sha256": "4a62de9a5eecff219c768f41085f68a504f85955cb2729beeaecc3d01a9334d0",
+          "passed": true,
+          "identity_unchanged": true,
+          "shutdown_clean": true,
+          "short_e2e_mean_ms": 1186.635,
+          "short_ttft_mean_ms": 1070.766,
+          "long_e2e_mean_ms": 1328.439,
+          "quality_passed": 72,
+          "completed": 72,
+          "slo_quality_passed": 72,
+          "allocator_peak_bytes": 2276841016
+        },
+        {
+          "report": "responsive-2.json",
+          "sha256": "ab0c8ab00b7b014762a5664ece2add0a8ffbafcc6662cae3ac1a23bec861a7b1",
+          "passed": true,
+          "identity_unchanged": true,
+          "shutdown_clean": true,
+          "short_e2e_mean_ms": 511.033,
+          "short_ttft_mean_ms": 322.758,
+          "long_e2e_mean_ms": 702.529,
+          "quality_passed": 72,
+          "completed": 72,
+          "slo_quality_passed": 72,
+          "allocator_peak_bytes": 2276791864
+        },
+        {
+          "report": "responsive-3.json",
+          "sha256": "a85b6922bd322a2f6cf487350deecf585b944f67a65eb4f69b4a4cd689fd256e",
+          "passed": true,
+          "identity_unchanged": true,
+          "shutdown_clean": true,
+          "short_e2e_mean_ms": 526.159,
+          "short_ttft_mean_ms": 333.752,
+          "long_e2e_mean_ms": 795.375,
+          "quality_passed": 72,
+          "completed": 72,
+          "slo_quality_passed": 72,
+          "allocator_peak_bytes": 2276791864
+        }
+      ],
+      "short_e2e_median_ms": 526.159,
+      "short_e2e_range_ms": [
+        511.033,
+        1186.635
+      ],
+      "relative_spread": 1.2840263114381774,
+      "long_e2e_median_ms": 795.375,
+      "descriptive_short_e2e_change_percent": -41.88,
+      "range_separated_from_baseline": false
+    },
+    {
+      "candidate": "compact",
+      "trials": [
+        {
+          "report": "compact-1.json",
+          "sha256": "6e68807f314aa71fed39596d3727dbf052671301f27fd0048ca5c8ae1f01cc16",
+          "passed": true,
+          "identity_unchanged": true,
+          "shutdown_clean": true,
+          "short_e2e_mean_ms": 1299.77,
+          "short_ttft_mean_ms": 1110.022,
+          "long_e2e_mean_ms": 1396.821,
+          "quality_passed": 72,
+          "completed": 72,
+          "slo_quality_passed": 72,
+          "allocator_peak_bytes": 2276857400
+        },
+        {
+          "report": "compact-2.json",
+          "sha256": "6ff7c17cd5403a2f62cc6c3c286a4e6343e37ca0a743f063051b3da231ada2d8",
+          "passed": true,
+          "identity_unchanged": true,
+          "shutdown_clean": true,
+          "short_e2e_mean_ms": 722.034,
+          "short_ttft_mean_ms": 530.744,
+          "long_e2e_mean_ms": 1517.179,
+          "quality_passed": 72,
+          "completed": 72,
+          "slo_quality_passed": 72,
+          "allocator_peak_bytes": 2276824632
+        },
+        {
+          "report": "compact-3.json",
+          "sha256": "d7e39a6a1cb0381d477388df5529c8606cf6c6d0e5f70bec39b824be21a40bd7",
+          "passed": true,
+          "identity_unchanged": true,
+          "shutdown_clean": true,
+          "short_e2e_mean_ms": 582.95,
+          "short_ttft_mean_ms": 350.565,
+          "long_e2e_mean_ms": 779.569,
+          "quality_passed": 72,
+          "completed": 72,
+          "slo_quality_passed": 72,
+          "allocator_peak_bytes": 2276791864
+        }
+      ],
+      "short_e2e_median_ms": 722.034,
+      "short_e2e_range_ms": [
+        582.95,
+        1299.77
+      ],
+      "relative_spread": 0.992778733411446,
+      "long_e2e_median_ms": 1396.821,
+      "descriptive_short_e2e_change_percent": -20.24,
+      "range_separated_from_baseline": false
+    }
+  ],
+  "performance_qualified": false,
+  "standard_promotion": false,
+  "watts_measured": false,
+  "limitations": [
+    "No long-run qualification; R9 failed P1.",
+    "Arithmetic is not general model quality.",
+    "TPOT p95 and electrical power were not measured.",
+    "Descriptive medians do not establish causal speedup or P3 qualification."
+  ]
+}

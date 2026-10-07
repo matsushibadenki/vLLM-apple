@@ -18,7 +18,7 @@ class P1StabilityLauncherTests(unittest.TestCase):
             receipt = base/'launch.json'
             argv = ['launch', '--python', sys.executable, '--model', str(base),
                     '--output-directory', str(base/'output'), '--receipt', str(receipt),
-                    '--prefill-step-size', '256']
+                    '--prefill-step-size', '256', '--efficiency', 'responsive']
             with patch.object(sys, 'argv', argv), redirect_stdout(io.StringIO()), patch(
                 'scripts.launch_p1_stability.subprocess.run',
                 return_value=Mock(returncode=5, stderr='bootstrap failed')) as run:
@@ -30,5 +30,6 @@ class P1StabilityLauncherTests(unittest.TestCase):
             record = json.loads(receipt.read_text())
             option = record['command'].index('--prefill-step-size')
             self.assertEqual(record['command'][option + 1], '256')
+            self.assertEqual(record['command'][record['command'].index('--efficiency') + 1], 'responsive')
             self.assertFalse(record['submitted'])
             self.assertFalse(record['qualification'])

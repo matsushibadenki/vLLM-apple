@@ -1,0 +1,23 @@
+{
+  "scope": "reviewed scheduler, idle without model inference",
+  "server_source_sha256": "8514178d18ee7e5edd1db8b8077ab97079ec72d1db666b85c110fb33cdc55147",
+  "watts_measured": false,
+  "observations": [
+    {
+      "candidate": "baseline",
+      "elapsed_seconds": 3.0051024580025114,
+      "idle_read_entries": 0,
+      "process_cpu_ms": 1.645,
+      "generation_thread_alive": false,
+      "shutdown_seconds": 8.292001439258456e-06
+    },
+    {
+      "candidate": "blocking",
+      "elapsed_seconds": 3.005143041998963,
+      "idle_read_entries": 0,
+      "process_cpu_ms": 2.314,
+      "generation_thread_alive": false,
+      "shutdown_seconds": 4.804100171895698e-05
+    }
+  ]
+}

@@ -36,6 +36,9 @@ class LocalTextTests(unittest.TestCase):
                 self.assertTrue(plan['eligible_for_preview'])
                 self.assertFalse(plan['production_qualified'])
                 self.assertFalse(plan['gpu_verified'])
+                compact = local_text.preview_plan(model, 8000, 'compact')
+                self.assertEqual(compact['limits']['cache_bytes'], 64*1024**2)
+                self.assertEqual(compact['efficiency']['name'], 'compact')
                 (model/'tokenizer.json').write_bytes(b'changed')
                 self.assertIn('model_artifact_mismatch:tokenizer.json', local_text.preview_plan(model, 8000)['rejection_reasons'])
                 (model/'tokenizer.json').write_bytes(b'fixture')
@@ -55,8 +58,9 @@ class LocalTextTests(unittest.TestCase):
             self.assertEqual(local_text.main(['--model', '/unused', '--check']), 0)
             execute.assert_not_called()
             with patch('sys.stderr', new=io.StringIO()):
-                local_text.main(['--model', '/unused', '--language', 'ja'])
+                local_text.main(['--model', '/unused', '--language', 'ja', '--efficiency', 'compact'])
             self.assertEqual(execute.call_args.args[2]['VLLM_APPLE_P1_PROFILE'], '1')
+            self.assertEqual(execute.call_args.args[2]['VLLM_APPLE_P1_EFFICIENCY'], 'compact')
         with patch.object(local_text, 'preview_plan', return_value=dict(eligible_for_preview=False)), \
              patch.object(local_text.os, 'execve') as execute, patch('sys.stdout', new=io.StringIO()):
             self.assertEqual(local_text.main(['--model', '/unused']), 1)

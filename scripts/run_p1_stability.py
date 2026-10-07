@@ -19,6 +19,7 @@ def main() -> int:
     parser.add_argument('--output-directory', required=True, type=Path)
     parser.add_argument('--port', type=int, default=19146)
     parser.add_argument('--prefill-step-size', type=int, choices=(128, 256, 512), default=512)
+    parser.add_argument('--efficiency', choices=('baseline', 'responsive', 'compact'), default='baseline')
     args = parser.parse_args()
     def terminate(signum: int, frame: object) -> None:
         raise KeyboardInterrupt(f'test orchestration received signal {signum}')
@@ -28,7 +29,7 @@ def main() -> int:
     output.mkdir(parents=True, exist_ok=False)
     state = dict(status='running', passed=False, pid=os.getpid(), stages=[],
                  scope='P1 awake mixed-load candidate; sleep/wake remains unqualified',
-                 automatic_promotion=False)
+                 automatic_promotion=False, efficiency_candidate=args.efficiency)
     _atomic_json(output/'state.json', state)
     inhibitor = subprocess.Popen(['/usr/bin/caffeinate', '-i', '-s', '-w', str(os.getpid())])
     try:
@@ -48,7 +49,7 @@ def main() -> int:
             state['stages'].append(stage)
             _atomic_json(output/'state.json', state)
             with (output/f'{name}.log').open('w') as log:
-                child = subprocess.Popen(command, cwd=root, env=dict(os.environ, PYTHONPATH=str(root)),
+                child = subprocess.Popen(command, cwd=root, env=dict(os.environ, PYTHONPATH=str(root), VLLM_APPLE_P1_EFFICIENCY=args.efficiency),
                                          stdout=log, stderr=log)
                 try:
                     returncode = child.wait(timeout=duration+600)

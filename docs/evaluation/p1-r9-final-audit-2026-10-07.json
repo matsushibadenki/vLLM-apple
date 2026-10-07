@@ -1,0 +1,35 @@
+{
+  "source": "docs/evaluation/p1-stability-m4-2026-10-07-r9/30min.json",
+  "passed": false,
+  "quality_passed": 3009,
+  "completed": 3009,
+  "slo_quality_passed": 3000,
+  "rss_trend": {
+    "sample_count": 296,
+    "current_pid": 46659,
+    "current_pid_sample_count": 296,
+    "recent_sample_count": 148,
+    "slope_bytes_per_hour": -954923849.341,
+    "recent_growth_bytes": -201834496,
+    "plateau_observed": true
+  },
+  "resource_trend": {
+    "sample_count": 295,
+    "current_pid": 46659,
+    "deltas": {
+      "threads": 0,
+      "open_fds": 0,
+      "allocator_active_bytes": -95928403,
+      "allocator_cache_bytes": 87461321
+    },
+    "plateau_observed": false,
+    "snapshot_consistency": "non_atomic"
+  },
+  "awake_conditions_verified": true,
+  "shutdown_clean": true,
+  "runtime_identity_unchanged": true,
+  "model_identity_unchanged": true,
+  "eight_hour_started": false,
+  "launchd_job_removed": true,
+  "scope": "P1 30-minute awake candidate; no performance improvement claim"
+}

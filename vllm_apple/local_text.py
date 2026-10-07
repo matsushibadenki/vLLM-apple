@@ -10,6 +10,7 @@ import sys
 from pathlib import Path
 
 from .hardware import detect_hardware
+from .mlx_efficiency import settings
 
 MODEL_HASHES = {
     'config.json': '41c1077a8a8b14f3e016c0000365aae99fb9eb128596c8378a178f717dca1640',
@@ -40,7 +41,8 @@ def file_hash(path: Path) -> str:
     return digest.hexdigest()
 
 
-def preview_plan(model: Path, port: int) -> dict:
+def preview_plan(model: Path, port: int, efficiency: str = 'baseline') -> dict:
+    policy = settings(efficiency)
     if not 1024 <= port <= 65535:
         raise ValueError('port must be 1024–65535')
     model = model.resolve(strict=True)
@@ -85,7 +87,8 @@ def preview_plan(model: Path, port: int) -> dict:
                 rejection_reasons=reasons, packages=packages, hardware=hardware.to_dict(),
                 source_sha256=source_hashes, model_sha256=model_hashes, launch_command=command,
                 limits=dict(context_tokens=4096, output_tokens=512, allocator_bytes=8*1024**3,
-                            cache_bytes=256*1024**2, connections=16, concurrency=1),
+                            cache_bytes=policy['allocator_cache_bytes'], connections=16, concurrency=1),
+                efficiency=policy,
                 gpu_verified=False, production_qualified=False, performance_qualified=False)
 
 
@@ -94,10 +97,12 @@ def main(argv=None):
     parser.add_argument('--model', type=Path, required=True)
     parser.add_argument('--port', type=int, default=8000)
     parser.add_argument('--language', choices=('en', 'ja', 'zh'), default='en')
+    parser.add_argument('--efficiency', choices=('baseline', 'responsive', 'compact'), default='baseline',
+                        help='Explicit experimental tuning; baseline preserves current settings')
     parser.add_argument('--check', action='store_true', help='Check artifacts without starting GPU work')
     args = parser.parse_args(argv)
     try:
-        plan = preview_plan(args.model, args.port)
+        plan = preview_plan(args.model, args.port, args.efficiency)
     except (ValueError, OSError) as error:
         print(json.dumps(dict(error_code='preview_check_failed', detail=str(error),
                               message=MESSAGES[args.language]), ensure_ascii=False), file=sys.stderr)
@@ -107,7 +112,7 @@ def main(argv=None):
         print(json.dumps(plan, ensure_ascii=False, indent=2))
         return 0 if plan['eligible_for_preview'] else 1
     print(MESSAGES[args.language], file=sys.stderr, flush=True)
-    environment = dict(os.environ, VLLM_APPLE_P1_PROFILE='1')
+    environment = dict(os.environ, VLLM_APPLE_P1_PROFILE='1', VLLM_APPLE_P1_EFFICIENCY=args.efficiency)
     os.execve(sys.executable, plan['launch_command'], environment)
     return 1
 

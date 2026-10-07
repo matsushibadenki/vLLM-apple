@@ -939,8 +939,9 @@ def main() -> int:
         "stores_prompt": False, "stores_generated_text": False,
         "cancel_acknowledgement_available": True,
         'p1_profile_enabled': args.p1_profile,
+        'efficiency_candidate': os.environ.get('VLLM_APPLE_P1_EFFICIENCY', 'baseline'),
         'p1_limits': (dict(context_tokens=4096, output_tokens=512, allocator_bytes=8*1024**3,
-                           cache_bytes=256*1024**2, http_connections=16, header_deadline_seconds=5)
+                           cache_bytes=(64 if os.environ.get('VLLM_APPLE_P1_EFFICIENCY') == 'compact' else 256)*1024**2, http_connections=16, header_deadline_seconds=5)
                       if args.p1_profile else None),
         'require_sleep_wake': args.require_sleep_wake,
         'runtime_sources': {

@@ -19,6 +19,7 @@ def main() -> int:
     parser.add_argument('--receipt', type=Path, required=True)
     parser.add_argument('--port', type=int, default=19146)
     parser.add_argument('--prefill-step-size', type=int, choices=(128, 256, 512), default=512)
+    parser.add_argument('--efficiency', choices=('baseline', 'responsive', 'compact'), default='baseline')
     args = parser.parse_args()
     root = Path(__file__).resolve().parents[1]
     output = args.output_directory.resolve()
@@ -36,7 +37,8 @@ def main() -> int:
     command = [sys.executable,
                str(root/'scripts/run_p1_stability.py'), '--python', str(args.python.absolute()),
                '--model', str(args.model.resolve()), '--output-directory', str(output),
-               '--port', str(args.port), '--prefill-step-size', str(args.prefill_step_size)]
+               '--port', str(args.port), '--prefill-step-size', str(args.prefill_step_size),
+               '--efficiency', args.efficiency]
     record = dict(label=label, output_directory=str(output), command=command, log=str(log),
                   submitted=False, automatic_restart=False, qualification=False)
     plist = receipt.with_suffix('.plist')
