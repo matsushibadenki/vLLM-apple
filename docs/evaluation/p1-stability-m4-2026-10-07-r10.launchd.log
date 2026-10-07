@@ -1,0 +1,15 @@
+Traceback (most recent call last):
+  File "/Users/Shared/Program/vLLM-apple/scripts/run_p1_stability.py", line 82, in <module>
+    raise SystemExit(main())
+                     ^^^^^^
+  File "/Users/Shared/Program/vLLM-apple/scripts/run_p1_stability.py", line 55, in main
+    returncode = child.wait(timeout=duration+600)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/littlebuddha/.local/share/uv/python/cpython-3.12-macos-aarch64-none/lib/python3.12/subprocess.py", line 1266, in wait
+    return self._wait(timeout=timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/littlebuddha/.local/share/uv/python/cpython-3.12-macos-aarch64-none/lib/python3.12/subprocess.py", line 2055, in _wait
+    time.sleep(delay)
+  File "/Users/Shared/Program/vLLM-apple/scripts/run_p1_stability.py", line 25, in terminate
+    raise KeyboardInterrupt(f'test orchestration received signal {signum}')
+KeyboardInterrupt: test orchestration received signal 15

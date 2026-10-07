@@ -1,5 +1,27 @@
 # P1 standard text candidate — 2026-10-04
 
+## 長時間試験の開始時刻：09:00 JST
+
+ユーザー指定（2026-10-07）により、長時間試験の一連の実行は日本時間の朝9:00から開始する。
+r10は[制御停止](evaluation/p1-stability-m4-2026-10-07-r10/controlled-stop.json)し、runner／worker停止と専用job回収を確認した。
+保存されたfailedは今回の中断を含み、性能原因の証拠や合格にしない。元の記録は保持する。
+[Next] 次回は2026-10-08 09:00 JST、新規runのcompact／prefill512で30分→全条件合格時8時間。
+既存の月・木9時の定期処理を更新済み。起動が遅れた場合に夕方・夜へ追いかけて開始しない。
+English: Long-test campaigns start at 09:00 JST. R10 was stopped on user request and remains unqualified; a new run is planned for October 8 at 09:00 JST.
+简体中文：长期试验从日本时间09:00开始。r10按用户要求停止并保留未认证记录；新试验计划于10月8日09:00启动。
+
+## 直近の候補：r10 compact（制御停止）
+
+[Done] [r9最終監査](evaluation/p1-r9-final-audit-2026-10-07.json)：品質3009/3009、SLO3000/3009。
+RSS・awake・identity・正常停止は合格だが、cache増加87,461,321 bytesで資源gate未達、不合格。
+8時間未開始。終了したr9専用launchd jobを回収した。
+[Done] [効率化候補の比較](P1-EFFICIENCY.md)を実施。全回帰1454 tests成功（11 skip）。
+[Next] [r10](evaluation/p1-stability-m4-2026-10-07-r10/state.json)はcompact／prefill512、30分全条件合格時だけ8時間。
+[receipt](evaluation/p1-stability-launch-m4-2026-10-07-r10.json)に候補設定とjob identityを保存。
+次回試験の実行中はruntime編集・追加GPU負荷を避ける。下記running記録は履歴である。
+English: R9 failed with nine SLO misses and excess cache growth. R10 explicitly tests compact; no automatic promotion.
+简体中文：r9因9个SLO超限及cache增长未达标而失败。r10显式测试compact，不自动提升认证。
+
 ## P1 cache上限の修正：2026-10-07
 
 [Done] P1のCLI prompt cache予算256 MiBが保存先LRUの`max_bytes`へ反映されず、

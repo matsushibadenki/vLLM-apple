@@ -1,0 +1,17 @@
+Traceback (most recent call last):
+  File "/Users/Shared/Program/vLLM-apple/scripts/qualify_gemma2_batch_mask.py", line 1126, in <module>
+    raise SystemExit(main())
+                     ^^^^^^
+  File "/Users/Shared/Program/vLLM-apple/scripts/qualify_gemma2_batch_mask.py", line 1007, in main
+    report["stability_window"] = _run_stability_window(
+                                 ^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/Shared/Program/vLLM-apple/scripts/qualify_gemma2_batch_mask.py", line 667, in _run_stability_window
+    window = run_text_benchmark(
+             ^^^^^^^^^^^^^^^^^^^
+  File "/Users/Shared/Program/vLLM-apple/vllm_apple/text_benchmark.py", line 209, in run_text_benchmark
+    future.result()
+  File "/Users/littlebuddha/.local/share/uv/python/cpython-3.12-macos-aarch64-none/lib/python3.12/concurrent/futures/_base.py", line 451, in result
+    self._condition.wait(timeout)
+  File "/Users/littlebuddha/.local/share/uv/python/cpython-3.12-macos-aarch64-none/lib/python3.12/threading.py", line 355, in wait
+    waiter.acquire()
+KeyboardInterrupt

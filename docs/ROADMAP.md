@@ -2,6 +2,20 @@
 
 更新日：2026-10-07
 
+## 速度・メモリ・待機処理の効率化：2026-10-07
+
+[Done] [効率化候補](P1-EFFICIENCY.md)：新要求受付のscheduler budget 500→50 ms、空idle queueの通知待ち、
+allocator cache 256→64 MiBの明示選択を実装。既定baselineは維持。
+各候補3回の実機比較で品質・SLO 648/648、故障系・正常停止成功。速度は範囲重複・変動が大きく未認定。
+固定要求後の保持cache最大値255.32→63.77 MiB、idle read入口29→1回／3秒を観測。
+active memoryはほぼ不変、RSSの減少は確認できず、ワット値は未測定。全回帰1454 tests成功（11 skip）。
+[Next] r10 compact長時間試験はユーザーの朝9時指定に合わせ[制御停止](evaluation/p1-stability-m4-2026-10-07-r10/controlled-stop.json)。
+次回は2026-10-08 09:00 JSTに新規runで開始する。一連の長時間試験は以降も日本時間9時開始。
+r9はSLO3000/3009・資源gate未達で不合格、8時間未開始。最新試験稼働中はruntime編集・追加GPU負荷を避ける。
+[pending] 管理者権限での電力samplerまたは外部電力計によるjoule/request・idle wattの検証。
+English: [Done] Explicit efficiency candidates and measured retained-cache/idle-read reductions. [Next] R10 long-run qualification; speed remains unqualified. [pending] Electrical-power measurement.
+简体中文：[Done] 显式效率候选及保持cache／idle read减少的测量。[Next] r10长期认证；速度仍未认证。[pending] 实际功率测量。
+
 ## P1最優先修正：2026-10-07
 
 [Done] prompt cache予算256 MiBを保存先LRUのbyte上限にも適用し、応答完了時の無制限insertを修正。
@@ -65,8 +79,8 @@ Intel Macは互換性の別枠とし、Apple Siliconの性能認定を適用し�
 | 状態 | 範囲 | 確認結果／残作業 |
 | --- | --- | --- |
 | [Done] | P0限定基準・経路監査 | M4／Gemma 2／c1／三言語算術、2 backend各3回。全モデル・全Macの認定ではない |
-| [Done] | P1資源上限・cancel／回復runner | bounded HTTP・入力・allocator・queue・cancelと短時間smoke。最新r8の30分は品質2958/2958、SLO2943/2958、awake・identity・shutdown合格だがSLOとaggregate資源gate未達 |
-| [Next] | P1長時間認定 | r8の15件のSLO超過とaggregate資源gate未達を調査・修正し、30分再試験→合格時8時間。このM4で可能なので[pending]にしない |
+| [Done] | P1資源上限・cancel／回復runner | bounded HTTP・入力・allocator・queue・cancelと短時間smoke。最新完了r9の30分は品質3009/3009、SLO3000/3009、RSS・awake・identity・shutdown合格だがSLOとcache資源gate未達 |
+| [Next] | P1長時間認定 | r9の9件のSLO超過とcache資源gate未達に対し、compactで朝9時から30分再試験→合格時8時間。このM4で可能なので[pending]にしない |
 | [Done] | P2実continuous batching／identity付きKV実験 | 実batch幅4と再prefill提出減少を確認。標準採用・数値／性能認定は未完了 |
 | [Next] | P2数値・p95／goodput gate | c4 SLOと全prompt基準とのlogit差を解消し再測定。このM4で試験可能 |
 | [Done] | P3選択・P4認定gateとrelease昇格接続 | 証拠不足・不合格はfallback／昇格拒否。合成fixtureのテストを実性能・24時間認定に代用しない |

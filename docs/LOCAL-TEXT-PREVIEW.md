@@ -111,3 +111,13 @@ wheel位于`dist/local-preview`，安装到已有review依赖的所选环境后�
 Swift SDK测试及Mac sample的build不认证该preview入口与UI的连接。
 该入口提供OpenAI text routes，不提供daemon的health／profile／event routes。website保持不变。
 原生产release gate保留，不将此artifact提升为已认证release。
+
+## Explicit efficiency candidates / 効率化候補 / 效率候选
+
+checkoutでは`--efficiency responsive`または`--efficiency compact`を明示できる。
+既定baselineを維持し、`--check`で選択した上限を確認する。詳細と測定範囲は[P1効率化候補](P1-EFFICIENCY.md)。
+以前のwheelにはこのoptionは含まれない。速度・長時間・電力の認定ではない。
+English: The checkout supports explicit efficiency candidates; older wheels do not. Baseline remains default.
+See the linked comparison for measured scope and limitations; no speed, long-run or energy certification.
+简体中文：checkout支持显式效率候选，旧wheel没有该option，默认baseline不变。
+测量范围及限制见链接，不代表速度、长期稳定性或功率认证。
