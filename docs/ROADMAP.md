@@ -2,6 +2,18 @@
 
 更新日：2026-10-07
 
+## P1最優先修正：2026-10-07
+
+[Done] prompt cache予算256 MiBを保存先LRUのbyte上限にも適用し、応答完了時の無制限insertを修正。
+[実LRU再現](evaluation/p1-prompt-cache-budget-2026-10-07.json)と[実機smoke](evaluation/p1-cache-budget-smoke-m4-2026-10-07.json)を保存。
+約92秒の品質・SLO 240/240、正常停止合格。短時間の資源gateはfalse、性能改善は未認定。
+全Python回帰1452 tests成功（11 skip）、Ruff成功。
+[Next] [r9](evaluation/p1-stability-m4-2026-10-07-r9/state.json)で同条件の30分→全条件合格時8時間を開始。
+r8の遅延・aggregate資源未達の全原因は未確定。
+認定gateを緩和せず、[原因監査](evaluation/p1-r8-cause-audit-2026-10-07.json)を参照する。
+English: [Done] Enforce the P1 LRU byte budget. [Next] Long-run latency/resource requalification; no performance claim or relaxed gate.
+简体中文：[Done] 修复P1 LRU byte上限。[Next] 长期延迟／资源复测；不宣称性能提升，不放宽gate。
+
 ## Local text preview 0.1.0 — 最小利用版
 
 [Done] [ローカルtext preview](LOCAL-TEXT-PREVIEW.md)：M4／32 GiB・固定Gemma2 artifactの

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>EnvironmentVariables</key>
+	<dict>
+		<key>PYTHONPATH</key>
+		<string>/Users/Shared/Program/vLLM-apple</string>
+	</dict>
+	<key>ExitTimeOut</key>
+	<integer>45</integer>
+	<key>KeepAlive</key>
+	<false/>
+	<key>Label</key>
+	<string>com.vllm-apple.p1.ea332fc745964d139e83b22c937c975b</string>
+	<key>ProgramArguments</key>
+	<array>
+		<string>/Users/Shared/Program/vLLM-apple/.venv/bin/python</string>
+		<string>/Users/Shared/Program/vLLM-apple/scripts/run_p1_stability.py</string>
+		<string>--python</string>
+		<string>/opt/homebrew/opt/vllm-metal/libexec/bin/python</string>
+		<string>--model</string>
+		<string>/Users/Shared/Program/vLLM-apple/models/gemma-2-2b-it-4bit</string>
+		<string>--output-directory</string>
+		<string>/Users/Shared/Program/vLLM-apple/docs/evaluation/p1-stability-m4-2026-10-07-r9</string>
+		<string>--port</string>
+		<string>19166</string>
+		<string>--prefill-step-size</string>
+		<string>512</string>
+	</array>
+	<key>RunAtLoad</key>
+	<true/>
+	<key>StandardErrorPath</key>
+	<string>/Users/Shared/Program/vLLM-apple/docs/evaluation/p1-stability-m4-2026-10-07-r9.launchd.log</string>
+	<key>StandardOutPath</key>
+	<string>/Users/Shared/Program/vLLM-apple/docs/evaluation/p1-stability-m4-2026-10-07-r9.launchd.log</string>
+	<key>WorkingDirectory</key>
+	<string>/Users/Shared/Program/vLLM-apple</string>
+</dict>
+</plist>

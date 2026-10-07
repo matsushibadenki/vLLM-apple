@@ -1,5 +1,33 @@
 # P1 standard text candidate — 2026-10-04
 
+## P1 cache上限の修正：2026-10-07
+
+[Done] P1のCLI prompt cache予算256 MiBが保存先LRUの`max_bytes`へ反映されず、
+応答完了時のinsertが既定の無制限設定になる抜けを修正。既存の厳しい上限は維持し、
+初期化時に既存entryもtrimする。upstream fileは変更しない。
+[実LRU再現](evaluation/p1-prompt-cache-budget-2026-10-07.json)では300 MiB相当の
+合成byte metadataが旧設定で保存され、修正後には除去された。tensor性能測定ではない。
+[実機smoke](evaluation/p1-cache-budget-smoke-m4-2026-10-07.json)は約92秒、
+品質・SLO 240/240、awake・identity・正常停止に合格。短時間資源gateはfalse。
+Python回帰のsandbox内試行はsocket禁止で失敗。socket利用可能な環境で再実行し、
+1452 tests成功（11 skip）、Ruff成功。
+smoke中のCPU回帰実行もあるため、速度比較・性能改善の証拠には使わない。
+
+[Next] [r9再試験](evaluation/p1-stability-m4-2026-10-07-r9/state.json)をprefill512で開始。
+30分全条件合格時だけ8時間へ進む専用launchd jobで、KeepAlive=false、証拠上書きなし。
+[receipt](evaluation/p1-stability-launch-m4-2026-10-07-r9.json)のlabelだけを終了後に回収する。
+実行中はruntime編集・追加GPU負荷を避ける。
+
+[Next] [r8原因監査](evaluation/p1-r8-cause-audit-2026-10-07.json)：15件のSLO超過。
+aggregate資源差は短文／長文の異なるworkload endpointを比較している。
+同workload診断はplateauだが、gateは維持し漏れなしと認定しない。
+遅いscheduler stepとhost loadの上昇が一部で重なるが低loadでも失敗する。
+cache上限の抜けは確認済み、遅延・aggregate未達全体の根因と解消は未認定。
+
+English: [Done] Apply the 256 MiB P1 prompt-cache budget to the LRU store, including completion-time insertion, preserving stricter limits. A real-LRU synthetic byte-metadata reproduction proves the budget defect; it is not a performance benchmark. The 92-second GPU smoke passed quality/SLO 240/240 and clean shutdown, but resources remain unqualified. [Next] Verify long-run latency and resource gates; the complete causes of R8 failures remain unproven. Gates are unchanged.
+
+简体中文：[Done] 将P1的256 MiB prompt cache预算应用到LRU存储及完成时插入，保留更严格的限制。实际LRU的合成byte metadata试验复现了上限漏洞，不代表性能测试。约92秒GPU smoke的质量／SLO为240/240并正常停止，但资源尚未认证。[Next] 复测长期延迟与资源gate；r8全部失败的根因仍未确认，不放宽认证标准。
+
 ## 最新結果：2026-10-07
 
 [Done] [r8最終監査](evaluation/p1-r8-final-audit-2026-10-07.json)：30分終了、品質2958/2958、SLO2943/2958。

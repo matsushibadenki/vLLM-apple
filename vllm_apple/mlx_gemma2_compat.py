@@ -158,6 +158,13 @@ def cancel_request(request_id: str) -> bool:
     return cancel_request_state(request_id) is not None
 
 
+
+def bound_p1_prompt_cache(prompt_cache: Any) -> None:
+    """Apply the P1 byte budget to completion-time LRU insertion as well."""
+    prompt_cache.max_bytes = min(prompt_cache.max_bytes, 256 * 1024**2)
+    prompt_cache.trim_to(n_bytes=prompt_cache.max_bytes)
+
+
 def install_cancel_api() -> type[Any]:
     """Install an opt-in cancellation bridge for the reviewed upstream server."""
     from mlx_lm import server
@@ -368,6 +375,7 @@ if __name__ == "__main__":
                     or cli.prefill_step_size > 512 or cli.prompt_cache_size > 4):
                 raise ValueError('P1 profile requires concurrency <=2, prefill <=512, cache entries <=4')
             cli.prompt_cache_bytes = 256 * 1024**2
+            bound_p1_prompt_cache(prompt_cache)
             original_init(self, model_provider, prompt_cache)
 
         server.ResponseGenerator.__init__ = profile_init

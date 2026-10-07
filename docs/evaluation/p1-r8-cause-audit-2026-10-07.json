@@ -1,0 +1,125 @@
+{
+  "source": "docs/evaluation/p1-stability-m4-2026-10-06-r8/30min.json",
+  "source_sha256": "09a5bc8cf6185224ecbd40ea2c9408a1ca43379d16cbee7f1cea4141f622beff",
+  "failed_windows": [
+    {
+      "started_at": "2026-10-06T03:17:32.918496+00:00",
+      "slo_misses": 2,
+      "slow_steps_in_window": 1,
+      "maximum_step_wall_ms": 3722.894625,
+      "maximum_step_thread_cpu_ms": 31.411916,
+      "observed_load_average_1m": 26.89794921875
+    },
+    {
+      "started_at": "2026-10-06T03:21:40.639356+00:00",
+      "slo_misses": 1,
+      "slow_steps_in_window": 2,
+      "maximum_step_wall_ms": 2248.111584,
+      "maximum_step_thread_cpu_ms": 10.339875,
+      "observed_load_average_1m": 14.42919921875
+    },
+    {
+      "started_at": "2026-10-06T03:22:26.248666+00:00",
+      "slo_misses": 4,
+      "slow_steps_in_window": 6,
+      "maximum_step_wall_ms": 745.808416,
+      "maximum_step_thread_cpu_ms": 44.180084,
+      "observed_load_average_1m": 18.0859375
+    },
+    {
+      "started_at": "2026-10-06T03:22:57.166734+00:00",
+      "slo_misses": 1,
+      "slow_steps_in_window": 11,
+      "maximum_step_wall_ms": 2597.489291,
+      "maximum_step_thread_cpu_ms": 106.452125,
+      "observed_load_average_1m": 21.68212890625
+    },
+    {
+      "started_at": "2026-10-06T03:23:38.386147+00:00",
+      "slo_misses": 2,
+      "slow_steps_in_window": 3,
+      "maximum_step_wall_ms": 679.187625,
+      "maximum_step_thread_cpu_ms": 47.8945,
+      "observed_load_average_1m": 19.8388671875
+    },
+    {
+      "started_at": "2026-10-06T03:24:49.758800+00:00",
+      "slo_misses": 1,
+      "slow_steps_in_window": 4,
+      "maximum_step_wall_ms": 2235.844,
+      "maximum_step_thread_cpu_ms": 71.881125,
+      "observed_load_average_1m": 10.7744140625
+    },
+    {
+      "started_at": "2026-10-06T03:25:25.258792+00:00",
+      "slo_misses": 1,
+      "slow_steps_in_window": 4,
+      "maximum_step_wall_ms": 2670.138459,
+      "maximum_step_thread_cpu_ms": 93.559416,
+      "observed_load_average_1m": 7.33056640625
+    },
+    {
+      "started_at": "2026-10-06T03:28:11.744693+00:00",
+      "slo_misses": 1,
+      "slow_steps_in_window": 4,
+      "maximum_step_wall_ms": 2633.799708,
+      "maximum_step_thread_cpu_ms": 54.052666,
+      "observed_load_average_1m": 4.1513671875
+    },
+    {
+      "started_at": "2026-10-06T03:35:18.563929+00:00",
+      "slo_misses": 1,
+      "slow_steps_in_window": 1,
+      "maximum_step_wall_ms": 328.669458,
+      "maximum_step_thread_cpu_ms": 13.852291,
+      "observed_load_average_1m": 6.63525390625
+    },
+    {
+      "started_at": "2026-10-06T03:35:31.607968+00:00",
+      "slo_misses": 1,
+      "slow_steps_in_window": 1,
+      "maximum_step_wall_ms": 884.6595,
+      "maximum_step_thread_cpu_ms": 15.182,
+      "observed_load_average_1m": 11.3818359375
+    }
+  ],
+  "resource_endpoint_workloads_differ": true,
+  "aggregate_active_growth_bytes": 175689489,
+  "same_workload_diagnostics": {
+    "current_pid": 69203,
+    "unlabelled_samples": 0,
+    "retention_scope": "retained snapshots only; not every observation",
+    "qualification": false,
+    "workloads": {
+      "e65b47a8ac85138265385491ea6cca8afc557f3c7405591c1984c557d307ad9c": {
+        "sample_count": 232,
+        "current_pid": 69203,
+        "deltas": {
+          "threads": 0,
+          "open_fds": 0,
+          "allocator_active_bytes": 147981,
+          "allocator_cache_bytes": -103566296
+        },
+        "plateau_observed": true,
+        "snapshot_consistency": "non_atomic"
+      },
+      "139acd823d068e39bf07fd7e080f4395e0005c33514704481215ec665f3ce0e7": {
+        "sample_count": 58,
+        "current_pid": 69203,
+        "deltas": {
+          "threads": 0,
+          "open_fds": 0,
+          "allocator_active_bytes": 5204168,
+          "allocator_cache_bytes": -2394080
+        },
+        "plateau_observed": true,
+        "snapshot_consistency": "non_atomic"
+      }
+    }
+  },
+  "verified_defect": "P1 config sets CLI prompt_cache_bytes after upstream creates LRUPromptCache with unlimited max_bytes; completion insertion enforces max_bytes, not CLI budget",
+  "reproduction": "p1-prompt-cache-budget-2026-10-07.json",
+  "delay_root_cause_verified": false,
+  "aggregate_resource_failure_root_cause_verified": false,
+  "interpretation": "Different endpoint workloads confound aggregate deltas. Slow scheduler steps and high host load correlate with some failures, but low-load failures also occur. No gate relaxation; cache limit correction is not proof all failures are fixed."
+}
