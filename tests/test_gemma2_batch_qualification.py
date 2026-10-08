@@ -11,6 +11,15 @@ SPEC.loader.exec_module(qualification)
 
 
 class Gemma2QualificationTests(unittest.TestCase):
+    def test_initial_benchmarks_require_slo_and_complete_evidence(self):
+        good = dict(requests=12, completed=12, quality_passed=12, slo_quality_passed=12, failed=0)
+        self.assertTrue(qualification._benchmark_quality_slo_passed(good, 12))
+        for bad in (dict(good, slo_quality_passed=8), dict(good, failed=1),
+                    dict(good, requests=11), dict(good, completed=11),
+                    dict(good, quality_passed=11), dict(good, slo_quality_passed=None), None):
+            with self.subTest(bad=bad):
+                self.assertFalse(qualification._benchmark_quality_slo_passed(bad, 12))
+
     def test_awake_gate_rejects_suspend_unknown_and_transient_power_change(self):
         summary = dict(requests=1, completed=1, quality_passed=1, slo_quality_passed=1,
                        failed=0, sleep_wake_observations=0)

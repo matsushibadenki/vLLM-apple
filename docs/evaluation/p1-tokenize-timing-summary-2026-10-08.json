@@ -1,0 +1,73 @@
+{
+  "records": 52,
+  "phases": {
+    "queue_creation_to_dequeue": {
+      "samples": 52,
+      "missing": 0,
+      "median_ms": 27.845667,
+      "p95_ms": 360.463458,
+      "p99_ms": 973.7575,
+      "max_ms": 973.7575,
+      "p99_reference_only": true
+    },
+    "dequeue_to_first_response_ready": {
+      "samples": 48,
+      "missing": 4,
+      "median_ms": 724.1722915,
+      "p95_ms": 12909.142875000001,
+      "p99_ms": 18568.740875,
+      "max_ms": 18568.740875,
+      "p99_reference_only": true
+    },
+    "dequeue_to_tokenize_start": {
+      "samples": 51,
+      "missing": 1,
+      "median_ms": 0.018959000000000004,
+      "p95_ms": 0.08750000000000568,
+      "p99_ms": 2.2600000000000002,
+      "max_ms": 2.2600000000000002,
+      "p99_reference_only": true
+    },
+    "tokenize": {
+      "samples": 51,
+      "missing": 1,
+      "median_ms": 0.45283300000000004,
+      "p95_ms": 5.219000000000051,
+      "p99_ms": 16.174125,
+      "max_ms": 16.174125,
+      "p99_reference_only": true
+    },
+    "tokenize_end_to_first_response_ready": {
+      "samples": 48,
+      "missing": 4,
+      "median_ms": 722.2952915,
+      "p95_ms": 12905.346958,
+      "p99_ms": 18566.587125,
+      "max_ms": 18566.587125,
+      "p99_reference_only": true
+    },
+    "ready_to_http_receipt": {
+      "samples": 48,
+      "missing": 4,
+      "median_ms": 2.124145999999996,
+      "p95_ms": 6.395374999999831,
+      "p99_ms": 10.322707999999693,
+      "max_ms": 10.322707999999693,
+      "p99_reference_only": true
+    },
+    "first_sse_write": {
+      "samples": 50,
+      "missing": 2,
+      "median_ms": 0.059249999999963165,
+      "p95_ms": 0.33329200000002857,
+      "p99_ms": 1.5195830000000115,
+      "max_ms": 1.5195830000000115,
+      "p99_reference_only": true
+    }
+  },
+  "qualification": false,
+  "scope": "Retained completed host traces, including faults; no workload grouping",
+  "interpretation": "After-tokenize interval includes backend work and waits, not GPU-only time",
+  "report_sha256": "9c6fb3b6e741000b2859b539ced59340935b75e4bf97657046db5182aea0e4d9",
+  "summary_source_sha256": "2662768826def0f53bf6143edefaa10b7d96498abf96dd0794765d8918aed46c"
+}

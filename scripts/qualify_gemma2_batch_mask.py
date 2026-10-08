@@ -846,6 +846,14 @@ def _run_stability_window(config: PhaseProbeConfig, *, port: int, model: str,
     return summary
 
 
+def _benchmark_quality_slo_passed(benchmark: object, expected: int) -> bool:
+    if not isinstance(benchmark, dict) or type(expected) is not int or expected < 1:
+        return False
+    return all(type(benchmark.get(key)) is int and benchmark[key] == expected
+               for key in ('requests', 'completed', 'quality_passed', 'slo_quality_passed')) and (
+                   type(benchmark.get('failed')) is int and benchmark['failed'] == 0)
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--python", type=Path, required=True)
@@ -1080,12 +1088,8 @@ def main() -> int:
             and float(stability.get("elapsed_seconds", 0)) >= args.duration_seconds)
     )
     report["passed"] = bool(
-        isinstance(long_report, dict)
-        and long_report.get("completed") == args.long_requests
-        and long_report.get("quality_passed") == args.long_requests
-        and isinstance(sustained, dict)
-        and sustained.get("completed") == args.sustained_requests
-        and sustained.get("quality_passed") == args.sustained_requests
+        _benchmark_quality_slo_passed(long_report, args.long_requests)
+        and _benchmark_quality_slo_passed(sustained, args.sustained_requests)
         and isinstance(recovery, dict)
         and recovery.get("completed") is True
         and recovery.get("quality_passed") is True

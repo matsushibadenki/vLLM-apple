@@ -1,0 +1,1709 @@
+{
+  "scope": "Time overlap only; retained bounded snapshots; shared backend; wall clocks",
+  "qualification": false,
+  "root_cause_confirmed": false,
+  "failed_requests_reported": 17,
+  "retained_failure_samples": 17,
+  "requests": [
+    {
+      "window_started_at": "2026-10-08T00:07:02.408540+00:00",
+      "request_index": 0,
+      "language": "en",
+      "ttft_ms": 5803.12325,
+      "e2e_ms": 6298.647041,
+      "reasons": [
+        "ttft_slo_exceeded"
+      ],
+      "prompt_tokens": 22,
+      "cached_prompt_tokens": 21,
+      "request_started_unix_ns": 1791418022410248946,
+      "first_token_unix_ns": 1791418028213372196,
+      "overlapping_retained_steps": [
+        {
+          "started_at_unix_ns": 1791418026832063000,
+          "elapsed_ms": 920.496459,
+          "thread_cpu_ms": 38.067875,
+          "failed": false,
+          "intersection_ms": 920.496459
+        },
+        {
+          "started_at_unix_ns": 1791418027848117000,
+          "elapsed_ms": 352.912958,
+          "thread_cpu_ms": 9.635083,
+          "failed": false,
+          "intersection_ms": 352.912958
+        }
+      ],
+      "observed_slow_step_intersection_ms": 1273.4094169999998,
+      "queue_snapshot_before": {
+        "sample_count": 845,
+        "statistics": {
+          "mean_ms": 43.331,
+          "p50_upper_bound_ms": 25.0,
+          "p95_upper_bound_ms": 250.0,
+          "max_ms": 930.104
+        },
+        "scope": "ingress_to_first_scheduler_dequeue_including_cancelled"
+      },
+      "queue_snapshot_after": {
+        "sample_count": 857,
+        "statistics": {
+          "mean_ms": 47.105,
+          "p50_upper_bound_ms": 25.0,
+          "p95_upper_bound_ms": 250.0,
+          "max_ms": 2393.42
+        },
+        "scope": "ingress_to_first_scheduler_dequeue_including_cancelled"
+      },
+      "environment_before": {
+        "observed_at": "2026-10-08T00:07:02.386758+00:00",
+        "thermal_state": "fair",
+        "power_source": "AC Power",
+        "power_mode": "automatic",
+        "target_process_age_seconds": 350,
+        "system": {
+          "load_average_1_5_15_minutes": [
+            8.7412109375,
+            6.52685546875,
+            4.6396484375
+          ],
+          "logical_cpu_count": 10,
+          "memory": {
+            "total_bytes": 34359738368,
+            "available_bytes": 12196282368,
+            "source": "sysctl",
+            "available_is_estimate": true,
+            "available_is_fallback": false,
+            "pressure_estimate": "normal",
+            "pressure_method": "available_ratio_thresholds_0.08_0.18"
+          }
+        }
+      },
+      "environment_after": {
+        "observed_at": "2026-10-08T00:07:20.797294+00:00",
+        "thermal_state": "fair",
+        "power_source": "AC Power",
+        "power_mode": "automatic",
+        "target_process_age_seconds": 368,
+        "system": {
+          "load_average_1_5_15_minutes": [
+            19.1962890625,
+            9.0126953125,
+            5.57177734375
+          ],
+          "logical_cpu_count": 10,
+          "memory": {
+            "total_bytes": 34359738368,
+            "available_bytes": 12141789184,
+            "source": "sysctl",
+            "available_is_estimate": true,
+            "available_is_fallback": false,
+            "pressure_estimate": "normal",
+            "pressure_method": "available_ratio_thresholds_0.08_0.18"
+          }
+        }
+      },
+      "step_history_complete": false,
+      "request_phase_attribution_available": false
+    },
+    {
+      "window_started_at": "2026-10-08T00:07:02.408540+00:00",
+      "request_index": 1,
+      "language": "ja",
+      "ttft_ms": 5964.554417,
+      "e2e_ms": 6300.320958,
+      "reasons": [
+        "ttft_slo_exceeded"
+      ],
+      "prompt_tokens": 20,
+      "cached_prompt_tokens": 19,
+      "request_started_unix_ns": 1791418022410006529,
+      "first_token_unix_ns": 1791418028374560946,
+      "overlapping_retained_steps": [
+        {
+          "started_at_unix_ns": 1791418026832063000,
+          "elapsed_ms": 920.496459,
+          "thread_cpu_ms": 38.067875,
+          "failed": false,
+          "intersection_ms": 920.496459
+        },
+        {
+          "started_at_unix_ns": 1791418027848117000,
+          "elapsed_ms": 352.912958,
+          "thread_cpu_ms": 9.635083,
+          "failed": false,
+          "intersection_ms": 352.912958
+        }
+      ],
+      "observed_slow_step_intersection_ms": 1273.4094169999998,
+      "queue_snapshot_before": {
+        "sample_count": 845,
+        "statistics": {
+          "mean_ms": 43.331,
+          "p50_upper_bound_ms": 25.0,
+          "p95_upper_bound_ms": 250.0,
+          "max_ms": 930.104
+        },
+        "scope": "ingress_to_first_scheduler_dequeue_including_cancelled"
+      },
+      "queue_snapshot_after": {
+        "sample_count": 857,
+        "statistics": {
+          "mean_ms": 47.105,
+          "p50_upper_bound_ms": 25.0,
+          "p95_upper_bound_ms": 250.0,
+          "max_ms": 2393.42
+        },
+        "scope": "ingress_to_first_scheduler_dequeue_including_cancelled"
+      },
+      "environment_before": {
+        "observed_at": "2026-10-08T00:07:02.386758+00:00",
+        "thermal_state": "fair",
+        "power_source": "AC Power",
+        "power_mode": "automatic",
+        "target_process_age_seconds": 350,
+        "system": {
+          "load_average_1_5_15_minutes": [
+            8.7412109375,
+            6.52685546875,
+            4.6396484375
+          ],
+          "logical_cpu_count": 10,
+          "memory": {
+            "total_bytes": 34359738368,
+            "available_bytes": 12196282368,
+            "source": "sysctl",
+            "available_is_estimate": true,
+            "available_is_fallback": false,
+            "pressure_estimate": "normal",
+            "pressure_method": "available_ratio_thresholds_0.08_0.18"
+          }
+        }
+      },
+      "environment_after": {
+        "observed_at": "2026-10-08T00:07:20.797294+00:00",
+        "thermal_state": "fair",
+        "power_source": "AC Power",
+        "power_mode": "automatic",
+        "target_process_age_seconds": 368,
+        "system": {
+          "load_average_1_5_15_minutes": [
+            19.1962890625,
+            9.0126953125,
+            5.57177734375
+          ],
+          "logical_cpu_count": 10,
+          "memory": {
+            "total_bytes": 34359738368,
+            "available_bytes": 12141789184,
+            "source": "sysctl",
+            "available_is_estimate": true,
+            "available_is_fallback": false,
+            "pressure_estimate": "normal",
+            "pressure_method": "available_ratio_thresholds_0.08_0.18"
+          }
+        }
+      },
+      "step_history_complete": false,
+      "request_phase_attribution_available": false
+    },
+    {
+      "window_started_at": "2026-10-08T00:07:02.408540+00:00",
+      "request_index": 2,
+      "language": "zh",
+      "ttft_ms": 6244.947583,
+      "e2e_ms": 6564.88975,
+      "reasons": [
+        "ttft_slo_exceeded"
+      ],
+      "prompt_tokens": 19,
+      "cached_prompt_tokens": 18,
+      "request_started_unix_ns": 1791418028710065196,
+      "first_token_unix_ns": 1791418034955012779,
+      "overlapping_retained_steps": [
+        {
+          "started_at_unix_ns": 1791418034224615000,
+          "elapsed_ms": 507.838041,
+          "thread_cpu_ms": 28.022375,
+          "failed": false,
+          "intersection_ms": 507.838041
+        }
+      ],
+      "observed_slow_step_intersection_ms": 507.838041,
+      "queue_snapshot_before": {
+        "sample_count": 845,
+        "statistics": {
+          "mean_ms": 43.331,
+          "p50_upper_bound_ms": 25.0,
+          "p95_upper_bound_ms": 250.0,
+          "max_ms": 930.104
+        },
+        "scope": "ingress_to_first_scheduler_dequeue_including_cancelled"
+      },
+      "queue_snapshot_after": {
+        "sample_count": 857,
+        "statistics": {
+          "mean_ms": 47.105,
+          "p50_upper_bound_ms": 25.0,
+          "p95_upper_bound_ms": 250.0,
+          "max_ms": 2393.42
+        },
+        "scope": "ingress_to_first_scheduler_dequeue_including_cancelled"
+      },
+      "environment_before": {
+        "observed_at": "2026-10-08T00:07:02.386758+00:00",
+        "thermal_state": "fair",
+        "power_source": "AC Power",
+        "power_mode": "automatic",
+        "target_process_age_seconds": 350,
+        "system": {
+          "load_average_1_5_15_minutes": [
+            8.7412109375,
+            6.52685546875,
+            4.6396484375
+          ],
+          "logical_cpu_count": 10,
+          "memory": {
+            "total_bytes": 34359738368,
+            "available_bytes": 12196282368,
+            "source": "sysctl",
+            "available_is_estimate": true,
+            "available_is_fallback": false,
+            "pressure_estimate": "normal",
+            "pressure_method": "available_ratio_thresholds_0.08_0.18"
+          }
+        }
+      },
+      "environment_after": {
+        "observed_at": "2026-10-08T00:07:20.797294+00:00",
+        "thermal_state": "fair",
+        "power_source": "AC Power",
+        "power_mode": "automatic",
+        "target_process_age_seconds": 368,
+        "system": {
+          "load_average_1_5_15_minutes": [
+            19.1962890625,
+            9.0126953125,
+            5.57177734375
+          ],
+          "logical_cpu_count": 10,
+          "memory": {
+            "total_bytes": 34359738368,
+            "available_bytes": 12141789184,
+            "source": "sysctl",
+            "available_is_estimate": true,
+            "available_is_fallback": false,
+            "pressure_estimate": "normal",
+            "pressure_method": "available_ratio_thresholds_0.08_0.18"
+          }
+        }
+      },
+      "step_history_complete": false,
+      "request_phase_attribution_available": false
+    },
+    {
+      "window_started_at": "2026-10-08T00:07:02.408540+00:00",
+      "request_index": 3,
+      "language": "en",
+      "ttft_ms": 6247.480291,
+      "e2e_ms": 6566.53225,
+      "reasons": [
+        "ttft_slo_exceeded"
+      ],
+      "prompt_tokens": 22,
+      "cached_prompt_tokens": 21,
+      "request_started_unix_ns": 1791418028711152946,
+      "first_token_unix_ns": 1791418034958633237,
+      "overlapping_retained_steps": [
+        {
+          "started_at_unix_ns": 1791418034224615000,
+          "elapsed_ms": 507.838041,
+          "thread_cpu_ms": 28.022375,
+          "failed": false,
+          "intersection_ms": 507.838041
+        }
+      ],
+      "observed_slow_step_intersection_ms": 507.838041,
+      "queue_snapshot_before": {
+        "sample_count": 845,
+        "statistics": {
+          "mean_ms": 43.331,
+          "p50_upper_bound_ms": 25.0,
+          "p95_upper_bound_ms": 250.0,
+          "max_ms": 930.104
+        },
+        "scope": "ingress_to_first_scheduler_dequeue_including_cancelled"
+      },
+      "queue_snapshot_after": {
+        "sample_count": 857,
+        "statistics": {
+          "mean_ms": 47.105,
+          "p50_upper_bound_ms": 25.0,
+          "p95_upper_bound_ms": 250.0,
+          "max_ms": 2393.42
+        },
+        "scope": "ingress_to_first_scheduler_dequeue_including_cancelled"
+      },
+      "environment_before": {
+        "observed_at": "2026-10-08T00:07:02.386758+00:00",
+        "thermal_state": "fair",
+        "power_source": "AC Power",
+        "power_mode": "automatic",
+        "target_process_age_seconds": 350,
+        "system": {
+          "load_average_1_5_15_minutes": [
+            8.7412109375,
+            6.52685546875,
+            4.6396484375
+          ],
+          "logical_cpu_count": 10,
+          "memory": {
+            "total_bytes": 34359738368,
+            "available_bytes": 12196282368,
+            "source": "sysctl",
+            "available_is_estimate": true,
+            "available_is_fallback": false,
+            "pressure_estimate": "normal",
+            "pressure_method": "available_ratio_thresholds_0.08_0.18"
+          }
+        }
+      },
+      "environment_after": {
+        "observed_at": "2026-10-08T00:07:20.797294+00:00",
+        "thermal_state": "fair",
+        "power_source": "AC Power",
+        "power_mode": "automatic",
+        "target_process_age_seconds": 368,
+        "system": {
+          "load_average_1_5_15_minutes": [
+            19.1962890625,
+            9.0126953125,
+            5.57177734375
+          ],
+          "logical_cpu_count": 10,
+          "memory": {
+            "total_bytes": 34359738368,
+            "available_bytes": 12141789184,
+            "source": "sysctl",
+            "available_is_estimate": true,
+            "available_is_fallback": false,
+            "pressure_estimate": "normal",
+            "pressure_method": "available_ratio_thresholds_0.08_0.18"
+          }
+        }
+      },
+      "step_history_complete": false,
+      "request_phase_attribution_available": false
+    },
+    {
+      "window_started_at": "2026-10-08T00:07:33.069428+00:00",
+      "request_index": 0,
+      "language": "prefix-edit-a",
+      "ttft_ms": 11844.514833,
+      "e2e_ms": 12929.84175,
+      "reasons": [
+        "ttft_slo_exceeded"
+      ],
+      "prompt_tokens": 2073,
+      "cached_prompt_tokens": 4,
+      "request_started_unix_ns": 1791418053069949177,
+      "first_token_unix_ns": 1791418064914464010,
+      "overlapping_retained_steps": [
+        {
+          "started_at_unix_ns": 1791418054345394000,
+          "elapsed_ms": 1492.972917,
+          "thread_cpu_ms": 68.473375,
+          "failed": false,
+          "intersection_ms": 1492.972917
+        },
+        {
+          "started_at_unix_ns": 1791418056017859000,
+          "elapsed_ms": 1635.592791,
+          "thread_cpu_ms": 87.615375,
+          "failed": false,
+          "intersection_ms": 1635.592791
+        },
+        {
+          "started_at_unix_ns": 1791418057653520000,
+          "elapsed_ms": 1638.761375,
+          "thread_cpu_ms": 82.316916,
+          "failed": false,
+          "intersection_ms": 1638.761375
+        },
+        {
+          "started_at_unix_ns": 1791418059292356000,
+          "elapsed_ms": 2301.053959,
+          "thread_cpu_ms": 88.217125,
+          "failed": false,
+          "intersection_ms": 2301.053959
+        },
+        {
+          "started_at_unix_ns": 1791418061601673000,
+          "elapsed_ms": 1551.224375,
+          "thread_cpu_ms": 39.320958,
+          "failed": false,
+          "intersection_ms": 1551.224375
+        },
+        {
+          "started_at_unix_ns": 1791418063773934000,
+          "elapsed_ms": 390.023416,
+          "thread_cpu_ms": 39.829291,
+          "failed": false,
+          "intersection_ms": 390.023416
+        },
+        {
+          "started_at_unix_ns": 1791418064164035000,
+          "elapsed_ms": 586.849417,
+          "thread_cpu_ms": 11.357791,
+          "failed": false,
+          "intersection_ms": 586.849417
+        }
+      ],
+      "observed_slow_step_intersection_ms": 9596.47825,
+      "queue_snapshot_before": {
+        "sample_count": 871,
+        "statistics": {
+          "mean_ms": 49.39,
+          "p50_upper_bound_ms": 25.0,
+          "p95_upper_bound_ms": 250.0,
+          "max_ms": 2393.42
+        },
+        "scope": "ingress_to_first_scheduler_dequeue_including_cancelled"
+      },
+      "queue_snapshot_after": {
+        "sample_count": 874,
+        "statistics": {
+          "mean_ms": 49.22,
+          "p50_upper_bound_ms": 25.0,
+          "p95_upper_bound_ms": 250.0,
+          "max_ms": 2393.42
+        },
+        "scope": "ingress_to_first_scheduler_dequeue_including_cancelled"
+      },
+      "environment_before": {
+        "observed_at": "2026-10-08T00:07:33.055294+00:00",
+        "thermal_state": "fair",
+        "power_source": "AC Power",
+        "power_mode": "automatic",
+        "target_process_age_seconds": 381,
+        "system": {
+          "load_average_1_5_15_minutes": [
+            17.51318359375,
+            9.14111328125,
+            5.67724609375
+          ],
+          "logical_cpu_count": 10,
+          "memory": {
+            "total_bytes": 34359738368,
+            "available_bytes": 11273928704,
+            "source": "sysctl",
+            "available_is_estimate": true,
+            "available_is_fallback": false,
+            "pressure_estimate": "normal",
+            "pressure_method": "available_ratio_thresholds_0.08_0.18"
+          }
+        }
+      },
+      "environment_after": {
+        "observed_at": "2026-10-08T00:07:50.310905+00:00",
+        "thermal_state": "fair",
+        "power_source": "AC Power",
+        "power_mode": "automatic",
+        "target_process_age_seconds": 398,
+        "system": {
+          "load_average_1_5_15_minutes": [
+            35.74560546875,
+            13.55029296875,
+            7.30810546875
+          ],
+          "logical_cpu_count": 10,
+          "memory": {
+            "total_bytes": 34359738368,
+            "available_bytes": 11613995008,
+            "source": "sysctl",
+            "available_is_estimate": true,
+            "available_is_fallback": false,
+            "pressure_estimate": "normal",
+            "pressure_method": "available_ratio_thresholds_0.08_0.18"
+          }
+        }
+      },
+      "step_history_complete": false,
+      "request_phase_attribution_available": false
+    },
+    {
+      "window_started_at": "2026-10-08T00:08:06.543762+00:00",
+      "request_index": 2,
+      "language": "zh",
+      "ttft_ms": 5735.665625,
+      "e2e_ms": 6335.540375,
+      "reasons": [
+        "ttft_slo_exceeded"
+      ],
+      "prompt_tokens": 19,
+      "cached_prompt_tokens": 18,
+      "request_started_unix_ns": 1791418088298758836,
+      "first_token_unix_ns": 1791418094034424461,
+      "overlapping_retained_steps": [
+        {
+          "started_at_unix_ns": 1791418092985295000,
+          "elapsed_ms": 852.837834,
+          "thread_cpu_ms": 36.101833,
+          "failed": false,
+          "intersection_ms": 852.837834
+        }
+      ],
+      "observed_slow_step_intersection_ms": 852.837834,
+      "queue_snapshot_before": {
+        "sample_count": 888,
+        "statistics": {
+          "mean_ms": 50.254,
+          "p50_upper_bound_ms": 25.0,
+          "p95_upper_bound_ms": 250.0,
+          "max_ms": 2393.42
+        },
+        "scope": "ingress_to_first_scheduler_dequeue_including_cancelled"
+      },
+      "queue_snapshot_after": {
+        "sample_count": 900,
+        "statistics": {
+          "mean_ms": 70.475,
+          "p50_upper_bound_ms": 25.0,
+          "p95_upper_bound_ms": 250.0,
+          "max_ms": 9472.795
+        },
+        "scope": "ingress_to_first_scheduler_dequeue_including_cancelled"
+      },
+      "environment_before": {
+        "observed_at": "2026-10-08T00:08:06.522685+00:00",
+        "thermal_state": "fair",
+        "power_source": "AC Power",
+        "power_mode": "automatic",
+        "target_process_age_seconds": 414,
+        "system": {
+          "load_average_1_5_15_minutes": [
+            34.4736328125,
+            14.3681640625,
+            7.70947265625
+          ],
+          "logical_cpu_count": 10,
+          "memory": {
+            "total_bytes": 34359738368,
+            "available_bytes": 9892364288,
+            "source": "sysctl",
+            "available_is_estimate": true,
+            "available_is_fallback": false,
+            "pressure_estimate": "normal",
+            "pressure_method": "available_ratio_thresholds_0.08_0.18"
+          }
+        }
+      },
+      "environment_after": {
+        "observed_at": "2026-10-08T00:09:09.136153+00:00",
+        "thermal_state": "fair",
+        "power_source": "AC Power",
+        "power_mode": "automatic",
+        "target_process_age_seconds": 477,
+        "system": {
+          "load_average_1_5_15_minutes": [
+            65.56005859375,
+            26.1416015625,
+            12.53564453125
+          ],
+          "logical_cpu_count": 10,
+          "memory": {
+            "total_bytes": 34359738368,
+            "available_bytes": 9501540352,
+            "source": "sysctl",
+            "available_is_estimate": true,
+            "available_is_fallback": false,
+            "pressure_estimate": "normal",
+            "pressure_method": "available_ratio_thresholds_0.08_0.18"
+          }
+        }
+      },
+      "step_history_complete": false,
+      "request_phase_attribution_available": false
+    },
+    {
+      "window_started_at": "2026-10-08T00:08:06.543762+00:00",
+      "request_index": 3,
+      "language": "en",
+      "ttft_ms": 5899.997917,
+      "e2e_ms": 6337.550583,
+      "reasons": [
+        "ttft_slo_exceeded"
+      ],
+      "prompt_tokens": 22,
+      "cached_prompt_tokens": 21,
+      "request_started_unix_ns": 1791418088301455878,
+      "first_token_unix_ns": 1791418094201453795,
+      "overlapping_retained_steps": [
+        {
+          "started_at_unix_ns": 1791418092985295000,
+          "elapsed_ms": 852.837834,
+          "thread_cpu_ms": 36.101833,
+          "failed": false,
+          "intersection_ms": 852.837834
+        }
+      ],
+      "observed_slow_step_intersection_ms": 852.837834,
+      "queue_snapshot_before": {
+        "sample_count": 888,
+        "statistics": {
+          "mean_ms": 50.254,
+          "p50_upper_bound_ms": 25.0,
+          "p95_upper_bound_ms": 250.0,
+          "max_ms": 2393.42
+        },
+        "scope": "ingress_to_first_scheduler_dequeue_including_cancelled"
+      },
+      "queue_snapshot_after": {
+        "sample_count": 900,
+        "statistics": {
+          "mean_ms": 70.475,
+          "p50_upper_bound_ms": 25.0,
+          "p95_upper_bound_ms": 250.0,
+          "max_ms": 9472.795
+        },
+        "scope": "ingress_to_first_scheduler_dequeue_including_cancelled"
+      },
+      "environment_before": {
+        "observed_at": "2026-10-08T00:08:06.522685+00:00",
+        "thermal_state": "fair",
+        "power_source": "AC Power",
+        "power_mode": "automatic",
+        "target_process_age_seconds": 414,
+        "system": {
+          "load_average_1_5_15_minutes": [
+            34.4736328125,
+            14.3681640625,
+            7.70947265625
+          ],
+          "logical_cpu_count": 10,
+          "memory": {
+            "total_bytes": 34359738368,
+            "available_bytes": 9892364288,
+            "source": "sysctl",
+            "available_is_estimate": true,
+            "available_is_fallback": false,
+            "pressure_estimate": "normal",
+            "pressure_method": "available_ratio_thresholds_0.08_0.18"
+          }
+        }
+      },
+      "environment_after": {
+        "observed_at": "2026-10-08T00:09:09.136153+00:00",
+        "thermal_state": "fair",
+        "power_source": "AC Power",
+        "power_mode": "automatic",
+        "target_process_age_seconds": 477,
+        "system": {
+          "load_average_1_5_15_minutes": [
+            65.56005859375,
+            26.1416015625,
+            12.53564453125
+          ],
+          "logical_cpu_count": 10,
+          "memory": {
+            "total_bytes": 34359738368,
+            "available_bytes": 9501540352,
+            "source": "sysctl",
+            "available_is_estimate": true,
+            "available_is_fallback": false,
+            "pressure_estimate": "normal",
+            "pressure_method": "available_ratio_thresholds_0.08_0.18"
+          }
+        }
+      },
+      "step_history_complete": false,
+      "request_phase_attribution_available": false
+    },
+    {
+      "window_started_at": "2026-10-08T00:08:06.543762+00:00",
+      "request_index": 4,
+      "language": "ja",
+      "ttft_ms": 7324.48775,
+      "e2e_ms": 7971.658291,
+      "reasons": [
+        "ttft_slo_exceeded"
+      ],
+      "prompt_tokens": 20,
+      "cached_prompt_tokens": 19,
+      "request_started_unix_ns": 1791418094640392795,
+      "first_token_unix_ns": 1791418101964880545,
+      "overlapping_retained_steps": [
+        {
+          "started_at_unix_ns": 1791418100046380000,
+          "elapsed_ms": 1618.006625,
+          "thread_cpu_ms": 39.140875,
+          "failed": false,
+          "intersection_ms": 1618.006625
+        }
+      ],
+      "observed_slow_step_intersection_ms": 1618.006625,
+      "queue_snapshot_before": {
+        "sample_count": 888,
+        "statistics": {
+          "mean_ms": 50.254,
+          "p50_upper_bound_ms": 25.0,
+          "p95_upper_bound_ms": 250.0,
+          "max_ms": 2393.42
+        },
+        "scope": "ingress_to_first_scheduler_dequeue_including_cancelled"
+      },
+      "queue_snapshot_after": {
+        "sample_count": 900,
+        "statistics": {
+          "mean_ms": 70.475,
+          "p50_upper_bound_ms": 25.0,
+          "p95_upper_bound_ms": 250.0,
+          "max_ms": 9472.795
+        },
+        "scope": "ingress_to_first_scheduler_dequeue_including_cancelled"
+      },
+      "environment_before": {
+        "observed_at": "2026-10-08T00:08:06.522685+00:00",
+        "thermal_state": "fair",
+        "power_source": "AC Power",
+        "power_mode": "automatic",
+        "target_process_age_seconds": 414,
+        "system": {
+          "load_average_1_5_15_minutes": [
+            34.4736328125,
+            14.3681640625,
+            7.70947265625
+          ],
+          "logical_cpu_count": 10,
+          "memory": {
+            "total_bytes": 34359738368,
+            "available_bytes": 9892364288,
+            "source": "sysctl",
+            "available_is_estimate": true,
+            "available_is_fallback": false,
+            "pressure_estimate": "normal",
+            "pressure_method": "available_ratio_thresholds_0.08_0.18"
+          }
+        }
+      },
+      "environment_after": {
+        "observed_at": "2026-10-08T00:09:09.136153+00:00",
+        "thermal_state": "fair",
+        "power_source": "AC Power",
+        "power_mode": "automatic",
+        "target_process_age_seconds": 477,
+        "system": {
+          "load_average_1_5_15_minutes": [
+            65.56005859375,
+            26.1416015625,
+            12.53564453125
+          ],
+          "logical_cpu_count": 10,
+          "memory": {
+            "total_bytes": 34359738368,
+            "available_bytes": 9501540352,
+            "source": "sysctl",
+            "available_is_estimate": true,
+            "available_is_fallback": false,
+            "pressure_estimate": "normal",
+            "pressure_method": "available_ratio_thresholds_0.08_0.18"
+          }
+        }
+      },
+      "step_history_complete": false,
+      "request_phase_attribution_available": false
+    },
+    {
+      "window_started_at": "2026-10-08T00:08:06.543762+00:00",
+      "request_index": 5,
+      "language": "zh",
+      "ttft_ms": 7451.286,
+      "e2e_ms": 7971.245958,
+      "reasons": [
+        "ttft_slo_exceeded"
+      ],
+      "prompt_tokens": 19,
+      "cached_prompt_tokens": 18,
+      "request_started_unix_ns": 1791418094643024503,
+      "first_token_unix_ns": 1791418102094310503,
+      "overlapping_retained_steps": [
+        {
+          "started_at_unix_ns": 1791418100046380000,
+          "elapsed_ms": 1618.006625,
+          "thread_cpu_ms": 39.140875,
+          "failed": false,
+          "intersection_ms": 1618.006625
+        }
+      ],
+      "observed_slow_step_intersection_ms": 1618.006625,
+      "queue_snapshot_before": {
+        "sample_count": 888,
+        "statistics": {
+          "mean_ms": 50.254,
+          "p50_upper_bound_ms": 25.0,
+          "p95_upper_bound_ms": 250.0,
+          "max_ms": 2393.42
+        },
+        "scope": "ingress_to_first_scheduler_dequeue_including_cancelled"
+      },
+      "queue_snapshot_after": {
+        "sample_count": 900,
+        "statistics": {
+          "mean_ms": 70.475,
+          "p50_upper_bound_ms": 25.0,
+          "p95_upper_bound_ms": 250.0,
+          "max_ms": 9472.795
+        },
+        "scope": "ingress_to_first_scheduler_dequeue_including_cancelled"
+      },
+      "environment_before": {
+        "observed_at": "2026-10-08T00:08:06.522685+00:00",
+        "thermal_state": "fair",
+        "power_source": "AC Power",
+        "power_mode": "automatic",
+        "target_process_age_seconds": 414,
+        "system": {
+          "load_average_1_5_15_minutes": [
+            34.4736328125,
+            14.3681640625,
+            7.70947265625
+          ],
+          "logical_cpu_count": 10,
+          "memory": {
+            "total_bytes": 34359738368,
+            "available_bytes": 9892364288,
+            "source": "sysctl",
+            "available_is_estimate": true,
+            "available_is_fallback": false,
+            "pressure_estimate": "normal",
+            "pressure_method": "available_ratio_thresholds_0.08_0.18"
+          }
+        }
+      },
+      "environment_after": {
+        "observed_at": "2026-10-08T00:09:09.136153+00:00",
+        "thermal_state": "fair",
+        "power_source": "AC Power",
+        "power_mode": "automatic",
+        "target_process_age_seconds": 477,
+        "system": {
+          "load_average_1_5_15_minutes": [
+            65.56005859375,
+            26.1416015625,
+            12.53564453125
+          ],
+          "logical_cpu_count": 10,
+          "memory": {
+            "total_bytes": 34359738368,
+            "available_bytes": 9501540352,
+            "source": "sysctl",
+            "available_is_estimate": true,
+            "available_is_fallback": false,
+            "pressure_estimate": "normal",
+            "pressure_method": "available_ratio_thresholds_0.08_0.18"
+          }
+        }
+      },
+      "step_history_complete": false,
+      "request_phase_attribution_available": false
+    },
+    {
+      "window_started_at": "2026-10-08T00:08:06.543762+00:00",
+      "request_index": 6,
+      "language": "en",
+      "ttft_ms": 19912.60175,
+      "e2e_ms": 20831.7805,
+      "reasons": [
+        "ttft_slo_exceeded",
+        "e2e_slo_exceeded"
+      ],
+      "prompt_tokens": 22,
+      "cached_prompt_tokens": 21,
+      "request_started_unix_ns": 1791418102620256961,
+      "first_token_unix_ns": 1791418122532858711,
+      "overlapping_retained_steps": [
+        {
+          "started_at_unix_ns": 1791418119096551000,
+          "elapsed_ms": 2727.124333,
+          "thread_cpu_ms": 37.447041,
+          "failed": false,
+          "intersection_ms": 2727.124333
+        },
+        {
+          "started_at_unix_ns": 1791418122160089000,
+          "elapsed_ms": 357.063667,
+          "thread_cpu_ms": 14.354833,
+          "failed": false,
+          "intersection_ms": 357.063667
+        }
+      ],
+      "observed_slow_step_intersection_ms": 3084.188,
+      "queue_snapshot_before": {
+        "sample_count": 888,
+        "statistics": {
+          "mean_ms": 50.254,
+          "p50_upper_bound_ms": 25.0,
+          "p95_upper_bound_ms": 250.0,
+          "max_ms": 2393.42
+        },
+        "scope": "ingress_to_first_scheduler_dequeue_including_cancelled"
+      },
+      "queue_snapshot_after": {
+        "sample_count": 900,
+        "statistics": {
+          "mean_ms": 70.475,
+          "p50_upper_bound_ms": 25.0,
+          "p95_upper_bound_ms": 250.0,
+          "max_ms": 9472.795
+        },
+        "scope": "ingress_to_first_scheduler_dequeue_including_cancelled"
+      },
+      "environment_before": {
+        "observed_at": "2026-10-08T00:08:06.522685+00:00",
+        "thermal_state": "fair",
+        "power_source": "AC Power",
+        "power_mode": "automatic",
+        "target_process_age_seconds": 414,
+        "system": {
+          "load_average_1_5_15_minutes": [
+            34.4736328125,
+            14.3681640625,
+            7.70947265625
+          ],
+          "logical_cpu_count": 10,
+          "memory": {
+            "total_bytes": 34359738368,
+            "available_bytes": 9892364288,
+            "source": "sysctl",
+            "available_is_estimate": true,
+            "available_is_fallback": false,
+            "pressure_estimate": "normal",
+            "pressure_method": "available_ratio_thresholds_0.08_0.18"
+          }
+        }
+      },
+      "environment_after": {
+        "observed_at": "2026-10-08T00:09:09.136153+00:00",
+        "thermal_state": "fair",
+        "power_source": "AC Power",
+        "power_mode": "automatic",
+        "target_process_age_seconds": 477,
+        "system": {
+          "load_average_1_5_15_minutes": [
+            65.56005859375,
+            26.1416015625,
+            12.53564453125
+          ],
+          "logical_cpu_count": 10,
+          "memory": {
+            "total_bytes": 34359738368,
+            "available_bytes": 9501540352,
+            "source": "sysctl",
+            "available_is_estimate": true,
+            "available_is_fallback": false,
+            "pressure_estimate": "normal",
+            "pressure_method": "available_ratio_thresholds_0.08_0.18"
+          }
+        }
+      },
+      "step_history_complete": false,
+      "request_phase_attribution_available": false
+    },
+    {
+      "window_started_at": "2026-10-08T00:08:06.543762+00:00",
+      "request_index": 7,
+      "language": "ja",
+      "ttft_ms": 19864.567375,
+      "e2e_ms": 20770.026625,
+      "reasons": [
+        "ttft_slo_exceeded",
+        "e2e_slo_exceeded"
+      ],
+      "prompt_tokens": 20,
+      "cached_prompt_tokens": 19,
+      "request_started_unix_ns": 1791418102684620711,
+      "first_token_unix_ns": 1791418122549188086,
+      "overlapping_retained_steps": [
+        {
+          "started_at_unix_ns": 1791418119096551000,
+          "elapsed_ms": 2727.124333,
+          "thread_cpu_ms": 37.447041,
+          "failed": false,
+          "intersection_ms": 2727.124333
+        },
+        {
+          "started_at_unix_ns": 1791418122160089000,
+          "elapsed_ms": 357.063667,
+          "thread_cpu_ms": 14.354833,
+          "failed": false,
+          "intersection_ms": 357.063667
+        }
+      ],
+      "observed_slow_step_intersection_ms": 3084.188,
+      "queue_snapshot_before": {
+        "sample_count": 888,
+        "statistics": {
+          "mean_ms": 50.254,
+          "p50_upper_bound_ms": 25.0,
+          "p95_upper_bound_ms": 250.0,
+          "max_ms": 2393.42
+        },
+        "scope": "ingress_to_first_scheduler_dequeue_including_cancelled"
+      },
+      "queue_snapshot_after": {
+        "sample_count": 900,
+        "statistics": {
+          "mean_ms": 70.475,
+          "p50_upper_bound_ms": 25.0,
+          "p95_upper_bound_ms": 250.0,
+          "max_ms": 9472.795
+        },
+        "scope": "ingress_to_first_scheduler_dequeue_including_cancelled"
+      },
+      "environment_before": {
+        "observed_at": "2026-10-08T00:08:06.522685+00:00",
+        "thermal_state": "fair",
+        "power_source": "AC Power",
+        "power_mode": "automatic",
+        "target_process_age_seconds": 414,
+        "system": {
+          "load_average_1_5_15_minutes": [
+            34.4736328125,
+            14.3681640625,
+            7.70947265625
+          ],
+          "logical_cpu_count": 10,
+          "memory": {
+            "total_bytes": 34359738368,
+            "available_bytes": 9892364288,
+            "source": "sysctl",
+            "available_is_estimate": true,
+            "available_is_fallback": false,
+            "pressure_estimate": "normal",
+            "pressure_method": "available_ratio_thresholds_0.08_0.18"
+          }
+        }
+      },
+      "environment_after": {
+        "observed_at": "2026-10-08T00:09:09.136153+00:00",
+        "thermal_state": "fair",
+        "power_source": "AC Power",
+        "power_mode": "automatic",
+        "target_process_age_seconds": 477,
+        "system": {
+          "load_average_1_5_15_minutes": [
+            65.56005859375,
+            26.1416015625,
+            12.53564453125
+          ],
+          "logical_cpu_count": 10,
+          "memory": {
+            "total_bytes": 34359738368,
+            "available_bytes": 9501540352,
+            "source": "sysctl",
+            "available_is_estimate": true,
+            "available_is_fallback": false,
+            "pressure_estimate": "normal",
+            "pressure_method": "available_ratio_thresholds_0.08_0.18"
+          }
+        }
+      },
+      "step_history_complete": false,
+      "request_phase_attribution_available": false
+    },
+    {
+      "window_started_at": "2026-10-08T00:08:06.543762+00:00",
+      "request_index": 9,
+      "language": "en",
+      "ttft_ms": 19964.696833,
+      "e2e_ms": 20697.44225,
+      "reasons": [
+        "ttft_slo_exceeded",
+        "e2e_slo_exceeded"
+      ],
+      "prompt_tokens": 22,
+      "cached_prompt_tokens": 21,
+      "request_started_unix_ns": 1791418123455114170,
+      "first_token_unix_ns": 1791418143419811003,
+      "overlapping_retained_steps": [
+        {
+          "started_at_unix_ns": 1791418141271238000,
+          "elapsed_ms": 1764.599708,
+          "thread_cpu_ms": 34.220833,
+          "failed": false,
+          "intersection_ms": 1764.599708
+        }
+      ],
+      "observed_slow_step_intersection_ms": 1764.599708,
+      "queue_snapshot_before": {
+        "sample_count": 888,
+        "statistics": {
+          "mean_ms": 50.254,
+          "p50_upper_bound_ms": 25.0,
+          "p95_upper_bound_ms": 250.0,
+          "max_ms": 2393.42
+        },
+        "scope": "ingress_to_first_scheduler_dequeue_including_cancelled"
+      },
+      "queue_snapshot_after": {
+        "sample_count": 900,
+        "statistics": {
+          "mean_ms": 70.475,
+          "p50_upper_bound_ms": 25.0,
+          "p95_upper_bound_ms": 250.0,
+          "max_ms": 9472.795
+        },
+        "scope": "ingress_to_first_scheduler_dequeue_including_cancelled"
+      },
+      "environment_before": {
+        "observed_at": "2026-10-08T00:08:06.522685+00:00",
+        "thermal_state": "fair",
+        "power_source": "AC Power",
+        "power_mode": "automatic",
+        "target_process_age_seconds": 414,
+        "system": {
+          "load_average_1_5_15_minutes": [
+            34.4736328125,
+            14.3681640625,
+            7.70947265625
+          ],
+          "logical_cpu_count": 10,
+          "memory": {
+            "total_bytes": 34359738368,
+            "available_bytes": 9892364288,
+            "source": "sysctl",
+            "available_is_estimate": true,
+            "available_is_fallback": false,
+            "pressure_estimate": "normal",
+            "pressure_method": "available_ratio_thresholds_0.08_0.18"
+          }
+        }
+      },
+      "environment_after": {
+        "observed_at": "2026-10-08T00:09:09.136153+00:00",
+        "thermal_state": "fair",
+        "power_source": "AC Power",
+        "power_mode": "automatic",
+        "target_process_age_seconds": 477,
+        "system": {
+          "load_average_1_5_15_minutes": [
+            65.56005859375,
+            26.1416015625,
+            12.53564453125
+          ],
+          "logical_cpu_count": 10,
+          "memory": {
+            "total_bytes": 34359738368,
+            "available_bytes": 9501540352,
+            "source": "sysctl",
+            "available_is_estimate": true,
+            "available_is_fallback": false,
+            "pressure_estimate": "normal",
+            "pressure_method": "available_ratio_thresholds_0.08_0.18"
+          }
+        }
+      },
+      "step_history_complete": false,
+      "request_phase_attribution_available": false
+    },
+    {
+      "window_started_at": "2026-10-08T00:08:06.543762+00:00",
+      "request_index": 8,
+      "language": "zh",
+      "ttft_ms": 20099.556042,
+      "e2e_ms": 20766.55325,
+      "reasons": [
+        "ttft_slo_exceeded",
+        "e2e_slo_exceeded"
+      ],
+      "prompt_tokens": 19,
+      "cached_prompt_tokens": 18,
+      "request_started_unix_ns": 1791418123453995628,
+      "first_token_unix_ns": 1791418143553551670,
+      "overlapping_retained_steps": [
+        {
+          "started_at_unix_ns": 1791418141271238000,
+          "elapsed_ms": 1764.599708,
+          "thread_cpu_ms": 34.220833,
+          "failed": false,
+          "intersection_ms": 1764.599708
+        }
+      ],
+      "observed_slow_step_intersection_ms": 1764.599708,
+      "queue_snapshot_before": {
+        "sample_count": 888,
+        "statistics": {
+          "mean_ms": 50.254,
+          "p50_upper_bound_ms": 25.0,
+          "p95_upper_bound_ms": 250.0,
+          "max_ms": 2393.42
+        },
+        "scope": "ingress_to_first_scheduler_dequeue_including_cancelled"
+      },
+      "queue_snapshot_after": {
+        "sample_count": 900,
+        "statistics": {
+          "mean_ms": 70.475,
+          "p50_upper_bound_ms": 25.0,
+          "p95_upper_bound_ms": 250.0,
+          "max_ms": 9472.795
+        },
+        "scope": "ingress_to_first_scheduler_dequeue_including_cancelled"
+      },
+      "environment_before": {
+        "observed_at": "2026-10-08T00:08:06.522685+00:00",
+        "thermal_state": "fair",
+        "power_source": "AC Power",
+        "power_mode": "automatic",
+        "target_process_age_seconds": 414,
+        "system": {
+          "load_average_1_5_15_minutes": [
+            34.4736328125,
+            14.3681640625,
+            7.70947265625
+          ],
+          "logical_cpu_count": 10,
+          "memory": {
+            "total_bytes": 34359738368,
+            "available_bytes": 9892364288,
+            "source": "sysctl",
+            "available_is_estimate": true,
+            "available_is_fallback": false,
+            "pressure_estimate": "normal",
+            "pressure_method": "available_ratio_thresholds_0.08_0.18"
+          }
+        }
+      },
+      "environment_after": {
+        "observed_at": "2026-10-08T00:09:09.136153+00:00",
+        "thermal_state": "fair",
+        "power_source": "AC Power",
+        "power_mode": "automatic",
+        "target_process_age_seconds": 477,
+        "system": {
+          "load_average_1_5_15_minutes": [
+            65.56005859375,
+            26.1416015625,
+            12.53564453125
+          ],
+          "logical_cpu_count": 10,
+          "memory": {
+            "total_bytes": 34359738368,
+            "available_bytes": 9501540352,
+            "source": "sysctl",
+            "available_is_estimate": true,
+            "available_is_fallback": false,
+            "pressure_estimate": "normal",
+            "pressure_method": "available_ratio_thresholds_0.08_0.18"
+          }
+        }
+      },
+      "step_history_complete": false,
+      "request_phase_attribution_available": false
+    },
+    {
+      "window_started_at": "2026-10-08T00:14:11.523066+00:00",
+      "request_index": 0,
+      "language": "en",
+      "ttft_ms": 8891.850125,
+      "e2e_ms": 9434.588875,
+      "reasons": [
+        "ttft_slo_exceeded"
+      ],
+      "prompt_tokens": 22,
+      "cached_prompt_tokens": 21,
+      "request_started_unix_ns": 1791418451523986946,
+      "first_token_unix_ns": 1791418460415837071,
+      "overlapping_retained_steps": [],
+      "observed_slow_step_intersection_ms": 0,
+      "queue_snapshot_before": {
+        "sample_count": 1425,
+        "statistics": {
+          "mean_ms": 66.3,
+          "p50_upper_bound_ms": 50.0,
+          "p95_upper_bound_ms": 250.0,
+          "max_ms": 9472.795
+        },
+        "scope": "ingress_to_first_scheduler_dequeue_including_cancelled"
+      },
+      "queue_snapshot_after": {
+        "sample_count": 1437,
+        "statistics": {
+          "mean_ms": 66.496,
+          "p50_upper_bound_ms": 50.0,
+          "p95_upper_bound_ms": 250.0,
+          "max_ms": 9472.795
+        },
+        "scope": "ingress_to_first_scheduler_dequeue_including_cancelled"
+      },
+      "environment_before": {
+        "observed_at": "2026-10-08T00:14:11.157525+00:00",
+        "thermal_state": "fair",
+        "power_source": "AC Power",
+        "power_mode": "automatic",
+        "target_process_age_seconds": 779,
+        "system": {
+          "load_average_1_5_15_minutes": [
+            15.95751953125,
+            16.9833984375,
+            12.1513671875
+          ],
+          "logical_cpu_count": 10,
+          "memory": {
+            "total_bytes": 34359738368,
+            "available_bytes": 11470290944,
+            "source": "sysctl",
+            "available_is_estimate": true,
+            "available_is_fallback": false,
+            "pressure_estimate": "normal",
+            "pressure_method": "available_ratio_thresholds_0.08_0.18"
+          }
+        }
+      },
+      "environment_after": {
+        "observed_at": "2026-10-08T00:14:25.783239+00:00",
+        "thermal_state": "fair",
+        "power_source": "AC Power",
+        "power_mode": "automatic",
+        "target_process_age_seconds": 793,
+        "system": {
+          "load_average_1_5_15_minutes": [
+            18.00537109375,
+            17.41650390625,
+            12.3916015625
+          ],
+          "logical_cpu_count": 10,
+          "memory": {
+            "total_bytes": 34359738368,
+            "available_bytes": 12060852224,
+            "source": "sysctl",
+            "available_is_estimate": true,
+            "available_is_fallback": false,
+            "pressure_estimate": "normal",
+            "pressure_method": "available_ratio_thresholds_0.08_0.18"
+          }
+        }
+      },
+      "step_history_complete": false,
+      "request_phase_attribution_available": false
+    },
+    {
+      "window_started_at": "2026-10-08T00:14:11.523066+00:00",
+      "request_index": 1,
+      "language": "ja",
+      "ttft_ms": 8923.720584,
+      "e2e_ms": 9435.395834,
+      "reasons": [
+        "ttft_slo_exceeded"
+      ],
+      "prompt_tokens": 20,
+      "cached_prompt_tokens": 19,
+      "request_started_unix_ns": 1791418451524354237,
+      "first_token_unix_ns": 1791418460448074821,
+      "overlapping_retained_steps": [],
+      "observed_slow_step_intersection_ms": 0,
+      "queue_snapshot_before": {
+        "sample_count": 1425,
+        "statistics": {
+          "mean_ms": 66.3,
+          "p50_upper_bound_ms": 50.0,
+          "p95_upper_bound_ms": 250.0,
+          "max_ms": 9472.795
+        },
+        "scope": "ingress_to_first_scheduler_dequeue_including_cancelled"
+      },
+      "queue_snapshot_after": {
+        "sample_count": 1437,
+        "statistics": {
+          "mean_ms": 66.496,
+          "p50_upper_bound_ms": 50.0,
+          "p95_upper_bound_ms": 250.0,
+          "max_ms": 9472.795
+        },
+        "scope": "ingress_to_first_scheduler_dequeue_including_cancelled"
+      },
+      "environment_before": {
+        "observed_at": "2026-10-08T00:14:11.157525+00:00",
+        "thermal_state": "fair",
+        "power_source": "AC Power",
+        "power_mode": "automatic",
+        "target_process_age_seconds": 779,
+        "system": {
+          "load_average_1_5_15_minutes": [
+            15.95751953125,
+            16.9833984375,
+            12.1513671875
+          ],
+          "logical_cpu_count": 10,
+          "memory": {
+            "total_bytes": 34359738368,
+            "available_bytes": 11470290944,
+            "source": "sysctl",
+            "available_is_estimate": true,
+            "available_is_fallback": false,
+            "pressure_estimate": "normal",
+            "pressure_method": "available_ratio_thresholds_0.08_0.18"
+          }
+        }
+      },
+      "environment_after": {
+        "observed_at": "2026-10-08T00:14:25.783239+00:00",
+        "thermal_state": "fair",
+        "power_source": "AC Power",
+        "power_mode": "automatic",
+        "target_process_age_seconds": 793,
+        "system": {
+          "load_average_1_5_15_minutes": [
+            18.00537109375,
+            17.41650390625,
+            12.3916015625
+          ],
+          "logical_cpu_count": 10,
+          "memory": {
+            "total_bytes": 34359738368,
+            "available_bytes": 12060852224,
+            "source": "sysctl",
+            "available_is_estimate": true,
+            "available_is_fallback": false,
+            "pressure_estimate": "normal",
+            "pressure_method": "available_ratio_thresholds_0.08_0.18"
+          }
+        }
+      },
+      "step_history_complete": false,
+      "request_phase_attribution_available": false
+    },
+    {
+      "window_started_at": "2026-10-08T00:22:36.863651+00:00",
+      "request_index": 0,
+      "language": "prefix-edit-a",
+      "ttft_ms": 10321.433542,
+      "e2e_ms": 10637.254917,
+      "reasons": [
+        "ttft_slo_exceeded"
+      ],
+      "prompt_tokens": 2073,
+      "cached_prompt_tokens": 4,
+      "request_started_unix_ns": 1791418956864032947,
+      "first_token_unix_ns": 1791418967185466489,
+      "overlapping_retained_steps": [
+        {
+          "started_at_unix_ns": 1791418957020098000,
+          "elapsed_ms": 2215.990833,
+          "thread_cpu_ms": 58.915417,
+          "failed": false,
+          "intersection_ms": 2215.990833
+        },
+        {
+          "started_at_unix_ns": 1791418959243820000,
+          "elapsed_ms": 1974.767291,
+          "thread_cpu_ms": 41.493167,
+          "failed": false,
+          "intersection_ms": 1974.767291
+        },
+        {
+          "started_at_unix_ns": 1791418961218644000,
+          "elapsed_ms": 2250.809208,
+          "thread_cpu_ms": 51.945209,
+          "failed": false,
+          "intersection_ms": 2250.809208
+        },
+        {
+          "started_at_unix_ns": 1791418963469536000,
+          "elapsed_ms": 2477.877709,
+          "thread_cpu_ms": 103.956959,
+          "failed": false,
+          "intersection_ms": 2477.877709
+        },
+        {
+          "started_at_unix_ns": 1791418965947556000,
+          "elapsed_ms": 473.073666,
+          "thread_cpu_ms": 66.73575,
+          "failed": false,
+          "intersection_ms": 473.073666
+        },
+        {
+          "started_at_unix_ns": 1791418966569000000,
+          "elapsed_ms": 480.330542,
+          "thread_cpu_ms": 42.370875,
+          "failed": false,
+          "intersection_ms": 480.330542
+        }
+      ],
+      "observed_slow_step_intersection_ms": 9872.849249,
+      "queue_snapshot_before": {
+        "sample_count": 2435,
+        "statistics": {
+          "mean_ms": 58.668,
+          "p50_upper_bound_ms": 50.0,
+          "p95_upper_bound_ms": 250.0,
+          "max_ms": 9472.795
+        },
+        "scope": "ingress_to_first_scheduler_dequeue_including_cancelled"
+      },
+      "queue_snapshot_after": {
+        "sample_count": 2438,
+        "statistics": {
+          "mean_ms": 58.595,
+          "p50_upper_bound_ms": 50.0,
+          "p95_upper_bound_ms": 250.0,
+          "max_ms": 9472.795
+        },
+        "scope": "ingress_to_first_scheduler_dequeue_including_cancelled"
+      },
+      "environment_before": {
+        "observed_at": "2026-10-08T00:22:36.855220+00:00",
+        "thermal_state": "fair",
+        "power_source": "AC Power",
+        "power_mode": "automatic",
+        "target_process_age_seconds": 1284,
+        "system": {
+          "load_average_1_5_15_minutes": [
+            4.84228515625,
+            7.70166015625,
+            9.3974609375
+          ],
+          "logical_cpu_count": 10,
+          "memory": {
+            "total_bytes": 34359738368,
+            "available_bytes": 12240388096,
+            "source": "sysctl",
+            "available_is_estimate": true,
+            "available_is_fallback": false,
+            "pressure_estimate": "normal",
+            "pressure_method": "available_ratio_thresholds_0.08_0.18"
+          }
+        }
+      },
+      "environment_after": {
+        "observed_at": "2026-10-08T00:22:51.442907+00:00",
+        "thermal_state": "fair",
+        "power_source": "AC Power",
+        "power_mode": "automatic",
+        "target_process_age_seconds": 1299,
+        "system": {
+          "load_average_1_5_15_minutes": [
+            6.03955078125,
+            7.81640625,
+            9.40771484375
+          ],
+          "logical_cpu_count": 10,
+          "memory": {
+            "total_bytes": 34359738368,
+            "available_bytes": 11156078592,
+            "source": "sysctl",
+            "available_is_estimate": true,
+            "available_is_fallback": false,
+            "pressure_estimate": "normal",
+            "pressure_method": "available_ratio_thresholds_0.08_0.18"
+          }
+        }
+      },
+      "step_history_complete": false,
+      "request_phase_attribution_available": false
+    },
+    {
+      "window_started_at": "2026-10-08T00:24:29.341112+00:00",
+      "request_index": 9,
+      "language": "en",
+      "ttft_ms": 6608.168709,
+      "e2e_ms": 6991.62275,
+      "reasons": [
+        "ttft_slo_exceeded"
+      ],
+      "prompt_tokens": 22,
+      "cached_prompt_tokens": 21,
+      "request_started_unix_ns": 1791419073631451183,
+      "first_token_unix_ns": 1791419080239619892,
+      "overlapping_retained_steps": [
+        {
+          "started_at_unix_ns": 1791419079600289000,
+          "elapsed_ms": 576.6465,
+          "thread_cpu_ms": 39.130834,
+          "failed": false,
+          "intersection_ms": 576.6465
+        }
+      ],
+      "observed_slow_step_intersection_ms": 576.6465,
+      "queue_snapshot_before": {
+        "sample_count": 2628,
+        "statistics": {
+          "mean_ms": 57.985,
+          "p50_upper_bound_ms": 50.0,
+          "p95_upper_bound_ms": 250.0,
+          "max_ms": 9472.795
+        },
+        "scope": "ingress_to_first_scheduler_dequeue_including_cancelled"
+      },
+      "queue_snapshot_after": {
+        "sample_count": 2640,
+        "statistics": {
+          "mean_ms": 58.108,
+          "p50_upper_bound_ms": 50.0,
+          "p95_upper_bound_ms": 250.0,
+          "max_ms": 9472.795
+        },
+        "scope": "ingress_to_first_scheduler_dequeue_including_cancelled"
+      },
+      "environment_before": {
+        "observed_at": "2026-10-08T00:24:29.327669+00:00",
+        "thermal_state": "fair",
+        "power_source": "AC Power",
+        "power_mode": "automatic",
+        "target_process_age_seconds": 1397,
+        "system": {
+          "load_average_1_5_15_minutes": [
+            6.67626953125,
+            7.7744140625,
+            9.2314453125
+          ],
+          "logical_cpu_count": 10,
+          "memory": {
+            "total_bytes": 34359738368,
+            "available_bytes": 11124998144,
+            "source": "sysctl",
+            "available_is_estimate": true,
+            "available_is_fallback": false,
+            "pressure_estimate": "normal",
+            "pressure_method": "available_ratio_thresholds_0.08_0.18"
+          }
+        }
+      },
+      "environment_after": {
+        "observed_at": "2026-10-08T00:24:41.142705+00:00",
+        "thermal_state": "fair",
+        "power_source": "AC Power",
+        "power_mode": "automatic",
+        "target_process_age_seconds": 1409,
+        "system": {
+          "load_average_1_5_15_minutes": [
+            18.654296875,
+            10.23486328125,
+            10.08349609375
+          ],
+          "logical_cpu_count": 10,
+          "memory": {
+            "total_bytes": 34359738368,
+            "available_bytes": 11663441920,
+            "source": "sysctl",
+            "available_is_estimate": true,
+            "available_is_fallback": false,
+            "pressure_estimate": "normal",
+            "pressure_method": "available_ratio_thresholds_0.08_0.18"
+          }
+        }
+      },
+      "step_history_complete": false,
+      "request_phase_attribution_available": false
+    }
+  ],
+  "limitations": [
+    "A shared scheduler step can overlap multiple requests; overlap is not attribution.",
+    "Only slow steps retained in snapshots are available; missing time is not idle time.",
+    "Thread CPU excludes other threads and GPU; wall minus CPU is not GPU time.",
+    "Queue statistics are cumulative, not per-request queue latency.",
+    "Requires stable wall clocks; snapshots do not certify clock synchronization."
+  ],
+  "report_sha256": "aa7e6808afa4b52f9458b20447e01a7f9c23b520a92c566da0db9a1ff33501fc",
+  "audit_source_sha256": "7e2a9cf023aa222ec7d929c0efe3628fce0d2ebd56369beb8ccdd913663c6fae"
+}

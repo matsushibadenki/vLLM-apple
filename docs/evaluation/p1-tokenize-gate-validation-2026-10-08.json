@@ -1,0 +1,38 @@
+{
+  "date": "2026-10-08",
+  "scope": "tokenize timing and collector SLO acceptance validation",
+  "source_sha256": {
+    "vllm_apple/request_timing.py": "b263b4f3f49af5c714873576c6fa281d411ca71294c011ce04966c61cb15180c",
+    "vllm_apple/mlx_gemma2_compat.py": "93914505379e2517b47484945cb84183bab31f251350c257758369fdfa43184a",
+    "scripts/qualify_gemma2_batch_mask.py": "2a0a4d460e9a124a68e91a962857cdc6ec6e698099b0fc1850311c146796cbeb",
+    "scripts/summarize_request_timings.py": "2662768826def0f53bf6143edefaa10b7d96498abf96dd0794765d8918aed46c"
+  },
+  "smoke_sha256": "9c6fb3b6e741000b2859b539ced59340935b75e4bf97657046db5182aea0e4d9",
+  "original_collector_passed": true,
+  "revised_long_benchmark_passed": false,
+  "revised_short_benchmark_passed": true,
+  "qualification": false,
+  "quality": {
+    "warmup": 3,
+    "long": 12,
+    "short": 30
+  },
+  "slo": {
+    "warmup": 2,
+    "long": 8,
+    "short": 30
+  },
+  "shutdown_clean": true,
+  "identity_unchanged": true,
+  "regression": {
+    "run": 1473,
+    "skipped": 11,
+    "failed": 0,
+    "first_attempt_errors": 1,
+    "first_attempt_error": "Existing contention profile timing test; targeted 6 tests and full rerun passed"
+  },
+  "ruff_passed": true,
+  "target_tests": 19,
+  "measurement_overhead_comparison_done": false,
+  "long_campaign_started": false
+}

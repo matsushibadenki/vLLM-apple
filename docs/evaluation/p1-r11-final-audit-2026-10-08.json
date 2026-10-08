@@ -1,0 +1,86 @@
+{
+  "date": "2026-10-08",
+  "run": "r11",
+  "report_sha256": "aa7e6808afa4b52f9458b20447e01a7f9c23b520a92c566da0db9a1ff33501fc",
+  "qualified": false,
+  "eight_hour_started": false,
+  "normal_load": {
+    "requests": 3009,
+    "completed": 3009,
+    "failed": 0,
+    "quality_passed": 3009,
+    "slo_quality_passed": 2992,
+    "elapsed_seconds": 1805.0843984589997
+  },
+  "failure_reasons": {
+    "ttft_slo_exceeded": 17,
+    "e2e_slo_exceeded": 4
+  },
+  "failure_reason_counts_overlap": true,
+  "failed_windows": 6,
+  "fault_checks": {
+    "cancel_attempts": 295,
+    "cancel_passed": 295,
+    "slow_consumer_attempts": 30,
+    "slow_consumer_passed": 30,
+    "queued_cancel_attempts": 29,
+    "queued_cancel_passed": 29,
+    "timeout_attempts": 29,
+    "timeout_passed": 29,
+    "worker_crash_attempts": 0,
+    "worker_crash_passed": 0
+  },
+  "resource_diagnostics": {
+    "rss": {
+      "sample_count": 296,
+      "current_pid": 16918,
+      "current_pid_sample_count": 296,
+      "recent_sample_count": 148,
+      "slope_bytes_per_hour": 935814119.383,
+      "recent_growth_bytes": 63078400,
+      "plateau_observed": false
+    },
+    "resources": {
+      "sample_count": 295,
+      "current_pid": 16918,
+      "deltas": {
+        "threads": 0,
+        "open_fds": 0,
+        "allocator_active_bytes": -96130185,
+        "allocator_cache_bytes": 6433479
+      },
+      "plateau_observed": true,
+      "snapshot_consistency": "non_atomic"
+    },
+    "all_epoch_resources_passed": false,
+    "completed_epochs": [],
+    "current_epoch_pid": 16918,
+    "registry": {
+      "active": 0,
+      "queued": 0
+    },
+    "threads": 3,
+    "open_fds": 12
+  },
+  "awake_conditions_verified": true,
+  "operating_conditions": {
+    "observations": 590,
+    "initial": {
+      "power_source": "AC Power",
+      "power_mode": "automatic"
+    },
+    "changed": false,
+    "unknown": false
+  },
+  "shutdown_clean": true,
+  "runtime_identity_unchanged": true,
+  "model_identity_unchanged": true,
+  "job_cleanup": {
+    "label": "com.vllm-apple.p1.79b989f57fb14cacb68c65a5f432fc3f",
+    "bootout_returncode": 0,
+    "subsequent_print_returncode": 113,
+    "runner_and_worker_observed": false
+  },
+  "root_cause_confirmed": false,
+  "next": "Separate queue/prefill/decode/synchronization and host-load causes without relaxing gates; long campaigns start at 09:00 JST."
+}

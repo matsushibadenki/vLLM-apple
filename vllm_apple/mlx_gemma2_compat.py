@@ -20,6 +20,7 @@ from typing import Any
 from .bounded_http import BoundedHTTPServer, HeaderDeadlineMixin
 from .mlx_server import GenerationBodyError, read_generation_body
 from .phase_profile import _BoundedLatency
+from .request_timing import RequestTimings, TimedSSEWriter, timed_tokenize
 from .step_diagnostics import StepDiagnostics
 
 GEMMA2_SOURCE_SHA256 = "64b0935b06fe2c4d5d4ed23a9cf62deb6218c55a88b9403a657afe9e2be8f251"
@@ -34,6 +35,7 @@ P1_MAX_CONTEXT = 4096
 P1_MAX_OUTPUT = 512
 _QUEUE_WAIT = _BoundedLatency()
 _STEP_DIAGNOSTICS = StepDiagnostics()
+_REQUEST_TIMINGS = RequestTimings()
 
 
 def validate_p1_request(args: Any, model: str) -> None:
@@ -47,12 +49,17 @@ def validate_p1_request(args: Any, model: str) -> None:
 class _RequestQueue:
     """Queue marker used only by the reviewed compatibility launcher."""
 
-    def __init__(self, queue_type: type[Any]) -> None:
+    def __init__(self, queue_type: type[Any], response_type: Any = ()) -> None:
         self._queue = queue_type(maxsize=1024) if os.environ.get('VLLM_APPLE_P1_PROFILE') == '1' else queue_type()
         self.cancelled = False
         self.enqueued_ns = time.monotonic_ns()
+        self.trace = (_REQUEST_TIMINGS.start()
+                      if os.environ.get('VLLM_APPLE_P1_PROFILE') == '1' else None)
+        self._response_type = response_type
 
     def put(self, value: Any) -> None:
+        if self.trace is not None and isinstance(value, self._response_type):
+            self.trace.mark('first_response_ready')
         self._queue.put(value)
 
     def get(self, *args: Any, **kwargs: Any) -> Any:
@@ -183,7 +190,9 @@ def install_cancel_api() -> type[Any]:
 
     @wraps(original_tokenize)
     def tokenize(self: Any, tokenizer: Any, request: Any, args: Any) -> Any:
-        result = original_tokenize(self, tokenizer, request, args)
+        result = timed_tokenize(
+            lambda tokenizer, request, args: original_tokenize(self, tokenizer, request, args),
+            tokenizer, request, args)
         if os.environ.get('VLLM_APPLE_P1_PROFILE') == '1' and len(result[0])+args.max_tokens > P1_MAX_CONTEXT:
             raise ValueError('P1 prompt plus maximum output exceeds 4096 tokens')
         return result
@@ -198,6 +207,8 @@ def install_cancel_api() -> type[Any]:
                 return None
             response_queue = item[0]
             if isinstance(response_queue, _RequestQueue):
+                if response_queue.trace is not None:
+                    response_queue.trace.mark('scheduler_dequeued')
                 with _ACTIVE_LOCK:
                     _QUEUE_WAIT.record(time.monotonic_ns() - response_queue.enqueued_ns)
             if not isinstance(response_queue, _RequestQueue) or not response_queue.cancelled:
@@ -214,7 +225,15 @@ def install_cancel_api() -> type[Any]:
                  progress_callback: Any = None) -> tuple[Any, Any]:
         if os.environ.get('VLLM_APPLE_P1_PROFILE') == '1':
             validate_p1_request(generation_args, self.model_provider.cli_args.model)
-        response_queue = _RequestQueue(server.Queue)
+        response_queue = _RequestQueue(server.Queue, getattr(server, 'Response', ()))
+        _REQUEST.trace = response_queue.trace
+        # The reviewed CompletionRequest is mutable and passed by reference on
+        # the single-process route. Do not attach a lock-bearing trace to IPC.
+        if response_queue.trace is not None and not getattr(self, '_is_distributed', False):
+            request._vllm_apple_timing = response_queue.trace
+        writer = getattr(_REQUEST, 'writer', None)
+        if response_queue.trace is not None and writer is not None:
+            writer.wfile = TimedSSEWriter(writer.wfile, response_queue.trace)
         request_id = getattr(_REQUEST, "request_id", None)
         timeout_seconds = getattr(_REQUEST, "timeout_seconds", None)
         timer = None
@@ -238,10 +257,14 @@ def install_cancel_api() -> type[Any]:
                     if progress_callback is not None:
                         progress_callback(*response)
                     continue
+                if response_queue.trace is not None:
+                    response_queue.trace.mark('first_response_received')
                 yield response
 
         try:
             context = response_queue.get()
+            if response_queue.trace is not None:
+                response_queue.trace.mark('context_received')
             if isinstance(context, Exception):
                 raise context
             if request_id is None:
@@ -298,6 +321,7 @@ def install_cancel_api() -> type[Any]:
             import mlx.core as mx
             encoded = json.dumps(dict(http=self.server.resource_snapshot(), registry=registry,
                 queue_wait=queue_wait, scheduler_step=_STEP_DIAGNOSTICS.snapshot(),
+                request_timings=_REQUEST_TIMINGS.snapshot(),
                 efficiency=(policy if os.environ.get('VLLM_APPLE_P1_PROFILE') == '1' else None),
                 allocator=dict(active_bytes=mx.get_active_memory(), cache_bytes=mx.get_cache_memory(),
                                peak_bytes=mx.get_peak_memory(), snapshot_consistency='non_atomic'),
@@ -329,9 +353,20 @@ def install_cancel_api() -> type[Any]:
                 timeout_seconds = timeout_ms / 1000
             _REQUEST.request_id = supplied
             _REQUEST.timeout_seconds = timeout_seconds
+            _REQUEST.trace = None
+            _REQUEST.writer = self
+            original_writer = self.wfile
             try:
                 super().handle_completion(request, stop_words)
             finally:
+                trace = _REQUEST.trace
+                if trace is not None:
+                    trace.finish()
+                    if getattr(request, '_vllm_apple_timing', None) is trace:
+                        del request._vllm_apple_timing
+                self.wfile = original_writer
+                _REQUEST.trace = None
+                _REQUEST.writer = None
                 _REQUEST.request_id = None
                 _REQUEST.timeout_seconds = None
 

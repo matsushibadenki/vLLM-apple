@@ -1,0 +1,25 @@
+{
+  "date": "2026-10-08",
+  "scope": "request-timing instrumentation validation; not performance qualification",
+  "source_sha256": {
+    "vllm_apple/request_timing.py": "ab7bb89f28367cab4f0d8ca22c8fdc42971a743c5942380965b855b0ec27c788",
+    "vllm_apple/mlx_gemma2_compat.py": "96e919c8df10d7f1da06ba35e89236930c2770668b00d4619abd5f1fd344649b",
+    "tests/test_request_timing.py": "50629607b7099490cdb41892722892351b8c8c4716388836a74f38c8cb376b13"
+  },
+  "smoke_sha256": "d1d8f941e53713ee2c850d52e8be8686e5932135e0cc1b59694b266c0ae53028",
+  "retained_records": 52,
+  "complete_records_order_verified": 48,
+  "missing_stage_records": 4,
+  "regression": {
+    "run": 1468,
+    "skipped": 11,
+    "failed": 0
+  },
+  "ruff_passed": true,
+  "warmup_slo_passed": 2,
+  "warmup_requests": 3,
+  "long_quality_slo": 12,
+  "short_quality_slo": 30,
+  "qualification": false,
+  "instrumentation_overhead_comparison_done": false
+}

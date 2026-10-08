@@ -1,6 +1,46 @@
 # vLLM-Apple Runtime Roadmap
 
+## r11最終監査：2026-10-08
+
+[Done] [最終監査](evaluation/p1-r11-final-audit-2026-10-08.json)：30分の正常負荷3,009件は全件完了・品質合格、SLO合格2,992件。17件がTTFT基準超過し、うち4件はE2Eも超過。不合格で8時間は未開始。
+active cancel 295/295、slow consumer 30/30、queued cancel 29/29、timeout 29/29。worker crash試験は0件で未検証。
+awake・電源条件不変・runtime/model identity不変・正常停止は合格。単一worker epochで追加資源診断はallocator/thread/FD plateau=true、RSS plateau=false。
+RSSの後半傾斜は約935.8 MB/hourで16 MiB/hour基準未達。全期間RSS減少や同workload診断だけで収束・漏れなしを認定しない。
+RSS診断の未達と、今回30分判定を直接拒否したSLO失敗を区別する。遅延の根因は未確定。
+receiptの専用labelだけ回収し、runner/worker停止を確認。自動再試行や証拠上書きなし。
+[Next] queue/prefill/decode/同期とhost負荷を分離して遅延原因を調べる。長時間campaignは09:00 JST開始、定期処理は月・木09:00 JSTへ復元。
+English: [Done] R11 quality 3009/3009, SLO 2992/3009: 17 TTFT misses, including four E2E misses. Thirty-minute qualification failed; eight hours did not start. Fault counts, identity, awake conditions and clean shutdown were checked; RSS plateau remains unverified. Removed only the exact r11 job. [Next] Diagnose latency causes without relaxing gates.
+简体中文：[Done] r11质量3009/3009、SLO 2992/3009；17次TTFT超限，其中4次也超过E2E。30分钟认证失败，未进入8小时。核对fault次数、identity、awake及正常停止；RSS plateau未通过。仅回收r11专用job。[Next] 保持gate，调查延迟原因。
+
 更新日：2026-10-08
+
+## P1 tokenize分離とSLO判定の修正
+
+[Done] [tokenize計測](P1-TOKENIZE-TIMING.md)：要求別に開始／終了／失敗を記録し、欠測を保持した区間集計を追加。
+実モデルtokenize中央値0.453 ms、tokenize後の初回Response待ち中央値722.295 ms・最大18.57秒。
+長文SLO8/12でもcollectorが合格を返す抜けを修正し、初期長文／短文の全件品質・SLO合格・失敗ゼロを必須化。
+元reportは保持、新判定で長文失敗を拒否。対象19 tests、全回帰1473 tests（11 skip）、Ruff成功。
+[Next] cache／prefill／decode／同期の分離と計測負荷比較。根因・速度・安定性は未認定、長時間試験は09:00 JST開始。
+English: [Done] Tokenization timing and strict initial-benchmark SLO gate. [Next] Split remaining backend phases; no root-cause or speed certification.
+简体中文：[Done] tokenize计时及严格的初始benchmark SLO判定。[Next] 分离其余backend phase；未认证根因或速度。
+
+## P1要求別の計測
+
+[Done] [要求別timing](P1-REQUEST-TIMING.md)：P1 profileでdequeue、context受領、初回Response準備／受領、SSE write、handler終了を最大64件の数値履歴へ記録。
+本文／出力／request IDを保存せず、欠測は補完しない。実モデルsmoke長文12/12・短文30/30品質/SLO、warmup品質3/3・SLO2/3。
+全stageを持つ48件の順序を確認、fault／回収・正常停止・identity不変成功。全回帰1468 tests（11 skip）、Ruff成功。
+[Next] 短時間の同条件負荷で要求別時間から原因を分離。tokenize／prefill分離、collector identity接続と計測負荷の比較を続ける。長時間認定・速度改善は未達。
+English: [Done] Bounded per-request timing validated on real MLX. [Next] Attribute latency and compare measurement overhead; warmup SLO/stability remain unqualified.
+简体中文：[Done] 有界请求级计时通过实际MLX验证。[Next] 分离延迟及比较计测开销；warmup SLO及稳定性未认证。
+
+## P1遅延の時刻照合
+
+[Done] [r11遅延監査](P1-R11-LATENCY-AUDIT.md)：17件の失敗sampleを要求時間と遅いstepの時刻で照合。
+15件はcache再利用がほぼ全入力の短文。15件で保持stepとの重複あり、約8.9秒の2件は重複なし。
+bounded sample不在をidleにせず、時間重複を因果と判断しない。対象2 tests・Ruff成功。
+[Next] request別queue／tokenize／初回出力／HTTP書込の計測で未説明時間を分離してから修正する。
+English: [Done] Offline timing audit covers 17 failures. [Next] Per-request phase measurements; no causal attribution or speed claim.
+简体中文：[Done] 离线时间审核覆盖17次失败。[Next] 请求级phase测量，尚不认证因果或速度。
 
 ## P1朝9時開始の再検証：r11
 
@@ -44,9 +84,9 @@ active memoryはほぼ不変、RSSの減少は確認できず、ワット値は�
 [Next] r10 compact長時間試験はユーザーの朝9時指定に合わせ[制御停止](evaluation/p1-stability-m4-2026-10-07-r10/controlled-stop.json)。
 次回は2026-10-08 09:00 JSTに新規runで開始する。一連の長時間試験は以降も日本時間9時開始。
 r9はSLO3000/3009・資源gate未達で不合格、8時間未開始。最新試験稼働中はruntime編集・追加GPU負荷を避ける。
-[pending] 管理者権限での電力samplerまたは外部電力計によるjoule/request・idle wattの検証。
-English: [Done] Explicit efficiency candidates and measured retained-cache/idle-read reductions. [Next] R10 long-run qualification; speed remains unqualified. [pending] Electrical-power measurement.
-简体中文：[Done] 显式效率候选及保持cache／idle read减少的测量。[Next] r10长期认证；速度仍未认证。[pending] 实际功率测量。
+[Pending] 管理者権限での電力samplerまたは外部電力計によるjoule/request・idle wattの検証。
+English: [Done] Explicit efficiency candidates and measured retained-cache/idle-read reductions. [Next] R10 long-run qualification; speed remains unqualified. [Pending] Electrical-power measurement.
+简体中文：[Done] 显式效率候选及保持cache／idle read减少的测量。[Next] r10长期认证；速度仍未认证。[Pending] 实际功率测量。
 
 ## P1最優先修正：2026-10-07
 
@@ -69,14 +109,14 @@ English: [Done] Enforce the P1 LRU byte budget. [Next] Long-run latency/resource
 資源上限、正常終了に合格。全Python回帰1451 tests成功（11 skip）、Swift SDK tests・Mac sample build成功。
 [配布manifest](evaluation/local-text-preview-manifest-2026-10-07.json)と一時venvのアンインストール確認を保存。
 この最小利用版の完了と、以下P0〜P4の本番・性能認定の完了は別のmilestoneである。
-[Next] このM4で未達の長時間SLO、数値／性能、RAG一般品質は残す。時間を理由に[pending]へ移さない。
-他hardware・署名資格情報・独立検証環境が必要な試験だけ[pending]にする。
+[Next] このM4で未達の長時間SLO、数値／性能、RAG一般品質は残す。時間を理由に[Pending]へ移さない。
+他hardware・署名資格情報・独立検証環境が必要な試験だけ[Pending]にする。
 
 English: The usable local text preview milestone is implemented; production/performance
-qualification remains [Next]. Only unavailable hardware/credentials/environments are [pending].
+qualification remains [Next]. Only unavailable hardware/credentials/environments are [Pending].
 
 简体中文：可用的本地text preview milestone已实现，生产／性能认证仍为[Next]。
-仅缺少hardware／资格信息／独立环境的试验标为[pending]。
+仅缺少hardware／资格信息／独立环境的试验标为[Pending]。
 
 ## 目標と優先順位
 
@@ -98,9 +138,9 @@ Intel Macは互換性の別枠とし、Apple Siliconの性能認定を適用し�
 - [Done] implemented in the current codebase — 現在のコードに実装がある。実機認定の範囲は別記する。
 - [Next] high-priority unfinished work — 次の開発サイクルで取り組む未完了作業。
 - [Later] planned, but not the closest next step — 依存作業の完了後に進める計画。
-- [pending] 現在の筐体・環境では検証できない作業。必要なhardware／artifact／資格情報と再開条件を添え、環境が整った時に着手候補へ戻す。
+- [Pending] 現在の筐体・環境では検証できない作業。必要なhardware／artifact／資格情報と再開条件を添え、環境が整った時に着手候補へ戻す。
 
-旧書の`[Pending]`は履歴として保持する。本書では、優先順位待ちの`[Later]`と環境待ちの`[pending]`を区別する。現在のM4で実行可能な長時間試験や未実装項目は、時間がかかることだけを理由に`[pending]`へ移さない。
+旧書の`[Pending]`は履歴として保持する。本書では、優先順位待ちの`[Later]`と環境待ちの`[Pending]`を区別する。現在のM4で実行可能な長時間試験や未実装項目は、時間がかかることだけを理由に`[Pending]`へ移さない。
 新規項目の完了にはコード／テスト、対象の実行経路、再現コマンド、認定範囲を必要とする。性能項目は実モデルの比較reportも必要とする。
 以下の数値は**今後の受け入れ目標**であり、達成済みの測定値ではない。
 
@@ -112,7 +152,7 @@ Intel Macは互換性の別枠とし、Apple Siliconの性能認定を適用し�
 | --- | --- | --- |
 | [Done] | P0限定基準・経路監査 | M4／Gemma 2／c1／三言語算術、2 backend各3回。全モデル・全Macの認定ではない |
 | [Done] | P1資源上限・cancel／回復runner | bounded HTTP・入力・allocator・queue・cancelと短時間smoke。最新完了r9の30分は品質3009/3009、SLO3000/3009、RSS・awake・identity・shutdown合格だがSLOとcache資源gate未達 |
-| [Next] | P1長時間認定 | r9の9件のSLO超過とcache資源gate未達に対し、compactで朝9時から30分再試験→合格時8時間。このM4で可能なので[pending]にしない |
+| [Next] | P1長時間認定 | r9の9件のSLO超過とcache資源gate未達に対し、compactで朝9時から30分再試験→合格時8時間。このM4で可能なので[Pending]にしない |
 | [Done] | P2実continuous batching／identity付きKV実験 | 実batch幅4と再prefill提出減少を確認。標準採用・数値／性能認定は未完了 |
 | [Next] | P2数値・p95／goodput gate | c4 SLOと全prompt基準とのlogit差を解消し再測定。このM4で試験可能 |
 | [Done] | P3選択・P4認定gateとrelease昇格接続 | 証拠不足・不合格はfallback／昇格拒否。合成fixtureのテストを実性能・24時間認定に代用しない |
@@ -120,16 +160,16 @@ Intel Macは互換性の別枠とし、Apple Siliconの性能認定を適用し�
 | [Done] | R0完全templateのtoken予算・固定三言語HTTP smoke | 実Gemma tokenizerで境界・丸ごと資料除外・基本prompt拒否。実HTTPは固定support codeと資料なしの6ケース成功・正常終了 |
 | [Next] | R0一般品質／L0固定LoRA | 資料不足・悪意ある資料・長文引用のsuiteとadapter互換性／memory／実MLXの検証。未実装を環境不足へ移さない |
 | [Later] | R1／L1／RL2・追加architecture | 検索・学習・複数adapter等は前提作業後。現在の筐体で可能な範囲は開発候補のまま |
-| [pending] | 別SoC／RAM・M5 NAX・分散・容量超過 | 対象実機・network・model artifactが必要。詳細は下記環境待ち表 |
-| [pending] | 実署名／notarization・独立clean-machine install | Developer ID／notary資格情報と独立検証環境が必要。既存workflowは実配布認定ではない |
-| [pending] | ANE互換draft | 互換Core ML draft artifactが必要。既存encoderの検証で代用しない |
+| [Pending] | 別SoC／RAM・M5 NAX・分散・容量超過 | 対象実機・network・model artifactが必要。詳細は下記環境待ち表 |
+| [Pending] | 実署名／notarization・独立clean-machine install | Developer ID／notary資格情報と独立検証環境が必要。既存workflowは実配布認定ではない |
+| [Pending] | ANE互換draft | 互換Core ML draft artifactが必要。既存encoderの検証で代用しない |
 
 English: Local failures and unfinished implementation remain [Next]/[Later]. Only tests
 requiring unavailable hardware, artifacts, credentials or independent environments are
-[pending]. Completed tooling is not completed runtime qualification.
+[Pending]. Completed tooling is not completed runtime qualification.
 
 简体中文：本机试验失败和未实现项仍保留[Next]／[Later]。仅缺少目标硬件、artifact、
-资格信息或独立环境的试验标为[pending]。工具已实现不等于实际运行认证完成。
+资格信息或独立环境的试验标为[Pending]。工具已实现不等于实际运行认证完成。
 
 ## 現在地：再利用できる基盤と不足している証拠
 
@@ -235,7 +275,7 @@ RSS・allocator・KV・OS pressure・swap差分は別系列で記録し、重複
 - [Done] 固定sourceの[M4短時間smoke](evaluation/p1-profile-90sec-m4-2026-10-04-r3.json)で正常189/189品質・SLO合格、active cancel 18/18、queued cancel／timeout各6/6、worker crash回復2/2、half-close、profile拒否と正常shutdownを確認。全回帰1,407 tests合格（11 skip）。短時間の資源plateauと8時間安定性は未認定。
 - [Next] [最新の連続試験状態](evaluation/p1-stability-m4-2026-10-04-r3/state.json)：30分試験は品質3312/3312、SLO3298/3312で不合格。8時間は未開始、backend／runnerは終了しlaunchd jobも回収済み。14件のSLO失敗を調査・修正後に30分→合格時8時間へ進む。以前の408件後中断reportも未認定として保存した。PID command・checkpoint鮮度・全epoch資源・同一identityを確認し、実sleep／wakeとdaemon標準経路を含め、完了までP1を[Done]にしない。
 
-- [Next] P0監査の残課題：request headerを含むHTTP全体のthread／資源上限、長時間queue cancelとp95待ち時間、half-close、telemetry有無の独立比較を検証する。現在のM4で試験可能であり[pending]にはしない。旧30分soakの資格は現buildへ転用しない。
+- [Next] P0監査の残課題：request headerを含むHTTP全体のthread／資源上限、長時間queue cancelとp95待ち時間、half-close、telemetry有無の独立比較を検証する。現在のM4で試験可能であり[Pending]にはしない。旧30分soakの資格は現buildへ転用しない。
 
 依存：P0で選んだ基準経路。成果物は認定text profileと、運用上の失敗から復帰できる標準server。
 
@@ -387,24 +427,24 @@ splitting and a native engine remain conditional research, not committed replace
 
 **简体中文：** [Done] 已实现外部RAG请求构建、有界本地生成和引用ID检查，尚未认证事实依据或token预算。[Next] 验证真实模型的RAG质量与上下文预算，并支持单个固定LoRA适配器。[Later] 完成文档导入、embedding、混合检索、重排、权限、LoRA／QLoRA实际训练、多适配器与KV隔离，以及组合场景的8／24小时认证。完整支持以明确的兼容矩阵为范围。
 
-## 環境が整った時の作業候補 [pending]
+## 環境が整った時の作業候補 [Pending]
 
 現在確認した筐体はMacBook Air／Apple M4／32 GiB。以下は本筐体だけでは認定できない条件として分離する。実装可能な共通runner・schema・fallbackは先に整備し、未保有機の性能値を推定で埋めない。
 
 | 状態 | 作業候補 | 再開に必要な環境・確認内容 |
 | --- | --- | --- |
-| [pending] | M5世代のNAX kernel認定とM4との比較 | 対象M5実機、対応OS／toolchain／backend。device能力検出、correctness、対象shapeのE2E・memory・fallbackを実測 |
-| [pending] | 16 GB級・64 GB以上・別SoCでの容量／thermal／24時間認定 | 各容量・SoCの実機runner。同一artifact、context、並列度、電源条件で比較し、容量超過を理由付きskip |
-| [pending] | M4 32 GiBのadmission予算を超えるモデル・context・batchの認定 | 必要なRAMを備えるMacと対象artifact。小さい量子化版が収まることを、元の構成の合格に代用しない |
-| [pending] | 複数Macの分散実行・通信込み性能 | 複数の対象Macと検証用network。通信・同期・障害時state回収を含めて評価 |
-| [pending] | ANE draft＋GPU verifierの実モデル比較 | 互換draftのCore ML artifactと変換・実行契約。M4のANEが利用可能でも互換artifactなしでは認定しない。既存encoder検証はこの保留に含めない |
-| [pending] | 署名・notarization済みreleaseとclean-machine install | Developer ID／notary資格情報と独立した検証環境。未署名のlocal buildとは別認定 |
+| [Pending] | M5世代のNAX kernel認定とM4との比較 | 対象M5実機、対応OS／toolchain／backend。device能力検出、correctness、対象shapeのE2E・memory・fallbackを実測 |
+| [Pending] | 16 GB級・64 GB以上・別SoCでの容量／thermal／24時間認定 | 各容量・SoCの実機runner。同一artifact、context、並列度、電源条件で比較し、容量超過を理由付きskip |
+| [Pending] | M4 32 GiBのadmission予算を超えるモデル・context・batchの認定 | 必要なRAMを備えるMacと対象artifact。小さい量子化版が収まることを、元の構成の合格に代用しない |
+| [Pending] | 複数Macの分散実行・通信込み性能 | 複数の対象Macと検証用network。通信・同期・障害時state回収を含めて評価 |
+| [Pending] | ANE draft＋GPU verifierの実モデル比較 | 互換draftのCore ML artifactと変換・実行契約。M4のANEが利用可能でも互換artifactなしでは認定しない。既存encoder検証はこの保留に含めない |
+| [Pending] | 署名・notarization済みreleaseとclean-machine install | Developer ID／notary資格情報と独立した検証環境。未署名のlocal buildとは別認定 |
 
-English: `[pending]` means an unavailable test environment, with explicit resumption
+English: `[Pending]` means an unavailable test environment, with explicit resumption
 requirements. Work runnable on this M4, including concurrency failures and long soaks,
 remains `[Next]` or `[Later]`; it is not deferred merely because it takes time.
 
-简体中文：`[pending]`表示缺少测试环境，必须注明恢复条件。当前M4可运行的工作，
+简体中文：`[Pending]`表示缺少测试环境，必须注明恢复条件。当前M4可运行的工作，
 包括并发故障排查和长时间测试，仍保留为`[Next]`或`[Later]`，不因耗时而搁置。
 
 ## 別トラックとして維持する作業 [Later]

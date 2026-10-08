@@ -1,5 +1,17 @@
 # P1 standard text candidate — 2026-10-04
 
+## r11最終監査：2026-10-08
+
+[Done] [最終監査](evaluation/p1-r11-final-audit-2026-10-08.json)：30分の正常負荷3,009件は全件完了・品質合格、SLO合格2,992件。17件がTTFT基準超過し、うち4件はE2Eも超過。不合格で8時間は未開始。
+active cancel 295/295、slow consumer 30/30、queued cancel 29/29、timeout 29/29。worker crash試験は0件で未検証。
+awake・電源条件不変・runtime/model identity不変・正常停止は合格。単一worker epochで追加資源診断はallocator/thread/FD plateau=true、RSS plateau=false。
+RSSの後半傾斜は約935.8 MB/hourで16 MiB/hour基準未達。全期間RSS減少や同workload診断だけで収束・漏れなしを認定しない。
+RSS診断の未達と、今回30分判定を直接拒否したSLO失敗を区別する。遅延の根因は未確定。
+receiptの専用labelだけ回収し、runner/worker停止を確認。自動再試行や証拠上書きなし。
+[Next] queue/prefill/decode/同期とhost負荷を分離して遅延原因を調べる。長時間campaignは09:00 JST開始、定期処理は月・木09:00 JSTへ復元。
+English: [Done] R11 quality 3009/3009, SLO 2992/3009: 17 TTFT misses, including four E2E misses. Thirty-minute qualification failed; eight hours did not start. Fault counts, identity, awake conditions and clean shutdown were checked; RSS plateau remains unverified. Removed only the exact r11 job. [Next] Diagnose latency causes without relaxing gates.
+简体中文：[Done] r11质量3009/3009、SLO 2992/3009；17次TTFT超限，其中4次也超过E2E。30分钟认证失败，未进入8小时。核对fault次数、identity、awake及正常停止；RSS plateau未通过。仅回收r11专用job。[Next] 保持gate，调查延迟原因。
+
 ## 最新の試験：2026-10-08 r11
 
 [Done] 朝9時台にcompact／prefill512で新規runを開始。
