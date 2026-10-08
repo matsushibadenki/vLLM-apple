@@ -1,11 +1,11 @@
 {
-  "status": "running",
+  "status": "failed",
   "passed": false,
   "pid": 16906,
   "stages": [
     {
       "name": "30min",
-      "status": "running",
+      "status": "failed",
       "command": [
         "/Users/Shared/Program/vLLM-apple/.venv/bin/python",
         "/Users/Shared/Program/vLLM-apple/scripts/qualify_gemma2_batch_mask.py",
@@ -38,10 +38,14 @@
         "0",
         "--p1-profile"
       ],
-      "report": "/Users/Shared/Program/vLLM-apple/docs/evaluation/p1-stability-m4-2026-10-08-r11/30min.json"
+      "report": "/Users/Shared/Program/vLLM-apple/docs/evaluation/p1-stability-m4-2026-10-08-r11/30min.json",
+      "passed": false,
+      "returncode": 1
     }
   ],
   "scope": "P1 awake mixed-load candidate; sleep/wake remains unqualified",
   "automatic_promotion": false,
-  "efficiency_candidate": "compact"
+  "efficiency_candidate": "compact",
+  "error_type": "RuntimeError",
+  "error": "30min qualification failed; later stages will not start"
 }
