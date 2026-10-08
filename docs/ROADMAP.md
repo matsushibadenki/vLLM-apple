@@ -1,6 +1,17 @@
 # vLLM-Apple Runtime Roadmap
 
-更新日：2026-10-07
+更新日：2026-10-08
+
+## P1朝9時開始の再検証：r11
+
+[Done] 2026-10-08朝9時台にcompact／prefill512の新規launchd jobを開始。
+[receipt](evaluation/p1-stability-launch-m4-2026-10-08-r11.json)と
+[state](evaluation/p1-stability-m4-2026-10-08-r11/state.json)を保存し、runner実command・checkpoint鮮度で稼働を確認。
+[Next] 30分全条件合格時のみ8時間へ進み、終了後に品質・SLO・全worker epoch資源・awake・identity・shutdownを監査する。
+running／checkpointは未認定。実行中はruntime編集・追加GPU負荷・CPU benchmark／回帰試験を避ける。
+終了監査の定期確認は一時的に毎時とし、campaign終了後に元の月・木09:00 JSTへ戻す。
+English: [Done] Started fresh r11 in the 09:00 JST hour and verified runner command/checkpoint freshness. [Next] Audit the final results; eight hours follow only after all 30-minute gates pass. Qualification remains withheld.
+简体中文：[Done] 日本时间09:00时段启动新的r11并确认runner command及checkpoint新鲜度。[Next] 审核最终结果；30分钟全部gate通过后才进入8小时，目前未认证。
 
 ## 指示書の未着手項目：イベント履歴の全走査削減
 

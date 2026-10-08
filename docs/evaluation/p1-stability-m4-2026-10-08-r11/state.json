@@ -1,0 +1,47 @@
+{
+  "status": "running",
+  "passed": false,
+  "pid": 16906,
+  "stages": [
+    {
+      "name": "30min",
+      "status": "running",
+      "command": [
+        "/Users/Shared/Program/vLLM-apple/.venv/bin/python",
+        "/Users/Shared/Program/vLLM-apple/scripts/qualify_gemma2_batch_mask.py",
+        "--python",
+        "/opt/homebrew/opt/vllm-metal/libexec/bin/python",
+        "--model",
+        "/Users/Shared/Program/vLLM-apple/models/gemma-2-2b-it-4bit",
+        "--output",
+        "/Users/Shared/Program/vLLM-apple/docs/evaluation/p1-stability-m4-2026-10-08-r11/30min.json",
+        "--port",
+        "19166",
+        "--sustained-requests",
+        "100",
+        "--long-requests",
+        "12",
+        "--duration-seconds",
+        "1800",
+        "--require-30-minute-window",
+        "--decode-concurrency",
+        "2",
+        "--prompt-concurrency",
+        "2",
+        "--prefill-step-size",
+        "512",
+        "--long-concurrency",
+        "1",
+        "--fault-check-interval-cycles",
+        "10",
+        "--worker-crash-interval-seconds",
+        "0",
+        "--p1-profile"
+      ],
+      "report": "/Users/Shared/Program/vLLM-apple/docs/evaluation/p1-stability-m4-2026-10-08-r11/30min.json"
+    }
+  ],
+  "scope": "P1 awake mixed-load candidate; sleep/wake remains unqualified",
+  "automatic_promotion": false,
+  "efficiency_candidate": "compact"
+}

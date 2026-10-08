@@ -1,5 +1,16 @@
 # P1 standard text candidate — 2026-10-04
 
+## 最新の試験：2026-10-08 r11
+
+[Done] 朝9時台にcompact／prefill512で新規runを開始。
+[launch receipt](evaluation/p1-stability-launch-m4-2026-10-08-r11.json)のjobはKeepAlive=false、
+[state](evaluation/p1-stability-m4-2026-10-08-r11/state.json)と実command・checkpoint鮮度からrunner稼働を確認。
+[Next] 30分全gate合格時のみ8時間へ進む。最終品質・SLO・fault別件数・全worker epoch資源・awake・identity・shutdownを監査。
+checkpointとrunningは未認定。稼働中はruntime編集、追加GPU負荷、CPU benchmark／回帰試験を避ける。
+終了時はreceiptのlabelだけ回収。定期監査を一時的に毎時にし、campaign終了後に月・木09:00 JSTへ戻す。
+English: R11 started in the 09:00 JST hour with compact/prefill512. Runner command and checkpoint freshness were verified. Final qualification awaits all gates; avoid competing edits/tests while running.
+简体中文：r11在日本时间09:00时段以compact／prefill512启动，已确认runner command和checkpoint新鲜度。最终认证等待所有gate结果，运行期间避免竞争性编辑及试验。
+
 ## RSS collectorの負荷削減：2026-10-07
 
 [Done] [RSS最適化報告](OPTIMIZATION-REPORT-2026-10-07.md)：macOSでsampleごとのps起動をなくし、

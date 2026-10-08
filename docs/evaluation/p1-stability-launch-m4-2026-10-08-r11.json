@@ -1,0 +1,28 @@
+{
+  "label": "com.vllm-apple.p1.79b989f57fb14cacb68c65a5f432fc3f",
+  "output_directory": "/Users/Shared/Program/vLLM-apple/docs/evaluation/p1-stability-m4-2026-10-08-r11",
+  "command": [
+    "/Users/Shared/Program/vLLM-apple/.venv/bin/python",
+    "/Users/Shared/Program/vLLM-apple/scripts/run_p1_stability.py",
+    "--python",
+    "/opt/homebrew/opt/vllm-metal/libexec/bin/python",
+    "--model",
+    "/Users/Shared/Program/vLLM-apple/models/gemma-2-2b-it-4bit",
+    "--output-directory",
+    "/Users/Shared/Program/vLLM-apple/docs/evaluation/p1-stability-m4-2026-10-08-r11",
+    "--port",
+    "19166",
+    "--prefill-step-size",
+    "512",
+    "--efficiency",
+    "compact"
+  ],
+  "log": "/Users/Shared/Program/vLLM-apple/docs/evaluation/p1-stability-m4-2026-10-08-r11.launchd.log",
+  "submitted": true,
+  "automatic_restart": false,
+  "qualification": false,
+  "plist": "/Users/Shared/Program/vLLM-apple/docs/evaluation/p1-stability-launch-m4-2026-10-08-r11.plist",
+  "domain": "gui/501",
+  "returncode": 0,
+  "diagnostic": ""
+}
