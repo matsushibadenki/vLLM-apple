@@ -1,0 +1,28 @@
+{
+  "date": "2026-10-08",
+  "scope": "bounded backend host-method timing; not speed/stability certification",
+  "smoke_sha256": "b098bc2a767940131eeb0d1e3c8369aa29ed63bccf5815015c7c07ca7143145b",
+  "source_sha256": {
+    "vllm_apple/mlx_gemma2_compat.py": "9703a6686e2e8c37f7bdaad5c2023abc3b123115d87e537c0e6a478277fa721a",
+    "vllm_apple/step_diagnostics.py": "937b91506679613d729eac2a73f4e4abfbc01ddf090f42fa86df82fa751249ca",
+    "tests/test_backend_phase_timing.py": "46480b07dd875d38bf2e2751b00be8a522f4c11d990b434f65715d77c6623a14"
+  },
+  "phase_sample_limits_verified": true,
+  "nonzero_phase_counts_verified": true,
+  "regression": {
+    "run": 1475,
+    "skipped": 11,
+    "failed": 0
+  },
+  "ruff_passed": true,
+  "qualification": false,
+  "warmup_slo": {
+    "passed": 2,
+    "requests": 3
+  },
+  "long_quality_slo": 12,
+  "short_quality_slo": 30,
+  "instrumentation_overhead_compared": false,
+  "gpu_time_measured": false,
+  "root_cause_confirmed": false
+}

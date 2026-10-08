@@ -1,0 +1,93 @@
+{
+  "scope": "Synthetic empty-method diagnostic overhead; not real prefill or inference",
+  "source_sha256": "937b91506679613d729eac2a73f4e4abfbc01ddf090f42fa86df82fa751249ca",
+  "rows": [
+    {
+      "method": "direct",
+      "calls_per_trial": 20000,
+      "trials": [
+        {
+          "wall_ms": 0.84475,
+          "cpu_ms": 0.849
+        },
+        {
+          "wall_ms": 0.837084,
+          "cpu_ms": 0.837
+        },
+        {
+          "wall_ms": 0.862167,
+          "cpu_ms": 0.864
+        },
+        {
+          "wall_ms": 0.836792,
+          "cpu_ms": 0.837
+        },
+        {
+          "wall_ms": 0.826875,
+          "cpu_ms": 0.827
+        },
+        {
+          "wall_ms": 0.861,
+          "cpu_ms": 0.855
+        },
+        {
+          "wall_ms": 0.84,
+          "cpu_ms": 0.842
+        },
+        {
+          "wall_ms": 0.816083,
+          "cpu_ms": 0.816
+        },
+        {
+          "wall_ms": 0.83425,
+          "cpu_ms": 0.834
+        }
+      ],
+      "median_wall_ms": 0.837084
+    },
+    {
+      "method": "timed_empty",
+      "calls_per_trial": 20000,
+      "trials": [
+        {
+          "wall_ms": 23.174958,
+          "cpu_ms": 23.174
+        },
+        {
+          "wall_ms": 25.308667,
+          "cpu_ms": 23.297
+        },
+        {
+          "wall_ms": 24.753834,
+          "cpu_ms": 23.939
+        },
+        {
+          "wall_ms": 22.639,
+          "cpu_ms": 22.594
+        },
+        {
+          "wall_ms": 22.769416,
+          "cpu_ms": 22.768
+        },
+        {
+          "wall_ms": 22.511791,
+          "cpu_ms": 22.51
+        },
+        {
+          "wall_ms": 22.545042,
+          "cpu_ms": 22.536
+        },
+        {
+          "wall_ms": 22.331959,
+          "cpu_ms": 22.326
+        },
+        {
+          "wall_ms": 22.64125,
+          "cpu_ms": 22.635
+        }
+      ],
+      "median_wall_ms": 22.64125
+    }
+  ],
+  "qualification": false
+}

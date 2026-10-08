@@ -1,0 +1,113 @@
+{
+  "scope": "Three fresh workers per setting; compact, concurrency two, arithmetic and faults",
+  "candidates": [
+    {
+      "prefill_step": 512,
+      "trials": [
+        {
+          "report": "prefill-512-1.json",
+          "sha256": "22fcd93b20d277615097bd9a99909ca294017309bb74b64d12428c29109768e2",
+          "passed": true,
+          "shutdown_clean": true,
+          "identity_unchanged": true,
+          "long_e2e_mean_ms": 615.055,
+          "short_e2e_mean_ms": 440.836,
+          "quality_passed": 42,
+          "slo_passed": 42,
+          "requests": 42,
+          "allocator_peak_bytes": 2276808248
+        },
+        {
+          "report": "prefill-512-2.json",
+          "sha256": "ce68fadfe3f6e38bb8d288302168835e82ab3fed4c904d8335f567ae6e8f928d",
+          "passed": true,
+          "shutdown_clean": true,
+          "identity_unchanged": true,
+          "long_e2e_mean_ms": 704.313,
+          "short_e2e_mean_ms": 472.844,
+          "quality_passed": 42,
+          "slo_passed": 42,
+          "requests": 42,
+          "allocator_peak_bytes": 2276791864
+        },
+        {
+          "report": "prefill-512-3.json",
+          "sha256": "720ec29a4fbb79aa0bfd75052be1bdbb11f4abed938c7e712a055453a80c13c1",
+          "passed": true,
+          "shutdown_clean": true,
+          "identity_unchanged": true,
+          "long_e2e_mean_ms": 1134.522,
+          "short_e2e_mean_ms": 564.927,
+          "quality_passed": 42,
+          "slo_passed": 42,
+          "requests": 42,
+          "allocator_peak_bytes": 2276791864
+        }
+      ],
+      "long_e2e_median_ms": 704.313,
+      "long_e2e_range_ms": [
+        615.055,
+        1134.522
+      ],
+      "short_e2e_median_ms": 472.844
+    },
+    {
+      "prefill_step": 256,
+      "trials": [
+        {
+          "report": "prefill-256-1.json",
+          "sha256": "2f4c26255f3ee66006cd69a1167f68c3e77d7867541f519edaffbcb71faf6294",
+          "passed": true,
+          "shutdown_clean": true,
+          "identity_unchanged": true,
+          "long_e2e_mean_ms": 643.218,
+          "short_e2e_mean_ms": 542.659,
+          "quality_passed": 42,
+          "slo_passed": 42,
+          "requests": 42,
+          "allocator_peak_bytes": 2191851706
+        },
+        {
+          "report": "prefill-256-2.json",
+          "sha256": "9d64daad72a893c5b0e3a8b88ab3bdb9fe7244ee4b847f26a8275d2737fc6eaf",
+          "passed": true,
+          "shutdown_clean": true,
+          "identity_unchanged": true,
+          "long_e2e_mean_ms": 654.1,
+          "short_e2e_mean_ms": 533.458,
+          "quality_passed": 42,
+          "slo_passed": 42,
+          "requests": 42,
+          "allocator_peak_bytes": 2191868090
+        },
+        {
+          "report": "prefill-256-3.json",
+          "sha256": "2e96afd9aec9bef59f0b847fba9267c0c857fdca900593e1ce1d9e257f51768b",
+          "passed": true,
+          "shutdown_clean": true,
+          "identity_unchanged": true,
+          "long_e2e_mean_ms": 625.44,
+          "short_e2e_mean_ms": 436.265,
+          "quality_passed": 42,
+          "slo_passed": 42,
+          "requests": 42,
+          "allocator_peak_bytes": 2191851706
+        }
+      ],
+      "long_e2e_median_ms": 643.218,
+      "long_e2e_range_ms": [
+        625.44,
+        654.1
+      ],
+      "short_e2e_median_ms": 533.458
+    }
+  ],
+  "same_runtime_runner_model": true,
+  "performance_qualified": false,
+  "standard_promotion": false,
+  "limitations": [
+    "Short trials do not qualify P1 stability.",
+    "Means across trials are not per-request median/p95/p99.",
+    "No independent quality matrix, TPOT p95 or energy measurement."
+  ]
+}

@@ -1,0 +1,93 @@
+{
+  "scope": "Synthetic 20000 empty Python-list prompt calls, nine alternating trials; not inference or energy",
+  "qualification": false,
+  "source_sha256": "a3b74b4210ef340dfe6e74ac3297c7fbb876aa0e2cc968c206e7c5c782fc0788",
+  "trials": {
+    "timed_empty": [
+      {
+        "wall_ns": 19115375,
+        "cpu_ns": 19115000
+      },
+      {
+        "wall_ns": 19542167,
+        "cpu_ns": 19540000
+      },
+      {
+        "wall_ns": 19570541,
+        "cpu_ns": 19569000
+      },
+      {
+        "wall_ns": 19203375,
+        "cpu_ns": 19204000
+      },
+      {
+        "wall_ns": 19195667,
+        "cpu_ns": 19194000
+      },
+      {
+        "wall_ns": 19649209,
+        "cpu_ns": 19649000
+      },
+      {
+        "wall_ns": 19872584,
+        "cpu_ns": 19869000
+      },
+      {
+        "wall_ns": 19432292,
+        "cpu_ns": 19430000
+      },
+      {
+        "wall_ns": 19030084,
+        "cpu_ns": 19027000
+      }
+    ],
+    "skip_empty": [
+      {
+        "wall_ns": 2121083,
+        "cpu_ns": 2122000
+      },
+      {
+        "wall_ns": 2001708,
+        "cpu_ns": 2001000
+      },
+      {
+        "wall_ns": 2090000,
+        "cpu_ns": 2088000
+      },
+      {
+        "wall_ns": 1951042,
+        "cpu_ns": 1951000
+      },
+      {
+        "wall_ns": 2001709,
+        "cpu_ns": 2002000
+      },
+      {
+        "wall_ns": 2025500,
+        "cpu_ns": 2025000
+      },
+      {
+        "wall_ns": 2079625,
+        "cpu_ns": 2079000
+      },
+      {
+        "wall_ns": 1951542,
+        "cpu_ns": 1952000
+      },
+      {
+        "wall_ns": 2024125,
+        "cpu_ns": 2025000
+      }
+    ]
+  },
+  "median_ms": {
+    "timed_empty": {
+      "wall_ns": 19.432292,
+      "cpu_ns": 19.43
+    },
+    "skip_empty": {
+      "wall_ns": 2.024125,
+      "cpu_ns": 2.025
+    }
+  }
+}

@@ -36,6 +36,27 @@ P1_MAX_OUTPUT = 512
 _QUEUE_WAIT = _BoundedLatency()
 _STEP_DIAGNOSTICS = StepDiagnostics()
 _REQUEST_TIMINGS = RequestTimings()
+_BACKEND_PHASES = {name: StepDiagnostics(sample_limit=16,
+    scope=f'{name} host method timing; shared batch, may nest; not GPU-only or per-request')
+    for name in ('cache_fetch', 'prefill_prompt', 'prefill_transition', 'decode_next')}
+
+
+def install_backend_phase_timing(generation: Any, cache: Any, diagnostics: Any = None) -> None:
+    """Called only after source guards; wrap methods without inspecting tensors."""
+    diagnostics = _BACKEND_PHASES if diagnostics is None else diagnostics
+    targets = (
+        (cache.LRUPromptCache, 'fetch_nearest_cache', 'cache_fetch'),
+        (generation.PromptProcessingBatch, 'prompt', 'prefill_prompt'),
+        (generation.PromptProcessingBatch, 'generate', 'prefill_transition'),
+        (generation.GenerationBatch, 'next', 'decode_next'),
+    )
+    for owner, method_name, phase in targets:
+        method = getattr(owner, method_name)
+        if getattr(method, '_vllm_apple_phase_timing', False):
+            continue
+        wrapped = diagnostics[phase].wrap(method, skip_empty_tokens=phase == 'prefill_prompt')
+        wrapped._vllm_apple_phase_timing = True
+        setattr(owner, method_name, wrapped)
 
 
 def validate_p1_request(args: Any, model: str) -> None:
@@ -322,6 +343,8 @@ def install_cancel_api() -> type[Any]:
             encoded = json.dumps(dict(http=self.server.resource_snapshot(), registry=registry,
                 queue_wait=queue_wait, scheduler_step=_STEP_DIAGNOSTICS.snapshot(),
                 request_timings=_REQUEST_TIMINGS.snapshot(),
+                backend_phases={name: diagnostic.snapshot()
+                                for name, diagnostic in _BACKEND_PHASES.items()},
                 efficiency=(policy if os.environ.get('VLLM_APPLE_P1_PROFILE') == '1' else None),
                 allocator=dict(active_bytes=mx.get_active_memory(), cache_bytes=mx.get_cache_memory(),
                                peak_bytes=mx.get_peak_memory(), snapshot_consistency='non_atomic'),
@@ -408,6 +431,11 @@ if __name__ == "__main__":
                 '5a57043b5a6497450bce14447db3caf570ffdd22adaab34e659b31aceddda522'):
             raise RuntimeError('P1 step timing requires the reviewed MLX-LM generate source')
         generation.BatchGenerator.next = _STEP_DIAGNOSTICS.wrap(generation.BatchGenerator.next)
+        cache_module = importlib.import_module('mlx_lm.models.cache')
+        if hashlib.sha256(Path(cache_module.__file__).read_bytes()).hexdigest() != (
+                '440709018cc528ee1e4e42e61ff8713ed2e0079566d9e8fa58eed3a92d334404'):
+            raise RuntimeError('P1 phase timing requires reviewed MLX-LM cache source')
+        install_backend_phase_timing(generation, cache_module)
         original_init = server.ResponseGenerator.__init__
 
         def profile_init(self: Any, model_provider: Any, prompt_cache: Any) -> None:

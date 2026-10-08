@@ -14,6 +14,24 @@ English: [Done] R11 quality 3009/3009, SLO 2992/3009: 17 TTFT misses, including 
 
 更新日：2026-10-08
 
+## P1 prefill候補比較と計測負荷削減
+
+[Done] [6回比較と空prefill改善](P1-PREFILL-COMPARISON-2026-10-08.md)：空呼出をそのまま転送し、不要なclock／CPU／lock／統計更新を削減。20,000呼出の合成比較中央値wall 19.432→2.024 ms、CPU 19.430→2.025 ms。推論速度・ワット値ではない。
+実モデルprefill512／256各3回、長文・短文252/252品質／SLO、全worker正常停止・identity不変。256はallocator peak約81 MiB減だが速度は一貫して改善せず、既定512維持。対象8 tests、全回帰1478 tests（11 skip）、Ruff成功。P1長時間・P3性能未認定。
+[Next] 非空prefill内の同期／cache解放とRSSを診断。長時間試験は09:00 JST開始。
+English: [Done] Empty-prefill diagnostic overhead reduced; six real-model trials passed 252/252 quality/SLO. Keep default 512; no speed/stability promotion. [Next] Diagnose synchronization/cache release and RSS.
+简体中文：[Done] 减少空prefill计时开销；6轮实际模型252/252质量／SLO通过。保留默认512，未晋升速度／稳定性资格。[Next] 调查同步／cache释放及RSS。
+
+## P1 backend phase計測
+
+[Done] [cache／prefill／decode計測](P1-BACKEND-PHASES.md)：4つのhost methodへbounded timingを追加。
+実モデルではprefill最大1.825秒、cache最大4.249 ms、decode最大62.340 ms。
+長文12/12・短文30/30品質／SLO、正常停止・identity不変合格。warmup SLO2/3。
+全回帰1475 tests（11 skip）、Ruff成功。共有batch・入れ子・空prefillを含み、GPU時間やr11根因とは認定しない。
+[Next] 非空prefill／同期／cache解放の分離、既存prefill候補と計測負荷の比較。長時間campaignは09:00 JST開始。
+English: [Done] Four bounded backend phase timings verified on real MLX. [Next] Profile nonempty prefill/synchronization and compare candidates; speed/stability remain unqualified.
+简体中文：[Done] 4个有界backend phase计时通过实际MLX验证。[Next] 非空prefill／同步分析及候选比较；速度及稳定性未认证。
+
 ## P1 tokenize分離とSLO判定の修正
 
 [Done] [tokenize計測](P1-TOKENIZE-TIMING.md)：要求別に開始／終了／失敗を記録し、欠測を保持した区間集計を追加。

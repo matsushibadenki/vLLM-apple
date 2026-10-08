@@ -1,0 +1,25 @@
+{
+  "date": "2026-10-08",
+  "target_tests": {
+    "run": 8,
+    "passed": true
+  },
+  "full_regression": {
+    "command": "python3 -m unittest discover -s tests",
+    "run": 1478,
+    "skipped": 11,
+    "passed": true,
+    "duration_seconds": 34.699,
+    "log_sha256": "95ca390a2e5ea25e4b7f0c338382126785d26448c1c75dcf1fa5970c11c8a49f"
+  },
+  "alternate_environment": {
+    "command": ".venv/bin/python -m unittest discover -s tests",
+    "run": 1473,
+    "skipped": 27,
+    "passed": true
+  },
+  "ruff": true,
+  "diff_check": true,
+  "performance_qualified": false,
+  "p1_stability_qualified": false
+}
