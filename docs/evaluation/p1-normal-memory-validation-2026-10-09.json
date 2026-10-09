@@ -1,0 +1,49 @@
+{
+  "date": "2026-10-09",
+  "feature_target_tests": 3,
+  "http_and_feature_target_tests": 4,
+  "initial_failure_isolation_tests": 16,
+  "target_tests_passed": true,
+  "full_regression": {
+    "environment": ".venv Python 3.12.9",
+    "run": 1484,
+    "skipped": 27,
+    "passed": false,
+    "attempts": [
+      {
+        "seconds": 211.992,
+        "failures": 2,
+        "errors": 1
+      },
+      {
+        "seconds": 93.113,
+        "failures": 0,
+        "errors": 1
+      },
+      {
+        "seconds": 245.869,
+        "failures": 2,
+        "errors": 4
+      }
+    ],
+    "log_sha256": [
+      "0e1060d7d5a228015ec718437fc6065c004c9d30e454b6f1ff910612f84f8bf4",
+      "60a65409d1efa5e75ef8b60ed9b65f2d66265daa3dd1767a6c0e80baf5f00eb8",
+      "de4fa4ebef958c3b640c8ff66816e2f95ce112e64d9fdca8ee1ce8d2b63bfb65"
+    ]
+  },
+  "remaining_issues": [
+    "subprocess startup timeout",
+    "daemon health startup failure",
+    "device contention qualification failure",
+    "generative adapter timeout and process-group PermissionError"
+  ],
+  "ruff": true,
+  "diff_check": true,
+  "gpu_and_test_workers_absent": true,
+  "inference_quality": 42,
+  "inference_slo": 39,
+  "performance_qualified": false,
+  "stability_qualified": false,
+  "note": "Raw real-model identity preserved. Subsequent collector-only PID guard/start-PID selection was covered by target tests; no retrospective runtime qualification."
+}

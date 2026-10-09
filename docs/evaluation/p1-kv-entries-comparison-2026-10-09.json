@@ -1,0 +1,388 @@
+{
+  "scope": "One fresh worker each for entries 4,1,3; no performance promotion",
+  "trials": [
+    {
+      "entries_limit": 4,
+      "raw_sha256": "36948ceff6a0f7b33a3d14e9223ec854c048ec4189a344d9c91363a49fab7651",
+      "passed": true,
+      "warmup_quality": 3,
+      "warmup_slo": 2,
+      "cache": {
+        "entries": 4,
+        "accounted_bytes": 50692096,
+        "max_bytes": 268435456,
+        "scope": "LRU retained KV accounting; non-atomic, not unique physical RSS"
+      },
+      "allocator": {
+        "active_bytes": 1578361384,
+        "cache_bytes": 8702972,
+        "peak_bytes": 2276808248,
+        "snapshot_consistency": "non_atomic"
+      },
+      "rss_bytes": 2135293952,
+      "shutdown_clean": true,
+      "identity_unchanged": true,
+      "long_prefix_edit": {
+        "quality_passed": 12,
+        "slo_passed": 12,
+        "e2e": {
+          "sample_count": 12,
+          "unavailable_attempt_count": 0,
+          "bucket_upper_bounds_ms": [
+            1.0,
+            2.0,
+            5.0,
+            10.0,
+            25.0,
+            50.0,
+            100.0,
+            250.0,
+            500.0,
+            1000.0,
+            2500.0,
+            5000.0,
+            null
+          ],
+          "bucket_counts": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            11,
+            0,
+            0,
+            1,
+            0
+          ],
+          "bucket_policy": "disjoint_inclusive_upper_bound_last_is_overflow",
+          "mean_ms": 600.792,
+          "max_ms": 3509.224
+        },
+        "reuse": {
+          "source": "response_usage_prompt_tokens_details_cached_tokens",
+          "observed_requests": 12,
+          "unavailable_attempts": 0,
+          "cached_prompt_tokens": 22653,
+          "observed_prompt_tokens": 24876,
+          "requests_with_reuse": 12,
+          "observed_token_reuse_ratio": 0.9106367583212736,
+          "evictions": null,
+          "includes_warmup": false
+        }
+      },
+      "sustained": {
+        "quality_passed": 30,
+        "slo_passed": 30,
+        "e2e": {
+          "sample_count": 30,
+          "unavailable_attempt_count": 0,
+          "bucket_upper_bounds_ms": [
+            1.0,
+            2.0,
+            5.0,
+            10.0,
+            25.0,
+            50.0,
+            100.0,
+            250.0,
+            500.0,
+            1000.0,
+            2500.0,
+            5000.0,
+            null
+          ],
+          "bucket_counts": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            30,
+            0,
+            0,
+            0,
+            0
+          ],
+          "bucket_policy": "disjoint_inclusive_upper_bound_last_is_overflow",
+          "mean_ms": 424.798,
+          "max_ms": 484.07
+        },
+        "reuse": {
+          "source": "response_usage_prompt_tokens_details_cached_tokens",
+          "observed_requests": 30,
+          "unavailable_attempts": 0,
+          "cached_prompt_tokens": 533,
+          "observed_prompt_tokens": 610,
+          "requests_with_reuse": 29,
+          "observed_token_reuse_ratio": 0.8737704918032787,
+          "evictions": null,
+          "includes_warmup": false
+        }
+      }
+    },
+    {
+      "entries_limit": 1,
+      "raw_sha256": "b59b66a4a37aa292c211f99d18e67e9740c6e0d5a403857a996685c894ec93e7",
+      "passed": true,
+      "warmup_quality": 3,
+      "warmup_slo": 3,
+      "cache": {
+        "entries": 1,
+        "accounted_bytes": 2768896,
+        "max_bytes": 268435456,
+        "scope": "LRU retained KV accounting; non-atomic, not unique physical RSS"
+      },
+      "allocator": {
+        "active_bytes": 1529799208,
+        "cache_bytes": 38276110,
+        "peak_bytes": 2270729784,
+        "snapshot_consistency": "non_atomic"
+      },
+      "rss_bytes": 2210398208,
+      "shutdown_clean": true,
+      "identity_unchanged": true,
+      "long_prefix_edit": {
+        "quality_passed": 12,
+        "slo_passed": 12,
+        "e2e": {
+          "sample_count": 12,
+          "unavailable_attempt_count": 0,
+          "bucket_upper_bounds_ms": [
+            1.0,
+            2.0,
+            5.0,
+            10.0,
+            25.0,
+            50.0,
+            100.0,
+            250.0,
+            500.0,
+            1000.0,
+            2500.0,
+            5000.0,
+            null
+          ],
+          "bucket_counts": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            11,
+            0,
+            0,
+            1,
+            0
+          ],
+          "bucket_policy": "disjoint_inclusive_upper_bound_last_is_overflow",
+          "mean_ms": 610.171,
+          "max_ms": 3516.547
+        },
+        "reuse": {
+          "source": "response_usage_prompt_tokens_details_cached_tokens",
+          "observed_requests": 12,
+          "unavailable_attempts": 0,
+          "cached_prompt_tokens": 22653,
+          "observed_prompt_tokens": 24876,
+          "requests_with_reuse": 12,
+          "observed_token_reuse_ratio": 0.9106367583212736,
+          "evictions": null,
+          "includes_warmup": false
+        }
+      },
+      "sustained": {
+        "quality_passed": 30,
+        "slo_passed": 30,
+        "e2e": {
+          "sample_count": 30,
+          "unavailable_attempt_count": 0,
+          "bucket_upper_bounds_ms": [
+            1.0,
+            2.0,
+            5.0,
+            10.0,
+            25.0,
+            50.0,
+            100.0,
+            250.0,
+            500.0,
+            1000.0,
+            2500.0,
+            5000.0,
+            null
+          ],
+          "bucket_counts": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            8,
+            22,
+            0,
+            0,
+            0
+          ],
+          "bucket_policy": "disjoint_inclusive_upper_bound_last_is_overflow",
+          "mean_ms": 509.082,
+          "max_ms": 630.671
+        },
+        "reuse": {
+          "source": "response_usage_prompt_tokens_details_cached_tokens",
+          "observed_requests": 30,
+          "unavailable_attempts": 0,
+          "cached_prompt_tokens": 146,
+          "observed_prompt_tokens": 610,
+          "requests_with_reuse": 29,
+          "observed_token_reuse_ratio": 0.23934426229508196,
+          "evictions": null,
+          "includes_warmup": false
+        }
+      }
+    },
+    {
+      "entries_limit": 3,
+      "raw_sha256": "e4660da3c3862e8bbe8f37a5e8198c830a5fa143c5b33cc8f7269724e41cc09b",
+      "passed": true,
+      "warmup_quality": 3,
+      "warmup_slo": 3,
+      "cache": {
+        "entries": 3,
+        "accounted_bytes": 34717696,
+        "max_bytes": 268435456,
+        "scope": "LRU retained KV accounting; non-atomic, not unique physical RSS"
+      },
+      "allocator": {
+        "active_bytes": 1562173992,
+        "cache_bytes": 22907406,
+        "peak_bytes": 2276775480,
+        "snapshot_consistency": "non_atomic"
+      },
+      "rss_bytes": 2097381376,
+      "shutdown_clean": true,
+      "identity_unchanged": true,
+      "long_prefix_edit": {
+        "quality_passed": 12,
+        "slo_passed": 12,
+        "e2e": {
+          "sample_count": 12,
+          "unavailable_attempt_count": 0,
+          "bucket_upper_bounds_ms": [
+            1.0,
+            2.0,
+            5.0,
+            10.0,
+            25.0,
+            50.0,
+            100.0,
+            250.0,
+            500.0,
+            1000.0,
+            2500.0,
+            5000.0,
+            null
+          ],
+          "bucket_counts": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            11,
+            0,
+            0,
+            1,
+            0
+          ],
+          "bucket_policy": "disjoint_inclusive_upper_bound_last_is_overflow",
+          "mean_ms": 630.125,
+          "max_ms": 3589.355
+        },
+        "reuse": {
+          "source": "response_usage_prompt_tokens_details_cached_tokens",
+          "observed_requests": 12,
+          "unavailable_attempts": 0,
+          "cached_prompt_tokens": 22653,
+          "observed_prompt_tokens": 24876,
+          "requests_with_reuse": 12,
+          "observed_token_reuse_ratio": 0.9106367583212736,
+          "evictions": null,
+          "includes_warmup": false
+        }
+      },
+      "sustained": {
+        "quality_passed": 30,
+        "slo_passed": 30,
+        "e2e": {
+          "sample_count": 30,
+          "unavailable_attempt_count": 0,
+          "bucket_upper_bounds_ms": [
+            1.0,
+            2.0,
+            5.0,
+            10.0,
+            25.0,
+            50.0,
+            100.0,
+            250.0,
+            500.0,
+            1000.0,
+            2500.0,
+            5000.0,
+            null
+          ],
+          "bucket_counts": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            21,
+            9,
+            0,
+            0,
+            0
+          ],
+          "bucket_policy": "disjoint_inclusive_upper_bound_last_is_overflow",
+          "mean_ms": 477.797,
+          "max_ms": 713.808
+        },
+        "reuse": {
+          "source": "response_usage_prompt_tokens_details_cached_tokens",
+          "observed_requests": 30,
+          "unavailable_attempts": 0,
+          "cached_prompt_tokens": 533,
+          "observed_prompt_tokens": 610,
+          "requests_with_reuse": 29,
+          "observed_token_reuse_ratio": 0.8737704918032787,
+          "evictions": null,
+          "includes_warmup": false
+        }
+      }
+    }
+  ],
+  "performance_qualified": false,
+  "stability_qualified": false,
+  "same_runtime_runner_model": true,
+  "default_entries": 4,
+  "one_entry_promotion": false
+}

@@ -1,0 +1,29 @@
+{
+  "scope": "Retained slow calls only; host wall nested windows, not causal GPU attribution",
+  "slow_prefill_windows": [
+    {
+      "prefill_ms": 738.243167,
+      "contained_eval_ms": 736.8935,
+      "eval_samples": 1
+    },
+    {
+      "prefill_ms": 766.618,
+      "contained_eval_ms": 765.151291,
+      "eval_samples": 1
+    },
+    {
+      "prefill_ms": 803.408917,
+      "contained_eval_ms": 801.91625,
+      "eval_samples": 1
+    },
+    {
+      "prefill_ms": 830.522875,
+      "contained_eval_ms": 829.155,
+      "eval_samples": 1
+    }
+  ],
+  "quality_slo": 45,
+  "shutdown_clean": true,
+  "identity_unchanged": true,
+  "p1_stability_qualified": false
+}

@@ -28,6 +28,7 @@ from vllm_apple.backend import (
 from vllm_apple.benchmark_context import observe_benchmark_context
 from vllm_apple.hardware import detect_thermal_state
 from vllm_apple.phase_probe import PhaseProbeConfig, _resident_bytes, measure_stream
+from vllm_apple.process_activity_delta import memory_activity_delta
 from vllm_apple.text_benchmark import run_text_benchmark
 
 
@@ -424,6 +425,21 @@ def _idle_resources(port: int) -> dict[str, object]:
         time.sleep(.05)
 
 
+def _normal_memory_point(port: int, benchmark: dict, pid: int, stage: str) -> dict:
+    snapshot = _idle_resources(port)
+    if snapshot['registry'] != dict(active=0, queued=0) or snapshot['http']['active'] != 1:
+        raise RuntimeError('normal memory point requires drained requests')
+    activity = snapshot.get('process_activity')
+    same_worker = (type(pid) is int and pid > 0 and isinstance(activity, dict) and activity.get('available') is True
+                   and type(activity.get('pid')) is int and activity['pid'] == pid)
+    return dict(stage=stage, workload_sha256=benchmark.get('workload_sha256'),
+                requests=benchmark['requests'], quality_passed=benchmark['quality_passed'],
+                slo_quality_passed=benchmark['slo_quality_passed'], same_worker=same_worker,
+                observed_at_unix_ns=time.time_ns(), process_activity=activity,
+                prompt_cache=snapshot.get('prompt_cache'), allocator=snapshot.get('allocator'),
+                scope='after normal workload, drained, before faults; non-atomic, no GPU synchronization')
+
+
 def _resource_plateau(samples: list[dict[str, object]]) -> dict[str, object]:
     latest_pid = samples[-1]['pid'] if samples else None
     epoch = [s for s in samples if s['pid'] == latest_pid]
@@ -671,6 +687,15 @@ def _run_stability_window(config: PhaseProbeConfig, *, port: int, model: str,
             before=dict(resources=before_resources, environment=before_context),
             after=dict(resources=_resources(port), environment=observe_benchmark_context(current_pid)),
             scope='outside request measurement; non-atomic; no causality claim')
+        delta = memory_activity_delta(before_resources,
+                                      window['diagnostic_context']['after']['resources'])
+        activity_samples = summary.setdefault('process_activity_windows', [])
+        activity_samples.append(dict(cycle=cycle, workload_sha256=window.get('workload_sha256'),
+            requests=window['requests'], quality_passed=window['quality_passed'],
+            slo_quality_passed=window['slo_quality_passed'], activity=delta))
+        if len(activity_samples) > 64:
+            del activity_samples[:-64]
+        summary['process_activity_windows_observed'] = cycle
         _record_operating_conditions(summary, window['diagnostic_context']['after']['environment'])
         _accumulate_window(summary, window)
 
@@ -873,6 +898,7 @@ def main() -> int:
     parser.add_argument("--prompt-concurrency", type=int, default=2)
     parser.add_argument("--prefill-step-size", type=int, default=2048)
     parser.add_argument("--long-concurrency", type=int, default=2)
+    parser.add_argument("--prompt-cache-entries", type=int, choices=range(1, 5), default=4)
     args = parser.parse_args()
     if args.output.exists():
         parser.error('--output must be a new evidence file')
@@ -929,7 +955,7 @@ def main() -> int:
             "--decode-concurrency", str(args.decode_concurrency),
             "--prompt-concurrency", str(args.prompt_concurrency),
             "--prefill-step-size", str(args.prefill_step_size),
-            "--prompt-cache-size", "4",
+            "--prompt-cache-size", str(args.prompt_cache_entries),
         ),
     )
     process = BackendProcess(backend_config)
@@ -982,13 +1008,22 @@ def main() -> int:
         report["warmup"] = run_text_benchmark(config, requests=3)
         if report['warmup']['completed'] != 3 or report['warmup']['quality_passed'] != 3:
             raise RuntimeError('warmup failed; refusing sustained qualification')
+        if args.p1_profile:
+            report['normal_memory_points'] = {'after_warmup': _normal_memory_point(
+                args.port, report['warmup'], config.target_pid, 'after_warmup_before_faults')}
         report["long_prefix_edit"] = run_text_benchmark(
             config, requests=args.long_requests, concurrency=args.long_concurrency,
             cases=_long_prefix_cases(),
             ttft_slo_ms=10_000, e2e_slo_ms=20_000)
+        if args.p1_profile:
+            report['normal_memory_points']['after_long'] = _normal_memory_point(
+                args.port, report['long_prefix_edit'], config.target_pid, 'after_long_before_faults')
         report["sustained"] = run_text_benchmark(
             config, requests=args.sustained_requests, concurrency=2,
             ttft_slo_ms=5_000, e2e_slo_ms=10_000)
+        if args.p1_profile:
+            report['normal_memory_points']['after_short'] = _normal_memory_point(
+                args.port, report['sustained'], config.target_pid, 'after_short_before_faults')
         report["explicit_cancel"] = _cancel_stream(args.port, str(model))
         report["slow_consumer"] = _slow_consumer(args.port, str(model))
         report["queued_cancel"] = _queued_cancel(args.port, str(model))

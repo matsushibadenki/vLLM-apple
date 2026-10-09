@@ -36,6 +36,8 @@ P1_MAX_OUTPUT = 512
 _QUEUE_WAIT = _BoundedLatency()
 _STEP_DIAGNOSTICS = StepDiagnostics()
 _REQUEST_TIMINGS = RequestTimings()
+_PREFILL_OPERATIONS = None
+_P1_PROMPT_CACHE = None
 _BACKEND_PHASES = {name: StepDiagnostics(sample_limit=16,
     scope=f'{name} host method timing; shared batch, may nest; not GPU-only or per-request')
     for name in ('cache_fetch', 'prefill_prompt', 'prefill_transition', 'decode_next')}
@@ -340,9 +342,16 @@ def install_cancel_api() -> type[Any]:
                                   statistics=_QUEUE_WAIT.snapshot() if _QUEUE_WAIT.count else None,
                                   scope='ingress_to_first_scheduler_dequeue_including_cancelled')
             import mlx.core as mx
-            encoded = json.dumps(dict(http=self.server.resource_snapshot(), registry=registry,
+
+            from vllm_apple.process_memory import process_activity
+            activity = process_activity(os.getpid()) if os.environ.get('VLLM_APPLE_P1_PROFILE') == '1' else None
+            encoded = json.dumps(dict(prompt_cache=(dict(entries=len(_P1_PROMPT_CACHE),
+                accounted_bytes=_P1_PROMPT_CACHE.nbytes, max_bytes=_P1_PROMPT_CACHE.max_bytes,
+                scope='LRU retained KV accounting; non-atomic, not unique physical RSS')
+                if _P1_PROMPT_CACHE is not None else None), process_activity=activity, http=self.server.resource_snapshot(), registry=registry,
                 queue_wait=queue_wait, scheduler_step=_STEP_DIAGNOSTICS.snapshot(),
                 request_timings=_REQUEST_TIMINGS.snapshot(),
+                prefill_operations=(_PREFILL_OPERATIONS.snapshot() if _PREFILL_OPERATIONS else None),
                 backend_phases={name: diagnostic.snapshot()
                                 for name, diagnostic in _BACKEND_PHASES.items()},
                 efficiency=(policy if os.environ.get('VLLM_APPLE_P1_PROFILE') == '1' else None),
@@ -436,9 +445,12 @@ if __name__ == "__main__":
                 '440709018cc528ee1e4e42e61ff8713ed2e0079566d9e8fa58eed3a92d334404'):
             raise RuntimeError('P1 phase timing requires reviewed MLX-LM cache source')
         install_backend_phase_timing(generation, cache_module)
+        from vllm_apple.mlx_operation_timing import install_prefill_operation_timing
+        _PREFILL_OPERATIONS = install_prefill_operation_timing(generation)
         original_init = server.ResponseGenerator.__init__
 
         def profile_init(self: Any, model_provider: Any, prompt_cache: Any) -> None:
+            global _P1_PROMPT_CACHE
             cli = model_provider.cli_args
             if (cli.adapter_path is not None or cli.draft_model is not None
                     or cli.decode_concurrency > 2 or cli.prompt_concurrency > 2
@@ -446,6 +458,7 @@ if __name__ == "__main__":
                 raise ValueError('P1 profile requires concurrency <=2, prefill <=512, cache entries <=4')
             cli.prompt_cache_bytes = 256 * 1024**2
             bound_p1_prompt_cache(prompt_cache)
+            _P1_PROMPT_CACHE = prompt_cache
             original_init(self, model_provider, prompt_cache)
             self._time_budget._budget = policy['scheduler_budget_seconds']
 

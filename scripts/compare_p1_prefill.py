@@ -5,11 +5,12 @@ import argparse
 import hashlib
 import json
 import os
-import signal
 import statistics
 import subprocess
 import sys
 from pathlib import Path
+
+from vllm_apple.trial_process import run_trial
 
 ORDERS = ((512, 256), (256, 512), (512, 256))
 
@@ -75,14 +76,15 @@ def main():
                        '--long-requests', '12', '--decode-concurrency', '2', '--prompt-concurrency', '2',
                        '--prefill-step-size', str(step), '--long-concurrency', '1', '--p1-profile']
             with path.with_suffix('.runner.log').open('w') as log:
-                process = subprocess.Popen(command, cwd=root, stdout=log, stderr=log,
-                    env=dict(os.environ, VLLM_APPLE_P1_EFFICIENCY='compact'))
                 try:
-                    code = process.wait(timeout=180)
-                finally:
-                    if process.poll() is None:
-                        process.send_signal(signal.SIGINT)
-                        process.wait(timeout=45)
+                    code = run_trial(command, cwd=root, stdout=log,
+                        env=dict(os.environ, VLLM_APPLE_P1_EFFICIENCY='compact'))
+                except subprocess.TimeoutExpired:
+                    with path.with_suffix('.timeout.json').open('x') as receipt:
+                        json.dump(dict(status='timeout', passed=False, qualification=False,
+                                       timeout_seconds=180, cleanup='owned group stopped'), receipt)
+                    print(f'repeat={repeat} prefill={step} timeout; no promotion', flush=True)
+                    return 1
             data = json.loads(path.read_text())
             print(f'repeat={repeat} prefill={step} exit={code} passed={data.get("passed")}', flush=True)
     summary = summarize(args.output_directory)

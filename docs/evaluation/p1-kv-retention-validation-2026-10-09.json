@@ -1,0 +1,29 @@
+{
+  "date": "2026-10-09",
+  "baseline_raw_sha256": "40b042b84687260bfe949c9c313f8e288f664c73910594f2aef25fcb8c788e59",
+  "baseline_quality_slo": {
+    "long": 12,
+    "short": 30,
+    "warmup_quality": 3,
+    "warmup_slo": 2
+  },
+  "prompt_cache": {
+    "entries": 4,
+    "accounted_bytes": 50692096,
+    "max_bytes": 268435456,
+    "scope": "LRU retained KV accounting; non-atomic, not unique physical RSS"
+  },
+  "full_regression": {
+    "run": 1483,
+    "skipped": 11,
+    "seconds": 107.543,
+    "passed": true
+  },
+  "ruff": true,
+  "diff_check": true,
+  "candidate_64_adopted": false,
+  "candidate_code_reverted": true,
+  "performance_qualified": false,
+  "p1_stability_qualified": false,
+  "note": "Baseline path and numeric cache snapshot validated before candidate-only option was reverted; raw experimental source identity remains unchanged."
+}

@@ -1,0 +1,111 @@
+{
+  "scope": "10000 synthetic prompt calls each with no-op eval/clear_cache; nine alternating trials. Instrumentation cost only; not inference slowdown. Nearest-rank p95/p99 of nine trial totals equal maximum.",
+  "trials": {
+    "direct": [
+      {
+        "wall_ns": 607208,
+        "cpu_ns": 607000
+      },
+      {
+        "wall_ns": 683250,
+        "cpu_ns": 683000
+      },
+      {
+        "wall_ns": 660084,
+        "cpu_ns": 661000
+      },
+      {
+        "wall_ns": 675375,
+        "cpu_ns": 676000
+      },
+      {
+        "wall_ns": 628959,
+        "cpu_ns": 628000
+      },
+      {
+        "wall_ns": 614750,
+        "cpu_ns": 615000
+      },
+      {
+        "wall_ns": 608250,
+        "cpu_ns": 608000
+      },
+      {
+        "wall_ns": 625000,
+        "cpu_ns": 626000
+      },
+      {
+        "wall_ns": 618208,
+        "cpu_ns": 618000
+      }
+    ],
+    "profile": [
+      {
+        "wall_ns": 21167250,
+        "cpu_ns": 21165000
+      },
+      {
+        "wall_ns": 21249958,
+        "cpu_ns": 21251000
+      },
+      {
+        "wall_ns": 21325084,
+        "cpu_ns": 21325000
+      },
+      {
+        "wall_ns": 21293375,
+        "cpu_ns": 21291000
+      },
+      {
+        "wall_ns": 21515708,
+        "cpu_ns": 21516000
+      },
+      {
+        "wall_ns": 21032542,
+        "cpu_ns": 21016000
+      },
+      {
+        "wall_ns": 20985208,
+        "cpu_ns": 20984000
+      },
+      {
+        "wall_ns": 21016291,
+        "cpu_ns": 21015000
+      },
+      {
+        "wall_ns": 21541292,
+        "cpu_ns": 21525000
+      }
+    ]
+  },
+  "summary": {
+    "direct": {
+      "wall_ns": {
+        "median_ms": 0.625,
+        "p95_ms": 0.68325,
+        "p99_ms": 0.68325,
+        "maximum_ms": 0.68325
+      },
+      "cpu_ns": {
+        "median_ms": 0.626,
+        "p95_ms": 0.683,
+        "p99_ms": 0.683,
+        "maximum_ms": 0.683
+      }
+    },
+    "profile": {
+      "wall_ns": {
+        "median_ms": 21.249958,
+        "p95_ms": 21.541292,
+        "p99_ms": 21.541292,
+        "maximum_ms": 21.541292
+      },
+      "cpu_ns": {
+        "median_ms": 21.251,
+        "p95_ms": 21.525,
+        "p99_ms": 21.525,
+        "maximum_ms": 21.525
+      }
+    }
+  }
+}

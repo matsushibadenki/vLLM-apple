@@ -1,0 +1,116 @@
+[
+  {
+    "report": "docs/evaluation/p1-activity-windows-m4-2026-10-09.json",
+    "sha256": "ea5f44ff832bd9983202ac9e7effd9cd991d4e9f1b3b8cd124de4bd8bb0d736c",
+    "windows": [
+      {
+        "window": "first_window",
+        "workload_sha256": "e65b47a8ac85138265385491ea6cca8afc557f3c7405591c1984c557d307ad9c",
+        "activity": {
+          "available": true,
+          "pid": 22647,
+          "counters": {
+            "faults": 5090,
+            "pageins": 0,
+            "cow_faults": 0,
+            "context_switches": 8806
+          },
+          "rss_change_bytes": 9977856,
+          "scope": "same PID, benchmark window, process-wide; not causal attribution",
+          "allocator": {
+            "available": true,
+            "change_bytes": {
+              "active_bytes": 30113792,
+              "cache_bytes": 33275216
+            },
+            "scope": "non-atomic allocator counters; not additive RSS categories"
+          }
+        }
+      },
+      {
+        "window": "last_window",
+        "workload_sha256": "139acd823d068e39bf07fd7e080f4395e0005c33514704481215ec665f3ce0e7",
+        "activity": {
+          "available": true,
+          "pid": 22647,
+          "counters": {
+            "faults": 31,
+            "pageins": 0,
+            "cow_faults": 0,
+            "context_switches": 4012
+          },
+          "rss_change_bytes": -1228800,
+          "scope": "same PID, benchmark window, process-wide; not causal attribution",
+          "allocator": {
+            "available": true,
+            "change_bytes": {
+              "active_bytes": 342163054,
+              "cache_bytes": -1223224
+            },
+            "scope": "non-atomic allocator counters; not additive RSS categories"
+          }
+        }
+      }
+    ],
+    "scope": "retained first/last windows only; not full-run memory attribution",
+    "performance_qualified": false,
+    "stability_qualified": false
+  },
+  {
+    "report": "docs/evaluation/recurring-optimization-gemma2-2026-10-09-r1.json",
+    "sha256": "6e2a20cc0b8260898f6d0cf7928f3f3e9b03062acea8983208f455f26615deee",
+    "windows": [
+      {
+        "window": "first_window",
+        "workload_sha256": "e65b47a8ac85138265385491ea6cca8afc557f3c7405591c1984c557d307ad9c",
+        "activity": {
+          "available": true,
+          "pid": 58568,
+          "counters": {
+            "faults": 5148,
+            "pageins": 0,
+            "cow_faults": 0,
+            "context_switches": 8904
+          },
+          "rss_change_bytes": 12992512,
+          "scope": "same PID, benchmark window, process-wide; not causal attribution",
+          "allocator": {
+            "available": true,
+            "change_bytes": {
+              "active_bytes": 851968,
+              "cache_bytes": 58377660
+            },
+            "scope": "non-atomic allocator counters; not additive RSS categories"
+          }
+        }
+      },
+      {
+        "window": "last_window",
+        "workload_sha256": "e65b47a8ac85138265385491ea6cca8afc557f3c7405591c1984c557d307ad9c",
+        "activity": {
+          "available": true,
+          "pid": 58568,
+          "counters": {
+            "faults": 1721,
+            "pageins": 0,
+            "cow_faults": 0,
+            "context_switches": 7177
+          },
+          "rss_change_bytes": 1785856,
+          "scope": "same PID, benchmark window, process-wide; not causal attribution",
+          "allocator": {
+            "available": true,
+            "change_bytes": {
+              "active_bytes": -3114139,
+              "cache_bytes": 14327044
+            },
+            "scope": "non-atomic allocator counters; not additive RSS categories"
+          }
+        }
+      }
+    ],
+    "scope": "retained first/last windows only; not full-run memory attribution",
+    "performance_qualified": false,
+    "stability_qualified": false
+  }
+]

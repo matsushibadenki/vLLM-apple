@@ -48,7 +48,12 @@ class BoundedHTTPTests(unittest.TestCase):
             for _ in range(3):
                 time.sleep(.06)
                 for client in clients:
-                    client.sendall(b'x')
+                    try:
+                        client.sendall(b'x')
+                    except (BrokenPipeError, ConnectionResetError):
+                        # The absolute deadline may expire while the test thread
+                        # is descheduled. Expiration and recovery remain required.
+                        pass
             deadline = time.monotonic() + 2
             while server.resource_snapshot()['active']:
                 if time.monotonic() > deadline:

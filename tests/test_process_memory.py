@@ -49,3 +49,31 @@ class ProcessMemoryTests(unittest.TestCase):
             with self.subTest(pid=pid), self.assertRaises(ValueError):
                 memory.resident_bytes(pid)
         self.assertEqual(_resident_bytes(None), 0)
+
+
+class ProcessActivityTests(unittest.TestCase):
+    def test_named_abi_counters_and_unavailable_are_explicit(self):
+        def native(pid, flavor, arg, pointer, size):
+            info = ctypes.cast(pointer, ctypes.POINTER(memory._TaskInfo)).contents
+            info.resident_size = 4096
+            info.faults = 101
+            info.pageins = 7
+            info.cow_faults = 3
+            info.context_switches = 99
+            info.threads = 4
+            info.running_threads = 1
+            return size
+        with patch.object(memory.sys, 'platform', 'darwin'), \
+             patch.object(memory, '_task_info_function', return_value=(None, native)), \
+             patch.object(memory.subprocess, 'run', side_effect=AssertionError('no subprocess')):
+            value = memory.process_activity(123)
+            self.assertTrue(value['available'])
+            self.assertEqual((value['faults'], value['pageins'], value['context_switches']), (101, 7, 99))
+            self.assertEqual(ctypes.sizeof(memory._TaskInfo), 96)
+        with patch.object(memory.sys, 'platform', 'linux'):
+            self.assertEqual(memory.process_activity(123)['reason'], 'unsupported_platform')
+        with patch.object(memory.sys, 'platform', 'darwin'), \
+             patch.object(memory, '_task_info_function', return_value=(None, lambda *a: 0)):
+            value = memory.process_activity(123)
+            self.assertFalse(value['available'])
+            self.assertNotIn('pageins', value)

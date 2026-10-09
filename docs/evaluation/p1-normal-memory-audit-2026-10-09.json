@@ -1,0 +1,127 @@
+{
+  "date": "2026-10-09",
+  "raw_sha256": "a840b004d29e585094b38e96387f8954c6eb3b639db245d872e554f07f05effe",
+  "fixed_point_metadata_verified": true,
+  "same_worker_all_points": true,
+  "normal_quality": 42,
+  "normal_slo": 39,
+  "warmup_quality": 3,
+  "warmup_slo": 1,
+  "shutdown_clean": true,
+  "identity_unchanged": true,
+  "performance_qualified": false,
+  "stability_qualified": false,
+  "points": {
+    "after_warmup": {
+      "stage": "after_warmup_before_faults",
+      "workload_sha256": "24089ed551a49962561e96492774ea4f35167d904145383f7835b7067b2ae371",
+      "requests": 3,
+      "quality_passed": 3,
+      "slo_quality_passed": 1,
+      "same_worker": true,
+      "observed_at_unix_ns": 1791526347550816000,
+      "process_activity": {
+        "available": true,
+        "pid": 14531,
+        "source": "Darwin PROC_PIDTASKINFO",
+        "scope": "process-wide cumulative counters; not GPU, compression or causal attribution",
+        "resident_size": 1452605440,
+        "faults": 181999,
+        "pageins": 4251,
+        "cow_faults": 888,
+        "context_switches": 112714,
+        "threads": 25,
+        "running_threads": 1
+      },
+      "prompt_cache": {
+        "entries": 3,
+        "accounted_bytes": 7774208,
+        "max_bytes": 268435456,
+        "scope": "LRU retained KV accounting; non-atomic, not unique physical RSS"
+      },
+      "allocator": {
+        "active_bytes": 1535844894,
+        "cache_bytes": 3658890,
+        "peak_bytes": 1558120162,
+        "snapshot_consistency": "non_atomic"
+      },
+      "scope": "after normal workload, drained, before faults; non-atomic, no GPU synchronization"
+    },
+    "after_long": {
+      "stage": "after_long_before_faults",
+      "workload_sha256": "00bc5010a647f6f953356535fee855f7c575f25c3a53661833e51ed78e3a26cd",
+      "requests": 12,
+      "quality_passed": 12,
+      "slo_quality_passed": 11,
+      "same_worker": true,
+      "observed_at_unix_ns": 1791526377988939000,
+      "process_activity": {
+        "available": true,
+        "pid": 14531,
+        "source": "Darwin PROC_PIDTASKINFO",
+        "scope": "process-wide cumulative counters; not GPU, compression or causal attribution",
+        "resident_size": 1496793088,
+        "faults": 216708,
+        "pageins": 4257,
+        "cow_faults": 888,
+        "context_switches": 195485,
+        "threads": 25,
+        "running_threads": 1
+      },
+      "prompt_cache": {
+        "entries": 1,
+        "accounted_bytes": 221192192,
+        "max_bytes": 268435456,
+        "scope": "LRU retained KV accounting; non-atomic, not unique physical RSS"
+      },
+      "allocator": {
+        "active_bytes": 1967710750,
+        "cache_bytes": 62898150,
+        "peak_bytes": 2271954952,
+        "snapshot_consistency": "non_atomic"
+      },
+      "scope": "after normal workload, drained, before faults; non-atomic, no GPU synchronization"
+    },
+    "after_short": {
+      "stage": "after_short_before_faults",
+      "workload_sha256": "048b5ec75d16228a2dcab2927303897f7a0ba2894b97023532c3a2f87ae7e2a0",
+      "requests": 30,
+      "quality_passed": 30,
+      "slo_quality_passed": 28,
+      "same_worker": true,
+      "observed_at_unix_ns": 1791526419205531000,
+      "process_activity": {
+        "available": true,
+        "pid": 14531,
+        "source": "Darwin PROC_PIDTASKINFO",
+        "scope": "process-wide cumulative counters; not GPU, compression or causal attribution",
+        "resident_size": 918503424,
+        "faults": 235781,
+        "pageins": 4269,
+        "cow_faults": 888,
+        "context_switches": 386391,
+        "threads": 25,
+        "running_threads": 1
+      },
+      "prompt_cache": {
+        "entries": 3,
+        "accounted_bytes": 7774208,
+        "max_bytes": 268435456,
+        "scope": "LRU retained KV accounting; non-atomic, not unique physical RSS"
+      },
+      "allocator": {
+        "active_bytes": 1592877602,
+        "cache_bytes": 67120671,
+        "peak_bytes": 2271954952,
+        "snapshot_consistency": "non_atomic"
+      },
+      "scope": "after normal workload, drained, before faults; non-atomic, no GPU synchronization"
+    }
+  },
+  "after_faults_cache": {
+    "entries": 4,
+    "accounted_bytes": 37167104,
+    "max_bytes": 268435456,
+    "scope": "LRU retained KV accounting; non-atomic, not unique physical RSS"
+  }
+}

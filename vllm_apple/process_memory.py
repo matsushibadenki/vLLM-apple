@@ -13,7 +13,11 @@ class _TaskInfo(ctypes.Structure):
     # Public Darwin proc_taskinfo ABI: six uint64 values, twelve int32 values.
     # Only resident_size is consumed. This is RSS, not physical footprint/peak.
     _fields_ = [('virtual_size', ctypes.c_uint64), ('resident_size', ctypes.c_uint64),
-                ('_times', ctypes.c_uint64 * 4), ('_counters', ctypes.c_int32 * 12)]
+                ('total_user', ctypes.c_uint64), ('total_system', ctypes.c_uint64),
+                ('threads_user', ctypes.c_uint64), ('threads_system', ctypes.c_uint64),
+                *[(name, ctypes.c_int32) for name in ('policy', 'faults', 'pageins',
+                    'cow_faults', 'messages_sent', 'messages_received', 'syscalls_mach',
+                    'syscalls_unix', 'context_switches', 'threads', 'running_threads', 'priority')]]
 
 
 @lru_cache(maxsize=1)
@@ -49,3 +53,28 @@ def resident_bytes(pid: int) -> int:
         code = ctypes.get_errno() or errno.EIO
         raise OSError(code, os.strerror(code))
     return int(info.resident_size)
+
+
+def process_activity(pid: int) -> dict:
+    """Optional Darwin cumulative counters; missing/error stays explicit, never zero."""
+    if type(pid) is not int or not 0 < pid <= 2**31-1:
+        raise ValueError('pid must be a positive signed 32-bit integer')
+    if sys.platform != 'darwin':
+        return {'available': False, 'reason': 'unsupported_platform', 'pid': pid}
+    try:
+        _, function = _task_info_function()
+        info = _TaskInfo()
+        size = ctypes.sizeof(info)
+        ctypes.set_errno(0)
+        if function(pid, 4, 0, ctypes.byref(info), size) != size:
+            raise OSError(ctypes.get_errno() or errno.EIO, 'task activity unavailable')
+        values = {key: int(getattr(info, key)) for key in
+                  ('resident_size', 'faults', 'pageins', 'cow_faults',
+                   'context_switches', 'threads', 'running_threads')}
+        if any(value < 0 for value in values.values()):
+            return {'available': False, 'reason': 'negative_or_overflowed_counter', 'pid': pid}
+        return dict(available=True, pid=pid, source='Darwin PROC_PIDTASKINFO',
+                    scope='process-wide cumulative counters; not GPU, compression or causal attribution',
+                    **values)
+    except (OSError, AttributeError):
+        return {'available': False, 'reason': 'native_read_failed', 'pid': pid}

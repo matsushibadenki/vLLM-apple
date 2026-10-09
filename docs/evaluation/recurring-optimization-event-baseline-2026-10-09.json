@@ -1,0 +1,393 @@
+{
+  "scope": "EventBus wrapped backlog replay; not UI or inference throughput",
+  "payload_source": "docs/evaluation/p1-stability-m4-2026-10-07-r9/30min.json",
+  "payload_source_sha256": "fe275ec125dbabbaab9be94ca19c4cafb0b15fbe44c4a643d30c104c26806c9a",
+  "implementation_sha256": {
+    "current": "8d517311bdfca02e9f30b4d6956a10daac02e1124885334fe3d8b90978fdef53"
+  },
+  "benchmark_sha256": "e751d004536454c016b51289990df40fc45accd79ab30bc62117682e5c692bdd",
+  "python": "3.12.9",
+  "debug_build": false,
+  "rows": [
+    {
+      "implementation": "current",
+      "capacity": 100,
+      "latency": {
+        "samples": 900,
+        "median_us": 0.625,
+        "p95_us": 0.917,
+        "p99_us": 2.875,
+        "maximum_us": 22.375
+      },
+      "runs": [
+        {
+          "wall_ms": 0.12375,
+          "cpu_ms": 0.129
+        },
+        {
+          "wall_ms": 0.148167,
+          "cpu_ms": 0.142
+        },
+        {
+          "wall_ms": 0.124083,
+          "cpu_ms": 0.129
+        },
+        {
+          "wall_ms": 0.1555,
+          "cpu_ms": 0.143
+        },
+        {
+          "wall_ms": 0.09375,
+          "cpu_ms": 0.098
+        },
+        {
+          "wall_ms": 0.096334,
+          "cpu_ms": 0.097
+        },
+        {
+          "wall_ms": 0.138292,
+          "cpu_ms": 0.136
+        },
+        {
+          "wall_ms": 0.07975,
+          "cpu_ms": 0.083
+        },
+        {
+          "wall_ms": 0.080334,
+          "cpu_ms": 0.082
+        }
+      ],
+      "publish_latency": {
+        "samples": 9000,
+        "median_us": 2.709,
+        "p95_us": 4.583,
+        "p99_us": 18.792,
+        "maximum_us": 178.75
+      },
+      "container_bytes": 920,
+      "snapshot": {
+        "capacity": 100,
+        "retained_events": 100,
+        "latest_sequence": 9200,
+        "active_subscribers": 0,
+        "max_subscribers": 8
+      },
+      "correctness_passed": true,
+      "trial_orders": [
+        [
+          "current"
+        ],
+        [
+          "current"
+        ],
+        [
+          "current"
+        ],
+        [
+          "current"
+        ],
+        [
+          "current"
+        ],
+        [
+          "current"
+        ],
+        [
+          "current"
+        ],
+        [
+          "current"
+        ],
+        [
+          "current"
+        ]
+      ]
+    },
+    {
+      "implementation": "current",
+      "capacity": 256,
+      "latency": {
+        "samples": 2304,
+        "median_us": 0.5,
+        "p95_us": 0.875,
+        "p99_us": 3.542,
+        "maximum_us": 25.834
+      },
+      "runs": [
+        {
+          "wall_ms": 0.273042,
+          "cpu_ms": 0.248
+        },
+        {
+          "wall_ms": 0.2635,
+          "cpu_ms": 0.256
+        },
+        {
+          "wall_ms": 0.188375,
+          "cpu_ms": 0.19
+        },
+        {
+          "wall_ms": 0.186833,
+          "cpu_ms": 0.188
+        },
+        {
+          "wall_ms": 0.186292,
+          "cpu_ms": 0.188
+        },
+        {
+          "wall_ms": 0.269667,
+          "cpu_ms": 0.25
+        },
+        {
+          "wall_ms": 0.392458,
+          "cpu_ms": 0.363
+        },
+        {
+          "wall_ms": 0.270834,
+          "cpu_ms": 0.257
+        },
+        {
+          "wall_ms": 0.190083,
+          "cpu_ms": 0.193
+        }
+      ],
+      "publish_latency": {
+        "samples": 9000,
+        "median_us": 2.542,
+        "p95_us": 5.042,
+        "p99_us": 18.791,
+        "maximum_us": 107.125
+      },
+      "container_bytes": 2200,
+      "snapshot": {
+        "capacity": 256,
+        "retained_events": 256,
+        "latest_sequence": 9512,
+        "active_subscribers": 0,
+        "max_subscribers": 8
+      },
+      "correctness_passed": true,
+      "trial_orders": [
+        [
+          "current"
+        ],
+        [
+          "current"
+        ],
+        [
+          "current"
+        ],
+        [
+          "current"
+        ],
+        [
+          "current"
+        ],
+        [
+          "current"
+        ],
+        [
+          "current"
+        ],
+        [
+          "current"
+        ],
+        [
+          "current"
+        ]
+      ]
+    },
+    {
+      "implementation": "current",
+      "capacity": 1000,
+      "latency": {
+        "samples": 9000,
+        "median_us": 0.542,
+        "p95_us": 0.875,
+        "p99_us": 1.042,
+        "maximum_us": 70.458
+      },
+      "runs": [
+        {
+          "wall_ms": 1.368042,
+          "cpu_ms": 1.234
+        },
+        {
+          "wall_ms": 0.841375,
+          "cpu_ms": 0.838
+        },
+        {
+          "wall_ms": 0.888125,
+          "cpu_ms": 0.845
+        },
+        {
+          "wall_ms": 0.833417,
+          "cpu_ms": 0.766
+        },
+        {
+          "wall_ms": 0.771541,
+          "cpu_ms": 0.755
+        },
+        {
+          "wall_ms": 0.709083,
+          "cpu_ms": 0.711
+        },
+        {
+          "wall_ms": 1.367208,
+          "cpu_ms": 1.293
+        },
+        {
+          "wall_ms": 0.736834,
+          "cpu_ms": 0.74
+        },
+        {
+          "wall_ms": 0.872625,
+          "cpu_ms": 0.854
+        }
+      ],
+      "publish_latency": {
+        "samples": 9000,
+        "median_us": 2.5,
+        "p95_us": 4.084,
+        "p99_us": 5.958,
+        "maximum_us": 57.458
+      },
+      "container_bytes": 8856,
+      "snapshot": {
+        "capacity": 1000,
+        "retained_events": 1000,
+        "latest_sequence": 11000,
+        "active_subscribers": 0,
+        "max_subscribers": 8
+      },
+      "correctness_passed": true,
+      "trial_orders": [
+        [
+          "current"
+        ],
+        [
+          "current"
+        ],
+        [
+          "current"
+        ],
+        [
+          "current"
+        ],
+        [
+          "current"
+        ],
+        [
+          "current"
+        ],
+        [
+          "current"
+        ],
+        [
+          "current"
+        ],
+        [
+          "current"
+        ]
+      ]
+    },
+    {
+      "implementation": "current",
+      "capacity": 10000,
+      "latency": {
+        "samples": 90000,
+        "median_us": 0.583,
+        "p95_us": 0.875,
+        "p99_us": 2.25,
+        "maximum_us": 138.209
+      },
+      "runs": [
+        {
+          "wall_ms": 12.055125,
+          "cpu_ms": 11.045
+        },
+        {
+          "wall_ms": 12.518334,
+          "cpu_ms": 11.079
+        },
+        {
+          "wall_ms": 9.64175,
+          "cpu_ms": 9.142
+        },
+        {
+          "wall_ms": 7.523917,
+          "cpu_ms": 7.418
+        },
+        {
+          "wall_ms": 8.688,
+          "cpu_ms": 8.447
+        },
+        {
+          "wall_ms": 12.513791,
+          "cpu_ms": 10.453
+        },
+        {
+          "wall_ms": 12.098291,
+          "cpu_ms": 10.017
+        },
+        {
+          "wall_ms": 9.108708,
+          "cpu_ms": 8.396
+        },
+        {
+          "wall_ms": 8.624708,
+          "cpu_ms": 8.392
+        }
+      ],
+      "publish_latency": {
+        "samples": 9000,
+        "median_us": 2.75,
+        "p95_us": 4.292,
+        "p99_us": 19.292,
+        "maximum_us": 114.917
+      },
+      "container_bytes": 85176,
+      "snapshot": {
+        "capacity": 10000,
+        "retained_events": 10000,
+        "latest_sequence": 29000,
+        "active_subscribers": 0,
+        "max_subscribers": 8
+      },
+      "correctness_passed": true,
+      "trial_orders": [
+        [
+          "current"
+        ],
+        [
+          "current"
+        ],
+        [
+          "current"
+        ],
+        [
+          "current"
+        ],
+        [
+          "current"
+        ],
+        [
+          "current"
+        ],
+        [
+          "current"
+        ],
+        [
+          "current"
+        ],
+        [
+          "current"
+        ]
+      ]
+    }
+  ],
+  "profiles": {
+    "current": "         2305 function calls (2049 primitive calls) in 0.000 seconds\n\n   Ordered by: cumulative time\n\n   ncalls  tottime  percall  cumtime  percall filename:lineno(function)\n  512/256    0.000    0.000    0.000    0.000 {built-in method builtins.next}\n      256    0.000    0.000    0.000    0.000 /Users/Shared/Program/vLLM-apple/vllm_apple/events.py:44(__next__)\n      256    0.000    0.000    0.000    0.000 /Users/Shared/Program/vLLM-apple/vllm_apple/events.py:126(_iterate)\n      256    0.000    0.000    0.000    0.000 /Users/littlebuddha/.local/share/uv/python/cpython-3.12-macos-aarch64-none/lib/python3.12/threading.py:299(__enter__)\n      256    0.000    0.000    0.000    0.000 /Users/littlebuddha/.local/share/uv/python/cpython-3.12-macos-aarch64-none/lib/python3.12/threading.py:302(__exit__)\n      256    0.000    0.000    0.000    0.000 {method '__enter__' of '_thread.RLock' objects}\n      256    0.000    0.000    0.000    0.000 {built-in method builtins.len}\n      256    0.000    0.000    0.000    0.000 {method '__exit__' of '_thread.RLock' objects}\n        1    0.000    0.000    0.000    0.000 {method 'disable' of '_lsprof.Profiler' objects}\n\n\n"
+  },
+  "watts_measured": false
+}

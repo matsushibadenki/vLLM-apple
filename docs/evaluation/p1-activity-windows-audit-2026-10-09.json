@@ -1,0 +1,29 @@
+{
+  "scope": "Same-PID workload groups; not causal or stability certification",
+  "groups": [
+    {
+      "workload_sha256": "e65b47a8ac85138265385491ea6cca8afc557f3c7405591c1984c557d307ad9c",
+      "windows": 8,
+      "requests_per_window": 12,
+      "pageins": 0,
+      "faults_median": 1920.0,
+      "rss_change_range_bytes": [
+        409600,
+        9977856
+      ]
+    },
+    {
+      "workload_sha256": "139acd823d068e39bf07fd7e080f4395e0005c33514704481215ec665f3ce0e7",
+      "windows": 2,
+      "requests_per_window": 3,
+      "pageins": 0,
+      "faults_median": 145.0,
+      "rss_change_range_bytes": [
+        -1228800,
+        671744
+      ]
+    }
+  ],
+  "all_windows_available": true,
+  "p1_stability_qualified": false
+}

@@ -1,0 +1,24 @@
+{
+  "scope": "Current sampler process, 1200 native activity reads; not model speed or causal diagnosis",
+  "available": true,
+  "subprocesses": 0,
+  "sample": {
+    "available": true,
+    "pid": 38480,
+    "source": "Darwin PROC_PIDTASKINFO",
+    "scope": "process-wide cumulative counters; not GPU, compression or causal attribution",
+    "resident_size": 42893312,
+    "faults": 3918,
+    "pageins": 14,
+    "cow_faults": 289,
+    "context_switches": 72,
+    "threads": 1,
+    "running_threads": 1
+  },
+  "timing_ns": {
+    "median": 1792.0,
+    "p95": 2000,
+    "p99": 2167,
+    "maximum": 67334
+  }
+}
