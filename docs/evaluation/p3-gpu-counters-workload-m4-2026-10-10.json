@@ -1,0 +1,273 @@
+{
+  "scope": "float32 Gemma2; 512-token prefill and batch-one decode; diagnostic overhead, not E2E speed qualification",
+  "samples": [
+    {
+      "phase": "prefill",
+      "index": 0,
+      "start_monotonic_ns": 23691069757583,
+      "end_monotonic_ns": 23692316752666,
+      "graph_encode_ns": 864917,
+      "evaluation_and_wait_ns": 1246130166,
+      "wall_ns": 1246995083,
+      "cpu_ns": 111510000,
+      "finite": true
+    },
+    {
+      "phase": "prefill",
+      "index": 1,
+      "start_monotonic_ns": 23692365818291,
+      "end_monotonic_ns": 23693615863041,
+      "graph_encode_ns": 6571042,
+      "evaluation_and_wait_ns": 1243473708,
+      "wall_ns": 1250044750,
+      "cpu_ns": 102739000,
+      "finite": true
+    },
+    {
+      "phase": "prefill",
+      "index": 2,
+      "start_monotonic_ns": 23693662655291,
+      "end_monotonic_ns": 23694895475208,
+      "graph_encode_ns": 3817250,
+      "evaluation_and_wait_ns": 1229002667,
+      "wall_ns": 1232819917,
+      "cpu_ns": 76651000,
+      "finite": true
+    },
+    {
+      "phase": "prefill",
+      "index": 3,
+      "start_monotonic_ns": 23694938907916,
+      "end_monotonic_ns": 23696160620291,
+      "graph_encode_ns": 2733875,
+      "evaluation_and_wait_ns": 1218978500,
+      "wall_ns": 1221712375,
+      "cpu_ns": 83482000,
+      "finite": true
+    },
+    {
+      "phase": "prefill",
+      "index": 4,
+      "start_monotonic_ns": 23696207720875,
+      "end_monotonic_ns": 23697432907458,
+      "graph_encode_ns": 3987458,
+      "evaluation_and_wait_ns": 1221199125,
+      "wall_ns": 1225186583,
+      "cpu_ns": 88530000,
+      "finite": true
+    },
+    {
+      "phase": "prefill",
+      "index": 5,
+      "start_monotonic_ns": 23697477096500,
+      "end_monotonic_ns": 23698700779625,
+      "graph_encode_ns": 2645250,
+      "evaluation_and_wait_ns": 1221037875,
+      "wall_ns": 1223683125,
+      "cpu_ns": 84090000,
+      "finite": true
+    },
+    {
+      "phase": "prefill",
+      "index": 6,
+      "start_monotonic_ns": 23698746302416,
+      "end_monotonic_ns": 23699979362291,
+      "graph_encode_ns": 3504625,
+      "evaluation_and_wait_ns": 1229555250,
+      "wall_ns": 1233059875,
+      "cpu_ns": 86824000,
+      "finite": true
+    },
+    {
+      "phase": "prefill",
+      "index": 7,
+      "start_monotonic_ns": 23700023506791,
+      "end_monotonic_ns": 23701249246500,
+      "graph_encode_ns": 2709375,
+      "evaluation_and_wait_ns": 1223030334,
+      "wall_ns": 1225739709,
+      "cpu_ns": 78117000,
+      "finite": true
+    },
+    {
+      "phase": "prefill",
+      "index": 8,
+      "start_monotonic_ns": 23701292134583,
+      "end_monotonic_ns": 23702536621208,
+      "graph_encode_ns": 1680583,
+      "evaluation_and_wait_ns": 1242806042,
+      "wall_ns": 1244486625,
+      "cpu_ns": 62967000,
+      "finite": true
+    },
+    {
+      "phase": "prefill",
+      "index": 9,
+      "start_monotonic_ns": 23702577855916,
+      "end_monotonic_ns": 23703808974333,
+      "graph_encode_ns": 1595334,
+      "evaluation_and_wait_ns": 1229523083,
+      "wall_ns": 1231118417,
+      "cpu_ns": 77976000,
+      "finite": true
+    },
+    {
+      "phase": "prefill",
+      "index": 10,
+      "start_monotonic_ns": 23703855910375,
+      "end_monotonic_ns": 23705101091666,
+      "graph_encode_ns": 3409333,
+      "evaluation_and_wait_ns": 1241771958,
+      "wall_ns": 1245181291,
+      "cpu_ns": 91034000,
+      "finite": true
+    },
+    {
+      "phase": "prefill",
+      "index": 11,
+      "start_monotonic_ns": 23705148650208,
+      "end_monotonic_ns": 23706393944375,
+      "graph_encode_ns": 5522583,
+      "evaluation_and_wait_ns": 1239771584,
+      "wall_ns": 1245294167,
+      "cpu_ns": 88045000,
+      "finite": true
+    },
+    {
+      "phase": "decode",
+      "index": 0,
+      "start_monotonic_ns": 23707675125541,
+      "end_monotonic_ns": 23707711357458,
+      "graph_encode_ns": 5898250,
+      "evaluation_and_wait_ns": 30333667,
+      "wall_ns": 36231917,
+      "cpu_ns": 22263000,
+      "finite": true
+    },
+    {
+      "phase": "decode",
+      "index": 1,
+      "start_monotonic_ns": 23707711825500,
+      "end_monotonic_ns": 23707732461291,
+      "graph_encode_ns": 917333,
+      "evaluation_and_wait_ns": 19718458,
+      "wall_ns": 20635791,
+      "cpu_ns": 6219000,
+      "finite": true
+    },
+    {
+      "phase": "decode",
+      "index": 2,
+      "start_monotonic_ns": 23707732811416,
+      "end_monotonic_ns": 23707753899000,
+      "graph_encode_ns": 1012875,
+      "evaluation_and_wait_ns": 20074709,
+      "wall_ns": 21087584,
+      "cpu_ns": 6161000,
+      "finite": true
+    },
+    {
+      "phase": "decode",
+      "index": 3,
+      "start_monotonic_ns": 23707754246916,
+      "end_monotonic_ns": 23707776124125,
+      "graph_encode_ns": 917042,
+      "evaluation_and_wait_ns": 20960167,
+      "wall_ns": 21877209,
+      "cpu_ns": 6493000,
+      "finite": true
+    },
+    {
+      "phase": "decode",
+      "index": 4,
+      "start_monotonic_ns": 23707776466250,
+      "end_monotonic_ns": 23707797210875,
+      "graph_encode_ns": 992583,
+      "evaluation_and_wait_ns": 19752042,
+      "wall_ns": 20744625,
+      "cpu_ns": 6240000,
+      "finite": true
+    },
+    {
+      "phase": "decode",
+      "index": 5,
+      "start_monotonic_ns": 23707797576166,
+      "end_monotonic_ns": 23707818353458,
+      "graph_encode_ns": 945209,
+      "evaluation_and_wait_ns": 19832083,
+      "wall_ns": 20777292,
+      "cpu_ns": 6083000,
+      "finite": true
+    },
+    {
+      "phase": "decode",
+      "index": 6,
+      "start_monotonic_ns": 23707818727291,
+      "end_monotonic_ns": 23707839769666,
+      "graph_encode_ns": 1018667,
+      "evaluation_and_wait_ns": 20023708,
+      "wall_ns": 21042375,
+      "cpu_ns": 6472000,
+      "finite": true
+    },
+    {
+      "phase": "decode",
+      "index": 7,
+      "start_monotonic_ns": 23707840138458,
+      "end_monotonic_ns": 23707863609166,
+      "graph_encode_ns": 1105000,
+      "evaluation_and_wait_ns": 22365708,
+      "wall_ns": 23470708,
+      "cpu_ns": 7119000,
+      "finite": true
+    },
+    {
+      "phase": "decode",
+      "index": 8,
+      "start_monotonic_ns": 23707864001708,
+      "end_monotonic_ns": 23707885921041,
+      "graph_encode_ns": 1194875,
+      "evaluation_and_wait_ns": 20724458,
+      "wall_ns": 21919333,
+      "cpu_ns": 7142000,
+      "finite": true
+    },
+    {
+      "phase": "decode",
+      "index": 9,
+      "start_monotonic_ns": 23707886267333,
+      "end_monotonic_ns": 23707908017375,
+      "graph_encode_ns": 968292,
+      "evaluation_and_wait_ns": 20781750,
+      "wall_ns": 21750042,
+      "cpu_ns": 6374000,
+      "finite": true
+    },
+    {
+      "phase": "decode",
+      "index": 10,
+      "start_monotonic_ns": 23707908384208,
+      "end_monotonic_ns": 23707929902791,
+      "graph_encode_ns": 1131292,
+      "evaluation_and_wait_ns": 20387291,
+      "wall_ns": 21518583,
+      "cpu_ns": 6976000,
+      "finite": true
+    },
+    {
+      "phase": "decode",
+      "index": 11,
+      "start_monotonic_ns": 23707930280375,
+      "end_monotonic_ns": 23707951617791,
+      "graph_encode_ns": 1043083,
+      "evaluation_and_wait_ns": 20294333,
+      "wall_ns": 21337416,
+      "cpu_ns": 6636000,
+      "finite": true
+    }
+  ],
+  "allocator_active_bytes": 1801390264,
+  "allocator_peak_bytes": 3928951084,
+  "allocator_cache_bytes": 141482988,
+  "qualification": false
+}

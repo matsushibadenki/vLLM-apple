@@ -21,7 +21,8 @@ class P1RunnerTests(unittest.TestCase):
                 if '--output' in command:
                     commands.append(command)
                     policies.append(kwargs['env']['VLLM_APPLE_P1_EFFICIENCY'])
-                    Path(command[command.index('--output') + 1]).write_text(json.dumps({'passed': True}))
+                    Path(command[command.index('--output') + 1]).write_text(json.dumps(
+                        {'passed': True, 'stability_window': {'all_epoch_resources_passed': True}}))
                 return child
             argv = ['runner', '--python', sys.executable, '--model', str(root),
                     '--output-directory', str(root/'result'), '--prefill-step-size', '256', '--efficiency', 'compact']
@@ -37,3 +38,32 @@ class P1RunnerTests(unittest.TestCase):
             state = json.loads((root/'result/state.json').read_text())
             self.assertTrue(state['passed'])
             self.assertFalse(state['automatic_promotion'])
+
+    def test_rss_failure_stops_before_eight_hours_despite_latency_pass(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            commands = []
+
+            def spawn(command, **kwargs):
+                child = Mock()
+                child.wait.return_value = 0
+                child.poll.return_value = 0
+                if '--output' in command:
+                    commands.append(command)
+                    Path(command[command.index('--output') + 1]).write_text(json.dumps(
+                        {'passed': True, 'stability_window': {'all_epoch_resources_passed': False}}))
+                return child
+
+            argv = ['runner', '--python', sys.executable, '--model', str(root),
+                    '--output-directory', str(root/'result')]
+            with patch.object(sys, 'argv', argv), patch.object(run_p1_stability.subprocess, 'Popen',
+                                                             side_effect=spawn), \
+                 patch.object(run_p1_stability.signal, 'signal'):
+                with self.assertRaisesRegex(RuntimeError, 'later stages will not start'):
+                    run_p1_stability.main()
+            self.assertEqual(len(commands), 1)
+            state = json.loads((root/'result/state.json').read_text())
+            self.assertFalse(state['passed'])
+            self.assertEqual(state['status'], 'failed')
+            self.assertEqual(state['stages'][0]['status'], 'failed')
+            self.assertFalse(state['stages'][0]['resources_passed'])

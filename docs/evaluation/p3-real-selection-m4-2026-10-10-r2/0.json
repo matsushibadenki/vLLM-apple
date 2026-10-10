@@ -1,0 +1,32 @@
+{
+  "index": 0,
+  "candidate_id": "baseline-512",
+  "command": [
+    "/opt/homebrew/opt/vllm-metal/libexec/bin/python",
+    "-m",
+    "experiments.p3_mlx.server",
+    "--model",
+    "/Users/Shared/Program/vLLM-apple/models/gemma-2-2b-it-4bit",
+    "--host",
+    "127.0.0.1",
+    "--port",
+    "19149",
+    "--compute-dtype",
+    "float32",
+    "--scheduler-budget-ms",
+    "50",
+    "--decode-concurrency",
+    "4",
+    "--prompt-concurrency",
+    "2",
+    "--prefill-step-size",
+    "512",
+    "--prompt-cache-size",
+    "4",
+    "--disable-prefix-cache",
+    "--log-level",
+    "ERROR"
+  ],
+  "exit_code": 1,
+  "identity_unchanged": true
+}

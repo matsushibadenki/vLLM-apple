@@ -1,0 +1,32 @@
+{
+  "recorded_at": "2026-10-10T01:41:39.190875+00:00",
+  "scope": "root-cause fixes plus bounded real-model validation; long-run not yet qualified",
+  "root_causes": [
+    "per-request 256000-entry SPM table construction",
+    "finished HTTP Timer/handler reference cycle"
+  ],
+  "validation": {
+    "full_regression_tests": 1491,
+    "skipped": 31,
+    "full_regression_passed": true,
+    "targeted_runner_tests": 17,
+    "ruff_passed": true,
+    "smoke_quality": 420,
+    "smoke_slo": 420,
+    "smoke_requests": 420,
+    "smoke_passed": true,
+    "all_epoch_resources_passed": true,
+    "shutdown_clean": true,
+    "runtime_identity_unchanged": true,
+    "model_identity_unchanged": true
+  },
+  "remaining": "30-minute and eight-hour final campaign, starting 2026-10-11 09:00 JST",
+  "automation_id": "p1-10-11-09-00",
+  "recurring_updates_restarted": false,
+  "evidence_sha256": {
+    "docs/evaluation/p1-spm-final-m4-2026-10-10.json": "4b717fcd406aa5ec90cd15ee902765fb4f77720883b205dccac61e0ee335461a",
+    "docs/evaluation/p1-spm-final-runtime-2026-10-10.json": "d371b6f6f95f10bdada97a3ee237569881c8c3b713a997c0aba0e426b7b06529",
+    "docs/evaluation/p1-spm-reuse-m4-2026-10-10/comparison.json": "b7942243f5cb4b1c2a65a641e2dce8757a42d4ab9f83a031f573246c84a5c19d",
+    "docs/evaluation/p1-spm-constructor-m4-2026-10-10.json": "3e433eb977f7cb5678cd336e2ac087914f07c3f52e04ff7bc06808ef94e431fa"
+  }
+}

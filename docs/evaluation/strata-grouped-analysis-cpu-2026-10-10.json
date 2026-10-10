@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "scope": "synthetic_preloaded_qwen3_cpu",
+  "trials": 18,
+  "all_parity_passed": true,
+  "standard_adoption_eligible": false,
+  "automatic_application": false,
+  "measurements": {
+    "sequential": {
+      "baseline": {
+        "reuse_median_us": 66.666,
+        "expert_eval_calls": [
+          0,
+          0,
+          0
+        ],
+        "total_relative_spread": 0.5162904001732634
+      },
+      "lru": {
+        "reuse_median_us": 160.0,
+        "expert_eval_calls": [
+          16,
+          16,
+          16
+        ],
+        "total_relative_spread": 9.25336141150459
+      },
+      "cost_frequency": {
+        "reuse_median_us": 183.291,
+        "expert_eval_calls": [
+          16,
+          16,
+          16
+        ],
+        "total_relative_spread": 2.085686276448976
+      }
+    },
+    "grouped": {
+      "baseline": {
+        "reuse_median_us": 49.833,
+        "expert_eval_calls": [
+          0,
+          0,
+          0
+        ],
+        "total_relative_spread": 0.14373998479191996
+      },
+      "lru": {
+        "reuse_median_us": 152.5,
+        "expert_eval_calls": [
+          8,
+          8,
+          8
+        ],
+        "total_relative_spread": 0.11463250610747257
+      },
+      "cost_frequency": {
+        "reuse_median_us": 185.125,
+        "expert_eval_calls": [
+          8,
+          8,
+          8
+        ],
+        "total_relative_spread": 2.8940578339383536
+      }
+    }
+  },
+  "evidence_sha256": {
+    "strata-grouped-control-cpu-2026-10-10.json": "74eafe0a82a1ee7801518661677998f1fae68fe4e708c5fb32885745cabe0b05",
+    "strata-grouped-preloaded-cpu-2026-10-10.json": "599215455086e53dd0d59a4fd624a83261c0db8be1881a00e44770de26d07541"
+  },
+  "conclusion": "Evaluation calls halve but latency benefit is inconsistent and spread exceeds 5 percent; baseline remains faster. No promotion.",
+  "limitations": [
+    "Separate-time acquisitions are not interleaved",
+    "All experts preloaded: eviction policies do not exercise evictions",
+    "No real-model, GPU, RSS or P3 qualification"
+  ]
+}

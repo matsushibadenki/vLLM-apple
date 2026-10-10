@@ -1,0 +1,24 @@
+{
+  "command": [
+    ".venv/bin/python",
+    "scripts/collect_p4_evidence.py",
+    "--output-directory",
+    "docs/evaluation/p4-real-cli-m4-2026-10-10",
+    "--identity",
+    "docs/evaluation/p4-collector-identity-m4-2026-10-10.json",
+    "--source-commit",
+    "fc84950cc163ad918d9889ea6357d17e43f92978",
+    "--artifact-sha256",
+    "9ab2a53e8316fe7208da424c31e92a3f523b2fbec92da95ac3e475662d641fa7",
+    "--evidence",
+    "quality=docs/evaluation/p2-optimization-validation-2026-10-10.json",
+    "--evidence",
+    "performance=docs/evaluation/p3-real-selection-m4-2026-10-10-r3/selection.json",
+    "--evidence",
+    "soak=docs/evaluation/p1-spm-final-m4-2026-10-10.json"
+  ],
+  "exit_code": 1,
+  "gate_rejected": true,
+  "report_id": "792c109952c9f667d74ddfa9c1d937ee39099594181548b02424f308135a9fdb",
+  "qualification": false
+}

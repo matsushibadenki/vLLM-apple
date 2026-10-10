@@ -1,0 +1,26 @@
+{
+  "scope": "Dedicated generative worker process-group cleanup; not inference performance or P1 qualification",
+  "python": "3.10.18 (main, Jul 11 2025, 22:25:58) [Clang 20.1.4 ]",
+  "baseline": {
+    "new_regression_test": "failed: background child survived cleanup",
+    "tests": 1
+  },
+  "after": {
+    "targeted_tests": 9,
+    "passed": true,
+    "seconds": 3.753
+  },
+  "full_regression": {
+    "tests": 1485,
+    "skipped": 31,
+    "passed": true,
+    "seconds": 38.534,
+    "log_sha256": "6df8564dcf223141eda9a61c034e24b03fc2ab87d37295eb333b7346623f4e93"
+  },
+  "ruff": "passed",
+  "performance": "inference latency, RSS, watts unmeasured",
+  "file_sha256": {
+    "vllm_apple/generative_subprocess_adapter.py": "8b096266b78fd926413af1249f4546c1cf162732165577da5783ed26ddd2616b",
+    "tests/test_generative_subprocess_adapter.py": "3b6ba2ba6209a0077a39b2f44ea312be4fb25aa9eae1f9bfd9cba1dc749f2017"
+  }
+}

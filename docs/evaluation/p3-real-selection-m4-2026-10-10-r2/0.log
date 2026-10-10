@@ -1,0 +1,24 @@
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/Users/Shared/Program/vLLM-apple/experiments/p3_mlx/server.py", line 40, in <module>
+    main()
+  File "/Users/Shared/Program/vLLM-apple/experiments/p3_mlx/server.py", line 36, in main
+    p2.main()
+  File "/Users/Shared/Program/vLLM-apple/experiments/p2_mlx/server.py", line 176, in main
+    server.main()
+  File "/opt/homebrew/Cellar/vllm-metal/0.29.0/libexec/lib/python3.12/site-packages/mlx_lm/server.py", line 1865, in main
+    run(args.host, args.port, ModelProvider(args))
+  File "/opt/homebrew/Cellar/vllm-metal/0.29.0/libexec/lib/python3.12/site-packages/mlx_lm/server.py", line 1715, in run
+    _run_http_server(host, port, response_generator)
+  File "/opt/homebrew/Cellar/vllm-metal/0.29.0/libexec/lib/python3.12/site-packages/mlx_lm/server.py", line 1683, in _run_http_server
+    httpd = server_class(
+            ^^^^^^^^^^^^^
+  File "/Users/Shared/Program/vLLM-apple/experiments/p3_mlx/server.py", line 12, in __init__
+    class Handler(handler):
+TypeError: function() argument 'code' must be code, not str
+Exception ignored in: <module 'threading' from '/opt/homebrew/Cellar/python@3.12/3.12.14/Frameworks/Python.framework/Versions/3.12/lib/python3.12/threading.py'>
+Traceback (most recent call last):
+  File "/opt/homebrew/Cellar/python@3.12/3.12.14/Frameworks/Python.framework/Versions/3.12/lib/python3.12/threading.py", line 1624, in _shutdown
+    lock.acquire()
+KeyboardInterrupt: 

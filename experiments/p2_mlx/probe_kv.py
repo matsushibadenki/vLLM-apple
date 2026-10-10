@@ -10,6 +10,8 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--model', required=True)
     parser.add_argument('--output', type=Path, required=True)
+    parser.add_argument('--compute-dtype', choices=('float16', 'float32'), default='float32')
+    parser.add_argument('--disable-norm-reuse', action='store_true')
     args = parser.parse_args()
     if args.output.exists():
         parser.error('output must be new')
@@ -17,10 +19,20 @@ def main() -> int:
     from mlx_lm import load
     from mlx_lm.models.cache import LRUPromptCache, make_prompt_cache
 
+    from vllm_apple.mlx_gemma2_compat import install_gemma2_batch_mask_fix
+
     from .cache import IdentityPromptCache
     from .server import _sha
 
+    install_gemma2_batch_mask_fix()
     model, tokenizer = load(args.model)
+    model.set_dtype(getattr(mx, args.compute_dtype))
+    mx.eval(model.parameters())
+    if not args.disable_norm_reuse:
+        from mlx_lm.models import gemma2
+
+        from .precision import install_norm_weight_reuse
+        install_norm_weight_reuse(gemma2, mx)
     tokens = tokenizer.encode('The numbers are 1, 2, 3, 4, 5. Continue the sequence:')
     prefix, suffix = tokens[:-4], tokens[-4:]
     owner_cache = make_prompt_cache(model)
@@ -52,6 +64,8 @@ def main() -> int:
     lru.trim_to(n_bytes=0)
     miss = lru.fetch_nearest_cache('model', tokens)[0] is None
     report = dict(report_kind='p2_real_model_kv_parity', cases=results,
+                  compute_dtype=args.compute_dtype,
+                  norm_weight_reuse=not args.disable_norm_reuse,
                   cache_types=[type(cache).__name__ for cache in owner_cache],
                   cache_dtypes=[str(cache.keys.dtype) for cache in owner_cache],
                   restored_offsets=offsets, expected_prefix_length=len(prefix),

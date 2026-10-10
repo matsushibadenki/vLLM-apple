@@ -1,6 +1,9 @@
 import json
 import sys
+import tempfile
+import time
 import unittest
+from pathlib import Path
 
 from vllm_apple.generative_subprocess_adapter import (
     GenerativeSubprocessAdapterError,
@@ -118,6 +121,28 @@ class GenerativeSubprocessAdapterTests(unittest.TestCase):
             r"backend_system_exit_1 \(local model is incomplete\)",
         ):
             tuple(plain_failure.events())
+
+    def test_exited_worker_does_not_leave_background_child(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            marker = str(Path(directory) / "late-output")
+            child = (
+                "import signal,time,pathlib;"
+                "signal.signal(signal.SIGTERM, signal.SIG_IGN);"
+                "time.sleep(1);"
+                f"pathlib.Path({marker!r}).write_text('orphan')"
+            )
+            script = (
+                "import subprocess,sys;"
+                f"subprocess.Popen([sys.executable,'-c',{child!r}],"
+                "stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL);"
+                "import time;time.sleep(0.1)"
+            )
+            adapter = SubprocessGenerativeTelemetryAdapter(
+                (sys.executable, "-c", script), timeout_seconds=2
+            )
+            self.assertEqual(tuple(adapter.events()), ())
+            time.sleep(1.2)
+            self.assertFalse(Path(marker).exists(), "background child survived cleanup")
 
     def test_timeout_terminates_worker(self) -> None:
         adapter = SubprocessGenerativeTelemetryAdapter(

@@ -1,4 +1,16 @@
-# P2 continuous batching / actual KV reuse — 2026-10-04
+# P2 continuous batching / actual KV reuse — 2026-10-10
+
+## 2026-10-10 update / 更新 / 更新
+
+🟢 [Done] [数値差と並列応答の改善](P2-OPTIMIZATION-2026-10-10.md)：限定float32 profileで16/16 KV数値条件に合格。3 fresh workersずつの同精度比較でc4 goodput 12.440→44.097 tokens/s、改善側c4品質・SLO 180/180。prefixなしc1を別の3 workersで検証し、TPOT p95 13.816–13.994 msは5%悪化上限14.025 ms以内。固定workloadのROADMAP条件を満たす。P2専用既定はfloat32／50 ms budget／SPM・immutable RMSNorm共有、dtypeをcache identityへ含める。下記10月4日の数値と失敗記録は履歴として保持する。
+
+🟠 [Next] cache有効c1の最悪p95 gateは未達。float16対照ではTPOTが悪化し、標準経路のreplacementは未認定。一般chat／coding／Agent、長context・SWA、cancel・fairnessと標準採用は引き続き[Next]。同token数のfloat32 KV保存幅はfloat16の2倍で、RSS・省電力改善は未認定。
+
+English: 🟢 [Done] The fixed float32 workload passes 16 numerical cases, 3.545× c4 goodput and the unchanged uncached-c1 5% p95 gate. 🟠 [Next] Cache-enabled c1 tails, float16 replacement, broader workload/SWA/cancel/fairness and standard promotion remain unqualified. See the linked report; October 4 results below are retained history.
+
+简体中文：🟢 [Done] 固定float32 workload通过16项数值测试，并发4 goodput提升3.545倍，且不使用prefix复用的c1符合原5% p95限制。🟠 [Next] cache启用c1尾延迟、float16替换、广泛workload／SWA／取消／公平性及标准晋升仍未认证。详见链接报告；下列10月4日结果保留为历史记录。
+
+## 2026-10-04 implementation and evidence / 実装・証拠の履歴
 
 ## 日本語
 

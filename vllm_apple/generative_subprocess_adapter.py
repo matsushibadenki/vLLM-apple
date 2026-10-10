@@ -131,8 +131,7 @@ class SubprocessGenerativeTelemetryAdapter:
             selector.close()
             process.stdout.close()
             process.stderr.close()
-            if process.poll() is None:
-                self._terminate(process)
+            self._terminate(process)
 
     @staticmethod
     def _diagnostic(raw: bytes) -> tuple[str, str | None] | None:
@@ -220,10 +219,18 @@ class SubprocessGenerativeTelemetryAdapter:
 
     @staticmethod
     def _terminate(process: subprocess.Popen[bytes]) -> None:
+        # The dedicated session can outlive its leader, even on a successful exit.
         try:
-            os.killpg(process.pid, signal.SIGTERM)
-            process.wait(timeout=2)
-        except (ProcessLookupError, subprocess.TimeoutExpired):
+            try:
+                os.killpg(process.pid, signal.SIGTERM)
+            except ProcessLookupError:
+                pass
+            try:
+                process.wait(timeout=2)
+            except subprocess.TimeoutExpired:
+                pass
+        finally:
+            # Reap descendants that ignore TERM, including an exited leader's group.
             try:
                 os.killpg(process.pid, signal.SIGKILL)
             except ProcessLookupError:

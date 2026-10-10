@@ -1,0 +1,34 @@
+{
+  "recorded_at": "2026-10-10T04:32:54.542132+00:00",
+  "scope": "current M4/Gemma2 float32 experimental GPU-profile-to-P3-selection-to-explicit-launch integration; not P1/P3/P4 standard qualification",
+  "integration_passed": false,
+  "measured_candidate_eligible": false,
+  "selected_setting": "baseline-512",
+  "current_identity_matches": true,
+  "p1_runtime_and_runner_preserved": true,
+  "tests": 1501,
+  "skipped": 31,
+  "regression_passed": true,
+  "targeted_tests": 15,
+  "static_checks_passed": true,
+  "qualification": false,
+  "energy_measured": false,
+  "bandwidth_vs_compute_classified": false,
+  "artifacts": {
+    "docs/evaluation/p3-gpu-profile-m4-2026-10-10-r3.json": "e41ff4e898bbb71c99a61383651587f7686cd75410e9bb1b888a3be83672dcd4",
+    "docs/evaluation/p3-real-selection-m4-2026-10-10-r3/evidence.json": "0676a78b40158067e0d01a9b80945e8fd55915789c0e2022cc55ac7ce0658357",
+    "docs/evaluation/p3-real-selection-m4-2026-10-10-r3/selection.json": "df9913393c06c958ceffa58567e5e3297354a295e551d555c9cb838c46ce1222",
+    "docs/evaluation/p3-selected-launch-m4-2026-10-10.json": "913d4b76e8f3c3027048a26531e9a963cfd6d4a32a7290412a2b239e8a0a6fe0",
+    "docs/evaluation/p3-full-regression-2026-10-10.log": "98cceff7c9731c98765e5f7d949b81c4fa899bebc67fae75059c06cfad07e3fe"
+  },
+  "source_hashes": {
+    "experiments/p3_mlx/__init__.py": "8103eaadd2fda0d3088d8c5ee991dd4b37d81bc5ff620c51ec9a47e02615e2df",
+    "experiments/p3_mlx/collect.py": "389a4f40ad131ddb0cc011a938c38a6f318a2116ee888c16d03e06883d7609e3",
+    "experiments/p3_mlx/config.py": "05ee7d35f13737aecef29a741c793aa29acdaf5cb4577a785e7af6e0501739c1",
+    "experiments/p3_mlx/launch.py": "a4ac7706ea07b12bf7255630ed1b71feda36adc250d814e277b79fc1c217387b",
+    "experiments/p3_mlx/profile.py": "935a04d0489ca9a931a77b0bd3f9d67174efbe67dd876d3acbd1f03df14a3642",
+    "experiments/p3_mlx/server.py": "f4d0d83c7c2b207f9e8395a3865260c563b3e94c0f7cbcba0adacaa910d54a22",
+    "experiments/p3_mlx/trace.py": "32ba4da6c7ab3a8f7696f207e5e053578eba270f4b244e41115c468e6639043c",
+    "experiments/p3_mlx/workload.py": "b75a6f6cc005b11e6f0c6ed880dbbf35528be09e172c4bfae743b385be97a0ae"
+  }
+}

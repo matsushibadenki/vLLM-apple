@@ -1,0 +1,211 @@
+{
+  "schema_version": 1,
+  "scope": "synthetic_qwen3_block_cpu",
+  "trials": 27,
+  "all_parity_passed": true,
+  "standard_adoption_eligible": false,
+  "measurements": {
+    "profile": {
+      "baseline": {
+        "median_total_us": 831.25,
+        "total_range_us": [
+          503.126,
+          1182.791
+        ],
+        "relative_total_spread": 0.8176421052631578,
+        "median_reuse_us": 80.25,
+        "inclusive_phase_median_us": {
+          "acquire": 0.0,
+          "checksum_hash": 0.0,
+          "checksum_read": 0.0,
+          "expert_build": 0.0,
+          "expert_eval": 0.0,
+          "file_stat": 0.0,
+          "mlx_load": 0.0,
+          "output_assembly": 0.0,
+          "output_eval": 0.0,
+          "release": 0.0,
+          "router_eval": 0.0,
+          "router_to_host": 0.0,
+          "weight_eval": 0.0
+        },
+        "all_parity_passed": true
+      },
+      "lru": {
+        "median_total_us": 7681.667,
+        "total_range_us": [
+          5763.377,
+          127582.793
+        ],
+        "relative_total_spread": 15.85846093042044,
+        "median_reuse_us": 634.708,
+        "inclusive_phase_median_us": {
+          "acquire": 2507.835,
+          "checksum_hash": 39.708,
+          "checksum_read": 295.455,
+          "expert_build": 144.915,
+          "expert_eval": 1536.459,
+          "file_stat": 199.999,
+          "mlx_load": 680.374,
+          "output_assembly": 98.667,
+          "output_eval": 538.959,
+          "release": 47.792,
+          "router_eval": 452.584,
+          "router_to_host": 396.333,
+          "weight_eval": 796.668
+        },
+        "all_parity_passed": true
+      },
+      "cost_frequency": {
+        "median_total_us": 4227.125,
+        "total_range_us": [
+          2904.835,
+          4671.958
+        ],
+        "relative_total_spread": 0.41804370582842937,
+        "median_reuse_us": 415.292,
+        "inclusive_phase_median_us": {
+          "acquire": 1452.125,
+          "checksum_hash": 27.082,
+          "checksum_read": 215.919,
+          "expert_build": 105.958,
+          "expert_eval": 677.915,
+          "file_stat": 145.458,
+          "mlx_load": 213.792,
+          "output_assembly": 51.04,
+          "output_eval": 251.752,
+          "release": 26.791,
+          "router_eval": 197.043,
+          "router_to_host": 154.791,
+          "weight_eval": 373.957
+        },
+        "all_parity_passed": true
+      }
+    },
+    "control": {
+      "baseline": {
+        "median_total_us": 597.001,
+        "total_range_us": [
+          424.833,
+          974.334
+        ],
+        "relative_total_spread": 0.9204356441614001,
+        "median_reuse_us": 64.959,
+        "inclusive_phase_median_us": {},
+        "all_parity_passed": true
+      },
+      "lru": {
+        "median_total_us": 3144.791,
+        "total_range_us": [
+          2196.04,
+          6877.416
+        ],
+        "relative_total_spread": 1.4886127567777954,
+        "median_reuse_us": 226.333,
+        "inclusive_phase_median_us": {},
+        "all_parity_passed": true
+      },
+      "cost_frequency": {
+        "median_total_us": 2528.374,
+        "total_range_us": [
+          2185.46,
+          3317.958
+        ],
+        "relative_total_spread": 0.4479155378120484,
+        "median_reuse_us": 177.25,
+        "inclusive_phase_median_us": {},
+        "all_parity_passed": true
+      }
+    },
+    "preloaded": {
+      "baseline": {
+        "median_total_us": 1302.207,
+        "total_range_us": [
+          763.748,
+          2451.124
+        ],
+        "relative_total_spread": 1.295781699837276,
+        "median_reuse_us": 142.542,
+        "inclusive_phase_median_us": {
+          "acquire": 0.0,
+          "checksum_hash": 0.0,
+          "checksum_read": 0.0,
+          "expert_build": 0.0,
+          "expert_eval": 0.0,
+          "file_stat": 0.0,
+          "mlx_load": 0.0,
+          "output_assembly": 0.0,
+          "output_eval": 0.0,
+          "release": 0.0,
+          "router_eval": 0.0,
+          "router_to_host": 0.0,
+          "weight_eval": 0.0
+        },
+        "all_parity_passed": true
+      },
+      "lru": {
+        "median_total_us": 3142.876,
+        "total_range_us": [
+          1859.707,
+          21552.083
+        ],
+        "relative_total_spread": 6.265718405689565,
+        "median_reuse_us": 323.166,
+        "inclusive_phase_median_us": {
+          "acquire": 57.956,
+          "checksum_hash": 0.0,
+          "checksum_read": 0.0,
+          "expert_build": 123.0,
+          "expert_eval": 874.041,
+          "file_stat": 0.0,
+          "mlx_load": 0.0,
+          "output_assembly": 44.627,
+          "output_eval": 198.416,
+          "release": 26.791,
+          "router_eval": 313.793,
+          "router_to_host": 253.084,
+          "weight_eval": 0.0
+        },
+        "all_parity_passed": true
+      },
+      "cost_frequency": {
+        "median_total_us": 2255.416,
+        "total_range_us": [
+          2017.625,
+          4312.666
+        ],
+        "relative_total_spread": 1.0175688210068563,
+        "median_reuse_us": 247.625,
+        "inclusive_phase_median_us": {
+          "acquire": 44.96,
+          "checksum_hash": 0.0,
+          "checksum_read": 0.0,
+          "expert_build": 91.001,
+          "expert_eval": 586.96,
+          "file_stat": 0.0,
+          "mlx_load": 0.0,
+          "output_assembly": 41.789,
+          "output_eval": 183.584,
+          "release": 22.332,
+          "router_eval": 187.792,
+          "router_to_host": 157.458,
+          "weight_eval": 0.0
+        },
+        "all_parity_passed": true
+      }
+    }
+  },
+  "evidence_sha256": {
+    "strata-phase-profile-cpu-2026-10-10.json": "cf365090cdde37b766b3fdaaf036affa097746b79fb1a08d8c3a024e2c7486e4",
+    "strata-phase-control-cpu-2026-10-10.json": "947e5566727988e676d8092b249734e9a4ee60eadd150cf77469613fd6006145",
+    "strata-phase-preloaded-cpu-2026-10-10.json": "b22d90b8799419819821ebdad822bd93929c47c9123b3b046de9cbdde4e12492"
+  },
+  "findings": [
+    "Preloading removes all request-time checksum/load/weight-eval calls, but candidates remain slower in these trials",
+    "Per-expert eval and router host materialization remain on the reference path",
+    "Checksum hash spans are much smaller than acquire/expert eval spans",
+    "Run spread exceeds 5 percent: exact percentages and policy superiority are unqualified",
+    "MLX load/eval include internal I/O; cold storage and pure device wait were not isolated",
+    "Profile and control acquisitions occurred sequentially; instrumentation overhead is not isolated from host conditions"
+  ]
+}

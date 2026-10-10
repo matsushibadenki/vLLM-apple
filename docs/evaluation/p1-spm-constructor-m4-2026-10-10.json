@@ -1,0 +1,28 @@
+{
+  "scope": "warmed SPM constructor only; all vocabulary entries exact; not inference latency/RSS qualification",
+  "entries": 256000,
+  "before": {
+    "instances": 15,
+    "wall_median_ns": 121385667,
+    "cpu_median_ns": 119966000,
+    "traced_instance_live_bytes": 12413935,
+    "traced_peak_bytes": 44229725
+  },
+  "after": {
+    "instances": 15,
+    "wall_median_ns": 958,
+    "cpu_median_ns": 1000,
+    "traced_instance_live_bytes": 120,
+    "traced_peak_bytes": 272
+  },
+  "reuse": {
+    "tables_built": 1,
+    "instances": 17,
+    "table_entries": 256000,
+    "shared_instances": 16,
+    "scope": "immutable table per tokenizer; independent streaming state; non-atomic counters"
+  },
+  "all_vocabulary_entries_equal": true,
+  "incremental_text_equal": true,
+  "source_sha256": "c9eea380fd7e1a624f8873a2d2298fd75283285750f74a9348b655659017ee09"
+}

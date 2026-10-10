@@ -1,0 +1,33 @@
+{
+  "recorded_at": "2026-10-10T05:02:52.266385+00:00",
+  "hardware_condition_implementation_complete": true,
+  "p4_collector_connection_complete": true,
+  "p1_pinned_sources_preserved": true,
+  "targeted_tests": 23,
+  "regression_tests": 1513,
+  "skipped": 31,
+  "regression_passed": true,
+  "static_checks_passed": true,
+  "qualification": false,
+  "standard_adoption": false,
+  "source_hashes": {
+    "experiments/p3_mlx/__init__.py": "8103eaadd2fda0d3088d8c5ee991dd4b37d81bc5ff620c51ec9a47e02615e2df",
+    "experiments/p3_mlx/collect.py": "a5f72836dfa5d4bf140240217e214b549cde333aad1674de1388256ea4b2601c",
+    "experiments/p3_mlx/conditions.py": "8abd62912c7a8476a7c5f68b5008329ca797507c4ae4d44ad208aadbd158358c",
+    "experiments/p3_mlx/config.py": "0b970c951671c65f56ef7bd51388e6634cb9d167e714eb4a3ad9a321ab8b4c38",
+    "experiments/p3_mlx/launch.py": "e684d4e944b0764dd6a169a7498b0601b0403d17668cd5440ce6da2eec7426e2",
+    "experiments/p3_mlx/profile.py": "6a07fbbe7574ca6b2244c54d1c1a3751be706c4c1536f4fe6d7fd1a44b081e23",
+    "experiments/p3_mlx/server.py": "f4d0d83c7c2b207f9e8395a3865260c563b3e94c0f7cbcba0adacaa910d54a22",
+    "experiments/p3_mlx/trace.py": "32ba4da6c7ab3a8f7696f207e5e053578eba270f4b244e41115c468e6639043c",
+    "experiments/p3_mlx/workload.py": "e400e1d6ff12a15626de688e9be0881202855580fb2eaf525393c8cdf6ac638c",
+    "scripts/collect_p4_evidence.py": "9ab2a53e8316fe7208da424c31e92a3f523b2fbec92da95ac3e475662d641fa7",
+    "tests/test_p3_operating_conditions.py": "431e6de0e42dd015c8a48080e7ba4b76ac70ce4fd97c6569309a4eb0a70b092b",
+    "tests/test_p4_collector_connection.py": "802d828a681dac07d578e44c7338a6cdc7ef635b145c44f7cd2ab00eb73403fc"
+  },
+  "evidence": [
+    "docs/evaluation/p3-operating-conditions-m4-2026-10-10.json",
+    "docs/evaluation/p3-old-evidence-rejection-2026-10-10.json",
+    "docs/evaluation/p4-real-cli-validation-2026-10-10.json",
+    "docs/evaluation/hardware-p4-final-regression-2026-10-10.log"
+  ]
+}

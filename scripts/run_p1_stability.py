@@ -62,9 +62,14 @@ def main() -> int:
                             child.kill()
                             child.wait(timeout=5)
             evidence = json.loads(report.read_text()) if report.is_file() else {}
+            # A latency pass alone must not start the expensive second stage.
+            # The 30-minute report records RSS and resource gates separately.
+            resources_passed = evidence.get('stability_window', {}).get('all_epoch_resources_passed') is True
             stage.update(status='complete' if returncode == 0 else 'failed',
-                         passed=evidence.get('passed') is True, returncode=returncode)
-            if returncode != 0 or evidence.get('passed') is not True:
+                         passed=evidence.get('passed') is True and resources_passed,
+                         resources_passed=resources_passed, returncode=returncode)
+            if returncode != 0 or stage['passed'] is not True:
+                stage['status'] = 'failed'
                 raise RuntimeError(f'{name} qualification failed; later stages will not start')
             _atomic_json(output/'state.json', state)
         state.update(status='complete', passed=True)

@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "policy": {
+    "scope_sha256": "fa1042822cc103bcef8cc1b49b9b69220446be1192cb9d5925c325651394a8f2",
+    "quality_slices": [
+      "en",
+      "ja",
+      "zh",
+      "slo",
+      "warmup",
+      "identity",
+      "shutdown",
+      "effective_settings"
+    ],
+    "maximum_memory_bytes": 8589934592,
+    "minimum_improvement": 0.05,
+    "maximum_p95_regression": 0.05,
+    "maximum_spread": 0.05
+  },
+  "policy_sha256": "14d9f5181848b06ca840597fcd6c368a331ef8fdc9f8b3b121c131a0f3dd1865",
+  "evidence_sha256": "24e802f276c3c0c79f0f6034c76f993cc39457b0af0c9083ee9d1a19d2d1a6cf",
+  "selected_candidate_id": "baseline-512",
+  "baseline_retained": true,
+  "baseline_rejection_reasons": [
+    "quality_slice_failed_or_missing",
+    "measurement_spread_exceeded"
+  ],
+  "candidates": [
+    {
+      "candidate_id": "candidate-128",
+      "kind": "kernel",
+      "eligible": false,
+      "rejection_reasons": [
+        "quality_slice_failed_or_missing",
+        "measurement_spread_exceeded",
+        "baseline_unqualified",
+        "improvement_within_measurement_noise",
+        "ttft_p95_seconds_regressed",
+        "tpot_p95_seconds_regressed"
+      ],
+      "median_e2e_seconds": 40.687524166,
+      "relative_improvement": 0.28797720853264996
+    }
+  ],
+  "independent_acquisition_verified": true,
+  "standard_adoption_eligible": false,
+  "automatic_application": false,
+  "report_id": "4b36b07e598951351de93c11d61aa7ccad7011fd8c1335e9e77a24cb6b199b50"
+}

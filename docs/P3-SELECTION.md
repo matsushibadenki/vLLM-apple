@@ -1,5 +1,17 @@
 # P3 measurement selection / 計測選択 / 测量选择
 
+## 2026-10-10 real collector integration / 実collector接続 / 实测连接
+
+🟢 [Done] [GPU profiling → measured settings](GPU-PROFILING-SELECTION.md)を`experiments.p3_mlx`へ実装した。Metal GPU traceのtarget PID／clock／shader分類からprefill候補範囲を決め、未計測候補を自動採用せず独立HTTP E2E・品質・SLO・allocator peakを既存gateへ渡す。launcherは現在のhardware／model／native binary／source identityと判定を再確認し、allowlistの設定を実workerに適用する。下記`select_p3_candidate.py`自体は従来通り判定だけを行う。
+
+English: 🟢 [Done] Real GPU profiling and independent HTTP acquisition now feed the P3 gate. An explicit experimental launcher revalidates identity, recomputes selection and verifies effective settings. The original selection-only CLI still does not apply configurations.
+
+简体中文：🟢 [Done] 真实GPU测量及独立HTTP采集已接入P3 gate。明确选择的实验启动器复查identity、重新判定并验证实际配置；原判定CLI仍不修改配置。
+
+🟠 [Next] 帯域／compute counter判別、広い品質・shape・省電力、標準経路への採用。P1長時間資格とP4認定は未完了。以下の2026-10-04の「collector未接続」は履歴であり、この限定接続は実装済み。
+
+## 2026-10-04 contract / 判定契約の履歴
+
 ## 日本語
 
 [Done] `vllm_apple.p3_selection`にkernel・量子化・speculative共通のE2E選択判定を実装。

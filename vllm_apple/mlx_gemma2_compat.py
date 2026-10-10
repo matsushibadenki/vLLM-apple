@@ -38,6 +38,7 @@ _STEP_DIAGNOSTICS = StepDiagnostics()
 _REQUEST_TIMINGS = RequestTimings()
 _PREFILL_OPERATIONS = None
 _P1_PROMPT_CACHE = None
+_SPM_REUSE = None
 _BACKEND_PHASES = {name: StepDiagnostics(sample_limit=16,
     scope=f'{name} host method timing; shared batch, may nest; not GPU-only or per-request')
     for name in ('cache_fetch', 'prefill_prompt', 'prefill_transition', 'decode_next')}
@@ -193,6 +194,22 @@ def bound_p1_prompt_cache(prompt_cache: Any) -> None:
     """Apply the P1 byte budget to completion-time LRU insertion as well."""
     prompt_cache.max_bytes = min(prompt_cache.max_bytes, 256 * 1024**2)
     prompt_cache.trim_to(n_bytes=prompt_cache.max_bytes)
+    original_trim = prompt_cache.trim_to
+    diagnostics = dict(calls=0, evicting_calls=0, evicted_accounted_bytes=0,
+                       active_budget_policy='combined')
+
+    @wraps(original_trim)
+    def trim(**kwargs: Any) -> Any:
+        before = prompt_cache.nbytes
+        result = original_trim(**kwargs)
+        removed = max(0, before - prompt_cache.nbytes)
+        diagnostics['calls'] += 1
+        diagnostics['evicting_calls'] += int(removed > 0)
+        diagnostics['evicted_accounted_bytes'] += removed
+        return result
+
+    prompt_cache.trim_to = trim
+    prompt_cache._vllm_trim_diagnostics = diagnostics
 
 
 def install_cancel_api() -> type[Any]:
@@ -347,10 +364,12 @@ def install_cancel_api() -> type[Any]:
             activity = process_activity(os.getpid()) if os.environ.get('VLLM_APPLE_P1_PROFILE') == '1' else None
             encoded = json.dumps(dict(prompt_cache=(dict(entries=len(_P1_PROMPT_CACHE),
                 accounted_bytes=_P1_PROMPT_CACHE.nbytes, max_bytes=_P1_PROMPT_CACHE.max_bytes,
+                trim_diagnostics=dict(_P1_PROMPT_CACHE._vllm_trim_diagnostics),
                 scope='LRU retained KV accounting; non-atomic, not unique physical RSS')
                 if _P1_PROMPT_CACHE is not None else None), process_activity=activity, http=self.server.resource_snapshot(), registry=registry,
                 queue_wait=queue_wait, scheduler_step=_STEP_DIAGNOSTICS.snapshot(),
                 request_timings=_REQUEST_TIMINGS.snapshot(),
+                spm_tokenmap_reuse=(_SPM_REUSE.snapshot() if _SPM_REUSE else None),
                 prefill_operations=(_PREFILL_OPERATIONS.snapshot() if _PREFILL_OPERATIONS else None),
                 backend_phases={name: diagnostic.snapshot()
                                 for name, diagnostic in _BACKEND_PHASES.items()},
@@ -431,6 +450,12 @@ if __name__ == "__main__":
         import mlx.core as mx
         if importlib.metadata.version('mlx') != '0.32.1' or mx.default_device() != mx.gpu:
             raise RuntimeError('P1 profile requires reviewed MLX 0.32.1 and GPU default device')
+        spm_policy = os.environ.get('VLLM_APPLE_P1_SPM_REUSE', 'on')
+        if spm_policy not in {'off', 'on'}:
+            raise ValueError('P1 SPM reuse must be off or on')
+        if spm_policy == 'on':
+            from .spm_tokenmap_reuse import install_spm_tokenmap_reuse
+            _SPM_REUSE = install_spm_tokenmap_reuse(importlib.import_module('mlx_lm.tokenizer_utils'))
         mx.set_memory_limit(8 * 1024**3)
         from .mlx_efficiency import settings
         policy = settings(os.environ.get('VLLM_APPLE_P1_EFFICIENCY', 'baseline'))
@@ -456,8 +481,8 @@ if __name__ == "__main__":
                     or cli.decode_concurrency > 2 or cli.prompt_concurrency > 2
                     or cli.prefill_step_size > 512 or cli.prompt_cache_size > 4):
                 raise ValueError('P1 profile requires concurrency <=2, prefill <=512, cache entries <=4')
-            cli.prompt_cache_bytes = 256 * 1024**2
             bound_p1_prompt_cache(prompt_cache)
+            cli.prompt_cache_bytes = 256 * 1024**2
             _P1_PROMPT_CACHE = prompt_cache
             original_init(self, model_provider, prompt_cache)
             self._time_budget._budget = policy['scheduler_budget_seconds']

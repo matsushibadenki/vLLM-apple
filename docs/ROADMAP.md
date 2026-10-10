@@ -1,5 +1,112 @@
 # vLLM-Apple Runtime Roadmap
 
+## Strata導入の最初の工程 / First Strata integration step / Strata集成第一步
+
+🟢 [Done] [top-k評価集約と予算fallback比較](evaluation/strata-grouped-analysis-cpu-2026-10-10.json)：18 CPU trial数値一致、eval16→8、native関連11 tests成功。速度変化は不安定、baselineを上回らず既定採用しない。
+🟠 [Next] Router host取り出し／Python graph固定費とgather演算候補の調査。
+English: Grouped completion halves eval calls but does not establish speedup; no promotion.
+简体中文：合并求值减少一半eval调用，但未证明加速，不晋升。
+
+🟢 [Done] [遅延分解と事前常駐対照](evaluation/strata-phase-analysis-cpu-2026-10-10.json)：27合成CPU trial全件数値一致。I/O除去後も遅延が残り、Expert逐次eval／Router host取り出しが有力要因。変動5%超のため寄与率・速度認定なし。
+🟠 [Next] top-k Lease保持と評価境界集約を比較。実Qwen／GPU E2Eは未認定。
+English: 27 synthetic phase/ablation trials pass parity; serial evaluation and host routing remain suspects, exact contributions unqualified.
+简体中文：27次合成分阶段／对照试验数值一致，逐次求值及host路由为主要候选原因，精确贡献未认证。
+
+🟢 [Done] [合成CPU比較runner](../scripts/compare_strata_experts.py)：各方式3 fresh process、9 trial数値一致。[記録](evaluation/strata-synthetic-qwen3-cpu-2026-10-10.json)。後続中央値baseline 0.135 ms／LRU 0.336 ms／cost 0.213 ms、baselineを上回らず不採用。実モデル／P3認定なし。
+🟠 [Next] I/O・load・Router同期の個別計測と実weight比較。
+English: Synthetic comparison passes parity but candidates remain slower than baseline; no adoption.
+简体中文：合成比较数值一致，但候选慢于baseline，不采用。
+
+🟢 [Done] 標準Qwen3 MoEのswitchのみを置換する明示参照hook。合成6構成でRouter維持・元SwitchGLU参照解放・数値一致を検証、native含む12 tests成功。daemon既定採用・速度認定なし。
+🟠 [Next] 実互換weightでLRU／cost_frequencyとbaselineを比較し、I/O・host同期を測定。
+⭕️ [Pending] Qwen3.8/Qwen4Expの実weight・専用architecture対応。
+English: Standard Qwen3 block hook passes synthetic parity/ownership tests; real-model performance is outstanding.
+简体中文：标准Qwen3 block连接通过合成一致及所有权测试，实际模型性能仍待验证。
+
+🟢 [Done] 標準SwitchGLUのoffline Expert export。dense／4／8-bit合成重みで元SwitchGLU集約との一致を検証、native含む11 tests成功。完成manifestを最後に公開し既存出力を拒否。
+🟠 [Next] architecture別モデル接続とruntimeのsource重み所有権切り替え。実Qwen weight比較は未検証。
+English: Standard SwitchGLU export and synthetic round-trip parity pass; runtime ownership/model hooks remain next.
+简体中文：标准SwitchGLU导出及合成往返一致通过，runtime所有权及模型接入仍待完成。
+
+🟢 [Done] bounded Expert manifestとモデル識別・量子化設定・ファイルhash検証を接続。nativeを含む10 tests、関連15 tests成功。
+🟠 [Next] 実モデルexportとarchitecture別Router接続。実weightによる性能／品質認定は未完了。
+English: Manifest binding and native loading tests pass; model export/routing remain next.
+简体中文：manifest绑定及实际加载测试通过，模型导出及Router接入仍待完成。
+
+🟢 [Done] affine 4／8-bit独立Expert演算を追加。実MLX CPUテスト6件成功、group32／64のdequantize参照一致・設定不一致拒否を検証。元モデル品質・速度は未認定。
+🟠 [Next] artifact manifestへbits／group／model identityを固定し、実Routerへ接続。
+English: Affine 4/8-bit parity verified; manifest binding and model integration remain next.
+简体中文：affine 4/8-bit数值一致已验证，manifest绑定及模型接入仍待完成。
+
+🟢 [Done] token別の複数Expert参照実行を追加。実MLX CPUテスト4件成功、Router重み・順序・失敗時解放を検証。逐次経路で速度未測定。
+🟠 [Next] 量子化Expert形式・数値比較、対応architectureの実Router接続。
+English: Per-token multi-expert reference execution verified; quantization and model hooks remain next.
+简体中文：逐token多Expert参考执行已验证，量化及模型接入仍待完成。
+
+🟢 [Done] 独立ExpertファイルのMLX dense SwiGLUアダプター。合成重みの実MLX CPU演算で退避／再読み込み後の数値一致とLease解放を検証。モデルhook・量子化・GPU速度は未検証。
+⭕️ [Pending] 対象Qwenの実weightを用いたE2E比較。配置はmetadataのみ。
+English: Independent-file MLX adapter tested with synthetic native CPU arrays; target weights and model integration remain outstanding.
+简体中文：独立文件MLX适配器通过合成实际CPU数组测试；目标权重及模型接入尚未完成。
+
+🟢 [Done] 同期Expert実行接続部とprefill／decode telemetry。選択順・重み・Lease寿命を保持し、失敗時回収を検証。関連22 tests成功。実MoE adapter／GPU完了／速度は未検証。
+English: Execution bridge and bounded phase telemetry tested; real MoE remains unverified.
+简体中文：执行连接及有界分阶段统计已测试，实际MoE尚未验证。
+
+🟢 [Done] [Expert常駐のコスト・頻度退避候補](STRATA-INTEGRATION.md)を実装。
+既定LRUとLease保護を維持。関連31 tests・Ruff成功。速度改善は未測定。
+🟠 [Next] 実MoE resource操作・phase計測への接続、LRU比較とP3判定。
+🔴 [Later] 先読み・互換投機・KV圧縮・融合演算。
+⭕️ [Pending] 検証artifact／実機が不足するMTP／ANE経路。
+
+English: 🟢 [Done] Opt-in cost/frequency eviction; LRU remains default, 31 tests pass.
+🟠 [Next] Real MoE integration and P3 comparison. No measured speedup.
+简体中文：🟢 [Done] 可选成本／频率退避，默认LRU，31项测试通过。
+🟠 [Next] 实际MoE接入及P3比较，尚未证明加速。
+
+## 二項目の実装完了 / Two implementation tasks completed：2026-10-10
+
+🟢 [Done] [hardware識別・電源／thermal照合](HARDWARE-P4-CONNECTION.md)：GPUコア数を追加、未取得・条件変更・unsafe／unknownで設定適用を拒否。実M4は10 cores／AC／automatic／nominalの前後一致。旧証拠の遡及認定なし、P1固定source不変。
+🟢 [Done] [P4実collector接続](HARDWARE-P4-CONNECTION.md)：元reportとhashを保持し、P1／P2／P3結果を既存認定gateへ接続。実結果の資格不足・missing roleが昇格拒否へ届くことを確認。24時間認定・標準採用はこの実装完了に含めない。新規改善項目は追加しない。
+検証：関連23 tests・全回帰1,513 tests（31 skip）成功、Ruff／diff成功、実CLIの旧P3起動拒否とP4認定拒否を確認。
+English: 🟢 [Done] GPU-bin and operating-condition admission; real P4 collector-to-gate connection. Live observations and real-report rejection verified. No new optimization scope or hardware qualification.
+简体中文：🟢 [Done] GPU核心识别及运行条件检查、真实P4 collector到gate连接。验证实际观测和真实report认证拒绝，不增加优化范围或硬件认证。
+
+## 現在の[Next]の整理：2026-10-10
+
+🟢 [Done] 証拠監査を完了：model全fileのSHAと現在のhardware／native依存／runtime identityも照合対象に追加。[最終監査](evaluation/optimization-evidence-audit-complete-2026-10-10.json)合格、関連19 tests・Ruff成功。identity変更を合格にしない回帰を追加。新規改善案や性能資格は追加しない。
+English: 🟢 [Done] Evidence audit completed, including every pinned model file and current hardware/native/runtime identity. Real audit and 19 targeted tests pass; no new optimization scope or performance qualification.
+简体中文：🟢 [Done] 完成证据审核，覆盖所有固定model文件及当前hardware／native／runtime identity。实际审核及19项相关测试通过，不增加优化范围或性能认证。
+
+🟢 [Done] [証拠再照合CLI](../scripts/audit_optimization_evidence.py)を実装。P1固定runtime／runner、P2 collector／測定artifact、P3 source／測定artifactのSHAを確認し、P3選択を再計算する。欠落・変更・repository外pathを拒否し、既存reportを上書きしない。[今回の監査](evaluation/optimization-evidence-audit-2026-10-10.json)は合格。GPU実行や新しい性能・長時間資格の付与は行わない。
+全回帰1,504 tests成功（31 skip）、関連18 tests・Ruff・diff検査成功。[全回帰log](evaluation/optimization-evidence-regression-2026-10-10.log)。sandbox内のlocalhost／process権限制約による失敗と区別し、実行権限のある環境で確認した。
+
+以下の古い進捗節は取得時点の履歴として保持する。後続で解消した「正常workload測定点の固定」「全回帰の再確認」「token単位batchingと実KV接続」「実collectorとP3選択の接続」は、それぞれ後続の[Done]と証拠を現在の状態とする。古い不合格結果は取り消さない。
+
+🟠 [Next] P1は10月11日09:00 JSTの30分→全条件合格時8時間。P2はcache有効c1 tailと一般chat／coding／Agent・cancel／fairness。P3は帯域／compute counter・広い品質／shape・energyと標準採用。P4は前提合格後のmatrix／24時間・復旧認定。現在のM4で試せる作業は未完了のまま残す。
+
+English: 🟢 [Done] Reproducible offline source/artifact audit and P3 selection recomputation pass. Earlier status entries are historical; later evidence supersedes completed implementation tasks without erasing failed trials. 🟠 [Next] P1 scheduled long-run gates, broad P2 tails/quality, P3 counters/energy/adoption and P4 qualification remain open.
+
+简体中文：🟢 [Done] 可重复的离线source／artifact审核及P3选择重算通过。旧状态作为历史保存，已完成的实现以后续证据为准，不撤销旧失败结果。🟠 [Next] P1预定长期试验、P2广泛质量及尾延迟、P3 counter／energy／采用和P4认证仍未完成。
+
+```sh
+PYTHONPATH=. .venv/bin/python scripts/audit_optimization_evidence.py --output /tmp/optimization-audit-new.json
+```
+
+## P1応答時間・RSSの根因修正：2026-10-10
+
+🟢 [Done] [SPM変換表の共有とHTTP Timer参照の解放](P1-SPM-REUSE.md)。要求ごとの256,000語再構築（constructor中央値121 ms、一時allocation 42 MiB）を除去し、stream stateは要求ごとに独立。6 fresh workerで品質／SLO 720/720、短文平均E2E 451→209 ms、反復後半RSS増加8.000–9.016→0.016–0.609 MiB。長文速度改善は未確認。全回帰1491 tests成功（31 skip）、Ruff成功。
+🟢 [Done] 修正後90秒の実機確認：正常負荷420/420品質・SLO、RSS／allocator／thread／FD／awake／identity／正常停止合格。source-pinned P1のみ既定on、依存更新やgate緩和なし。
+🟠 [Next] 2026-10-11 09:00 JSTの単発試験で30分→全gate合格時8時間。短い比較ではRSS slopeがonでも2/3未達。長時間最終証拠までP1完了としない。定期更新は復活させない。
+English: 🟢 [Done] Reuse immutable SPM vocabulary data, keep independent streams, and release finished HTTP Timers. Quality/SLO 720/720; 90-second mixed-load check passed. 🟠 [Next] One-off 09:00 JST long-run qualification; no long-run promotion yet.
+简体中文：🟢 [Done] 共享immutable SPM词表并保持独立stream，释放结束后的HTTP Timer；质量/SLO 720/720及90秒混合负载通过。🟠 [Next] 09:00 JST单次长期试验，尚未认证长期稳定性。
+
+## 生成worker終了後の残存processを回収
+
+🟢 [Done] [専用process groupの回収](GENERATIVE-PROCESS-CLEANUP.md)：leader正常終了後もTERM／KILL／reapを実施。実childの残存を再現し、修正後に関連9 tests・Ruff成功。全回帰1485 tests成功（31 skip）。推論速度・電力は未測定、P1資格は変更しない。
+🟠 [Next] 今回の全回帰では旧エラー非再現。起動timeout／daemon／contentionは過去の失敗原因を個別に切り分ける。PermissionErrorを無視して回収成功としない。
+English: 🟢 [Done] Reap the dedicated worker group after leader exit; nine targeted tests pass. 🟠 [Next] Audit full regressions and remaining startup failures.
+简体中文：🟢 [Done] leader退出后仍回收专用进程组，9项相关测试通过。🟠 [Next] 审核全量回归及剩余启动失败。
+
 ## 正常workloadのKV測定pointを固定
 
 🟢 [Done] [warmup／長文／短文直後のmemory point](P1-NORMAL-MEMORY-POINTS.md)：drainとbenchmark起点PID一致、workload SHA接続、fault前のsnapshot。比較toolは古いfault後値を拒否。回帰で見つかったheader deadlineの期待切断をtestで扱い、expiry／slot回収基準は維持。
@@ -250,9 +357,9 @@ Intel Macは互換性の別枠とし、Apple Siliconの性能認定を適用し�
 | 🟢 [Done] | P1資源上限・cancel／回復runner | bounded HTTP・入力・allocator・queue・cancelと短時間smoke。最新完了r9の30分は品質3009/3009、SLO3000/3009、RSS・awake・identity・shutdown合格だがSLOとcache資源gate未達 |
 | 🟠 [Next] | P1長時間認定 | r9の9件のSLO超過とcache資源gate未達に対し、compactで朝9時から30分再試験→合格時8時間。このM4で可能なので⭕️ [Pending]にしない |
 | 🟢 [Done] | P2実continuous batching／identity付きKV実験 | 実batch幅4と再prefill提出減少を確認。標準採用・数値／性能認定は未完了 |
-| 🟠 [Next] | P2数値・p95／goodput gate | c4 SLOと全prompt基準とのlogit差を解消し再測定。このM4で試験可能 |
+| 🟠 [Next] | P2数値・p95／goodput gate | 限定float32のKV数値・c4／prefixなしc1 gateは合格。cache有効c1尾遅延・float16対照・広い品質scopeは未達。このM4で試験可能 |
 | 🟢 [Done] | P3選択・P4認定gateとrelease昇格接続 | 証拠不足・不合格はfallback／昇格拒否。合成fixtureのテストを実性能・24時間認定に代用しない |
-| 🟠 [Next] | P3実計測／P4目的別profile・24時間認定 | 実collector接続、P1／P2前提の合格後に本筐体で実施。未知profileを自動採用しない |
+| 🟠 [Next] | P3実計測／P4目的別profile・24時間認定 | 限定GPU／HTTP collectorと実験起動への接続済み。未達候補は拒否。P1／P2前提・広い品質・標準採用・24時間認定は継続 |
 | 🟢 [Done] | R0完全templateのtoken予算・固定三言語HTTP smoke | 実Gemma tokenizerで境界・丸ごと資料除外・基本prompt拒否。実HTTPは固定support codeと資料なしの6ケース成功・正常終了 |
 | 🟠 [Next] | R0一般品質／L0固定LoRA | 資料不足・悪意ある資料・長文引用のsuiteとadapter互換性／memory／実MLXの検証。未実装を環境不足へ移さない |
 | 🔴 [Later] | R1／L1／RL2・追加architecture | 検索・学習・複数adapter等は前提作業後。現在の筐体で可能な範囲は開発候補のまま |
@@ -399,6 +506,12 @@ warm-up・cache充填後の同一負荷窓とidle回復時を比較し、RSS／a
 
 ## P2 — Continuous batchingと実KV再利用 🟠 [Next]
 
+- 🟢 [Done] 2026-10-10 [限定float32 profileの数値差・並列応答改善](P2-OPTIMIZATION-2026-10-10.md)：Gemma 2／M4で16/16実KV条件が既定許容差に合格（最大logit差0.000119209）。dtypeをcache identityへ追加、packed整数weightを維持。50 ms admission budget、SPM表・immutable RMSNorm補正を一度構築する。
+- 🟢 [Done] 同float32、各3 fresh workersでc4 goodput 12.440→44.097 tokens/s（3.545倍）、改善側c4品質・SLO 180/180。prefixなしc1を別の3 workersで検証し、品質・SLO 180/180、TPOT p95 13.816–13.994 msは最良baselineに対する5%上限14.025 ms以内。[固定workload gate](evaluation/p2-optimization-validation-2026-10-10.json)は合格、CPU回帰1,493 tests合格（31 skip）。profile全体の効果でありcache単独の改善率ではない。
+- 🟠 [Next] cache有効c1の3-run最悪p95 gateは未達。旧float16対照のTPOT悪化も保持し、float16標準経路のreplacementやP2全体を認定しない。一般chat／coding／Agent、SWA・cancel・fairnessと標準採用を継続検証する。float32 KVは同token数で保存幅2倍、RSS・ワット値改善は未認定。
+- English: 🟢 [Done] Fixed float32 numerical and cached-c4/uncached-c1 gates pass; 🟠 [Next] cache-enabled c1 tails, float16 replacement and broad P2 promotion remain open.
+- 简体中文：🟢 [Done] 固定float32数值及cache启用c4／不复用prefix的c1条件通过；🟠 [Next] cache启用c1尾延迟、float16替换及整个P2晋升仍未完成。
+
 - 🟢 [Done] [P2実験用backend](P2-BATCHING-KV.md)へnative continuous batching／chunked prefillとidentity付き実KV LRUを接続した。実schedulerでdecode幅4・複数sequence step 39回、prefix再入場でprefill提出545 tokens減少を確認。品質36/36合格だがc4 SLOは初回28/30・最終source22/30で未達。P1／標準経路は変更せずopt-inに留める。全CPU回帰1,411 tests合格（11 skip）。
 - 🟢 [Done] 実Gemma 2／float16 KVで分割fresh参考とのlogit差0、branchコピー後のprefix保持、trim後missを確認。全prompt一括計算とは最大差0.0390625で既定の数値gate未達、argmax一致だけで認定しない。性能・数値qualificationはfalse、P2完了条件は未達として残す。
 
@@ -406,9 +519,9 @@ warm-up・cache充填後の同一負荷窓とidle回復時を比較し、RSS／a
 
 依存：P0の計測、P1の所有権・cancel契約。成果物はinteractive／throughput profile。既存backend機能を先に利用し、不足だけを実装する。
 
-- 🟠 [Next] backendのtoken単位continuous batchingを実HTTP経路に接続・確認する。単なる複数HTTP requestやcontrol plane queueをbatching達成と数えない。
+- 🟢 [Done] Gemma 2のP2実験HTTP経路でtoken単位continuous batchingを接続・確認した。最終float32比較は実decode幅4、品質・c4 SLO 180/180。標準daemonと他architectureの認定は上記の残作業に含める。
 - 🟠 [Next] chunked prefillで長い入力によるdecode停止を抑える。prefill token budget、active decode数、最大待ち時間を調整し、priority agingでbackground starvationを防ぐ。
-- 🟠 [Next] 実際のKV／recurrent stateに結び付いたprefix reuseを有効化する。model／adapter／tokenizer／template／position／cache saltをidentityへ含め、exact token prefix一致のみを再利用する。
+- 🟢 [Done] adapterなしGemma 2のP2実験経路で実KV prefix reuseを有効化した。model／tokenizer／template／position／salt／dtypeをidentityに含め、exact token prefixのみ再利用する。16条件の数値試験と実再利用token計測を確認。他adapter／recurrent architectureへ認定を広げない。
 - 🟠 [Next] turn／tool境界anchor、copy-on-write、eviction／releaseをbackend所有下で検証する。共有prefixの書き換え、cancel、異なるsession間の状態混入を防ぐ。SWA／hybridはarchitecture固有の復元契約を要求する。
 - 🟠 [Next] hit率に加えて再計算を省けたprompt tokens、TTFT、cache byte、eviction頻度を測る。metadata上のhitだけでは昇格しない。
 - 🟠 [Next] chat／coding／agent／batchを比較workloadとして分ける。Agentは固定tool定義・system prompt、短いdecode、模擬tool待機、再入場を含め、再prefill token数、再入場TTFT、他requestのp95とstarvationを検証する。最初はbackend既存schedulerの設定profileで比較し、独自token schedulerの追加は不足の実測後に判断する。
@@ -423,7 +536,11 @@ warm-up・cache充填後の同一負荷窓とidle回復時を比較し、RSS／a
 
 依存：調査開始には対象経路のP0 baseline、標準採用にはP1の安定性と対象P2 workloadの回帰report。成果物は対象shapeに限定した高速化profileと安全なfallback。P2全体の完了前でも、baselineで支配時間が分かった経路の調査は並行できる。
 
-- 🟠 [Next] P0 baseline取得後、GPU profilerで同期、CPU送信、dequantize、GEMV／GEMM、attention、KV copyの支配時間を特定する。decodeのmemory帯域律速とprefillのcompute律速を分けて検証し、律速を先に決め付けない。
+- 🟢 [Done] 2026-10-10 [実GPU profilingと設定選択の接続](GPU-PROFILING-SELECTION.md)：M4／Gemma 2／float32でMetal GPU traceを取得し、target PID・時計・window・shader分類を照合。GPU activeはprefill wallの98.9%／decode84.5%、量子化行列＋fused dequantはsampled shader時間の60.1%／85.4%。prefill候補512／128を実HTTP collectorへ接続し、既存P3 gateの再計算・baseline fallback・identity限定allowlist起動を実装。
+- 🟢 [Done] 実collectorの6 workersは品質360/360・全identity不変・正常終了。candidate128はSLO／spread／p95未達で不採用、baseline512も未認定のまま保持。選択後の実起動で設定反映・三言語9/9品質／SLO・正常終了を確認。中央値28.8%改善だけでは性能認定しない。
+- English: 🟢 [Done] GPU-guided acquisition, P3 gate and explicit setting application are connected; six-worker answer quality 360/360 and selected-launch 9/9 pass. Candidate 128 fails SLO/spread/p95 and baseline 512 is retained without standard qualification.
+- 简体中文：🟢 [Done] GPU引导采集、P3判定及明确选择的配置应用已连接；6-worker回答质量360/360、选定配置启动9/9通过。候选128未通过SLO／波动／p95，保留baseline512而不认证标准性能。
+- 🟠 [Next] GPU帯域／compute律速のcounter定量判別、同期・CPU送信・attention・KV copyの詳細分離と追加shape／一般品質。fused dequantを独立時間として捏造せず、sampled shareをGPU wall比率に置き換えない。未達候補を標準採用しない。
 - 🔴 [Later] upstream MLX／Metalの最適化を先に比較し、不足するhot pathに限りfused quantized GEMV／GEMM、RoPE／RMSNorm、paged／split-KV attentionを追加する。kernel単体の改善とE2E改善を別reportにする。
 - 🔴 [Later] model／shape／SoC別にbounded autotuningを行う。compile・warm-up時間、p95、scratch使用量まで比較し、未測定shapeは既定kernelへ戻す。
 - 🔴 [Later] weight 4／8-bit、KV量子化、mixed precisionを品質／速度／容量のPareto比較で選ぶ。perplexityだけでなく三言語coding、tool-use、long-context retrievalの劣化を検出する。
@@ -455,7 +572,8 @@ splitting and a native engine remain conditional research, not committed replace
 依存：P1の安定性、P2／P3で合格したprofile。
 
 - 🟢 [Done] [P4認定証拠gate](P4-CERTIFICATION.md)とrelease昇格の接続。全対応matrixセルのsource／署名artifact／identity、raw evidence hash、品質slice、P3性能判定、24時間soak、recovery／rollback／clean-machine／lock／license証拠を要求。欠落・失敗時は昇格を拒否する。profile activationのexact identity／thermal／memory fallbackと三言語診断契約も実装（runtime／SDK／UI接続は未完了）。認定済みセルはまだない。
-- 🟠 [Next] 実collectorをこのgateへ接続し、P1／P2／P3の未達解消後に対象構成の独立性能認定・24時間soak・復旧／rollbackを実施する。workflowから証拠を取得できることは実機認定の完了を意味しない。
+- 🟢 [Done] [実collectorをP4 gateへ接続](HARDWARE-P4-CONNECTION.md)。P1／P2／P3の実結果・不足roleを渡し、原本とhashを保持して昇格拒否を確認。
+- 🟠 [Next] P1／P2／P3の未達解消後に対象構成の独立性能認定・24時間soak・復旧／rollbackを実施する。collector接続は実機認定の完了を意味しない。
 
 - 🔴 [Later] interactiveはp95 TTFT／TPOT、throughputはgoodput、省電力は取得可能なenergy/tokenを目的にする。未知hardwareではbounded calibrationを行い、発熱やmemory pressureを性能目的より優先する。
 - 🔴 [Later] hardware／OS／model／backend fingerprint別の既知正常profileを配布し、変更時は再認定する。独立3回のqualificationは同じcandidateでも別process・別runで実施し、次release待ちを条件にしない。
@@ -572,7 +690,7 @@ The goal is the fastest **qualified** route for each Apple Silicon Mac, model an
 - 🟢 [Done] P0: [audit and reproducible baseline](P0-AUDIT.md), two backends × three runs × 102 requests; each backend completed 102 requests per language. Internal phases remain unavailable. Metal spread exceeds 5%; performance and general capabilities are not certified. Historical proxy/soak evidence retains its original scope.
 - 🟠 [Next] P1: qualify the standard text route, cancellation, bounded queues, memory admission and failure recovery under an eight-hour mixed workload.
 - 🟠 [Next] P2: validate backend-owned continuous batching, chunked prefill and actual KV reuse. Target 20% higher concurrency-four goodput with no more than 5% regression in single-request p95 TTFT/TPOT.
-- 🟠 [Next] P3: the [common E2E selection gate](P3-SELECTION.md) is implemented; real collector integration and measured optimization remain unfinished. Require at least 5% reproducible E2E improvement beyond noise and verified stability before adoption.
+- 🟠 [Next] P3: the [common E2E selection gate](P3-SELECTION.md) is implemented; real GPU/HTTP collector integration is implemented for the opt-in M4/Gemma2 float32 profile; broader measured optimization and standard adoption remain unfinished. Require at least 5% reproducible E2E improvement beyond noise and verified stability before adoption.
 - 🟠 [Next] P4: [release certification gate](P4-CERTIFICATION.md) is connected to draft promotion; no matrix cell is certified yet. Complete real 24-hour soaks, profile selection, rollback, signing and clean-machine installation. Additional hardware and credentials remain prerequisites.
 
 All targets are prospective. Unsupported combinations, insufficient samples and failed candidates remain visible; no benchmark result is extrapolated to all Macs or models.

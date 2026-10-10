@@ -1,7 +1,8 @@
-"""Bounded (layer, expert) working-set LRU for backend-owned residency."""
+"""Bounded backend-owned residency with LRU and opt-in cost/frequency eviction."""
 from __future__ import annotations
 
 import threading
+import time
 from dataclasses import dataclass
 from typing import Protocol
 
@@ -41,15 +42,19 @@ class _Entry:
     resource: ExpertResource
     leases: int
     last_used: int
+    accesses: int = 1
+    load_nanoseconds: int = 1
 
 
 class ExpertLease:
     def __init__(
-        self, manager: "ExpertResidencyManager", key: ExpertKey, resource: ExpertResource
+        self, manager: "ExpertResidencyManager", key: ExpertKey, resource: ExpertResource,
+        *, cache_hit: bool = False,
     ) -> None:
         self._manager = manager
         self.key = key
         self.resource = resource
+        self.cache_hit = cache_hit
         self._released = False
 
     def release(self) -> None:
@@ -66,17 +71,24 @@ class ExpertLease:
 
 
 class ExpertResidencyManager:
+    def uses_backend(self, backend: ExpertResidencyBackend) -> bool:
+        """Check resource ownership without exposing mutable manager internals."""
+        return self._backend is backend
+
     def __init__(
         self,
         backend: ExpertResidencyBackend,
         *,
         maximum_entries: int,
         maximum_bytes: int,
+        eviction_policy: str = "lru",
     ) -> None:
         if (not 1 <= maximum_entries <= MAX_EXPERT_RESIDENCY_ENTRIES
-                or not 1 <= maximum_bytes <= MAX_EXPERT_RESIDENCY_BYTES):
+                or not 1 <= maximum_bytes <= MAX_EXPERT_RESIDENCY_BYTES
+                or eviction_policy not in {"lru", "cost_frequency"}):
             raise ValueError("invalid expert residency bounds")
         self._backend = backend
+        self._eviction_policy = eviction_policy
         self._maximum_entries = maximum_entries
         self._maximum_bytes = maximum_bytes
         self._pending_bounds: tuple[int, int] | None = None
@@ -95,10 +107,13 @@ class ExpertResidencyManager:
             if entry is not None:
                 entry.leases += 1
                 entry.last_used = self._clock
+                entry.accesses = min(entry.accesses + 1, 1_000_000)
                 self._hits += 1
-                return ExpertLease(self, key, entry.resource)
+                return ExpertLease(self, key, entry.resource, cache_hit=True)
             self._misses += 1
+            started = time.perf_counter_ns()
             resource = self._backend.load_expert(key)
+            load_nanoseconds = max(1, time.perf_counter_ns() - started)
             if not isinstance(resource, ExpertResource):
                 raise ValueError("expert backend returned an invalid resource")
             victims = self._victims_for(resource.resident_bytes, additional_entries=1)
@@ -115,7 +130,9 @@ class ExpertResidencyManager:
             except BaseException:
                 self._backend.release_expert(resource)
                 raise
-            self._entries[key] = _Entry(resource, 1, self._clock)
+            self._entries[key] = _Entry(
+                resource, 1, self._clock, load_nanoseconds=load_nanoseconds
+            )
             self._resident_bytes += resource.resident_bytes
             return ExpertLease(self, key, resource)
 
@@ -189,12 +206,12 @@ class ExpertResidencyManager:
         count = len(self._entries) + additional_entries
         size = self._resident_bytes + incoming_bytes
         available = sorted(
-            ((entry.last_used, key) for key, entry in self._entries.items()
+            ((self._retention_score(entry), entry.last_used, key)
+             for key, entry in self._entries.items()
              if entry.leases == 0),
-            key=lambda item: (item[0], item[1]),
         )
         victims = []
-        for _, key in available:
+        for _, _, key in available:
             if count <= self._maximum_entries and size <= self._maximum_bytes:
                 break
             victims.append(key)
@@ -203,3 +220,11 @@ class ExpertResidencyManager:
         if count > self._maximum_entries or size > self._maximum_bytes:
             return None
         return tuple(victims)
+
+    def _retention_score(self, entry: _Entry) -> float:
+        if self._eviction_policy == "lru":
+            return float(entry.last_used)
+        # Age discounts historic popularity; metadata lives only with resident entries.
+        age = max(1, self._clock - entry.last_used)
+        return (entry.accesses * entry.load_nanoseconds
+                / entry.resource.resident_bytes / age)

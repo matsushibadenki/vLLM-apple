@@ -1,4 +1,5 @@
 import unittest
+from unittest.mock import patch
 
 from vllm_apple.expert_residency import (
     ExpertKey,
@@ -21,6 +22,43 @@ class Backend:
 
 
 class ExpertResidencyTests(unittest.TestCase):
+    def test_cost_policy_retains_expensive_expert_instead_of_lru(self):
+        backend = Backend()
+        manager = ExpertResidencyManager(
+            backend, maximum_entries=2, maximum_bytes=200,
+            eviction_policy="cost_frequency",
+        )
+        with patch("vllm_apple.expert_residency.time.perf_counter_ns",
+                   side_effect=[0, 1000, 1000, 1010, 1010, 1020]):
+            for key in (ExpertKey(0, 0), ExpertKey(0, 1), ExpertKey(0, 2)):
+                manager.acquire(key).release()
+        self.assertEqual(backend.released, [(0, 1)])
+        manager.close()
+
+    def test_cost_policy_preserves_pinned_expert_and_deferred_budget(self):
+        manager = ExpertResidencyManager(
+            Backend(), maximum_entries=2, maximum_bytes=200,
+            eviction_policy="cost_frequency",
+        )
+        first = manager.acquire(ExpertKey(0, 0))
+        second = manager.acquire(ExpertKey(0, 1))
+        self.assertFalse(manager.resize(maximum_entries=1, maximum_bytes=100))
+        with self.assertRaisesRegex(ValueError, "pinned"):
+            manager.acquire(ExpertKey(0, 2))
+        second.release()
+        self.assertEqual(manager.snapshot()["resident_bytes"], 100)
+        first.release()
+        manager.close()
+
+    def test_unknown_policy_rejected_before_backend_load(self):
+        backend = Backend()
+        with self.assertRaises(ValueError):
+            ExpertResidencyManager(
+                backend, maximum_entries=2, maximum_bytes=200,
+                eviction_policy="automatic",
+            )
+        self.assertEqual(backend.loaded, [])
+
     def test_layer_expert_lru_hits_and_eviction(self):
         backend = Backend()
         manager = ExpertResidencyManager(

@@ -1,8 +1,10 @@
+import gc
 import http.client
 import socket
 import threading
 import time
 import unittest
+import weakref
 from http.server import BaseHTTPRequestHandler
 
 from vllm_apple.bounded_http import BoundedHTTPServer, HeaderDeadlineMixin
@@ -25,6 +27,44 @@ class SmallServer(BoundedHTTPServer):
 
 
 class BoundedHTTPTests(unittest.TestCase):
+    def test_finished_handlers_are_released_without_cyclic_gc(self):
+        references = []
+
+        class TrackedHandler(Handler):
+            def __init__(self, *args, **kwargs):
+                references.append(weakref.ref(self))
+                super().__init__(*args, **kwargs)
+
+        server = SmallServer(('127.0.0.1', 0), TrackedHandler)
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        enabled = gc.isenabled()
+        gc.disable()
+        try:
+            for _ in range(8):
+                connection = http.client.HTTPConnection(*server.server_address, timeout=2)
+                try:
+                    connection.request('GET', '/')
+                    response = connection.getresponse()
+                    self.assertEqual(response.read(), b'ok')
+                finally:
+                    connection.close()
+                deadline = time.monotonic() + 2
+                while server.resource_snapshot()['active']:
+                    if time.monotonic() >= deadline:
+                        self.fail('handler did not finish')
+                    time.sleep(.005)
+            self.assertEqual(len(references), 8)
+            self.assertFalse(any(reference() is not None for reference in references),
+                             'deadline callback retained finished handlers')
+        finally:
+            if enabled:
+                gc.enable()
+            server.shutdown()
+            server.server_close()
+            thread.join(2)
+            gc.collect()
+
     def test_trickle_headers_are_bounded_and_slots_recover(self):
         server = SmallServer(('127.0.0.1', 0), Handler)
         thread = threading.Thread(target=server.serve_forever, daemon=True)

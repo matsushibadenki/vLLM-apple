@@ -1,0 +1,40 @@
+{
+  "decision": "not adopted; both complete trials fail RSS plateau; later trials controlled-stop/not started; experimental priority code removed",
+  "qualification": false,
+  "trials": [
+    {
+      "file": "0-off.json",
+      "cycles": 8,
+      "stopped": true,
+      "rss_trend": {
+        "sample_count": 8,
+        "current_pid": 53225,
+        "current_pid_sample_count": 8,
+        "recent_sample_count": 4,
+        "slope_bytes_per_hour": 774138061.023,
+        "recent_growth_bytes": 5242880,
+        "plateau_observed": false
+      }
+    },
+    {
+      "file": "1-on.json",
+      "cycles": 8,
+      "stopped": true,
+      "rss_trend": {
+        "sample_count": 8,
+        "current_pid": 53325,
+        "current_pid_sample_count": 8,
+        "recent_sample_count": 4,
+        "slope_bytes_per_hour": 985262650.563,
+        "recent_growth_bytes": 9502720,
+        "plateau_observed": false
+      }
+    },
+    {
+      "file": "2-on.json",
+      "cycles": 3,
+      "stopped": true,
+      "rss_trend": null
+    }
+  ]
+}

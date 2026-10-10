@@ -189,10 +189,10 @@ class P1PromptCacheLimitTests(unittest.TestCase):
 
         from vllm_apple.mlx_gemma2_compat import bound_p1_prompt_cache
         for initial, expected in ((1 << 63, 256 * 1024**2), (32 * 1024**2, 32 * 1024**2)):
-            cache = SimpleNamespace(max_bytes=initial, trim_to=Mock())
+            cache = SimpleNamespace(max_bytes=initial, nbytes=0, trim_to=Mock())
             bound_p1_prompt_cache(cache)
             self.assertEqual(cache.max_bytes, expected)
-            cache.trim_to.assert_called_once_with(n_bytes=expected)
+            cache.trim_to.__wrapped__.assert_called_once_with(n_bytes=expected)
 
 
 if __name__ == '__main__':

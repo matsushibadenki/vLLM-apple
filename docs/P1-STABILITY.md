@@ -1,5 +1,12 @@
 # P1 standard text candidate — 2026-10-04
 
+## Current status / 現在 / 当前 — 2026-10-10
+
+🟢 [Done] [SPM表再利用とHTTP参照解放](P1-SPM-REUSE.md)を実装。修正後[90秒report](evaluation/p1-spm-final-m4-2026-10-10.json)は正常負荷420/420品質・SLO、RSS slope −19.84 MB/hour、allocator/thread/FD、awake、identity、正常停止が合格。warmup 3/3、初期長文12/12・短文30/30も合格。90秒は30分/8時間の認定ではない。
+🟠 [Next] 2026-10-11 09:00 JST、compact/prefill512の単発30分→全gate合格時8時間。既存r11は不合格のまま、専用job回収済み。定期更新はユーザー指示で停止したまま。以下の過去の起動・定期予定は履歴であり現在の予約ではない。
+English: The corrected pinned P1 passes a 90-second check (420/420 quality/SLO, RSS/resource/awake/identity/shutdown gates). Long-run qualification remains unfinished; one-off October 11 at 09:00 JST. Historical schedules below are superseded; recurring updates remain stopped.
+简体中文：修正后固定版本P1通过90秒试验（420/420质量/SLO、RSS/资源/awake/identity/shutdown）。长期认证仍未完成，10月11日09:00 JST单次试验；下方旧日程仅为历史，定期更新仍停止。
+
 ## r11最終監査：2026-10-08
 
 [Done] [最終監査](evaluation/p1-r11-final-audit-2026-10-08.json)：30分の正常負荷3,009件は全件完了・品質合格、SLO合格2,992件。17件がTTFT基準超過し、うち4件はE2Eも超過。不合格で8時間は未開始。

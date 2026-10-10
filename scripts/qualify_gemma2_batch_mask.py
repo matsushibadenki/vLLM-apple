@@ -437,6 +437,7 @@ def _normal_memory_point(port: int, benchmark: dict, pid: int, stage: str) -> di
                 slo_quality_passed=benchmark['slo_quality_passed'], same_worker=same_worker,
                 observed_at_unix_ns=time.time_ns(), process_activity=activity,
                 prompt_cache=snapshot.get('prompt_cache'), allocator=snapshot.get('allocator'),
+                spm_tokenmap_reuse=snapshot.get('spm_tokenmap_reuse'),
                 scope='after normal workload, drained, before faults; non-atomic, no GPU synchronization')
 
 
@@ -974,6 +975,8 @@ def main() -> int:
         "cancel_acknowledgement_available": True,
         'p1_profile_enabled': args.p1_profile,
         'efficiency_candidate': os.environ.get('VLLM_APPLE_P1_EFFICIENCY', 'baseline'),
+        'p1_spm_reuse': (os.environ.get('VLLM_APPLE_P1_SPM_REUSE', 'on')
+                         if args.p1_profile else None),
         'p1_limits': (dict(context_tokens=4096, output_tokens=512, allocator_bytes=8*1024**3,
                            cache_bytes=(64 if os.environ.get('VLLM_APPLE_P1_EFFICIENCY') == 'compact' else 256)*1024**2, http_connections=16, header_deadline_seconds=5)
                       if args.p1_profile else None),

@@ -1,0 +1,91 @@
+{
+  "date": "2026-10-10T09:46:46.797123+09:00",
+  "kept": [
+    "coreml-fastvit-t8",
+    "coreml-mobileclip-s0",
+    "gemma-2-2b-it-4bit",
+    "qwen3.8-flash-next-metadata",
+    "whisperkit-coreml-tiny"
+  ],
+  "deleted": [
+    {
+      "name": "Kokoro-82M-6bit",
+      "allocated_bytes": 338456576,
+      "reason": "Historical evaluation or alternative model; not used by current P1 text work."
+    },
+    {
+      "name": "MiniMax-Music3-4bit",
+      "allocated_bytes": 9210851328,
+      "reason": "Historical evaluation or alternative model; not used by current P1 text work."
+    },
+    {
+      "name": "Qwen-Image-2.1",
+      "allocated_bytes": 66260688896,
+      "reason": "Historical evaluation or alternative model; not used by current P1 text work."
+    },
+    {
+      "name": "Qwen-Image-2.1-torchao-int8",
+      "allocated_bytes": 18516328448,
+      "reason": "Historical evaluation or alternative model; not used by current P1 text work."
+    },
+    {
+      "name": "Qwen-Image-2512-4bit",
+      "allocated_bytes": 51814182912,
+      "reason": "Historical evaluation or alternative model; not used by current P1 text work."
+    },
+    {
+      "name": "Qwen3-VL-2B-Instruct-4bit",
+      "allocated_bytes": 1798144000,
+      "reason": "Historical evaluation or alternative model; not used by current P1 text work."
+    },
+    {
+      "name": "Z-Image-Turbo-MLX-4bit",
+      "allocated_bytes": 12967088128,
+      "reason": "Historical evaluation or alternative model; not used by current P1 text work."
+    },
+    {
+      "name": "flux.2-klein-base-9b-4bit",
+      "allocated_bytes": 19082502144,
+      "reason": "Historical evaluation or alternative model; not used by current P1 text work."
+    },
+    {
+      "name": "gemma-3-1b-it-4bit",
+      "allocated_bytes": 771940352,
+      "reason": "Historical evaluation or alternative model; not used by current P1 text work."
+    },
+    {
+      "name": "gemma-3-4b-it-4bit",
+      "allocated_bytes": 3574198272,
+      "reason": "Historical evaluation or alternative model; not used by current P1 text work."
+    },
+    {
+      "name": "gemma-3-4b-pt-4bit",
+      "allocated_bytes": 6878777344,
+      "reason": "Historical evaluation or alternative model; not used by current P1 text work."
+    },
+    {
+      "name": "gemma-4-12b-it-Q4_K_M.gguf",
+      "allocated_bytes": 7121862656,
+      "reason": "Historical evaluation or alternative model; not used by current P1 text work."
+    },
+    {
+      "name": "wan2.2-ti2v-5b-diffusers-8bit",
+      "allocated_bytes": 36378730496,
+      "reason": "Historical evaluation or alternative model; not used by current P1 text work."
+    },
+    {
+      "name": "z-image-turbo-mlx-gen-4bit",
+      "allocated_bytes": 5903015936,
+      "reason": "Historical evaluation or alternative model; not used by current P1 text work."
+    }
+  ],
+  "models_allocated_bytes_before": 243735535616,
+  "disk_free_bytes_before": 31539200000,
+  "scope": "Unused historical evaluation models; current P1 Gemma 2 retained. Evaluation evidence retained. No inference qualification changed.",
+  "models_allocated_bytes_after": 3118768128,
+  "disk_free_bytes_after": 271974400000,
+  "deleted_count": 14,
+  "gemma2_metadata_unchanged": true,
+  "deletion_verified": true,
+  "removed_allocated_bytes": 240616767488
+}

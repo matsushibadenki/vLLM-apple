@@ -1,0 +1,4328 @@
+{
+  "schema_version": 1,
+  "scope": "synthetic_qwen3_block_cpu",
+  "model_qualification": false,
+  "standard_adoption_eligible": false,
+  "automatic_application": false,
+  "trials": [
+    {
+      "policy": "baseline",
+      "repeat": 0,
+      "fixture": "synthetic",
+      "device": "cpu",
+      "request_nanoseconds": [
+        160417,
+        96083,
+        98291,
+        85833,
+        71625,
+        115625,
+        69125,
+        87042
+      ],
+      "first_request_nanoseconds": 160417,
+      "subsequent_median_nanoseconds": 87042,
+      "maximum_absolute_error": 0.0,
+      "parity_passed": true,
+      "residency": null,
+      "profiling_enabled": true,
+      "request_phases": [
+        {
+          "acquire": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "checksum_hash": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "checksum_read": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "expert_build": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "expert_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "file_stat": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "mlx_load": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "output_assembly": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "output_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "release": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "router_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "router_to_host": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "weight_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          }
+        },
+        {
+          "acquire": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "checksum_hash": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "checksum_read": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "expert_build": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "expert_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "file_stat": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "mlx_load": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "output_assembly": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "output_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "release": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "router_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "router_to_host": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "weight_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          }
+        },
+        {
+          "acquire": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "checksum_hash": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "checksum_read": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "expert_build": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "expert_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "file_stat": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "mlx_load": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "output_assembly": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "output_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "release": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "router_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "router_to_host": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "weight_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          }
+        },
+        {
+          "acquire": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "checksum_hash": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "checksum_read": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "expert_build": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "expert_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "file_stat": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "mlx_load": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "output_assembly": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "output_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "release": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "router_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "router_to_host": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "weight_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          }
+        },
+        {
+          "acquire": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "checksum_hash": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "checksum_read": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "expert_build": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "expert_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "file_stat": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "mlx_load": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "output_assembly": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "output_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "release": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "router_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "router_to_host": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "weight_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          }
+        },
+        {
+          "acquire": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "checksum_hash": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "checksum_read": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "expert_build": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "expert_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "file_stat": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "mlx_load": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "output_assembly": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "output_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "release": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "router_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "router_to_host": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "weight_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          }
+        },
+        {
+          "acquire": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "checksum_hash": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "checksum_read": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "expert_build": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "expert_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "file_stat": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "mlx_load": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "output_assembly": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "output_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "release": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "router_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "router_to_host": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "weight_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          }
+        },
+        {
+          "acquire": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "checksum_hash": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "checksum_read": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "expert_build": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "expert_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "file_stat": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "mlx_load": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "output_assembly": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "output_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "release": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "router_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "router_to_host": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "weight_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          }
+        }
+      ],
+      "preloaded": true,
+      "initial_residency": null,
+      "grouped": false,
+      "closed_resident_bytes": null
+    },
+    {
+      "policy": "lru",
+      "repeat": 0,
+      "fixture": "synthetic",
+      "device": "cpu",
+      "request_nanoseconds": [
+        1423625,
+        659958,
+        4730875,
+        1152875,
+        2389792,
+        2769833,
+        989416,
+        846250
+      ],
+      "first_request_nanoseconds": 1423625,
+      "subsequent_median_nanoseconds": 1152875,
+      "maximum_absolute_error": 0.0,
+      "parity_passed": true,
+      "residency": {
+        "entries": 4,
+        "resident_bytes": 36864,
+        "maximum_entries": 4,
+        "maximum_bytes": 50000,
+        "active_leases": 0,
+        "hits": 16,
+        "misses": 4,
+        "evictions": 0,
+        "rejections": 0,
+        "resize_pending": false,
+        "pending_maximum_entries": null,
+        "pending_maximum_bytes": null
+      },
+      "profiling_enabled": true,
+      "request_phases": [
+        {
+          "acquire": {
+            "count": 2,
+            "nanoseconds": 12084
+          },
+          "checksum_hash": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "checksum_read": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "expert_build": {
+            "count": 2,
+            "nanoseconds": 65916
+          },
+          "expert_eval": {
+            "count": 2,
+            "nanoseconds": 738541
+          },
+          "file_stat": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "mlx_load": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "output_assembly": {
+            "count": 2,
+            "nanoseconds": 32083
+          },
+          "output_eval": {
+            "count": 1,
+            "nanoseconds": 86416
+          },
+          "release": {
+            "count": 2,
+            "nanoseconds": 7042
+          },
+          "router_eval": {
+            "count": 1,
+            "nanoseconds": 49958
+          },
+          "router_to_host": {
+            "count": 1,
+            "nanoseconds": 65500
+          },
+          "weight_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          }
+        },
+        {
+          "acquire": {
+            "count": 2,
+            "nanoseconds": 9043
+          },
+          "checksum_hash": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "checksum_read": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "expert_build": {
+            "count": 2,
+            "nanoseconds": 22292
+          },
+          "expert_eval": {
+            "count": 2,
+            "nanoseconds": 184042
+          },
+          "file_stat": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "mlx_load": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "output_assembly": {
+            "count": 2,
+            "nanoseconds": 6375
+          },
+          "output_eval": {
+            "count": 1,
+            "nanoseconds": 38750
+          },
+          "release": {
+            "count": 2,
+            "nanoseconds": 40958
+          },
+          "router_eval": {
+            "count": 1,
+            "nanoseconds": 49708
+          },
+          "router_to_host": {
+            "count": 1,
+            "nanoseconds": 27250
+          },
+          "weight_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          }
+        },
+        {
+          "acquire": {
+            "count": 2,
+            "nanoseconds": 28625
+          },
+          "checksum_hash": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "checksum_read": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "expert_build": {
+            "count": 2,
+            "nanoseconds": 30959
+          },
+          "expert_eval": {
+            "count": 2,
+            "nanoseconds": 2695250
+          },
+          "file_stat": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "mlx_load": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "output_assembly": {
+            "count": 2,
+            "nanoseconds": 14292
+          },
+          "output_eval": {
+            "count": 1,
+            "nanoseconds": 388167
+          },
+          "release": {
+            "count": 2,
+            "nanoseconds": 329126
+          },
+          "router_eval": {
+            "count": 1,
+            "nanoseconds": 352334
+          },
+          "router_to_host": {
+            "count": 1,
+            "nanoseconds": 173209
+          },
+          "weight_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          }
+        },
+        {
+          "acquire": {
+            "count": 2,
+            "nanoseconds": 16541
+          },
+          "checksum_hash": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "checksum_read": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "expert_build": {
+            "count": 2,
+            "nanoseconds": 27957
+          },
+          "expert_eval": {
+            "count": 2,
+            "nanoseconds": 172293
+          },
+          "file_stat": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "mlx_load": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "output_assembly": {
+            "count": 2,
+            "nanoseconds": 13751
+          },
+          "output_eval": {
+            "count": 1,
+            "nanoseconds": 99208
+          },
+          "release": {
+            "count": 2,
+            "nanoseconds": 5041
+          },
+          "router_eval": {
+            "count": 1,
+            "nanoseconds": 70041
+          },
+          "router_to_host": {
+            "count": 1,
+            "nanoseconds": 61792
+          },
+          "weight_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          }
+        },
+        {
+          "acquire": {
+            "count": 2,
+            "nanoseconds": 15458
+          },
+          "checksum_hash": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "checksum_read": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "expert_build": {
+            "count": 2,
+            "nanoseconds": 101167
+          },
+          "expert_eval": {
+            "count": 2,
+            "nanoseconds": 478291
+          },
+          "file_stat": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "mlx_load": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "output_assembly": {
+            "count": 2,
+            "nanoseconds": 13250
+          },
+          "output_eval": {
+            "count": 1,
+            "nanoseconds": 94750
+          },
+          "release": {
+            "count": 2,
+            "nanoseconds": 16042
+          },
+          "router_eval": {
+            "count": 1,
+            "nanoseconds": 891875
+          },
+          "router_to_host": {
+            "count": 1,
+            "nanoseconds": 176959
+          },
+          "weight_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          }
+        },
+        {
+          "acquire": {
+            "count": 2,
+            "nanoseconds": 19584
+          },
+          "checksum_hash": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "checksum_read": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "expert_build": {
+            "count": 2,
+            "nanoseconds": 42500
+          },
+          "expert_eval": {
+            "count": 2,
+            "nanoseconds": 742458
+          },
+          "file_stat": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "mlx_load": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "output_assembly": {
+            "count": 2,
+            "nanoseconds": 15708
+          },
+          "output_eval": {
+            "count": 1,
+            "nanoseconds": 1117792
+          },
+          "release": {
+            "count": 2,
+            "nanoseconds": 9667
+          },
+          "router_eval": {
+            "count": 1,
+            "nanoseconds": 233917
+          },
+          "router_to_host": {
+            "count": 1,
+            "nanoseconds": 49667
+          },
+          "weight_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          }
+        },
+        {
+          "acquire": {
+            "count": 2,
+            "nanoseconds": 16958
+          },
+          "checksum_hash": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "checksum_read": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "expert_build": {
+            "count": 2,
+            "nanoseconds": 50209
+          },
+          "expert_eval": {
+            "count": 2,
+            "nanoseconds": 398709
+          },
+          "file_stat": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "mlx_load": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "output_assembly": {
+            "count": 2,
+            "nanoseconds": 10625
+          },
+          "output_eval": {
+            "count": 1,
+            "nanoseconds": 38250
+          },
+          "release": {
+            "count": 2,
+            "nanoseconds": 6375
+          },
+          "router_eval": {
+            "count": 1,
+            "nanoseconds": 79209
+          },
+          "router_to_host": {
+            "count": 1,
+            "nanoseconds": 87708
+          },
+          "weight_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          }
+        },
+        {
+          "acquire": {
+            "count": 2,
+            "nanoseconds": 14917
+          },
+          "checksum_hash": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "checksum_read": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "expert_build": {
+            "count": 2,
+            "nanoseconds": 63666
+          },
+          "expert_eval": {
+            "count": 2,
+            "nanoseconds": 154459
+          },
+          "file_stat": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "mlx_load": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "output_assembly": {
+            "count": 2,
+            "nanoseconds": 12708
+          },
+          "output_eval": {
+            "count": 1,
+            "nanoseconds": 123084
+          },
+          "release": {
+            "count": 2,
+            "nanoseconds": 31792
+          },
+          "router_eval": {
+            "count": 1,
+            "nanoseconds": 52584
+          },
+          "router_to_host": {
+            "count": 1,
+            "nanoseconds": 31667
+          },
+          "weight_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          }
+        }
+      ],
+      "preloaded": true,
+      "initial_residency": {
+        "entries": 4,
+        "resident_bytes": 36864,
+        "maximum_entries": 4,
+        "maximum_bytes": 50000,
+        "active_leases": 0,
+        "hits": 0,
+        "misses": 4,
+        "evictions": 0,
+        "rejections": 0,
+        "resize_pending": false,
+        "pending_maximum_entries": null,
+        "pending_maximum_bytes": null
+      },
+      "grouped": false,
+      "closed_resident_bytes": 0
+    },
+    {
+      "policy": "cost_frequency",
+      "repeat": 0,
+      "fixture": "synthetic",
+      "device": "cpu",
+      "request_nanoseconds": [
+        802500,
+        453500,
+        1046208,
+        880709,
+        381292,
+        353541,
+        286416,
+        490125
+      ],
+      "first_request_nanoseconds": 802500,
+      "subsequent_median_nanoseconds": 453500,
+      "maximum_absolute_error": 0.0,
+      "parity_passed": true,
+      "residency": {
+        "entries": 4,
+        "resident_bytes": 36864,
+        "maximum_entries": 4,
+        "maximum_bytes": 50000,
+        "active_leases": 0,
+        "hits": 16,
+        "misses": 4,
+        "evictions": 0,
+        "rejections": 0,
+        "resize_pending": false,
+        "pending_maximum_entries": null,
+        "pending_maximum_bytes": null
+      },
+      "profiling_enabled": true,
+      "request_phases": [
+        {
+          "acquire": {
+            "count": 2,
+            "nanoseconds": 14207
+          },
+          "checksum_hash": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "checksum_read": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "expert_build": {
+            "count": 2,
+            "nanoseconds": 32208
+          },
+          "expert_eval": {
+            "count": 2,
+            "nanoseconds": 228959
+          },
+          "file_stat": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "mlx_load": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "output_assembly": {
+            "count": 2,
+            "nanoseconds": 19834
+          },
+          "output_eval": {
+            "count": 1,
+            "nanoseconds": 83375
+          },
+          "release": {
+            "count": 2,
+            "nanoseconds": 5625
+          },
+          "router_eval": {
+            "count": 1,
+            "nanoseconds": 51084
+          },
+          "router_to_host": {
+            "count": 1,
+            "nanoseconds": 25500
+          },
+          "weight_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          }
+        },
+        {
+          "acquire": {
+            "count": 2,
+            "nanoseconds": 6375
+          },
+          "checksum_hash": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "checksum_read": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "expert_build": {
+            "count": 2,
+            "nanoseconds": 12625
+          },
+          "expert_eval": {
+            "count": 2,
+            "nanoseconds": 105917
+          },
+          "file_stat": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "mlx_load": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "output_assembly": {
+            "count": 2,
+            "nanoseconds": 6833
+          },
+          "output_eval": {
+            "count": 1,
+            "nanoseconds": 23750
+          },
+          "release": {
+            "count": 2,
+            "nanoseconds": 3875
+          },
+          "router_eval": {
+            "count": 1,
+            "nanoseconds": 52833
+          },
+          "router_to_host": {
+            "count": 1,
+            "nanoseconds": 31000
+          },
+          "weight_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          }
+        },
+        {
+          "acquire": {
+            "count": 2,
+            "nanoseconds": 8792
+          },
+          "checksum_hash": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "checksum_read": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "expert_build": {
+            "count": 2,
+            "nanoseconds": 31874
+          },
+          "expert_eval": {
+            "count": 2,
+            "nanoseconds": 221333
+          },
+          "file_stat": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "mlx_load": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "output_assembly": {
+            "count": 2,
+            "nanoseconds": 4292
+          },
+          "output_eval": {
+            "count": 1,
+            "nanoseconds": 20084
+          },
+          "release": {
+            "count": 2,
+            "nanoseconds": 10542
+          },
+          "router_eval": {
+            "count": 1,
+            "nanoseconds": 118958
+          },
+          "router_to_host": {
+            "count": 1,
+            "nanoseconds": 50000
+          },
+          "weight_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          }
+        },
+        {
+          "acquire": {
+            "count": 2,
+            "nanoseconds": 13500
+          },
+          "checksum_hash": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "checksum_read": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "expert_build": {
+            "count": 2,
+            "nanoseconds": 31583
+          },
+          "expert_eval": {
+            "count": 2,
+            "nanoseconds": 150667
+          },
+          "file_stat": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "mlx_load": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "output_assembly": {
+            "count": 2,
+            "nanoseconds": 4458
+          },
+          "output_eval": {
+            "count": 1,
+            "nanoseconds": 17042
+          },
+          "release": {
+            "count": 2,
+            "nanoseconds": 2625
+          },
+          "router_eval": {
+            "count": 1,
+            "nanoseconds": 233583
+          },
+          "router_to_host": {
+            "count": 1,
+            "nanoseconds": 96000
+          },
+          "weight_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          }
+        },
+        {
+          "acquire": {
+            "count": 2,
+            "nanoseconds": 5458
+          },
+          "checksum_hash": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "checksum_read": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "expert_build": {
+            "count": 2,
+            "nanoseconds": 11584
+          },
+          "expert_eval": {
+            "count": 2,
+            "nanoseconds": 102375
+          },
+          "file_stat": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "mlx_load": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "output_assembly": {
+            "count": 2,
+            "nanoseconds": 4375
+          },
+          "output_eval": {
+            "count": 1,
+            "nanoseconds": 63625
+          },
+          "release": {
+            "count": 2,
+            "nanoseconds": 2750
+          },
+          "router_eval": {
+            "count": 1,
+            "nanoseconds": 19584
+          },
+          "router_to_host": {
+            "count": 1,
+            "nanoseconds": 10917
+          },
+          "weight_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          }
+        },
+        {
+          "acquire": {
+            "count": 2,
+            "nanoseconds": 25333
+          },
+          "checksum_hash": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "checksum_read": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "expert_build": {
+            "count": 2,
+            "nanoseconds": 10334
+          },
+          "expert_eval": {
+            "count": 2,
+            "nanoseconds": 99166
+          },
+          "file_stat": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "mlx_load": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "output_assembly": {
+            "count": 2,
+            "nanoseconds": 3541
+          },
+          "output_eval": {
+            "count": 1,
+            "nanoseconds": 38167
+          },
+          "release": {
+            "count": 2,
+            "nanoseconds": 2875
+          },
+          "router_eval": {
+            "count": 1,
+            "nanoseconds": 42000
+          },
+          "router_to_host": {
+            "count": 1,
+            "nanoseconds": 14375
+          },
+          "weight_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          }
+        },
+        {
+          "acquire": {
+            "count": 2,
+            "nanoseconds": 3417
+          },
+          "checksum_hash": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "checksum_read": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "expert_build": {
+            "count": 2,
+            "nanoseconds": 7416
+          },
+          "expert_eval": {
+            "count": 2,
+            "nanoseconds": 105916
+          },
+          "file_stat": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "mlx_load": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "output_assembly": {
+            "count": 2,
+            "nanoseconds": 2834
+          },
+          "output_eval": {
+            "count": 1,
+            "nanoseconds": 16250
+          },
+          "release": {
+            "count": 2,
+            "nanoseconds": 22291
+          },
+          "router_eval": {
+            "count": 1,
+            "nanoseconds": 17834
+          },
+          "router_to_host": {
+            "count": 1,
+            "nanoseconds": 14250
+          },
+          "weight_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          }
+        },
+        {
+          "acquire": {
+            "count": 2,
+            "nanoseconds": 9416
+          },
+          "checksum_hash": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "checksum_read": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "expert_build": {
+            "count": 2,
+            "nanoseconds": 21667
+          },
+          "expert_eval": {
+            "count": 2,
+            "nanoseconds": 142042
+          },
+          "file_stat": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "mlx_load": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "output_assembly": {
+            "count": 2,
+            "nanoseconds": 4042
+          },
+          "output_eval": {
+            "count": 1,
+            "nanoseconds": 42292
+          },
+          "release": {
+            "count": 2,
+            "nanoseconds": 1792
+          },
+          "router_eval": {
+            "count": 1,
+            "nanoseconds": 19334
+          },
+          "router_to_host": {
+            "count": 1,
+            "nanoseconds": 37542
+          },
+          "weight_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          }
+        }
+      ],
+      "preloaded": true,
+      "initial_residency": {
+        "entries": 4,
+        "resident_bytes": 36864,
+        "maximum_entries": 4,
+        "maximum_bytes": 50000,
+        "active_leases": 0,
+        "hits": 0,
+        "misses": 4,
+        "evictions": 0,
+        "rejections": 0,
+        "resize_pending": false,
+        "pending_maximum_entries": null,
+        "pending_maximum_bytes": null
+      },
+      "grouped": false,
+      "closed_resident_bytes": 0
+    },
+    {
+      "policy": "lru",
+      "repeat": 1,
+      "fixture": "synthetic",
+      "device": "cpu",
+      "request_nanoseconds": [
+        328041,
+        173916,
+        160000,
+        151250,
+        191375,
+        150541,
+        155916,
+        163416
+      ],
+      "first_request_nanoseconds": 328041,
+      "subsequent_median_nanoseconds": 160000,
+      "maximum_absolute_error": 0.0,
+      "parity_passed": true,
+      "residency": {
+        "entries": 4,
+        "resident_bytes": 36864,
+        "maximum_entries": 4,
+        "maximum_bytes": 50000,
+        "active_leases": 0,
+        "hits": 16,
+        "misses": 4,
+        "evictions": 0,
+        "rejections": 0,
+        "resize_pending": false,
+        "pending_maximum_entries": null,
+        "pending_maximum_bytes": null
+      },
+      "profiling_enabled": true,
+      "request_phases": [
+        {
+          "acquire": {
+            "count": 2,
+            "nanoseconds": 6042
+          },
+          "checksum_hash": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "checksum_read": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "expert_build": {
+            "count": 2,
+            "nanoseconds": 14124
+          },
+          "expert_eval": {
+            "count": 2,
+            "nanoseconds": 74834
+          },
+          "file_stat": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "mlx_load": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "output_assembly": {
+            "count": 2,
+            "nanoseconds": 7500
+          },
+          "output_eval": {
+            "count": 1,
+            "nanoseconds": 18750
+          },
+          "release": {
+            "count": 2,
+            "nanoseconds": 2124
+          },
+          "router_eval": {
+            "count": 1,
+            "nanoseconds": 23375
+          },
+          "router_to_host": {
+            "count": 1,
+            "nanoseconds": 48708
+          },
+          "weight_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          }
+        },
+        {
+          "acquire": {
+            "count": 2,
+            "nanoseconds": 3666
+          },
+          "checksum_hash": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "checksum_read": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "expert_build": {
+            "count": 2,
+            "nanoseconds": 7250
+          },
+          "expert_eval": {
+            "count": 2,
+            "nanoseconds": 43376
+          },
+          "file_stat": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "mlx_load": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "output_assembly": {
+            "count": 2,
+            "nanoseconds": 3417
+          },
+          "output_eval": {
+            "count": 1,
+            "nanoseconds": 12500
+          },
+          "release": {
+            "count": 2,
+            "nanoseconds": 1584
+          },
+          "router_eval": {
+            "count": 1,
+            "nanoseconds": 15708
+          },
+          "router_to_host": {
+            "count": 1,
+            "nanoseconds": 11833
+          },
+          "weight_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          }
+        },
+        {
+          "acquire": {
+            "count": 2,
+            "nanoseconds": 3292
+          },
+          "checksum_hash": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "checksum_read": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "expert_build": {
+            "count": 2,
+            "nanoseconds": 6583
+          },
+          "expert_eval": {
+            "count": 2,
+            "nanoseconds": 40833
+          },
+          "file_stat": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "mlx_load": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "output_assembly": {
+            "count": 2,
+            "nanoseconds": 2457
+          },
+          "output_eval": {
+            "count": 1,
+            "nanoseconds": 14000
+          },
+          "release": {
+            "count": 2,
+            "nanoseconds": 1541
+          },
+          "router_eval": {
+            "count": 1,
+            "nanoseconds": 14625
+          },
+          "router_to_host": {
+            "count": 1,
+            "nanoseconds": 11458
+          },
+          "weight_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          }
+        },
+        {
+          "acquire": {
+            "count": 2,
+            "nanoseconds": 2500
+          },
+          "checksum_hash": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "checksum_read": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "expert_build": {
+            "count": 2,
+            "nanoseconds": 6041
+          },
+          "expert_eval": {
+            "count": 2,
+            "nanoseconds": 40208
+          },
+          "file_stat": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "mlx_load": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "output_assembly": {
+            "count": 2,
+            "nanoseconds": 2292
+          },
+          "output_eval": {
+            "count": 1,
+            "nanoseconds": 12208
+          },
+          "release": {
+            "count": 2,
+            "nanoseconds": 1333
+          },
+          "router_eval": {
+            "count": 1,
+            "nanoseconds": 16166
+          },
+          "router_to_host": {
+            "count": 1,
+            "nanoseconds": 10542
+          },
+          "weight_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          }
+        },
+        {
+          "acquire": {
+            "count": 2,
+            "nanoseconds": 4125
+          },
+          "checksum_hash": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "checksum_read": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "expert_build": {
+            "count": 2,
+            "nanoseconds": 9625
+          },
+          "expert_eval": {
+            "count": 2,
+            "nanoseconds": 51708
+          },
+          "file_stat": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "mlx_load": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "output_assembly": {
+            "count": 2,
+            "nanoseconds": 2375
+          },
+          "output_eval": {
+            "count": 1,
+            "nanoseconds": 13875
+          },
+          "release": {
+            "count": 2,
+            "nanoseconds": 1959
+          },
+          "router_eval": {
+            "count": 1,
+            "nanoseconds": 19416
+          },
+          "router_to_host": {
+            "count": 1,
+            "nanoseconds": 14042
+          },
+          "weight_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          }
+        },
+        {
+          "acquire": {
+            "count": 2,
+            "nanoseconds": 3042
+          },
+          "checksum_hash": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "checksum_read": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "expert_build": {
+            "count": 2,
+            "nanoseconds": 6333
+          },
+          "expert_eval": {
+            "count": 2,
+            "nanoseconds": 39792
+          },
+          "file_stat": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "mlx_load": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "output_assembly": {
+            "count": 2,
+            "nanoseconds": 2166
+          },
+          "output_eval": {
+            "count": 1,
+            "nanoseconds": 11917
+          },
+          "release": {
+            "count": 2,
+            "nanoseconds": 1291
+          },
+          "router_eval": {
+            "count": 1,
+            "nanoseconds": 13875
+          },
+          "router_to_host": {
+            "count": 1,
+            "nanoseconds": 10666
+          },
+          "weight_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          }
+        },
+        {
+          "acquire": {
+            "count": 2,
+            "nanoseconds": 2875
+          },
+          "checksum_hash": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "checksum_read": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "expert_build": {
+            "count": 2,
+            "nanoseconds": 6042
+          },
+          "expert_eval": {
+            "count": 2,
+            "nanoseconds": 42292
+          },
+          "file_stat": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "mlx_load": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "output_assembly": {
+            "count": 2,
+            "nanoseconds": 3791
+          },
+          "output_eval": {
+            "count": 1,
+            "nanoseconds": 14042
+          },
+          "release": {
+            "count": 2,
+            "nanoseconds": 1500
+          },
+          "router_eval": {
+            "count": 1,
+            "nanoseconds": 12833
+          },
+          "router_to_host": {
+            "count": 1,
+            "nanoseconds": 10416
+          },
+          "weight_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          }
+        },
+        {
+          "acquire": {
+            "count": 2,
+            "nanoseconds": 3166
+          },
+          "checksum_hash": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "checksum_read": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "expert_build": {
+            "count": 2,
+            "nanoseconds": 6792
+          },
+          "expert_eval": {
+            "count": 2,
+            "nanoseconds": 39792
+          },
+          "file_stat": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "mlx_load": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "output_assembly": {
+            "count": 2,
+            "nanoseconds": 2626
+          },
+          "output_eval": {
+            "count": 1,
+            "nanoseconds": 17458
+          },
+          "release": {
+            "count": 2,
+            "nanoseconds": 1417
+          },
+          "router_eval": {
+            "count": 1,
+            "nanoseconds": 14125
+          },
+          "router_to_host": {
+            "count": 1,
+            "nanoseconds": 11250
+          },
+          "weight_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          }
+        }
+      ],
+      "preloaded": true,
+      "initial_residency": {
+        "entries": 4,
+        "resident_bytes": 36864,
+        "maximum_entries": 4,
+        "maximum_bytes": 50000,
+        "active_leases": 0,
+        "hits": 0,
+        "misses": 4,
+        "evictions": 0,
+        "rejections": 0,
+        "resize_pending": false,
+        "pending_maximum_entries": null,
+        "pending_maximum_bytes": null
+      },
+      "grouped": false,
+      "closed_resident_bytes": 0
+    },
+    {
+      "policy": "cost_frequency",
+      "repeat": 1,
+      "fixture": "synthetic",
+      "device": "cpu",
+      "request_nanoseconds": [
+        328166,
+        228708,
+        183291,
+        189125,
+        166167,
+        184875,
+        174042,
+        163458
+      ],
+      "first_request_nanoseconds": 328166,
+      "subsequent_median_nanoseconds": 183291,
+      "maximum_absolute_error": 0.0,
+      "parity_passed": true,
+      "residency": {
+        "entries": 4,
+        "resident_bytes": 36864,
+        "maximum_entries": 4,
+        "maximum_bytes": 50000,
+        "active_leases": 0,
+        "hits": 16,
+        "misses": 4,
+        "evictions": 0,
+        "rejections": 0,
+        "resize_pending": false,
+        "pending_maximum_entries": null,
+        "pending_maximum_bytes": null
+      },
+      "profiling_enabled": true,
+      "request_phases": [
+        {
+          "acquire": {
+            "count": 2,
+            "nanoseconds": 7875
+          },
+          "checksum_hash": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "checksum_read": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "expert_build": {
+            "count": 2,
+            "nanoseconds": 14459
+          },
+          "expert_eval": {
+            "count": 2,
+            "nanoseconds": 95375
+          },
+          "file_stat": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "mlx_load": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "output_assembly": {
+            "count": 2,
+            "nanoseconds": 7251
+          },
+          "output_eval": {
+            "count": 1,
+            "nanoseconds": 20166
+          },
+          "release": {
+            "count": 2,
+            "nanoseconds": 2750
+          },
+          "router_eval": {
+            "count": 1,
+            "nanoseconds": 20542
+          },
+          "router_to_host": {
+            "count": 1,
+            "nanoseconds": 20417
+          },
+          "weight_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          }
+        },
+        {
+          "acquire": {
+            "count": 2,
+            "nanoseconds": 5458
+          },
+          "checksum_hash": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "checksum_read": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "expert_build": {
+            "count": 2,
+            "nanoseconds": 10042
+          },
+          "expert_eval": {
+            "count": 2,
+            "nanoseconds": 53709
+          },
+          "file_stat": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "mlx_load": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "output_assembly": {
+            "count": 2,
+            "nanoseconds": 4292
+          },
+          "output_eval": {
+            "count": 1,
+            "nanoseconds": 16959
+          },
+          "release": {
+            "count": 2,
+            "nanoseconds": 2334
+          },
+          "router_eval": {
+            "count": 1,
+            "nanoseconds": 21333
+          },
+          "router_to_host": {
+            "count": 1,
+            "nanoseconds": 13959
+          },
+          "weight_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          }
+        },
+        {
+          "acquire": {
+            "count": 2,
+            "nanoseconds": 3375
+          },
+          "checksum_hash": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "checksum_read": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "expert_build": {
+            "count": 2,
+            "nanoseconds": 6917
+          },
+          "expert_eval": {
+            "count": 2,
+            "nanoseconds": 44624
+          },
+          "file_stat": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "mlx_load": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "output_assembly": {
+            "count": 2,
+            "nanoseconds": 2875
+          },
+          "output_eval": {
+            "count": 1,
+            "nanoseconds": 18917
+          },
+          "release": {
+            "count": 2,
+            "nanoseconds": 1542
+          },
+          "router_eval": {
+            "count": 1,
+            "nanoseconds": 16083
+          },
+          "router_to_host": {
+            "count": 1,
+            "nanoseconds": 12417
+          },
+          "weight_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          }
+        },
+        {
+          "acquire": {
+            "count": 2,
+            "nanoseconds": 4542
+          },
+          "checksum_hash": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "checksum_read": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "expert_build": {
+            "count": 2,
+            "nanoseconds": 8458
+          },
+          "expert_eval": {
+            "count": 2,
+            "nanoseconds": 49167
+          },
+          "file_stat": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "mlx_load": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "output_assembly": {
+            "count": 2,
+            "nanoseconds": 2875
+          },
+          "output_eval": {
+            "count": 1,
+            "nanoseconds": 13250
+          },
+          "release": {
+            "count": 2,
+            "nanoseconds": 1833
+          },
+          "router_eval": {
+            "count": 1,
+            "nanoseconds": 15417
+          },
+          "router_to_host": {
+            "count": 1,
+            "nanoseconds": 14667
+          },
+          "weight_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          }
+        },
+        {
+          "acquire": {
+            "count": 2,
+            "nanoseconds": 2708
+          },
+          "checksum_hash": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "checksum_read": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "expert_build": {
+            "count": 2,
+            "nanoseconds": 6249
+          },
+          "expert_eval": {
+            "count": 2,
+            "nanoseconds": 43625
+          },
+          "file_stat": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "mlx_load": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "output_assembly": {
+            "count": 2,
+            "nanoseconds": 2583
+          },
+          "output_eval": {
+            "count": 1,
+            "nanoseconds": 18583
+          },
+          "release": {
+            "count": 2,
+            "nanoseconds": 1333
+          },
+          "router_eval": {
+            "count": 1,
+            "nanoseconds": 14083
+          },
+          "router_to_host": {
+            "count": 1,
+            "nanoseconds": 11208
+          },
+          "weight_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          }
+        },
+        {
+          "acquire": {
+            "count": 2,
+            "nanoseconds": 4292
+          },
+          "checksum_hash": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "checksum_read": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "expert_build": {
+            "count": 2,
+            "nanoseconds": 7709
+          },
+          "expert_eval": {
+            "count": 2,
+            "nanoseconds": 43375
+          },
+          "file_stat": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "mlx_load": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "output_assembly": {
+            "count": 2,
+            "nanoseconds": 3667
+          },
+          "output_eval": {
+            "count": 1,
+            "nanoseconds": 13666
+          },
+          "release": {
+            "count": 2,
+            "nanoseconds": 1959
+          },
+          "router_eval": {
+            "count": 1,
+            "nanoseconds": 15875
+          },
+          "router_to_host": {
+            "count": 1,
+            "nanoseconds": 12584
+          },
+          "weight_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          }
+        },
+        {
+          "acquire": {
+            "count": 2,
+            "nanoseconds": 2916
+          },
+          "checksum_hash": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "checksum_read": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "expert_build": {
+            "count": 2,
+            "nanoseconds": 6500
+          },
+          "expert_eval": {
+            "count": 2,
+            "nanoseconds": 45542
+          },
+          "file_stat": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "mlx_load": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "output_assembly": {
+            "count": 2,
+            "nanoseconds": 2541
+          },
+          "output_eval": {
+            "count": 1,
+            "nanoseconds": 13125
+          },
+          "release": {
+            "count": 2,
+            "nanoseconds": 1542
+          },
+          "router_eval": {
+            "count": 1,
+            "nanoseconds": 18459
+          },
+          "router_to_host": {
+            "count": 1,
+            "nanoseconds": 20542
+          },
+          "weight_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          }
+        },
+        {
+          "acquire": {
+            "count": 2,
+            "nanoseconds": 2833
+          },
+          "checksum_hash": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "checksum_read": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "expert_build": {
+            "count": 2,
+            "nanoseconds": 6251
+          },
+          "expert_eval": {
+            "count": 2,
+            "nanoseconds": 40708
+          },
+          "file_stat": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "mlx_load": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "output_assembly": {
+            "count": 2,
+            "nanoseconds": 2292
+          },
+          "output_eval": {
+            "count": 1,
+            "nanoseconds": 19834
+          },
+          "release": {
+            "count": 2,
+            "nanoseconds": 1542
+          },
+          "router_eval": {
+            "count": 1,
+            "nanoseconds": 14042
+          },
+          "router_to_host": {
+            "count": 1,
+            "nanoseconds": 11500
+          },
+          "weight_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          }
+        }
+      ],
+      "preloaded": true,
+      "initial_residency": {
+        "entries": 4,
+        "resident_bytes": 36864,
+        "maximum_entries": 4,
+        "maximum_bytes": 50000,
+        "active_leases": 0,
+        "hits": 0,
+        "misses": 4,
+        "evictions": 0,
+        "rejections": 0,
+        "resize_pending": false,
+        "pending_maximum_entries": null,
+        "pending_maximum_bytes": null
+      },
+      "grouped": false,
+      "closed_resident_bytes": 0
+    },
+    {
+      "policy": "baseline",
+      "repeat": 1,
+      "fixture": "synthetic",
+      "device": "cpu",
+      "request_nanoseconds": [
+        94500,
+        68708,
+        57667,
+        53042,
+        75083,
+        56625,
+        55667,
+        53375
+      ],
+      "first_request_nanoseconds": 94500,
+      "subsequent_median_nanoseconds": 56625,
+      "maximum_absolute_error": 0.0,
+      "parity_passed": true,
+      "residency": null,
+      "profiling_enabled": true,
+      "request_phases": [
+        {
+          "acquire": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "checksum_hash": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "checksum_read": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "expert_build": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "expert_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "file_stat": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "mlx_load": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "output_assembly": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "output_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "release": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "router_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "router_to_host": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "weight_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          }
+        },
+        {
+          "acquire": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "checksum_hash": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "checksum_read": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "expert_build": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "expert_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "file_stat": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "mlx_load": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "output_assembly": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "output_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "release": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "router_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "router_to_host": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "weight_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          }
+        },
+        {
+          "acquire": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "checksum_hash": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "checksum_read": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "expert_build": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "expert_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "file_stat": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "mlx_load": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "output_assembly": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "output_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "release": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "router_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "router_to_host": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "weight_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          }
+        },
+        {
+          "acquire": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "checksum_hash": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "checksum_read": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "expert_build": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "expert_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "file_stat": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "mlx_load": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "output_assembly": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "output_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "release": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "router_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "router_to_host": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "weight_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          }
+        },
+        {
+          "acquire": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "checksum_hash": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "checksum_read": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "expert_build": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "expert_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "file_stat": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "mlx_load": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "output_assembly": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "output_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "release": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "router_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "router_to_host": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "weight_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          }
+        },
+        {
+          "acquire": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "checksum_hash": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "checksum_read": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "expert_build": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "expert_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "file_stat": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "mlx_load": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "output_assembly": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "output_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "release": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "router_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "router_to_host": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "weight_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          }
+        },
+        {
+          "acquire": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "checksum_hash": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "checksum_read": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "expert_build": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "expert_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "file_stat": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "mlx_load": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "output_assembly": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "output_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "release": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "router_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "router_to_host": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "weight_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          }
+        },
+        {
+          "acquire": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "checksum_hash": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "checksum_read": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "expert_build": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "expert_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "file_stat": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "mlx_load": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "output_assembly": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "output_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "release": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "router_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "router_to_host": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "weight_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          }
+        }
+      ],
+      "preloaded": true,
+      "initial_residency": null,
+      "grouped": false,
+      "closed_resident_bytes": null
+    },
+    {
+      "policy": "cost_frequency",
+      "repeat": 2,
+      "fixture": "synthetic",
+      "device": "cpu",
+      "request_nanoseconds": [
+        246458,
+        154875,
+        144125,
+        170708,
+        169042,
+        151417,
+        143584,
+        139792
+      ],
+      "first_request_nanoseconds": 246458,
+      "subsequent_median_nanoseconds": 151417,
+      "maximum_absolute_error": 0.0,
+      "parity_passed": true,
+      "residency": {
+        "entries": 4,
+        "resident_bytes": 36864,
+        "maximum_entries": 4,
+        "maximum_bytes": 50000,
+        "active_leases": 0,
+        "hits": 16,
+        "misses": 4,
+        "evictions": 0,
+        "rejections": 0,
+        "resize_pending": false,
+        "pending_maximum_entries": null,
+        "pending_maximum_bytes": null
+      },
+      "profiling_enabled": true,
+      "request_phases": [
+        {
+          "acquire": {
+            "count": 2,
+            "nanoseconds": 4917
+          },
+          "checksum_hash": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "checksum_read": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "expert_build": {
+            "count": 2,
+            "nanoseconds": 11292
+          },
+          "expert_eval": {
+            "count": 2,
+            "nanoseconds": 61667
+          },
+          "file_stat": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "mlx_load": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "output_assembly": {
+            "count": 2,
+            "nanoseconds": 6208
+          },
+          "output_eval": {
+            "count": 1,
+            "nanoseconds": 16416
+          },
+          "release": {
+            "count": 2,
+            "nanoseconds": 1959
+          },
+          "router_eval": {
+            "count": 1,
+            "nanoseconds": 21292
+          },
+          "router_to_host": {
+            "count": 1,
+            "nanoseconds": 16084
+          },
+          "weight_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          }
+        },
+        {
+          "acquire": {
+            "count": 2,
+            "nanoseconds": 3125
+          },
+          "checksum_hash": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "checksum_read": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "expert_build": {
+            "count": 2,
+            "nanoseconds": 6584
+          },
+          "expert_eval": {
+            "count": 2,
+            "nanoseconds": 39251
+          },
+          "file_stat": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "mlx_load": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "output_assembly": {
+            "count": 2,
+            "nanoseconds": 2666
+          },
+          "output_eval": {
+            "count": 1,
+            "nanoseconds": 11542
+          },
+          "release": {
+            "count": 2,
+            "nanoseconds": 1458
+          },
+          "router_eval": {
+            "count": 1,
+            "nanoseconds": 15666
+          },
+          "router_to_host": {
+            "count": 1,
+            "nanoseconds": 10000
+          },
+          "weight_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          }
+        },
+        {
+          "acquire": {
+            "count": 2,
+            "nanoseconds": 2626
+          },
+          "checksum_hash": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "checksum_read": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "expert_build": {
+            "count": 2,
+            "nanoseconds": 5666
+          },
+          "expert_eval": {
+            "count": 2,
+            "nanoseconds": 39709
+          },
+          "file_stat": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "mlx_load": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "output_assembly": {
+            "count": 2,
+            "nanoseconds": 2250
+          },
+          "output_eval": {
+            "count": 1,
+            "nanoseconds": 12458
+          },
+          "release": {
+            "count": 2,
+            "nanoseconds": 1291
+          },
+          "router_eval": {
+            "count": 1,
+            "nanoseconds": 12583
+          },
+          "router_to_host": {
+            "count": 1,
+            "nanoseconds": 9792
+          },
+          "weight_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          }
+        },
+        {
+          "acquire": {
+            "count": 2,
+            "nanoseconds": 2791
+          },
+          "checksum_hash": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "checksum_read": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "expert_build": {
+            "count": 2,
+            "nanoseconds": 10084
+          },
+          "expert_eval": {
+            "count": 2,
+            "nanoseconds": 40708
+          },
+          "file_stat": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "mlx_load": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "output_assembly": {
+            "count": 2,
+            "nanoseconds": 4333
+          },
+          "output_eval": {
+            "count": 1,
+            "nanoseconds": 15791
+          },
+          "release": {
+            "count": 2,
+            "nanoseconds": 2208
+          },
+          "router_eval": {
+            "count": 1,
+            "nanoseconds": 12708
+          },
+          "router_to_host": {
+            "count": 1,
+            "nanoseconds": 9958
+          },
+          "weight_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          }
+        },
+        {
+          "acquire": {
+            "count": 2,
+            "nanoseconds": 4125
+          },
+          "checksum_hash": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "checksum_read": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "expert_build": {
+            "count": 2,
+            "nanoseconds": 8583
+          },
+          "expert_eval": {
+            "count": 2,
+            "nanoseconds": 40000
+          },
+          "file_stat": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "mlx_load": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "output_assembly": {
+            "count": 2,
+            "nanoseconds": 2750
+          },
+          "output_eval": {
+            "count": 1,
+            "nanoseconds": 12834
+          },
+          "release": {
+            "count": 2,
+            "nanoseconds": 1708
+          },
+          "router_eval": {
+            "count": 1,
+            "nanoseconds": 15625
+          },
+          "router_to_host": {
+            "count": 1,
+            "nanoseconds": 11542
+          },
+          "weight_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          }
+        },
+        {
+          "acquire": {
+            "count": 2,
+            "nanoseconds": 3000
+          },
+          "checksum_hash": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "checksum_read": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "expert_build": {
+            "count": 2,
+            "nanoseconds": 6625
+          },
+          "expert_eval": {
+            "count": 2,
+            "nanoseconds": 39583
+          },
+          "file_stat": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "mlx_load": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "output_assembly": {
+            "count": 2,
+            "nanoseconds": 2292
+          },
+          "output_eval": {
+            "count": 1,
+            "nanoseconds": 11958
+          },
+          "release": {
+            "count": 2,
+            "nanoseconds": 1249
+          },
+          "router_eval": {
+            "count": 1,
+            "nanoseconds": 13958
+          },
+          "router_to_host": {
+            "count": 1,
+            "nanoseconds": 12000
+          },
+          "weight_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          }
+        },
+        {
+          "acquire": {
+            "count": 2,
+            "nanoseconds": 2708
+          },
+          "checksum_hash": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "checksum_read": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "expert_build": {
+            "count": 2,
+            "nanoseconds": 5833
+          },
+          "expert_eval": {
+            "count": 2,
+            "nanoseconds": 39208
+          },
+          "file_stat": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "mlx_load": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "output_assembly": {
+            "count": 2,
+            "nanoseconds": 2000
+          },
+          "output_eval": {
+            "count": 1,
+            "nanoseconds": 11708
+          },
+          "release": {
+            "count": 2,
+            "nanoseconds": 1167
+          },
+          "router_eval": {
+            "count": 1,
+            "nanoseconds": 13250
+          },
+          "router_to_host": {
+            "count": 1,
+            "nanoseconds": 11917
+          },
+          "weight_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          }
+        },
+        {
+          "acquire": {
+            "count": 2,
+            "nanoseconds": 2542
+          },
+          "checksum_hash": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "checksum_read": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "expert_build": {
+            "count": 2,
+            "nanoseconds": 5833
+          },
+          "expert_eval": {
+            "count": 2,
+            "nanoseconds": 37875
+          },
+          "file_stat": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "mlx_load": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "output_assembly": {
+            "count": 2,
+            "nanoseconds": 1958
+          },
+          "output_eval": {
+            "count": 1,
+            "nanoseconds": 11667
+          },
+          "release": {
+            "count": 2,
+            "nanoseconds": 1167
+          },
+          "router_eval": {
+            "count": 1,
+            "nanoseconds": 13667
+          },
+          "router_to_host": {
+            "count": 1,
+            "nanoseconds": 10042
+          },
+          "weight_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          }
+        }
+      ],
+      "preloaded": true,
+      "initial_residency": {
+        "entries": 4,
+        "resident_bytes": 36864,
+        "maximum_entries": 4,
+        "maximum_bytes": 50000,
+        "active_leases": 0,
+        "hits": 0,
+        "misses": 4,
+        "evictions": 0,
+        "rejections": 0,
+        "resize_pending": false,
+        "pending_maximum_entries": null,
+        "pending_maximum_bytes": null
+      },
+      "grouped": false,
+      "closed_resident_bytes": 0
+    },
+    {
+      "policy": "baseline",
+      "repeat": 2,
+      "fixture": "synthetic",
+      "device": "cpu",
+      "request_nanoseconds": [
+        68458,
+        81958,
+        68292,
+        72708,
+        66666,
+        59042,
+        49459,
+        55166
+      ],
+      "first_request_nanoseconds": 68458,
+      "subsequent_median_nanoseconds": 66666,
+      "maximum_absolute_error": 0.0,
+      "parity_passed": true,
+      "residency": null,
+      "profiling_enabled": true,
+      "request_phases": [
+        {
+          "acquire": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "checksum_hash": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "checksum_read": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "expert_build": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "expert_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "file_stat": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "mlx_load": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "output_assembly": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "output_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "release": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "router_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "router_to_host": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "weight_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          }
+        },
+        {
+          "acquire": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "checksum_hash": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "checksum_read": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "expert_build": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "expert_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "file_stat": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "mlx_load": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "output_assembly": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "output_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "release": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "router_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "router_to_host": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "weight_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          }
+        },
+        {
+          "acquire": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "checksum_hash": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "checksum_read": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "expert_build": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "expert_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "file_stat": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "mlx_load": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "output_assembly": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "output_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "release": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "router_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "router_to_host": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "weight_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          }
+        },
+        {
+          "acquire": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "checksum_hash": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "checksum_read": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "expert_build": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "expert_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "file_stat": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "mlx_load": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "output_assembly": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "output_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "release": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "router_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "router_to_host": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "weight_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          }
+        },
+        {
+          "acquire": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "checksum_hash": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "checksum_read": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "expert_build": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "expert_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "file_stat": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "mlx_load": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "output_assembly": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "output_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "release": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "router_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "router_to_host": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "weight_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          }
+        },
+        {
+          "acquire": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "checksum_hash": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "checksum_read": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "expert_build": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "expert_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "file_stat": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "mlx_load": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "output_assembly": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "output_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "release": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "router_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "router_to_host": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "weight_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          }
+        },
+        {
+          "acquire": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "checksum_hash": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "checksum_read": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "expert_build": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "expert_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "file_stat": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "mlx_load": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "output_assembly": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "output_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "release": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "router_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "router_to_host": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "weight_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          }
+        },
+        {
+          "acquire": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "checksum_hash": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "checksum_read": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "expert_build": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "expert_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "file_stat": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "mlx_load": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "output_assembly": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "output_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "release": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "router_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "router_to_host": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "weight_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          }
+        }
+      ],
+      "preloaded": true,
+      "initial_residency": null,
+      "grouped": false,
+      "closed_resident_bytes": null
+    },
+    {
+      "policy": "lru",
+      "repeat": 2,
+      "fixture": "synthetic",
+      "device": "cpu",
+      "request_nanoseconds": [
+        238708,
+        156334,
+        155625,
+        182292,
+        151125,
+        150417,
+        148125,
+        136333
+      ],
+      "first_request_nanoseconds": 238708,
+      "subsequent_median_nanoseconds": 151125,
+      "maximum_absolute_error": 0.0,
+      "parity_passed": true,
+      "residency": {
+        "entries": 4,
+        "resident_bytes": 36864,
+        "maximum_entries": 4,
+        "maximum_bytes": 50000,
+        "active_leases": 0,
+        "hits": 16,
+        "misses": 4,
+        "evictions": 0,
+        "rejections": 0,
+        "resize_pending": false,
+        "pending_maximum_entries": null,
+        "pending_maximum_bytes": null
+      },
+      "profiling_enabled": true,
+      "request_phases": [
+        {
+          "acquire": {
+            "count": 2,
+            "nanoseconds": 4875
+          },
+          "checksum_hash": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "checksum_read": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "expert_build": {
+            "count": 2,
+            "nanoseconds": 10875
+          },
+          "expert_eval": {
+            "count": 2,
+            "nanoseconds": 57167
+          },
+          "file_stat": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "mlx_load": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "output_assembly": {
+            "count": 2,
+            "nanoseconds": 6166
+          },
+          "output_eval": {
+            "count": 1,
+            "nanoseconds": 19917
+          },
+          "release": {
+            "count": 2,
+            "nanoseconds": 1834
+          },
+          "router_eval": {
+            "count": 1,
+            "nanoseconds": 16375
+          },
+          "router_to_host": {
+            "count": 1,
+            "nanoseconds": 15625
+          },
+          "weight_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          }
+        },
+        {
+          "acquire": {
+            "count": 2,
+            "nanoseconds": 3208
+          },
+          "checksum_hash": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "checksum_read": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "expert_build": {
+            "count": 2,
+            "nanoseconds": 6667
+          },
+          "expert_eval": {
+            "count": 2,
+            "nanoseconds": 43542
+          },
+          "file_stat": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "mlx_load": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "output_assembly": {
+            "count": 2,
+            "nanoseconds": 2625
+          },
+          "output_eval": {
+            "count": 1,
+            "nanoseconds": 11417
+          },
+          "release": {
+            "count": 2,
+            "nanoseconds": 1374
+          },
+          "router_eval": {
+            "count": 1,
+            "nanoseconds": 13291
+          },
+          "router_to_host": {
+            "count": 1,
+            "nanoseconds": 10500
+          },
+          "weight_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          }
+        },
+        {
+          "acquire": {
+            "count": 2,
+            "nanoseconds": 2458
+          },
+          "checksum_hash": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "checksum_read": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "expert_build": {
+            "count": 2,
+            "nanoseconds": 5875
+          },
+          "expert_eval": {
+            "count": 2,
+            "nanoseconds": 36375
+          },
+          "file_stat": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "mlx_load": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "output_assembly": {
+            "count": 2,
+            "nanoseconds": 2167
+          },
+          "output_eval": {
+            "count": 1,
+            "nanoseconds": 12625
+          },
+          "release": {
+            "count": 2,
+            "nanoseconds": 1125
+          },
+          "router_eval": {
+            "count": 1,
+            "nanoseconds": 12250
+          },
+          "router_to_host": {
+            "count": 1,
+            "nanoseconds": 9791
+          },
+          "weight_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          }
+        },
+        {
+          "acquire": {
+            "count": 2,
+            "nanoseconds": 4667
+          },
+          "checksum_hash": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "checksum_read": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "expert_build": {
+            "count": 2,
+            "nanoseconds": 8500
+          },
+          "expert_eval": {
+            "count": 2,
+            "nanoseconds": 43292
+          },
+          "file_stat": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "mlx_load": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "output_assembly": {
+            "count": 2,
+            "nanoseconds": 3208
+          },
+          "output_eval": {
+            "count": 1,
+            "nanoseconds": 12708
+          },
+          "release": {
+            "count": 2,
+            "nanoseconds": 2042
+          },
+          "router_eval": {
+            "count": 1,
+            "nanoseconds": 15667
+          },
+          "router_to_host": {
+            "count": 1,
+            "nanoseconds": 12416
+          },
+          "weight_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          }
+        },
+        {
+          "acquire": {
+            "count": 2,
+            "nanoseconds": 2791
+          },
+          "checksum_hash": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "checksum_read": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "expert_build": {
+            "count": 2,
+            "nanoseconds": 6417
+          },
+          "expert_eval": {
+            "count": 2,
+            "nanoseconds": 40375
+          },
+          "file_stat": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "mlx_load": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "output_assembly": {
+            "count": 2,
+            "nanoseconds": 2625
+          },
+          "output_eval": {
+            "count": 1,
+            "nanoseconds": 11833
+          },
+          "release": {
+            "count": 2,
+            "nanoseconds": 1417
+          },
+          "router_eval": {
+            "count": 1,
+            "nanoseconds": 13167
+          },
+          "router_to_host": {
+            "count": 1,
+            "nanoseconds": 12083
+          },
+          "weight_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          }
+        },
+        {
+          "acquire": {
+            "count": 2,
+            "nanoseconds": 4417
+          },
+          "checksum_hash": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "checksum_read": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "expert_build": {
+            "count": 2,
+            "nanoseconds": 6374
+          },
+          "expert_eval": {
+            "count": 2,
+            "nanoseconds": 39542
+          },
+          "file_stat": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "mlx_load": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "output_assembly": {
+            "count": 2,
+            "nanoseconds": 2292
+          },
+          "output_eval": {
+            "count": 1,
+            "nanoseconds": 11542
+          },
+          "release": {
+            "count": 2,
+            "nanoseconds": 1458
+          },
+          "router_eval": {
+            "count": 1,
+            "nanoseconds": 14084
+          },
+          "router_to_host": {
+            "count": 1,
+            "nanoseconds": 11167
+          },
+          "weight_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          }
+        },
+        {
+          "acquire": {
+            "count": 2,
+            "nanoseconds": 2500
+          },
+          "checksum_hash": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "checksum_read": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "expert_build": {
+            "count": 2,
+            "nanoseconds": 5583
+          },
+          "expert_eval": {
+            "count": 2,
+            "nanoseconds": 40750
+          },
+          "file_stat": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "mlx_load": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "output_assembly": {
+            "count": 2,
+            "nanoseconds": 2250
+          },
+          "output_eval": {
+            "count": 1,
+            "nanoseconds": 15125
+          },
+          "release": {
+            "count": 2,
+            "nanoseconds": 1291
+          },
+          "router_eval": {
+            "count": 1,
+            "nanoseconds": 12709
+          },
+          "router_to_host": {
+            "count": 1,
+            "nanoseconds": 13083
+          },
+          "weight_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          }
+        },
+        {
+          "acquire": {
+            "count": 2,
+            "nanoseconds": 2542
+          },
+          "checksum_hash": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "checksum_read": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "expert_build": {
+            "count": 2,
+            "nanoseconds": 5417
+          },
+          "expert_eval": {
+            "count": 2,
+            "nanoseconds": 38416
+          },
+          "file_stat": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "mlx_load": {
+            "count": 0,
+            "nanoseconds": 0
+          },
+          "output_assembly": {
+            "count": 2,
+            "nanoseconds": 1958
+          },
+          "output_eval": {
+            "count": 1,
+            "nanoseconds": 11208
+          },
+          "release": {
+            "count": 2,
+            "nanoseconds": 1167
+          },
+          "router_eval": {
+            "count": 1,
+            "nanoseconds": 12167
+          },
+          "router_to_host": {
+            "count": 1,
+            "nanoseconds": 11583
+          },
+          "weight_eval": {
+            "count": 0,
+            "nanoseconds": 0
+          }
+        }
+      ],
+      "preloaded": true,
+      "initial_residency": {
+        "entries": 4,
+        "resident_bytes": 36864,
+        "maximum_entries": 4,
+        "maximum_bytes": 50000,
+        "active_leases": 0,
+        "hits": 0,
+        "misses": 4,
+        "evictions": 0,
+        "rejections": 0,
+        "resize_pending": false,
+        "pending_maximum_entries": null,
+        "pending_maximum_bytes": null
+      },
+      "grouped": false,
+      "closed_resident_bytes": 0
+    }
+  ],
+  "profiling_enabled": true,
+  "preloaded": true,
+  "grouped": false,
+  "notes": [
+    "Export and model initialization excluded from request timing",
+    "OS file cache is not reset; this is not cold-disk performance",
+    "Baseline has resident source weights; candidates use file residency",
+    "Phase spans are host wall times; acquire includes nested loading spans",
+    "Router eval includes gate/top-k execution, not just a synchronization wait",
+    "MLX load and eval may include file I/O; checksum_read is separate",
+    "Opt-in instrumentation overhead is included in request timings",
+    "No RSS, GPU, E2E chat, quality-suite or P3 certification"
+  ],
+  "source_sha256": {
+    "scripts/compare_strata_experts.py": "d6ce7e361d0c167dd59440c423f171e5fa8911fbf0f30fc3ce3716d2c668fe78",
+    "vllm_apple/qwen3_moe_residency.py": "199013dcfa5ecf285f630ebb35b256f8e9e6d1fb887c107f420d237902ee4483",
+    "vllm_apple/mlx_expert_backend.py": "8c0aac02583497ea74d84090725295c1d629e3b5e90282621caeb52e04c511d7",
+    "vllm_apple/mlx_expert_export.py": "a511d8d2417f63000487e4367e0e1e0e056a435613ba6394138aecdaaa63cb8f",
+    "vllm_apple/expert_manifest.py": "0c62fb0346bae8cb4b92972a8924e5f365d1547a9e3b4384e13f7c6caf788c7d",
+    "vllm_apple/expert_residency.py": "cce6c1fd6edc55d99a5c820fa80b76e25d1dee02a143ddbab3fd463f11e665bd",
+    "vllm_apple/expert_execution.py": "d526e9b9b855949530a2414e48389770a962258f9d8520f033f5f018d89ba340",
+    "vllm_apple/expert_timing.py": "1658bf5ecf2bd677a3473a7f848088d8009dcb131e625b7610deb8b1baf36c7a"
+  }
+}

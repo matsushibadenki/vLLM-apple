@@ -1,0 +1,70 @@
+{
+  "schema_version": 1,
+  "source_commit": "fc84950cc163ad918d9889ea6357d17e43f92978",
+  "artifact_sha256": "9ab2a53e8316fe7208da424c31e92a3f523b2fbec92da95ac3e475662d641fa7",
+  "bundle_sha256": "8e3877301c2dcae3e5e850b95714dee7a27dc8474eef5cd5bb066a07a82762d5",
+  "passed": false,
+  "cells": [
+    {
+      "scope_sha256": "8c22d0ef845c4dd44a9cb0e2f52a0d42d179612378171abb4afa65ebba465bbc",
+      "identity": {
+        "hardware": "3945e774c29ce828190f3129563456411e47c759fcc0ba41bf1060d2bab86d00",
+        "os": "9d140b7e3a393557878933c3e7dd670e652f719a8484069cbcc99663db561672",
+        "model": "01b57d9dae4a122c34cbf6f2f5d7c0e497dec65011329178196124fd802333ca",
+        "backend": "15672a0bc80c6fd3c625ce19c07ed7241ffef2461ce01cb5b1d79d22ab1339c8",
+        "configuration": "9d8e5fb984ed72ff28ee5b74cbe47ff6eebc1c82a8a8e63d42ec4bec4e9a0ba0"
+      },
+      "certified": false,
+      "rejection_reasons": [
+        "quality:failed_or_unverified",
+        "quality:raw_evidence_failed",
+        "quality:required_slice_failed_or_missing",
+        "performance:failed_or_unverified",
+        "performance:p3_gate_unqualified",
+        "soak:failed_or_unverified",
+        "soak:raw_evidence_failed",
+        "soak:24h_or_clean_shutdown_missing",
+        "recovery:failed_or_unverified",
+        "recovery:raw_evidence_failed",
+        "recovery:required_case_failed_or_missing",
+        "rollback:failed_or_unverified",
+        "rollback:raw_evidence_failed",
+        "rollback:restoration_unverified",
+        "installation:failed_or_unverified",
+        "installation:raw_evidence_failed",
+        "installation:clean_machine_unverified",
+        "uninstallation:failed_or_unverified",
+        "uninstallation:raw_evidence_failed",
+        "uninstallation:clean_machine_unverified",
+        "dependencies:failed_or_unverified",
+        "dependencies:raw_evidence_failed",
+        "dependencies:lock_unverified",
+        "licenses:failed_or_unverified",
+        "licenses:raw_evidence_failed",
+        "licenses:sbom_review_unverified"
+      ],
+      "evidence_sha256": {
+        "quality": "c08f8c0c255bbfcba4af2e2cab10b2fb568cbfd828fa1488722f77460986a88c",
+        "quality_raw": "aa16657c1c493a420b39f628ecdd302a70d38a72440b7dd2b63a7f5fa1797b13",
+        "performance": "a00602a28d3551f2f6a65ec5ee1600870a807c64d3dee6bb091bfac9e7f39269",
+        "performance_raw": "8a122eb04b46e6a65c0741cab03032ece9ce82435e1b96d69bac8f6d75d68a49",
+        "soak": "17900b19da6b2029127cc23d8421b297b2a2969a547eb1076ed67e23b841cc34",
+        "soak_raw": "831942b4ca1bb455bb9b7cb4276d3851a3d920e90e9a04e9e6f72c6918f91aa1",
+        "recovery": "8c476d43e8518600862e300fb22e8c828bb93629c253cf75f6a8f5c140f425cf",
+        "recovery_raw": "e6af4af11ffdffe4d997194d484fba263ad440c70d48d7c7fb702dd8a1ae1abf",
+        "rollback": "8a9612b659ac1e92072938d755a92b6cda520cecbf07e2a6911fa75d34bfe971",
+        "rollback_raw": "e6af4af11ffdffe4d997194d484fba263ad440c70d48d7c7fb702dd8a1ae1abf",
+        "installation": "be6db503856a0b84a07aeace88fecfc013992ebd05f2f684b30e99d58e9525b4",
+        "installation_raw": "e6af4af11ffdffe4d997194d484fba263ad440c70d48d7c7fb702dd8a1ae1abf",
+        "uninstallation": "f982a928c0c9f8ef477183750c4bc59ee85c25e81180e97894823ef1b7bdf242",
+        "uninstallation_raw": "e6af4af11ffdffe4d997194d484fba263ad440c70d48d7c7fb702dd8a1ae1abf",
+        "dependencies": "f2c706c8c9db9975ea96ddea3d300719a4f2b03402167b0c7e5f4fe05f1cada8",
+        "dependencies_raw": "e6af4af11ffdffe4d997194d484fba263ad440c70d48d7c7fb702dd8a1ae1abf",
+        "licenses": "6ba068dcd78e056d0bf8bbd827ab68e371244556bdd15df249538ebe0caf4005",
+        "licenses_raw": "e6af4af11ffdffe4d997194d484fba263ad440c70d48d7c7fb702dd8a1ae1abf"
+      }
+    }
+  ],
+  "automatic_application": false,
+  "report_id": "792c109952c9f667d74ddfa9c1d937ee39099594181548b02424f308135a9fdb"
+}

@@ -9,6 +9,7 @@ import json
 import os
 import sys
 import threading
+from functools import wraps
 from pathlib import Path
 
 from vllm_apple.bounded_http import BoundedHTTPServer
@@ -29,6 +30,10 @@ def main() -> None:
     parser = argparse.ArgumentParser(add_help=False)
     parser.add_argument('--cache-salt', default='')
     parser.add_argument('--disable-prefix-cache', action='store_true')
+    parser.add_argument('--compute-dtype', choices=('float16', 'float32'), default='float32')
+    parser.add_argument('--scheduler-budget-ms', type=int, choices=(50, 500), default=50)
+    parser.add_argument('--disable-spm-reuse', action='store_true')
+    parser.add_argument('--disable-norm-reuse', action='store_true')
     parser.add_argument('--host', default='127.0.0.1')
     options, arguments = parser.parse_known_args()
     if len(options.cache_salt.encode()) > 128:
@@ -52,6 +57,25 @@ def main() -> None:
             or _sha(Path(cache_module.__file__)) != '440709018cc528ee1e4e42e61ff8713ed2e0079566d9e8fa58eed3a92d334404'):
         raise ValueError('P2 requires the reviewed scheduler/cache source hashes')
     base_handler = install_cancel_api()
+    spm_reuse = None
+    if not options.disable_spm_reuse:
+        from vllm_apple.spm_tokenmap_reuse import install_spm_tokenmap_reuse
+        spm_reuse = install_spm_tokenmap_reuse(importlib.import_module('mlx_lm.tokenizer_utils'))
+    original_load = server.load
+
+    @wraps(original_load)
+    def load(*args, **kwargs):
+        model, tokenizer = original_load(*args, **kwargs)
+        # Preserve packed integer weights; only floating parameters change.
+        model.set_dtype(getattr(mx, options.compute_dtype))
+        mx.eval(model.parameters())
+        return model, tokenizer
+
+    server.load = load
+    norm_reuse = None
+    if not options.disable_norm_reuse:
+        from .precision import install_norm_weight_reuse
+        norm_reuse = install_norm_weight_reuse(importlib.import_module('mlx_lm.models.gemma2'), mx)
     lock = threading.Lock()
     metrics = dict(decode_steps=0, multi_sequence_decode_steps=0, maximum_decode_width=0,
                    submitted_prefill_tokens=0, scheduler_admissions=0)
@@ -89,6 +113,7 @@ def main() -> None:
             raise ValueError('P2 experiment is restricted to Gemma 2')
         identity = dict(model_files={p.name: _sha(p) for p in sorted(model.iterdir()) if p.is_file()},
                         cache_salt=options.cache_salt, position_origin=0,
+                        compute_dtype=options.compute_dtype,
                         template_policy=dict(chat_template=cli.chat_template,
                             use_default=cli.use_default_chat_template, args=cli.chat_template_args),
                         mlx_lm=importlib.metadata.version('mlx-lm'),
@@ -99,6 +124,7 @@ def main() -> None:
         cli.prompt_cache_bytes = 256*1024**2
         cache.max_bytes = 256*1024**2
         original_init(self, provider, IdentityPromptCache(cache, namespace, enabled=not options.disable_prefix_cache))
+        self._time_budget._budget = options.scheduler_budget_ms / 1000
 
     def generate_request(self, request, args, *rest, **kwargs):
         cli = self.model_provider.cli_args
@@ -134,6 +160,10 @@ def main() -> None:
                 return super().do_GET()
             with lock:
                 payload = dict(scheduler=dict(metrics), cache=self.response_generator.prompt_cache.snapshot(),
+                               compute_dtype=options.compute_dtype,
+                               scheduler_budget_ms=options.scheduler_budget_ms,
+                               norm_weight_reuse=dict(norm_reuse) if norm_reuse is not None else None,
+                               spm_tokenmap_reuse=spm_reuse.snapshot() if spm_reuse else None,
                                qualification=False, experimental=True)
             encoded = json.dumps(payload).encode()
             self._set_completion_headers(200)

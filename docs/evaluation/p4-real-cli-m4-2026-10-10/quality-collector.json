@@ -1,0 +1,28 @@
+{
+  "recorded_at": "2026-10-10T03:56:17.646628+00:00",
+  "scope": "fixed Gemma 2 2B 4-bit / float32 / M4 32GiB / MLX 0.32.1 / MLX-LM 0.32.0; uncached c1 and cached c4; not float16 replacement, broad P2 or P1 qualification",
+  "roadmap_workload_gate_passed": true,
+  "cache_enabled_c1_comparison_gate_passed": false,
+  "uncached_c1_gate_passed": true,
+  "c4_goodput_ratio": 3.544865761230778,
+  "numerical_gate_passed": true,
+  "p1_runtime_and_runner_identity_preserved": true,
+  "regression": {
+    "tests": 1493,
+    "skipped": 31,
+    "passed": true
+  },
+  "qualification": false,
+  "artifacts": {
+    "docs/evaluation/p2-float32-profile-comparison-m4-2026-10-10-quiet/comparison.json": "bf40a15c633e5ed99574afe883393340cfcf269883b360f0d452952af7594540",
+    "docs/evaluation/p2-uncached-latency-m4-2026-10-10/report.json": "e0bf38e88cdcb7056e80c6d53e799ccffca191bb3f971373725b18e0dab5518c",
+    "docs/evaluation/p2-extended-kv-final-m4-2026-10-10.json": "0696329cf553f9696ce312f34aec169c10b9c343543340d2d535991c0145aa8f"
+  },
+  "validation_tools": {
+    "scripts/compare_p2_mlx.py": "29e8b77598fa2d54120dfeb09181e2f2e29e2669cbec176e038f02e0302b4198",
+    "scripts/probe_p2_uncached_latency.py": "23fb0367186361a77cc3b92314d0c1a2b6c2b1f65b61f876996e0c07e7d87bf2",
+    "scripts/probe_p2_kv_extended.py": "8b175a7bfc7ad8ab231cbfb9b5fb81572d37064ab43442fee73c2391db6668ce"
+  },
+  "regression_log_sha256": "9a4e670b07275fd2d8f81f09ff76e15d9c437124ab80a1d860ece3a82d15cc02",
+  "static_checks_passed": true
+}

@@ -1,0 +1,156 @@
+{
+  "report_kind": "p2_extended_kv_parity",
+  "cases": [
+    {
+      "prefix_tokens": 19,
+      "suffix_tokens": 1,
+      "maximum_logit_error": 4.2438507080078125e-05,
+      "allclose": true,
+      "argmax_equal": true,
+      "owner_unchanged": true
+    },
+    {
+      "prefix_tokens": 19,
+      "suffix_tokens": 4,
+      "maximum_logit_error": 6.29425048828125e-05,
+      "allclose": true,
+      "argmax_equal": true,
+      "owner_unchanged": true
+    },
+    {
+      "prefix_tokens": 127,
+      "suffix_tokens": 1,
+      "maximum_logit_error": 5.340576171875e-05,
+      "allclose": true,
+      "argmax_equal": true,
+      "owner_unchanged": true
+    },
+    {
+      "prefix_tokens": 127,
+      "suffix_tokens": 4,
+      "maximum_logit_error": 0.00011920928955078125,
+      "allclose": true,
+      "argmax_equal": true,
+      "owner_unchanged": true
+    },
+    {
+      "prefix_tokens": 511,
+      "suffix_tokens": 1,
+      "maximum_logit_error": 5.91278076171875e-05,
+      "allclose": true,
+      "argmax_equal": true,
+      "owner_unchanged": true
+    },
+    {
+      "prefix_tokens": 511,
+      "suffix_tokens": 4,
+      "maximum_logit_error": 8.225440979003906e-05,
+      "allclose": true,
+      "argmax_equal": true,
+      "owner_unchanged": true
+    },
+    {
+      "prefix_tokens": 513,
+      "suffix_tokens": 1,
+      "maximum_logit_error": 5.054473876953125e-05,
+      "allclose": true,
+      "argmax_equal": true,
+      "owner_unchanged": true
+    },
+    {
+      "prefix_tokens": 513,
+      "suffix_tokens": 4,
+      "maximum_logit_error": 8.96453857421875e-05,
+      "allclose": true,
+      "argmax_equal": true,
+      "owner_unchanged": true
+    },
+    {
+      "prefix_tokens": 1025,
+      "suffix_tokens": 1,
+      "maximum_logit_error": 0.0,
+      "allclose": true,
+      "argmax_equal": true,
+      "owner_unchanged": true
+    },
+    {
+      "prefix_tokens": 1025,
+      "suffix_tokens": 4,
+      "maximum_logit_error": 0.0,
+      "allclose": true,
+      "argmax_equal": true,
+      "owner_unchanged": true
+    },
+    {
+      "batch_width": 2,
+      "prefix_tokens": 19,
+      "maximum_logit_error": 6.866455078125e-05,
+      "allclose": true,
+      "argmax_equal": true
+    },
+    {
+      "batch_width": 2,
+      "prefix_tokens": 127,
+      "maximum_logit_error": 8.58306884765625e-05,
+      "allclose": true,
+      "argmax_equal": true
+    },
+    {
+      "batch_width": 4,
+      "prefix_tokens": 19,
+      "maximum_logit_error": 6.961822509765625e-05,
+      "allclose": true,
+      "argmax_equal": true
+    },
+    {
+      "batch_width": 4,
+      "prefix_tokens": 127,
+      "maximum_logit_error": 0.00010013580322265625,
+      "allclose": true,
+      "argmax_equal": true
+    },
+    {
+      "batch_width": 4,
+      "prefix_tokens": 511,
+      "maximum_logit_error": 0.0001068115234375,
+      "allclose": true,
+      "argmax_equal": true
+    },
+    {
+      "batch_width": 4,
+      "prefix_tokens": 513,
+      "maximum_logit_error": 7.43865966796875e-05,
+      "allclose": true,
+      "argmax_equal": true
+    }
+  ],
+  "compute_dtype": "float32",
+  "atol": 0.001,
+  "rtol": 0.001,
+  "packed_integer_parameter_count": 183,
+  "packed_integer_parameters_unchanged": true,
+  "norm_weight_reuse": {
+    "weights_built": 105
+  },
+  "model_files": {
+    ".gitattributes": "34448b82c17d60fec9b65b1f093c115ddbaadc04beb1b0140b6bfed2e012a930",
+    "README.md": "20744a7fa9cb5766c8afc61ef7bc7d4b32bca2f3d3064b1382123792eff380d5",
+    "config.json": "41c1077a8a8b14f3e016c0000365aae99fb9eb128596c8378a178f717dca1640",
+    "model.safetensors": "f87c0f8cfa7bea0d01266bd04fae9b60babfa21a57eefbbaf5354321a0dabbf2",
+    "model.safetensors.index.json": "cb1ab8d56b40451421668d828f8650cbf17c2d901d6f43a16f9a0f3ab49e42c9",
+    "special_tokens_map.json": "db82f8bd9b25d14f9c788e6bde64de84d42f1c2538f1c245ba6cb3e872d14b18",
+    "tokenizer.json": "3f289bc05132635a8bc7aca7aa21255efd5e18f3710f43e3cdb96bcd41be4922",
+    "tokenizer.model": "61a7b147390c64585d6c3543dd6fc636906c9af3865a5548f27f31aee1d4c8e2",
+    "tokenizer_config.json": "f3a9ecd05833ba49de8432fff27b66bb061ad6a69d17df158de03dc07420e02a"
+  },
+  "sources": {
+    "/Users/Shared/Program/vLLM-apple/scripts/probe_p2_kv_extended.py": "8b175a7bfc7ad8ab231cbfb9b5fb81572d37064ab43442fee73c2391db6668ce",
+    "/opt/homebrew/Cellar/vllm-metal/0.29.0/libexec/lib/python3.12/site-packages/mlx_lm/models/gemma2.py": "64b0935b06fe2c4d5d4ed23a9cf62deb6218c55a88b9403a657afe9e2be8f251",
+    "experiments/p2_mlx/precision.py": "f52aebaf9f3ca1ad8da8e81402433dcb0d4279139fdde17d635752a428629411",
+    "experiments/p2_mlx/cache.py": "0e9d18451f436b4d86d8b6738d65aedd5ee415d98a5333c055fe7f716f2c9f8d"
+  },
+  "passed": true,
+  "qualification": false,
+  "performance_qualification": false,
+  "scope": "fixed float32 exact-prefix cases through 1025 tokens; mixed left-padding native KV merge widths 2/4; not SWA wraparound or general quality certification"
+}

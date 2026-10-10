@@ -92,6 +92,9 @@ class HeaderDeadlineMixin:
         finally:
             self._header_timer.cancel()
             self._header_timer.join()
+            # Timer.function closes over this handler. Break the cycle only
+            # after its thread has finished, including failed header reads.
+            del self._header_timer
 
     def parse_request(self) -> bool:
         parsed = super().parse_request()

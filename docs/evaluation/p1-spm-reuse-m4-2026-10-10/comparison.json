@@ -1,0 +1,147 @@
+{
+  "scope": "six fresh workers, fixed eight mixed cycles; not 30-minute or eight-hour qualification",
+  "rows": [
+    {
+      "path": "docs/evaluation/p1-spm-reuse-confirm-m4-2026-10-10/0-off.json",
+      "mode": "off",
+      "requests": 120,
+      "quality": 120,
+      "slo": 120,
+      "short_mean_ms": 426.9005,
+      "long_mean_ms": 1444.0295,
+      "rss": {
+        "sample_count": 8,
+        "current_pid": 53996,
+        "current_pid_sample_count": 8,
+        "recent_sample_count": 4,
+        "slope_bytes_per_hour": 1530200741.462,
+        "recent_growth_bytes": 9093120,
+        "plateau_observed": false
+      },
+      "stopped": true
+    },
+    {
+      "path": "docs/evaluation/p1-spm-reuse-confirm-m4-2026-10-10/1-on.json",
+      "mode": "on",
+      "requests": 120,
+      "quality": 120,
+      "slo": 120,
+      "short_mean_ms": 192.48850000000002,
+      "long_mean_ms": 2007.66375,
+      "rss": {
+        "sample_count": 8,
+        "current_pid": 54044,
+        "current_pid_sample_count": 8,
+        "recent_sample_count": 4,
+        "slope_bytes_per_hour": 91691459.851,
+        "recent_growth_bytes": 638976,
+        "plateau_observed": false
+      },
+      "stopped": true
+    },
+    {
+      "path": "docs/evaluation/p1-spm-reuse-m4-2026-10-10/0-off.json",
+      "mode": "off",
+      "requests": 120,
+      "quality": 120,
+      "slo": 120,
+      "short_mean_ms": 428.79837499999996,
+      "long_mean_ms": 1626.9415,
+      "rss": {
+        "sample_count": 8,
+        "current_pid": 53683,
+        "current_pid_sample_count": 8,
+        "recent_sample_count": 4,
+        "slope_bytes_per_hour": 1430396983.844,
+        "recent_growth_bytes": 9453568,
+        "plateau_observed": false
+      },
+      "stopped": true
+    },
+    {
+      "path": "docs/evaluation/p1-spm-reuse-m4-2026-10-10/1-on.json",
+      "mode": "on",
+      "requests": 120,
+      "quality": 120,
+      "slo": 120,
+      "short_mean_ms": 219.053375,
+      "long_mean_ms": 2147.79,
+      "rss": {
+        "sample_count": 8,
+        "current_pid": 53731,
+        "current_pid_sample_count": 8,
+        "recent_sample_count": 4,
+        "slope_bytes_per_hour": -7248877.385,
+        "recent_growth_bytes": 16384,
+        "plateau_observed": true
+      },
+      "stopped": true
+    },
+    {
+      "path": "docs/evaluation/p1-spm-reuse-m4-2026-10-10/2-on.json",
+      "mode": "on",
+      "requests": 120,
+      "quality": 120,
+      "slo": 120,
+      "short_mean_ms": 216.295375,
+      "long_mean_ms": 2181.1102499999997,
+      "rss": {
+        "sample_count": 8,
+        "current_pid": 53788,
+        "current_pid_sample_count": 8,
+        "recent_sample_count": 4,
+        "slope_bytes_per_hour": 36723359.122,
+        "recent_growth_bytes": 212992,
+        "plateau_observed": false
+      },
+      "stopped": true
+    },
+    {
+      "path": "docs/evaluation/p1-spm-reuse-m4-2026-10-10/3-off.json",
+      "mode": "off",
+      "requests": 120,
+      "quality": 120,
+      "slo": 120,
+      "short_mean_ms": 497.64525000000003,
+      "long_mean_ms": 2399.7205,
+      "rss": {
+        "sample_count": 8,
+        "current_pid": 53840,
+        "current_pid_sample_count": 8,
+        "recent_sample_count": 4,
+        "slope_bytes_per_hour": 1017161709.928,
+        "recent_growth_bytes": 8388608,
+        "plateau_observed": false
+      },
+      "stopped": true
+    }
+  ],
+  "quality": 720,
+  "slo": 720,
+  "off": {
+    "short_mean_ms": 451.11470833333334,
+    "long_mean_ms": 1823.5638333333334,
+    "growth_range_bytes": [
+      8388608,
+      9453568
+    ],
+    "rss_slope_range": [
+      1017161709.928,
+      1530200741.462
+    ],
+    "rss_gate_passed": 0
+  },
+  "on": {
+    "short_mean_ms": 209.27908333333335,
+    "long_mean_ms": 2112.188,
+    "growth_range_bytes": [
+      16384,
+      638976
+    ],
+    "rss_slope_range": [
+      -7248877.385,
+      91691459.851
+    ],
+    "rss_gate_passed": 1
+  }
+}
