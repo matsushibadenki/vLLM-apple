@@ -1,5 +1,12 @@
 # vLLM-Apple Runtime Roadmap
 
+## Stable依存更新 / Stable dependency maintenance / Stable依赖维护（2026-10-12）
+
+- 🟢 [Done] setuptools84.0.0、Ruff0.17.0、PyInstaller6.22.3へ更新。[検証記録](dependency-update-2026-10-12.md)：lint・Python3.10/3.12 compile・wheel・Swift38 tests・Mac sample・unsigned arm64 packageとchecksum成功。推論環境は維持。
+- 🟠 [Next] 全Python回帰1553 testsは3 failures・1 error・40 skips。版固定の配布テストを修正し9 tests成功。daemon／child startup失敗は変更前でも再現、Metal単独再試験は成功。全回帰合格とbackend qualificationを継続。
+- ⭕️ [Pending] CI Actions v7とPython3.13／macOS15 runnerの実環境検証。
+
+
 ## Strata導入の最初の工程 / First Strata integration step / Strata集成第一步
 
 - 🟢 [Done] READY／GO／DONE／ACKでstartup／低負荷待機／要求を分離。要求100ms sample、startupと独立した資格判定、関連34 unit tests成功。
@@ -292,8 +299,10 @@ PYTHONPATH=. .venv/bin/python scripts/audit_optimization_evidence.py --output /t
 - 🟠 [Next] 30分全条件合格時のみ8時間へ進み、終了後に品質・SLO・全worker epoch資源・awake・identity・shutdownを監査する。
   running／checkpointは未認定。実行中はruntime編集・追加GPU負荷・CPU benchmark／回帰試験を避ける。
   終了監査の定期確認は一時的に毎時とし、campaign終了後に元の月・木09:00 JSTへ戻す。
-  English: 🟢 [Done] Started fresh r11 in the 09:00 JST hour and verified runner command/checkpoint freshness. 🟠 [Next] Audit the final results; eight hours follow only after all 30-minute gates pass. Qualification remains withheld.
-  简体中文：🟢 [Done] 日本时间09:00时段启动新的r11并确认runner command及checkpoint新鲜度。🟠 [Next] 审核最终结果；30分钟全部gate通过后才进入8小时，目前未认证。
+- English: 🟢 [Done] Started fresh r11 in the 09:00 JST hour and verified runner command/checkpoint freshness.
+- 🟠 [Next] Audit the final results; eight hours follow only after all 30-minute gates pass. Qualification remains withheld.
+- 简体中文：🟢 [Done] 日本时间09:00时段启动新的r11并确认runner command及checkpoint新鲜度。
+- 🟠 [Next] 审核最终结果；30分钟全部gate通过后才进入8小时，目前未认证。
 
 ## 指示書の未着手項目：イベント履歴の全走査削減
 
@@ -303,8 +312,11 @@ PYTHONPATH=. .venv/bin/python scripts/audit_optimization_evidence.py --output /t
   順序・gap・heartbeat・保持上限を維持。全Python回帰1463 tests成功（11 skip）、Ruff成功。
 - 🟠 [Next] P1は次回09:00 JST開始の長時間試験で再検証。履歴取得の改善を推論速度・電力・長時間安定性の認定に広げない。
 - 🔴 [Later] supervisor polling、Swift main thread／SSEの実利用profile。未計測の変更は先に採用しない。
-  English: 🟢 [Done] Measured direct ring access; default replay median fell 75.84%. 🟠 [Next] P1 qualification at 09:00 JST. 🔴 [Later] Profile supervisor/UI paths; inference speed and energy remain unqualified.
-  简体中文：🟢 [Done] 实测直接ring访问，默认重放中位耗时减少75.84%。🟠 [Next] 日本时间09:00进行P1认证。🔴 [Later] supervisor／UI profile；推理速度及电能未认证。
+- English: 🟢 [Done] Measured direct ring access; default replay median fell 75.84%. 🟠 [Next] P1 qualification at 09:00 JST.
+- 🔴 [Later] Profile supervisor/UI paths; inference speed and energy remain unqualified.
+- 简体中文：🟢 [Done] 实测直接ring访问，默认重放中位耗时减少75.84%。
+- 🟠 [Next] 日本时间09:00进行P1认证。
+- 🔴 [Later] supervisor／UI profile；推理速度及电能未认证。
 
 ## 指示書に基づく単一hotspot改善：RSS計測
 
@@ -313,8 +325,10 @@ PYTHONPATH=. .venv/bin/python scripts/audit_optimization_evidence.py --output /t
   品質・SLOの短時間実機確認45/45、正常停止・identity不変。全回帰1457 tests成功（11 skip）、Ruff成功。
   GPU／モデルメモリは変更せず、推論速度・電力改善は未認定。
 - 🟠 [Next] 朝9:00開始の次回P1長時間試験で新collectorを含むidentityを検証する。
-  English: 🟢 [Done] Measured and removed per-sample ps spawning on macOS. 🟠 [Next] P1 long-run verification at 09:00 JST; no inference-speed or energy claim.
-  简体中文：🟢 [Done] 测量并消除macOS每次RSS采样启动ps的开销。🟠 [Next] 日本时间09:00进行P1长期验证，不宣称推理速度或功率提升。
+- English: 🟢 [Done] Measured and removed per-sample ps spawning on macOS.
+- 🟠 [Next] P1 long-run verification at 09:00 JST; no inference-speed or energy claim.
+- 简体中文：🟢 [Done] 测量并消除macOS每次RSS采样启动ps的开销。
+- 🟠 [Next] 日本时间09:00进行P1长期验证，不宣称推理速度或功率提升。
 
 ## 速度・メモリ・待機処理の効率化：2026-10-07
 
@@ -327,8 +341,12 @@ PYTHONPATH=. .venv/bin/python scripts/audit_optimization_evidence.py --output /t
   次回は2026-10-08 09:00 JSTに新規runで開始する。一連の長時間試験は以降も日本時間9時開始。
   r9はSLO3000/3009・資源gate未達で不合格、8時間未開始。最新試験稼働中はruntime編集・追加GPU負荷を避ける。
 - ⭕️ [Pending] 管理者権限での電力samplerまたは外部電力計によるjoule/request・idle wattの検証。
-  English: 🟢 [Done] Explicit efficiency candidates and measured retained-cache/idle-read reductions. 🟠 [Next] R10 long-run qualification; speed remains unqualified. ⭕️ [Pending] Electrical-power measurement.
-  简体中文：🟢 [Done] 显式效率候选及保持cache／idle read减少的测量。🟠 [Next] r10长期认证；速度仍未认证。⭕️ [Pending] 实际功率测量。
+- English: 🟢 [Done] Explicit efficiency candidates and measured retained-cache/idle-read reductions.
+- 🟠 [Next] R10 long-run qualification; speed remains unqualified.
+- ⭕️ [Pending] Electrical-power measurement.
+- 简体中文：🟢 [Done] 显式效率候选及保持cache／idle read减少的测量。
+- 🟠 [Next] r10长期认证；速度仍未认证。
+- ⭕️ [Pending] 实际功率测量。
 
 ## P1最優先修正：2026-10-07
 
@@ -339,8 +357,10 @@ PYTHONPATH=. .venv/bin/python scripts/audit_optimization_evidence.py --output /t
 - 🟠 [Next] [r9](evaluation/p1-stability-m4-2026-10-07-r9/state.json)で同条件の30分→全条件合格時8時間を開始。
   r8の遅延・aggregate資源未達の全原因は未確定。
   認定gateを緩和せず、[原因監査](evaluation/p1-r8-cause-audit-2026-10-07.json)を参照する。
-  English: 🟢 [Done] Enforce the P1 LRU byte budget. 🟠 [Next] Long-run latency/resource requalification; no performance claim or relaxed gate.
-  简体中文：🟢 [Done] 修复P1 LRU byte上限。🟠 [Next] 长期延迟／资源复测；不宣称性能提升，不放宽gate。
+- English: 🟢 [Done] Enforce the P1 LRU byte budget.
+- 🟠 [Next] Long-run latency/resource requalification; no performance claim or relaxed gate.
+- 简体中文：🟢 [Done] 修复P1 LRU byte上限。
+- 🟠 [Next] 长期延迟／资源复测；不宣称性能提升，不放宽gate。
 
 ## Local text preview 0.1.0 — 最小利用版
 
@@ -498,20 +518,32 @@ RSS・allocator・KV・OS pressure・swap差分は別系列で記録し、重複
 
 ## P1 — 標準text経路と持続的な安定性 🟠 [Next]
 
-- 🟢 [Done] [r7 host-load監査](evaluation/p1-r7-host-load-audit-2026-10-06.json)は10 CPUに対しload34〜43の境界観測を確認、load約7の失敗もあり根因未特定。🟢 [Done] scheduler stepのcalling-thread CPU時間をwall時間から分離してbounded記録、SLO／認定閾値は維持。差値をGPU時間とは扱わず、計測overhead未測定。🟢 [Done] 実機smoke48/48品質・SLO・正常終了、614 stepでCPU／wall分離記録、全回帰1449 tests成功（11 skip）。🟠 [Next] [r8](evaluation/p1-stability-m4-2026-10-06-r8/state.json)をprefill512で30分→全条件合格時8時間として実行中。失敗のCPU／wall／環境を突き合わせ修正候補を選ぶ。
+- 🟢 [Done] [r7 host-load監査](evaluation/p1-r7-host-load-audit-2026-10-06.json)は10 CPUに対しload34〜43の境界観測を確認、load約7の失敗もあり根因未特定。
+- 🟢 [Done] scheduler stepのcalling-thread CPU時間をwall時間から分離してbounded記録、SLO／認定閾値は維持。差値をGPU時間とは扱わず、計測overhead未測定。
+- 🟢 [Done] 実機smoke48/48品質・SLO・正常終了、614 stepでCPU／wall分離記録、全回帰1449 tests成功（11 skip）。
+- 🟠 [Next] [r8](evaluation/p1-stability-m4-2026-10-06-r8/state.json)をprefill512で30分→全条件合格時8時間として実行中。失敗のCPU／wall／環境を突き合わせ修正候補を選ぶ。
 
-- 🟢 [Done] [r7最終監査](evaluation/p1-r7-final-audit-2026-10-06.json)：品質3162/3162、SLO3153/3162、awake・identity・正常終了合格、RSS plateau合格だがallocator資源gate未達、8時間未開始。prefill256の優位は未認定。🟢 [Done] workload hash付き資源sampleと同負荷別診断を追加、既存認定閾値は維持。実機短時間smoke87/87品質・SLO・正常終了、label欠落0、全回帰1448 tests成功（11 skip）。🟠 [Next] 新実測で状態差と増加、短文／長文TTFT超過の原因を調査。旧sampleへlabelを推測付与しない。
+- 🟢 [Done] [r7最終監査](evaluation/p1-r7-final-audit-2026-10-06.json)：品質3162/3162、SLO3153/3162、awake・identity・正常終了合格、RSS plateau合格だがallocator資源gate未達、8時間未開始。prefill256の優位は未認定。
+- 🟢 [Done] workload hash付き資源sampleと同負荷別診断を追加、既存認定閾値は維持。実機短時間smoke87/87品質・SLO・正常終了、label欠落0、全回帰1448 tests成功（11 skip）。
+- 🟠 [Next] 新実測で状態差と増加、短文／長文TTFT超過の原因を調査。旧sampleへlabelを推測付与しない。
 
-- 🟢 [Done] 長時間runnerでprefill128／256／512を明示指定し両段階へ固定伝達、既定512・閾値は維持。全回帰1447 tests成功（11 skip）。[256実機smoke](evaluation/p1-prefill256-m4-2026-10-05.json)は204/204品質・SLO・awake・identity・正常終了合格、短期RSS plateau未達。性能優位は未測定。🟠 [Next] [r7](evaluation/p1-stability-m4-2026-10-05-r7/state.json)で30分→全条件合格時8時間を測定中、認定保留、競合編集／GPU負荷を避ける。
+- 🟢 [Done] 長時間runnerでprefill128／256／512を明示指定し両段階へ固定伝達、既定512・閾値は維持。全回帰1447 tests成功（11 skip）。[256実機smoke](evaluation/p1-prefill256-m4-2026-10-05.json)は204/204品質・SLO・awake・identity・正常終了合格、短期RSS plateau未達。性能優位は未測定。
+- 🟠 [Next] [r7](evaluation/p1-stability-m4-2026-10-05-r7/state.json)で30分→全条件合格時8時間を測定中、認定保留、競合編集／GPU負荷を避ける。
 
-- 🟢 [Done] RSS plateau認定にsample検証を追加し、時刻重複／逆行、NaN／Infinity、欠測、負RSSを拒否。分母ゼロを傾きゼロとして誤認定しない。閾値は維持。[既存r5／r6再監査](evaluation/p1-rss-sample-validation-2026-10-05.json)の数値と判定は不変。🟠 [Next] r6の長文TTFT及びRSS未収束の解消。
+- 🟢 [Done] RSS plateau認定にsample検証を追加し、時刻重複／逆行、NaN／Infinity、欠測、負RSSを拒否。分母ゼロを傾きゼロとして誤認定しない。閾値は維持。[既存r5／r6再監査](evaluation/p1-rss-sample-validation-2026-10-05.json)の数値と判定は不変。
+- 🟠 [Next] r6の長文TTFT及びRSS未収束の解消。
 
-- 🟢 [Done] [r4診断監査](evaluation/p1-r4-slo-audit-2026-10-05.json)：品質3327/3327、SLO3319/3327。短文TTFT超過8件を全数記録、資源・identity・正常終了は合格、8時間未開始。queue累積最大1.629秒ではTTFT 5〜6.85秒を説明しきれず、原因は未特定。🟠 [Next] source固定のscheduler step host時間とwindow前後の環境・資源snapshotを追加して再測定。GPU kernel単体時間や性能改善として扱わない。
+- 🟢 [Done] [r4診断監査](evaluation/p1-r4-slo-audit-2026-10-05.json)：品質3327/3327、SLO3319/3327。短文TTFT超過8件を全数記録、資源・identity・正常終了は合格、8時間未開始。queue累積最大1.629秒ではTTFT 5〜6.85秒を説明しきれず、原因は未特定。
+- 🟠 [Next] source固定のscheduler step host時間とwindow前後の環境・資源snapshotを追加して再測定。GPU kernel単体時間や性能改善として扱わない。
 
 - 🟢 [Done] P1失敗診断：benchmarkに最初の64失敗requestのTTFT／E2E・言語・token数・未達理由、soakに最初の64失敗windowと総失敗window数を保存する。本文を保存せず、後続成功で失敗を消さない。旧r3の途中window欠落を補うための再測定基盤であり、既存14件の原因解明・SLO改善は未達。
 - 🟢 [Done] 診断追加後の[90秒実機混合負荷](evaluation/p1-failure-diagnostics-m4-2026-10-04.json)は品質・SLO204/204、identity不変・正常shutdown。全回帰1432 tests成功（11 skip）。r4の30分再測定は上記TTFT失敗で不合格、8時間未開始。
-- 🟢 [Done] [step診断smoke](evaluation/p1-step-diagnostics-m4-2026-10-05.json)：90秒240/240品質・SLO、scheduler step3187回、前後環境snapshotと正常終了を確認。短時間でTTFT超過は未再現。🟠 [Next] 同診断で長時間再測定し、原因を確認してから修正する。
-- 🟢 [Done] [r5最終監査](evaluation/p1-r5-final-awake-audit-2026-10-05.json)：品質3669/3669、SLO3667/3669、資源・identity・正常終了は合格。11回のsuspend gapとBattery→AC変化を確認し、固定awake認定は拒否、8時間未開始。🟢 [Done] P1 runnerへsuspend／power変化／unknownを拒否するawake gateを接続し、全回帰1436 tests成功（11 skip）。🟢 [Done] awake gate実機90秒smokeは品質・SLO 204/204、40観測のAC／automatic不変、suspend gap 0、identity・shutdown合格。🟠 [Next] [r6](evaluation/p1-stability-m4-2026-10-05-r6/state.json)は終了：品質3276/3276、SLO3275/3276、awake条件合格だが長文TTFT 11.97秒とRSS plateau未達で不合格。8時間未開始。r4短文失敗とr5のsleep中長文失敗を同一原因とは扱わない。
+- 🟢 [Done] [step診断smoke](evaluation/p1-step-diagnostics-m4-2026-10-05.json)：90秒240/240品質・SLO、scheduler step3187回、前後環境snapshotと正常終了を確認。短時間でTTFT超過は未再現。
+- 🟠 [Next] 同診断で長時間再測定し、原因を確認してから修正する。
+- 🟢 [Done] [r5最終監査](evaluation/p1-r5-final-awake-audit-2026-10-05.json)：品質3669/3669、SLO3667/3669、資源・identity・正常終了は合格。11回のsuspend gapとBattery→AC変化を確認し、固定awake認定は拒否、8時間未開始。
+- 🟢 [Done] P1 runnerへsuspend／power変化／unknownを拒否するawake gateを接続し、全回帰1436 tests成功（11 skip）。
+- 🟢 [Done] awake gate実機90秒smokeは品質・SLO 204/204、40観測のAC／automatic不変、suspend gap 0、identity・shutdown合格。
+- 🟠 [Next] [r6](evaluation/p1-stability-m4-2026-10-05-r6/state.json)は終了：品質3276/3276、SLO3275/3276、awake条件合格だが長文TTFT 11.97秒とRSS plateau未達で不合格。8時間未開始。r4短文失敗とr5のsleep中長文失敗を同一原因とは扱わない。
 
 - 🟢 [Done] [P1限定candidateと試験手順](P1-STABILITY.md)：HTTP全体の接続上限16、header絶対期限5秒、body上限とdeadlineをwrapper／Gemma互換経路へ適用。model固定・prompt＋output 4,096 tokens・output 512・GPU allocator 8 GiB／cache 256 MiBのopt-in profileを追加した。全worker epochのRSS／allocator／thread／FD／registryを検証し、queue待機p95の計測scopeを公開する。任意model／shapeやdaemon全体の認定ではない。
 - 🟢 [Done] 固定sourceの[M4短時間smoke](evaluation/p1-profile-90sec-m4-2026-10-04-r3.json)で正常189/189品質・SLO合格、active cancel 18/18、queued cancel／timeout各6/6、worker crash回復2/2、half-close、profile拒否と正常shutdownを確認。全回帰1,407 tests合格（11 skip）。短時間の資源plateauと8時間安定性は未認定。
@@ -548,8 +580,10 @@ warm-up・cache充填後の同一負荷窓とidle回復時を比較し、RSS／a
 - 🟢 [Done] 2026-10-10 [限定float32 profileの数値差・並列応答改善](P2-OPTIMIZATION-2026-10-10.md)：Gemma 2／M4で16/16実KV条件が既定許容差に合格（最大logit差0.000119209）。dtypeをcache identityへ追加、packed整数weightを維持。50 ms admission budget、SPM表・immutable RMSNorm補正を一度構築する。
 - 🟢 [Done] 同float32、各3 fresh workersでc4 goodput 12.440→44.097 tokens/s（3.545倍）、改善側c4品質・SLO 180/180。prefixなしc1を別の3 workersで検証し、品質・SLO 180/180、TPOT p95 13.816–13.994 msは最良baselineに対する5%上限14.025 ms以内。[固定workload gate](evaluation/p2-optimization-validation-2026-10-10.json)は合格、CPU回帰1,493 tests合格（31 skip）。profile全体の効果でありcache単独の改善率ではない。
 - 🟠 [Next] cache有効c1の3-run最悪p95 gateは未達。旧float16対照のTPOT悪化も保持し、float16標準経路のreplacementやP2全体を認定しない。一般chat／coding／Agent、SWA・cancel・fairnessと標準採用を継続検証する。float32 KVは同token数で保存幅2倍、RSS・ワット値改善は未認定。
-- English: 🟢 [Done] Fixed float32 numerical and cached-c4/uncached-c1 gates pass; 🟠 [Next] cache-enabled c1 tails, float16 replacement and broad P2 promotion remain open.
-- 简体中文：🟢 [Done] 固定float32数值及cache启用c4／不复用prefix的c1条件通过；🟠 [Next] cache启用c1尾延迟、float16替换及整个P2晋升仍未完成。
+- English: 🟢 [Done] Fixed float32 numerical and cached-c4/uncached-c1 gates pass;
+- 🟠 [Next] cache-enabled c1 tails, float16 replacement and broad P2 promotion remain open.
+- 简体中文：🟢 [Done] 固定float32数值及cache启用c4／不复用prefix的c1条件通过；
+- 🟠 [Next] cache启用c1尾延迟、float16替换及整个P2晋升仍未完成。
 
 - 🟢 [Done] [P2実験用backend](P2-BATCHING-KV.md)へnative continuous batching／chunked prefillとidentity付き実KV LRUを接続した。実schedulerでdecode幅4・複数sequence step 39回、prefix再入場でprefill提出545 tokens減少を確認。品質36/36合格だがc4 SLOは初回28/30・最終source22/30で未達。P1／標準経路は変更せずopt-inに留める。全CPU回帰1,411 tests合格（11 skip）。
 - 🟢 [Done] 実Gemma 2／float16 KVで分割fresh参考とのlogit差0、branchコピー後のprefix保持、trim後missを確認。全prompt一括計算とは最大差0.0390625で既定の数値gate未達、argmax一致だけで認定しない。性能・数値qualificationはfalse、P2完了条件は未達として残す。
@@ -628,19 +662,28 @@ splitting and a native engine remain conditional research, not committed replace
 
 ### R0 — 外部検索との接続
 
-- 🟢 [Done] RAG比較で点数改善と採用根拠を分離。後者は完全な前後identity、同一model artifact・既知依存version・evaluator source、正常shutdownを要求し、不足／変化の理由を保存。candidate prompt変更は許容、試験中変更は拒否。関連24 tests・Ruff成功。🟠 [Next] [現evaluator基準](evaluation/rag-identity-quality-m4-2026-10-05-r2.json)は厳密5/12・前後identity確認・正常終了合格。🟠 [Next] 基準から残る7ケースの品質改善を比較。
+- 🟢 [Done] RAG比較で点数改善と採用根拠を分離。後者は完全な前後identity、同一model artifact・既知依存version・evaluator source、正常shutdownを要求し、不足／変化の理由を保存。candidate prompt変更は許容、試験中変更は拒否。関連24 tests・Ruff成功。
+- 🟠 [Next] [現evaluator基準](evaluation/rag-identity-quality-m4-2026-10-05-r2.json)は厳密5/12・前後identity確認・正常終了合格。
+- 🟠 [Next] 基準から残る7ケースの品質改善を比較。
 
-- 🟢 [Done] RAG collectorへlocal model全file／tokenizer及選択source 4件の試験前後hash、依存version比較を追加。関連23 tests・Ruff成功。artifact不足・変化・終了後hash失敗を拒否。[実機6ケース](evaluation/rag-identity-m4-2026-10-05.json)は品質・identity不変・正常終了合格。依存binary全体／ABI／試験中に戻された変更は未保証。🟠 [Next] identity付き12ケースbaselineと候補再評価。旧reportを遡及認定しない。
+- 🟢 [Done] RAG collectorへlocal model全file／tokenizer及選択source 4件の試験前後hash、依存version比較を追加。関連23 tests・Ruff成功。artifact不足・変化・終了後hash失敗を拒否。[実機6ケース](evaluation/rag-identity-m4-2026-10-05.json)は品質・identity不変・正常終了合格。依存binary全体／ABI／試験中に戻された変更は未保証。
+- 🟠 [Next] identity付き12ケースbaselineと候補再評価。旧reportを遡及認定しない。
 
-- 🟢 [Done] opt-in SIGUSR1 thread stack診断とcollectorの終了deadline後診断要求を実装。入力本文／locals／tensorを採取せず、signal記録と保存成功を区別。[実機6ケース](evaluation/rag-shutdown-diagnostics-m4-2026-10-05.json)・正常終了、CPU実processとmock timeout回帰成功。🟠 [Next] 終了遅延再現時のstack監査。今回未再現のため原因解消とは扱わない。
+- 🟢 [Done] opt-in SIGUSR1 thread stack診断とcollectorの終了deadline後診断要求を実装。入力本文／locals／tensorを採取せず、signal記録と保存成功を区別。[実機6ケース](evaluation/rag-shutdown-diagnostics-m4-2026-10-05.json)・正常終了、CPU実processとmock timeout回帰成功。
+- 🟠 [Next] 終了遅延再現時のstack監査。今回未再現のため原因解消とは扱わない。
 
-- 🟢 [Done] 新候補r5は回答不能が悪化し不採用。r6は6/12・既存5件維持だが独立再試験でshutdown deadline超過（kill/-9）のため不採用、r4 promptへ復元。🟢 [Done] HTTP collectorへgraceful／forced-killの独立記録を追加、deadline超過回帰を含む7 tests・Ruff成功。🟠 [Next] [再試験](evaluation/rag-quality-m4-2026-10-05-r6-repeat.json)の終了遅延と残る品質失敗を調査。
+- 🟢 [Done] 新候補r5は回答不能が悪化し不採用。r6は6/12・既存5件維持だが独立再試験でshutdown deadline超過（kill/-9）のため不採用、r4 promptへ復元。
+- 🟢 [Done] HTTP collectorへgraceful／forced-killの独立記録を追加、deadline超過回帰を含む7 tests・Ruff成功。
+- 🟠 [Next] [再試験](evaluation/rag-quality-m4-2026-10-05-r6-repeat.json)の終了遅延と残る品質失敗を調査。
 
-- 🟢 [Done] system roleなしの経路で資料後に元の質問・instructionを再提示し、完全template token予算へ含めた。[r4](evaluation/rag-quality-m4-2026-10-05-r4.json)／[独立再試験](evaluation/rag-quality-m4-2026-10-05-r4-repeat.json)とも5/12、baseline合格4件を維持し中国語長文が改善。全回帰1441 tests成功（11 skip）、Ruff成功。🟠 [Next] 残る7ケース、一般grounding・性能・変更後runtimeの認定。追加promptのcontextコストあり、旧identity証拠を転用しない。
+- 🟢 [Done] system roleなしの経路で資料後に元の質問・instructionを再提示し、完全template token予算へ含めた。[r4](evaluation/rag-quality-m4-2026-10-05-r4.json)／[独立再試験](evaluation/rag-quality-m4-2026-10-05-r4-repeat.json)とも5/12、baseline合格4件を維持し中国語長文が改善。全回帰1441 tests成功（11 skip）、Ruff成功。
+- 🟠 [Next] 残る7ケース、一般grounding・性能・変更後runtimeの認定。追加promptのcontextコストあり、旧identity証拠を転用しない。
 
-- 🟢 [Done] RAG prompt候補2種を同一12ケースで実測（8/12・7/12）。回答不能の既存合格ケースが悪化したため不採用、runtime promptを復元。`compare_reports`で同一suite・完全な結果・正常終了と既存合格維持を検証し、総合点だけで採用しない。[比較監査](evaluation/rag-quality-candidate-comparison-2026-10-05.json)。🟠 [Next] 回帰なしの改善候補を検証。
+- 🟢 [Done] RAG prompt候補2種を同一12ケースで実測（8/12・7/12）。回答不能の既存合格ケースが悪化したため不採用、runtime promptを復元。`compare_reports`で同一suite・完全な結果・正常終了と既存合格維持を検証し、総合点だけで採用しない。[比較監査](evaluation/rag-quality-candidate-comparison-2026-10-05.json)。
+- 🟠 [Next] 回帰なしの改善候補を検証。
 
-- 🟢 [Done] 実HTTP collectorへ12ケースsuiteを接続し、[実モデルbaseline](evaluation/rag-quality-m4-2026-10-05.json)を保存。正常終了、厳密合格4/12。🟠 [Next] 回答形式5件、長文引用欠落2件、中国語の資料不足誤答1件を改善。一般grounding未認定、採点基準は維持。
+- 🟢 [Done] 実HTTP collectorへ12ケースsuiteを接続し、[実モデルbaseline](evaluation/rag-quality-m4-2026-10-05.json)を保存。正常終了、厳密合格4/12。
+- 🟠 [Next] 回答形式5件、長文引用欠落2件、中国語の資料不足誤答1件を改善。一般grounding未認定、採点基準は維持。
 
 - 🟢 [Done] `rag` CLIとPython APIで、検索済みチャンクから三言語の生成リクエストを構成する。資料のUTF-8 byte上限、丸ごとの除外、資料なし時のローカル回答不能、ループバックHTTP生成、出典ID／内容hashと参照IDの照合を実装。[利用手順](RAG-LORA.md)と`tests/test_rag.py`を参照。
 - 🟢 [Done] 引用IDの存在確認と回答の事実性を分離する。`references_valid`でも`grounding_verified=false`とし、未知参照・引用なし・生成未完了を区別する。模擬HTTP試験は実モデルの品質認定に含めない。
@@ -693,12 +736,12 @@ splitting and a native engine remain conditional research, not committed replace
 | ⭕️ [Pending] | ANE draft＋GPU verifierの実モデル比較                        | 互換draftのCore ML artifactと変換・実行契約。M4のANEが利用可能でも互換artifactなしでは認定しない。既存encoder検証はこの保留に含めない |
 | ⭕️ [Pending] | 署名・notarization済みreleaseとclean-machine install         | Developer ID／notary資格情報と独立した検証環境。未署名のlocal buildとは別認定                                                         |
 
-English: `⭕️ [Pending]` means an unavailable test environment, with explicit resumption
-requirements. Work runnable on this M4, including concurrency failures and long soaks,
-remains `🟠 [Next]` or `🔴 [Later]`; it is not deferred merely because it takes time.
+- English: `⭕️ [Pending]` means an unavailable test environment, with explicit resumption
+  requirements. Work runnable on this M4, including concurrency failures and long soaks,
+  remains `🟠 [Next]` or `🔴 [Later]`; it is not deferred merely because it takes time.
 
-简体中文：`⭕️ [Pending]`表示缺少测试环境，必须注明恢复条件。当前M4可运行的工作，
-包括并发故障排查和长时间测试，仍保留为`🟠 [Next]`或`🔴 [Later]`，不因耗时而搁置。
+- 简体中文：`⭕️ [Pending]`表示缺少测试环境，必须注明恢复条件。当前M4可运行的工作，
+  包括并发故障排查和长时间测试，仍保留为`🟠 [Next]`或`🔴 [Later]`，不因耗时而搁置。
 
 ## 別トラックとして維持する作業 🔴 [Later]
 

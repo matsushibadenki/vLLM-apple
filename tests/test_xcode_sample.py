@@ -95,7 +95,7 @@ class XcodeSampleTests(unittest.TestCase):
 
     def test_release_candidate_build_has_reproducible_safety_contract(self) -> None:
         requirements = Path("requirements-package.lock").read_text(encoding="utf-8")
-        self.assertEqual(requirements, "pyinstaller==6.16.0\n")
+        self.assertEqual(requirements, "pyinstaller==6.22.3\n")
 
         script = PACKAGE_SCRIPT.read_text(encoding="utf-8")
         self.assertIn("--onefile", script)
