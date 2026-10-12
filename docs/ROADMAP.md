@@ -46,6 +46,21 @@
 - 🟠 [Next] 全Python回帰1553 testsは3 failures・1 error・40 skips。版固定の配布テストを修正し9 tests成功。daemon／child startup失敗は変更前でも再現、Metal単独再試験は成功。全回帰合格とbackend qualificationを継続。
 - ⭕️ [Pending] CI Actions v7とPython3.13／macOS15 runnerの実環境検証。
 
+### Strata · 多様prefillとメモリ比較
+
+- 🟢 [Done] [5種類のprefill検証](evaluation/strata-diverse-prefill-analysis-cpu-metal-final-2026-10-12.json)：CPU速度／CPU・Metalメモリを別workerで取得。14 worker／200要求、最大誤差2.24e-7。
+- 🟢 [Done] eval回数は連続128→16、長さ混在128→28、交互128→128、反転32→32、random128→120。再読み込みは減らない。
+- 🟢 [Done] 長さ混在でactiveピーク増加：CPU4.001→4.114 MiB、Metal約4.028→4.325 MiB。RSS sample／cacheも記録。
+- 🟠 [Next] payload基準のgroup admissionと、実prefillの連続性・メモリ・低負荷比較。
+- ⭕️ [Pending] 実モデル／GPU E2E・OOM・速度資格・既定採用。参考速度のrun変動は5.6–173%。
+
+English: Batching helps contiguous selections, not alternating ones; mixed runs increase peak memory. No certified speedup.
+
+简体中文：连续选择可减少eval，交替选择无减少，混合长度增加峰值内存；未认证加速。
+
+<details>
+<summary>連続token候補の実装記録 / Implementation details / 实现记录</summary>
+
 ### Strata · 連続tokenのExpert共有
 
 - 🟢 [Done] [連続Expert選択のbatch候補](evaluation/strata-contiguous-row-analysis-cpu-2026-10-12.json)：9 trial／576合成CPU要求誤差0。64要求のExpert eval512→64、acquire1024→128。native関連15 tests成功。
@@ -56,6 +71,8 @@
 English: Opt-in contiguous-row batches reduce evaluation/acquire counts; no qualified production speedup.
 
 简体中文：可选连续token batch减少eval／acquire次数，尚未认证生产加速。
+
+</details>
 
 <details>
 <summary>負荷分離の進捗 / Load-window progress / 负荷分离进展</summary>
@@ -608,3 +625,11 @@ Metal 0.30.0のMLX 0.32.1 ABI固定、MLX 0.32.3のbuffer／stream／GQA修正�
 各開発サイクルで本書の状態・証跡・次の作業を更新する。詳細な実験履歴はevaluationと個別reviewへ置き、roadmapを実装履歴の追記だけで肥大化させない。
 
 </details>
+
+## 定期評価 / Recurring evaluation / 定期评估 — 2026-10-12
+
+🟢 [Done] [現行Gemma基準](optimization-2026-10-12.md)：198件算術品質合格、warmup SLO2/3。実装identityが10/9と異なるため速度差を改善認定しない。🟠 [Next] 固定identityで独立反復しwarmup尾遅延を診断。
+
+English: Current baseline: 198 arithmetic checks passed; warmup SLO 2/3. Changed implementation identity prevents speedup attribution. Next: independent repeats with fixed identity.
+
+简体中文：现行基线198件算术质量全部通过，warmup SLO为2/3。实现identity不同，不认证速度提升。下一步：固定identity并独立重复。

@@ -2,6 +2,45 @@
 
 ## 日本語
 
+🟢 [Done] 第19工程（2026-10-12）：[多様prefillの比較とメモリ記録](evaluation/strata-diverse-prefill-analysis-cpu-metal-final-2026-10-12.json)。
+新規probeはd512／intermediate1024／4 Experts／affine4-bit group32の独立ファイルを使用。
+連続、長さ混在（1／2／3／5／8／13）、交互、順序反転、seed固定ランダムの5種類。
+入力はsin波／random vector、選択はauthoritative fixture。実文章・tokenizer・実Router品質試験ではない。
+反転は32 tokens、他は128。native SwitchGLU referenceとfileは別processで生成し、workerは測定前に一時source bankを解放。
+1-token groupedと最大8-token batchを比較。速度はCPU各3 fresh process、各case1 warmup＋4要求。
+メモリはCPU／Metal各2 fresh process、cold managerとcache／常駐を保持した2要求、counter有効。
+合計14 worker／120速度要求＋80メモリ要求、全case最大誤差2.2352e-7、保持／解放契約合格。
+Expert payload1,179,648 bytes、保持予算2,360,838 bytes（2 file）、3 Expertは収まらない。
+保持／incoming予約ピークは2,359,296 bytes、残存Lease0、close後保持0。
+
+| 入力・token数 | Expert eval／要求：1行→8行 | 再load回数／warm要求（両者同じ） | CPU参考中央値：1行→8行 (ms) |
+|---|---:|---:|---:|
+| 連続・128 | 128→16 | 0 | 57.226→50.880 |
+| 長さ混在・128 | 128→28 | 48 | 89.857→87.154 |
+| 交互・128 | 128→128 | 256 | 220.474→225.028 |
+| 順序反転・32 | 32→32 | 0 | 14.312→14.097 |
+| ランダム・128 | 128→120 | 153 | 160.961→155.714 |
+
+連続性が低い場合は演算発行削減が限定的。交互の遅さには保持容量を超える選択と再読み込みが伴う。
+I/OとRouter host取り出しはbatch化で削減されていない。速度のrun変動約5.6–173%、host資格なし。
+この表は速度優位の認定ではなく、小標本の参考値。安定試行だけの選別は行っていない。
+
+warm要求のMLX activeピーク：長さ混在ではCPU4.001→4.114 MiB、Metal4.001–4.028→4.325 MiB。
+連続ではCPU両者4.001 MiB、Metalは1行4.001–4.028／8行4.001–4.220 MiB。
+activation／一時結果／allocatorの増加を含むprocess全体値であり、scratch単独の厳密分解ではない。
+128-token CPU cacheは長さ混在1.027→1.465 MiB、連続1.027→1.219 MiB。
+warm RSS sample範囲は全caseで約330.9–335.4 MiB。import、input/reference、cache等が支配し、
+同じMLX active量でもRSSは一致しない。2 repeatでRSSの方式優位は認定しない。
+RSSは要求1ms sampleの下限、HWMはprocess生涯値。各要求前にMLX peakをresetし前後で同期。
+RSS samplerとcounterは速度workerへ入れていない。Metal値はprocess unified allocator統計、専用VRAMではない。
+
+[厳密payload予算の対照](evaluation/strata-diverse-prefill-tight-budget-analysis-2026-10-12.json)も保存。
+2 payloadぴったり（2,359,296 bytes）はgroupedのheader込み保守判定に不足し、両候補が逐次fallback。
+連続128-tokenでもeval256→256、数値一致。file予算を含めた本比較と混ぜてbatch効果としない。
+🟠 [Next] payloadに基づくgroup admissionの検討、実prefillでの連続性・scratch／RSS・低負荷速度比較。
+⭕️ [Pending] 実モデル／GPU E2E・system GPU・実OOM・速度資格・既定採用。
+
+
 🟢 [Done] 第18工程（2026-10-12）：`grouped=True, maximum_group_rows=8`の明示候補を追加。
 同じ順序のExpert選択が連続するtokenだけを、最大指定行数（1–64）でまとめて演算する。
 順序が異なれば別group。既定1行、groupedなしの複数行指定は拒否。entry／byte不足では従来の逐次fallback。
@@ -419,6 +458,29 @@ prefill／decode別の測定を収集する。LRUと同一モデル・精度・w
 
 ## English
 
+🟢 [Done] Stage19 (2026-10-12): [diverse prefill/memory probe](evaluation/strata-diverse-prefill-analysis-cpu-metal-final-2026-10-12.json).
+Synthetic d512/i1024/e4 affine4/group32: repeat, mixed-length runs, alternating, reversed and seeded random selections.
+32 reversed tokens,128 otherwise; sin/random vectors, authoritative ordered selections, not text/tokenizer/router quality.
+Native SwitchGLU references generated separately; workers discard temporary source banks before measurement.
+CPU timing:3 fresh workers per mode,1 warmup+4 requests per case. Memory:CPU/Metal2 fresh workers per mode,
+2 requests (cold then retained/cache), counters enabled only in memory workers.
+14 workers/120 timed+80 memory requests; max error2.2352e-7. Budget2,360,838 bytes allows two files but
+not three payloads; retained/reserved peak2,359,296, no active leases, zero retention after close.
+Eval counts per request: repeat128→16,mixed128→28,alternating128→128,reversed32→32,random128→120.
+Warm reloads remain0/48/256/0/153 in both modes. CPU reference medians(ms):57.226→50.880,
+89.857→87.154,220.474→225.028,14.312→14.097,160.961→155.714. Spread5.6–173%, no host qualification;
+no speed advantage certified. Little continuity gives little batching benefit; I/O remains unchanged.
+Warm mixed-run active peak increases CPU4.001→4.114 MiB,Metal4.001–4.028→4.325 MiB;
+CPU mixed-run cache1.027→1.465 MiB. Warm sampled RSS overall330.9–335.4 MiB includes imports,
+fixtures and cache; no RSS advantage established. Peaks are process-wide, not isolated activation scratch.
+Requested1ms RSS samples may miss transients; HWM is lifetime-wide; MLX peak reset/sync per request.
+Unified RSS/MLX measurements overlap, not dedicated VRAM. Speed/memory workers are separate.
+[Tight-budget control](evaluation/strata-diverse-prefill-tight-budget-analysis-2026-10-12.json):
+2 payloads exactly trigger conservative header-inclusive fallback, repeat eval256→256, parity passes.
+🟠 [Next] Payload-based group admission, real prefill continuity, scratch/RSS and uncontended timing.
+⭕️ [Pending] Real-model/GPU E2E, system GPU/OOM and speed/default qualification.
+
+
 🟢 [Done] Stage18 (2026-10-12): opt-in `grouped=True, maximum_group_rows=8` batches only
 contiguous tokens with identical ordered expert selections. Range1–64, default1; no regrouping of
 reversed selections. Entry/byte shortages retain sequential fallback; leases survive batch evaluation.
@@ -625,6 +687,28 @@ LRU and use the existing P3 gate before adoption.
 ⭕️ [Pending] MTP/ANE routes lacking testable artifacts or hardware.
 
 ## 简体中文
+
+🟢 [Done] 第19阶段（2026-10-12）：[多样prefill及内存记录](evaluation/strata-diverse-prefill-analysis-cpu-metal-final-2026-10-12.json)。
+合成d512／i1024／e4／affine4／group32，连续、混合长度、交替、顺序反转、固定seed随机选择。
+反转32 tokens，其余128，sin／random vector及authoritative选择，不属于文本／tokenizer／实际Router质量。
+另一个process生成native SwitchGLU reference，worker在测量前释放临时source bank。
+CPU速度每方式3个独立worker，每case1次warmup＋4次请求；内存CPU／Metal每方式2个worker，
+每case cold及保留cache的2次请求，counter仅用于内存worker。
+14 worker／120计时＋80内存请求最大误差2.2352e-7，预算2,360,838 bytes可容纳2个file，
+不容纳3个payload，保持／预约峰值2,359,296，无Lease，close保持0。
+每请求eval：连续128→16、混合128→28、交替128→128、反转32→32、随机128→120；
+warm load两者仍0／48／256／0／153。CPU参考中位数(ms)依次57.226→50.880、89.857→87.154、
+220.474→225.028、14.312→14.097、160.961→155.714。run变动5.6–173%，无host资格，不认证速度优势。
+连续性少时收益有限，I/O未减少。混合长度warm active峰值CPU4.001→4.114 MiB、
+Metal4.001–4.028→4.325 MiB；CPU cache1.027→1.465 MiB。
+各case warm RSS sample约330.9–335.4 MiB，包含import／fixture／cache，不能判定RSS方式优势。
+峰值是process全体而非独立scratch，1ms采样可能漏过短峰，HWM为生涯值，MLX每请求reset并同步。
+速度／内存process分开，unified RSS及MLX值不可相加，不是专用VRAM。
+[严格payload预算对照](evaluation/strata-diverse-prefill-tight-budget-analysis-2026-10-12.json)：
+恰好2个payload因保守header判定退回逐次，连续eval256→256，数值一致，不混为batch收益。
+🟠 [Next] 基于payload的group admission、实际prefill连续性、scratch／RSS及无竞争计时。
+⭕️ [Pending] 实模型／GPU E2E、system GPU／OOM及速度／默认采用认证。
+
 
 🟢 [Done] 第18阶段（2026-10-12）：明确候选`grouped=True, maximum_group_rows=8`，
 仅合并连续且Expert顺序相同的token，上限1–64，默认1。逆序选择保持分组，entry／byte不足仍逐次fallback。

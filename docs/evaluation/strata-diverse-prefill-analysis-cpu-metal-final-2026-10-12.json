@@ -1,0 +1,1748 @@
+{
+  "scope": "synthetic_authoritative_prefill_switch_cpu_metal",
+  "maximum_absolute_error": 2.2351741790771484e-07,
+  "all_devices_available": true,
+  "all_parity_passed": true,
+  "speed_qualified": false,
+  "real_oom_qualified": false,
+  "speed_groups": [
+    {
+      "device": "cpu",
+      "case": "repeat",
+      "maximum_group_rows": 1,
+      "runs": 3,
+      "median_of_run_medians_us": 57225.6665,
+      "run_total_spread_percent": 5.563366927620365
+    },
+    {
+      "device": "cpu",
+      "case": "mixed_runs",
+      "maximum_group_rows": 1,
+      "runs": 3,
+      "median_of_run_medians_us": 89857.1665,
+      "run_total_spread_percent": 6.448557695571382
+    },
+    {
+      "device": "cpu",
+      "case": "alternating",
+      "maximum_group_rows": 1,
+      "runs": 3,
+      "median_of_run_medians_us": 220473.521,
+      "run_total_spread_percent": 173.07529196787846
+    },
+    {
+      "device": "cpu",
+      "case": "reversed",
+      "maximum_group_rows": 1,
+      "runs": 3,
+      "median_of_run_medians_us": 14312.2295,
+      "run_total_spread_percent": 127.11669573330443
+    },
+    {
+      "device": "cpu",
+      "case": "random",
+      "maximum_group_rows": 1,
+      "runs": 3,
+      "median_of_run_medians_us": 160960.9165,
+      "run_total_spread_percent": 79.68334243092566
+    },
+    {
+      "device": "cpu",
+      "case": "repeat",
+      "maximum_group_rows": 8,
+      "runs": 3,
+      "median_of_run_medians_us": 50880.208,
+      "run_total_spread_percent": 29.002239595984225
+    },
+    {
+      "device": "cpu",
+      "case": "mixed_runs",
+      "maximum_group_rows": 8,
+      "runs": 3,
+      "median_of_run_medians_us": 87153.9585,
+      "run_total_spread_percent": 28.083878893263005
+    },
+    {
+      "device": "cpu",
+      "case": "alternating",
+      "maximum_group_rows": 8,
+      "runs": 3,
+      "median_of_run_medians_us": 225027.729,
+      "run_total_spread_percent": 13.06903552488474
+    },
+    {
+      "device": "cpu",
+      "case": "reversed",
+      "maximum_group_rows": 8,
+      "runs": 3,
+      "median_of_run_medians_us": 14096.771,
+      "run_total_spread_percent": 6.329347333483719
+    },
+    {
+      "device": "cpu",
+      "case": "random",
+      "maximum_group_rows": 8,
+      "runs": 3,
+      "median_of_run_medians_us": 155713.583,
+      "run_total_spread_percent": 8.947155456491467
+    }
+  ],
+  "memory_groups": [
+    {
+      "device": "cpu",
+      "case": "repeat",
+      "maximum_group_rows": 1,
+      "iteration": 0,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4195352
+      ],
+      "mlx_peak_increment_range_bytes": [
+        3407872,
+        3407872
+      ],
+      "sampled_rss_peak_range_bytes": [
+        347897856,
+        349437952
+      ],
+      "mlx_cache_range_bytes": [
+        552960,
+        552960
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          128,
+          128
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          256,
+          256
+        ],
+        "mlx_load": [
+          2,
+          2
+        ]
+      }
+    },
+    {
+      "device": "cpu",
+      "case": "repeat",
+      "maximum_group_rows": 1,
+      "iteration": 1,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4195352
+      ],
+      "mlx_peak_increment_range_bytes": [
+        1048576,
+        1048576
+      ],
+      "sampled_rss_peak_range_bytes": [
+        348635136,
+        349995008
+      ],
+      "mlx_cache_range_bytes": [
+        1077252,
+        1077252
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          128,
+          128
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          256,
+          256
+        ],
+        "mlx_load": [
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "device": "cpu",
+      "case": "mixed_runs",
+      "maximum_group_rows": 1,
+      "iteration": 0,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4195352
+      ],
+      "mlx_peak_increment_range_bytes": [
+        3407872,
+        3407872
+      ],
+      "sampled_rss_peak_range_bytes": [
+        348127232,
+        348176384
+      ],
+      "mlx_cache_range_bytes": [
+        552960,
+        552960
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          128,
+          128
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          256,
+          256
+        ],
+        "mlx_load": [
+          48,
+          48
+        ]
+      }
+    },
+    {
+      "device": "cpu",
+      "case": "mixed_runs",
+      "maximum_group_rows": 1,
+      "iteration": 1,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4195352
+      ],
+      "mlx_peak_increment_range_bytes": [
+        1048576,
+        1048576
+      ],
+      "sampled_rss_peak_range_bytes": [
+        348700672,
+        349814784
+      ],
+      "mlx_cache_range_bytes": [
+        1077252,
+        1077252
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          128,
+          128
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          256,
+          256
+        ],
+        "mlx_load": [
+          48,
+          48
+        ]
+      }
+    },
+    {
+      "device": "cpu",
+      "case": "alternating",
+      "maximum_group_rows": 1,
+      "iteration": 0,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4195352
+      ],
+      "mlx_peak_increment_range_bytes": [
+        3407872,
+        3407872
+      ],
+      "sampled_rss_peak_range_bytes": [
+        348192768,
+        349323264
+      ],
+      "mlx_cache_range_bytes": [
+        552960,
+        552960
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          128,
+          128
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          256,
+          256
+        ],
+        "mlx_load": [
+          256,
+          256
+        ]
+      }
+    },
+    {
+      "device": "cpu",
+      "case": "alternating",
+      "maximum_group_rows": 1,
+      "iteration": 1,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4195352
+      ],
+      "mlx_peak_increment_range_bytes": [
+        1048576,
+        1048576
+      ],
+      "sampled_rss_peak_range_bytes": [
+        348717056,
+        349847552
+      ],
+      "mlx_cache_range_bytes": [
+        1077252,
+        1077252
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          128,
+          128
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          256,
+          256
+        ],
+        "mlx_load": [
+          256,
+          256
+        ]
+      }
+    },
+    {
+      "device": "cpu",
+      "case": "reversed",
+      "maximum_group_rows": 1,
+      "iteration": 0,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        2818328,
+        2818328
+      ],
+      "mlx_peak_increment_range_bytes": [
+        2621440,
+        2621440
+      ],
+      "sampled_rss_peak_range_bytes": [
+        346865664,
+        347947008
+      ],
+      "mlx_cache_range_bytes": [
+        159744,
+        159744
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          32,
+          32
+        ],
+        "expert_build": [
+          64,
+          64
+        ],
+        "acquire": [
+          64,
+          64
+        ],
+        "mlx_load": [
+          2,
+          2
+        ]
+      }
+    },
+    {
+      "device": "cpu",
+      "case": "reversed",
+      "maximum_group_rows": 1,
+      "iteration": 1,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        2818328,
+        2818328
+      ],
+      "mlx_peak_increment_range_bytes": [
+        262144,
+        262144
+      ],
+      "sampled_rss_peak_range_bytes": [
+        346996736,
+        348078080
+      ],
+      "mlx_cache_range_bytes": [
+        290820,
+        290820
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          32,
+          32
+        ],
+        "expert_build": [
+          64,
+          64
+        ],
+        "acquire": [
+          64,
+          64
+        ],
+        "mlx_load": [
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "device": "cpu",
+      "case": "random",
+      "maximum_group_rows": 1,
+      "iteration": 0,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4195352
+      ],
+      "mlx_peak_increment_range_bytes": [
+        3407872,
+        3407872
+      ],
+      "sampled_rss_peak_range_bytes": [
+        348274688,
+        349372416
+      ],
+      "mlx_cache_range_bytes": [
+        552960,
+        552960
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          128,
+          128
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          256,
+          256
+        ],
+        "mlx_load": [
+          153,
+          153
+        ]
+      }
+    },
+    {
+      "device": "cpu",
+      "case": "random",
+      "maximum_group_rows": 1,
+      "iteration": 1,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4195352
+      ],
+      "mlx_peak_increment_range_bytes": [
+        1048576,
+        1048576
+      ],
+      "sampled_rss_peak_range_bytes": [
+        348831744,
+        349929472
+      ],
+      "mlx_cache_range_bytes": [
+        1077252,
+        1077252
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          128,
+          128
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          256,
+          256
+        ],
+        "mlx_load": [
+          153,
+          153
+        ]
+      }
+    },
+    {
+      "device": "cpu",
+      "case": "repeat",
+      "maximum_group_rows": 8,
+      "iteration": 0,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4195352
+      ],
+      "mlx_peak_increment_range_bytes": [
+        3407872,
+        3407872
+      ],
+      "sampled_rss_peak_range_bytes": [
+        347848704,
+        349831168
+      ],
+      "mlx_cache_range_bytes": [
+        753664,
+        753664
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          16,
+          16
+        ],
+        "expert_build": [
+          32,
+          32
+        ],
+        "acquire": [
+          32,
+          32
+        ],
+        "mlx_load": [
+          2,
+          2
+        ]
+      }
+    },
+    {
+      "device": "cpu",
+      "case": "repeat",
+      "maximum_group_rows": 8,
+      "iteration": 1,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4195352
+      ],
+      "mlx_peak_increment_range_bytes": [
+        1048576,
+        1048576
+      ],
+      "sampled_rss_peak_range_bytes": [
+        348569600,
+        350355456
+      ],
+      "mlx_cache_range_bytes": [
+        1277956,
+        1277956
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          16,
+          16
+        ],
+        "expert_build": [
+          32,
+          32
+        ],
+        "acquire": [
+          32,
+          32
+        ],
+        "mlx_load": [
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "device": "cpu",
+      "case": "mixed_runs",
+      "maximum_group_rows": 8,
+      "iteration": 0,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4310040,
+        4310040
+      ],
+      "mlx_peak_increment_range_bytes": [
+        3522560,
+        3522560
+      ],
+      "sampled_rss_peak_range_bytes": [
+        348340224,
+        348569600
+      ],
+      "mlx_cache_range_bytes": [
+        995328,
+        995328
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          28,
+          28
+        ],
+        "expert_build": [
+          56,
+          56
+        ],
+        "acquire": [
+          56,
+          56
+        ],
+        "mlx_load": [
+          48,
+          48
+        ]
+      }
+    },
+    {
+      "device": "cpu",
+      "case": "mixed_runs",
+      "maximum_group_rows": 8,
+      "iteration": 1,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4314136,
+        4314136
+      ],
+      "mlx_peak_increment_range_bytes": [
+        1167360,
+        1167360
+      ],
+      "sampled_rss_peak_range_bytes": [
+        348880896,
+        349290496
+      ],
+      "mlx_cache_range_bytes": [
+        1536004,
+        1536004
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          28,
+          28
+        ],
+        "expert_build": [
+          56,
+          56
+        ],
+        "acquire": [
+          56,
+          56
+        ],
+        "mlx_load": [
+          48,
+          48
+        ]
+      }
+    },
+    {
+      "device": "cpu",
+      "case": "alternating",
+      "maximum_group_rows": 8,
+      "iteration": 0,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4195352
+      ],
+      "mlx_peak_increment_range_bytes": [
+        3407872,
+        3407872
+      ],
+      "sampled_rss_peak_range_bytes": [
+        348110848,
+        348569600
+      ],
+      "mlx_cache_range_bytes": [
+        552960,
+        552960
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          128,
+          128
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          256,
+          256
+        ],
+        "mlx_load": [
+          256,
+          256
+        ]
+      }
+    },
+    {
+      "device": "cpu",
+      "case": "alternating",
+      "maximum_group_rows": 8,
+      "iteration": 1,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4195352
+      ],
+      "mlx_peak_increment_range_bytes": [
+        1048576,
+        1048576
+      ],
+      "sampled_rss_peak_range_bytes": [
+        348749824,
+        350060544
+      ],
+      "mlx_cache_range_bytes": [
+        1077252,
+        1077252
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          128,
+          128
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          256,
+          256
+        ],
+        "mlx_load": [
+          256,
+          256
+        ]
+      }
+    },
+    {
+      "device": "cpu",
+      "case": "reversed",
+      "maximum_group_rows": 8,
+      "iteration": 0,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        2818328,
+        2818328
+      ],
+      "mlx_peak_increment_range_bytes": [
+        2621440,
+        2621440
+      ],
+      "sampled_rss_peak_range_bytes": [
+        346849280,
+        348160000
+      ],
+      "mlx_cache_range_bytes": [
+        159744,
+        159744
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          32,
+          32
+        ],
+        "expert_build": [
+          64,
+          64
+        ],
+        "acquire": [
+          64,
+          64
+        ],
+        "mlx_load": [
+          2,
+          2
+        ]
+      }
+    },
+    {
+      "device": "cpu",
+      "case": "reversed",
+      "maximum_group_rows": 8,
+      "iteration": 1,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        2818328,
+        2818328
+      ],
+      "mlx_peak_increment_range_bytes": [
+        262144,
+        262144
+      ],
+      "sampled_rss_peak_range_bytes": [
+        346980352,
+        348291072
+      ],
+      "mlx_cache_range_bytes": [
+        290820,
+        290820
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          32,
+          32
+        ],
+        "expert_build": [
+          64,
+          64
+        ],
+        "acquire": [
+          64,
+          64
+        ],
+        "mlx_load": [
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "device": "cpu",
+      "case": "random",
+      "maximum_group_rows": 8,
+      "iteration": 0,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4195352
+      ],
+      "mlx_peak_increment_range_bytes": [
+        3407872,
+        3407872
+      ],
+      "sampled_rss_peak_range_bytes": [
+        348291072,
+        349634560
+      ],
+      "mlx_cache_range_bytes": [
+        602112,
+        602112
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          120,
+          120
+        ],
+        "expert_build": [
+          240,
+          240
+        ],
+        "acquire": [
+          240,
+          240
+        ],
+        "mlx_load": [
+          153,
+          153
+        ]
+      }
+    },
+    {
+      "device": "cpu",
+      "case": "random",
+      "maximum_group_rows": 8,
+      "iteration": 1,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4195352
+      ],
+      "mlx_peak_increment_range_bytes": [
+        1048576,
+        1048576
+      ],
+      "sampled_rss_peak_range_bytes": [
+        348831744,
+        350175232
+      ],
+      "mlx_cache_range_bytes": [
+        1126404,
+        1126404
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          120,
+          120
+        ],
+        "expert_build": [
+          240,
+          240
+        ],
+        "acquire": [
+          240,
+          240
+        ],
+        "mlx_load": [
+          153,
+          153
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "repeat",
+      "maximum_group_rows": 1,
+      "iteration": 0,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4224024
+      ],
+      "mlx_peak_increment_range_bytes": [
+        3407872,
+        3436544
+      ],
+      "sampled_rss_peak_range_bytes": [
+        349356032,
+        350699520
+      ],
+      "mlx_cache_range_bytes": [
+        561152,
+        569344
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          128,
+          128
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          256,
+          256
+        ],
+        "mlx_load": [
+          2,
+          2
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "repeat",
+      "maximum_group_rows": 1,
+      "iteration": 1,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4224024
+      ],
+      "mlx_peak_increment_range_bytes": [
+        1048576,
+        1077248
+      ],
+      "sampled_rss_peak_range_bytes": [
+        349749248,
+        350699520
+      ],
+      "mlx_cache_range_bytes": [
+        1094148,
+        1106436
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          128,
+          128
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          256,
+          256
+        ],
+        "mlx_load": [
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "mixed_runs",
+      "maximum_group_rows": 1,
+      "iteration": 0,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4195352
+      ],
+      "mlx_peak_increment_range_bytes": [
+        3407872,
+        3407872
+      ],
+      "sampled_rss_peak_range_bytes": [
+        348995584,
+        352600064
+      ],
+      "mlx_cache_range_bytes": [
+        569344,
+        577536
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          128,
+          128
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          256,
+          256
+        ],
+        "mlx_load": [
+          48,
+          48
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "mixed_runs",
+      "maximum_group_rows": 1,
+      "iteration": 1,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4224024
+      ],
+      "mlx_peak_increment_range_bytes": [
+        -516,
+        1077248
+      ],
+      "sampled_rss_peak_range_bytes": [
+        350355456,
+        350650368
+      ],
+      "mlx_cache_range_bytes": [
+        1094148,
+        1102340
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          128,
+          128
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          256,
+          256
+        ],
+        "mlx_load": [
+          48,
+          48
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "alternating",
+      "maximum_group_rows": 1,
+      "iteration": 0,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4609048
+      ],
+      "mlx_peak_increment_range_bytes": [
+        3407872,
+        3821568
+      ],
+      "sampled_rss_peak_range_bytes": [
+        350765056,
+        352337920
+      ],
+      "mlx_cache_range_bytes": [
+        552960,
+        1732608
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          128,
+          128
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          256,
+          256
+        ],
+        "mlx_load": [
+          256,
+          256
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "alternating",
+      "maximum_group_rows": 1,
+      "iteration": 1,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4224024
+      ],
+      "mlx_peak_increment_range_bytes": [
+        1048576,
+        1077248
+      ],
+      "sampled_rss_peak_range_bytes": [
+        350765056,
+        351731712
+      ],
+      "mlx_cache_range_bytes": [
+        1077764,
+        2257412
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          128,
+          128
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          256,
+          256
+        ],
+        "mlx_load": [
+          256,
+          256
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "reversed",
+      "maximum_group_rows": 1,
+      "iteration": 0,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        2818328,
+        2847000
+      ],
+      "mlx_peak_increment_range_bytes": [
+        2621440,
+        2650112
+      ],
+      "sampled_rss_peak_range_bytes": [
+        349962240,
+        352157696
+      ],
+      "mlx_cache_range_bytes": [
+        188416,
+        188416
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          32,
+          32
+        ],
+        "expert_build": [
+          64,
+          64
+        ],
+        "acquire": [
+          64,
+          64
+        ],
+        "mlx_load": [
+          2,
+          2
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "reversed",
+      "maximum_group_rows": 1,
+      "iteration": 1,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        2847000,
+        2847000
+      ],
+      "mlx_peak_increment_range_bytes": [
+        28156,
+        290816
+      ],
+      "sampled_rss_peak_range_bytes": [
+        350011392,
+        350224384
+      ],
+      "mlx_cache_range_bytes": [
+        320004,
+        320004
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          32,
+          32
+        ],
+        "expert_build": [
+          64,
+          64
+        ],
+        "acquire": [
+          64,
+          64
+        ],
+        "mlx_load": [
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "random",
+      "maximum_group_rows": 1,
+      "iteration": 0,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4195352
+      ],
+      "mlx_peak_increment_range_bytes": [
+        3407872,
+        3407872
+      ],
+      "sampled_rss_peak_range_bytes": [
+        350830592,
+        351993856
+      ],
+      "mlx_cache_range_bytes": [
+        557056,
+        573440
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          128,
+          128
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          256,
+          256
+        ],
+        "mlx_load": [
+          153,
+          153
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "random",
+      "maximum_group_rows": 1,
+      "iteration": 1,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4219928,
+        4224024
+      ],
+      "mlx_peak_increment_range_bytes": [
+        1073152,
+        1077248
+      ],
+      "sampled_rss_peak_range_bytes": [
+        350650368,
+        350863360
+      ],
+      "mlx_cache_range_bytes": [
+        1085956,
+        1098244
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          128,
+          128
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          256,
+          256
+        ],
+        "mlx_load": [
+          153,
+          153
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "repeat",
+      "maximum_group_rows": 8,
+      "iteration": 0,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4424728
+      ],
+      "mlx_peak_increment_range_bytes": [
+        3407872,
+        3637248
+      ],
+      "sampled_rss_peak_range_bytes": [
+        348487680,
+        350142464
+      ],
+      "mlx_cache_range_bytes": [
+        786432,
+        950272
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          16,
+          16
+        ],
+        "expert_build": [
+          32,
+          32
+        ],
+        "acquire": [
+          32,
+          32
+        ],
+        "mlx_load": [
+          2,
+          2
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "repeat",
+      "maximum_group_rows": 8,
+      "iteration": 1,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4424728
+      ],
+      "mlx_peak_increment_range_bytes": [
+        228860,
+        1048576
+      ],
+      "sampled_rss_peak_range_bytes": [
+        348717056,
+        350142464
+      ],
+      "mlx_cache_range_bytes": [
+        1475076,
+        1475076
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          16,
+          16
+        ],
+        "expert_build": [
+          32,
+          32
+        ],
+        "acquire": [
+          32,
+          32
+        ],
+        "mlx_load": [
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "mixed_runs",
+      "maximum_group_rows": 8,
+      "iteration": 0,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4310040,
+        4531224
+      ],
+      "mlx_peak_increment_range_bytes": [
+        3522560,
+        3743744
+      ],
+      "sampled_rss_peak_range_bytes": [
+        348651520,
+        350715904
+      ],
+      "mlx_cache_range_bytes": [
+        995328,
+        1028096
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          28,
+          28
+        ],
+        "expert_build": [
+          56,
+          56
+        ],
+        "acquire": [
+          56,
+          56
+        ],
+        "mlx_load": [
+          48,
+          48
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "mixed_runs",
+      "maximum_group_rows": 8,
+      "iteration": 1,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4535320,
+        4535320
+      ],
+      "mlx_peak_increment_range_bytes": [
+        1388544,
+        1388544
+      ],
+      "sampled_rss_peak_range_bytes": [
+        348897280,
+        349732864
+      ],
+      "mlx_cache_range_bytes": [
+        1536516,
+        1569284
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          28,
+          28
+        ],
+        "expert_build": [
+          56,
+          56
+        ],
+        "acquire": [
+          56,
+          56
+        ],
+        "mlx_load": [
+          48,
+          48
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "alternating",
+      "maximum_group_rows": 8,
+      "iteration": 0,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4416536
+      ],
+      "mlx_peak_increment_range_bytes": [
+        3407872,
+        3629056
+      ],
+      "sampled_rss_peak_range_bytes": [
+        350633984,
+        351518720
+      ],
+      "mlx_cache_range_bytes": [
+        552960,
+        1732608
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          128,
+          128
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          256,
+          256
+        ],
+        "mlx_load": [
+          256,
+          256
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "alternating",
+      "maximum_group_rows": 8,
+      "iteration": 1,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4195352
+      ],
+      "mlx_peak_increment_range_bytes": [
+        1048576,
+        1048576
+      ],
+      "sampled_rss_peak_range_bytes": [
+        350011392,
+        351223808
+      ],
+      "mlx_cache_range_bytes": [
+        1077764,
+        2257412
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          128,
+          128
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          256,
+          256
+        ],
+        "mlx_load": [
+          256,
+          256
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "reversed",
+      "maximum_group_rows": 8,
+      "iteration": 0,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        2818328,
+        2847000
+      ],
+      "mlx_peak_increment_range_bytes": [
+        2621440,
+        2650112
+      ],
+      "sampled_rss_peak_range_bytes": [
+        349470720,
+        351404032
+      ],
+      "mlx_cache_range_bytes": [
+        163840,
+        172032
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          32,
+          32
+        ],
+        "expert_build": [
+          64,
+          64
+        ],
+        "acquire": [
+          64,
+          64
+        ],
+        "mlx_load": [
+          2,
+          2
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "reversed",
+      "maximum_group_rows": 8,
+      "iteration": 1,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        2847000,
+        2847000
+      ],
+      "mlx_peak_increment_range_bytes": [
+        28156,
+        290816
+      ],
+      "sampled_rss_peak_range_bytes": [
+        349487104,
+        349519872
+      ],
+      "mlx_cache_range_bytes": [
+        295428,
+        307716
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          32,
+          32
+        ],
+        "expert_build": [
+          64,
+          64
+        ],
+        "acquire": [
+          64,
+          64
+        ],
+        "mlx_load": [
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "random",
+      "maximum_group_rows": 8,
+      "iteration": 0,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4195352
+      ],
+      "mlx_peak_increment_range_bytes": [
+        3407872,
+        3407872
+      ],
+      "sampled_rss_peak_range_bytes": [
+        351289344,
+        351469568
+      ],
+      "mlx_cache_range_bytes": [
+        602112,
+        606208
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          120,
+          120
+        ],
+        "expert_build": [
+          240,
+          240
+        ],
+        "acquire": [
+          240,
+          240
+        ],
+        "mlx_load": [
+          153,
+          153
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "random",
+      "maximum_group_rows": 8,
+      "iteration": 1,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4224024,
+        4224024
+      ],
+      "mlx_peak_increment_range_bytes": [
+        1077248,
+        1077248
+      ],
+      "sampled_rss_peak_range_bytes": [
+        350109696,
+        350158848
+      ],
+      "mlx_cache_range_bytes": [
+        1131012,
+        1131012
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          120,
+          120
+        ],
+        "expert_build": [
+          240,
+          240
+        ],
+        "acquire": [
+          240,
+          240
+        ],
+        "mlx_load": [
+          153,
+          153
+        ]
+      }
+    }
+  ],
+  "limitations": [
+    "Five synthetic ordered-selection fixtures, not text/tokenizer/real-model quality",
+    "Budget includes two safetensors files and excludes a third payload",
+    "Native SwitchGLU references and experts prepared in a separate process",
+    "Workers discard temporary source bank before measurement",
+    "4 measured CPU requests after 1 warmup per case; no host qualification",
+    "Memory workers separate from speed; phase counters enabled only for memory",
+    "2 memory requests per case: first cold manager, then existing cache/residency",
+    "Reference/input/output arrays contribute to baseline and observed peaks",
+    "RSS sampling requested at 1ms; sampled peak may miss transients",
+    "RSS HWM is lifetime-wide; MLX peak reset per request",
+    "MLX allocator is process-wide unified memory, not dedicated/system GPU VRAM",
+    "Keep default allocator cache between requests; test-only clear between memory cases"
+  ],
+  "report": "docs/evaluation/strata-diverse-prefill-batch-cpu-metal-2026-10-12.json",
+  "report_sha256": "217eed9ae02d374dc19e10f065cc7bc9686484ef672de5fc61a5deac100b792d"
+}
