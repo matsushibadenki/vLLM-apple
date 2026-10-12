@@ -19,7 +19,8 @@ sys.path.insert(0, str(ROOT))
 
 
 def worker(policy, repeat, profile=False, preload=False, grouped=False, gather=False, cycles=1,
-           warmup_cycles=0, resident_bytes=50000, handshake=False):
+           warmup_cycles=0, resident_bytes=50000, handshake=False, tokens_per_request=1,
+           maximum_group_rows=1):
     import mlx.core as mx
     import mlx.nn as nn
     from mlx_lm.models.qwen3_moe import Qwen3MoeSparseMoeBlock
@@ -41,6 +42,7 @@ def worker(policy, repeat, profile=False, preload=False, grouped=False, gather=F
     nn.quantize(block, group_size=32, bits=4)
     base_inputs = [mx.cos(mx.arange(64).reshape(1, 1, 64) + offset)
                    for offset in (0, 1, 0, 2, 0, 1, 0, 3)]
+    base_inputs = [mx.broadcast_to(x, (1, tokens_per_request, 64)) for x in base_inputs]
     base_references = [block(x) for x in base_inputs]
     mx.eval(*base_references)
     inputs, references = base_inputs * cycles, base_references * cycles
@@ -70,7 +72,9 @@ def worker(policy, repeat, profile=False, preload=False, grouped=False, gather=F
                 )
                 executor = ResidentExpertExecutor(manager, timings=timings)
                 install_qwen3_moe_residency(
-                    block, backend, executor, layer=0, phase="decode", grouped=grouped,
+                    block, backend, executor, layer=0,
+                    phase="prefill" if tokens_per_request > 1 else "decode", grouped=grouped,
+                    maximum_group_rows=maximum_group_rows,
                 )
                 if preload:
                     for expert in range(4):
@@ -122,6 +126,7 @@ def worker(policy, repeat, profile=False, preload=False, grouped=False, gather=F
                     preloaded=preload, initial_residency=initial_residency,
                     grouped=grouped,
                     gather=gather, cycles=cycles, gather_resident_bytes=gather_bytes,
+                    tokens_per_request=tokens_per_request, maximum_group_rows=maximum_group_rows,
                     resident_budget_bytes=resident_bytes, warmup_cycles=warmup_cycles,
                     closed_gather_bytes=gather_hook.resident_bytes if gather_hook else None,
                     closed_resident_bytes=manager.snapshot()["resident_bytes"] if manager else None)
@@ -191,6 +196,9 @@ def main():
     parser.add_argument("--resident-bytes", type=int, default=50000)
     parser.add_argument("--runs", type=int, default=3)
     parser.add_argument("--memory-suite", action="store_true")
+    parser.add_argument("--row-suite", action="store_true")
+    parser.add_argument("--tokens-per-request", type=int, default=1)
+    parser.add_argument("--maximum-group-rows", type=int, default=1)
     parser.add_argument("--quiet-host", action="store_true",
                         help="Require three low-load samples before each worker; record load during it")
     parser.add_argument("--quiet-timeout", type=int, default=30)
@@ -198,12 +206,16 @@ def main():
     if (not 1 <= args.cycles <= 512 or not 0 <= args.warmup_cycles <= 32
             or not 3 <= args.runs <= 12 or args.resident_bytes <= 0
             or not 3 <= args.quiet_timeout <= 180
+            or not 1 <= args.tokens_per_request <= 64 or not 1 <= args.maximum_group_rows <= 64
+            or args.row_suite and (args.memory_suite or args.variant_suite or args.gather
+                                  or args.grouped or args.maximum_group_rows != 1)
             or args.memory_suite and (args.variant_suite or args.preload or args.gather)):
         parser.error("invalid workload limits or incompatible memory-suite options")
     if args.worker:
         print(json.dumps(worker(args.policy, args.repeat, args.profile, args.preload,
                                 args.grouped, args.gather, args.cycles,
-                                args.warmup_cycles, args.resident_bytes, args.handshake)))
+                                args.warmup_cycles, args.resident_bytes, args.handshake,
+                                args.tokens_per_request, args.maximum_group_rows)))
         return
     if args.output is None or args.output.exists():
         parser.error("--output must identify a new report file")
@@ -216,6 +228,8 @@ def main():
     if args.memory_suite:
         policies = (("baseline", "baseline"), ("lru", "sequential"),
                     ("lru", "grouped"), ("cost_frequency", "grouped"))
+    if args.row_suite:
+        policies = (("baseline", "baseline"), ("lru", "grouped"), ("lru", "row_batch"))
     for repeat in range(args.runs):
         offset = repeat % len(policies)
         for policy, variant in policies[offset:] + policies[:offset]:
@@ -231,12 +245,16 @@ def main():
             command = [sys.executable, str(Path(__file__).resolve()), "--worker", "--policy", policy,
                        "--repeat", str(repeat), "--cycles", str(args.cycles),
                        "--warmup-cycles", str(args.warmup_cycles),
-                       "--resident-bytes", str(args.resident_bytes)]
+                       "--resident-bytes", str(args.resident_bytes),
+                       "--tokens-per-request", str(args.tokens_per_request),
+                       "--maximum-group-rows",
+                       str(min(8, args.tokens_per_request) if variant == "row_batch"
+                           else args.maximum_group_rows)]
             if args.profile:
                 command.append("--profile")
             if args.preload:
                 command.append("--preload")
-            if args.grouped or variant == "grouped":
+            if args.grouped or variant in {"grouped", "row_batch"}:
                 command.append("--grouped")
             if args.gather or variant == "gather":
                 command.append("--gather")
@@ -273,6 +291,7 @@ def main():
                   grouped=args.grouped,
                   gather=args.gather, variant_suite=args.variant_suite, cycles=args.cycles,
                   memory_suite=args.memory_suite, runs=args.runs,
+                  row_suite=args.row_suite, tokens_per_request=args.tokens_per_request,
                   warmup_cycles=args.warmup_cycles, resident_budget_bytes=args.resident_bytes,
                   quiet_host_requested=args.quiet_host, host_gates=host_gates,
                   host_load_window="requests_only" if args.quiet_host else None,

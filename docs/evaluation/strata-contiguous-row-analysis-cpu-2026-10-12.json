@@ -1,0 +1,111 @@
+{
+  "scope": "synthetic_qwen3_block_cpu",
+  "maximum_spread_percent": 5.0,
+  "spread_definition": "100 * (max - min) / median of run request totals",
+  "campaign_completed": true,
+  "timing_stable": false,
+  "uncontended_comparison_passed": false,
+  "standard_adoption_eligible": false,
+  "groups": [
+    {
+      "variant": "baseline",
+      "policy": "baseline",
+      "runs": 3,
+      "timed_requests": 192,
+      "median_of_run_medians_us": 69.583,
+      "run_total_spread_percent": 6.1486853511827295,
+      "timing_stable": false,
+      "host_load_passed": false,
+      "startup_host_passed_runs": 0,
+      "request_host_passed_runs": 0,
+      "parity_passed": true,
+      "residency_contract_passed": true,
+      "peak_retained_bytes": null,
+      "peak_reserved_bytes": null,
+      "gather_retained_bytes": null,
+      "request_residency_deltas": []
+    },
+    {
+      "variant": "grouped",
+      "policy": "lru",
+      "runs": 3,
+      "timed_requests": 192,
+      "median_of_run_medians_us": 606.917,
+      "run_total_spread_percent": 7.28938018712977,
+      "timing_stable": false,
+      "host_load_passed": false,
+      "startup_host_passed_runs": 0,
+      "request_host_passed_runs": 0,
+      "parity_passed": true,
+      "residency_contract_passed": true,
+      "peak_retained_bytes": 18432,
+      "peak_reserved_bytes": 18432,
+      "gather_retained_bytes": null,
+      "request_residency_deltas": [
+        {
+          "hits": 992,
+          "misses": 32,
+          "evictions": 32,
+          "rejections": 0
+        },
+        {
+          "hits": 992,
+          "misses": 32,
+          "evictions": 32,
+          "rejections": 0
+        },
+        {
+          "hits": 992,
+          "misses": 32,
+          "evictions": 32,
+          "rejections": 0
+        }
+      ]
+    },
+    {
+      "variant": "row_batch",
+      "policy": "lru",
+      "runs": 3,
+      "timed_requests": 192,
+      "median_of_run_medians_us": 232.4585,
+      "run_total_spread_percent": 1.3355163463339554,
+      "timing_stable": true,
+      "host_load_passed": false,
+      "startup_host_passed_runs": 0,
+      "request_host_passed_runs": 0,
+      "parity_passed": true,
+      "residency_contract_passed": true,
+      "peak_retained_bytes": 18432,
+      "peak_reserved_bytes": 18432,
+      "gather_retained_bytes": null,
+      "request_residency_deltas": [
+        {
+          "hits": 96,
+          "misses": 32,
+          "evictions": 32,
+          "rejections": 0
+        },
+        {
+          "hits": 96,
+          "misses": 32,
+          "evictions": 32,
+          "rejections": 0
+        },
+        {
+          "hits": 96,
+          "misses": 32,
+          "evictions": 32,
+          "rejections": 0
+        }
+      ]
+    }
+  ],
+  "limitations": [
+    "Synthetic CPU block, not model/GPU/E2E qualification",
+    "Retained tensor peak excludes transient loading and RSS",
+    "Baseline retains all source weights even in memory suite",
+    "Warmup/export/startup/parity checks excluded from timed spans"
+  ],
+  "report": "docs/evaluation/strata-contiguous-row-functional-cpu-2026-10-12.json",
+  "report_sha256": "1cf0c68e44bc001fe4c84fda17f6f30f8544bc45ba08f6b40abb7723cf502a36"
+}

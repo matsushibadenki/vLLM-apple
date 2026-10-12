@@ -2,6 +2,28 @@
 
 ## 日本語
 
+🟢 [Done] 第18工程（2026-10-12）：`grouped=True, maximum_group_rows=8`の明示候補を追加。
+同じ順序のExpert選択が連続するtokenだけを、最大指定行数（1–64）でまとめて演算する。
+順序が異なれば別group。既定1行、groupedなしの複数行指定は拒否。entry／byte不足では従来の逐次fallback。
+Router、top-k、各tokenの最終重み付けは既存blockに残し、Leaseを全batchの同期評価まで保持する。
+weight予算は維持するがbatch化でactivation scratchは増える。scratch／RSS／実OOMの上限保証ではない。
+phase telemetryのsample／selected_expertsは実行group単位となり、Router token数と混同しない。
+要求全体の4,096行／64 MiB出力上限を維持。native関連15 tests成功、dense／4／8-bit数値一致、
+逆順groupの分離、group行上限、容量fallback、例外時解放を検証。
+
+[8-token合成機能比較](evaluation/strata-contiguous-row-analysis-cpu-2026-10-12.json)：
+`--row-suite --tokens-per-request 8 --resident-bytes 20000 --cycles 8 --warmup-cycles 2 --runs 3 --profile`。
+baseline／1行grouped／8行batchを順序rotation、各3 fresh process、9 trial／576要求（4,608 tokens）誤差0。
+入力は要求内で同一token vectorを8回繰り返す、連続選択に有利なfixture。一般prefillの代表値とはしない。
+各candidate64要求でExpert eval512→64、Expert build span1024→128、acquire1024→128。
+Router to_hostは両者64、load／miss／evictionは両者32。保持／incoming予約ピーク18,432 bytes、
+残存Lease／拒否0、close後保持0。host同期そのものやI/Oは減っていない。
+profile on・host資格なしのため速度認定しない。参考中央値grouped606.917／batch232.459 μs、baseline69.583 μs。
+この差を本番speedupとしない。既存1-token自動比較は既定1行のまま維持する。
+🟠 [Next] 連続選択が少ないprefill、batch scratch／RSS、低負荷での候補比較を確認。
+⭕️ [Pending] 実weight／GPU／E2E・速度資格と既定採用。
+
+
 🟢 [Done] 第17工程（2026-10-12）：startupと要求区間をREADY／GO／DONE／ACKで分離。
 startupはimport・reference生成・export・preload・warmupを含む。READY後に再び低負荷を待ち、
 parentが要求monitorを開始してGOを送る。DONEを受けた時点でmonitorを停止し、その後にACKでcleanupを許可する。
@@ -397,6 +419,23 @@ prefill／decode別の測定を収集する。LRUと同一モデル・精度・w
 
 ## English
 
+🟢 [Done] Stage18 (2026-10-12): opt-in `grouped=True, maximum_group_rows=8` batches only
+contiguous tokens with identical ordered expert selections. Range1–64, default1; no regrouping of
+reversed selections. Entry/byte shortages retain sequential fallback; leases survive batch evaluation.
+The original block retains routing/top-k/per-token aggregation. Scratch increases and is outside the
+weight budget. Telemetry samples/expert counts describe execution groups, not router token counts.
+Native-related15 tests pass for dense/4/8-bit parity, order boundaries, caps, fallback and failure cleanup.
+[Functional CPU suite](evaluation/strata-contiguous-row-analysis-cpu-2026-10-12.json):9 fresh trials,
+576 requests/4,608 tokens, zero error. Repeated token vectors intentionally favor contiguous routing.
+Per64 candidate requests: expert eval512→64, build spans/acquires1024→128; host extractions64 and
+loads/misses/evictions32 unchanged. Retained/reserved peak18,432 bytes under20,000, no leases/rejections,
+zero retention after close. Profile-on, no host qualification: no certified speedup or default adoption.
+Reference medians grouped606.917/batch232.459/baseline69.583 us; not production performance.
+The scheduled1-token comparisons keep the default1-row route.
+🟠 [Next] Diverse prefill routes, scratch/RSS and low-load comparisons.
+⭕️ [Pending] Real-weight/GPU/E2E and speed/default qualification.
+
+
 🟢 [Done] Stage17 (2026-10-12): READY/GO/DONE/ACK separates startup, ready wait and requests.
 Startup includes imports/reference construction/export/preload/warmup. After READY the parent waits for
 quiet conditions, starts request monitoring and sends GO. DONE stops monitoring before ACK allows cleanup.
@@ -586,6 +625,21 @@ LRU and use the existing P3 gate before adoption.
 ⭕️ [Pending] MTP/ANE routes lacking testable artifacts or hardware.
 
 ## 简体中文
+
+🟢 [Done] 第18阶段（2026-10-12）：明确候选`grouped=True, maximum_group_rows=8`，
+仅合并连续且Expert顺序相同的token，上限1–64，默认1。逆序选择保持分组，entry／byte不足仍逐次fallback。
+Lease保持至batch同步求值结束，Router／top-k／各token最终权重由原block处理。
+activation scratch增加，不包含在weight预算内；telemetry计数为执行group，不能当作Router token数。
+15个native相关tests通过dense／4／8-bit一致、顺序边界、行上限、容量fallback及异常释放。
+[合成功能比较](evaluation/strata-contiguous-row-analysis-cpu-2026-10-12.json)：9个独立trial，
+576请求／4,608 tokens误差0。输入重复8次相同token vector，特意有利于连续路由，非一般prefill代表。
+每64候选请求Expert eval512→64、build span／acquire1024→128；host提取仍64，load／miss／eviction仍32。
+20,000 bytes预算下保持／预约峰值18,432，无Lease／拒绝，close保持0。
+profile on、无host资格，不认证速度或默认采用。参考中位数grouped606.917／batch232.459／baseline69.583 μs，
+不作为生产性能。定时1-token比较仍维持默认1行。
+🟠 [Next] 多样prefill路由、scratch／RSS及低负荷比较。
+⭕️ [Pending] 实weight／GPU／E2E及速度／默认采用认证。
+
 
 🟢 [Done] 第17阶段（2026-10-12）：READY／GO／DONE／ACK分开startup、准备后等待及请求。
 startup含import／reference／export／preload／warmup。READY后再次等待低负荷，parent开始monitor后发送GO，

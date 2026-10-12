@@ -11,7 +11,7 @@ from .mlx_expert_backend import MLXFileExpertBackend
 
 def install_qwen3_moe_residency(
     block, backend: MLXFileExpertBackend, executor: ResidentExpertExecutor, *,
-    layer: int, phase: str, grouped: bool = False,
+    layer: int, phase: str, grouped: bool = False, maximum_group_rows: int = 1,
 ):
     """Replace switch_mlp only, leaving original gate/top-k/aggregation untouched.
 
@@ -20,6 +20,9 @@ def install_qwen3_moe_residency(
     This synchronous reference implementation is intentionally opt-in and is not
     safe to install/change phase concurrently with inference. Reload the original
     model to restore baseline; the hook does not retain rollback weight copies.
+    With grouped=True, maximum_group_rows>1 batches contiguous tokens only when
+    their ordered selections match. This increases activation scratch space;
+    resident weight budgets do not bound that scratch allocation.
     """
     import mlx.core as mx
     import mlx.nn as nn
@@ -28,6 +31,8 @@ def install_qwen3_moe_residency(
 
     if (type(block) is not Qwen3MoeSparseMoeBlock or phase not in {"prefill", "decode"}
             or type(grouped) is not bool
+            or type(maximum_group_rows) is not int or not 1 <= maximum_group_rows <= 64
+            or (not grouped and maximum_group_rows != 1)
             or not executor.manager.uses_backend(backend) or backend._manifest is None):
         raise ValueError("unsupported or unbound Qwen3 MoE hook")
     source = block.switch_mlp
@@ -74,7 +79,9 @@ def install_qwen3_moe_residency(
                 raise ValueError("invalid authoritative router selection")
             tokens = x.reshape(rows, -1)
             results = []
-            for row, selected in enumerate(selections):
+            row = 0
+            while row < rows:
+                selected = selections[row]
                 fits = False
                 if grouped:
                     budget = executor.manager.snapshot()
@@ -84,10 +91,15 @@ def install_qwen3_moe_residency(
                         for expert in selected
                     ) <= budget["maximum_bytes"])
                 if grouped and fits:
+                    end = row + 1
+                    while (end < min(rows, row + maximum_group_rows)
+                           and selections[end] == selected):
+                        end += 1
                     results.append(backend.execute_unaggregated(
-                        executor, tokens[row:row + 1], phase=self.phase, layer=layer,
+                        executor, tokens[row:end], phase=self.phase, layer=layer,
                         selected_experts=tuple(selected),
                     ))
+                    row = end
                     continue
                 outputs = [backend.execute_selected(
                     executor, tokens[row:row + 1], phase=self.phase, layer=layer,
@@ -95,6 +107,7 @@ def install_qwen3_moe_residency(
                 ) for expert in selected]
                 with measure(backend.timings, "output_assembly"):
                     results.append(mx.stack(outputs, axis=-2))
+                row += 1
             with measure(backend.timings, "output_assembly"):
                 result = mx.concatenate(results, axis=0).reshape(
                     *x.shape[:-1], indices.shape[-1], x.shape[-1],

@@ -46,6 +46,20 @@
 - 🟠 [Next] 全Python回帰1553 testsは3 failures・1 error・40 skips。版固定の配布テストを修正し9 tests成功。daemon／child startup失敗は変更前でも再現、Metal単独再試験は成功。全回帰合格とbackend qualificationを継続。
 - ⭕️ [Pending] CI Actions v7とPython3.13／macOS15 runnerの実環境検証。
 
+### Strata · 連続tokenのExpert共有
+
+- 🟢 [Done] [連続Expert選択のbatch候補](evaluation/strata-contiguous-row-analysis-cpu-2026-10-12.json)：9 trial／576合成CPU要求誤差0。64要求のExpert eval512→64、acquire1024→128。native関連15 tests成功。
+- 🟢 [Done] 既定1行・容量不足時の逐次fallback・Lease保護を維持。20,000-byte予算の保持／予約ピーク18,432 bytes。
+- 🟠 [Next] 多様なprefillでscratch／RSSと低負荷比較を確認。既存の全方式比較も継続。
+- ⭕️ [Pending] 実weight／GPU／E2Eと速度・既定採用資格。
+
+English: Opt-in contiguous-row batches reduce evaluation/acquire counts; no qualified production speedup.
+
+简体中文：可选连续token batch减少eval／acquire次数，尚未认证生产加速。
+
+<details>
+<summary>負荷分離の進捗 / Load-window progress / 负荷分离进展</summary>
+
 ### Strata · startupと要求区間の分離
 
 - 🟢 [Done] READY／GO／DONE／ACKでstartup／低負荷待機／要求を分離。要求100ms sample、startupと独立した資格判定、関連34 unit tests成功。
@@ -54,6 +68,8 @@
 - 🟠 [Next] 要求中gateが成立する時間帯に全方式を比較。実weight／system GPU／OOM／E2Eも未認定。
   English: Startup/request separation tested; request contention persists,120s retry cannot start a full campaign.
   简体中文：startup／请求分离通过验证，但请求竞争仍在，120秒重试未能开始完整比较。
+
+</details>
 
 [Strataの詳細・検証記録](STRATA-INTEGRATION.md) · [過去の進捗](ROADMAP-history-2026-10-12.md#strata導入の最初の工程--first-strata-integration-step--strata集成第一步)
 
