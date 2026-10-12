@@ -2,130 +2,126 @@
 
 ## Strata導入の最初の工程 / First Strata integration step / Strata集成第一步
 
+- 🟢 [Done] READY／GO／DONE／ACKでstartup／低負荷待機／要求を分離。要求100ms sample、startupと独立した資格判定、関連34 unit tests成功。
+- 🟢 [Done] [分離した負荷検証](evaluation/strata-phased-partial-analysis-cpu-2026-10-12.json)：1 trial／4,096要求誤差0、要求windowにもCPU条件未達を確認。
+- ⭕️ [Pending] [120秒待機の全方式再試行](evaluation/strata-phased-partial-retry-analysis-cpu-2026-10-12.json)：継続する他process負荷でtrial0。全方式の比較はまだ揃っていない。
+- 🟠 [Next] 要求中gateが成立する時間帯に全方式を比較。実weight／system GPU／OOM／E2Eも未認定。
+  English: Startup/request separation tested; request contention persists,120s retry cannot start a full campaign.
+  简体中文：startup／请求分离通过验证，但请求竞争仍在，120秒重试未能开始完整比较。
 
-🟢 [Done] READY／GO／DONE／ACKでstartup／低負荷待機／要求を分離。要求100ms sample、startupと独立した資格判定、関連34 unit tests成功。
-🟢 [Done] [分離した負荷検証](evaluation/strata-phased-partial-analysis-cpu-2026-10-12.json)：1 trial／4,096要求誤差0、要求windowにもCPU条件未達を確認。
-⭕️ [Pending] [120秒待機の全方式再試行](evaluation/strata-phased-partial-retry-analysis-cpu-2026-10-12.json)：継続する他process負荷でtrial0。全方式の比較はまだ揃っていない。
-🟠 [Next] 要求中gateが成立する時間帯に全方式を比較。実weight／system GPU／OOM／E2Eも未認定。
-English: Startup/request separation tested; request contention persists,120s retry cannot start a full campaign.
-简体中文：startup／请求分离通过验证，但请求竞争仍在，120秒重试未能开始完整比较。
+- 🟢 [Done] [2026-10-12部分常駐比較](evaluation/strata-quiet-partial-analysis-cpu-2026-10-12.json)：16 trial／16,384要求誤差0、全方式run変動0.33–2.44%。逐次LRUはhost条件4/4通過、保持／予約ピーク18,432 bytes、grouped再読み込み20%減。
+- 🟢 [Done] 全常駐14 trial／57,344要求誤差0。ただしcampaign未完・host未達で速度認定なし。
+- 🟠 [Next] 全方式のhost条件を満たした比較とstartup／要求区間の負荷分離。
+- ⭕️ [Pending] 比較全体の非競合資格、実weightピーク／system GPU／実OOM／E2E認定。
+  English: Partial timing spread now below5%; only sequential LRU passes every host check, overall qualification remains pending.
+  简体中文：部分常驻计时变动已低于5%，仅逐次LRU每次host达标，整体认证仍待完成。
 
+- 🟢 [Done] [CPU／Metal読み込みメモリ検証](evaluation/strata-load-memory-analysis-cpu-metal-2026-10-11.json)：最終16 fresh trial／96 acquire。事前退避でMLX activeピーク9→4.5／13.5→9 MiB、RSS sampleも記録。close active0、cache clear後0、関連30 unit tests成功。
+- 🟢 [Done] CPU負荷gate・実行中記録・未完campaignの認定拒否を実装。
+- ⭕️ [Pending] [非競合速度比較](evaluation/strata-quiet-resident-retry-analysis-cpu-2026-10-11.json)：30秒×2の確認でhost条件未達、計測worker0。実weight／system GPU／実OOM／E2E認定も未完。
+- 🟠 [Next] 静かなhostで比較し、実weightのload／推論ピークを計測。
+  English: CPU/Metal loading peaks verified; busy-host gate prevents invalid timing, real-model/OOM certification pending.
+  简体中文：CPU／Metal加载峰值已验证，host竞争时拒绝无效计时，实模型／OOM认证待完成。
 
-🟢 [Done] [2026-10-12部分常駐比較](evaluation/strata-quiet-partial-analysis-cpu-2026-10-12.json)：16 trial／16,384要求誤差0、全方式run変動0.33–2.44%。逐次LRUはhost条件4/4通過、保持／予約ピーク18,432 bytes、grouped再読み込み20%減。
-🟢 [Done] 全常駐14 trial／57,344要求誤差0。ただしcampaign未完・host未達で速度認定なし。
-🟠 [Next] 全方式のhost条件を満たした比較とstartup／要求区間の負荷分離。
-⭕️ [Pending] 比較全体の非競合資格、実weightピーク／system GPU／実OOM／E2E認定。
-English: Partial timing spread now below5%; only sequential LRU passes every host check, overall qualification remains pending.
-简体中文：部分常驻计时变动已低于5%，仅逐次LRU每次host达标，整体认证仍待完成。
+- 🟢 [Done] [読み込み前payload予約と事前退避](evaluation/strata-preload-reservation-cpu-2026-10-11.json)：192合成CPU要求誤差0。20,000／10,000 bytes予算で保持＋incoming予約ピーク18,432／9,216 bytes。load前拒否・模擬MemoryError後の再試行・Lease解放、24 unit／14 native関連tests成功。
+- 🟠 [Next] 非競合hostで速度比較、実weightのload時RSS／GPUピーク計測。
+- ⭕️ [Pending] 実OOM・allocator／GPU／E2E認定。予約はtensorの論理量のみ。
+  English: Pre-load payload reservation avoids logical old/new weight overlap; scratch/RSS and real OOM remain unqualified.
+  简体中文：加载前payload预约避免新旧权重逻辑量超限；临时分配／RSS及实际OOM尚未认证。
 
+- 🟢 [Done] [warmup反復比較・部分常駐検証](evaluation/strata-partial-residency-analysis-cpu-2026-10-11.json)：全常駐24,576＋部分常駐12,288要求一致。20,000-byte予算でピーク18,432 bytes、退避／再読み込み・Lease解放・close後0を確認。10,000-byte予算の逐次fallbackも64要求一致。19 unit／13 native関連tests成功。
+- 🟠 [Next] 同時高負荷を避けた再比較。run変動87–352%で安定計測は未達、速度／既定採用は認定しない。
+- ⭕️ [Pending] 実weight・GPU／RSS・load時ピーク／実OOM・E2E検証。保持tensor予算だけでは実OOMを保証しない。
+  English: Partial retention and single-expert fallback pass; timing remains noisy under contention, no promotion or real OOM certification.
+  简体中文：部分常驻及单Expert fallback通过；竞争负荷下计时仍不稳定，不晋升，不认证实际OOM安全。
 
-🟢 [Done] [CPU／Metal読み込みメモリ検証](evaluation/strata-load-memory-analysis-cpu-metal-2026-10-11.json)：最終16 fresh trial／96 acquire。事前退避でMLX activeピーク9→4.5／13.5→9 MiB、RSS sampleも記録。close active0、cache clear後0、関連30 unit tests成功。
-🟢 [Done] CPU負荷gate・実行中記録・未完campaignの認定拒否を実装。
-⭕️ [Pending] [非競合速度比較](evaluation/strata-quiet-resident-retry-analysis-cpu-2026-10-11.json)：30秒×2の確認でhost条件未達、計測worker0。実weight／system GPU／実OOM／E2E認定も未完。
-🟠 [Next] 静かなhostで比較し、実weightのload／推論ピークを計測。
-English: CPU/Metal loading peaks verified; busy-host gate prevents invalid timing, real-model/OOM certification pending.
-简体中文：CPU／Metal加载峰值已验证，host竞争时拒绝无效计时，实模型／OOM认证待完成。
+- 🟢 [Done] [all-resident gather検証](evaluation/strata-gather-analysis-cpu-2026-10-11.json)：12 trial／768合成CPU要求一致、native関連12 tests成功。Router host取り出しとExpert loopを削減し、再利用中央値162.8→56.0 μs（baseline 50.9 μs）。変動27.9%・baseline未達で不採用、全常駐が条件。
+- 🟠 [Next] 安定計測と部分常駐の切り分け。実weight／GPU／RSS／E2Eは未認定。
+  English: All-resident gather removes host index extraction and loops, approaching but not beating baseline; no promotion.
+  简体中文：全常驻gather移除host取值及loop，接近但未超过baseline，不晋升。
 
+- 🟢 [Done] [top-k評価集約と予算fallback比較](evaluation/strata-grouped-analysis-cpu-2026-10-10.json)：18 CPU trial数値一致、eval16→8、native関連11 tests成功。速度変化は不安定、baselineを上回らず既定採用しない。
+- 🟠 [Next] Router host取り出し／Python graph固定費とgather演算候補の調査。
+  English: Grouped completion halves eval calls but does not establish speedup; no promotion.
+  简体中文：合并求值减少一半eval调用，但未证明加速，不晋升。
 
-🟢 [Done] [読み込み前payload予約と事前退避](evaluation/strata-preload-reservation-cpu-2026-10-11.json)：192合成CPU要求誤差0。20,000／10,000 bytes予算で保持＋incoming予約ピーク18,432／9,216 bytes。load前拒否・模擬MemoryError後の再試行・Lease解放、24 unit／14 native関連tests成功。
-🟠 [Next] 非競合hostで速度比較、実weightのload時RSS／GPUピーク計測。
-⭕️ [Pending] 実OOM・allocator／GPU／E2E認定。予約はtensorの論理量のみ。
-English: Pre-load payload reservation avoids logical old/new weight overlap; scratch/RSS and real OOM remain unqualified.
-简体中文：加载前payload预约避免新旧权重逻辑量超限；临时分配／RSS及实际OOM尚未认证。
+- 🟢 [Done] [遅延分解と事前常駐対照](evaluation/strata-phase-analysis-cpu-2026-10-10.json)：27合成CPU trial全件数値一致。I/O除去後も遅延が残り、Expert逐次eval／Router host取り出しが有力要因。変動5%超のため寄与率・速度認定なし。
+- 🟠 [Next] top-k Lease保持と評価境界集約を比較。実Qwen／GPU E2Eは未認定。
+  English: 27 synthetic phase/ablation trials pass parity; serial evaluation and host routing remain suspects, exact contributions unqualified.
+  简体中文：27次合成分阶段／对照试验数值一致，逐次求值及host路由为主要候选原因，精确贡献未认证。
 
+- 🟢 [Done] [合成CPU比較runner](../scripts/compare_strata_experts.py)：各方式3 fresh process、9 trial数値一致。[記録](evaluation/strata-synthetic-qwen3-cpu-2026-10-10.json)。後続中央値baseline 0.135 ms／LRU 0.336 ms／cost 0.213 ms、baselineを上回らず不採用。実モデル／P3認定なし。
+- 🟠 [Next] I/O・load・Router同期の個別計測と実weight比較。
+  English: Synthetic comparison passes parity but candidates remain slower than baseline; no adoption.
+  简体中文：合成比较数值一致，但候选慢于baseline，不采用。
 
-🟢 [Done] [warmup反復比較・部分常駐検証](evaluation/strata-partial-residency-analysis-cpu-2026-10-11.json)：全常駐24,576＋部分常駐12,288要求一致。20,000-byte予算でピーク18,432 bytes、退避／再読み込み・Lease解放・close後0を確認。10,000-byte予算の逐次fallbackも64要求一致。19 unit／13 native関連tests成功。
-🟠 [Next] 同時高負荷を避けた再比較。run変動87–352%で安定計測は未達、速度／既定採用は認定しない。
-⭕️ [Pending] 実weight・GPU／RSS・load時ピーク／実OOM・E2E検証。保持tensor予算だけでは実OOMを保証しない。
-English: Partial retention and single-expert fallback pass; timing remains noisy under contention, no promotion or real OOM certification.
-简体中文：部分常驻及单Expert fallback通过；竞争负荷下计时仍不稳定，不晋升，不认证实际OOM安全。
+- 🟢 [Done] 標準Qwen3 MoEのswitchのみを置換する明示参照hook。合成6構成でRouter維持・元SwitchGLU参照解放・数値一致を検証、native含む12 tests成功。daemon既定採用・速度認定なし。
+- 🟠 [Next] 実互換weightでLRU／cost_frequencyとbaselineを比較し、I/O・host同期を測定。
+- ⭕️ [Pending] Qwen3.8/Qwen4Expの実weight・専用architecture対応。
+  English: Standard Qwen3 block hook passes synthetic parity/ownership tests; real-model performance is outstanding.
+  简体中文：标准Qwen3 block连接通过合成一致及所有权测试，实际模型性能仍待验证。
 
-🟢 [Done] [all-resident gather検証](evaluation/strata-gather-analysis-cpu-2026-10-11.json)：12 trial／768合成CPU要求一致、native関連12 tests成功。Router host取り出しとExpert loopを削減し、再利用中央値162.8→56.0 μs（baseline 50.9 μs）。変動27.9%・baseline未達で不採用、全常駐が条件。
-🟠 [Next] 安定計測と部分常駐の切り分け。実weight／GPU／RSS／E2Eは未認定。
-English: All-resident gather removes host index extraction and loops, approaching but not beating baseline; no promotion.
-简体中文：全常驻gather移除host取值及loop，接近但未超过baseline，不晋升。
+- 🟢 [Done] 標準SwitchGLUのoffline Expert export。dense／4／8-bit合成重みで元SwitchGLU集約との一致を検証、native含む11 tests成功。完成manifestを最後に公開し既存出力を拒否。
+- 🟠 [Next] architecture別モデル接続とruntimeのsource重み所有権切り替え。実Qwen weight比較は未検証。
+  English: Standard SwitchGLU export and synthetic round-trip parity pass; runtime ownership/model hooks remain next.
+  简体中文：标准SwitchGLU导出及合成往返一致通过，runtime所有权及模型接入仍待完成。
 
-🟢 [Done] [top-k評価集約と予算fallback比較](evaluation/strata-grouped-analysis-cpu-2026-10-10.json)：18 CPU trial数値一致、eval16→8、native関連11 tests成功。速度変化は不安定、baselineを上回らず既定採用しない。
-🟠 [Next] Router host取り出し／Python graph固定費とgather演算候補の調査。
-English: Grouped completion halves eval calls but does not establish speedup; no promotion.
-简体中文：合并求值减少一半eval调用，但未证明加速，不晋升。
+- 🟢 [Done] bounded Expert manifestとモデル識別・量子化設定・ファイルhash検証を接続。nativeを含む10 tests、関連15 tests成功。
+- 🟠 [Next] 実モデルexportとarchitecture別Router接続。実weightによる性能／品質認定は未完了。
+  English: Manifest binding and native loading tests pass; model export/routing remain next.
+  简体中文：manifest绑定及实际加载测试通过，模型导出及Router接入仍待完成。
 
-🟢 [Done] [遅延分解と事前常駐対照](evaluation/strata-phase-analysis-cpu-2026-10-10.json)：27合成CPU trial全件数値一致。I/O除去後も遅延が残り、Expert逐次eval／Router host取り出しが有力要因。変動5%超のため寄与率・速度認定なし。
-🟠 [Next] top-k Lease保持と評価境界集約を比較。実Qwen／GPU E2Eは未認定。
-English: 27 synthetic phase/ablation trials pass parity; serial evaluation and host routing remain suspects, exact contributions unqualified.
-简体中文：27次合成分阶段／对照试验数值一致，逐次求值及host路由为主要候选原因，精确贡献未认证。
+- 🟢 [Done] affine 4／8-bit独立Expert演算を追加。実MLX CPUテスト6件成功、group32／64のdequantize参照一致・設定不一致拒否を検証。元モデル品質・速度は未認定。
+- 🟠 [Next] artifact manifestへbits／group／model identityを固定し、実Routerへ接続。
+  English: Affine 4/8-bit parity verified; manifest binding and model integration remain next.
+  简体中文：affine 4/8-bit数值一致已验证，manifest绑定及模型接入仍待完成。
 
-🟢 [Done] [合成CPU比較runner](../scripts/compare_strata_experts.py)：各方式3 fresh process、9 trial数値一致。[記録](evaluation/strata-synthetic-qwen3-cpu-2026-10-10.json)。後続中央値baseline 0.135 ms／LRU 0.336 ms／cost 0.213 ms、baselineを上回らず不採用。実モデル／P3認定なし。
-🟠 [Next] I/O・load・Router同期の個別計測と実weight比較。
-English: Synthetic comparison passes parity but candidates remain slower than baseline; no adoption.
-简体中文：合成比较数值一致，但候选慢于baseline，不采用。
+- 🟢 [Done] token別の複数Expert参照実行を追加。実MLX CPUテスト4件成功、Router重み・順序・失敗時解放を検証。逐次経路で速度未測定。
+- 🟠 [Next] 量子化Expert形式・数値比較、対応architectureの実Router接続。
+  English: Per-token multi-expert reference execution verified; quantization and model hooks remain next.
+  简体中文：逐token多Expert参考执行已验证，量化及模型接入仍待完成。
 
-🟢 [Done] 標準Qwen3 MoEのswitchのみを置換する明示参照hook。合成6構成でRouter維持・元SwitchGLU参照解放・数値一致を検証、native含む12 tests成功。daemon既定採用・速度認定なし。
-🟠 [Next] 実互換weightでLRU／cost_frequencyとbaselineを比較し、I/O・host同期を測定。
-⭕️ [Pending] Qwen3.8/Qwen4Expの実weight・専用architecture対応。
-English: Standard Qwen3 block hook passes synthetic parity/ownership tests; real-model performance is outstanding.
-简体中文：标准Qwen3 block连接通过合成一致及所有权测试，实际模型性能仍待验证。
+- 🟢 [Done] 独立ExpertファイルのMLX dense SwiGLUアダプター。合成重みの実MLX CPU演算で退避／再読み込み後の数値一致とLease解放を検証。モデルhook・量子化・GPU速度は未検証。
+- ⭕️ [Pending] 対象Qwenの実weightを用いたE2E比較。配置はmetadataのみ。
+  English: Independent-file MLX adapter tested with synthetic native CPU arrays; target weights and model integration remain outstanding.
+  简体中文：独立文件MLX适配器通过合成实际CPU数组测试；目标权重及模型接入尚未完成。
 
-🟢 [Done] 標準SwitchGLUのoffline Expert export。dense／4／8-bit合成重みで元SwitchGLU集約との一致を検証、native含む11 tests成功。完成manifestを最後に公開し既存出力を拒否。
-🟠 [Next] architecture別モデル接続とruntimeのsource重み所有権切り替え。実Qwen weight比較は未検証。
-English: Standard SwitchGLU export and synthetic round-trip parity pass; runtime ownership/model hooks remain next.
-简体中文：标准SwitchGLU导出及合成往返一致通过，runtime所有权及模型接入仍待完成。
+- 🟢 [Done] 同期Expert実行接続部とprefill／decode telemetry。選択順・重み・Lease寿命を保持し、失敗時回収を検証。関連22 tests成功。実MoE adapter／GPU完了／速度は未検証。
+  English: Execution bridge and bounded phase telemetry tested; real MoE remains unverified.
+  简体中文：执行连接及有界分阶段统计已测试，实际MoE尚未验证。
 
-🟢 [Done] bounded Expert manifestとモデル識別・量子化設定・ファイルhash検証を接続。nativeを含む10 tests、関連15 tests成功。
-🟠 [Next] 実モデルexportとarchitecture別Router接続。実weightによる性能／品質認定は未完了。
-English: Manifest binding and native loading tests pass; model export/routing remain next.
-简体中文：manifest绑定及实际加载测试通过，模型导出及Router接入仍待完成。
-
-🟢 [Done] affine 4／8-bit独立Expert演算を追加。実MLX CPUテスト6件成功、group32／64のdequantize参照一致・設定不一致拒否を検証。元モデル品質・速度は未認定。
-🟠 [Next] artifact manifestへbits／group／model identityを固定し、実Routerへ接続。
-English: Affine 4/8-bit parity verified; manifest binding and model integration remain next.
-简体中文：affine 4/8-bit数值一致已验证，manifest绑定及模型接入仍待完成。
-
-🟢 [Done] token別の複数Expert参照実行を追加。実MLX CPUテスト4件成功、Router重み・順序・失敗時解放を検証。逐次経路で速度未測定。
-🟠 [Next] 量子化Expert形式・数値比較、対応architectureの実Router接続。
-English: Per-token multi-expert reference execution verified; quantization and model hooks remain next.
-简体中文：逐token多Expert参考执行已验证，量化及模型接入仍待完成。
-
-🟢 [Done] 独立ExpertファイルのMLX dense SwiGLUアダプター。合成重みの実MLX CPU演算で退避／再読み込み後の数値一致とLease解放を検証。モデルhook・量子化・GPU速度は未検証。
-⭕️ [Pending] 対象Qwenの実weightを用いたE2E比較。配置はmetadataのみ。
-English: Independent-file MLX adapter tested with synthetic native CPU arrays; target weights and model integration remain outstanding.
-简体中文：独立文件MLX适配器通过合成实际CPU数组测试；目标权重及模型接入尚未完成。
-
-🟢 [Done] 同期Expert実行接続部とprefill／decode telemetry。選択順・重み・Lease寿命を保持し、失敗時回収を検証。関連22 tests成功。実MoE adapter／GPU完了／速度は未検証。
-English: Execution bridge and bounded phase telemetry tested; real MoE remains unverified.
-简体中文：执行连接及有界分阶段统计已测试，实际MoE尚未验证。
-
-🟢 [Done] [Expert常駐のコスト・頻度退避候補](STRATA-INTEGRATION.md)を実装。
-既定LRUとLease保護を維持。関連31 tests・Ruff成功。速度改善は未測定。
-🟠 [Next] 実MoE resource操作・phase計測への接続、LRU比較とP3判定。
-🔴 [Later] 先読み・互換投機・KV圧縮・融合演算。
-⭕️ [Pending] 検証artifact／実機が不足するMTP／ANE経路。
+- 🟢 [Done] [Expert常駐のコスト・頻度退避候補](STRATA-INTEGRATION.md)を実装。
+  既定LRUとLease保護を維持。関連31 tests・Ruff成功。速度改善は未測定。
+- 🟠 [Next] 実MoE resource操作・phase計測への接続、LRU比較とP3判定。
+- 🔴 [Later] 先読み・互換投機・KV圧縮・融合演算。
+- ⭕️ [Pending] 検証artifact／実機が不足するMTP／ANE経路。
 
 English: 🟢 [Done] Opt-in cost/frequency eviction; LRU remains default, 31 tests pass.
-🟠 [Next] Real MoE integration and P3 comparison. No measured speedup.
-简体中文：🟢 [Done] 可选成本／频率退避，默认LRU，31项测试通过。
-🟠 [Next] 实际MoE接入及P3比较，尚未证明加速。
+
+- 🟠 [Next] Real MoE integration and P3 comparison. No measured speedup.
+  简体中文：🟢 [Done] 可选成本／频率退避，默认LRU，31项测试通过。
+- 🟠 [Next] 实际MoE接入及P3比较，尚未证明加速。
 
 ## 二項目の実装完了 / Two implementation tasks completed：2026-10-10
 
-🟢 [Done] [hardware識別・電源／thermal照合](HARDWARE-P4-CONNECTION.md)：GPUコア数を追加、未取得・条件変更・unsafe／unknownで設定適用を拒否。実M4は10 cores／AC／automatic／nominalの前後一致。旧証拠の遡及認定なし、P1固定source不変。
-🟢 [Done] [P4実collector接続](HARDWARE-P4-CONNECTION.md)：元reportとhashを保持し、P1／P2／P3結果を既存認定gateへ接続。実結果の資格不足・missing roleが昇格拒否へ届くことを確認。24時間認定・標準採用はこの実装完了に含めない。新規改善項目は追加しない。
-検証：関連23 tests・全回帰1,513 tests（31 skip）成功、Ruff／diff成功、実CLIの旧P3起動拒否とP4認定拒否を確認。
-English: 🟢 [Done] GPU-bin and operating-condition admission; real P4 collector-to-gate connection. Live observations and real-report rejection verified. No new optimization scope or hardware qualification.
-简体中文：🟢 [Done] GPU核心识别及运行条件检查、真实P4 collector到gate连接。验证实际观测和真实report认证拒绝，不增加优化范围或硬件认证。
+- 🟢 [Done] [hardware識別・電源／thermal照合](HARDWARE-P4-CONNECTION.md)：GPUコア数を追加、未取得・条件変更・unsafe／unknownで設定適用を拒否。実M4は10 cores／AC／automatic／nominalの前後一致。旧証拠の遡及認定なし、P1固定source不変。
+- 🟢 [Done] [P4実collector接続](HARDWARE-P4-CONNECTION.md)：元reportとhashを保持し、P1／P2／P3結果を既存認定gateへ接続。実結果の資格不足・missing roleが昇格拒否へ届くことを確認。24時間認定・標準採用はこの実装完了に含めない。新規改善項目は追加しない。
+  検証：関連23 tests・全回帰1,513 tests（31 skip）成功、Ruff／diff成功、実CLIの旧P3起動拒否とP4認定拒否を確認。
+  English: 🟢 [Done] GPU-bin and operating-condition admission; real P4 collector-to-gate connection. Live observations and real-report rejection verified. No new optimization scope or hardware qualification.
+  简体中文：🟢 [Done] GPU核心识别及运行条件检查、真实P4 collector到gate连接。验证实际观测和真实report认证拒绝，不增加优化范围或硬件认证。
 
 ## 現在の[Next]の整理：2026-10-10
 
-🟢 [Done] 証拠監査を完了：model全fileのSHAと現在のhardware／native依存／runtime identityも照合対象に追加。[最終監査](evaluation/optimization-evidence-audit-complete-2026-10-10.json)合格、関連19 tests・Ruff成功。identity変更を合格にしない回帰を追加。新規改善案や性能資格は追加しない。
-English: 🟢 [Done] Evidence audit completed, including every pinned model file and current hardware/native/runtime identity. Real audit and 19 targeted tests pass; no new optimization scope or performance qualification.
-简体中文：🟢 [Done] 完成证据审核，覆盖所有固定model文件及当前hardware／native／runtime identity。实际审核及19项相关测试通过，不增加优化范围或性能认证。
+- 🟢 [Done] 証拠監査を完了：model全fileのSHAと現在のhardware／native依存／runtime identityも照合対象に追加。[最終監査](evaluation/optimization-evidence-audit-complete-2026-10-10.json)合格、関連19 tests・Ruff成功。identity変更を合格にしない回帰を追加。新規改善案や性能資格は追加しない。
+  English: 🟢 [Done] Evidence audit completed, including every pinned model file and current hardware/native/runtime identity. Real audit and 19 targeted tests pass; no new optimization scope or performance qualification.
+  简体中文：🟢 [Done] 完成证据审核，覆盖所有固定model文件及当前hardware／native／runtime identity。实际审核及19项相关测试通过，不增加优化范围或性能认证。
 
-🟢 [Done] [証拠再照合CLI](../scripts/audit_optimization_evidence.py)を実装。P1固定runtime／runner、P2 collector／測定artifact、P3 source／測定artifactのSHAを確認し、P3選択を再計算する。欠落・変更・repository外pathを拒否し、既存reportを上書きしない。[今回の監査](evaluation/optimization-evidence-audit-2026-10-10.json)は合格。GPU実行や新しい性能・長時間資格の付与は行わない。
-全回帰1,504 tests成功（31 skip）、関連18 tests・Ruff・diff検査成功。[全回帰log](evaluation/optimization-evidence-regression-2026-10-10.log)。sandbox内のlocalhost／process権限制約による失敗と区別し、実行権限のある環境で確認した。
+- 🟢 [Done] [証拠再照合CLI](../scripts/audit_optimization_evidence.py)を実装。P1固定runtime／runner、P2 collector／測定artifact、P3 source／測定artifactのSHAを確認し、P3選択を再計算する。欠落・変更・repository外pathを拒否し、既存reportを上書きしない。[今回の監査](evaluation/optimization-evidence-audit-2026-10-10.json)は合格。GPU実行や新しい性能・長時間資格の付与は行わない。
+  全回帰1,504 tests成功（31 skip）、関連18 tests・Ruff・diff検査成功。[全回帰log](evaluation/optimization-evidence-regression-2026-10-10.log)。sandbox内のlocalhost／process権限制約による失敗と区別し、実行権限のある環境で確認した。
 
 以下の古い進捗節は取得時点の履歴として保持する。後続で解消した「正常workload測定点の固定」「全回帰の再確認」「token単位batchingと実KV接続」「実collectorとP3選択の接続」は、それぞれ後続の[Done]と証拠を現在の状態とする。古い不合格結果は取り消さない。
 
-🟠 [Next] P1は10月11日09:00 JSTの30分→全条件合格時8時間。P2はcache有効c1 tailと一般chat／coding／Agent・cancel／fairness。P3は帯域／compute counter・広い品質／shape・energyと標準採用。P4は前提合格後のmatrix／24時間・復旧認定。現在のM4で試せる作業は未完了のまま残す。
+- 🟠 [Next] P1は10月11日09:00 JSTの30分→全条件合格時8時間。P2はcache有効c1 tailと一般chat／coding／Agent・cancel／fairness。P3は帯域／compute counter・広い品質／shape・energyと標準採用。P4は前提合格後のmatrix／24時間・復旧認定。現在のM4で試せる作業は未完了のまま残す。
 
 English: 🟢 [Done] Reproducible offline source/artifact audit and P3 selection recomputation pass. Earlier status entries are historical; later evidence supersedes completed implementation tasks without erasing failed trials. 🟠 [Next] P1 scheduled long-run gates, broad P2 tails/quality, P3 counters/energy/adoption and P4 qualification remain open.
 
@@ -137,226 +133,226 @@ PYTHONPATH=. .venv/bin/python scripts/audit_optimization_evidence.py --output /t
 
 ## P1応答時間・RSSの根因修正：2026-10-10
 
-🟢 [Done] [SPM変換表の共有とHTTP Timer参照の解放](P1-SPM-REUSE.md)。要求ごとの256,000語再構築（constructor中央値121 ms、一時allocation 42 MiB）を除去し、stream stateは要求ごとに独立。6 fresh workerで品質／SLO 720/720、短文平均E2E 451→209 ms、反復後半RSS増加8.000–9.016→0.016–0.609 MiB。長文速度改善は未確認。全回帰1491 tests成功（31 skip）、Ruff成功。
-🟢 [Done] 修正後90秒の実機確認：正常負荷420/420品質・SLO、RSS／allocator／thread／FD／awake／identity／正常停止合格。source-pinned P1のみ既定on、依存更新やgate緩和なし。
-🟠 [Next] 2026-10-11 09:00 JSTの単発試験で30分→全gate合格時8時間。短い比較ではRSS slopeがonでも2/3未達。長時間最終証拠までP1完了としない。定期更新は復活させない。
-English: 🟢 [Done] Reuse immutable SPM vocabulary data, keep independent streams, and release finished HTTP Timers. Quality/SLO 720/720; 90-second mixed-load check passed. 🟠 [Next] One-off 09:00 JST long-run qualification; no long-run promotion yet.
-简体中文：🟢 [Done] 共享immutable SPM词表并保持独立stream，释放结束后的HTTP Timer；质量/SLO 720/720及90秒混合负载通过。🟠 [Next] 09:00 JST单次长期试验，尚未认证长期稳定性。
+- 🟢 [Done] [SPM変換表の共有とHTTP Timer参照の解放](P1-SPM-REUSE.md)。要求ごとの256,000語再構築（constructor中央値121 ms、一時allocation 42 MiB）を除去し、stream stateは要求ごとに独立。6 fresh workerで品質／SLO 720/720、短文平均E2E 451→209 ms、反復後半RSS増加8.000–9.016→0.016–0.609 MiB。長文速度改善は未確認。全回帰1491 tests成功（31 skip）、Ruff成功。
+- 🟢 [Done] 修正後90秒の実機確認：正常負荷420/420品質・SLO、RSS／allocator／thread／FD／awake／identity／正常停止合格。source-pinned P1のみ既定on、依存更新やgate緩和なし。
+- 🟠 [Next] 2026-10-11 09:00 JSTの単発試験で30分→全gate合格時8時間。短い比較ではRSS slopeがonでも2/3未達。長時間最終証拠までP1完了としない。定期更新は復活させない。
+  English: 🟢 [Done] Reuse immutable SPM vocabulary data, keep independent streams, and release finished HTTP Timers. Quality/SLO 720/720; 90-second mixed-load check passed. 🟠 [Next] One-off 09:00 JST long-run qualification; no long-run promotion yet.
+  简体中文：🟢 [Done] 共享immutable SPM词表并保持独立stream，释放结束后的HTTP Timer；质量/SLO 720/720及90秒混合负载通过。🟠 [Next] 09:00 JST单次长期试验，尚未认证长期稳定性。
 
 ## 生成worker終了後の残存processを回収
 
-🟢 [Done] [専用process groupの回収](GENERATIVE-PROCESS-CLEANUP.md)：leader正常終了後もTERM／KILL／reapを実施。実childの残存を再現し、修正後に関連9 tests・Ruff成功。全回帰1485 tests成功（31 skip）。推論速度・電力は未測定、P1資格は変更しない。
-🟠 [Next] 今回の全回帰では旧エラー非再現。起動timeout／daemon／contentionは過去の失敗原因を個別に切り分ける。PermissionErrorを無視して回収成功としない。
-English: 🟢 [Done] Reap the dedicated worker group after leader exit; nine targeted tests pass. 🟠 [Next] Audit full regressions and remaining startup failures.
-简体中文：🟢 [Done] leader退出后仍回收专用进程组，9项相关测试通过。🟠 [Next] 审核全量回归及剩余启动失败。
+- 🟢 [Done] [専用process groupの回収](GENERATIVE-PROCESS-CLEANUP.md)：leader正常終了後もTERM／KILL／reapを実施。実childの残存を再現し、修正後に関連9 tests・Ruff成功。全回帰1485 tests成功（31 skip）。推論速度・電力は未測定、P1資格は変更しない。
+- 🟠 [Next] 今回の全回帰では旧エラー非再現。起動timeout／daemon／contentionは過去の失敗原因を個別に切り分ける。PermissionErrorを無視して回収成功としない。
+  English: 🟢 [Done] Reap the dedicated worker group after leader exit; nine targeted tests pass. 🟠 [Next] Audit full regressions and remaining startup failures.
+  简体中文：🟢 [Done] leader退出后仍回收专用进程组，9项相关测试通过。🟠 [Next] 审核全量回归及剩余启动失败。
 
 ## 正常workloadのKV測定pointを固定
 
-🟢 [Done] [warmup／長文／短文直後のmemory point](P1-NORMAL-MEMORY-POINTS.md)：drainとbenchmark起点PID一致、workload SHA接続、fault前のsnapshot。比較toolは古いfault後値を拒否。回帰で見つかったheader deadlineの期待切断をtestで扱い、expiry／slot回収基準は維持。
-実機全3点を取得、正常停止・identity不変。長文LRU約211 MiB、短文約7.4 MiB、fault後約35.45 MiBでscope差を確認。
-正常品質42/42だがSLO39/42、warmup SLO1/3で不合格。計測修正を速度・RSS・P1長時間資格へ広げない。
-🟠 [Next] 全回帰の起動timeout／daemon／contention／generative process回収エラーを切り分ける。対象4 tests・Ruff成功だが、最終全回帰1484 tests（27 skip）は2 failures／4 errorsで未合格。固定pointで長文KV保持／eval／allocation待ちを診断。既定4 entry・256 MiB維持、長時間試験09:00 JST。
-English: 🟢 [Done] Drained normal-workload memory points verified; SLO still failed. 🟠 [Next] Diagnose with fixed points; no performance promotion.
-简体中文：🟢 [Done] 验证请求回收后的正常workload memory point；SLO仍失败。🟠 [Next] 固定point诊断，未晋升性能。
+- 🟢 [Done] [warmup／長文／短文直後のmemory point](P1-NORMAL-MEMORY-POINTS.md)：drainとbenchmark起点PID一致、workload SHA接続、fault前のsnapshot。比較toolは古いfault後値を拒否。回帰で見つかったheader deadlineの期待切断をtestで扱い、expiry／slot回収基準は維持。
+  実機全3点を取得、正常停止・identity不変。長文LRU約211 MiB、短文約7.4 MiB、fault後約35.45 MiBでscope差を確認。
+  正常品質42/42だがSLO39/42、warmup SLO1/3で不合格。計測修正を速度・RSS・P1長時間資格へ広げない。
+- 🟠 [Next] 全回帰の起動timeout／daemon／contention／generative process回収エラーを切り分ける。対象4 tests・Ruff成功だが、最終全回帰1484 tests（27 skip）は2 failures／4 errorsで未合格。固定pointで長文KV保持／eval／allocation待ちを診断。既定4 entry・256 MiB維持、長時間試験09:00 JST。
+  English: 🟢 [Done] Drained normal-workload memory points verified; SLO still failed. 🟠 [Next] Diagnose with fixed points; no performance promotion.
+  简体中文：🟢 [Done] 验证请求回收后的正常workload memory point；SLO仍失败。🟠 [Next] 固定point诊断，未晋升性能。
 
 ## KV反復の失敗を検出し採用を停止
 
-🟢 [Done] [交互fresh-worker比較](P1-KV-ENTRY-REPEATS.md)：6 trial計画、同identity集計、非昇格、失敗で後続停止。今回2回目の3 entryがSLO39/42で失敗し、残り4回は未開始。
-4 entryは品質／SLO42/42、warmup SLO2/3。3 entryは品質42/42、warmup SLO0/3。両方正常停止・identity一致・worker回収。既定4維持。対象7 tests、現venv全回帰1483 tests（27 skip）、offline Ruff成功。
-最終KV sampleはfault試験後であり、以前の31.5%差を固定workloadの改善率として認定しない。速度・RSS・根因未認定。
-🟠 [Next] 正常要求直後のKV測定点を固定し、eval／allocationを同条件で診断。長時間試験09:00 JST、定期更新は停止したまま。
-English: 🟢 [Done] Alternating comparator stopped on 3-entry SLO failure; default four remains. 🟠 [Next] Fix memory sampling point before attribution.
-简体中文：🟢 [Done] 交替比较在3-entry SLO失败后停止，保持默认4。🟠 [Next] 固定memory测量点再分析原因。
+- 🟢 [Done] [交互fresh-worker比較](P1-KV-ENTRY-REPEATS.md)：6 trial計画、同identity集計、非昇格、失敗で後続停止。今回2回目の3 entryがSLO39/42で失敗し、残り4回は未開始。
+  4 entryは品質／SLO42/42、warmup SLO2/3。3 entryは品質42/42、warmup SLO0/3。両方正常停止・identity一致・worker回収。既定4維持。対象7 tests、現venv全回帰1483 tests（27 skip）、offline Ruff成功。
+  最終KV sampleはfault試験後であり、以前の31.5%差を固定workloadの改善率として認定しない。速度・RSS・根因未認定。
+- 🟠 [Next] 正常要求直後のKV測定点を固定し、eval／allocationを同条件で診断。長時間試験09:00 JST、定期更新は停止したまま。
+  English: 🟢 [Done] Alternating comparator stopped on 3-entry SLO failure; default four remains. 🟠 [Next] Fix memory sampling point before attribution.
+  简体中文：🟢 [Done] 交替比较在3-entry SLO失败后停止，保持默认4。🟠 [Next] 固定memory测量点再分析原因。
 
 ## KV entry候補を実測比較
 
-🟢 [Done] [4／1／3 entryの比較](P1-KV-ENTRY-COMPARISON.md)：qualifierに明示entry数を追加。既定4、byte上限256 MiB維持。bounded runnerで3 fresh worker、長文・短文126/126品質／SLO、正常停止・identity一致。4 entry warmup SLO2/3は別記。
-3 entryはLRU会計48.34→33.11 MiB、token reuse維持。ただし短文mean／maxとp95 bucket上限は悪化。1 entryは再利用率87.38→23.93%へ低下。どちらも既定へ昇格せず。全回帰1486 tests（11 skip）、Ruff成功。
-🟠 [Next] 3／4 entryの順序を替えた独立反復でtail latency／RSS trendを比較。保持KV削減をRSS／速度改善と認定しない。
-English: 🟢 [Done] Three real-model cache-entry trials and explicit comparison CLI. 🟠 [Next] Repeat three/four; keep default four.
-简体中文：🟢 [Done] 3轮实际cache-entry试验及显式比较CLI。🟠 [Next] 重复3／4，保持默认4。
+- 🟢 [Done] [4／1／3 entryの比較](P1-KV-ENTRY-COMPARISON.md)：qualifierに明示entry数を追加。既定4、byte上限256 MiB維持。bounded runnerで3 fresh worker、長文・短文126/126品質／SLO、正常停止・identity一致。4 entry warmup SLO2/3は別記。
+  3 entryはLRU会計48.34→33.11 MiB、token reuse維持。ただし短文mean／maxとp95 bucket上限は悪化。1 entryは再利用率87.38→23.93%へ低下。どちらも既定へ昇格せず。全回帰1486 tests（11 skip）、Ruff成功。
+- 🟠 [Next] 3／4 entryの順序を替えた独立反復でtail latency／RSS trendを比較。保持KV削減をRSS／速度改善と認定しない。
+  English: 🟢 [Done] Three real-model cache-entry trials and explicit comparison CLI. - - 🟠 [Next] Repeat three/four; keep default four.
+  简体中文：🟢 [Done] 3轮实际cache-entry试验及显式比较CLI。🟠 [Next] 重复3／4，保持默认4。
 
 ## 比較試験のtimeout回収を修正
 
-🟢 [Done] [bounded trial cleanup](P1-TRIAL-CLEANUP.md)：専用process group、SIGINT猶予、残存group回収・runner reap。timeoutは別receiptへ保存し後続試験を停止、raw reportを保護。
-実process対象5 tests、全回帰1486 tests（11 skip）、Ruff成功。GPU性能・電力・過去の64 MiB試験の資格に広げない。
-🟠 [Next] このrunnerで短時間のKV／allocation候補を比較。長時間試験は09:00 JST、定期更新は停止したまま。
-English: 🟢 [Done] Bounded cleanup and fail-closed timeout receipts. 🟠 [Next] Measured KV/allocation candidates; no performance promotion.
-简体中文：🟢 [Done] 有界回收及timeout独立receipt。🟠 [Next] 实测KV／allocation候选；未晋升性能资格。
+- 🟢 [Done] [bounded trial cleanup](P1-TRIAL-CLEANUP.md)：専用process group、SIGINT猶予、残存group回収・runner reap。timeoutは別receiptへ保存し後続試験を停止、raw reportを保護。
+  実process対象5 tests、全回帰1486 tests（11 skip）、Ruff成功。GPU性能・電力・過去の64 MiB試験の資格に広げない。
+- 🟠 [Next] このrunnerで短時間のKV／allocation候補を比較。長時間試験は09:00 JST、定期更新は停止したまま。
+  English: 🟢 [Done] Bounded cleanup and fail-closed timeout receipts. 🟠 [Next] Measured KV/allocation candidates; no performance promotion.
+  简体中文：🟢 [Done] 有界回收及timeout独立receipt。🟠 [Next] 实测KV／allocation候选；未晋升性能资格。
 
 ## 実KV保持量と候補の採否
 
-🟢 [Done] [LRU保持量の実機確認](P1-KV-RETENTION.md)：P1 snapshotへ既存entry数／nbytes／上限を追加。tensor copy・同期なし。
-256 MiB設定で最終4 entry／48.34375 MiB、長文・短文42/42品質／SLO、warmup品質3/3・SLO2/3、正常停止・identity不変。
-64 MiB候補は180秒timeoutで未認定。raw checkpoint保持、runner／worker終了確認。候補コードを撤回し、既定256 MiB維持。全回帰1483 tests（11 skip）、Ruff成功。速度・RSS削減・timeout根因は未認定。
-🟠 [Next] 活動中KVとLRU保持を分離し、allocation／eval待ちを同条件比較。長時間試験は09:00 JST。
-English: 🟢 [Done] Retained KV accounting verified; reverted unvalidated 64 MiB candidate after timeout. 🟠 [Next] Profile active KV/allocation; default 256 MiB remains.
-简体中文：🟢 [Done] 验证保持KV会计；64 MiB候选timeout后撤回。🟠 [Next] 分析活动KV／allocation，保持默认256 MiB。
+- 🟢 [Done] [LRU保持量の実機確認](P1-KV-RETENTION.md)：P1 snapshotへ既存entry数／nbytes／上限を追加。tensor copy・同期なし。
+  256 MiB設定で最終4 entry／48.34375 MiB、長文・短文42/42品質／SLO、warmup品質3/3・SLO2/3、正常停止・identity不変。
+  64 MiB候補は180秒timeoutで未認定。raw checkpoint保持、runner／worker終了確認。候補コードを撤回し、既定256 MiB維持。全回帰1483 tests（11 skip）、Ruff成功。速度・RSS削減・timeout根因は未認定。
+- 🟠 [Next] 活動中KVとLRU保持を分離し、allocation／eval待ちを同条件比較。長時間試験は09:00 JST。
+  English: 🟢 [Done] Retained KV accounting verified; reverted unvalidated 64 MiB candidate after timeout. 🟠 [Next] Profile active KV/allocation; default 256 MiB remains.
+  简体中文：🟢 [Done] 验证保持KV会计；64 MiB候选timeout后撤回。🟠 [Next] 分析活动KV／allocation，保持默认256 MiB。
 
 ## RSSとallocatorの差分を独立して比較
 
-🟢 [Done] [memory window監査](P1-MEMORY-WINDOWS.md)：既存snapshotのRSS／allocator active／cache差分を独立して保存。欠測・PID変更を拒否し、追加HTTP／OS／GPU callなし。有界window collectorと既存reportのoffline監査を実装。全回帰1483 tests（11 skip）、Ruff成功。新fieldの実GPU検証は次の短時間試験で確認。
-2試験の保持windowでRSSとallocatorの増減が一致しないことを確認。RSSからKV／allocatorの保持量を推定せず、差し引きで「その他memory」を作らない。根因・速度改善は未認定。
-🟠 [Next] 同workloadでactive／cache／実KV保持量を揃えて比較し、効果が確認できる解放候補を一つ検証する。
-English: 🟢 [Done] Independent RSS/allocator deltas and offline audit. 🟠 [Next] Compare actual retention; no causal or speed claim.
-简体中文：🟢 [Done] 独立RSS／allocator差分及离线审核。🟠 [Next] 对比实际保持量；未认证根因或速度。
+- 🟢 [Done] [memory window監査](P1-MEMORY-WINDOWS.md)：既存snapshotのRSS／allocator active／cache差分を独立して保存。欠測・PID変更を拒否し、追加HTTP／OS／GPU callなし。有界window collectorと既存reportのoffline監査を実装。全回帰1483 tests（11 skip）、Ruff成功。新fieldの実GPU検証は次の短時間試験で確認。
+  2試験の保持windowでRSSとallocatorの増減が一致しないことを確認。RSSからKV／allocatorの保持量を推定せず、差し引きで「その他memory」を作らない。根因・速度改善は未認定。
+- 🟠 [Next] 同workloadでactive／cache／実KV保持量を揃えて比較し、効果が確認できる解放候補を一つ検証する。
+  English: 🟢 [Done] Independent RSS/allocator deltas and offline audit. 🟠 [Next] Compare actual retention; no causal or speed claim.
+  简体中文：🟢 [Done] 独立RSS／allocator差分及离线审核。🟠 [Next] 对比实际保持量；未认证根因或速度。
 
 ## 手動改善：2026-10-09
 
-🟢 [Done] ユーザー指定により本スレッドの定期更新を終了。今回以降は手動依頼で実施し、自動再開しない。
-🟢 [Done] [同workloadの活動差分](P1-ACTIVITY-WINDOWS.md)：既存前後snapshotを再利用し、PID変更／reset／欠測を拒否。最大64 window、追加HTTP／OS call／GPU同期なし。
-実機30秒で10 window、102/102品質／SLO、初期45/45も合格。全回帰1482 tests（11 skip）、Ruff成功。正常停止・identity不変。page-in増分は全windowゼロ、短文RSS増加を観測。r11根因・速度・長時間資格は未認定。
-🟠 [Next] 再allocation・保持領域とeval待ち／RSS増加の関係を計測。長時間試験は09:00 JST開始。
-English: 🟢 [Done] Recurring updates stopped; manual work only. Bounded same-workload activity deltas verified: 102/102 plus 45 initial quality/SLO. 🟠 [Next] Profile allocation/retention; no speed or stability promotion.
-简体中文：🟢 [Done] 定期更新已停止，仅手动推进。有界同workload差分通过：102/102及初始45件质量／SLO。🟠 [Next] 分析allocation／保持；未晋升速度或稳定性资格。
+- 🟢 [Done] ユーザー指定により本スレッドの定期更新を終了。今回以降は手動依頼で実施し、自動再開しない。
+- 🟢 [Done] [同workloadの活動差分](P1-ACTIVITY-WINDOWS.md)：既存前後snapshotを再利用し、PID変更／reset／欠測を拒否。最大64 window、追加HTTP／OS call／GPU同期なし。
+  実機30秒で10 window、102/102品質／SLO、初期45/45も合格。全回帰1482 tests（11 skip）、Ruff成功。正常停止・identity不変。page-in増分は全windowゼロ、短文RSS増加を観測。r11根因・速度・長時間資格は未認定。
+- 🟠 [Next] 再allocation・保持領域とeval待ち／RSS増加の関係を計測。長時間試験は09:00 JST開始。
+  English: 🟢 [Done] Recurring updates stopped; manual work only. Bounded same-workload activity deltas verified: 102/102 plus 45 initial quality/SLO. 🟠 [Next] Profile allocation/retention; no speed or stability promotion.
+  简体中文：🟢 [Done] 定期更新已停止，仅手动推进。有界同workload差分通过：102/102及初始45件质量／SLO。🟠 [Next] 分析allocation／保持；未晋升速度或稳定性资格。
 
 ## r11最終監査：2026-10-08
 
-🟢 [Done] [最終監査](evaluation/p1-r11-final-audit-2026-10-08.json)：30分の正常負荷3,009件は全件完了・品質合格、SLO合格2,992件。17件がTTFT基準超過し、うち4件はE2Eも超過。不合格で8時間は未開始。
-active cancel 295/295、slow consumer 30/30、queued cancel 29/29、timeout 29/29。worker crash試験は0件で未検証。
-awake・電源条件不変・runtime/model identity不変・正常停止は合格。単一worker epochで追加資源診断はallocator/thread/FD plateau=true、RSS plateau=false。
-RSSの後半傾斜は約935.8 MB/hourで16 MiB/hour基準未達。全期間RSS減少や同workload診断だけで収束・漏れなしを認定しない。
-RSS診断の未達と、今回30分判定を直接拒否したSLO失敗を区別する。遅延の根因は未確定。
-receiptの専用labelだけ回収し、runner/worker停止を確認。自動再試行や証拠上書きなし。
-🟠 [Next] queue/prefill/decode/同期とhost負荷を分離して遅延原因を調べる。長時間campaignは09:00 JST開始、定期処理は月・木09:00 JSTへ復元。
-English: 🟢 [Done] R11 quality 3009/3009, SLO 2992/3009: 17 TTFT misses, including four E2E misses. Thirty-minute qualification failed; eight hours did not start. Fault counts, identity, awake conditions and clean shutdown were checked; RSS plateau remains unverified. Removed only the exact r11 job. 🟠 [Next] Diagnose latency causes without relaxing gates.
-简体中文：🟢 [Done] r11质量3009/3009、SLO 2992/3009；17次TTFT超限，其中4次也超过E2E。30分钟认证失败，未进入8小时。核对fault次数、identity、awake及正常停止；RSS plateau未通过。仅回收r11专用job。🟠 [Next] 保持gate，调查延迟原因。
+- 🟢 [Done] [最終監査](evaluation/p1-r11-final-audit-2026-10-08.json)：30分の正常負荷3,009件は全件完了・品質合格、SLO合格2,992件。17件がTTFT基準超過し、うち4件はE2Eも超過。不合格で8時間は未開始。
+  active cancel 295/295、slow consumer 30/30、queued cancel 29/29、timeout 29/29。worker crash試験は0件で未検証。
+  awake・電源条件不変・runtime/model identity不変・正常停止は合格。単一worker epochで追加資源診断はallocator/thread/FD plateau=true、RSS plateau=false。
+  RSSの後半傾斜は約935.8 MB/hourで16 MiB/hour基準未達。全期間RSS減少や同workload診断だけで収束・漏れなしを認定しない。
+  RSS診断の未達と、今回30分判定を直接拒否したSLO失敗を区別する。遅延の根因は未確定。
+  receiptの専用labelだけ回収し、runner/worker停止を確認。自動再試行や証拠上書きなし。
+- 🟠 [Next] queue/prefill/decode/同期とhost負荷を分離して遅延原因を調べる。長時間campaignは09:00 JST開始、定期処理は月・木09:00 JSTへ復元。
+  English: 🟢 [Done] R11 quality 3009/3009, SLO 2992/3009: 17 TTFT misses, including four E2E misses. Thirty-minute qualification failed; eight hours did not start. Fault counts, identity, awake conditions and clean shutdown were checked; RSS plateau remains unverified. Removed only the exact r11 job. 🟠 [Next] Diagnose latency causes without relaxing gates.
+  简体中文：🟢 [Done] r11质量3009/3009、SLO 2992/3009；17次TTFT超限，其中4次也超过E2E。30分钟认证失败，未进入8小时。核对fault次数、identity、awake及正常停止；RSS plateau未通过。仅回收r11专用job。🟠 [Next] 保持gate，调查延迟原因。
 
 更新日：2026-10-09
 
 ## P1 RSS／scheduling診断の欠測を補う
 
-🟢 [Done] [process activity診断](P1-PROCESS-ACTIVITY.md)：P1 resourcesへ累積fault／page-in／context switchとthread数を追加。Darwin公開ABI、欠測明示、標準経路は追加samplingなし。
-実モデル45/45品質／SLO・identity不変・正常停止。OS取得1,200回中央値1.792 µs、subprocessゼロ。全回帰1480 tests（11 skip）、Ruff成功。
-累積1点からr11根因・memory pressure・RSS安定性を認定しない。既存gateは維持。
-🟠 [Next] 同PID／同workloadのcounter差分・eval遅延・RSS再増加を比較。長時間試験09:00 JST。
-English: 🟢 [Done] Optional process activity counters verified; 45/45 quality/SLO and regression passed. 🟠 [Next] Correlate same-epoch deltas; no causal/stability promotion.
-简体中文：🟢 [Done] 验证可选process活动counter，45/45质量／SLO及回归通过。🟠 [Next] 同epoch差分比较；未晋升因果／稳定性资格。
+- 🟢 [Done] [process activity診断](P1-PROCESS-ACTIVITY.md)：P1 resourcesへ累積fault／page-in／context switchとthread数を追加。Darwin公開ABI、欠測明示、標準経路は追加samplingなし。
+  実モデル45/45品質／SLO・identity不変・正常停止。OS取得1,200回中央値1.792 µs、subprocessゼロ。全回帰1480 tests（11 skip）、Ruff成功。
+  累積1点からr11根因・memory pressure・RSS安定性を認定しない。既存gateは維持。
+- 🟠 [Next] 同PID／同workloadのcounter差分・eval遅延・RSS再増加を比較。長時間試験09:00 JST。
+  English: 🟢 [Done] Optional process activity counters verified; 45/45 quality/SLO and regression passed. 🟠 [Next] Correlate same-epoch deltas; no causal/stability promotion.
+  简体中文：🟢 [Done] 验证可选process活动counter，45/45质量／SLO及回归通过。🟠 [Next] 同epoch差分比较；未晋升因果／稳定性资格。
 
 ## P1 prefill内のeval／cache解放を分離
 
-🟢 [Done] [既存operationの計測](P1-PREFILL-OPERATIONS.md)：隔離P1 profileでのみeval／clear_cacheを分離。元MLX module・GPU呼出数・同期は維持。
-実モデル45/45品質／SLO、identity不変・正常停止。遅いprefill 4件738–831 msのほぼ全時間はeval内、clear_cache最大1.007 ms。今回のcache解放削減を見送る。
-合成計測の追加wall約2.06 µs/call。全回帰1479 tests（11 skip）、Ruff成功。GPU時間・r11根因・速度・RSS改善は未認定。
-🟠 [Next] eval待ち内のGPU実行／host scheduling／memory pressureとRSSを診断。長時間試験09:00 JST。
-English: 🟢 [Done] Existing prefill eval/cache-release calls separated; 45/45 quality/SLO and regression passed. 🟠 [Next] Profile eval waits and RSS; no causal or speed certification.
-简体中文：🟢 [Done] 分离现有prefill eval／cache释放；45/45质量／SLO及回归通过。🟠 [Next] 分析eval等待和RSS；未认证根因或速度。
+- 🟢 [Done] [既存operationの計測](P1-PREFILL-OPERATIONS.md)：隔離P1 profileでのみeval／clear_cacheを分離。元MLX module・GPU呼出数・同期は維持。
+  実モデル45/45品質／SLO、identity不変・正常停止。遅いprefill 4件738–831 msのほぼ全時間はeval内、clear_cache最大1.007 ms。今回のcache解放削減を見送る。
+  合成計測の追加wall約2.06 µs/call。全回帰1479 tests（11 skip）、Ruff成功。GPU時間・r11根因・速度・RSS改善は未認定。
+- 🟠 [Next] eval待ち内のGPU実行／host scheduling／memory pressureとRSSを診断。長時間試験09:00 JST。
+  English: 🟢 [Done] Existing prefill eval/cache-release calls separated; 45/45 quality/SLO and regression passed. 🟠 [Next] Profile eval waits and RSS; no causal or speed certification.
+  简体中文：🟢 [Done] 分离现有prefill eval／cache释放；45/45质量／SLO及回归通过。🟠 [Next] 分析eval等待和RSS；未认证根因或速度。
 
 ## P1 prefill候補比較と計測負荷削減
 
-🟢 [Done] [6回比較と空prefill改善](P1-PREFILL-COMPARISON-2026-10-08.md)：空呼出をそのまま転送し、不要なclock／CPU／lock／統計更新を削減。20,000呼出の合成比較中央値wall 19.432→2.024 ms、CPU 19.430→2.025 ms。推論速度・ワット値ではない。
-実モデルprefill512／256各3回、長文・短文252/252品質／SLO、全worker正常停止・identity不変。256はallocator peak約81 MiB減だが速度は一貫して改善せず、既定512維持。対象8 tests、全回帰1478 tests（11 skip）、Ruff成功。P1長時間・P3性能未認定。
-🟠 [Next] 非空prefill内の同期／cache解放とRSSを診断。長時間試験は09:00 JST開始。
-English: 🟢 [Done] Empty-prefill diagnostic overhead reduced; six real-model trials passed 252/252 quality/SLO. Keep default 512; no speed/stability promotion. 🟠 [Next] Diagnose synchronization/cache release and RSS.
-简体中文：🟢 [Done] 减少空prefill计时开销；6轮实际模型252/252质量／SLO通过。保留默认512，未晋升速度／稳定性资格。🟠 [Next] 调查同步／cache释放及RSS。
+- 🟢 [Done] [6回比較と空prefill改善](P1-PREFILL-COMPARISON-2026-10-08.md)：空呼出をそのまま転送し、不要なclock／CPU／lock／統計更新を削減。20,000呼出の合成比較中央値wall 19.432→2.024 ms、CPU 19.430→2.025 ms。推論速度・ワット値ではない。
+  実モデルprefill512／256各3回、長文・短文252/252品質／SLO、全worker正常停止・identity不変。256はallocator peak約81 MiB減だが速度は一貫して改善せず、既定512維持。対象8 tests、全回帰1478 tests（11 skip）、Ruff成功。P1長時間・P3性能未認定。
+- 🟠 [Next] 非空prefill内の同期／cache解放とRSSを診断。長時間試験は09:00 JST開始。
+  English: 🟢 [Done] Empty-prefill diagnostic overhead reduced; six real-model trials passed 252/252 quality/SLO. Keep default 512; no speed/stability promotion. 🟠 [Next] Diagnose synchronization/cache release and RSS.
+  简体中文：🟢 [Done] 减少空prefill计时开销；6轮实际模型252/252质量／SLO通过。保留默认512，未晋升速度／稳定性资格。🟠 [Next] 调查同步／cache释放及RSS。
 
 ## P1 backend phase計測
 
-🟢 [Done] [cache／prefill／decode計測](P1-BACKEND-PHASES.md)：4つのhost methodへbounded timingを追加。
-実モデルではprefill最大1.825秒、cache最大4.249 ms、decode最大62.340 ms。
-長文12/12・短文30/30品質／SLO、正常停止・identity不変合格。warmup SLO2/3。
-全回帰1475 tests（11 skip）、Ruff成功。共有batch・入れ子・空prefillを含み、GPU時間やr11根因とは認定しない。
-🟠 [Next] 非空prefill／同期／cache解放の分離、既存prefill候補と計測負荷の比較。長時間campaignは09:00 JST開始。
-English: 🟢 [Done] Four bounded backend phase timings verified on real MLX. 🟠 [Next] Profile nonempty prefill/synchronization and compare candidates; speed/stability remain unqualified.
-简体中文：🟢 [Done] 4个有界backend phase计时通过实际MLX验证。🟠 [Next] 非空prefill／同步分析及候选比较；速度及稳定性未认证。
+- 🟢 [Done] [cache／prefill／decode計測](P1-BACKEND-PHASES.md)：4つのhost methodへbounded timingを追加。
+  実モデルではprefill最大1.825秒、cache最大4.249 ms、decode最大62.340 ms。
+  長文12/12・短文30/30品質／SLO、正常停止・identity不変合格。warmup SLO2/3。
+  全回帰1475 tests（11 skip）、Ruff成功。共有batch・入れ子・空prefillを含み、GPU時間やr11根因とは認定しない。
+- 🟠 [Next] 非空prefill／同期／cache解放の分離、既存prefill候補と計測負荷の比較。長時間campaignは09:00 JST開始。
+  English: 🟢 [Done] Four bounded backend phase timings verified on real MLX. 🟠 [Next] Profile nonempty prefill/synchronization and compare candidates; speed/stability remain unqualified.
+  简体中文：🟢 [Done] 4个有界backend phase计时通过实际MLX验证。🟠 [Next] 非空prefill／同步分析及候选比较；速度及稳定性未认证。
 
 ## P1 tokenize分離とSLO判定の修正
 
-🟢 [Done] [tokenize計測](P1-TOKENIZE-TIMING.md)：要求別に開始／終了／失敗を記録し、欠測を保持した区間集計を追加。
-実モデルtokenize中央値0.453 ms、tokenize後の初回Response待ち中央値722.295 ms・最大18.57秒。
-長文SLO8/12でもcollectorが合格を返す抜けを修正し、初期長文／短文の全件品質・SLO合格・失敗ゼロを必須化。
-元reportは保持、新判定で長文失敗を拒否。対象19 tests、全回帰1473 tests（11 skip）、Ruff成功。
-🟠 [Next] cache／prefill／decode／同期の分離と計測負荷比較。根因・速度・安定性は未認定、長時間試験は09:00 JST開始。
-English: 🟢 [Done] Tokenization timing and strict initial-benchmark SLO gate. 🟠 [Next] Split remaining backend phases; no root-cause or speed certification.
-简体中文：🟢 [Done] tokenize计时及严格的初始benchmark SLO判定。🟠 [Next] 分离其余backend phase；未认证根因或速度。
+- 🟢 [Done] [tokenize計測](P1-TOKENIZE-TIMING.md)：要求別に開始／終了／失敗を記録し、欠測を保持した区間集計を追加。
+  実モデルtokenize中央値0.453 ms、tokenize後の初回Response待ち中央値722.295 ms・最大18.57秒。
+  長文SLO8/12でもcollectorが合格を返す抜けを修正し、初期長文／短文の全件品質・SLO合格・失敗ゼロを必須化。
+  元reportは保持、新判定で長文失敗を拒否。対象19 tests、全回帰1473 tests（11 skip）、Ruff成功。
+- 🟠 [Next] cache／prefill／decode／同期の分離と計測負荷比較。根因・速度・安定性は未認定、長時間試験は09:00 JST開始。
+  English: 🟢 [Done] Tokenization timing and strict initial-benchmark SLO gate. 🟠 [Next] Split remaining backend phases; no root-cause or speed certification.
+  简体中文：🟢 [Done] tokenize计时及严格的初始benchmark SLO判定。🟠 [Next] 分离其余backend phase；未认证根因或速度。
 
 ## P1要求別の計測
 
-🟢 [Done] [要求別timing](P1-REQUEST-TIMING.md)：P1 profileでdequeue、context受領、初回Response準備／受領、SSE write、handler終了を最大64件の数値履歴へ記録。
-本文／出力／request IDを保存せず、欠測は補完しない。実モデルsmoke長文12/12・短文30/30品質/SLO、warmup品質3/3・SLO2/3。
-全stageを持つ48件の順序を確認、fault／回収・正常停止・identity不変成功。全回帰1468 tests（11 skip）、Ruff成功。
-🟠 [Next] 短時間の同条件負荷で要求別時間から原因を分離。tokenize／prefill分離、collector identity接続と計測負荷の比較を続ける。長時間認定・速度改善は未達。
-English: 🟢 [Done] Bounded per-request timing validated on real MLX. 🟠 [Next] Attribute latency and compare measurement overhead; warmup SLO/stability remain unqualified.
-简体中文：🟢 [Done] 有界请求级计时通过实际MLX验证。🟠 [Next] 分离延迟及比较计测开销；warmup SLO及稳定性未认证。
+- 🟢 [Done] [要求別timing](P1-REQUEST-TIMING.md)：P1 profileでdequeue、context受領、初回Response準備／受領、SSE write、handler終了を最大64件の数値履歴へ記録。
+  本文／出力／request IDを保存せず、欠測は補完しない。実モデルsmoke長文12/12・短文30/30品質/SLO、warmup品質3/3・SLO2/3。
+  全stageを持つ48件の順序を確認、fault／回収・正常停止・identity不変成功。全回帰1468 tests（11 skip）、Ruff成功。
+- 🟠 [Next] 短時間の同条件負荷で要求別時間から原因を分離。tokenize／prefill分離、collector identity接続と計測負荷の比較を続ける。長時間認定・速度改善は未達。
+  English: 🟢 [Done] Bounded per-request timing validated on real MLX. 🟠 [Next] Attribute latency and compare measurement overhead; warmup SLO/stability remain unqualified.
+  简体中文：🟢 [Done] 有界请求级计时通过实际MLX验证。🟠 [Next] 分离延迟及比较计测开销；warmup SLO及稳定性未认证。
 
 ## P1遅延の時刻照合
 
-🟢 [Done] [r11遅延監査](P1-R11-LATENCY-AUDIT.md)：17件の失敗sampleを要求時間と遅いstepの時刻で照合。
-15件はcache再利用がほぼ全入力の短文。15件で保持stepとの重複あり、約8.9秒の2件は重複なし。
-bounded sample不在をidleにせず、時間重複を因果と判断しない。対象2 tests・Ruff成功。
-🟠 [Next] request別queue／tokenize／初回出力／HTTP書込の計測で未説明時間を分離してから修正する。
-English: 🟢 [Done] Offline timing audit covers 17 failures. 🟠 [Next] Per-request phase measurements; no causal attribution or speed claim.
-简体中文：🟢 [Done] 离线时间审核覆盖17次失败。🟠 [Next] 请求级phase测量，尚不认证因果或速度。
+- 🟢 [Done] [r11遅延監査](P1-R11-LATENCY-AUDIT.md)：17件の失敗sampleを要求時間と遅いstepの時刻で照合。
+  15件はcache再利用がほぼ全入力の短文。15件で保持stepとの重複あり、約8.9秒の2件は重複なし。
+  bounded sample不在をidleにせず、時間重複を因果と判断しない。対象2 tests・Ruff成功。
+- 🟠 [Next] request別queue／tokenize／初回出力／HTTP書込の計測で未説明時間を分離してから修正する。
+  English: 🟢 [Done] Offline timing audit covers 17 failures. 🟠 [Next] Per-request phase measurements; no causal attribution or speed claim.
+  简体中文：🟢 [Done] 离线时间审核覆盖17次失败。🟠 [Next] 请求级phase测量，尚不认证因果或速度。
 
 ## P1朝9時開始の再検証：r11
 
-🟢 [Done] 2026-10-08朝9時台にcompact／prefill512の新規launchd jobを開始。
-[receipt](evaluation/p1-stability-launch-m4-2026-10-08-r11.json)と
-[state](evaluation/p1-stability-m4-2026-10-08-r11/state.json)を保存し、runner実command・checkpoint鮮度で稼働を確認。
-🟠 [Next] 30分全条件合格時のみ8時間へ進み、終了後に品質・SLO・全worker epoch資源・awake・identity・shutdownを監査する。
-running／checkpointは未認定。実行中はruntime編集・追加GPU負荷・CPU benchmark／回帰試験を避ける。
-終了監査の定期確認は一時的に毎時とし、campaign終了後に元の月・木09:00 JSTへ戻す。
-English: 🟢 [Done] Started fresh r11 in the 09:00 JST hour and verified runner command/checkpoint freshness. 🟠 [Next] Audit the final results; eight hours follow only after all 30-minute gates pass. Qualification remains withheld.
-简体中文：🟢 [Done] 日本时间09:00时段启动新的r11并确认runner command及checkpoint新鲜度。🟠 [Next] 审核最终结果；30分钟全部gate通过后才进入8小时，目前未认证。
+- 🟢 [Done] 2026-10-08朝9時台にcompact／prefill512の新規launchd jobを開始。
+  [receipt](evaluation/p1-stability-launch-m4-2026-10-08-r11.json)と
+  [state](evaluation/p1-stability-m4-2026-10-08-r11/state.json)を保存し、runner実command・checkpoint鮮度で稼働を確認。
+- 🟠 [Next] 30分全条件合格時のみ8時間へ進み、終了後に品質・SLO・全worker epoch資源・awake・identity・shutdownを監査する。
+  running／checkpointは未認定。実行中はruntime編集・追加GPU負荷・CPU benchmark／回帰試験を避ける。
+  終了監査の定期確認は一時的に毎時とし、campaign終了後に元の月・木09:00 JSTへ戻す。
+  English: 🟢 [Done] Started fresh r11 in the 09:00 JST hour and verified runner command/checkpoint freshness. 🟠 [Next] Audit the final results; eight hours follow only after all 30-minute gates pass. Qualification remains withheld.
+  简体中文：🟢 [Done] 日本时间09:00时段启动新的r11并确认runner command及checkpoint新鲜度。🟠 [Next] 审核最终结果；30分钟全部gate通过后才进入8小时，目前未认证。
 
 ## 指示書の未着手項目：イベント履歴の全走査削減
 
-🟢 [Done] [EventBus実測・改善](EVENT-HISTORY-OPTIMIZATION-2026-10-07.md)：1件ごとの履歴全走査を直接参照へ変更し、全再送をO(N²)からO(N)へ。
-9回交互比較で標準256件の再送中央値0.569→0.138 ms（75.84%減）、10,000件599.766→5.347 ms（99.11%減）。
-全規模p95／p99改善、最大遅延は全規模での改善を認定せず。登録中央値+0.042 µs、10,000件container size+2.6%の代償を記録。
-順序・gap・heartbeat・保持上限を維持。全Python回帰1463 tests成功（11 skip）、Ruff成功。
-🟠 [Next] P1は次回09:00 JST開始の長時間試験で再検証。履歴取得の改善を推論速度・電力・長時間安定性の認定に広げない。
-🔴 [Later] supervisor polling、Swift main thread／SSEの実利用profile。未計測の変更は先に採用しない。
-English: 🟢 [Done] Measured direct ring access; default replay median fell 75.84%. 🟠 [Next] P1 qualification at 09:00 JST. 🔴 [Later] Profile supervisor/UI paths; inference speed and energy remain unqualified.
-简体中文：🟢 [Done] 实测直接ring访问，默认重放中位耗时减少75.84%。🟠 [Next] 日本时间09:00进行P1认证。🔴 [Later] supervisor／UI profile；推理速度及电能未认证。
+- 🟢 [Done] [EventBus実測・改善](EVENT-HISTORY-OPTIMIZATION-2026-10-07.md)：1件ごとの履歴全走査を直接参照へ変更し、全再送をO(N²)からO(N)へ。
+  9回交互比較で標準256件の再送中央値0.569→0.138 ms（75.84%減）、10,000件599.766→5.347 ms（99.11%減）。
+  全規模p95／p99改善、最大遅延は全規模での改善を認定せず。登録中央値+0.042 µs、10,000件container size+2.6%の代償を記録。
+  順序・gap・heartbeat・保持上限を維持。全Python回帰1463 tests成功（11 skip）、Ruff成功。
+- 🟠 [Next] P1は次回09:00 JST開始の長時間試験で再検証。履歴取得の改善を推論速度・電力・長時間安定性の認定に広げない。
+- 🔴 [Later] supervisor polling、Swift main thread／SSEの実利用profile。未計測の変更は先に採用しない。
+  English: 🟢 [Done] Measured direct ring access; default replay median fell 75.84%. 🟠 [Next] P1 qualification at 09:00 JST. 🔴 [Later] Profile supervisor/UI paths; inference speed and energy remain unqualified.
+  简体中文：🟢 [Done] 实测直接ring访问，默认重放中位耗时减少75.84%。🟠 [Next] 日本时间09:00进行P1认证。🔴 [Later] supervisor／UI profile；推理速度及电能未认证。
 
 ## 指示書に基づく単一hotspot改善：RSS計測
 
-🟢 [Done] [構造調査・profile・前後比較](OPTIMIZATION-REPORT-2026-10-07.md)：macOS RSS取得をsampleごとのps起動からOS APIへ変更。
-4規模でRSS一致、1200 sampleのprocess起動1200→0、中央値約1.7–1.9 ms→0.001 ms。
-品質・SLOの短時間実機確認45/45、正常停止・identity不変。全回帰1457 tests成功（11 skip）、Ruff成功。
-GPU／モデルメモリは変更せず、推論速度・電力改善は未認定。
-🟠 [Next] 朝9:00開始の次回P1長時間試験で新collectorを含むidentityを検証する。
-English: 🟢 [Done] Measured and removed per-sample ps spawning on macOS. 🟠 [Next] P1 long-run verification at 09:00 JST; no inference-speed or energy claim.
-简体中文：🟢 [Done] 测量并消除macOS每次RSS采样启动ps的开销。🟠 [Next] 日本时间09:00进行P1长期验证，不宣称推理速度或功率提升。
+- 🟢 [Done] [構造調査・profile・前後比較](OPTIMIZATION-REPORT-2026-10-07.md)：macOS RSS取得をsampleごとのps起動からOS APIへ変更。
+  4規模でRSS一致、1200 sampleのprocess起動1200→0、中央値約1.7–1.9 ms→0.001 ms。
+  品質・SLOの短時間実機確認45/45、正常停止・identity不変。全回帰1457 tests成功（11 skip）、Ruff成功。
+  GPU／モデルメモリは変更せず、推論速度・電力改善は未認定。
+- 🟠 [Next] 朝9:00開始の次回P1長時間試験で新collectorを含むidentityを検証する。
+  English: 🟢 [Done] Measured and removed per-sample ps spawning on macOS. 🟠 [Next] P1 long-run verification at 09:00 JST; no inference-speed or energy claim.
+  简体中文：🟢 [Done] 测量并消除macOS每次RSS采样启动ps的开销。🟠 [Next] 日本时间09:00进行P1长期验证，不宣称推理速度或功率提升。
 
 ## 速度・メモリ・待機処理の効率化：2026-10-07
 
-🟢 [Done] [効率化候補](P1-EFFICIENCY.md)：新要求受付のscheduler budget 500→50 ms、空idle queueの通知待ち、
-allocator cache 256→64 MiBの明示選択を実装。既定baselineは維持。
-各候補3回の実機比較で品質・SLO 648/648、故障系・正常停止成功。速度は範囲重複・変動が大きく未認定。
-固定要求後の保持cache最大値255.32→63.77 MiB、idle read入口29→1回／3秒を観測。
-active memoryはほぼ不変、RSSの減少は確認できず、ワット値は未測定。全回帰1454 tests成功（11 skip）。
-🟠 [Next] r10 compact長時間試験はユーザーの朝9時指定に合わせ[制御停止](evaluation/p1-stability-m4-2026-10-07-r10/controlled-stop.json)。
-次回は2026-10-08 09:00 JSTに新規runで開始する。一連の長時間試験は以降も日本時間9時開始。
-r9はSLO3000/3009・資源gate未達で不合格、8時間未開始。最新試験稼働中はruntime編集・追加GPU負荷を避ける。
-⭕️ [Pending] 管理者権限での電力samplerまたは外部電力計によるjoule/request・idle wattの検証。
-English: 🟢 [Done] Explicit efficiency candidates and measured retained-cache/idle-read reductions. 🟠 [Next] R10 long-run qualification; speed remains unqualified. ⭕️ [Pending] Electrical-power measurement.
-简体中文：🟢 [Done] 显式效率候选及保持cache／idle read减少的测量。🟠 [Next] r10长期认证；速度仍未认证。⭕️ [Pending] 实际功率测量。
+- 🟢 [Done] [効率化候補](P1-EFFICIENCY.md)：新要求受付のscheduler budget 500→50 ms、空idle queueの通知待ち、
+  allocator cache 256→64 MiBの明示選択を実装。既定baselineは維持。
+  各候補3回の実機比較で品質・SLO 648/648、故障系・正常停止成功。速度は範囲重複・変動が大きく未認定。
+  固定要求後の保持cache最大値255.32→63.77 MiB、idle read入口29→1回／3秒を観測。
+  active memoryはほぼ不変、RSSの減少は確認できず、ワット値は未測定。全回帰1454 tests成功（11 skip）。
+- 🟠 [Next] r10 compact長時間試験はユーザーの朝9時指定に合わせ[制御停止](evaluation/p1-stability-m4-2026-10-07-r10/controlled-stop.json)。
+  次回は2026-10-08 09:00 JSTに新規runで開始する。一連の長時間試験は以降も日本時間9時開始。
+  r9はSLO3000/3009・資源gate未達で不合格、8時間未開始。最新試験稼働中はruntime編集・追加GPU負荷を避ける。
+- ⭕️ [Pending] 管理者権限での電力samplerまたは外部電力計によるjoule/request・idle wattの検証。
+  English: 🟢 [Done] Explicit efficiency candidates and measured retained-cache/idle-read reductions. 🟠 [Next] R10 long-run qualification; speed remains unqualified. ⭕️ [Pending] Electrical-power measurement.
+  简体中文：🟢 [Done] 显式效率候选及保持cache／idle read减少的测量。🟠 [Next] r10长期认证；速度仍未认证。⭕️ [Pending] 实际功率测量。
 
 ## P1最優先修正：2026-10-07
 
-🟢 [Done] prompt cache予算256 MiBを保存先LRUのbyte上限にも適用し、応答完了時の無制限insertを修正。
-[実LRU再現](evaluation/p1-prompt-cache-budget-2026-10-07.json)と[実機smoke](evaluation/p1-cache-budget-smoke-m4-2026-10-07.json)を保存。
-約92秒の品質・SLO 240/240、正常停止合格。短時間の資源gateはfalse、性能改善は未認定。
-全Python回帰1452 tests成功（11 skip）、Ruff成功。
-🟠 [Next] [r9](evaluation/p1-stability-m4-2026-10-07-r9/state.json)で同条件の30分→全条件合格時8時間を開始。
-r8の遅延・aggregate資源未達の全原因は未確定。
-認定gateを緩和せず、[原因監査](evaluation/p1-r8-cause-audit-2026-10-07.json)を参照する。
-English: 🟢 [Done] Enforce the P1 LRU byte budget. 🟠 [Next] Long-run latency/resource requalification; no performance claim or relaxed gate.
-简体中文：🟢 [Done] 修复P1 LRU byte上限。🟠 [Next] 长期延迟／资源复测；不宣称性能提升，不放宽gate。
+- 🟢 [Done] prompt cache予算256 MiBを保存先LRUのbyte上限にも適用し、応答完了時の無制限insertを修正。
+  [実LRU再現](evaluation/p1-prompt-cache-budget-2026-10-07.json)と[実機smoke](evaluation/p1-cache-budget-smoke-m4-2026-10-07.json)を保存。
+  約92秒の品質・SLO 240/240、正常停止合格。短時間の資源gateはfalse、性能改善は未認定。
+  全Python回帰1452 tests成功（11 skip）、Ruff成功。
+- 🟠 [Next] [r9](evaluation/p1-stability-m4-2026-10-07-r9/state.json)で同条件の30分→全条件合格時8時間を開始。
+  r8の遅延・aggregate資源未達の全原因は未確定。
+  認定gateを緩和せず、[原因監査](evaluation/p1-r8-cause-audit-2026-10-07.json)を参照する。
+  English: 🟢 [Done] Enforce the P1 LRU byte budget. 🟠 [Next] Long-run latency/resource requalification; no performance claim or relaxed gate.
+  简体中文：🟢 [Done] 修复P1 LRU byte上限。🟠 [Next] 长期延迟／资源复测；不宣称性能提升，不放宽gate。
 
 ## Local text preview 0.1.0 — 最小利用版
 
-🟢 [Done] [ローカルtext preview](LOCAL-TEXT-PREVIEW.md)：M4／32 GiB・固定Gemma2 artifactの
-事前確認、一つの起動コマンド、loopback text API、concurrency 1・資源上限、停止、wheelを実装。
-新入口で未知依存／改変source／model／追加weight／未対象hardwareを拒否する。
-[最終wheel検証](evaluation/local-text-installed-wheel-m4-2026-10-07-final.json)で三言語SSE、拒否条件、
-資源上限、正常終了に合格。全Python回帰1451 tests成功（11 skip）、Swift SDK tests・Mac sample build成功。
-[配布manifest](evaluation/local-text-preview-manifest-2026-10-07.json)と一時venvのアンインストール確認を保存。
-この最小利用版の完了と、以下P0〜P4の本番・性能認定の完了は別のmilestoneである。
-🟠 [Next] このM4で未達の長時間SLO、数値／性能、RAG一般品質は残す。時間を理由に⭕️ [Pending]へ移さない。
-他hardware・署名資格情報・独立検証環境が必要な試験だけ⭕️ [Pending]にする。
+- 🟢 [Done] [ローカルtext preview](LOCAL-TEXT-PREVIEW.md)：M4／32 GiB・固定Gemma2 artifactの
+  事前確認、一つの起動コマンド、loopback text API、concurrency 1・資源上限、停止、wheelを実装。
+  新入口で未知依存／改変source／model／追加weight／未対象hardwareを拒否する。
+  [最終wheel検証](evaluation/local-text-installed-wheel-m4-2026-10-07-final.json)で三言語SSE、拒否条件、
+  資源上限、正常終了に合格。全Python回帰1451 tests成功（11 skip）、Swift SDK tests・Mac sample build成功。
+  [配布manifest](evaluation/local-text-preview-manifest-2026-10-07.json)と一時venvのアンインストール確認を保存。
+  この最小利用版の完了と、以下P0〜P4の本番・性能認定の完了は別のmilestoneである。
+- 🟠 [Next] このM4で未達の長時間SLO、数値／性能、RAG一般品質は残す。時間を理由に⭕️ [Pending]へ移さない。
+  他hardware・署名資格情報・独立検証環境が必要な試験だけ⭕️ [Pending]にする。
 
 English: The usable local text preview milestone is implemented; production/performance
 qualification remains 🟠 [Next]. Only unavailable hardware/credentials/environments are ⭕️ [Pending].
@@ -394,21 +390,21 @@ Intel Macは互換性の別枠とし、Apple Siliconの性能認定を適用し�
 
 2026-10-07。実装済みの契約・runnerと実機認定を分ける。websiteは変更しない。
 
-| 状態 | 範囲 | 確認結果／残作業 |
-| --- | --- | --- |
-| 🟢 [Done] | P0限定基準・経路監査 | M4／Gemma 2／c1／三言語算術、2 backend各3回。全モデル・全Macの認定ではない |
-| 🟢 [Done] | P1資源上限・cancel／回復runner | bounded HTTP・入力・allocator・queue・cancelと短時間smoke。最新完了r9の30分は品質3009/3009、SLO3000/3009、RSS・awake・identity・shutdown合格だがSLOとcache資源gate未達 |
-| 🟠 [Next] | P1長時間認定 | r9の9件のSLO超過とcache資源gate未達に対し、compactで朝9時から30分再試験→合格時8時間。このM4で可能なので⭕️ [Pending]にしない |
-| 🟢 [Done] | P2実continuous batching／identity付きKV実験 | 実batch幅4と再prefill提出減少を確認。標準採用・数値／性能認定は未完了 |
-| 🟠 [Next] | P2数値・p95／goodput gate | 限定float32のKV数値・c4／prefixなしc1 gateは合格。cache有効c1尾遅延・float16対照・広い品質scopeは未達。このM4で試験可能 |
-| 🟢 [Done] | P3選択・P4認定gateとrelease昇格接続 | 証拠不足・不合格はfallback／昇格拒否。合成fixtureのテストを実性能・24時間認定に代用しない |
-| 🟠 [Next] | P3実計測／P4目的別profile・24時間認定 | 限定GPU／HTTP collectorと実験起動への接続済み。未達候補は拒否。P1／P2前提・広い品質・標準採用・24時間認定は継続 |
-| 🟢 [Done] | R0完全templateのtoken予算・固定三言語HTTP smoke | 実Gemma tokenizerで境界・丸ごと資料除外・基本prompt拒否。実HTTPは固定support codeと資料なしの6ケース成功・正常終了 |
-| 🟠 [Next] | R0一般品質／L0固定LoRA | 資料不足・悪意ある資料・長文引用のsuiteとadapter互換性／memory／実MLXの検証。未実装を環境不足へ移さない |
-| 🔴 [Later] | R1／L1／RL2・追加architecture | 検索・学習・複数adapter等は前提作業後。現在の筐体で可能な範囲は開発候補のまま |
-| ⭕️ [Pending] | 別SoC／RAM・M5 NAX・分散・容量超過 | 対象実機・network・model artifactが必要。詳細は下記環境待ち表 |
-| ⭕️ [Pending] | 実署名／notarization・独立clean-machine install | Developer ID／notary資格情報と独立検証環境が必要。既存workflowは実配布認定ではない |
-| ⭕️ [Pending] | ANE互換draft | 互換Core ML draft artifactが必要。既存encoderの検証で代用しない |
+| 状態         | 範囲                                            | 確認結果／残作業                                                                                                                                                       |
+| ------------ | ----------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 🟢 [Done]    | P0限定基準・経路監査                            | M4／Gemma 2／c1／三言語算術、2 backend各3回。全モデル・全Macの認定ではない                                                                                             |
+| 🟢 [Done]    | P1資源上限・cancel／回復runner                  | bounded HTTP・入力・allocator・queue・cancelと短時間smoke。最新完了r9の30分は品質3009/3009、SLO3000/3009、RSS・awake・identity・shutdown合格だがSLOとcache資源gate未達 |
+| 🟠 [Next]    | P1長時間認定                                    | r9の9件のSLO超過とcache資源gate未達に対し、compactで朝9時から30分再試験→合格時8時間。このM4で可能なので⭕️ [Pending]にしない                                            |
+| 🟢 [Done]    | P2実continuous batching／identity付きKV実験     | 実batch幅4と再prefill提出減少を確認。標準採用・数値／性能認定は未完了                                                                                                  |
+| 🟠 [Next]    | P2数値・p95／goodput gate                       | 限定float32のKV数値・c4／prefixなしc1 gateは合格。cache有効c1尾遅延・float16対照・広い品質scopeは未達。このM4で試験可能                                                |
+| 🟢 [Done]    | P3選択・P4認定gateとrelease昇格接続             | 証拠不足・不合格はfallback／昇格拒否。合成fixtureのテストを実性能・24時間認定に代用しない                                                                              |
+| 🟠 [Next]    | P3実計測／P4目的別profile・24時間認定           | 限定GPU／HTTP collectorと実験起動への接続済み。未達候補は拒否。P1／P2前提・広い品質・標準採用・24時間認定は継続                                                        |
+| 🟢 [Done]    | R0完全templateのtoken予算・固定三言語HTTP smoke | 実Gemma tokenizerで境界・丸ごと資料除外・基本prompt拒否。実HTTPは固定support codeと資料なしの6ケース成功・正常終了                                                     |
+| 🟠 [Next]    | R0一般品質／L0固定LoRA                          | 資料不足・悪意ある資料・長文引用のsuiteとadapter互換性／memory／実MLXの検証。未実装を環境不足へ移さない                                                                |
+| 🔴 [Later]   | R1／L1／RL2・追加architecture                   | 検索・学習・複数adapter等は前提作業後。現在の筐体で可能な範囲は開発候補のまま                                                                                          |
+| ⭕️ [Pending] | 別SoC／RAM・M5 NAX・分散・容量超過              | 対象実機・network・model artifactが必要。詳細は下記環境待ち表                                                                                                          |
+| ⭕️ [Pending] | 実署名／notarization・独立clean-machine install | Developer ID／notary資格情報と独立検証環境が必要。既存workflowは実配布認定ではない                                                                                     |
+| ⭕️ [Pending] | ANE互換draft                                    | 互換Core ML draft artifactが必要。既存encoderの検証で代用しない                                                                                                        |
 
 English: Local failures and unfinished implementation remain 🟠 [Next]/🔴 [Later]. Only tests
 requiring unavailable hardware, artifacts, credentials or independent environments are
@@ -419,14 +415,14 @@ requiring unavailable hardware, artifacts, credentials or independent environmen
 
 ## 現在地：再利用できる基盤と不足している証拠
 
-| 状態 | 基盤・証拠 | 認定の限界と次の仕事 |
-| --- | --- | --- |
-| 🟢 [Done] | memory admission、thermal／pressure対応、予約付きscheduler、process隔離、profile／rollback基盤 | 制御機構の存在だけでは実LLMの速度向上を証明しない。主経路への適用をP0で監査する |
-| 🟢 [Done] | [MLX server wrapper](../vllm_apple/mlx_server.py)：MLX-LM serverへの委譲、tokenize、allocator／cache計測 | wrapper独自のcontinuous batching実装ではない。backend versionごとの実効機能を測定する |
-| 🟢 [Done] | [semantic cache](../vllm_apple/semantic_cache.py)、[state coordinator](../vllm_apple/semantic_state.py)、[MLX state adapter](../vllm_apple/mlx_semantic_state.py) | 契約・adapterと、標準HTTP経路で実KVが再利用されることを分けて検証する |
-| 🟢 [Done] | [Gemma 2 2B 4-bit・30分report](evaluation/homebrew-029-text-30min-2026-09-19.json)：6,775/6,775成功 | Homebrew 0.29.0、context 1024、concurrency 1限定。KV容量再評価はunavailable。42.841 decode tok/s／平均TTFT 91.105 msは別の3-sample probe値 |
-| 🟢 [Done] | [Qwen3-VL persistent worker・30分report](evaluation/qwen3-vl-coreml-persistent-30min-soak-2026-09-20.json) | 固定shape／固定taskの証拠。一般VQA、標準text経路、ANE単独実行の認定へ広げない |
-| 🟢 [Done] | [MLX cache計測改善](vllm-mlx-review.md)、[キャンセルqueue回収](llama-cpp-review.md) | 現在の作業ツリーに実装あり。実MLX／継続キャンセル負荷での性能検証が残る |
+| 状態      | 基盤・証拠                                                                                                                                                        | 認定の限界と次の仕事                                                                                                                       |
+| --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| 🟢 [Done] | memory admission、thermal／pressure対応、予約付きscheduler、process隔離、profile／rollback基盤                                                                    | 制御機構の存在だけでは実LLMの速度向上を証明しない。主経路への適用をP0で監査する                                                            |
+| 🟢 [Done] | [MLX server wrapper](../vllm_apple/mlx_server.py)：MLX-LM serverへの委譲、tokenize、allocator／cache計測                                                          | wrapper独自のcontinuous batching実装ではない。backend versionごとの実効機能を測定する                                                      |
+| 🟢 [Done] | [semantic cache](../vllm_apple/semantic_cache.py)、[state coordinator](../vllm_apple/semantic_state.py)、[MLX state adapter](../vllm_apple/mlx_semantic_state.py) | 契約・adapterと、標準HTTP経路で実KVが再利用されることを分けて検証する                                                                      |
+| 🟢 [Done] | [Gemma 2 2B 4-bit・30分report](evaluation/homebrew-029-text-30min-2026-09-19.json)：6,775/6,775成功                                                               | Homebrew 0.29.0、context 1024、concurrency 1限定。KV容量再評価はunavailable。42.841 decode tok/s／平均TTFT 91.105 msは別の3-sample probe値 |
+| 🟢 [Done] | [Qwen3-VL persistent worker・30分report](evaluation/qwen3-vl-coreml-persistent-30min-soak-2026-09-20.json)                                                        | 固定shape／固定taskの証拠。一般VQA、標準text経路、ANE単独実行の認定へ広げない                                                              |
+| 🟢 [Done] | [MLX cache計測改善](vllm-mlx-review.md)、[キャンセルqueue回収](llama-cpp-review.md)                                                                               | 現在の作業ツリーに実装あり。実MLX／継続キャンセル負荷での性能検証が残る                                                                    |
 
 現時点では、主要backend横断の同条件ランキング、代表モデル群の長時間SLO、全Mac世代での優位性を証明する比較資料は揃っていない。まずこの不足を埋める。
 
@@ -481,15 +477,15 @@ MLX / vLLM-Metal / qualified optional backend → Metal GPU
 
 ### 標準比較matrix
 
-| 軸 | 最初に比較する条件 |
-| --- | --- |
-| Hardware | 手元のMacを正確に記録。続いて16 GB級、24–36 GB級、64 GB以上、異なるSoC世代を追加。未保有機は未評価表示 |
-| Models | 配置済み2–4Bを基準に、収容可能な7–8B、14B級、MoE／hybridを順次追加。architectureごとに対応確認 |
-| Workload | chat、coding、tool-use、長文読解。英語・日本語・简体中文ごとに品質を分離 |
-| Context | 入力128／1K／4K／16K tokens、出力128／512 tokens。32K以上はmodel上限・admission通過時のみ |
-| Load | concurrency 1／2／4／8、短長混在、到着率指定、飽和試験。容量を超える組合せは理由付きskip |
-| Cache | cold model load、warm model＋prefix miss、exact prefix hit、prefix編集、cache容量超過を別集計 |
-| Environment | AC／battery／low-powerを別条件とし、warm-up後と熱平衡後を比較。各backendは順番を交替して実行 |
+| 軸          | 最初に比較する条件                                                                                     |
+| ----------- | ------------------------------------------------------------------------------------------------------ |
+| Hardware    | 手元のMacを正確に記録。続いて16 GB級、24–36 GB級、64 GB以上、異なるSoC世代を追加。未保有機は未評価表示 |
+| Models      | 配置済み2–4Bを基準に、収容可能な7–8B、14B級、MoE／hybridを順次追加。architectureごとに対応確認         |
+| Workload    | chat、coding、tool-use、長文読解。英語・日本語・简体中文ごとに品質を分離                               |
+| Context     | 入力128／1K／4K／16K tokens、出力128／512 tokens。32K以上はmodel上限・admission通過時のみ              |
+| Load        | concurrency 1／2／4／8、短長混在、到着率指定、飽和試験。容量を超える組合せは理由付きskip               |
+| Cache       | cold model load、warm model＋prefix miss、exact prefix hit、prefix編集、cache容量超過を別集計          |
+| Environment | AC／battery／low-powerを別条件とし、warm-up後と熱平衡後を比較。各backendは順番を交替して実行           |
 
 同じbit数でもGGUFとMLXの量子化は等価とみなさない。同一artifactでの純粋な速度比較と、同一品質基準を満たす異形式の比較を分ける。
 比較可能な共通モデル集合とbackend固有対応範囲を両方公開し、成功した組合せだけに母集団を狭めない。
@@ -688,14 +684,14 @@ splitting and a native engine remain conditional research, not committed replace
 
 現在確認した筐体はMacBook Air／Apple M4／32 GiB。以下は本筐体だけでは認定できない条件として分離する。実装可能な共通runner・schema・fallbackは先に整備し、未保有機の性能値を推定で埋めない。
 
-| 状態 | 作業候補 | 再開に必要な環境・確認内容 |
-| --- | --- | --- |
-| ⭕️ [Pending] | M5世代のNAX kernel認定とM4との比較 | 対象M5実機、対応OS／toolchain／backend。device能力検出、correctness、対象shapeのE2E・memory・fallbackを実測 |
-| ⭕️ [Pending] | 16 GB級・64 GB以上・別SoCでの容量／thermal／24時間認定 | 各容量・SoCの実機runner。同一artifact、context、並列度、電源条件で比較し、容量超過を理由付きskip |
-| ⭕️ [Pending] | M4 32 GiBのadmission予算を超えるモデル・context・batchの認定 | 必要なRAMを備えるMacと対象artifact。小さい量子化版が収まることを、元の構成の合格に代用しない |
-| ⭕️ [Pending] | 複数Macの分散実行・通信込み性能 | 複数の対象Macと検証用network。通信・同期・障害時state回収を含めて評価 |
-| ⭕️ [Pending] | ANE draft＋GPU verifierの実モデル比較 | 互換draftのCore ML artifactと変換・実行契約。M4のANEが利用可能でも互換artifactなしでは認定しない。既存encoder検証はこの保留に含めない |
-| ⭕️ [Pending] | 署名・notarization済みreleaseとclean-machine install | Developer ID／notary資格情報と独立した検証環境。未署名のlocal buildとは別認定 |
+| 状態         | 作業候補                                                     | 再開に必要な環境・確認内容                                                                                                            |
+| ------------ | ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------- |
+| ⭕️ [Pending] | M5世代のNAX kernel認定とM4との比較                           | 対象M5実機、対応OS／toolchain／backend。device能力検出、correctness、対象shapeのE2E・memory・fallbackを実測                           |
+| ⭕️ [Pending] | 16 GB級・64 GB以上・別SoCでの容量／thermal／24時間認定       | 各容量・SoCの実機runner。同一artifact、context、並列度、電源条件で比較し、容量超過を理由付きskip                                      |
+| ⭕️ [Pending] | M4 32 GiBのadmission予算を超えるモデル・context・batchの認定 | 必要なRAMを備えるMacと対象artifact。小さい量子化版が収まることを、元の構成の合格に代用しない                                          |
+| ⭕️ [Pending] | 複数Macの分散実行・通信込み性能                              | 複数の対象Macと検証用network。通信・同期・障害時state回収を含めて評価                                                                 |
+| ⭕️ [Pending] | ANE draft＋GPU verifierの実モデル比較                        | 互換draftのCore ML artifactと変換・実行契約。M4のANEが利用可能でも互換artifactなしでは認定しない。既存encoder検証はこの保留に含めない |
+| ⭕️ [Pending] | 署名・notarization済みreleaseとclean-machine install         | Developer ID／notary資格情報と独立した検証環境。未署名のlocal buildとは別認定                                                         |
 
 English: `⭕️ [Pending]` means an unavailable test environment, with explicit resumption
 requirements. Work runnable on this M4, including concurrency failures and long soaks,
@@ -706,14 +702,14 @@ remains `🟠 [Next]` or `🔴 [Later]`; it is not deferred merely because it ta
 
 ## 別トラックとして維持する作業 🔴 [Later]
 
-| 作業 | 着手条件・必要な資源 |
-| --- | --- |
-| 一般VLM／Audio LLM | text経路の認定後。open-domain画像／音声品質、model固有projection、実artifactが必要 |
-| 大容量MoE／hybrid／新architecture | 対応する実weightとメモリを持つMac。metadata対応を実推論成功と混同しない |
-| 画像・音楽・動画生成 | LLM経路と別worker／budgetで維持。大容量artifact・専用quality suite・必要なMacを用意 |
-| 独自数値形式・構造pruning | 既存量子化との比較で、品質維持とE2E上の必要性を示した後 |
-| Multi-Mac | 2台以上の実Macと物理link測定。通信時間込みで単一Macを上回る用途があること。loopback試験は物理認定にしない |
-| SSD／CPU offload | メモリ適合性を目的に評価し、最速経路とは別profileで公開 |
+| 作業                              | 着手条件・必要な資源                                                                                      |
+| --------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| 一般VLM／Audio LLM                | text経路の認定後。open-domain画像／音声品質、model固有projection、実artifactが必要                        |
+| 大容量MoE／hybrid／新architecture | 対応する実weightとメモリを持つMac。metadata対応を実推論成功と混同しない                                   |
+| 画像・音楽・動画生成              | LLM経路と別worker／budgetで維持。大容量artifact・専用quality suite・必要なMacを用意                       |
+| 独自数値形式・構造pruning         | 既存量子化との比較で、品質維持とE2E上の必要性を示した後                                                   |
+| Multi-Mac                         | 2台以上の実Macと物理link測定。通信時間込みで単一Macを上回る用途があること。loopback試験は物理認定にしない |
+| SSD／CPU offload                  | メモリ適合性を目的に評価し、最速経路とは別profileで公開                                                   |
 
 ## 最初の実装順序
 
@@ -768,7 +764,7 @@ Metal 0.30.0のMLX 0.32.1 ABI固定、MLX 0.32.3のbuffer／stream／GQA修正�
 
 ## 定期評価 / Recurring evaluation / 定期评估 — 2026-10-09
 
-🟢 [Done] [短時間基準の再測定](optimization-2026-10-09.md)：144件算術品質合格、warmup SLOは2/3。コード変更なし、速度差を改善認定しない。🟠 [Next] 同条件反復でwarmup境界とprefill待ちを確認。
+- 🟢 [Done] [短時間基準の再測定](optimization-2026-10-09.md)：144件算術品質合格、warmup SLOは2/3。コード変更なし、速度差を改善認定しない。🟠 [Next] 同条件反復でwarmup境界とprefill待ちを確認。
 
 English: Unchanged baseline repeated; all 144 arithmetic checks passed, warmup SLO 2/3. No speedup attribution. Next: independent repeats and prefill wait diagnosis.
 
