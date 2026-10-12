@@ -1,0 +1,984 @@
+{
+  "schema_version": 1,
+  "scope": "synthetic_qwen3_block_cpu",
+  "model_qualification": false,
+  "standard_adoption_eligible": false,
+  "automatic_application": false,
+  "trials": [],
+  "profiling_enabled": false,
+  "preloaded": true,
+  "grouped": false,
+  "gather": false,
+  "variant_suite": true,
+  "cycles": 512,
+  "memory_suite": false,
+  "runs": 4,
+  "warmup_cycles": 8,
+  "resident_budget_bytes": 50000,
+  "quiet_host_requested": true,
+  "host_gates": [
+    {
+      "passed": false,
+      "observations": [
+        {
+          "total_percent": 833.6346103585672,
+          "maximum_process_percent": 278.94591562054154,
+          "top_processes": [
+            {
+              "pid": 47253,
+              "name": "rustc",
+              "cpu_percent": 278.94591562054154
+            },
+            {
+              "pid": 47347,
+              "name": "rustc",
+              "cpu_percent": 79.76977614808938
+            },
+            {
+              "pid": 47390,
+              "name": "swiftpm-testing-helper",
+              "cpu_percent": 79.441959333637
+            },
+            {
+              "pid": 46243,
+              "name": "rustc",
+              "cpu_percent": 78.9366183314617
+            },
+            {
+              "pid": 18561,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 22.251854831120593
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 986.740709595262,
+          "maximum_process_percent": 504.0147015717516,
+          "top_processes": [
+            {
+              "pid": 47253,
+              "name": "rustc",
+              "cpu_percent": 504.0147015717516
+            },
+            {
+              "pid": 47347,
+              "name": "rustc",
+              "cpu_percent": 73.8816451952557
+            },
+            {
+              "pid": 46243,
+              "name": "rustc",
+              "cpu_percent": 63.09799871992773
+            },
+            {
+              "pid": 1846,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 16.030901481633858
+            },
+            {
+              "pid": 1888,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 11.438588045225194
+            }
+          ],
+          "new_or_exited_processes": 3
+        },
+        {
+          "total_percent": 933.1652857756898,
+          "maximum_process_percent": 482.1068882088117,
+          "top_processes": [
+            {
+              "pid": 47253,
+              "name": "rustc",
+              "cpu_percent": 482.1068882088117
+            },
+            {
+              "pid": 46243,
+              "name": "rustc",
+              "cpu_percent": 67.20693063523753
+            },
+            {
+              "pid": 47347,
+              "name": "rustc",
+              "cpu_percent": 67.16587616130674
+            },
+            {
+              "pid": 18561,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 55.23688069589424
+            },
+            {
+              "pid": 1846,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 14.206537102520743
+            }
+          ],
+          "new_or_exited_processes": 3
+        },
+        {
+          "total_percent": 1063.7393690930253,
+          "maximum_process_percent": 466.0240456300407,
+          "top_processes": [
+            {
+              "pid": 47253,
+              "name": "rustc",
+              "cpu_percent": 466.0240456300407
+            },
+            {
+              "pid": 18561,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 106.40335922064975
+            },
+            {
+              "pid": 47347,
+              "name": "rustc",
+              "cpu_percent": 69.32202405245103
+            },
+            {
+              "pid": 46243,
+              "name": "rustc",
+              "cpu_percent": 66.04083702817972
+            },
+            {
+              "pid": 18530,
+              "name": "com.docker.backend",
+              "cpu_percent": 32.983597817024965
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 979.9385937173398,
+          "maximum_process_percent": 570.4276376536819,
+          "top_processes": [
+            {
+              "pid": 47253,
+              "name": "rustc",
+              "cpu_percent": 570.4276376536819
+            },
+            {
+              "pid": 46243,
+              "name": "rustc",
+              "cpu_percent": 80.80626565965001
+            },
+            {
+              "pid": 47347,
+              "name": "rustc",
+              "cpu_percent": 78.45707744293165
+            },
+            {
+              "pid": 18561,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 25.838411831527896
+            },
+            {
+              "pid": 1888,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 11.285941255154711
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 1005.9331473231581,
+          "maximum_process_percent": 588.9211005897702,
+          "top_processes": [
+            {
+              "pid": 47253,
+              "name": "rustc",
+              "cpu_percent": 588.9211005897702
+            },
+            {
+              "pid": 46243,
+              "name": "rustc",
+              "cpu_percent": 76.58749067737723
+            },
+            {
+              "pid": 18593,
+              "name": "Docker Desktop Helper (Renderer)",
+              "cpu_percent": 33.510006288176115
+            },
+            {
+              "pid": 18561,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 20.38545085371148
+            },
+            {
+              "pid": 1888,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 11.76427766262019
+            }
+          ],
+          "new_or_exited_processes": 3
+        },
+        {
+          "total_percent": 992.4475645919041,
+          "maximum_process_percent": 625.0828606390696,
+          "top_processes": [
+            {
+              "pid": 47253,
+              "name": "rustc",
+              "cpu_percent": 625.0828606390696
+            },
+            {
+              "pid": 46243,
+              "name": "rustc",
+              "cpu_percent": 79.19997992334382
+            },
+            {
+              "pid": 47365,
+              "name": "rustc",
+              "cpu_percent": 33.76087056508994
+            },
+            {
+              "pid": 47364,
+              "name": "rustc",
+              "cpu_percent": 30.52213085898732
+            },
+            {
+              "pid": 1888,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 11.333734924066604
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 1028.572828311029,
+          "maximum_process_percent": 641.6839763135603,
+          "top_processes": [
+            {
+              "pid": 47253,
+              "name": "rustc",
+              "cpu_percent": 641.6839763135603
+            },
+            {
+              "pid": 47364,
+              "name": "rustc",
+              "cpu_percent": 79.37802633053248
+            },
+            {
+              "pid": 46243,
+              "name": "rustc",
+              "cpu_percent": 69.34231603269504
+            },
+            {
+              "pid": 18561,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 22.715309104407797
+            },
+            {
+              "pid": 1888,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 12.497239409483354
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 998.0327056274989,
+          "maximum_process_percent": 684.7013305711064,
+          "top_processes": [
+            {
+              "pid": 47253,
+              "name": "rustc",
+              "cpu_percent": 684.7013305711064
+            },
+            {
+              "pid": 46243,
+              "name": "rustc",
+              "cpu_percent": 68.70994268595327
+            },
+            {
+              "pid": 18561,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 34.4138210816286
+            },
+            {
+              "pid": 1888,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 11.704423302443029
+            },
+            {
+              "pid": 2169,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 9.195913461967196
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 991.7584399114402,
+          "maximum_process_percent": 787.8973111479909,
+          "top_processes": [
+            {
+              "pid": 47253,
+              "name": "rustc",
+              "cpu_percent": 787.8973111479909
+            },
+            {
+              "pid": 46243,
+              "name": "rustc",
+              "cpu_percent": 73.329892453494
+            },
+            {
+              "pid": 18561,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 15.320679824290204
+            },
+            {
+              "pid": 1888,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 11.422481882606537
+            },
+            {
+              "pid": 2169,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 8.555782568585645
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 995.0719082445798,
+          "maximum_process_percent": 710.8697467349089,
+          "top_processes": [
+            {
+              "pid": 47253,
+              "name": "rustc",
+              "cpu_percent": 710.8697467349089
+            },
+            {
+              "pid": 46243,
+              "name": "rustc",
+              "cpu_percent": 60.811133726395525
+            },
+            {
+              "pid": 1958,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 37.333924859931095
+            },
+            {
+              "pid": 12836,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 19.894614814664628
+            },
+            {
+              "pid": 18561,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 17.588825210801147
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 1004.4990235566547,
+          "maximum_process_percent": 752.5879560374129,
+          "top_processes": [
+            {
+              "pid": 47253,
+              "name": "rustc",
+              "cpu_percent": 752.5879560374129
+            },
+            {
+              "pid": 46243,
+              "name": "rustc",
+              "cpu_percent": 64.00383683476922
+            },
+            {
+              "pid": 1888,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 10.425797988814667
+            },
+            {
+              "pid": 2169,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 9.550659540173134
+            },
+            {
+              "pid": 1835,
+              "name": "Brave Browser",
+              "cpu_percent": 9.309909378712488
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 1007.1465952625301,
+          "maximum_process_percent": 643.4287559652626,
+          "top_processes": [
+            {
+              "pid": 47253,
+              "name": "rustc",
+              "cpu_percent": 643.4287559652626
+            },
+            {
+              "pid": 18561,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 145.61939082411487
+            },
+            {
+              "pid": 46243,
+              "name": "rustc",
+              "cpu_percent": 42.85306925960922
+            },
+            {
+              "pid": 18530,
+              "name": "com.docker.backend",
+              "cpu_percent": 24.223412869849525
+            },
+            {
+              "pid": 1888,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 11.510250281074526
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 830.6217126761924,
+          "maximum_process_percent": 292.65803881118444,
+          "top_processes": [
+            {
+              "pid": 47253,
+              "name": "rustc",
+              "cpu_percent": 292.65803881118444
+            },
+            {
+              "pid": 46243,
+              "name": "rustc",
+              "cpu_percent": 85.18124038163563
+            },
+            {
+              "pid": 18561,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 26.746433598764366
+            },
+            {
+              "pid": 1846,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 13.100921223419883
+            },
+            {
+              "pid": 47250,
+              "name": "mdworker_shared",
+              "cpu_percent": 10.795409746600367
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 696.6155536172007,
+          "maximum_process_percent": 189.97121973034237,
+          "top_processes": [
+            {
+              "pid": 47253,
+              "name": "rustc",
+              "cpu_percent": 189.97121973034237
+            },
+            {
+              "pid": 46243,
+              "name": "rustc",
+              "cpu_percent": 94.72217589018956
+            },
+            {
+              "pid": 1845,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 47.86135283603032
+            },
+            {
+              "pid": 18593,
+              "name": "Docker Desktop Helper (Renderer)",
+              "cpu_percent": 29.054851824474614
+            },
+            {
+              "pid": 18561,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 28.898662962254658
+            }
+          ],
+          "new_or_exited_processes": 3
+        },
+        {
+          "total_percent": 569.5782618596979,
+          "maximum_process_percent": 167.03620632602966,
+          "top_processes": [
+            {
+              "pid": 47253,
+              "name": "rustc",
+              "cpu_percent": 167.03620632602966
+            },
+            {
+              "pid": 46243,
+              "name": "rustc",
+              "cpu_percent": 99.37097639773904
+            },
+            {
+              "pid": 18561,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 12.379565975609948
+            },
+            {
+              "pid": 1888,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 10.187268366733022
+            },
+            {
+              "pid": 2169,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 8.216744156288307
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 407.7413634804614,
+          "maximum_process_percent": 99.8414309444705,
+          "top_processes": [
+            {
+              "pid": 46243,
+              "name": "rustc",
+              "cpu_percent": 99.8414309444705
+            },
+            {
+              "pid": 18561,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 14.414076255705757
+            },
+            {
+              "pid": 2169,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 11.637221006314297
+            },
+            {
+              "pid": 1888,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 10.15489971490916
+            },
+            {
+              "pid": 1846,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 3.785712732092077
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 372.6335885764535,
+          "maximum_process_percent": 100.08043868550648,
+          "top_processes": [
+            {
+              "pid": 46243,
+              "name": "rustc",
+              "cpu_percent": 100.08043868550648
+            },
+            {
+              "pid": 47469,
+              "name": "rustc",
+              "cpu_percent": 28.27853188892533
+            },
+            {
+              "pid": 18561,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 20.5431406847822
+            },
+            {
+              "pid": 1888,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 10.288264327156053
+            },
+            {
+              "pid": 2169,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 9.532464040566742
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 371.3938668093787,
+          "maximum_process_percent": 99.91411940861664,
+          "top_processes": [
+            {
+              "pid": 46243,
+              "name": "rustc",
+              "cpu_percent": 99.91411940861664
+            },
+            {
+              "pid": 47469,
+              "name": "rustc",
+              "cpu_percent": 27.819333041864784
+            },
+            {
+              "pid": 18561,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 14.277994487504033
+            },
+            {
+              "pid": 1888,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 10.629439855884593
+            },
+            {
+              "pid": 2169,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 9.24975277670215
+            }
+          ],
+          "new_or_exited_processes": 6
+        },
+        {
+          "total_percent": 372.01263762458353,
+          "maximum_process_percent": 99.96636257844163,
+          "top_processes": [
+            {
+              "pid": 46243,
+              "name": "rustc",
+              "cpu_percent": 99.96636257844163
+            },
+            {
+              "pid": 47469,
+              "name": "rustc",
+              "cpu_percent": 27.483725644243954
+            },
+            {
+              "pid": 18561,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 19.847918183815548
+            },
+            {
+              "pid": 1888,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 10.116518272495174
+            },
+            {
+              "pid": 2169,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 8.510996426940123
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 551.6794161877024,
+          "maximum_process_percent": 99.84445679538973,
+          "top_processes": [
+            {
+              "pid": 46243,
+              "name": "rustc",
+              "cpu_percent": 99.84445679538973
+            },
+            {
+              "pid": 38381,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 55.61635903683078
+            },
+            {
+              "pid": 47469,
+              "name": "rustc",
+              "cpu_percent": 55.090201665438194
+            },
+            {
+              "pid": 1888,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 10.934467211972738
+            },
+            {
+              "pid": 47252,
+              "name": "mdworker_shared",
+              "cpu_percent": 8.754306813603016
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 817.284622918081,
+          "maximum_process_percent": 98.73244911595424,
+          "top_processes": [
+            {
+              "pid": 18561,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 98.73244911595424
+            },
+            {
+              "pid": 46243,
+              "name": "rustc",
+              "cpu_percent": 97.17403192915792
+            },
+            {
+              "pid": 47469,
+              "name": "rustc",
+              "cpu_percent": 63.898004912166805
+            },
+            {
+              "pid": 47250,
+              "name": "mdworker_shared",
+              "cpu_percent": 25.085332600842204
+            },
+            {
+              "pid": 47335,
+              "name": "mdworker_shared",
+              "cpu_percent": 22.599049967562344
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 834.3784714909668,
+          "maximum_process_percent": 98.6962302188835,
+          "top_processes": [
+            {
+              "pid": 46243,
+              "name": "rustc",
+              "cpu_percent": 98.6962302188835
+            },
+            {
+              "pid": 18561,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 46.54240605679196
+            },
+            {
+              "pid": 18530,
+              "name": "com.docker.backend",
+              "cpu_percent": 29.35848463081883
+            },
+            {
+              "pid": 47333,
+              "name": "mdworker_shared",
+              "cpu_percent": 20.841994697357972
+            },
+            {
+              "pid": 47252,
+              "name": "mdworker_shared",
+              "cpu_percent": 18.58395095777902
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 496.11148062801874,
+          "maximum_process_percent": 99.97021448986382,
+          "top_processes": [
+            {
+              "pid": 46243,
+              "name": "rustc",
+              "cpu_percent": 99.97021448986382
+            },
+            {
+              "pid": 18561,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 25.493418507402474
+            },
+            {
+              "pid": 1888,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 9.489858226104511
+            },
+            {
+              "pid": 2169,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 8.012849796977937
+            },
+            {
+              "pid": 1846,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 5.27884235811085
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 423.1056952717593,
+          "maximum_process_percent": 99.7350148225897,
+          "top_processes": [
+            {
+              "pid": 46243,
+              "name": "rustc",
+              "cpu_percent": 99.7350148225897
+            },
+            {
+              "pid": 18593,
+              "name": "Docker Desktop Helper (Renderer)",
+              "cpu_percent": 30.260891969379063
+            },
+            {
+              "pid": 18561,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 14.527334823504626
+            },
+            {
+              "pid": 1888,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 8.918006022215597
+            },
+            {
+              "pid": 1847,
+              "name": "codex",
+              "cpu_percent": 8.767756143609
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 363.82050849831484,
+          "maximum_process_percent": 99.83991655081516,
+          "top_processes": [
+            {
+              "pid": 46243,
+              "name": "rustc",
+              "cpu_percent": 99.83991655081516
+            },
+            {
+              "pid": 1888,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 9.07795463769659
+            },
+            {
+              "pid": 2169,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 7.540853931229657
+            },
+            {
+              "pid": 18561,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 7.057628890095061
+            },
+            {
+              "pid": 1846,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 3.879708944496153
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 403.4387724974757,
+          "maximum_process_percent": 99.81871765542154,
+          "top_processes": [
+            {
+              "pid": 46243,
+              "name": "rustc",
+              "cpu_percent": 99.81871765542154
+            },
+            {
+              "pid": 18561,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 12.759574973063012
+            },
+            {
+              "pid": 2169,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 10.837117478029109
+            },
+            {
+              "pid": 1888,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 9.025356582790009
+            },
+            {
+              "pid": 1846,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 7.071840329573731
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 368.7004305312213,
+          "maximum_process_percent": 99.68002260174589,
+          "top_processes": [
+            {
+              "pid": 46243,
+              "name": "rustc",
+              "cpu_percent": 99.68002260174589
+            },
+            {
+              "pid": 18561,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 18.98783791622647
+            },
+            {
+              "pid": 1888,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 8.74718832237342
+            },
+            {
+              "pid": 2169,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 7.846449473856511
+            },
+            {
+              "pid": 1846,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 5.866059260566091
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 526.160071184244,
+          "maximum_process_percent": 140.36625744802978,
+          "top_processes": [
+            {
+              "pid": 1846,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 140.36625744802978
+            },
+            {
+              "pid": 46243,
+              "name": "rustc",
+              "cpu_percent": 89.05896294523203
+            },
+            {
+              "pid": 18561,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 16.764936604515125
+            },
+            {
+              "pid": 1266,
+              "name": "ChatGPT",
+              "cpu_percent": 10.846802851891441
+            },
+            {
+              "pid": 1888,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 9.039730021395098
+            }
+          ],
+          "new_or_exited_processes": 0
+        }
+      ],
+      "repeat": 0,
+      "policy": "baseline",
+      "variant": "baseline"
+    }
+  ],
+  "campaign_completed": false,
+  "host_load_rule": "3 consecutive 1s samples: total<=200%, max process<=75%, no PID churn",
+  "notes": [
+    "Export and model initialization excluded from request timing",
+    "Host gate checks sampled CPU counters, not disk/GPU contention",
+    "Aggregate CPU includes benchmark; per-process gate excludes worker tree",
+    "During-run load spans worker startup and requests at approx 1s cadence",
+    "OS file cache is not reset; this is not cold-disk performance",
+    "Baseline has resident source weights; candidates use file residency",
+    "Phase spans are host wall times; acquire includes nested loading spans",
+    "Router eval includes gate/top-k execution, not just a synchronization wait",
+    "MLX load and eval may include file I/O; checksum_read is separate",
+    "Opt-in instrumentation overhead is included in request timings",
+    "No RSS, GPU, E2E chat, quality-suite or P3 certification"
+  ],
+  "source_sha256": {
+    "scripts/compare_strata_experts.py": "ba49499b1c6373e09dea696323245c97dd514c3782912a57a6e7702673bc3ffd",
+    "scripts/strata_measurement.py": "f396fc34e40ceba9ce0a23dfea79f6cc300c9330c895a61e9bacfecec67554d0",
+    "vllm_apple/qwen3_moe_residency.py": "199013dcfa5ecf285f630ebb35b256f8e9e6d1fb887c107f420d237902ee4483",
+    "vllm_apple/mlx_expert_backend.py": "6a286b3bec5b52acafc71d2c16006d974053cb344f3536ae06b6780d6575129b",
+    "vllm_apple/mlx_expert_export.py": "a511d8d2417f63000487e4367e0e1e0e056a435613ba6394138aecdaaa63cb8f",
+    "vllm_apple/expert_manifest.py": "0c62fb0346bae8cb4b92972a8924e5f365d1547a9e3b4384e13f7c6caf788c7d",
+    "vllm_apple/expert_residency.py": "0bb7320cbb3b259c32aa6fc3deb9e22f585f03350d0a07ec4662240e87ea6a57",
+    "vllm_apple/expert_execution.py": "d526e9b9b855949530a2414e48389770a962258f9d8520f033f5f018d89ba340",
+    "vllm_apple/expert_timing.py": "1658bf5ecf2bd677a3473a7f848088d8009dcb131e625b7610deb8b1baf36c7a",
+    "vllm_apple/qwen3_moe_gather.py": "3f30a83acb25b8e10b090156abfab9afa9e78df50b248d8cd4680ecab2f57464"
+  }
+}

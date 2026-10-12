@@ -1,0 +1,3772 @@
+{
+  "schema_version": 1,
+  "scope": "synthetic_qwen3_block_cpu",
+  "model_qualification": false,
+  "standard_adoption_eligible": false,
+  "automatic_application": false,
+  "trials": [],
+  "profiling_enabled": false,
+  "preloaded": false,
+  "grouped": false,
+  "gather": false,
+  "variant_suite": false,
+  "cycles": 512,
+  "memory_suite": true,
+  "runs": 4,
+  "warmup_cycles": 8,
+  "resident_budget_bytes": 20000,
+  "quiet_host_requested": true,
+  "host_gates": [
+    {
+      "passed": false,
+      "observations": [
+        {
+          "total_percent": 373.1114853426808,
+          "maximum_process_percent": 99.64447559817117,
+          "top_processes": [
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 99.64447559817117
+            },
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 5.9610239584227696
+            },
+            {
+              "pid": 1115,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 5.462160369977603
+            },
+            {
+              "pid": 2342,
+              "name": "codex",
+              "cpu_percent": 4.003974182489893
+            },
+            {
+              "pid": 1136,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 3.87220589833643
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 294.34924489484524,
+          "maximum_process_percent": 99.5863558474184,
+          "top_processes": [
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 99.5863558474184
+            },
+            {
+              "pid": 45316,
+              "name": "rustc",
+              "cpu_percent": 96.81782730074593
+            },
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 8.463575660706768
+            },
+            {
+              "pid": 1115,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 6.101246360880261
+            },
+            {
+              "pid": 17488,
+              "name": "Antigravity IDE Helper (GPU)",
+              "cpu_percent": 3.7716363034274414
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 428.1580787425351,
+          "maximum_process_percent": 219.77471166624554,
+          "top_processes": [
+            {
+              "pid": 45316,
+              "name": "rustc",
+              "cpu_percent": 219.77471166624554
+            },
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 99.73664209210256
+            },
+            {
+              "pid": 1115,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 6.54939050909824
+            },
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 5.789702381263778
+            },
+            {
+              "pid": 1786,
+              "name": "Codex (Service)",
+              "cpu_percent": 5.7315084496316535
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 451.37941369983287,
+          "maximum_process_percent": 229.2892487057981,
+          "top_processes": [
+            {
+              "pid": 45316,
+              "name": "rustc",
+              "cpu_percent": 229.2892487057981
+            },
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 99.58903818146895
+            },
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 7.991228872548212
+            },
+            {
+              "pid": 1115,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 5.560802613023824
+            },
+            {
+              "pid": 17488,
+              "name": "Antigravity IDE Helper (GPU)",
+              "cpu_percent": 3.338817374121834
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 383.50864524619783,
+          "maximum_process_percent": 114.02987397110384,
+          "top_processes": [
+            {
+              "pid": 45316,
+              "name": "rustc",
+              "cpu_percent": 114.02987397110384
+            },
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 98.96257549728028
+            },
+            {
+              "pid": 1115,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 5.858444833808485
+            },
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 5.5872058811153815
+            },
+            {
+              "pid": 2342,
+              "name": "codex",
+              "cpu_percent": 3.73799326927875
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 366.60654712540634,
+          "maximum_process_percent": 96.60533676811181,
+          "top_processes": [
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 96.60533676811181
+            },
+            {
+              "pid": 1773,
+              "name": "ChatGPT",
+              "cpu_percent": 13.769779350699672
+            },
+            {
+              "pid": 1115,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 6.26846650681011
+            },
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 6.00668135166588
+            },
+            {
+              "pid": 17488,
+              "name": "Antigravity IDE Helper (GPU)",
+              "cpu_percent": 3.7556485110931126
+            }
+          ],
+          "new_or_exited_processes": 6
+        },
+        {
+          "total_percent": 222.13143696380814,
+          "maximum_process_percent": 99.89749769094895,
+          "top_processes": [
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 99.89749769094895
+            },
+            {
+              "pid": 1773,
+              "name": "ChatGPT",
+              "cpu_percent": 13.44631699995987
+            },
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 9.422315032770973
+            },
+            {
+              "pid": 1115,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 6.255320593550732
+            },
+            {
+              "pid": 1786,
+              "name": "Codex (Service)",
+              "cpu_percent": 4.769364100921049
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 196.74556537206243,
+          "maximum_process_percent": 99.78440133953443,
+          "top_processes": [
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 99.78440133953443
+            },
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 7.06711940873224
+            },
+            {
+              "pid": 1115,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 6.277805809687984
+            },
+            {
+              "pid": 17488,
+              "name": "Antigravity IDE Helper (GPU)",
+              "cpu_percent": 4.153620690620399
+            },
+            {
+              "pid": 17493,
+              "name": "Antigravity IDE Helper (Renderer)",
+              "cpu_percent": 3.008447738363665
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 212.9711617520675,
+          "maximum_process_percent": 99.93916643326428,
+          "top_processes": [
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 99.93916643326428
+            },
+            {
+              "pid": 1115,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 6.305358967496757
+            },
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 6.30496245391031
+            },
+            {
+              "pid": 17488,
+              "name": "Antigravity IDE Helper (GPU)",
+              "cpu_percent": 4.020449456098521
+            },
+            {
+              "pid": 17493,
+              "name": "Antigravity IDE Helper (Renderer)",
+              "cpu_percent": 2.858664663321499
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 266.7038054938979,
+          "maximum_process_percent": 99.72552825297967,
+          "top_processes": [
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 99.72552825297967
+            },
+            {
+              "pid": 45386,
+              "name": "cargo",
+              "cpu_percent": 14.74926341797192
+            },
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 6.3091143005824115
+            },
+            {
+              "pid": 1115,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 6.005136898901574
+            },
+            {
+              "pid": 17488,
+              "name": "Antigravity IDE Helper (GPU)",
+              "cpu_percent": 3.9323118303830884
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 310.94935261003207,
+          "maximum_process_percent": 98.85432134998229,
+          "top_processes": [
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 98.85432134998229
+            },
+            {
+              "pid": 1115,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 6.004003063150375
+            },
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 5.644524687846032
+            },
+            {
+              "pid": 1786,
+              "name": "Codex (Service)",
+              "cpu_percent": 4.723212560391546
+            },
+            {
+              "pid": 17488,
+              "name": "Antigravity IDE Helper (GPU)",
+              "cpu_percent": 3.7550809535889207
+            }
+          ],
+          "new_or_exited_processes": 3
+        },
+        {
+          "total_percent": 233.67109128920077,
+          "maximum_process_percent": 99.70770364371579,
+          "top_processes": [
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 99.70770364371579
+            },
+            {
+              "pid": 2341,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 8.593002482781724
+            },
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 8.426599190262415
+            },
+            {
+              "pid": 1115,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 6.0969530949672714
+            },
+            {
+              "pid": 2342,
+              "name": "codex",
+              "cpu_percent": 4.826886914811445
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 199.65858536974787,
+          "maximum_process_percent": 99.80162737101148,
+          "top_processes": [
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 99.80162737101148
+            },
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 6.672228599172339
+            },
+            {
+              "pid": 1115,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 6.478893957189862
+            },
+            {
+              "pid": 17488,
+              "name": "Antigravity IDE Helper (GPU)",
+              "cpu_percent": 3.971498477189503
+            },
+            {
+              "pid": 17493,
+              "name": "Antigravity IDE Helper (Renderer)",
+              "cpu_percent": 2.8805670682200093
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 212.35544237791848,
+          "maximum_process_percent": 100.3776552458793,
+          "top_processes": [
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 100.3776552458793
+            },
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 9.274972053632235
+            },
+            {
+              "pid": 1115,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 6.332519191656853
+            },
+            {
+              "pid": 2341,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 4.386770852473697
+            },
+            {
+              "pid": 1116,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 4.30018723582786
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 212.7580356049617,
+          "maximum_process_percent": 99.7515508368458,
+          "top_processes": [
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 99.7515508368458
+            },
+            {
+              "pid": 1115,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 6.608020107564915
+            },
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 6.517507423565844
+            },
+            {
+              "pid": 17488,
+              "name": "Antigravity IDE Helper (GPU)",
+              "cpu_percent": 4.395905955145124
+            },
+            {
+              "pid": 2341,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 4.260632075111782
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 207.35648826224818,
+          "maximum_process_percent": 99.97728661606476,
+          "top_processes": [
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 99.97728661606476
+            },
+            {
+              "pid": 1115,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 6.564464574650685
+            },
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 6.369792877314167
+            },
+            {
+              "pid": 17488,
+              "name": "Antigravity IDE Helper (GPU)",
+              "cpu_percent": 4.210544417922674
+            },
+            {
+              "pid": 2342,
+              "name": "codex",
+              "cpu_percent": 3.799372392568798
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 214.8967143905126,
+          "maximum_process_percent": 99.88944464286233,
+          "top_processes": [
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 99.88944464286233
+            },
+            {
+              "pid": 2341,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 8.924091362744804
+            },
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 8.024644455876958
+            },
+            {
+              "pid": 1115,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 6.244782359796471
+            },
+            {
+              "pid": 2342,
+              "name": "codex",
+              "cpu_percent": 5.0691772996862525
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 203.67141980806326,
+          "maximum_process_percent": 99.79358929658835,
+          "top_processes": [
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 99.79358929658835
+            },
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 6.920998474890647
+            },
+            {
+              "pid": 1115,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 6.51341355724923
+            },
+            {
+              "pid": 2341,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 5.42652044351857
+            },
+            {
+              "pid": 17488,
+              "name": "Antigravity IDE Helper (GPU)",
+              "cpu_percent": 4.31757960764199
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 199.94553270138488,
+          "maximum_process_percent": 100.03322056195532,
+          "top_processes": [
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 100.03322056195532
+            },
+            {
+              "pid": 1115,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 6.586800636617929
+            },
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 6.133779190125069
+            },
+            {
+              "pid": 2341,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 5.433673207447261
+            },
+            {
+              "pid": 17488,
+              "name": "Antigravity IDE Helper (GPU)",
+              "cpu_percent": 4.2034188273131745
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 209.21211299393386,
+          "maximum_process_percent": 99.5948343979754,
+          "top_processes": [
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 99.5948343979754
+            },
+            {
+              "pid": 2341,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 10.741216432839098
+            },
+            {
+              "pid": 1115,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 6.741204809939996
+            },
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 6.117548150263779
+            },
+            {
+              "pid": 2342,
+              "name": "codex",
+              "cpu_percent": 4.703212277651644
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 250.6782798503703,
+          "maximum_process_percent": 99.22948317116335,
+          "top_processes": [
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 99.22948317116335
+            },
+            {
+              "pid": 1773,
+              "name": "ChatGPT",
+              "cpu_percent": 23.484936730342874
+            },
+            {
+              "pid": 2341,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 20.28991283608955
+            },
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 6.851129335214624
+            },
+            {
+              "pid": 1115,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 6.499312491168334
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 907.6279875529506,
+          "maximum_process_percent": 131.8390190260413,
+          "top_processes": [
+            {
+              "pid": 2341,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 131.8390190260413
+            },
+            {
+              "pid": 2342,
+              "name": "codex",
+              "cpu_percent": 97.68247584150187
+            },
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 49.22032775181746
+            },
+            {
+              "pid": 2339,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 43.776027769458665
+            },
+            {
+              "pid": 661,
+              "name": "trustd",
+              "cpu_percent": 39.20329102008047
+            }
+          ],
+          "new_or_exited_processes": 11
+        },
+        {
+          "total_percent": 633.960827309293,
+          "maximum_process_percent": 97.62932416730875,
+          "top_processes": [
+            {
+              "pid": 2342,
+              "name": "codex",
+              "cpu_percent": 97.62932416730875
+            },
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 96.1797495419773
+            },
+            {
+              "pid": 1773,
+              "name": "ChatGPT",
+              "cpu_percent": 20.637063949586803
+            },
+            {
+              "pid": 661,
+              "name": "trustd",
+              "cpu_percent": 19.426316284118347
+            },
+            {
+              "pid": 2341,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 19.23064814038073
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 284.59099482465894,
+          "maximum_process_percent": 100.07300436621203,
+          "top_processes": [
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 100.07300436621203
+            },
+            {
+              "pid": 764,
+              "name": "Mail",
+              "cpu_percent": 23.821798024624304
+            },
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 17.085012654144244
+            },
+            {
+              "pid": 1115,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 15.64475764512828
+            },
+            {
+              "pid": 2342,
+              "name": "codex",
+              "cpu_percent": 10.03480083229024
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 220.6775599595725,
+          "maximum_process_percent": 99.58702236888885,
+          "top_processes": [
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 99.58702236888885
+            },
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 7.682317036949049
+            },
+            {
+              "pid": 764,
+              "name": "Mail",
+              "cpu_percent": 7.18482774023399
+            },
+            {
+              "pid": 1115,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 7.119364709955419
+            },
+            {
+              "pid": 17488,
+              "name": "Antigravity IDE Helper (GPU)",
+              "cpu_percent": 4.293899051872647
+            }
+          ],
+          "new_or_exited_processes": 6
+        },
+        {
+          "total_percent": 382.4102059006252,
+          "maximum_process_percent": 97.73723344260283,
+          "top_processes": [
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 97.73723344260283
+            },
+            {
+              "pid": 1773,
+              "name": "ChatGPT",
+              "cpu_percent": 30.94867334621729
+            },
+            {
+              "pid": 654,
+              "name": "MenuBarAgent",
+              "cpu_percent": 17.38522717914588
+            },
+            {
+              "pid": 764,
+              "name": "Mail",
+              "cpu_percent": 9.379520185559283
+            },
+            {
+              "pid": 2341,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 9.036313479539684
+            }
+          ],
+          "new_or_exited_processes": 3
+        },
+        {
+          "total_percent": 321.8062377735243,
+          "maximum_process_percent": 99.83000837503523,
+          "top_processes": [
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 99.83000837503523
+            },
+            {
+              "pid": 922,
+              "name": "siriknowledged",
+              "cpu_percent": 36.63753626197885
+            },
+            {
+              "pid": 1148,
+              "name": "swcd",
+              "cpu_percent": 20.961133882644223
+            },
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 7.272876805123159
+            },
+            {
+              "pid": 1115,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 6.383345430726892
+            }
+          ],
+          "new_or_exited_processes": 10
+        },
+        {
+          "total_percent": 322.9466570037519,
+          "maximum_process_percent": 99.10807971591862,
+          "top_processes": [
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 99.10807971591862
+            },
+            {
+              "pid": 2341,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 21.47348161542692
+            },
+            {
+              "pid": 1115,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 5.736854673075772
+            },
+            {
+              "pid": 2587,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 5.250540843034658
+            },
+            {
+              "pid": 1773,
+              "name": "ChatGPT",
+              "cpu_percent": 5.114786094072039
+            }
+          ],
+          "new_or_exited_processes": 10
+        },
+        {
+          "total_percent": 252.97158843316592,
+          "maximum_process_percent": 99.87416631031695,
+          "top_processes": [
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 99.87416631031695
+            },
+            {
+              "pid": 1773,
+              "name": "ChatGPT",
+              "cpu_percent": 14.507196768364695
+            },
+            {
+              "pid": 922,
+              "name": "siriknowledged",
+              "cpu_percent": 10.413946656700352
+            },
+            {
+              "pid": 742,
+              "name": "siriactionsd",
+              "cpu_percent": 7.263845962765212
+            },
+            {
+              "pid": 2341,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 6.027064959196682
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 387.0671704550897,
+          "maximum_process_percent": 97.93999689378103,
+          "top_processes": [
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 97.93999689378103
+            },
+            {
+              "pid": 2339,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 36.7612596292507
+            },
+            {
+              "pid": 2587,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 9.410245115435146
+            },
+            {
+              "pid": 699,
+              "name": "replayd",
+              "cpu_percent": 9.202157804598322
+            },
+            {
+              "pid": 2341,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 6.218132621619489
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 315.79305528938715,
+          "maximum_process_percent": 96.11925353206558,
+          "top_processes": [
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 96.11925353206558
+            },
+            {
+              "pid": 2339,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 37.61459671059863
+            },
+            {
+              "pid": 2587,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 7.610031418261141
+            },
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 6.4410561969990345
+            },
+            {
+              "pid": 2341,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 6.076816224789721
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 281.0287430425448,
+          "maximum_process_percent": 98.84218599913972,
+          "top_processes": [
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 98.84218599913972
+            },
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 61.49738106991795
+            },
+            {
+              "pid": 2587,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 6.19099886333294
+            },
+            {
+              "pid": 1115,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 5.364890646545736
+            },
+            {
+              "pid": 1116,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 3.6320976517604224
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 247.6473401115063,
+          "maximum_process_percent": 99.81907717272733,
+          "top_processes": [
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 99.81907717272733
+            },
+            {
+              "pid": 2587,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 6.349653035726039
+            },
+            {
+              "pid": 1115,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 5.917384603559268
+            },
+            {
+              "pid": 2342,
+              "name": "codex",
+              "cpu_percent": 5.535413346174297
+            },
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 5.479742224113529
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 264.7012226054475,
+          "maximum_process_percent": 98.84714338392325,
+          "top_processes": [
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 98.84714338392325
+            },
+            {
+              "pid": 2587,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 10.826630878593122
+            },
+            {
+              "pid": 2341,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 6.650518906692791
+            },
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 5.889391214846621
+            },
+            {
+              "pid": 1115,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 5.884049273674163
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 215.78913027872906,
+          "maximum_process_percent": 99.50720945900629,
+          "top_processes": [
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 99.50720945900629
+            },
+            {
+              "pid": 2587,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 6.662237060158673
+            },
+            {
+              "pid": 1115,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 5.5078779678438385
+            },
+            {
+              "pid": 2341,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 5.0223454261570915
+            },
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.80914109972691
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 220.1139371020369,
+          "maximum_process_percent": 99.74985554022939,
+          "top_processes": [
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 99.74985554022939
+            },
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 7.446232244960146
+            },
+            {
+              "pid": 1115,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 6.462827559744213
+            },
+            {
+              "pid": 2341,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 5.9447130961424905
+            },
+            {
+              "pid": 2587,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 5.864161091810676
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 506.22695776887133,
+          "maximum_process_percent": 120.35132519669295,
+          "top_processes": [
+            {
+              "pid": 2341,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 120.35132519669295
+            },
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 83.62417878355674
+            },
+            {
+              "pid": 966,
+              "name": "mdbulkimport",
+              "cpu_percent": 40.67526855980311
+            },
+            {
+              "pid": 1773,
+              "name": "ChatGPT",
+              "cpu_percent": 33.052463366577555
+            },
+            {
+              "pid": 2342,
+              "name": "codex",
+              "cpu_percent": 22.75440839788011
+            }
+          ],
+          "new_or_exited_processes": 6
+        },
+        {
+          "total_percent": 959.1024638736599,
+          "maximum_process_percent": 168.45392960402876,
+          "top_processes": [
+            {
+              "pid": 2342,
+              "name": "codex",
+              "cpu_percent": 168.45392960402876
+            },
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 75.02070833351893
+            },
+            {
+              "pid": 2339,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 55.64206334333985
+            },
+            {
+              "pid": 661,
+              "name": "trustd",
+              "cpu_percent": 50.66033582463922
+            },
+            {
+              "pid": 1773,
+              "name": "ChatGPT",
+              "cpu_percent": 33.54501643610181
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 239.89307338910044,
+          "maximum_process_percent": 99.23003948189442,
+          "top_processes": [
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 99.23003948189442
+            },
+            {
+              "pid": 2342,
+              "name": "codex",
+              "cpu_percent": 17.61551862566047
+            },
+            {
+              "pid": 2341,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 11.065366715641623
+            },
+            {
+              "pid": 2587,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 5.974680928600636
+            },
+            {
+              "pid": 1115,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 5.703053870845584
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 202.40042233087564,
+          "maximum_process_percent": 100.13370620320799,
+          "top_processes": [
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 100.13370620320799
+            },
+            {
+              "pid": 2587,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 6.1986762100127475
+            },
+            {
+              "pid": 1115,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 6.034877906118565
+            },
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 5.118579236268712
+            },
+            {
+              "pid": 17488,
+              "name": "Antigravity IDE Helper (GPU)",
+              "cpu_percent": 3.9571409222759724
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 265.0164716440323,
+          "maximum_process_percent": 100.14536830513522,
+          "top_processes": [
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 100.14536830513522
+            },
+            {
+              "pid": 742,
+              "name": "siriactionsd",
+              "cpu_percent": 33.87781154425277
+            },
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 6.927637349139185
+            },
+            {
+              "pid": 2587,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 6.434157334665797
+            },
+            {
+              "pid": 1115,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 5.444176504840227
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 328.3517841143391,
+          "maximum_process_percent": 99.82127318414871,
+          "top_processes": [
+            {
+              "pid": 742,
+              "name": "siriactionsd",
+              "cpu_percent": 99.82127318414871
+            },
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 99.05982868999003
+            },
+            {
+              "pid": 2587,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 10.537458481955925
+            },
+            {
+              "pid": 620,
+              "name": "WindowManager",
+              "cpu_percent": 8.917282831224078
+            },
+            {
+              "pid": 2778,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 6.162050659836585
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 399.05654838255043,
+          "maximum_process_percent": 99.14540735738426,
+          "top_processes": [
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 99.14540735738426
+            },
+            {
+              "pid": 45695,
+              "name": "BackgroundShortcutRunner",
+              "cpu_percent": 60.97897178569747
+            },
+            {
+              "pid": 742,
+              "name": "siriactionsd",
+              "cpu_percent": 29.80506941765427
+            },
+            {
+              "pid": 777,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 23.83532877614082
+            },
+            {
+              "pid": 1773,
+              "name": "ChatGPT",
+              "cpu_percent": 15.274794754922425
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 340.5786661622429,
+          "maximum_process_percent": 99.50195217513873,
+          "top_processes": [
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 99.50195217513873
+            },
+            {
+              "pid": 45695,
+              "name": "BackgroundShortcutRunner",
+              "cpu_percent": 67.86381648158903
+            },
+            {
+              "pid": 777,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 30.360098767927262
+            },
+            {
+              "pid": 742,
+              "name": "siriactionsd",
+              "cpu_percent": 23.60123463752655
+            },
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 8.056184000867164
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 342.6343959191643,
+          "maximum_process_percent": 100.06991826438119,
+          "top_processes": [
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 100.06991826438119
+            },
+            {
+              "pid": 45695,
+              "name": "BackgroundShortcutRunner",
+              "cpu_percent": 68.76265179919956
+            },
+            {
+              "pid": 777,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 17.29836790053013
+            },
+            {
+              "pid": 742,
+              "name": "siriactionsd",
+              "cpu_percent": 15.979093827420387
+            },
+            {
+              "pid": 2341,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 13.272696735539085
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 330.7089573272816,
+          "maximum_process_percent": 99.74904010150185,
+          "top_processes": [
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 99.74904010150185
+            },
+            {
+              "pid": 45695,
+              "name": "BackgroundShortcutRunner",
+              "cpu_percent": 66.42717021389302
+            },
+            {
+              "pid": 777,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 17.526964914908888
+            },
+            {
+              "pid": 742,
+              "name": "siriactionsd",
+              "cpu_percent": 15.325120582087864
+            },
+            {
+              "pid": 812,
+              "name": "axassetsd",
+              "cpu_percent": 11.509751707643488
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 363.7995868599079,
+          "maximum_process_percent": 99.75517187632656,
+          "top_processes": [
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 99.75517187632656
+            },
+            {
+              "pid": 45695,
+              "name": "BackgroundShortcutRunner",
+              "cpu_percent": 65.60420861477897
+            },
+            {
+              "pid": 777,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 36.94356010211951
+            },
+            {
+              "pid": 742,
+              "name": "siriactionsd",
+              "cpu_percent": 28.36316572027619
+            },
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 7.49242617396219
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 358.43764169828256,
+          "maximum_process_percent": 99.71394956464437,
+          "top_processes": [
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 99.71394956464437
+            },
+            {
+              "pid": 45695,
+              "name": "BackgroundShortcutRunner",
+              "cpu_percent": 69.55608614932387
+            },
+            {
+              "pid": 777,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 28.807803690237677
+            },
+            {
+              "pid": 742,
+              "name": "siriactionsd",
+              "cpu_percent": 25.73389194136075
+            },
+            {
+              "pid": 2587,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 9.003613478461618
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 389.19732771726234,
+          "maximum_process_percent": 99.26058978257764,
+          "top_processes": [
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 99.26058978257764
+            },
+            {
+              "pid": 45695,
+              "name": "BackgroundShortcutRunner",
+              "cpu_percent": 68.19081761277215
+            },
+            {
+              "pid": 777,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 33.49638254796842
+            },
+            {
+              "pid": 742,
+              "name": "siriactionsd",
+              "cpu_percent": 28.180275406415152
+            },
+            {
+              "pid": 2587,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 10.517276103355764
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 338.9057507948733,
+          "maximum_process_percent": 99.85051157823682,
+          "top_processes": [
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 99.85051157823682
+            },
+            {
+              "pid": 45695,
+              "name": "BackgroundShortcutRunner",
+              "cpu_percent": 63.50827912858961
+            },
+            {
+              "pid": 777,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 37.356520425609645
+            },
+            {
+              "pid": 742,
+              "name": "siriactionsd",
+              "cpu_percent": 28.56918310642149
+            },
+            {
+              "pid": 2587,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 6.308186365241038
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 300.3632729599925,
+          "maximum_process_percent": 99.66918597564877,
+          "top_processes": [
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 99.66918597564877
+            },
+            {
+              "pid": 1773,
+              "name": "ChatGPT",
+              "cpu_percent": 21.812095778692097
+            },
+            {
+              "pid": 777,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 17.1486714418069
+            },
+            {
+              "pid": 742,
+              "name": "siriactionsd",
+              "cpu_percent": 10.392125749832056
+            },
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 6.558107363685731
+            }
+          ],
+          "new_or_exited_processes": 3
+        },
+        {
+          "total_percent": 215.78793561590547,
+          "maximum_process_percent": 99.76993716027643,
+          "top_processes": [
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 99.76993716027643
+            },
+            {
+              "pid": 1115,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 6.0309085736591195
+            },
+            {
+              "pid": 2587,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 5.884505652098528
+            },
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 5.276846825404148
+            },
+            {
+              "pid": 17488,
+              "name": "Antigravity IDE Helper (GPU)",
+              "cpu_percent": 3.7534637350480233
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 347.63387847140285,
+          "maximum_process_percent": 125.40785377375292,
+          "top_processes": [
+            {
+              "pid": 2341,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 125.40785377375292
+            },
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 94.38212003260603
+            },
+            {
+              "pid": 2587,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 8.971713444784678
+            },
+            {
+              "pid": 1115,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 5.924886678151907
+            },
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 5.504258593931604
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 244.5924800846995,
+          "maximum_process_percent": 98.93475866163443,
+          "top_processes": [
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 98.93475866163443
+            },
+            {
+              "pid": 2587,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 9.60331408619013
+            },
+            {
+              "pid": 1115,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 5.984177575427825
+            },
+            {
+              "pid": 2341,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 5.576111469586621
+            },
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 5.556114052463395
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 210.94066772497257,
+          "maximum_process_percent": 99.85089624872596,
+          "top_processes": [
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 99.85089624872596
+            },
+            {
+              "pid": 2587,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 6.24154810805979
+            },
+            {
+              "pid": 1115,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 6.00190395629694
+            },
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 5.139284550611667
+            },
+            {
+              "pid": 699,
+              "name": "replayd",
+              "cpu_percent": 4.866294275961692
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 377.17552923125226,
+          "maximum_process_percent": 99.37497440347667,
+          "top_processes": [
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 99.37497440347667
+            },
+            {
+              "pid": 2587,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 7.778775271659021
+            },
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 6.727493067943278
+            },
+            {
+              "pid": 1115,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 5.4190723175815485
+            },
+            {
+              "pid": 2341,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 3.5986522272730745
+            }
+          ],
+          "new_or_exited_processes": 3
+        },
+        {
+          "total_percent": 388.0598865177277,
+          "maximum_process_percent": 98.7549811915072,
+          "top_processes": [
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 98.7549811915072
+            },
+            {
+              "pid": 2587,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 7.437850015479262
+            },
+            {
+              "pid": 2341,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 6.423608973490681
+            },
+            {
+              "pid": 1115,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 5.397160069443946
+            },
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 5.218243224646479
+            }
+          ],
+          "new_or_exited_processes": 3
+        },
+        {
+          "total_percent": 230.10396614666723,
+          "maximum_process_percent": 98.79598798761553,
+          "top_processes": [
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 98.79598798761553
+            },
+            {
+              "pid": 1136,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 20.45530974702694
+            },
+            {
+              "pid": 1237,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 9.588170125576955
+            },
+            {
+              "pid": 2587,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 6.510548025517305
+            },
+            {
+              "pid": 1115,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 5.139639470521105
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 248.17873020899057,
+          "maximum_process_percent": 99.31188317195458,
+          "top_processes": [
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 99.31188317195458
+            },
+            {
+              "pid": 17493,
+              "name": "Antigravity IDE Helper (Renderer)",
+              "cpu_percent": 30.3661567134576
+            },
+            {
+              "pid": 2587,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 6.336151889474836
+            },
+            {
+              "pid": 1115,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 5.193090293878
+            },
+            {
+              "pid": 17488,
+              "name": "Antigravity IDE Helper (GPU)",
+              "cpu_percent": 4.8583468225718995
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 218.07800417025945,
+          "maximum_process_percent": 99.81795226220612,
+          "top_processes": [
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 99.81795226220612
+            },
+            {
+              "pid": 1115,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 6.2813164557262455
+            },
+            {
+              "pid": 2341,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 6.255710027255215
+            },
+            {
+              "pid": 2587,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 6.023713800239172
+            },
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 5.130813669186467
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 218.61072087888908,
+          "maximum_process_percent": 99.83192172762838,
+          "top_processes": [
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 99.83192172762838
+            },
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 7.207811369645829
+            },
+            {
+              "pid": 2587,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 6.082086102824303
+            },
+            {
+              "pid": 1115,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 5.920136185431776
+            },
+            {
+              "pid": 17493,
+              "name": "Antigravity IDE Helper (Renderer)",
+              "cpu_percent": 5.730550777533487
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 221.32492201990877,
+          "maximum_process_percent": 99.85434510233938,
+          "top_processes": [
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 99.85434510233938
+            },
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 9.484895190202424
+            },
+            {
+              "pid": 1115,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 7.281669572766717
+            },
+            {
+              "pid": 2587,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 6.223008876072559
+            },
+            {
+              "pid": 17488,
+              "name": "Antigravity IDE Helper (GPU)",
+              "cpu_percent": 3.83916665851038
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 227.874147532382,
+          "maximum_process_percent": 99.72652076895905,
+          "top_processes": [
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 99.72652076895905
+            },
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 14.453372585861356
+            },
+            {
+              "pid": 1115,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 12.406307944261702
+            },
+            {
+              "pid": 2587,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 5.732495920079083
+            },
+            {
+              "pid": 17488,
+              "name": "Antigravity IDE Helper (GPU)",
+              "cpu_percent": 4.099888390148556
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 227.29748031291936,
+          "maximum_process_percent": 99.93106912510562,
+          "top_processes": [
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 99.93106912510562
+            },
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 9.616462942809811
+            },
+            {
+              "pid": 1115,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 6.325301111497807
+            },
+            {
+              "pid": 2587,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 6.1995749100054125
+            },
+            {
+              "pid": 17488,
+              "name": "Antigravity IDE Helper (GPU)",
+              "cpu_percent": 3.8933346349550826
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 266.10787239013507,
+          "maximum_process_percent": 99.22906865631067,
+          "top_processes": [
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 99.22906865631067
+            },
+            {
+              "pid": 2587,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 10.996786481332585
+            },
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 7.04105870290826
+            },
+            {
+              "pid": 699,
+              "name": "replayd",
+              "cpu_percent": 6.666799946391122
+            },
+            {
+              "pid": 2341,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 6.542245205345925
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 214.5261328528714,
+          "maximum_process_percent": 99.91307797286026,
+          "top_processes": [
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 99.91307797286026
+            },
+            {
+              "pid": 2587,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 6.099734789744306
+            },
+            {
+              "pid": 1115,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 5.775665042388967
+            },
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.904486399416587
+            },
+            {
+              "pid": 17488,
+              "name": "Antigravity IDE Helper (GPU)",
+              "cpu_percent": 3.6814323299910896
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 207.71553740896434,
+          "maximum_process_percent": 99.64318451085033,
+          "top_processes": [
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 99.64318451085033
+            },
+            {
+              "pid": 2587,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 6.039760332365666
+            },
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 5.531405634726052
+            },
+            {
+              "pid": 1115,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 5.529822745725442
+            },
+            {
+              "pid": 17488,
+              "name": "Antigravity IDE Helper (GPU)",
+              "cpu_percent": 3.40736644855182
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 208.0626210153431,
+          "maximum_process_percent": 100.40496336299499,
+          "top_processes": [
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 100.40496336299499
+            },
+            {
+              "pid": 2587,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 5.581871328825177
+            },
+            {
+              "pid": 1115,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 5.287774230663367
+            },
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.91383086551217
+            },
+            {
+              "pid": 2341,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 4.480948609992408
+            }
+          ],
+          "new_or_exited_processes": 10
+        },
+        {
+          "total_percent": 393.0564217042768,
+          "maximum_process_percent": 99.82783568603776,
+          "top_processes": [
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 99.82783568603776
+            },
+            {
+              "pid": 2587,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 6.014700406748065
+            },
+            {
+              "pid": 1115,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 5.5806641349794095
+            },
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.7355344975779765
+            },
+            {
+              "pid": 2341,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 3.377354010801964
+            }
+          ],
+          "new_or_exited_processes": 16
+        },
+        {
+          "total_percent": 210.5287837201112,
+          "maximum_process_percent": 99.56821642761984,
+          "top_processes": [
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 99.56821642761984
+            },
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 6.920662063898212
+            },
+            {
+              "pid": 2587,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 6.02247215089173
+            },
+            {
+              "pid": 1115,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 5.35118919080382
+            },
+            {
+              "pid": 2341,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 4.507739089998774
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 198.41009000735878,
+          "maximum_process_percent": 100.13432740553026,
+          "top_processes": [
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 100.13432740553026
+            },
+            {
+              "pid": 2587,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 5.980142829769368
+            },
+            {
+              "pid": 1115,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 5.261459285321788
+            },
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.730635446940887
+            },
+            {
+              "pid": 17488,
+              "name": "Antigravity IDE Helper (GPU)",
+              "cpu_percent": 3.1482729742618196
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 206.39509044325186,
+          "maximum_process_percent": 99.9971089183389,
+          "top_processes": [
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 99.9971089183389
+            },
+            {
+              "pid": 2587,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 6.219006167677639
+            },
+            {
+              "pid": 1115,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 5.459738901180346
+            },
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 5.262281784042631
+            },
+            {
+              "pid": 1786,
+              "name": "Codex (Service)",
+              "cpu_percent": 4.036460062879628
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 204.21964802232986,
+          "maximum_process_percent": 99.45942796598787,
+          "top_processes": [
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 99.45942796598787
+            },
+            {
+              "pid": 2587,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 5.97358885834989
+            },
+            {
+              "pid": 1115,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 5.157519365061964
+            },
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.8241208704185885
+            },
+            {
+              "pid": 17488,
+              "name": "Antigravity IDE Helper (GPU)",
+              "cpu_percent": 3.1706714663160285
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 201.6192382225148,
+          "maximum_process_percent": 100.36371180025078,
+          "top_processes": [
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 100.36371180025078
+            },
+            {
+              "pid": 2587,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 5.645934222437207
+            },
+            {
+              "pid": 1115,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 5.049488682753502
+            },
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.705656539397075
+            },
+            {
+              "pid": 17488,
+              "name": "Antigravity IDE Helper (GPU)",
+              "cpu_percent": 3.1828295349352276
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 261.7322151142722,
+          "maximum_process_percent": 98.79015432865076,
+          "top_processes": [
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 98.79015432865076
+            },
+            {
+              "pid": 2778,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 26.53897750529441
+            },
+            {
+              "pid": 620,
+              "name": "WindowManager",
+              "cpu_percent": 13.007000894414434
+            },
+            {
+              "pid": 2587,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 10.030391301751353
+            },
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 6.803396503008894
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 248.2322305900195,
+          "maximum_process_percent": 99.16498135501506,
+          "top_processes": [
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 99.16498135501506
+            },
+            {
+              "pid": 2587,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 10.469850546837586
+            },
+            {
+              "pid": 1115,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 5.758734301689076
+            },
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 5.649145856945611
+            },
+            {
+              "pid": 1786,
+              "name": "Codex (Service)",
+              "cpu_percent": 5.406627024376748
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 200.20039382409018,
+          "maximum_process_percent": 99.90091724661761,
+          "top_processes": [
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 99.90091724661761
+            },
+            {
+              "pid": 2587,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 6.123614361813922
+            },
+            {
+              "pid": 1115,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 5.898603819862471
+            },
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 5.3653922186852485
+            },
+            {
+              "pid": 17488,
+              "name": "Antigravity IDE Helper (GPU)",
+              "cpu_percent": 3.6292853522927278
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 206.97650261818907,
+          "maximum_process_percent": 99.69277113992736,
+          "top_processes": [
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 99.69277113992736
+            },
+            {
+              "pid": 2587,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 6.170836910000812
+            },
+            {
+              "pid": 1115,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 5.734767208120165
+            },
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.950970791900608
+            },
+            {
+              "pid": 17488,
+              "name": "Antigravity IDE Helper (GPU)",
+              "cpu_percent": 3.539463775974821
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 219.44150585141992,
+          "maximum_process_percent": 99.63895298754431,
+          "top_processes": [
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 99.63895298754431
+            },
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 8.320762045705575
+            },
+            {
+              "pid": 1115,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 6.240919533549234
+            },
+            {
+              "pid": 2587,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 6.157598564758653
+            },
+            {
+              "pid": 2341,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 4.373853719748572
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 213.67970717173415,
+          "maximum_process_percent": 99.3277522320322,
+          "top_processes": [
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 99.3277522320322
+            },
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 8.075699081919073
+            },
+            {
+              "pid": 2341,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 6.472955086401715
+            },
+            {
+              "pid": 2587,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 6.354788854713868
+            },
+            {
+              "pid": 1115,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 5.946033691288829
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 258.42500605532086,
+          "maximum_process_percent": 99.52766742152886,
+          "top_processes": [
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 99.52766742152886
+            },
+            {
+              "pid": 2587,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 10.934653849624812
+            },
+            {
+              "pid": 2342,
+              "name": "codex",
+              "cpu_percent": 7.966567353712554
+            },
+            {
+              "pid": 1115,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 7.082097994861317
+            },
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 6.3389613686045045
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 202.24352418533255,
+          "maximum_process_percent": 99.88237971447045,
+          "top_processes": [
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 99.88237971447045
+            },
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 7.9899948483628025
+            },
+            {
+              "pid": 1115,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 6.27673479766239
+            },
+            {
+              "pid": 2587,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 5.862688694603257
+            },
+            {
+              "pid": 17488,
+              "name": "Antigravity IDE Helper (GPU)",
+              "cpu_percent": 3.8169333229029534
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 208.95620825038475,
+          "maximum_process_percent": 99.88306114061763,
+          "top_processes": [
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 99.88306114061763
+            },
+            {
+              "pid": 1115,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 6.0086270898365175
+            },
+            {
+              "pid": 2587,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 5.877173513138982
+            },
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 5.381572726234186
+            },
+            {
+              "pid": 17488,
+              "name": "Antigravity IDE Helper (GPU)",
+              "cpu_percent": 3.8302818361844646
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 209.33207548280095,
+          "maximum_process_percent": 99.6504288079773,
+          "top_processes": [
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 99.6504288079773
+            },
+            {
+              "pid": 1115,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 5.685198667979264
+            },
+            {
+              "pid": 2587,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 5.678500041559765
+            },
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 5.2822886939509015
+            },
+            {
+              "pid": 699,
+              "name": "replayd",
+              "cpu_percent": 4.7232262952613535
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 208.48375251080108,
+          "maximum_process_percent": 100.13208391620633,
+          "top_processes": [
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 100.13208391620633
+            },
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 7.04508296484066
+            },
+            {
+              "pid": 2587,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 6.146311052095632
+            },
+            {
+              "pid": 1115,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 6.040901666828495
+            },
+            {
+              "pid": 17488,
+              "name": "Antigravity IDE Helper (GPU)",
+              "cpu_percent": 3.8498887716978745
+            }
+          ],
+          "new_or_exited_processes": 7
+        },
+        {
+          "total_percent": 203.41288896014112,
+          "maximum_process_percent": 99.66796991623818,
+          "top_processes": [
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 99.66796991623818
+            },
+            {
+              "pid": 2587,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 5.849711440121151
+            },
+            {
+              "pid": 1115,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 5.802101200507329
+            },
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 5.686646369458014
+            },
+            {
+              "pid": 17488,
+              "name": "Antigravity IDE Helper (GPU)",
+              "cpu_percent": 3.547359602966316
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 210.0273797787558,
+          "maximum_process_percent": 100.07012930352168,
+          "top_processes": [
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 100.07012930352168
+            },
+            {
+              "pid": 1115,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 6.298619299841532
+            },
+            {
+              "pid": 2587,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 6.096980626544938
+            },
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 5.353311034456234
+            },
+            {
+              "pid": 17488,
+              "name": "Antigravity IDE Helper (GPU)",
+              "cpu_percent": 3.9927331494439886
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 201.56126799915077,
+          "maximum_process_percent": 99.78592604105792,
+          "top_processes": [
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 99.78592604105792
+            },
+            {
+              "pid": 1115,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 6.187199105128472
+            },
+            {
+              "pid": 2587,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 6.104242689100998
+            },
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 5.162151524362011
+            },
+            {
+              "pid": 17488,
+              "name": "Antigravity IDE Helper (GPU)",
+              "cpu_percent": 3.943803586637483
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 206.83509889668764,
+          "maximum_process_percent": 100.00819853543753,
+          "top_processes": [
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 100.00819853543753
+            },
+            {
+              "pid": 2587,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 5.781022758292041
+            },
+            {
+              "pid": 1115,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 5.5692236170157745
+            },
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 5.011784186988364
+            },
+            {
+              "pid": 17488,
+              "name": "Antigravity IDE Helper (GPU)",
+              "cpu_percent": 3.7330344420482033
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 213.56256782462518,
+          "maximum_process_percent": 99.90002508080269,
+          "top_processes": [
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 99.90002508080269
+            },
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 6.769632673026458
+            },
+            {
+              "pid": 2587,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 6.36738516066065
+            },
+            {
+              "pid": 1115,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 5.770198509469466
+            },
+            {
+              "pid": 2341,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 5.412975011394796
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 217.9679726347936,
+          "maximum_process_percent": 99.82618027254325,
+          "top_processes": [
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 99.82618027254325
+            },
+            {
+              "pid": 1115,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 6.103701088781463
+            },
+            {
+              "pid": 2587,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 6.074505835759917
+            },
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 5.462003377345443
+            },
+            {
+              "pid": 17488,
+              "name": "Antigravity IDE Helper (GPU)",
+              "cpu_percent": 3.822884223131466
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 208.89370580999497,
+          "maximum_process_percent": 99.7284052042717,
+          "top_processes": [
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 99.7284052042717
+            },
+            {
+              "pid": 1115,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 5.992569327865502
+            },
+            {
+              "pid": 2587,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 5.837437125131419
+            },
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 5.21398689701658
+            },
+            {
+              "pid": 17488,
+              "name": "Antigravity IDE Helper (GPU)",
+              "cpu_percent": 3.999271545093844
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 401.506160647008,
+          "maximum_process_percent": 90.30831788709902,
+          "top_processes": [
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 90.30831788709902
+            },
+            {
+              "pid": 688,
+              "name": "fontd",
+              "cpu_percent": 40.21785701223946
+            },
+            {
+              "pid": 1108,
+              "name": "Brave Browser",
+              "cpu_percent": 27.15899861812666
+            },
+            {
+              "pid": 1115,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 9.052999539371003
+            },
+            {
+              "pid": 2587,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 6.782274339831114
+            }
+          ],
+          "new_or_exited_processes": 11
+        },
+        {
+          "total_percent": 570.6946861382239,
+          "maximum_process_percent": 119.40095955133486,
+          "top_processes": [
+            {
+              "pid": 45795,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 119.40095955133486
+            },
+            {
+              "pid": 45796,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 114.14393742014326
+            },
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 91.70837142494656
+            },
+            {
+              "pid": 1108,
+              "name": "Brave Browser",
+              "cpu_percent": 43.207033150616965
+            },
+            {
+              "pid": 1116,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 18.76244573853813
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 453.0830387448123,
+          "maximum_process_percent": 105.25121375704101,
+          "top_processes": [
+            {
+              "pid": 45796,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 105.25121375704101
+            },
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 94.94229291043087
+            },
+            {
+              "pid": 45795,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 72.35865723972508
+            },
+            {
+              "pid": 1108,
+              "name": "Brave Browser",
+              "cpu_percent": 27.644746751026247
+            },
+            {
+              "pid": 1116,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 14.183491523733812
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 466.87945498414035,
+          "maximum_process_percent": 94.47082786125,
+          "top_processes": [
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 94.47082786125
+            },
+            {
+              "pid": 45795,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 81.99898013887282
+            },
+            {
+              "pid": 45796,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 69.51211988355345
+            },
+            {
+              "pid": 1108,
+              "name": "Brave Browser",
+              "cpu_percent": 23.293857042132103
+            },
+            {
+              "pid": 1136,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 22.531090374090628
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 245.4836505110478,
+          "maximum_process_percent": 99.77528107694846,
+          "top_processes": [
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 99.77528107694846
+            },
+            {
+              "pid": 45795,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 28.32406132403273
+            },
+            {
+              "pid": 1115,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 7.28236102115881
+            },
+            {
+              "pid": 2587,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 6.296257449527464
+            },
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.550683905126848
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 264.92109971799226,
+          "maximum_process_percent": 97.94878455929377,
+          "top_processes": [
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 97.94878455929377
+            },
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 57.978255325183916
+            },
+            {
+              "pid": 2587,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 5.770523838750493
+            },
+            {
+              "pid": 1115,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 5.581593800899006
+            },
+            {
+              "pid": 17488,
+              "name": "Antigravity IDE Helper (GPU)",
+              "cpu_percent": 3.696734291962766
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 284.6864960507872,
+          "maximum_process_percent": 98.98338934781582,
+          "top_processes": [
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 98.98338934781582
+            },
+            {
+              "pid": 45795,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 62.2565523212449
+            },
+            {
+              "pid": 2587,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 6.404523583885984
+            },
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 6.225264121129063
+            },
+            {
+              "pid": 1108,
+              "name": "Brave Browser",
+              "cpu_percent": 5.818916320219584
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 218.52545524414793,
+          "maximum_process_percent": 100.00119647519394,
+          "top_processes": [
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 100.00119647519394
+            },
+            {
+              "pid": 1115,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 6.3297224735012465
+            },
+            {
+              "pid": 2587,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 6.098476902909466
+            },
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.988092209520125
+            },
+            {
+              "pid": 17488,
+              "name": "Antigravity IDE Helper (GPU)",
+              "cpu_percent": 3.6464619455362546
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 221.99500317343072,
+          "maximum_process_percent": 99.70021814155997,
+          "top_processes": [
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 99.70021814155997
+            },
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 11.037171221395791
+            },
+            {
+              "pid": 1115,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 8.384541489433621
+            },
+            {
+              "pid": 2587,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 5.64902328257221
+            },
+            {
+              "pid": 17488,
+              "name": "Antigravity IDE Helper (GPU)",
+              "cpu_percent": 3.5170522941196185
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 223.68679337246115,
+          "maximum_process_percent": 99.82047982506035,
+          "top_processes": [
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 99.82047982506035
+            },
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 12.792588450487079
+            },
+            {
+              "pid": 1115,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 11.945778034661574
+            },
+            {
+              "pid": 2587,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 5.88825755480996
+            },
+            {
+              "pid": 17488,
+              "name": "Antigravity IDE Helper (GPU)",
+              "cpu_percent": 3.8580444565750978
+            }
+          ],
+          "new_or_exited_processes": 6
+        },
+        {
+          "total_percent": 213.53254442069567,
+          "maximum_process_percent": 99.71603901169125,
+          "top_processes": [
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 99.71603901169125
+            },
+            {
+              "pid": 2587,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 5.921903271958613
+            },
+            {
+              "pid": 1115,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 5.734560445797513
+            },
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 5.026546047076359
+            },
+            {
+              "pid": 1786,
+              "name": "Codex (Service)",
+              "cpu_percent": 4.160227702294058
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 228.9698830937776,
+          "maximum_process_percent": 99.85188556576672,
+          "top_processes": [
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 99.85188556576672
+            },
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 7.286227449452708
+            },
+            {
+              "pid": 2587,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 6.155353505466505
+            },
+            {
+              "pid": 1115,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 6.1289390760196065
+            },
+            {
+              "pid": 2341,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 5.765864334138008
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 220.87568247122672,
+          "maximum_process_percent": 99.75420382489989,
+          "top_processes": [
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 99.75420382489989
+            },
+            {
+              "pid": 2587,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 5.920423093182302
+            },
+            {
+              "pid": 1115,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 5.901227833871385
+            },
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 5.468912898087574
+            },
+            {
+              "pid": 17488,
+              "name": "Antigravity IDE Helper (GPU)",
+              "cpu_percent": 3.691838607203597
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 246.98200699772335,
+          "maximum_process_percent": 98.9917583315115,
+          "top_processes": [
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 98.9917583315115
+            },
+            {
+              "pid": 1108,
+              "name": "Brave Browser",
+              "cpu_percent": 9.638334319446956
+            },
+            {
+              "pid": 1115,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 8.158962075066393
+            },
+            {
+              "pid": 688,
+              "name": "fontd",
+              "cpu_percent": 6.815342764414521
+            },
+            {
+              "pid": 2587,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 6.361469257217988
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 211.64951806229502,
+          "maximum_process_percent": 99.61560001911991,
+          "top_processes": [
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 99.61560001911991
+            },
+            {
+              "pid": 2587,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 5.942731892730828
+            },
+            {
+              "pid": 1115,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 5.891864878691702
+            },
+            {
+              "pid": 2341,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 5.200508925277275
+            },
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.883827125833063
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 196.26533152137503,
+          "maximum_process_percent": 99.79327722406339,
+          "top_processes": [
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 99.79327722406339
+            },
+            {
+              "pid": 1115,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 6.069864095910407
+            },
+            {
+              "pid": 2587,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 5.55255065559838
+            },
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 5.078516635716395
+            },
+            {
+              "pid": 17488,
+              "name": "Antigravity IDE Helper (GPU)",
+              "cpu_percent": 3.636864217185522
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 208.8605965508874,
+          "maximum_process_percent": 100.1834166378867,
+          "top_processes": [
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 100.1834166378867
+            },
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 7.238223326370246
+            },
+            {
+              "pid": 2587,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 5.752002263625728
+            },
+            {
+              "pid": 1115,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 5.7096236750287925
+            },
+            {
+              "pid": 17488,
+              "name": "Antigravity IDE Helper (GPU)",
+              "cpu_percent": 3.594852891673646
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 312.97239149584556,
+          "maximum_process_percent": 100.04500504348078,
+          "top_processes": [
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 100.04500504348078
+            },
+            {
+              "pid": 2587,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 6.288355660092542
+            },
+            {
+              "pid": 1115,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 5.907187743651063
+            },
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 5.067401676274531
+            },
+            {
+              "pid": 17488,
+              "name": "Antigravity IDE Helper (GPU)",
+              "cpu_percent": 3.6875411768781783
+            }
+          ],
+          "new_or_exited_processes": 30
+        },
+        {
+          "total_percent": 726.6085292924079,
+          "maximum_process_percent": 99.74701838666887,
+          "top_processes": [
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 99.74701838666887
+            },
+            {
+              "pid": 45839,
+              "name": "mdworker_shared",
+              "cpu_percent": 30.88843396922653
+            },
+            {
+              "pid": 45840,
+              "name": "mdworker_shared",
+              "cpu_percent": 29.385708482945056
+            },
+            {
+              "pid": 45835,
+              "name": "mdworker_shared",
+              "cpu_percent": 28.69495328255422
+            },
+            {
+              "pid": 45841,
+              "name": "mdworker_shared",
+              "cpu_percent": 23.613641597271783
+            }
+          ],
+          "new_or_exited_processes": 8
+        },
+        {
+          "total_percent": 444.71279359682643,
+          "maximum_process_percent": 99.82400481522849,
+          "top_processes": [
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 99.82400481522849
+            },
+            {
+              "pid": 1115,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 6.602699571588707
+            },
+            {
+              "pid": 2587,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 6.35679118523794
+            },
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 5.438891604637871
+            },
+            {
+              "pid": 17488,
+              "name": "Antigravity IDE Helper (GPU)",
+              "cpu_percent": 3.96561921912171
+            }
+          ],
+          "new_or_exited_processes": 8
+        },
+        {
+          "total_percent": 234.30267879012777,
+          "maximum_process_percent": 99.69497964138652,
+          "top_processes": [
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 99.69497964138652
+            },
+            {
+              "pid": 1115,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 6.432394705412463
+            },
+            {
+              "pid": 2587,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 6.025611174644366
+            },
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.985304182594487
+            },
+            {
+              "pid": 17488,
+              "name": "Antigravity IDE Helper (GPU)",
+              "cpu_percent": 3.9470791925389026
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 205.18204005115226,
+          "maximum_process_percent": 99.74547806701236,
+          "top_processes": [
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 99.74547806701236
+            },
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 7.677605327067978
+            },
+            {
+              "pid": 1115,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 6.024107530854019
+            },
+            {
+              "pid": 2587,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 5.8263894714314866
+            },
+            {
+              "pid": 17488,
+              "name": "Antigravity IDE Helper (GPU)",
+              "cpu_percent": 3.895095324061114
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 228.6313452630259,
+          "maximum_process_percent": 100.27708181495483,
+          "top_processes": [
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 100.27708181495483
+            },
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 9.065742803832544
+            },
+            {
+              "pid": 1115,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 6.499764389587077
+            },
+            {
+              "pid": 2587,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 6.077706276103769
+            },
+            {
+              "pid": 1116,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 5.232449217473903
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 248.29452480878163,
+          "maximum_process_percent": 98.51394316352513,
+          "top_processes": [
+            {
+              "pid": 43005,
+              "name": "python3.10",
+              "cpu_percent": 98.51394316352513
+            },
+            {
+              "pid": 2341,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 14.775596374359953
+            },
+            {
+              "pid": 1237,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 9.127635987902098
+            },
+            {
+              "pid": 1136,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 7.078044101208099
+            },
+            {
+              "pid": 2587,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 6.730151976225755
+            }
+          ],
+          "new_or_exited_processes": 1
+        }
+      ],
+      "repeat": 0,
+      "policy": "baseline",
+      "variant": "baseline"
+    }
+  ],
+  "host_load_window": "requests_only",
+  "quiet_timeout_seconds": 120,
+  "campaign_completed": false,
+  "host_load_rule": "3 consecutive 1s samples: total<=200%, max process<=75%, no PID churn",
+  "notes": [
+    "Export and model initialization excluded from request timing",
+    "Host gate checks sampled CPU counters, not disk/GPU contention",
+    "Aggregate CPU includes benchmark; per-process gate excludes worker tree",
+    "Startup includes import/export/preload/warmup; ready wait is separate",
+    "Request host window includes parity checks; individual latencies exclude them",
+    "Request host sampling uses approx 100ms cadence; startup uses approx 1s",
+    "OS file cache is not reset; this is not cold-disk performance",
+    "Baseline has resident source weights; candidates use file residency",
+    "Phase spans are host wall times; acquire includes nested loading spans",
+    "Router eval includes gate/top-k execution, not just a synchronization wait",
+    "MLX load and eval may include file I/O; checksum_read is separate",
+    "Opt-in instrumentation overhead is included in request timings",
+    "No RSS, GPU, E2E chat, quality-suite or P3 certification"
+  ],
+  "source_sha256": {
+    "scripts/compare_strata_experts.py": "f05dc9de5b7ea83bf2fc29139e7cdba0ce537fc90b8bec56ee5f42daf5550f9c",
+    "scripts/strata_measurement.py": "e24018d3beeae11b71f7d18c1d921e84363517453552c1de98780b663e0f4ddb",
+    "vllm_apple/qwen3_moe_residency.py": "199013dcfa5ecf285f630ebb35b256f8e9e6d1fb887c107f420d237902ee4483",
+    "vllm_apple/mlx_expert_backend.py": "6a286b3bec5b52acafc71d2c16006d974053cb344f3536ae06b6780d6575129b",
+    "vllm_apple/mlx_expert_export.py": "a511d8d2417f63000487e4367e0e1e0e056a435613ba6394138aecdaaa63cb8f",
+    "vllm_apple/expert_manifest.py": "0c62fb0346bae8cb4b92972a8924e5f365d1547a9e3b4384e13f7c6caf788c7d",
+    "vllm_apple/expert_residency.py": "0bb7320cbb3b259c32aa6fc3deb9e22f585f03350d0a07ec4662240e87ea6a57",
+    "vllm_apple/expert_execution.py": "d526e9b9b855949530a2414e48389770a962258f9d8520f033f5f018d89ba340",
+    "vllm_apple/expert_timing.py": "1658bf5ecf2bd677a3473a7f848088d8009dcb131e625b7610deb8b1baf36c7a",
+    "vllm_apple/qwen3_moe_gather.py": "3f30a83acb25b8e10b090156abfab9afa9e78df50b248d8cd4680ecab2f57464"
+  }
+}

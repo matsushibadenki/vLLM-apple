@@ -1,0 +1,5340 @@
+{
+  "schema_version": 1,
+  "scope": "synthetic_qwen3_block_cpu",
+  "model_qualification": false,
+  "standard_adoption_eligible": false,
+  "automatic_application": false,
+  "trials": [],
+  "profiling_enabled": false,
+  "preloaded": false,
+  "grouped": false,
+  "gather": false,
+  "variant_suite": false,
+  "cycles": 512,
+  "memory_suite": true,
+  "runs": 4,
+  "warmup_cycles": 8,
+  "resident_budget_bytes": 20000,
+  "quiet_host_requested": true,
+  "host_gates": [
+    {
+      "passed": false,
+      "observations": [
+        {
+          "total_percent": 299.0392168999171,
+          "maximum_process_percent": 19.717433754862206,
+          "top_processes": [
+            {
+              "pid": 72600,
+              "name": "rustc",
+              "cpu_percent": 19.717433754862206
+            },
+            {
+              "pid": 72640,
+              "name": "rustc",
+              "cpu_percent": 19.588094038870153
+            },
+            {
+              "pid": 72646,
+              "name": "rustc",
+              "cpu_percent": 19.49329650523971
+            },
+            {
+              "pid": 72619,
+              "name": "rustc",
+              "cpu_percent": 19.320715527404534
+            },
+            {
+              "pid": 72649,
+              "name": "rustc",
+              "cpu_percent": 19.237418679005255
+            }
+          ],
+          "new_or_exited_processes": 4
+        },
+        {
+          "total_percent": 290.49518169893344,
+          "maximum_process_percent": 19.589652660246593,
+          "top_processes": [
+            {
+              "pid": 72649,
+              "name": "rustc",
+              "cpu_percent": 19.589652660246593
+            },
+            {
+              "pid": 72651,
+              "name": "rustc",
+              "cpu_percent": 19.223392130625164
+            },
+            {
+              "pid": 72621,
+              "name": "rustc",
+              "cpu_percent": 19.207391579571077
+            },
+            {
+              "pid": 72620,
+              "name": "rustc",
+              "cpu_percent": 19.187030160717004
+            },
+            {
+              "pid": 72652,
+              "name": "rustc",
+              "cpu_percent": 19.056284777352893
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 308.4264844453701,
+          "maximum_process_percent": 19.5818932837602,
+          "top_processes": [
+            {
+              "pid": 72621,
+              "name": "rustc",
+              "cpu_percent": 19.5818932837602
+            },
+            {
+              "pid": 72651,
+              "name": "rustc",
+              "cpu_percent": 19.57378109251154
+            },
+            {
+              "pid": 72654,
+              "name": "rustc",
+              "cpu_percent": 19.397018617598796
+            },
+            {
+              "pid": 72620,
+              "name": "rustc",
+              "cpu_percent": 19.373236062109385
+            },
+            {
+              "pid": 72622,
+              "name": "rustc",
+              "cpu_percent": 19.24753062237328
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 345.80022826807976,
+          "maximum_process_percent": 20.102752756433556,
+          "top_processes": [
+            {
+              "pid": 72652,
+              "name": "rustc",
+              "cpu_percent": 20.102752756433556
+            },
+            {
+              "pid": 72659,
+              "name": "rustc",
+              "cpu_percent": 19.944314522259134
+            },
+            {
+              "pid": 72649,
+              "name": "rustc",
+              "cpu_percent": 19.684741438514035
+            },
+            {
+              "pid": 72640,
+              "name": "rustc",
+              "cpu_percent": 19.588331191731598
+            },
+            {
+              "pid": 72654,
+              "name": "rustc",
+              "cpu_percent": 19.39068549894842
+            }
+          ],
+          "new_or_exited_processes": 6
+        },
+        {
+          "total_percent": 312.6283754097586,
+          "maximum_process_percent": 19.961617623092327,
+          "top_processes": [
+            {
+              "pid": 72646,
+              "name": "rustc",
+              "cpu_percent": 19.961617623092327
+            },
+            {
+              "pid": 72666,
+              "name": "rustc",
+              "cpu_percent": 19.777759731751633
+            },
+            {
+              "pid": 72649,
+              "name": "rustc",
+              "cpu_percent": 19.10458658233522
+            },
+            {
+              "pid": 72651,
+              "name": "rustc",
+              "cpu_percent": 19.045044601967877
+            },
+            {
+              "pid": 72654,
+              "name": "rustc",
+              "cpu_percent": 18.991379653804138
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 288.62883354795434,
+          "maximum_process_percent": 30.323237802617747,
+          "top_processes": [
+            {
+              "pid": 72640,
+              "name": "rustc",
+              "cpu_percent": 30.323237802617747
+            },
+            {
+              "pid": 72649,
+              "name": "rustc",
+              "cpu_percent": 19.6745545678787
+            },
+            {
+              "pid": 72659,
+              "name": "rustc",
+              "cpu_percent": 19.436351382463403
+            },
+            {
+              "pid": 72652,
+              "name": "rustc",
+              "cpu_percent": 19.305409911129686
+            },
+            {
+              "pid": 72663,
+              "name": "rustc",
+              "cpu_percent": 19.18611951896723
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 291.6687671934548,
+          "maximum_process_percent": 20.278175095445707,
+          "top_processes": [
+            {
+              "pid": 72663,
+              "name": "rustc",
+              "cpu_percent": 20.278175095445707
+            },
+            {
+              "pid": 72649,
+              "name": "rustc",
+              "cpu_percent": 19.79005590030678
+            },
+            {
+              "pid": 72652,
+              "name": "rustc",
+              "cpu_percent": 19.69262932147155
+            },
+            {
+              "pid": 72651,
+              "name": "rustc",
+              "cpu_percent": 19.62858269794283
+            },
+            {
+              "pid": 72646,
+              "name": "rustc",
+              "cpu_percent": 19.50481689433126
+            }
+          ],
+          "new_or_exited_processes": 5
+        },
+        {
+          "total_percent": 381.4216200885011,
+          "maximum_process_percent": 40.577345875395,
+          "top_processes": [
+            {
+              "pid": 2339,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 40.577345875395
+            },
+            {
+              "pid": 72652,
+              "name": "rustc",
+              "cpu_percent": 19.696013572495943
+            },
+            {
+              "pid": 72651,
+              "name": "rustc",
+              "cpu_percent": 19.416158647215035
+            },
+            {
+              "pid": 72663,
+              "name": "rustc",
+              "cpu_percent": 19.27679363914269
+            },
+            {
+              "pid": 72661,
+              "name": "rustc",
+              "cpu_percent": 19.266246287656255
+            }
+          ],
+          "new_or_exited_processes": 5
+        },
+        {
+          "total_percent": 258.4829112576893,
+          "maximum_process_percent": 21.462937583230723,
+          "top_processes": [
+            {
+              "pid": 72661,
+              "name": "rustc",
+              "cpu_percent": 21.462937583230723
+            },
+            {
+              "pid": 72666,
+              "name": "rustc",
+              "cpu_percent": 21.102133210049516
+            },
+            {
+              "pid": 72671,
+              "name": "rustc",
+              "cpu_percent": 20.994284982882544
+            },
+            {
+              "pid": 72663,
+              "name": "rustc",
+              "cpu_percent": 20.87762086696218
+            },
+            {
+              "pid": 72659,
+              "name": "rustc",
+              "cpu_percent": 20.861272538183744
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 319.19194681292157,
+          "maximum_process_percent": 52.36162269141006,
+          "top_processes": [
+            {
+              "pid": 72652,
+              "name": "rustc",
+              "cpu_percent": 52.36162269141006
+            },
+            {
+              "pid": 72654,
+              "name": "rustc",
+              "cpu_percent": 34.3829629036038
+            },
+            {
+              "pid": 72663,
+              "name": "rustc",
+              "cpu_percent": 21.59074162568978
+            },
+            {
+              "pid": 72661,
+              "name": "rustc",
+              "cpu_percent": 21.465746814801655
+            },
+            {
+              "pid": 72669,
+              "name": "rustc",
+              "cpu_percent": 21.250857352658297
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 361.12096782351307,
+          "maximum_process_percent": 22.707824820802216,
+          "top_processes": [
+            {
+              "pid": 72663,
+              "name": "rustc",
+              "cpu_percent": 22.707824820802216
+            },
+            {
+              "pid": 72678,
+              "name": "rustc",
+              "cpu_percent": 22.046554132320146
+            },
+            {
+              "pid": 72672,
+              "name": "rustc",
+              "cpu_percent": 21.96145962537521
+            },
+            {
+              "pid": 72666,
+              "name": "rustc",
+              "cpu_percent": 21.923852241351806
+            },
+            {
+              "pid": 72671,
+              "name": "rustc",
+              "cpu_percent": 21.738136352799213
+            }
+          ],
+          "new_or_exited_processes": 4
+        },
+        {
+          "total_percent": 319.6356782006487,
+          "maximum_process_percent": 59.56857225096471,
+          "top_processes": [
+            {
+              "pid": 72659,
+              "name": "rustc",
+              "cpu_percent": 59.56857225096471
+            },
+            {
+              "pid": 72661,
+              "name": "rustc",
+              "cpu_percent": 25.726573237648296
+            },
+            {
+              "pid": 72666,
+              "name": "rustc",
+              "cpu_percent": 21.17488145916955
+            },
+            {
+              "pid": 72671,
+              "name": "rustc",
+              "cpu_percent": 20.961165523884983
+            },
+            {
+              "pid": 72672,
+              "name": "rustc",
+              "cpu_percent": 20.91018212904405
+            }
+          ],
+          "new_or_exited_processes": 3
+        },
+        {
+          "total_percent": 432.31733760826893,
+          "maximum_process_percent": 86.94306963863133,
+          "top_processes": [
+            {
+              "pid": 72659,
+              "name": "rustc",
+              "cpu_percent": 86.94306963863133
+            },
+            {
+              "pid": 72669,
+              "name": "rustc",
+              "cpu_percent": 23.03133374651842
+            },
+            {
+              "pid": 72671,
+              "name": "rustc",
+              "cpu_percent": 22.85062472265118
+            },
+            {
+              "pid": 72672,
+              "name": "rustc",
+              "cpu_percent": 22.664073857705986
+            },
+            {
+              "pid": 72681,
+              "name": "rustc",
+              "cpu_percent": 22.62231369825517
+            }
+          ],
+          "new_or_exited_processes": 4
+        },
+        {
+          "total_percent": 353.73880456902634,
+          "maximum_process_percent": 86.91040300161795,
+          "top_processes": [
+            {
+              "pid": 72659,
+              "name": "rustc",
+              "cpu_percent": 86.91040300161795
+            },
+            {
+              "pid": 72731,
+              "name": "rustc",
+              "cpu_percent": 21.255127916730686
+            },
+            {
+              "pid": 72682,
+              "name": "rustc",
+              "cpu_percent": 21.178845742876323
+            },
+            {
+              "pid": 72672,
+              "name": "rustc",
+              "cpu_percent": 21.11111755660916
+            },
+            {
+              "pid": 72684,
+              "name": "rustc",
+              "cpu_percent": 20.842350952394135
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 345.1852721754153,
+          "maximum_process_percent": 20.940166145722987,
+          "top_processes": [
+            {
+              "pid": 72681,
+              "name": "rustc",
+              "cpu_percent": 20.940166145722987
+            },
+            {
+              "pid": 72684,
+              "name": "rustc",
+              "cpu_percent": 20.747188475172905
+            },
+            {
+              "pid": 72672,
+              "name": "rustc",
+              "cpu_percent": 20.688271685490182
+            },
+            {
+              "pid": 72686,
+              "name": "rustc",
+              "cpu_percent": 20.483052704904384
+            },
+            {
+              "pid": 72671,
+              "name": "rustc",
+              "cpu_percent": 20.47207940695891
+            }
+          ],
+          "new_or_exited_processes": 4
+        },
+        {
+          "total_percent": 316.51062523837044,
+          "maximum_process_percent": 24.074616913653973,
+          "top_processes": [
+            {
+              "pid": 72672,
+              "name": "rustc",
+              "cpu_percent": 24.074616913653973
+            },
+            {
+              "pid": 72681,
+              "name": "rustc",
+              "cpu_percent": 21.53286829272937
+            },
+            {
+              "pid": 72731,
+              "name": "rustc",
+              "cpu_percent": 21.174235599564078
+            },
+            {
+              "pid": 72682,
+              "name": "rustc",
+              "cpu_percent": 21.11972375164129
+            },
+            {
+              "pid": 72678,
+              "name": "rustc",
+              "cpu_percent": 21.09964522730729
+            }
+          ],
+          "new_or_exited_processes": 4
+        },
+        {
+          "total_percent": 300.31549845528576,
+          "maximum_process_percent": 21.0798051481095,
+          "top_processes": [
+            {
+              "pid": 72737,
+              "name": "rustc",
+              "cpu_percent": 21.0798051481095
+            },
+            {
+              "pid": 72686,
+              "name": "rustc",
+              "cpu_percent": 20.81832140002322
+            },
+            {
+              "pid": 72684,
+              "name": "rustc",
+              "cpu_percent": 20.69865619449541
+            },
+            {
+              "pid": 72678,
+              "name": "rustc",
+              "cpu_percent": 20.683702395509915
+            },
+            {
+              "pid": 72681,
+              "name": "rustc",
+              "cpu_percent": 20.59253502666415
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 267.82568230704544,
+          "maximum_process_percent": 21.23855594611588,
+          "top_processes": [
+            {
+              "pid": 72682,
+              "name": "rustc",
+              "cpu_percent": 21.23855594611588
+            },
+            {
+              "pid": 72739,
+              "name": "rustc",
+              "cpu_percent": 21.149285437513615
+            },
+            {
+              "pid": 72736,
+              "name": "rustc",
+              "cpu_percent": 21.100199876892848
+            },
+            {
+              "pid": 72731,
+              "name": "rustc",
+              "cpu_percent": 20.863389556421232
+            },
+            {
+              "pid": 72686,
+              "name": "rustc",
+              "cpu_percent": 20.830461536605924
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 286.4173926996713,
+          "maximum_process_percent": 21.45168394600705,
+          "top_processes": [
+            {
+              "pid": 72745,
+              "name": "rustc",
+              "cpu_percent": 21.45168394600705
+            },
+            {
+              "pid": 72686,
+              "name": "rustc",
+              "cpu_percent": 21.108988485455406
+            },
+            {
+              "pid": 72684,
+              "name": "rustc",
+              "cpu_percent": 21.03232225700732
+            },
+            {
+              "pid": 72738,
+              "name": "rustc",
+              "cpu_percent": 20.89887991797207
+            },
+            {
+              "pid": 72736,
+              "name": "rustc",
+              "cpu_percent": 20.85051439227059
+            }
+          ],
+          "new_or_exited_processes": 4
+        },
+        {
+          "total_percent": 275.58869105540447,
+          "maximum_process_percent": 23.013932371915924,
+          "top_processes": [
+            {
+              "pid": 72684,
+              "name": "rustc",
+              "cpu_percent": 23.013932371915924
+            },
+            {
+              "pid": 72745,
+              "name": "rustc",
+              "cpu_percent": 21.50510744549339
+            },
+            {
+              "pid": 72736,
+              "name": "rustc",
+              "cpu_percent": 21.216604936308684
+            },
+            {
+              "pid": 72746,
+              "name": "rustc",
+              "cpu_percent": 21.17495582984881
+            },
+            {
+              "pid": 72731,
+              "name": "rustc",
+              "cpu_percent": 21.04065992964929
+            }
+          ],
+          "new_or_exited_processes": 3
+        },
+        {
+          "total_percent": 292.68447971677006,
+          "maximum_process_percent": 21.219393292638035,
+          "top_processes": [
+            {
+              "pid": 72737,
+              "name": "rustc",
+              "cpu_percent": 21.219393292638035
+            },
+            {
+              "pid": 72745,
+              "name": "rustc",
+              "cpu_percent": 21.090269262600767
+            },
+            {
+              "pid": 72736,
+              "name": "rustc",
+              "cpu_percent": 20.765825475957186
+            },
+            {
+              "pid": 72747,
+              "name": "rustc",
+              "cpu_percent": 20.764115742463993
+            },
+            {
+              "pid": 72738,
+              "name": "rustc",
+              "cpu_percent": 20.660364415940435
+            }
+          ],
+          "new_or_exited_processes": 5
+        },
+        {
+          "total_percent": 273.924713803319,
+          "maximum_process_percent": 21.29468983532342,
+          "top_processes": [
+            {
+              "pid": 72753,
+              "name": "rustc",
+              "cpu_percent": 21.29468983532342
+            },
+            {
+              "pid": 72738,
+              "name": "rustc",
+              "cpu_percent": 20.77473073247502
+            },
+            {
+              "pid": 72745,
+              "name": "rustc",
+              "cpu_percent": 20.769567538953424
+            },
+            {
+              "pid": 72737,
+              "name": "rustc",
+              "cpu_percent": 20.68495468508415
+            },
+            {
+              "pid": 72739,
+              "name": "rustc",
+              "cpu_percent": 20.645086571213856
+            }
+          ],
+          "new_or_exited_processes": 3
+        },
+        {
+          "total_percent": 279.5081641170923,
+          "maximum_process_percent": 21.342304722444933,
+          "top_processes": [
+            {
+              "pid": 72747,
+              "name": "rustc",
+              "cpu_percent": 21.342304722444933
+            },
+            {
+              "pid": 72739,
+              "name": "rustc",
+              "cpu_percent": 21.000841522752857
+            },
+            {
+              "pid": 72738,
+              "name": "rustc",
+              "cpu_percent": 20.90501047926797
+            },
+            {
+              "pid": 72755,
+              "name": "rustc",
+              "cpu_percent": 20.715218139744138
+            },
+            {
+              "pid": 72753,
+              "name": "rustc",
+              "cpu_percent": 20.625490486136446
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 289.3340100273426,
+          "maximum_process_percent": 21.558043722636494,
+          "top_processes": [
+            {
+              "pid": 72750,
+              "name": "rustc",
+              "cpu_percent": 21.558043722636494
+            },
+            {
+              "pid": 72739,
+              "name": "rustc",
+              "cpu_percent": 21.049873783965857
+            },
+            {
+              "pid": 72747,
+              "name": "rustc",
+              "cpu_percent": 20.964383078228042
+            },
+            {
+              "pid": 72763,
+              "name": "rustc",
+              "cpu_percent": 20.938149305834298
+            },
+            {
+              "pid": 72746,
+              "name": "rustc",
+              "cpu_percent": 20.903429793812716
+            }
+          ],
+          "new_or_exited_processes": 3
+        },
+        {
+          "total_percent": 279.0045394185187,
+          "maximum_process_percent": 21.179118414719053,
+          "top_processes": [
+            {
+              "pid": 72746,
+              "name": "rustc",
+              "cpu_percent": 21.179118414719053
+            },
+            {
+              "pid": 72747,
+              "name": "rustc",
+              "cpu_percent": 21.133049337527716
+            },
+            {
+              "pid": 72750,
+              "name": "rustc",
+              "cpu_percent": 20.838818196787987
+            },
+            {
+              "pid": 72753,
+              "name": "rustc",
+              "cpu_percent": 20.70722708651045
+            },
+            {
+              "pid": 72763,
+              "name": "rustc",
+              "cpu_percent": 20.53055188981143
+            }
+          ],
+          "new_or_exited_processes": 3
+        },
+        {
+          "total_percent": 279.35866142160756,
+          "maximum_process_percent": 21.12409096441289,
+          "top_processes": [
+            {
+              "pid": 72750,
+              "name": "rustc",
+              "cpu_percent": 21.12409096441289
+            },
+            {
+              "pid": 72770,
+              "name": "rustc",
+              "cpu_percent": 21.032594351400576
+            },
+            {
+              "pid": 72753,
+              "name": "rustc",
+              "cpu_percent": 21.020195387791198
+            },
+            {
+              "pid": 72747,
+              "name": "rustc",
+              "cpu_percent": 20.980892854807536
+            },
+            {
+              "pid": 72746,
+              "name": "rustc",
+              "cpu_percent": 20.88102764450654
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 271.6458881391655,
+          "maximum_process_percent": 21.880686644543648,
+          "top_processes": [
+            {
+              "pid": 72769,
+              "name": "rustc",
+              "cpu_percent": 21.880686644543648
+            },
+            {
+              "pid": 72770,
+              "name": "rustc",
+              "cpu_percent": 21.537356361269566
+            },
+            {
+              "pid": 72768,
+              "name": "rustc",
+              "cpu_percent": 21.17894582331556
+            },
+            {
+              "pid": 72755,
+              "name": "rustc",
+              "cpu_percent": 21.05079949673051
+            },
+            {
+              "pid": 72763,
+              "name": "rustc",
+              "cpu_percent": 21.00451637499508
+            }
+          ],
+          "new_or_exited_processes": 4
+        },
+        {
+          "total_percent": 277.80858978402085,
+          "maximum_process_percent": 21.49182659015056,
+          "top_processes": [
+            {
+              "pid": 72768,
+              "name": "rustc",
+              "cpu_percent": 21.49182659015056
+            },
+            {
+              "pid": 72755,
+              "name": "rustc",
+              "cpu_percent": 21.399018595581037
+            },
+            {
+              "pid": 72763,
+              "name": "rustc",
+              "cpu_percent": 21.37781930948279
+            },
+            {
+              "pid": 72770,
+              "name": "rustc",
+              "cpu_percent": 21.281044208251107
+            },
+            {
+              "pid": 72773,
+              "name": "rustc",
+              "cpu_percent": 21.24081407579199
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 284.63341309837904,
+          "maximum_process_percent": 44.702784181810564,
+          "top_processes": [
+            {
+              "pid": 72753,
+              "name": "rustc",
+              "cpu_percent": 44.702784181810564
+            },
+            {
+              "pid": 72770,
+              "name": "rustc",
+              "cpu_percent": 21.187315056509103
+            },
+            {
+              "pid": 72769,
+              "name": "rustc",
+              "cpu_percent": 21.162475288303618
+            },
+            {
+              "pid": 72768,
+              "name": "rustc",
+              "cpu_percent": 21.10821239491931
+            },
+            {
+              "pid": 72763,
+              "name": "rustc",
+              "cpu_percent": 21.054425408601723
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 366.14535971348437,
+          "maximum_process_percent": 32.07579733153022,
+          "top_processes": [
+            {
+              "pid": 1136,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 32.07579733153022
+            },
+            {
+              "pid": 72772,
+              "name": "rustc",
+              "cpu_percent": 20.982058554982242
+            },
+            {
+              "pid": 72768,
+              "name": "rustc",
+              "cpu_percent": 20.582628775119538
+            },
+            {
+              "pid": 72781,
+              "name": "rustc",
+              "cpu_percent": 20.577560942930322
+            },
+            {
+              "pid": 72782,
+              "name": "rustc",
+              "cpu_percent": 20.456647762213837
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 276.41232999178067,
+          "maximum_process_percent": 20.93223070231786,
+          "top_processes": [
+            {
+              "pid": 72769,
+              "name": "rustc",
+              "cpu_percent": 20.93223070231786
+            },
+            {
+              "pid": 72768,
+              "name": "rustc",
+              "cpu_percent": 20.80336460526705
+            },
+            {
+              "pid": 72773,
+              "name": "rustc",
+              "cpu_percent": 20.770529870531128
+            },
+            {
+              "pid": 72772,
+              "name": "rustc",
+              "cpu_percent": 20.5651783848505
+            },
+            {
+              "pid": 72781,
+              "name": "rustc",
+              "cpu_percent": 20.539757219434158
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 274.1643965400705,
+          "maximum_process_percent": 23.328567013835137,
+          "top_processes": [
+            {
+              "pid": 72770,
+              "name": "rustc",
+              "cpu_percent": 23.328567013835137
+            },
+            {
+              "pid": 72773,
+              "name": "rustc",
+              "cpu_percent": 21.625884260479022
+            },
+            {
+              "pid": 72774,
+              "name": "rustc",
+              "cpu_percent": 21.308280038442813
+            },
+            {
+              "pid": 72785,
+              "name": "rustc",
+              "cpu_percent": 21.166728770117288
+            },
+            {
+              "pid": 72782,
+              "name": "rustc",
+              "cpu_percent": 21.010074851381233
+            }
+          ],
+          "new_or_exited_processes": 4
+        },
+        {
+          "total_percent": 297.3375662414398,
+          "maximum_process_percent": 21.236121540406298,
+          "top_processes": [
+            {
+              "pid": 72782,
+              "name": "rustc",
+              "cpu_percent": 21.236121540406298
+            },
+            {
+              "pid": 72786,
+              "name": "rustc",
+              "cpu_percent": 20.936196374934433
+            },
+            {
+              "pid": 72774,
+              "name": "rustc",
+              "cpu_percent": 20.830399475643613
+            },
+            {
+              "pid": 72789,
+              "name": "rustc",
+              "cpu_percent": 20.79780575095442
+            },
+            {
+              "pid": 72773,
+              "name": "rustc",
+              "cpu_percent": 20.638637330326233
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 264.5177279549528,
+          "maximum_process_percent": 21.35303029482273,
+          "top_processes": [
+            {
+              "pid": 72782,
+              "name": "rustc",
+              "cpu_percent": 21.35303029482273
+            },
+            {
+              "pid": 72781,
+              "name": "rustc",
+              "cpu_percent": 21.241336586015453
+            },
+            {
+              "pid": 72773,
+              "name": "rustc",
+              "cpu_percent": 20.998933686042754
+            },
+            {
+              "pid": 72774,
+              "name": "rustc",
+              "cpu_percent": 20.976483483959267
+            },
+            {
+              "pid": 72790,
+              "name": "rustc",
+              "cpu_percent": 20.867094421666984
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 296.66902246585,
+          "maximum_process_percent": 21.400909881230763,
+          "top_processes": [
+            {
+              "pid": 72789,
+              "name": "rustc",
+              "cpu_percent": 21.400909881230763
+            },
+            {
+              "pid": 72783,
+              "name": "rustc",
+              "cpu_percent": 20.735704526296296
+            },
+            {
+              "pid": 72790,
+              "name": "rustc",
+              "cpu_percent": 20.547911894040645
+            },
+            {
+              "pid": 72782,
+              "name": "rustc",
+              "cpu_percent": 20.362274676336668
+            },
+            {
+              "pid": 72796,
+              "name": "rustc",
+              "cpu_percent": 20.344829967298338
+            }
+          ],
+          "new_or_exited_processes": 4
+        },
+        {
+          "total_percent": 271.0237446520936,
+          "maximum_process_percent": 21.709700500790355,
+          "top_processes": [
+            {
+              "pid": 72782,
+              "name": "rustc",
+              "cpu_percent": 21.709700500790355
+            },
+            {
+              "pid": 72783,
+              "name": "rustc",
+              "cpu_percent": 21.08214921900787
+            },
+            {
+              "pid": 72790,
+              "name": "rustc",
+              "cpu_percent": 21.08031999959326
+            },
+            {
+              "pid": 72785,
+              "name": "rustc",
+              "cpu_percent": 21.031596801329325
+            },
+            {
+              "pid": 72798,
+              "name": "rustc",
+              "cpu_percent": 21.004079875051882
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 284.94603417506346,
+          "maximum_process_percent": 53.57082648165364,
+          "top_processes": [
+            {
+              "pid": 72782,
+              "name": "rustc",
+              "cpu_percent": 53.57082648165364
+            },
+            {
+              "pid": 72783,
+              "name": "rustc",
+              "cpu_percent": 21.312027629270418
+            },
+            {
+              "pid": 72800,
+              "name": "rustc",
+              "cpu_percent": 21.20485628092776
+            },
+            {
+              "pid": 72786,
+              "name": "rustc",
+              "cpu_percent": 21.17465505089485
+            },
+            {
+              "pid": 72796,
+              "name": "rustc",
+              "cpu_percent": 21.16539344708706
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 397.90538391731843,
+          "maximum_process_percent": 45.09172703047032,
+          "top_processes": [
+            {
+              "pid": 72783,
+              "name": "rustc",
+              "cpu_percent": 45.09172703047032
+            },
+            {
+              "pid": 1136,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 42.6018402049943
+            },
+            {
+              "pid": 72796,
+              "name": "rustc",
+              "cpu_percent": 21.257446258381734
+            },
+            {
+              "pid": 72798,
+              "name": "rustc",
+              "cpu_percent": 21.188127189669764
+            },
+            {
+              "pid": 72800,
+              "name": "rustc",
+              "cpu_percent": 21.04566351651228
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 369.13939720414504,
+          "maximum_process_percent": 88.66409203605359,
+          "top_processes": [
+            {
+              "pid": 72783,
+              "name": "rustc",
+              "cpu_percent": 88.66409203605359
+            },
+            {
+              "pid": 72800,
+              "name": "rustc",
+              "cpu_percent": 21.06485796345454
+            },
+            {
+              "pid": 72796,
+              "name": "rustc",
+              "cpu_percent": 20.985441388874566
+            },
+            {
+              "pid": 72789,
+              "name": "rustc",
+              "cpu_percent": 20.879105135417067
+            },
+            {
+              "pid": 72804,
+              "name": "rustc",
+              "cpu_percent": 20.672611004994522
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 344.89012329365227,
+          "maximum_process_percent": 37.54051570811403,
+          "top_processes": [
+            {
+              "pid": 72786,
+              "name": "rustc",
+              "cpu_percent": 37.54051570811403
+            },
+            {
+              "pid": 72789,
+              "name": "rustc",
+              "cpu_percent": 24.197286754689248
+            },
+            {
+              "pid": 72798,
+              "name": "rustc",
+              "cpu_percent": 21.44057962227663
+            },
+            {
+              "pid": 72790,
+              "name": "rustc",
+              "cpu_percent": 21.08630848762973
+            },
+            {
+              "pid": 72799,
+              "name": "rustc",
+              "cpu_percent": 20.961853284690665
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 465.76357105938393,
+          "maximum_process_percent": 84.10020881222393,
+          "top_processes": [
+            {
+              "pid": 72786,
+              "name": "rustc",
+              "cpu_percent": 84.10020881222393
+            },
+            {
+              "pid": 72789,
+              "name": "rustc",
+              "cpu_percent": 82.14030951488579
+            },
+            {
+              "pid": 72800,
+              "name": "rustc",
+              "cpu_percent": 23.000655392744644
+            },
+            {
+              "pid": 72807,
+              "name": "rustc",
+              "cpu_percent": 22.934795543336367
+            },
+            {
+              "pid": 72806,
+              "name": "rustc",
+              "cpu_percent": 22.051884961247193
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 602.3917026435973,
+          "maximum_process_percent": 207.84667795891906,
+          "top_processes": [
+            {
+              "pid": 2341,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 207.84667795891906
+            },
+            {
+              "pid": 72798,
+              "name": "rustc",
+              "cpu_percent": 18.94637179395506
+            },
+            {
+              "pid": 72800,
+              "name": "rustc",
+              "cpu_percent": 18.790780144777322
+            },
+            {
+              "pid": 72804,
+              "name": "rustc",
+              "cpu_percent": 18.77027544767896
+            },
+            {
+              "pid": 72799,
+              "name": "rustc",
+              "cpu_percent": 18.722362776549314
+            }
+          ],
+          "new_or_exited_processes": 5
+        },
+        {
+          "total_percent": 381.4061552268916,
+          "maximum_process_percent": 26.514635518859414,
+          "top_processes": [
+            {
+              "pid": 2341,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 26.514635518859414
+            },
+            {
+              "pid": 1108,
+              "name": "Brave Browser",
+              "cpu_percent": 21.767713303268877
+            },
+            {
+              "pid": 72807,
+              "name": "rustc",
+              "cpu_percent": 19.82904256091076
+            },
+            {
+              "pid": 72814,
+              "name": "rustc",
+              "cpu_percent": 19.567170955249946
+            },
+            {
+              "pid": 72798,
+              "name": "rustc",
+              "cpu_percent": 19.436130963421
+            }
+          ],
+          "new_or_exited_processes": 4
+        },
+        {
+          "total_percent": 381.5680590960607,
+          "maximum_process_percent": 63.25527613498236,
+          "top_processes": [
+            {
+              "pid": 72799,
+              "name": "rustc",
+              "cpu_percent": 63.25527613498236
+            },
+            {
+              "pid": 72800,
+              "name": "rustc",
+              "cpu_percent": 20.781283778440343
+            },
+            {
+              "pid": 72815,
+              "name": "rustc",
+              "cpu_percent": 20.42827098840055
+            },
+            {
+              "pid": 72807,
+              "name": "rustc",
+              "cpu_percent": 20.341902869329093
+            },
+            {
+              "pid": 72814,
+              "name": "rustc",
+              "cpu_percent": 20.08026694026919
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 401.76070339532674,
+          "maximum_process_percent": 22.21872037651925,
+          "top_processes": [
+            {
+              "pid": 72815,
+              "name": "rustc",
+              "cpu_percent": 22.21872037651925
+            },
+            {
+              "pid": 72813,
+              "name": "rustc",
+              "cpu_percent": 22.053032367341288
+            },
+            {
+              "pid": 72804,
+              "name": "rustc",
+              "cpu_percent": 21.724072219479154
+            },
+            {
+              "pid": 72812,
+              "name": "rustc",
+              "cpu_percent": 21.703323553265953
+            },
+            {
+              "pid": 72814,
+              "name": "rustc",
+              "cpu_percent": 21.688825677166363
+            }
+          ],
+          "new_or_exited_processes": 4
+        },
+        {
+          "total_percent": 292.01393036188495,
+          "maximum_process_percent": 21.34209701317741,
+          "top_processes": [
+            {
+              "pid": 72807,
+              "name": "rustc",
+              "cpu_percent": 21.34209701317741
+            },
+            {
+              "pid": 72806,
+              "name": "rustc",
+              "cpu_percent": 21.009652374937996
+            },
+            {
+              "pid": 72812,
+              "name": "rustc",
+              "cpu_percent": 20.859866540237356
+            },
+            {
+              "pid": 72804,
+              "name": "rustc",
+              "cpu_percent": 20.785962475271436
+            },
+            {
+              "pid": 72815,
+              "name": "rustc",
+              "cpu_percent": 20.741969768154775
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 495.1972794801724,
+          "maximum_process_percent": 55.715089269158995,
+          "top_processes": [
+            {
+              "pid": 797,
+              "name": "duetexpertd",
+              "cpu_percent": 55.715089269158995
+            },
+            {
+              "pid": 35154,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 19.68489495225417
+            },
+            {
+              "pid": 72814,
+              "name": "rustc",
+              "cpu_percent": 19.152408295646218
+            },
+            {
+              "pid": 72806,
+              "name": "rustc",
+              "cpu_percent": 19.07241637548189
+            },
+            {
+              "pid": 72815,
+              "name": "rustc",
+              "cpu_percent": 18.74345598655531
+            }
+          ],
+          "new_or_exited_processes": 6
+        },
+        {
+          "total_percent": 739.9404883153002,
+          "maximum_process_percent": 75.96198625587529,
+          "top_processes": [
+            {
+              "pid": 797,
+              "name": "duetexpertd",
+              "cpu_percent": 75.96198625587529
+            },
+            {
+              "pid": 72806,
+              "name": "rustc",
+              "cpu_percent": 24.924766723738674
+            },
+            {
+              "pid": 2341,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 20.702179458062833
+            },
+            {
+              "pid": 72815,
+              "name": "rustc",
+              "cpu_percent": 19.910947263242008
+            },
+            {
+              "pid": 72951,
+              "name": "rustc",
+              "cpu_percent": 19.59332158483407
+            }
+          ],
+          "new_or_exited_processes": 6
+        },
+        {
+          "total_percent": 825.4363597534527,
+          "maximum_process_percent": 180.00846395254922,
+          "top_processes": [
+            {
+              "pid": 73137,
+              "name": "node",
+              "cpu_percent": 180.00846395254922
+            },
+            {
+              "pid": 73092,
+              "name": "node",
+              "cpu_percent": 157.38692257577065
+            },
+            {
+              "pid": 797,
+              "name": "duetexpertd",
+              "cpu_percent": 81.4489035154135
+            },
+            {
+              "pid": 72951,
+              "name": "rustc",
+              "cpu_percent": 20.901467302838427
+            },
+            {
+              "pid": 72828,
+              "name": "rustc",
+              "cpu_percent": 20.848994313448905
+            }
+          ],
+          "new_or_exited_processes": 4
+        },
+        {
+          "total_percent": 896.1357372773602,
+          "maximum_process_percent": 111.9885673175863,
+          "top_processes": [
+            {
+              "pid": 52106,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 111.9885673175863
+            },
+            {
+              "pid": 1108,
+              "name": "Brave Browser",
+              "cpu_percent": 60.572829631913656
+            },
+            {
+              "pid": 797,
+              "name": "duetexpertd",
+              "cpu_percent": 58.70999610872445
+            },
+            {
+              "pid": 688,
+              "name": "fontd",
+              "cpu_percent": 38.26901950648829
+            },
+            {
+              "pid": 1115,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 19.93054908840866
+            }
+          ],
+          "new_or_exited_processes": 11
+        },
+        {
+          "total_percent": 836.8485662607552,
+          "maximum_process_percent": 126.3964529237891,
+          "top_processes": [
+            {
+              "pid": 73155,
+              "name": "node",
+              "cpu_percent": 126.3964529237891
+            },
+            {
+              "pid": 73154,
+              "name": "node",
+              "cpu_percent": 123.36250038000269
+            },
+            {
+              "pid": 797,
+              "name": "duetexpertd",
+              "cpu_percent": 74.54294135929072
+            },
+            {
+              "pid": 52106,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 68.66570123503683
+            },
+            {
+              "pid": 1108,
+              "name": "Brave Browser",
+              "cpu_percent": 40.33458766826457
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 749.8886883986956,
+          "maximum_process_percent": 131.21364447010998,
+          "top_processes": [
+            {
+              "pid": 73154,
+              "name": "node",
+              "cpu_percent": 131.21364447010998
+            },
+            {
+              "pid": 73155,
+              "name": "node",
+              "cpu_percent": 127.33855332380783
+            },
+            {
+              "pid": 797,
+              "name": "duetexpertd",
+              "cpu_percent": 87.49379394846066
+            },
+            {
+              "pid": 72813,
+              "name": "rustc",
+              "cpu_percent": 33.16095874498651
+            },
+            {
+              "pid": 72814,
+              "name": "rustc",
+              "cpu_percent": 22.514998584126257
+            }
+          ],
+          "new_or_exited_processes": 6
+        },
+        {
+          "total_percent": 901.8265749434711,
+          "maximum_process_percent": 114.60784385561074,
+          "top_processes": [
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 114.60784385561074
+            },
+            {
+              "pid": 72813,
+              "name": "rustc",
+              "cpu_percent": 64.22288409268154
+            },
+            {
+              "pid": 797,
+              "name": "duetexpertd",
+              "cpu_percent": 41.96923806714755
+            },
+            {
+              "pid": 72815,
+              "name": "rustc",
+              "cpu_percent": 36.17405128992819
+            },
+            {
+              "pid": 72825,
+              "name": "rustc",
+              "cpu_percent": 20.401688955666387
+            }
+          ],
+          "new_or_exited_processes": 18
+        },
+        {
+          "total_percent": 758.000393253114,
+          "maximum_process_percent": 73.03466973443705,
+          "top_processes": [
+            {
+              "pid": 72813,
+              "name": "rustc",
+              "cpu_percent": 73.03466973443705
+            },
+            {
+              "pid": 72815,
+              "name": "rustc",
+              "cpu_percent": 53.941930895440805
+            },
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 51.95168560085423
+            },
+            {
+              "pid": 72823,
+              "name": "rustc",
+              "cpu_percent": 23.180397858602216
+            },
+            {
+              "pid": 73161,
+              "name": "rustc",
+              "cpu_percent": 21.70480326138874
+            }
+          ],
+          "new_or_exited_processes": 15
+        },
+        {
+          "total_percent": 967.4813278144405,
+          "maximum_process_percent": 169.58791878078588,
+          "top_processes": [
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 169.58791878078588
+            },
+            {
+              "pid": 73567,
+              "name": "node",
+              "cpu_percent": 141.2797445761035
+            },
+            {
+              "pid": 73150,
+              "name": "rustc",
+              "cpu_percent": 19.928321376451386
+            },
+            {
+              "pid": 73142,
+              "name": "rustc",
+              "cpu_percent": 19.58188177827588
+            },
+            {
+              "pid": 73161,
+              "name": "rustc",
+              "cpu_percent": 19.569458814504866
+            }
+          ],
+          "new_or_exited_processes": 10
+        },
+        {
+          "total_percent": 758.1102479418621,
+          "maximum_process_percent": 149.00755769210917,
+          "top_processes": [
+            {
+              "pid": 73567,
+              "name": "node",
+              "cpu_percent": 149.00755769210917
+            },
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 31.442214320178163
+            },
+            {
+              "pid": 17484,
+              "name": "Electron",
+              "cpu_percent": 31.215481039871477
+            },
+            {
+              "pid": 73161,
+              "name": "rustc",
+              "cpu_percent": 19.413249129046832
+            },
+            {
+              "pid": 72825,
+              "name": "rustc",
+              "cpu_percent": 19.03057475759413
+            }
+          ],
+          "new_or_exited_processes": 5
+        },
+        {
+          "total_percent": 595.7102576713285,
+          "maximum_process_percent": 20.132608230861365,
+          "top_processes": [
+            {
+              "pid": 73606,
+              "name": "rustc",
+              "cpu_percent": 20.132608230861365
+            },
+            {
+              "pid": 72951,
+              "name": "rustc",
+              "cpu_percent": 20.01928254535542
+            },
+            {
+              "pid": 73185,
+              "name": "rustc",
+              "cpu_percent": 19.89867802513865
+            },
+            {
+              "pid": 73161,
+              "name": "rustc",
+              "cpu_percent": 19.89466219336413
+            },
+            {
+              "pid": 73142,
+              "name": "rustc",
+              "cpu_percent": 19.709758941847745
+            }
+          ],
+          "new_or_exited_processes": 10
+        },
+        {
+          "total_percent": 505.9644350278195,
+          "maximum_process_percent": 85.07509955589512,
+          "top_processes": [
+            {
+              "pid": 73648,
+              "name": "rustc",
+              "cpu_percent": 85.07509955589512
+            },
+            {
+              "pid": 70607,
+              "name": "Antigravity IDE Helper (Plugin)",
+              "cpu_percent": 40.87852826810265
+            },
+            {
+              "pid": 73185,
+              "name": "rustc",
+              "cpu_percent": 19.68667246620206
+            },
+            {
+              "pid": 73649,
+              "name": "rustc",
+              "cpu_percent": 19.50263098158034
+            },
+            {
+              "pid": 73161,
+              "name": "rustc",
+              "cpu_percent": 19.372358435627888
+            }
+          ],
+          "new_or_exited_processes": 4
+        },
+        {
+          "total_percent": 607.2931663654214,
+          "maximum_process_percent": 84.3409103702955,
+          "top_processes": [
+            {
+              "pid": 73648,
+              "name": "rustc",
+              "cpu_percent": 84.3409103702955
+            },
+            {
+              "pid": 72951,
+              "name": "rustc",
+              "cpu_percent": 19.51853683905011
+            },
+            {
+              "pid": 73606,
+              "name": "rustc",
+              "cpu_percent": 18.891045391158347
+            },
+            {
+              "pid": 73142,
+              "name": "rustc",
+              "cpu_percent": 18.711866434294393
+            },
+            {
+              "pid": 73650,
+              "name": "rustc",
+              "cpu_percent": 18.67376963262577
+            }
+          ],
+          "new_or_exited_processes": 6
+        },
+        {
+          "total_percent": 882.951806931455,
+          "maximum_process_percent": 87.89634209139884,
+          "top_processes": [
+            {
+              "pid": 73648,
+              "name": "rustc",
+              "cpu_percent": 87.89634209139884
+            },
+            {
+              "pid": 73766,
+              "name": "python3.10",
+              "cpu_percent": 85.69223228591991
+            },
+            {
+              "pid": 2341,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 23.087065986637082
+            },
+            {
+              "pid": 73185,
+              "name": "rustc",
+              "cpu_percent": 20.93322449064214
+            },
+            {
+              "pid": 73606,
+              "name": "rustc",
+              "cpu_percent": 20.614630997264893
+            }
+          ],
+          "new_or_exited_processes": 9
+        },
+        {
+          "total_percent": 928.4629341771771,
+          "maximum_process_percent": 109.59648551261846,
+          "top_processes": [
+            {
+              "pid": 73648,
+              "name": "rustc",
+              "cpu_percent": 109.59648551261846
+            },
+            {
+              "pid": 73806,
+              "name": "clang",
+              "cpu_percent": 67.0099739176326
+            },
+            {
+              "pid": 73766,
+              "name": "python3.10",
+              "cpu_percent": 66.31559780942139
+            },
+            {
+              "pid": 73612,
+              "name": "rustc",
+              "cpu_percent": 20.057850926405383
+            },
+            {
+              "pid": 73649,
+              "name": "rustc",
+              "cpu_percent": 20.00054206760602
+            }
+          ],
+          "new_or_exited_processes": 9
+        },
+        {
+          "total_percent": 935.1268869844865,
+          "maximum_process_percent": 73.04036353832133,
+          "top_processes": [
+            {
+              "pid": 73806,
+              "name": "clang",
+              "cpu_percent": 73.04036353832133
+            },
+            {
+              "pid": 73612,
+              "name": "rustc",
+              "cpu_percent": 19.92008917824917
+            },
+            {
+              "pid": 73650,
+              "name": "rustc",
+              "cpu_percent": 19.164292394985036
+            },
+            {
+              "pid": 73185,
+              "name": "rustc",
+              "cpu_percent": 18.98126146123194
+            },
+            {
+              "pid": 73812,
+              "name": "rustc",
+              "cpu_percent": 18.972367926603027
+            }
+          ],
+          "new_or_exited_processes": 9
+        },
+        {
+          "total_percent": 717.0139187130491,
+          "maximum_process_percent": 111.03977325298224,
+          "top_processes": [
+            {
+              "pid": 73920,
+              "name": "rustc",
+              "cpu_percent": 111.03977325298224
+            },
+            {
+              "pid": 73914,
+              "name": "rustc",
+              "cpu_percent": 83.3222829681229
+            },
+            {
+              "pid": 73922,
+              "name": "rustc",
+              "cpu_percent": 82.98644150160722
+            },
+            {
+              "pid": 73806,
+              "name": "clang",
+              "cpu_percent": 82.8467518256579
+            },
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 50.77548951942401
+            }
+          ],
+          "new_or_exited_processes": 3
+        },
+        {
+          "total_percent": 831.8555034700171,
+          "maximum_process_percent": 85.09792786659253,
+          "top_processes": [
+            {
+              "pid": 73914,
+              "name": "rustc",
+              "cpu_percent": 85.09792786659253
+            },
+            {
+              "pid": 73922,
+              "name": "rustc",
+              "cpu_percent": 83.7543975130941
+            },
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 25.464174311231606
+            },
+            {
+              "pid": 73612,
+              "name": "rustc",
+              "cpu_percent": 19.682791984833283
+            },
+            {
+              "pid": 73605,
+              "name": "rustc",
+              "cpu_percent": 19.40409672479349
+            }
+          ],
+          "new_or_exited_processes": 7
+        },
+        {
+          "total_percent": 793.660350710498,
+          "maximum_process_percent": 100.03030836864724,
+          "top_processes": [
+            {
+              "pid": 73937,
+              "name": "rustc",
+              "cpu_percent": 100.03030836864724
+            },
+            {
+              "pid": 73929,
+              "name": "rustc",
+              "cpu_percent": 85.618943117072
+            },
+            {
+              "pid": 73914,
+              "name": "rustc",
+              "cpu_percent": 85.26471111437549
+            },
+            {
+              "pid": 73922,
+              "name": "rustc",
+              "cpu_percent": 84.68394688265005
+            },
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 44.40409534927713
+            }
+          ],
+          "new_or_exited_processes": 4
+        },
+        {
+          "total_percent": 575.8952205793559,
+          "maximum_process_percent": 84.83227694722916,
+          "top_processes": [
+            {
+              "pid": 73914,
+              "name": "rustc",
+              "cpu_percent": 84.83227694722916
+            },
+            {
+              "pid": 73929,
+              "name": "rustc",
+              "cpu_percent": 84.74140623668113
+            },
+            {
+              "pid": 73922,
+              "name": "rustc",
+              "cpu_percent": 84.48441993857188
+            },
+            {
+              "pid": 73606,
+              "name": "rustc",
+              "cpu_percent": 19.621107923837933
+            },
+            {
+              "pid": 73612,
+              "name": "rustc",
+              "cpu_percent": 19.469964871310534
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 694.4219120162207,
+          "maximum_process_percent": 140.4944076188192,
+          "top_processes": [
+            {
+              "pid": 73914,
+              "name": "rustc",
+              "cpu_percent": 140.4944076188192
+            },
+            {
+              "pid": 73922,
+              "name": "rustc",
+              "cpu_percent": 131.04000819622144
+            },
+            {
+              "pid": 73929,
+              "name": "rustc",
+              "cpu_percent": 56.272239263420765
+            },
+            {
+              "pid": 73605,
+              "name": "rustc",
+              "cpu_percent": 23.985744152481303
+            },
+            {
+              "pid": 73927,
+              "name": "rustc",
+              "cpu_percent": 21.003553257607805
+            }
+          ],
+          "new_or_exited_processes": 6
+        },
+        {
+          "total_percent": 1050.6626768547703,
+          "maximum_process_percent": 166.06177264608226,
+          "top_processes": [
+            {
+              "pid": 2341,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 166.06177264608226
+            },
+            {
+              "pid": 73929,
+              "name": "rustc",
+              "cpu_percent": 129.1524805315285
+            },
+            {
+              "pid": 73941,
+              "name": "rustc",
+              "cpu_percent": 45.3580960235935
+            },
+            {
+              "pid": 73944,
+              "name": "rustc",
+              "cpu_percent": 44.237508119711535
+            },
+            {
+              "pid": 73605,
+              "name": "rustc",
+              "cpu_percent": 43.645876762106354
+            }
+          ],
+          "new_or_exited_processes": 9
+        },
+        {
+          "total_percent": 992.8635569769424,
+          "maximum_process_percent": 184.9897483303836,
+          "top_processes": [
+            {
+              "pid": 73929,
+              "name": "rustc",
+              "cpu_percent": 184.9897483303836
+            },
+            {
+              "pid": 73944,
+              "name": "rustc",
+              "cpu_percent": 102.45130013436794
+            },
+            {
+              "pid": 73605,
+              "name": "rustc",
+              "cpu_percent": 58.18621809720162
+            },
+            {
+              "pid": 73942,
+              "name": "rustc",
+              "cpu_percent": 57.11223068909567
+            },
+            {
+              "pid": 73954,
+              "name": "rustc",
+              "cpu_percent": 55.444783671257255
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 946.4410417253188,
+          "maximum_process_percent": 143.68386864432696,
+          "top_processes": [
+            {
+              "pid": 73957,
+              "name": "rustc",
+              "cpu_percent": 143.68386864432696
+            },
+            {
+              "pid": 73955,
+              "name": "rustc",
+              "cpu_percent": 100.62696237784813
+            },
+            {
+              "pid": 73954,
+              "name": "rustc",
+              "cpu_percent": 81.18414214247723
+            },
+            {
+              "pid": 73895,
+              "name": "rustc",
+              "cpu_percent": 21.86182378503996
+            },
+            {
+              "pid": 73952,
+              "name": "rustc",
+              "cpu_percent": 21.837827651326975
+            }
+          ],
+          "new_or_exited_processes": 10
+        },
+        {
+          "total_percent": 770.5842430065568,
+          "maximum_process_percent": 87.30605348526124,
+          "top_processes": [
+            {
+              "pid": 73954,
+              "name": "rustc",
+              "cpu_percent": 87.30605348526124
+            },
+            {
+              "pid": 73927,
+              "name": "rustc",
+              "cpu_percent": 19.113226431243895
+            },
+            {
+              "pid": 73982,
+              "name": "rustc",
+              "cpu_percent": 19.104557498277465
+            },
+            {
+              "pid": 73985,
+              "name": "rustc",
+              "cpu_percent": 18.975577909016103
+            },
+            {
+              "pid": 73940,
+              "name": "rustc",
+              "cpu_percent": 18.823831888163166
+            }
+          ],
+          "new_or_exited_processes": 4
+        },
+        {
+          "total_percent": 431.9107259585664,
+          "maximum_process_percent": 85.26816104732355,
+          "top_processes": [
+            {
+              "pid": 73954,
+              "name": "rustc",
+              "cpu_percent": 85.26816104732355
+            },
+            {
+              "pid": 73986,
+              "name": "rustc",
+              "cpu_percent": 84.69024892496057
+            },
+            {
+              "pid": 73895,
+              "name": "rustc",
+              "cpu_percent": 19.75375329192963
+            },
+            {
+              "pid": 73982,
+              "name": "rustc",
+              "cpu_percent": 19.147015484789964
+            },
+            {
+              "pid": 73927,
+              "name": "rustc",
+              "cpu_percent": 19.084286476350304
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 548.5807529166423,
+          "maximum_process_percent": 139.89636133459322,
+          "top_processes": [
+            {
+              "pid": 73954,
+              "name": "rustc",
+              "cpu_percent": 139.89636133459322
+            },
+            {
+              "pid": 73986,
+              "name": "rustc",
+              "cpu_percent": 76.04839798176332
+            },
+            {
+              "pid": 73940,
+              "name": "rustc",
+              "cpu_percent": 19.921495380139334
+            },
+            {
+              "pid": 73982,
+              "name": "rustc",
+              "cpu_percent": 18.982872560454854
+            },
+            {
+              "pid": 73952,
+              "name": "rustc",
+              "cpu_percent": 18.892029561675578
+            }
+          ],
+          "new_or_exited_processes": 6
+        },
+        {
+          "total_percent": 916.0207032101658,
+          "maximum_process_percent": 88.38205465330176,
+          "top_processes": [
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 88.38205465330176
+            },
+            {
+              "pid": 73995,
+              "name": "rustc",
+              "cpu_percent": 80.71131908626036
+            },
+            {
+              "pid": 73986,
+              "name": "rustc",
+              "cpu_percent": 74.06163610568842
+            },
+            {
+              "pid": 73992,
+              "name": "rustc",
+              "cpu_percent": 72.44434370948508
+            },
+            {
+              "pid": 73939,
+              "name": "rustc",
+              "cpu_percent": 18.95000054393393
+            }
+          ],
+          "new_or_exited_processes": 5
+        },
+        {
+          "total_percent": 893.8662675930673,
+          "maximum_process_percent": 106.60255829185375,
+          "top_processes": [
+            {
+              "pid": 74002,
+              "name": "rustc",
+              "cpu_percent": 106.60255829185375
+            },
+            {
+              "pid": 73986,
+              "name": "rustc",
+              "cpu_percent": 79.39029002883404
+            },
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 36.670061293631825
+            },
+            {
+              "pid": 2341,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 22.58128728885631
+            },
+            {
+              "pid": 73983,
+              "name": "rustc",
+              "cpu_percent": 21.08621300551398
+            }
+          ],
+          "new_or_exited_processes": 6
+        },
+        {
+          "total_percent": 638.2236410216258,
+          "maximum_process_percent": 96.21891253554088,
+          "top_processes": [
+            {
+              "pid": 73986,
+              "name": "rustc",
+              "cpu_percent": 96.21891253554088
+            },
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 22.10496605700451
+            },
+            {
+              "pid": 1773,
+              "name": "ChatGPT",
+              "cpu_percent": 20.038119605911845
+            },
+            {
+              "pid": 74003,
+              "name": "rustc",
+              "cpu_percent": 19.479377280861492
+            },
+            {
+              "pid": 73956,
+              "name": "rustc",
+              "cpu_percent": 18.797280528724134
+            }
+          ],
+          "new_or_exited_processes": 4
+        },
+        {
+          "total_percent": 736.2173514791884,
+          "maximum_process_percent": 225.35810409297218,
+          "top_processes": [
+            {
+              "pid": 73986,
+              "name": "rustc",
+              "cpu_percent": 225.35810409297218
+            },
+            {
+              "pid": 74005,
+              "name": "rustc",
+              "cpu_percent": 86.87270261633772
+            },
+            {
+              "pid": 73940,
+              "name": "rustc",
+              "cpu_percent": 38.13677792829725
+            },
+            {
+              "pid": 52106,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 31.797883664061644
+            },
+            {
+              "pid": 17493,
+              "name": "Antigravity IDE Helper (Renderer)",
+              "cpu_percent": 21.672968232212696
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 479.2696974682695,
+          "maximum_process_percent": 84.74023986933683,
+          "top_processes": [
+            {
+              "pid": 74005,
+              "name": "rustc",
+              "cpu_percent": 84.74023986933683
+            },
+            {
+              "pid": 73983,
+              "name": "rustc",
+              "cpu_percent": 18.826154682028157
+            },
+            {
+              "pid": 73985,
+              "name": "rustc",
+              "cpu_percent": 18.54489269088461
+            },
+            {
+              "pid": 74011,
+              "name": "rustc",
+              "cpu_percent": 18.444409921677465
+            },
+            {
+              "pid": 73982,
+              "name": "rustc",
+              "cpu_percent": 18.138150605802405
+            }
+          ],
+          "new_or_exited_processes": 4
+        },
+        {
+          "total_percent": 478.9104648507348,
+          "maximum_process_percent": 131.3302256289036,
+          "top_processes": [
+            {
+              "pid": 74013,
+              "name": "rustc",
+              "cpu_percent": 131.3302256289036
+            },
+            {
+              "pid": 74005,
+              "name": "rustc",
+              "cpu_percent": 84.9365880328566
+            },
+            {
+              "pid": 74012,
+              "name": "clippy-driver",
+              "cpu_percent": 18.946831503222228
+            },
+            {
+              "pid": 73997,
+              "name": "rustc",
+              "cpu_percent": 18.924442116025794
+            },
+            {
+              "pid": 74011,
+              "name": "rustc",
+              "cpu_percent": 18.621431866165263
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 593.8001769932107,
+          "maximum_process_percent": 80.12389885193485,
+          "top_processes": [
+            {
+              "pid": 16335,
+              "name": "node",
+              "cpu_percent": 80.12389885193485
+            },
+            {
+              "pid": 74005,
+              "name": "rustc",
+              "cpu_percent": 78.8036593844387
+            },
+            {
+              "pid": 17493,
+              "name": "Antigravity IDE Helper (Renderer)",
+              "cpu_percent": 44.578104935877505
+            },
+            {
+              "pid": 74013,
+              "name": "rustc",
+              "cpu_percent": 34.16533408007954
+            },
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 26.184594272520716
+            }
+          ],
+          "new_or_exited_processes": 13
+        },
+        {
+          "total_percent": 783.4913201305742,
+          "maximum_process_percent": 138.72979396079702,
+          "top_processes": [
+            {
+              "pid": 74005,
+              "name": "rustc",
+              "cpu_percent": 138.72979396079702
+            },
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 30.151507354206554
+            },
+            {
+              "pid": 17493,
+              "name": "Antigravity IDE Helper (Renderer)",
+              "cpu_percent": 27.43664421777899
+            },
+            {
+              "pid": 74003,
+              "name": "rustc",
+              "cpu_percent": 20.266911536705756
+            },
+            {
+              "pid": 73985,
+              "name": "rustc",
+              "cpu_percent": 20.0159849018374
+            }
+          ],
+          "new_or_exited_processes": 3
+        },
+        {
+          "total_percent": 570.7580679328688,
+          "maximum_process_percent": 21.477566490039223,
+          "top_processes": [
+            {
+              "pid": 74003,
+              "name": "rustc",
+              "cpu_percent": 21.477566490039223
+            },
+            {
+              "pid": 74011,
+              "name": "rustc",
+              "cpu_percent": 20.256717044583375
+            },
+            {
+              "pid": 74012,
+              "name": "clippy-driver",
+              "cpu_percent": 20.194320160603755
+            },
+            {
+              "pid": 73997,
+              "name": "rustc",
+              "cpu_percent": 19.774102016682676
+            },
+            {
+              "pid": 73991,
+              "name": "rustc",
+              "cpu_percent": 19.695439746133978
+            }
+          ],
+          "new_or_exited_processes": 10
+        },
+        {
+          "total_percent": 476.9130074121429,
+          "maximum_process_percent": 68.09972535639862,
+          "top_processes": [
+            {
+              "pid": 74112,
+              "name": "rustc",
+              "cpu_percent": 68.09972535639862
+            },
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 45.25133748922622
+            },
+            {
+              "pid": 1773,
+              "name": "ChatGPT",
+              "cpu_percent": 20.026162942629394
+            },
+            {
+              "pid": 74109,
+              "name": "rustc",
+              "cpu_percent": 19.35244757465262
+            },
+            {
+              "pid": 74012,
+              "name": "clippy-driver",
+              "cpu_percent": 19.337561904030686
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 515.0925713295619,
+          "maximum_process_percent": 83.86132772288997,
+          "top_processes": [
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 83.86132772288997
+            },
+            {
+              "pid": 74112,
+              "name": "rustc",
+              "cpu_percent": 80.1559607663339
+            },
+            {
+              "pid": 73991,
+              "name": "rustc",
+              "cpu_percent": 39.573744036275826
+            },
+            {
+              "pid": 74098,
+              "name": "rustc",
+              "cpu_percent": 19.881003147412347
+            },
+            {
+              "pid": 74026,
+              "name": "rustc",
+              "cpu_percent": 19.83037362392277
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 458.8878084571015,
+          "maximum_process_percent": 80.98100907459512,
+          "top_processes": [
+            {
+              "pid": 74112,
+              "name": "rustc",
+              "cpu_percent": 80.98100907459512
+            },
+            {
+              "pid": 74011,
+              "name": "rustc",
+              "cpu_percent": 22.064181688429287
+            },
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 21.26185308468866
+            },
+            {
+              "pid": 74098,
+              "name": "rustc",
+              "cpu_percent": 21.088615884226705
+            },
+            {
+              "pid": 74102,
+              "name": "rustc",
+              "cpu_percent": 20.821512403995484
+            }
+          ],
+          "new_or_exited_processes": 4
+        },
+        {
+          "total_percent": 530.6592270321471,
+          "maximum_process_percent": 153.98718324187118,
+          "top_processes": [
+            {
+              "pid": 74112,
+              "name": "rustc",
+              "cpu_percent": 153.98718324187118
+            },
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 41.78132563357246
+            },
+            {
+              "pid": 74012,
+              "name": "clippy-driver",
+              "cpu_percent": 22.002943107422325
+            },
+            {
+              "pid": 74098,
+              "name": "rustc",
+              "cpu_percent": 21.687801091976354
+            },
+            {
+              "pid": 74026,
+              "name": "rustc",
+              "cpu_percent": 21.383506999740845
+            }
+          ],
+          "new_or_exited_processes": 3
+        },
+        {
+          "total_percent": 758.6789382202256,
+          "maximum_process_percent": 280.51872269032566,
+          "top_processes": [
+            {
+              "pid": 74112,
+              "name": "rustc",
+              "cpu_percent": 280.51872269032566
+            },
+            {
+              "pid": 74149,
+              "name": "build-script-build",
+              "cpu_percent": 77.26580079446865
+            },
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 21.948603611890846
+            },
+            {
+              "pid": 74102,
+              "name": "rustc",
+              "cpu_percent": 21.533217520256024
+            },
+            {
+              "pid": 74098,
+              "name": "rustc",
+              "cpu_percent": 21.482073010015174
+            }
+          ],
+          "new_or_exited_processes": 5
+        },
+        {
+          "total_percent": 833.1283615677953,
+          "maximum_process_percent": 179.50652252539328,
+          "top_processes": [
+            {
+              "pid": 74112,
+              "name": "rustc",
+              "cpu_percent": 179.50652252539328
+            },
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 91.65166705654084
+            },
+            {
+              "pid": 74011,
+              "name": "rustc",
+              "cpu_percent": 63.94343797073182
+            },
+            {
+              "pid": 74012,
+              "name": "clippy-driver",
+              "cpu_percent": 45.76374158804894
+            },
+            {
+              "pid": 74102,
+              "name": "rustc",
+              "cpu_percent": 24.592928865969576
+            }
+          ],
+          "new_or_exited_processes": 3
+        },
+        {
+          "total_percent": 880.9369715038036,
+          "maximum_process_percent": 156.97962817489497,
+          "top_processes": [
+            {
+              "pid": 74112,
+              "name": "rustc",
+              "cpu_percent": 156.97962817489497
+            },
+            {
+              "pid": 74011,
+              "name": "rustc",
+              "cpu_percent": 67.07161664655473
+            },
+            {
+              "pid": 74012,
+              "name": "clippy-driver",
+              "cpu_percent": 66.62543255971077
+            },
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 53.522788989703805
+            },
+            {
+              "pid": 2341,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 43.923274490861985
+            }
+          ],
+          "new_or_exited_processes": 7
+        },
+        {
+          "total_percent": 863.986657885108,
+          "maximum_process_percent": 102.27747086306218,
+          "top_processes": [
+            {
+              "pid": 2342,
+              "name": "codex",
+              "cpu_percent": 102.27747086306218
+            },
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 73.89424003499522
+            },
+            {
+              "pid": 661,
+              "name": "trustd",
+              "cpu_percent": 73.31433799854146
+            },
+            {
+              "pid": 74112,
+              "name": "rustc",
+              "cpu_percent": 38.13790795884016
+            },
+            {
+              "pid": 74247,
+              "name": "node",
+              "cpu_percent": 29.688917668685324
+            }
+          ],
+          "new_or_exited_processes": 12
+        },
+        {
+          "total_percent": 1128.3492373719241,
+          "maximum_process_percent": 186.79968278839434,
+          "top_processes": [
+            {
+              "pid": 2341,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 186.79968278839434
+            },
+            {
+              "pid": 1334,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 120.15251796613195
+            },
+            {
+              "pid": 2342,
+              "name": "codex",
+              "cpu_percent": 87.65389950047057
+            },
+            {
+              "pid": 2339,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 57.891184742238046
+            },
+            {
+              "pid": 74112,
+              "name": "rustc",
+              "cpu_percent": 53.182513985894566
+            }
+          ],
+          "new_or_exited_processes": 21
+        },
+        {
+          "total_percent": 1059.053395306206,
+          "maximum_process_percent": 113.06961276367491,
+          "top_processes": [
+            {
+              "pid": 2342,
+              "name": "codex",
+              "cpu_percent": 113.06961276367491
+            },
+            {
+              "pid": 74112,
+              "name": "rustc",
+              "cpu_percent": 69.21743614550113
+            },
+            {
+              "pid": 661,
+              "name": "trustd",
+              "cpu_percent": 37.83662760844324
+            },
+            {
+              "pid": 74328,
+              "name": "cargo",
+              "cpu_percent": 32.708535309817826
+            },
+            {
+              "pid": 74026,
+              "name": "rustc",
+              "cpu_percent": 32.466567190412
+            }
+          ],
+          "new_or_exited_processes": 18
+        },
+        {
+          "total_percent": 860.2348888718043,
+          "maximum_process_percent": 174.97285470366273,
+          "top_processes": [
+            {
+              "pid": 74112,
+              "name": "rustc",
+              "cpu_percent": 174.97285470366273
+            },
+            {
+              "pid": 74012,
+              "name": "clippy-driver",
+              "cpu_percent": 81.58071137865201
+            },
+            {
+              "pid": 74109,
+              "name": "rustc",
+              "cpu_percent": 78.50001116388951
+            },
+            {
+              "pid": 2342,
+              "name": "codex",
+              "cpu_percent": 47.02368417508943
+            },
+            {
+              "pid": 74218,
+              "name": "rustc",
+              "cpu_percent": 26.718495301245365
+            }
+          ],
+          "new_or_exited_processes": 11
+        },
+        {
+          "total_percent": 712.5107857335745,
+          "maximum_process_percent": 104.50365378610731,
+          "top_processes": [
+            {
+              "pid": 74112,
+              "name": "rustc",
+              "cpu_percent": 104.50365378610731
+            },
+            {
+              "pid": 74012,
+              "name": "clippy-driver",
+              "cpu_percent": 90.20750626785377
+            },
+            {
+              "pid": 74109,
+              "name": "rustc",
+              "cpu_percent": 88.88390121248514
+            },
+            {
+              "pid": 74391,
+              "name": "python3.10",
+              "cpu_percent": 69.49735626181767
+            },
+            {
+              "pid": 74145,
+              "name": "rustc",
+              "cpu_percent": 48.52004793137953
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 701.261462189599,
+          "maximum_process_percent": 75.55719149366206,
+          "top_processes": [
+            {
+              "pid": 74012,
+              "name": "clippy-driver",
+              "cpu_percent": 75.55719149366206
+            },
+            {
+              "pid": 74109,
+              "name": "rustc",
+              "cpu_percent": 75.42065432861483
+            },
+            {
+              "pid": 74391,
+              "name": "python3.10",
+              "cpu_percent": 68.13509281574342
+            },
+            {
+              "pid": 74374,
+              "name": "rustc",
+              "cpu_percent": 24.036230789444947
+            },
+            {
+              "pid": 74387,
+              "name": "rustc",
+              "cpu_percent": 23.977442222984298
+            }
+          ],
+          "new_or_exited_processes": 6
+        },
+        {
+          "total_percent": 826.9350425391544,
+          "maximum_process_percent": 81.63875507881585,
+          "top_processes": [
+            {
+              "pid": 74012,
+              "name": "clippy-driver",
+              "cpu_percent": 81.63875507881585
+            },
+            {
+              "pid": 74391,
+              "name": "python3.10",
+              "cpu_percent": 79.26199132288107
+            },
+            {
+              "pid": 74109,
+              "name": "rustc",
+              "cpu_percent": 78.91368340666791
+            },
+            {
+              "pid": 2341,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 35.758477553153774
+            },
+            {
+              "pid": 74453,
+              "name": "clippy-driver",
+              "cpu_percent": 22.53093031656808
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 840.4695772655537,
+          "maximum_process_percent": 89.02307209473935,
+          "top_processes": [
+            {
+              "pid": 74391,
+              "name": "python3.10",
+              "cpu_percent": 89.02307209473935
+            },
+            {
+              "pid": 74012,
+              "name": "clippy-driver",
+              "cpu_percent": 88.65101470142825
+            },
+            {
+              "pid": 74453,
+              "name": "clippy-driver",
+              "cpu_percent": 21.300013172676817
+            },
+            {
+              "pid": 74340,
+              "name": "rustc",
+              "cpu_percent": 21.1800669994211
+            },
+            {
+              "pid": 74411,
+              "name": "rustc",
+              "cpu_percent": 21.098706686209322
+            }
+          ],
+          "new_or_exited_processes": 10
+        },
+        {
+          "total_percent": 901.3782989772885,
+          "maximum_process_percent": 78.18248545845843,
+          "top_processes": [
+            {
+              "pid": 74012,
+              "name": "clippy-driver",
+              "cpu_percent": 78.18248545845843
+            },
+            {
+              "pid": 74516,
+              "name": "clang",
+              "cpu_percent": 77.23303253635835
+            },
+            {
+              "pid": 74391,
+              "name": "python3.10",
+              "cpu_percent": 75.30856731269986
+            },
+            {
+              "pid": 72948,
+              "name": "biomesyncd",
+              "cpu_percent": 46.2784486749224
+            },
+            {
+              "pid": 1773,
+              "name": "ChatGPT",
+              "cpu_percent": 25.07922000011978
+            }
+          ],
+          "new_or_exited_processes": 10
+        },
+        {
+          "total_percent": 870.5341350900962,
+          "maximum_process_percent": 86.91636469133867,
+          "top_processes": [
+            {
+              "pid": 74516,
+              "name": "clang",
+              "cpu_percent": 86.91636469133867
+            },
+            {
+              "pid": 74391,
+              "name": "python3.10",
+              "cpu_percent": 84.72653014107266
+            },
+            {
+              "pid": 74589,
+              "name": "rustc",
+              "cpu_percent": 84.68429816565634
+            },
+            {
+              "pid": 2341,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 41.077099150544406
+            },
+            {
+              "pid": 74451,
+              "name": "rustc",
+              "cpu_percent": 20.544988162635715
+            }
+          ],
+          "new_or_exited_processes": 10
+        },
+        {
+          "total_percent": 899.4102995263988,
+          "maximum_process_percent": 262.3013650324071,
+          "top_processes": [
+            {
+              "pid": 2341,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 262.3013650324071
+            },
+            {
+              "pid": 74632,
+              "name": "rustc",
+              "cpu_percent": 64.91649561446484
+            },
+            {
+              "pid": 74516,
+              "name": "clang",
+              "cpu_percent": 64.15867067910787
+            },
+            {
+              "pid": 74391,
+              "name": "python3.10",
+              "cpu_percent": 64.12407877453374
+            },
+            {
+              "pid": 72948,
+              "name": "biomesyncd",
+              "cpu_percent": 46.52025541966534
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 972.3127500440472,
+          "maximum_process_percent": 121.11598755463501,
+          "top_processes": [
+            {
+              "pid": 74632,
+              "name": "rustc",
+              "cpu_percent": 121.11598755463501
+            },
+            {
+              "pid": 72948,
+              "name": "biomesyncd",
+              "cpu_percent": 92.09789129081146
+            },
+            {
+              "pid": 2341,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 91.4127529576641
+            },
+            {
+              "pid": 74516,
+              "name": "clang",
+              "cpu_percent": 75.09577805870782
+            },
+            {
+              "pid": 74646,
+              "name": "rustc",
+              "cpu_percent": 72.63688948794237
+            }
+          ],
+          "new_or_exited_processes": 4
+        },
+        {
+          "total_percent": 831.593225268272,
+          "maximum_process_percent": 94.64734518613872,
+          "top_processes": [
+            {
+              "pid": 72948,
+              "name": "biomesyncd",
+              "cpu_percent": 94.64734518613872
+            },
+            {
+              "pid": 74646,
+              "name": "rustc",
+              "cpu_percent": 84.41299276078468
+            },
+            {
+              "pid": 2341,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 50.27716528560967
+            },
+            {
+              "pid": 74340,
+              "name": "rustc",
+              "cpu_percent": 22.153923329949098
+            },
+            {
+              "pid": 74348,
+              "name": "rustc",
+              "cpu_percent": 19.7246509758985
+            }
+          ],
+          "new_or_exited_processes": 8
+        },
+        {
+          "total_percent": 614.9764596693029,
+          "maximum_process_percent": 87.21206641241845,
+          "top_processes": [
+            {
+              "pid": 74687,
+              "name": "rustc",
+              "cpu_percent": 87.21206641241845
+            },
+            {
+              "pid": 74646,
+              "name": "rustc",
+              "cpu_percent": 87.0532120654019
+            },
+            {
+              "pid": 74340,
+              "name": "rustc",
+              "cpu_percent": 81.4779095755889
+            },
+            {
+              "pid": 74451,
+              "name": "rustc",
+              "cpu_percent": 21.102126635382312
+            },
+            {
+              "pid": 74560,
+              "name": "rustc",
+              "cpu_percent": 20.38072294235098
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 486.77324342202434,
+          "maximum_process_percent": 85.22129224995615,
+          "top_processes": [
+            {
+              "pid": 74646,
+              "name": "rustc",
+              "cpu_percent": 85.22129224995615
+            },
+            {
+              "pid": 74687,
+              "name": "rustc",
+              "cpu_percent": 84.78164085660251
+            },
+            {
+              "pid": 74348,
+              "name": "rustc",
+              "cpu_percent": 25.238669413106823
+            },
+            {
+              "pid": 74387,
+              "name": "rustc",
+              "cpu_percent": 20.75404273885413
+            },
+            {
+              "pid": 74451,
+              "name": "rustc",
+              "cpu_percent": 20.682241577015404
+            }
+          ],
+          "new_or_exited_processes": 4
+        },
+        {
+          "total_percent": 884.2442732523353,
+          "maximum_process_percent": 140.2757219234015,
+          "top_processes": [
+            {
+              "pid": 74687,
+              "name": "rustc",
+              "cpu_percent": 140.2757219234015
+            },
+            {
+              "pid": 74453,
+              "name": "clippy-driver",
+              "cpu_percent": 21.90732661124767
+            },
+            {
+              "pid": 74451,
+              "name": "rustc",
+              "cpu_percent": 21.391855226723454
+            },
+            {
+              "pid": 74690,
+              "name": "rustc",
+              "cpu_percent": 21.35321261045547
+            },
+            {
+              "pid": 74509,
+              "name": "rustc",
+              "cpu_percent": 21.337488341289646
+            }
+          ],
+          "new_or_exited_processes": 9
+        },
+        {
+          "total_percent": 975.3705341386845,
+          "maximum_process_percent": 206.66140153543466,
+          "top_processes": [
+            {
+              "pid": 74687,
+              "name": "rustc",
+              "cpu_percent": 206.66140153543466
+            },
+            {
+              "pid": 74725,
+              "name": "rustc",
+              "cpu_percent": 69.50802544842367
+            },
+            {
+              "pid": 74724,
+              "name": "rustc",
+              "cpu_percent": 69.4800540085922
+            },
+            {
+              "pid": 74697,
+              "name": "python3.10",
+              "cpu_percent": 65.05213176482685
+            },
+            {
+              "pid": 2341,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 34.67155317074864
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 645.589539225277,
+          "maximum_process_percent": 129.4345755467825,
+          "top_processes": [
+            {
+              "pid": 74725,
+              "name": "rustc",
+              "cpu_percent": 129.4345755467825
+            },
+            {
+              "pid": 74724,
+              "name": "rustc",
+              "cpu_percent": 87.05805946362555
+            },
+            {
+              "pid": 74697,
+              "name": "python3.10",
+              "cpu_percent": 86.72019841696691
+            },
+            {
+              "pid": 2341,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 32.018578831571574
+            },
+            {
+              "pid": 74721,
+              "name": "rustc",
+              "cpu_percent": 18.914484121034413
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 850.3088799347768,
+          "maximum_process_percent": 83.82928319478349,
+          "top_processes": [
+            {
+              "pid": 2341,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 83.82928319478349
+            },
+            {
+              "pid": 74724,
+              "name": "rustc",
+              "cpu_percent": 83.76154981077357
+            },
+            {
+              "pid": 74451,
+              "name": "rustc",
+              "cpu_percent": 47.11926171518253
+            },
+            {
+              "pid": 1773,
+              "name": "ChatGPT",
+              "cpu_percent": 25.86083325033846
+            },
+            {
+              "pid": 74721,
+              "name": "rustc",
+              "cpu_percent": 21.16911835644797
+            }
+          ],
+          "new_or_exited_processes": 7
+        },
+        {
+          "total_percent": 536.6602580951242,
+          "maximum_process_percent": 86.945857619102,
+          "top_processes": [
+            {
+              "pid": 74724,
+              "name": "rustc",
+              "cpu_percent": 86.945857619102
+            },
+            {
+              "pid": 74752,
+              "name": "python3.10",
+              "cpu_percent": 85.99616149605689
+            },
+            {
+              "pid": 74451,
+              "name": "rustc",
+              "cpu_percent": 84.6619761454058
+            },
+            {
+              "pid": 74509,
+              "name": "rustc",
+              "cpu_percent": 27.580942475014815
+            },
+            {
+              "pid": 74742,
+              "name": "rustc",
+              "cpu_percent": 21.120039096910133
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 541.9613912369563,
+          "maximum_process_percent": 86.91098556245974,
+          "top_processes": [
+            {
+              "pid": 74724,
+              "name": "rustc",
+              "cpu_percent": 86.91098556245974
+            },
+            {
+              "pid": 74451,
+              "name": "rustc",
+              "cpu_percent": 85.42529662732537
+            },
+            {
+              "pid": 74742,
+              "name": "rustc",
+              "cpu_percent": 21.193785311355438
+            },
+            {
+              "pid": 74722,
+              "name": "rustc",
+              "cpu_percent": 20.998883417123096
+            },
+            {
+              "pid": 74629,
+              "name": "rustc",
+              "cpu_percent": 20.951147161831326
+            }
+          ],
+          "new_or_exited_processes": 4
+        },
+        {
+          "total_percent": 859.8084772078687,
+          "maximum_process_percent": 73.33136027843196,
+          "top_processes": [
+            {
+              "pid": 74772,
+              "name": "python3.10",
+              "cpu_percent": 73.33136027843196
+            },
+            {
+              "pid": 74691,
+              "name": "rustc",
+              "cpu_percent": 21.72414373720463
+            },
+            {
+              "pid": 74690,
+              "name": "rustc",
+              "cpu_percent": 21.52668527392416
+            },
+            {
+              "pid": 74745,
+              "name": "rustc",
+              "cpu_percent": 21.306660284606657
+            },
+            {
+              "pid": 74721,
+              "name": "rustc",
+              "cpu_percent": 21.133856557318833
+            }
+          ],
+          "new_or_exited_processes": 8
+        },
+        {
+          "total_percent": 831.569338779828,
+          "maximum_process_percent": 120.1301780895552,
+          "top_processes": [
+            {
+              "pid": 74777,
+              "name": "rustc",
+              "cpu_percent": 120.1301780895552
+            },
+            {
+              "pid": 74772,
+              "name": "python3.10",
+              "cpu_percent": 85.7108294937805
+            },
+            {
+              "pid": 57859,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 34.4513786689181
+            },
+            {
+              "pid": 74745,
+              "name": "rustc",
+              "cpu_percent": 20.784642127952974
+            },
+            {
+              "pid": 74769,
+              "name": "rustc",
+              "cpu_percent": 20.500176371360304
+            }
+          ],
+          "new_or_exited_processes": 5
+        },
+        {
+          "total_percent": 739.5724609587537,
+          "maximum_process_percent": 51.165190322116075,
+          "top_processes": [
+            {
+              "pid": 2341,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 51.165190322116075
+            },
+            {
+              "pid": 74721,
+              "name": "rustc",
+              "cpu_percent": 19.035641061547604
+            },
+            {
+              "pid": 74745,
+              "name": "rustc",
+              "cpu_percent": 18.848072867150606
+            },
+            {
+              "pid": 74742,
+              "name": "rustc",
+              "cpu_percent": 18.81927650928212
+            },
+            {
+              "pid": 74779,
+              "name": "rustc",
+              "cpu_percent": 18.790688002820904
+            }
+          ],
+          "new_or_exited_processes": 8
+        },
+        {
+          "total_percent": 761.0497341595725,
+          "maximum_process_percent": 220.7008484753912,
+          "top_processes": [
+            {
+              "pid": 2341,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 220.7008484753912
+            },
+            {
+              "pid": 74794,
+              "name": "python3.10",
+              "cpu_percent": 79.53833888843133
+            },
+            {
+              "pid": 74792,
+              "name": "rustc",
+              "cpu_percent": 77.77139831879151
+            },
+            {
+              "pid": 1773,
+              "name": "ChatGPT",
+              "cpu_percent": 50.911951296513344
+            },
+            {
+              "pid": 74783,
+              "name": "rustc",
+              "cpu_percent": 17.42618792064928
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 429.9911692037031,
+          "maximum_process_percent": 85.52215657245046,
+          "top_processes": [
+            {
+              "pid": 74792,
+              "name": "rustc",
+              "cpu_percent": 85.52215657245046
+            },
+            {
+              "pid": 74794,
+              "name": "python3.10",
+              "cpu_percent": 85.25873036425472
+            },
+            {
+              "pid": 74721,
+              "name": "rustc",
+              "cpu_percent": 19.37220615862848
+            },
+            {
+              "pid": 74722,
+              "name": "rustc",
+              "cpu_percent": 19.26364318212965
+            },
+            {
+              "pid": 74690,
+              "name": "rustc",
+              "cpu_percent": 19.08849779864069
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 451.3794756743431,
+          "maximum_process_percent": 85.05192850784461,
+          "top_processes": [
+            {
+              "pid": 74792,
+              "name": "rustc",
+              "cpu_percent": 85.05192850784461
+            },
+            {
+              "pid": 74742,
+              "name": "rustc",
+              "cpu_percent": 19.5367324412032
+            },
+            {
+              "pid": 74769,
+              "name": "rustc",
+              "cpu_percent": 19.432318182069167
+            },
+            {
+              "pid": 74721,
+              "name": "rustc",
+              "cpu_percent": 19.229993266383097
+            },
+            {
+              "pid": 74779,
+              "name": "rustc",
+              "cpu_percent": 19.217059328612198
+            }
+          ],
+          "new_or_exited_processes": 6
+        },
+        {
+          "total_percent": 469.24916771502365,
+          "maximum_process_percent": 85.193402366049,
+          "top_processes": [
+            {
+              "pid": 74792,
+              "name": "rustc",
+              "cpu_percent": 85.193402366049
+            },
+            {
+              "pid": 74809,
+              "name": "python3.10",
+              "cpu_percent": 84.58452801574353
+            },
+            {
+              "pid": 2341,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 24.53189838299311
+            },
+            {
+              "pid": 74779,
+              "name": "rustc",
+              "cpu_percent": 19.910337148820744
+            },
+            {
+              "pid": 74769,
+              "name": "rustc",
+              "cpu_percent": 19.54903977224552
+            }
+          ],
+          "new_or_exited_processes": 14
+        },
+        {
+          "total_percent": 582.2317270702895,
+          "maximum_process_percent": 149.94284571770552,
+          "top_processes": [
+            {
+              "pid": 74792,
+              "name": "rustc",
+              "cpu_percent": 149.94284571770552
+            },
+            {
+              "pid": 74745,
+              "name": "rustc",
+              "cpu_percent": 19.40889696823759
+            },
+            {
+              "pid": 74778,
+              "name": "rustc",
+              "cpu_percent": 19.323858183065507
+            },
+            {
+              "pid": 74814,
+              "name": "rustc",
+              "cpu_percent": 19.240833975207877
+            },
+            {
+              "pid": 74769,
+              "name": "rustc",
+              "cpu_percent": 19.200849373339487
+            }
+          ],
+          "new_or_exited_processes": 11
+        },
+        {
+          "total_percent": 555.7415962294025,
+          "maximum_process_percent": 85.73122021921692,
+          "top_processes": [
+            {
+              "pid": 74818,
+              "name": "python3.10",
+              "cpu_percent": 85.73122021921692
+            },
+            {
+              "pid": 74814,
+              "name": "rustc",
+              "cpu_percent": 18.913421477975348
+            },
+            {
+              "pid": 74769,
+              "name": "rustc",
+              "cpu_percent": 18.668364998151603
+            },
+            {
+              "pid": 74742,
+              "name": "rustc",
+              "cpu_percent": 17.958805983906633
+            },
+            {
+              "pid": 74783,
+              "name": "rustc",
+              "cpu_percent": 17.74340646911847
+            }
+          ],
+          "new_or_exited_processes": 5
+        },
+        {
+          "total_percent": 533.6574810044812,
+          "maximum_process_percent": 85.928862501161,
+          "top_processes": [
+            {
+              "pid": 74828,
+              "name": "rustc",
+              "cpu_percent": 85.928862501161
+            },
+            {
+              "pid": 74827,
+              "name": "rustc",
+              "cpu_percent": 85.10404592262357
+            },
+            {
+              "pid": 74779,
+              "name": "rustc",
+              "cpu_percent": 19.809635565207433
+            },
+            {
+              "pid": 74812,
+              "name": "rustc",
+              "cpu_percent": 19.423284139348027
+            },
+            {
+              "pid": 74769,
+              "name": "rustc",
+              "cpu_percent": 19.022841943938328
+            }
+          ],
+          "new_or_exited_processes": 7
+        },
+        {
+          "total_percent": 512.1251907387093,
+          "maximum_process_percent": 84.58535169919344,
+          "top_processes": [
+            {
+              "pid": 74832,
+              "name": "python3.10",
+              "cpu_percent": 84.58535169919344
+            },
+            {
+              "pid": 74827,
+              "name": "rustc",
+              "cpu_percent": 83.72366233516107
+            },
+            {
+              "pid": 74828,
+              "name": "rustc",
+              "cpu_percent": 83.27604949963262
+            },
+            {
+              "pid": 74814,
+              "name": "rustc",
+              "cpu_percent": 18.91370438508827
+            },
+            {
+              "pid": 74815,
+              "name": "rustc",
+              "cpu_percent": 18.76299860691564
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 692.9907806324053,
+          "maximum_process_percent": 187.84131624317286,
+          "top_processes": [
+            {
+              "pid": 74827,
+              "name": "rustc",
+              "cpu_percent": 187.84131624317286
+            },
+            {
+              "pid": 74828,
+              "name": "rustc",
+              "cpu_percent": 84.82641903939306
+            },
+            {
+              "pid": 2341,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 25.98209608014298
+            },
+            {
+              "pid": 74833,
+              "name": "rustc",
+              "cpu_percent": 19.160252470938964
+            },
+            {
+              "pid": 74778,
+              "name": "rustc",
+              "cpu_percent": 19.0112187319056
+            }
+          ],
+          "new_or_exited_processes": 4
+        },
+        {
+          "total_percent": 723.6407348296894,
+          "maximum_process_percent": 184.16210518433238,
+          "top_processes": [
+            {
+              "pid": 74827,
+              "name": "rustc",
+              "cpu_percent": 184.16210518433238
+            },
+            {
+              "pid": 74828,
+              "name": "rustc",
+              "cpu_percent": 142.54210253425612
+            },
+            {
+              "pid": 74838,
+              "name": "python3.10",
+              "cpu_percent": 82.7890368004498
+            },
+            {
+              "pid": 2341,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 26.67143297916607
+            },
+            {
+              "pid": 74811,
+              "name": "rustc",
+              "cpu_percent": 20.534240991205987
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 963.7722640334476,
+          "maximum_process_percent": 277.76070565046643,
+          "top_processes": [
+            {
+              "pid": 74828,
+              "name": "rustc",
+              "cpu_percent": 277.76070565046643
+            },
+            {
+              "pid": 74838,
+              "name": "python3.10",
+              "cpu_percent": 78.71375979505878
+            },
+            {
+              "pid": 74779,
+              "name": "rustc",
+              "cpu_percent": 42.833833310816274
+            },
+            {
+              "pid": 74783,
+              "name": "rustc",
+              "cpu_percent": 37.53973561728947
+            },
+            {
+              "pid": 74833,
+              "name": "rustc",
+              "cpu_percent": 23.76960515595592
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 739.7359074309936,
+          "maximum_process_percent": 219.9766074499695,
+          "top_processes": [
+            {
+              "pid": 74828,
+              "name": "rustc",
+              "cpu_percent": 219.9766074499695
+            },
+            {
+              "pid": 74779,
+              "name": "rustc",
+              "cpu_percent": 82.40485878629872
+            },
+            {
+              "pid": 74834,
+              "name": "rustc",
+              "cpu_percent": 21.77411145786622
+            },
+            {
+              "pid": 74811,
+              "name": "rustc",
+              "cpu_percent": 21.770370038032183
+            },
+            {
+              "pid": 74814,
+              "name": "rustc",
+              "cpu_percent": 21.382508054031057
+            }
+          ],
+          "new_or_exited_processes": 4
+        },
+        {
+          "total_percent": 593.5436508407985,
+          "maximum_process_percent": 209.7244350484631,
+          "top_processes": [
+            {
+              "pid": 74828,
+              "name": "rustc",
+              "cpu_percent": 209.7244350484631
+            },
+            {
+              "pid": 74867,
+              "name": "python3.10",
+              "cpu_percent": 87.35422781566861
+            },
+            {
+              "pid": 74834,
+              "name": "rustc",
+              "cpu_percent": 20.068459104201377
+            },
+            {
+              "pid": 74815,
+              "name": "rustc",
+              "cpu_percent": 19.756019196475894
+            },
+            {
+              "pid": 74812,
+              "name": "rustc",
+              "cpu_percent": 19.581355654641804
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 542.5121576301481,
+          "maximum_process_percent": 190.83125032032575,
+          "top_processes": [
+            {
+              "pid": 74828,
+              "name": "rustc",
+              "cpu_percent": 190.83125032032575
+            },
+            {
+              "pid": 74815,
+              "name": "rustc",
+              "cpu_percent": 19.44585465973462
+            },
+            {
+              "pid": 74871,
+              "name": "rustc",
+              "cpu_percent": 18.84425533667154
+            },
+            {
+              "pid": 74834,
+              "name": "rustc",
+              "cpu_percent": 18.57852917870966
+            },
+            {
+              "pid": 74812,
+              "name": "rustc",
+              "cpu_percent": 18.475505194187036
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 504.990208378092,
+          "maximum_process_percent": 83.98784332382033,
+          "top_processes": [
+            {
+              "pid": 74873,
+              "name": "python3.10",
+              "cpu_percent": 83.98784332382033
+            },
+            {
+              "pid": 74828,
+              "name": "rustc",
+              "cpu_percent": 82.55968023955586
+            },
+            {
+              "pid": 74811,
+              "name": "rustc",
+              "cpu_percent": 29.69593209470718
+            },
+            {
+              "pid": 74812,
+              "name": "rustc",
+              "cpu_percent": 24.594894463269867
+            },
+            {
+              "pid": 74833,
+              "name": "rustc",
+              "cpu_percent": 20.093549721255645
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 545.2391901848249,
+          "maximum_process_percent": 36.39954307950699,
+          "top_processes": [
+            {
+              "pid": 74814,
+              "name": "rustc",
+              "cpu_percent": 36.39954307950699
+            },
+            {
+              "pid": 74815,
+              "name": "rustc",
+              "cpu_percent": 22.435643624953187
+            },
+            {
+              "pid": 74834,
+              "name": "rustc",
+              "cpu_percent": 19.105826578856473
+            },
+            {
+              "pid": 74870,
+              "name": "rustc",
+              "cpu_percent": 18.98556058404781
+            },
+            {
+              "pid": 74871,
+              "name": "rustc",
+              "cpu_percent": 17.91260057137929
+            }
+          ],
+          "new_or_exited_processes": 10
+        },
+        {
+          "total_percent": 567.2437396914625,
+          "maximum_process_percent": 86.85305673936219,
+          "top_processes": [
+            {
+              "pid": 74923,
+              "name": "python3.10",
+              "cpu_percent": 86.85305673936219
+            },
+            {
+              "pid": 2341,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 27.537783341905893
+            },
+            {
+              "pid": 74839,
+              "name": "rustc",
+              "cpu_percent": 19.58797095127578
+            },
+            {
+              "pid": 74870,
+              "name": "rustc",
+              "cpu_percent": 19.436660401226852
+            },
+            {
+              "pid": 74896,
+              "name": "rustc",
+              "cpu_percent": 19.428009330745773
+            }
+          ],
+          "new_or_exited_processes": 7
+        },
+        {
+          "total_percent": 442.56799556646064,
+          "maximum_process_percent": 19.126453326538456,
+          "top_processes": [
+            {
+              "pid": 74834,
+              "name": "rustc",
+              "cpu_percent": 19.126453326538456
+            },
+            {
+              "pid": 74839,
+              "name": "rustc",
+              "cpu_percent": 19.09839319452102
+            },
+            {
+              "pid": 74833,
+              "name": "rustc",
+              "cpu_percent": 19.07449867478435
+            },
+            {
+              "pid": 74895,
+              "name": "rustc",
+              "cpu_percent": 19.03313659075684
+            },
+            {
+              "pid": 74933,
+              "name": "rustc",
+              "cpu_percent": 18.798036167464193
+            }
+          ],
+          "new_or_exited_processes": 4
+        },
+        {
+          "total_percent": 552.4322524471364,
+          "maximum_process_percent": 81.48989603455021,
+          "top_processes": [
+            {
+              "pid": 74949,
+              "name": "python3.10",
+              "cpu_percent": 81.48989603455021
+            },
+            {
+              "pid": 74833,
+              "name": "rustc",
+              "cpu_percent": 57.05727190549666
+            },
+            {
+              "pid": 688,
+              "name": "fontd",
+              "cpu_percent": 31.185150555452317
+            },
+            {
+              "pid": 1241,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 28.077334016562688
+            },
+            {
+              "pid": 74870,
+              "name": "rustc",
+              "cpu_percent": 20.17660035001676
+            }
+          ],
+          "new_or_exited_processes": 7
+        },
+        {
+          "total_percent": 453.3946700347452,
+          "maximum_process_percent": 64.87842673444665,
+          "top_processes": [
+            {
+              "pid": 1241,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 64.87842673444665
+            },
+            {
+              "pid": 74871,
+              "name": "rustc",
+              "cpu_percent": 18.7198541155723
+            },
+            {
+              "pid": 74896,
+              "name": "rustc",
+              "cpu_percent": 18.595949672277666
+            },
+            {
+              "pid": 74895,
+              "name": "rustc",
+              "cpu_percent": 18.501167189314845
+            },
+            {
+              "pid": 1108,
+              "name": "Brave Browser",
+              "cpu_percent": 18.28271584132454
+            }
+          ],
+          "new_or_exited_processes": 4
+        },
+        {
+          "total_percent": 380.81445779189113,
+          "maximum_process_percent": 59.44825333401354,
+          "top_processes": [
+            {
+              "pid": 74839,
+              "name": "rustc",
+              "cpu_percent": 59.44825333401354
+            },
+            {
+              "pid": 74930,
+              "name": "rustc",
+              "cpu_percent": 20.326810980905154
+            },
+            {
+              "pid": 74956,
+              "name": "rustc",
+              "cpu_percent": 20.141949914966812
+            },
+            {
+              "pid": 74863,
+              "name": "rustc",
+              "cpu_percent": 20.056390591211883
+            },
+            {
+              "pid": 74955,
+              "name": "rustc",
+              "cpu_percent": 19.86451087974575
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 310.65019941042726,
+          "maximum_process_percent": 21.287983798921687,
+          "top_processes": [
+            {
+              "pid": 74896,
+              "name": "rustc",
+              "cpu_percent": 21.287983798921687
+            },
+            {
+              "pid": 74956,
+              "name": "rustc",
+              "cpu_percent": 20.78909359581208
+            },
+            {
+              "pid": 74871,
+              "name": "rustc",
+              "cpu_percent": 20.707990784421888
+            },
+            {
+              "pid": 74955,
+              "name": "rustc",
+              "cpu_percent": 20.6709949975641
+            },
+            {
+              "pid": 74933,
+              "name": "rustc",
+              "cpu_percent": 20.656528169314242
+            }
+          ],
+          "new_or_exited_processes": 4
+        },
+        {
+          "total_percent": 286.9729988635094,
+          "maximum_process_percent": 22.8651230327744,
+          "top_processes": [
+            {
+              "pid": 74871,
+              "name": "rustc",
+              "cpu_percent": 22.8651230327744
+            },
+            {
+              "pid": 74930,
+              "name": "rustc",
+              "cpu_percent": 20.88125294986587
+            },
+            {
+              "pid": 74956,
+              "name": "rustc",
+              "cpu_percent": 20.763946777838672
+            },
+            {
+              "pid": 74933,
+              "name": "rustc",
+              "cpu_percent": 20.446215612529382
+            },
+            {
+              "pid": 74895,
+              "name": "rustc",
+              "cpu_percent": 20.335943234510214
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 395.56211180497115,
+          "maximum_process_percent": 77.68994501264467,
+          "top_processes": [
+            {
+              "pid": 74871,
+              "name": "rustc",
+              "cpu_percent": 77.68994501264467
+            },
+            {
+              "pid": 2341,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 27.64514085456365
+            },
+            {
+              "pid": 74895,
+              "name": "rustc",
+              "cpu_percent": 20.598091225339367
+            },
+            {
+              "pid": 74963,
+              "name": "rustc",
+              "cpu_percent": 20.489019940969346
+            },
+            {
+              "pid": 74968,
+              "name": "rustc",
+              "cpu_percent": 20.408898741488166
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 440.76752348997513,
+          "maximum_process_percent": 83.92693676420387,
+          "top_processes": [
+            {
+              "pid": 74871,
+              "name": "rustc",
+              "cpu_percent": 83.92693676420387
+            },
+            {
+              "pid": 2341,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 34.86552597238461
+            },
+            {
+              "pid": 1136,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 31.775465615717096
+            },
+            {
+              "pid": 74967,
+              "name": "rustc",
+              "cpu_percent": 19.727719473719915
+            },
+            {
+              "pid": 74956,
+              "name": "rustc",
+              "cpu_percent": 19.719484899281063
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 627.6678506570115,
+          "maximum_process_percent": 81.70223506437291,
+          "top_processes": [
+            {
+              "pid": 74871,
+              "name": "rustc",
+              "cpu_percent": 81.70223506437291
+            },
+            {
+              "pid": 2341,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 69.32346537580393
+            },
+            {
+              "pid": 2339,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 50.36468116046436
+            },
+            {
+              "pid": 1773,
+              "name": "ChatGPT",
+              "cpu_percent": 43.31731376537549
+            },
+            {
+              "pid": 52106,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 29.092202924682066
+            }
+          ],
+          "new_or_exited_processes": 4
+        },
+        {
+          "total_percent": 539.0329110561003,
+          "maximum_process_percent": 200.93946938211593,
+          "top_processes": [
+            {
+              "pid": 2341,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 200.93946938211593
+            },
+            {
+              "pid": 74930,
+              "name": "rustc",
+              "cpu_percent": 64.0029483666593
+            },
+            {
+              "pid": 74933,
+              "name": "rustc",
+              "cpu_percent": 43.62710065920323
+            },
+            {
+              "pid": 74981,
+              "name": "rustc",
+              "cpu_percent": 19.54595971298356
+            },
+            {
+              "pid": 74968,
+              "name": "rustc",
+              "cpu_percent": 19.388586308232817
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 336.22582777470365,
+          "maximum_process_percent": 21.017849571911317,
+          "top_processes": [
+            {
+              "pid": 74956,
+              "name": "rustc",
+              "cpu_percent": 21.017849571911317
+            },
+            {
+              "pid": 74955,
+              "name": "rustc",
+              "cpu_percent": 20.997477705993848
+            },
+            {
+              "pid": 74963,
+              "name": "rustc",
+              "cpu_percent": 20.911203298335344
+            },
+            {
+              "pid": 74981,
+              "name": "rustc",
+              "cpu_percent": 20.8590134515409
+            },
+            {
+              "pid": 74970,
+              "name": "rustc",
+              "cpu_percent": 20.703596196960483
+            }
+          ],
+          "new_or_exited_processes": 4
+        },
+        {
+          "total_percent": 296.5507616240377,
+          "maximum_process_percent": 20.773807960649556,
+          "top_processes": [
+            {
+              "pid": 74968,
+              "name": "rustc",
+              "cpu_percent": 20.773807960649556
+            },
+            {
+              "pid": 74963,
+              "name": "rustc",
+              "cpu_percent": 20.738914642152125
+            },
+            {
+              "pid": 74981,
+              "name": "rustc",
+              "cpu_percent": 20.6527417280568
+            },
+            {
+              "pid": 74999,
+              "name": "rustc",
+              "cpu_percent": 20.4820319505217
+            },
+            {
+              "pid": 74996,
+              "name": "rustc",
+              "cpu_percent": 20.45350016695669
+            }
+          ],
+          "new_or_exited_processes": 5
+        },
+        {
+          "total_percent": 353.116784549835,
+          "maximum_process_percent": 85.07199533276825,
+          "top_processes": [
+            {
+              "pid": 75002,
+              "name": "python3.10",
+              "cpu_percent": 85.07199533276825
+            },
+            {
+              "pid": 74981,
+              "name": "rustc",
+              "cpu_percent": 19.551651121741767
+            },
+            {
+              "pid": 74970,
+              "name": "rustc",
+              "cpu_percent": 19.08018083080244
+            },
+            {
+              "pid": 74999,
+              "name": "rustc",
+              "cpu_percent": 19.076004124262212
+            },
+            {
+              "pid": 74996,
+              "name": "rustc",
+              "cpu_percent": 19.04696799608968
+            }
+          ],
+          "new_or_exited_processes": 3
+        },
+        {
+          "total_percent": 435.47005754520126,
+          "maximum_process_percent": 83.2408298210739,
+          "top_processes": [
+            {
+              "pid": 75002,
+              "name": "python3.10",
+              "cpu_percent": 83.2408298210739
+            },
+            {
+              "pid": 75031,
+              "name": "swift-package",
+              "cpu_percent": 27.33990102338547
+            },
+            {
+              "pid": 74997,
+              "name": "rustc",
+              "cpu_percent": 18.286962093775706
+            },
+            {
+              "pid": 74967,
+              "name": "rustc",
+              "cpu_percent": 18.02956642059809
+            },
+            {
+              "pid": 74999,
+              "name": "rustc",
+              "cpu_percent": 18.00325325843439
+            }
+          ],
+          "new_or_exited_processes": 3
+        },
+        {
+          "total_percent": 445.9920366043414,
+          "maximum_process_percent": 85.16677934592715,
+          "top_processes": [
+            {
+              "pid": 75031,
+              "name": "swift-package",
+              "cpu_percent": 85.16677934592715
+            },
+            {
+              "pid": 75002,
+              "name": "python3.10",
+              "cpu_percent": 84.21633027905935
+            },
+            {
+              "pid": 75001,
+              "name": "rustc",
+              "cpu_percent": 18.609150500739034
+            },
+            {
+              "pid": 74999,
+              "name": "rustc",
+              "cpu_percent": 18.454698337468695
+            },
+            {
+              "pid": 74970,
+              "name": "rustc",
+              "cpu_percent": 18.073047588763693
+            }
+          ],
+          "new_or_exited_processes": 3
+        },
+        {
+          "total_percent": 413.6565646475586,
+          "maximum_process_percent": 84.47596280871727,
+          "top_processes": [
+            {
+              "pid": 75002,
+              "name": "python3.10",
+              "cpu_percent": 84.47596280871727
+            },
+            {
+              "pid": 74981,
+              "name": "rustc",
+              "cpu_percent": 19.707640071187384
+            },
+            {
+              "pid": 75000,
+              "name": "rustc",
+              "cpu_percent": 19.01948101023975
+            },
+            {
+              "pid": 74996,
+              "name": "rustc",
+              "cpu_percent": 18.847256079998854
+            },
+            {
+              "pid": 74999,
+              "name": "rustc",
+              "cpu_percent": 18.67489183246802
+            }
+          ],
+          "new_or_exited_processes": 5
+        },
+        {
+          "total_percent": 437.51477301828515,
+          "maximum_process_percent": 84.72157073091569,
+          "top_processes": [
+            {
+              "pid": 75002,
+              "name": "python3.10",
+              "cpu_percent": 84.72157073091569
+            },
+            {
+              "pid": 75057,
+              "name": "rustc",
+              "cpu_percent": 19.52592047206435
+            },
+            {
+              "pid": 74981,
+              "name": "rustc",
+              "cpu_percent": 19.22246807832791
+            },
+            {
+              "pid": 74997,
+              "name": "rustc",
+              "cpu_percent": 18.93653235511497
+            },
+            {
+              "pid": 75001,
+              "name": "rustc",
+              "cpu_percent": 18.90792599390032
+            }
+          ],
+          "new_or_exited_processes": 3
+        },
+        {
+          "total_percent": 358.4016276598096,
+          "maximum_process_percent": 87.52688523874092,
+          "top_processes": [
+            {
+              "pid": 75002,
+              "name": "python3.10",
+              "cpu_percent": 87.52688523874092
+            },
+            {
+              "pid": 74999,
+              "name": "rustc",
+              "cpu_percent": 19.574343326024128
+            },
+            {
+              "pid": 75035,
+              "name": "rustc",
+              "cpu_percent": 19.554903621739875
+            },
+            {
+              "pid": 75000,
+              "name": "rustc",
+              "cpu_percent": 19.445317231007188
+            },
+            {
+              "pid": 75001,
+              "name": "rustc",
+              "cpu_percent": 19.365402722396034
+            }
+          ],
+          "new_or_exited_processes": 3
+        },
+        {
+          "total_percent": 351.23265380062685,
+          "maximum_process_percent": 88.07343228554355,
+          "top_processes": [
+            {
+              "pid": 75002,
+              "name": "python3.10",
+              "cpu_percent": 88.07343228554355
+            },
+            {
+              "pid": 74970,
+              "name": "rustc",
+              "cpu_percent": 24.562574572684934
+            },
+            {
+              "pid": 75001,
+              "name": "rustc",
+              "cpu_percent": 20.019002807499355
+            },
+            {
+              "pid": 75057,
+              "name": "rustc",
+              "cpu_percent": 19.74762252388868
+            },
+            {
+              "pid": 75000,
+              "name": "rustc",
+              "cpu_percent": 19.449251879092238
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 441.45550555204863,
+          "maximum_process_percent": 86.19290780168505,
+          "top_processes": [
+            {
+              "pid": 75002,
+              "name": "python3.10",
+              "cpu_percent": 86.19290780168505
+            },
+            {
+              "pid": 75087,
+              "name": "rustc",
+              "cpu_percent": 21.994804654811823
+            },
+            {
+              "pid": 75070,
+              "name": "rustc",
+              "cpu_percent": 21.774087609679842
+            },
+            {
+              "pid": 75001,
+              "name": "rustc",
+              "cpu_percent": 21.550233224803932
+            },
+            {
+              "pid": 75057,
+              "name": "rustc",
+              "cpu_percent": 21.528872038230585
+            }
+          ],
+          "new_or_exited_processes": 4
+        },
+        {
+          "total_percent": 390.17605170281047,
+          "maximum_process_percent": 86.33356164737806,
+          "top_processes": [
+            {
+              "pid": 75002,
+              "name": "python3.10",
+              "cpu_percent": 86.33356164737806
+            },
+            {
+              "pid": 75057,
+              "name": "rustc",
+              "cpu_percent": 20.180950615667843
+            },
+            {
+              "pid": 75091,
+              "name": "rustc",
+              "cpu_percent": 19.82226833680016
+            },
+            {
+              "pid": 75090,
+              "name": "rustc",
+              "cpu_percent": 19.731973532296674
+            },
+            {
+              "pid": 75035,
+              "name": "rustc",
+              "cpu_percent": 19.694332798385815
+            }
+          ],
+          "new_or_exited_processes": 4
+        },
+        {
+          "total_percent": 363.70247704250005,
+          "maximum_process_percent": 87.36116700761622,
+          "top_processes": [
+            {
+              "pid": 75002,
+              "name": "python3.10",
+              "cpu_percent": 87.36116700761622
+            },
+            {
+              "pid": 75000,
+              "name": "rustc",
+              "cpu_percent": 43.01671249809889
+            },
+            {
+              "pid": 75090,
+              "name": "rustc",
+              "cpu_percent": 20.25546720701447
+            },
+            {
+              "pid": 75035,
+              "name": "rustc",
+              "cpu_percent": 20.019180206308
+            },
+            {
+              "pid": 75057,
+              "name": "rustc",
+              "cpu_percent": 19.97440505682496
+            }
+          ],
+          "new_or_exited_processes": 3
+        },
+        {
+          "total_percent": 407.3005911274587,
+          "maximum_process_percent": 86.41766544800751,
+          "top_processes": [
+            {
+              "pid": 75000,
+              "name": "rustc",
+              "cpu_percent": 86.41766544800751
+            },
+            {
+              "pid": 75002,
+              "name": "python3.10",
+              "cpu_percent": 86.28448989838715
+            },
+            {
+              "pid": 75138,
+              "name": "rustc",
+              "cpu_percent": 20.937055555088737
+            },
+            {
+              "pid": 75091,
+              "name": "rustc",
+              "cpu_percent": 20.769623882067254
+            },
+            {
+              "pid": 75035,
+              "name": "rustc",
+              "cpu_percent": 20.679802637656664
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 390.67486042211675,
+          "maximum_process_percent": 86.7886276009714,
+          "top_processes": [
+            {
+              "pid": 75002,
+              "name": "python3.10",
+              "cpu_percent": 86.7886276009714
+            },
+            {
+              "pid": 75087,
+              "name": "rustc",
+              "cpu_percent": 20.10209154896396
+            },
+            {
+              "pid": 75091,
+              "name": "rustc",
+              "cpu_percent": 19.92775589769183
+            },
+            {
+              "pid": 75138,
+              "name": "rustc",
+              "cpu_percent": 19.927141336084475
+            },
+            {
+              "pid": 75057,
+              "name": "rustc",
+              "cpu_percent": 19.71448048100494
+            }
+          ],
+          "new_or_exited_processes": 4
+        },
+        {
+          "total_percent": 345.0305645892324,
+          "maximum_process_percent": 86.54703610210295,
+          "top_processes": [
+            {
+              "pid": 75002,
+              "name": "python3.10",
+              "cpu_percent": 86.54703610210295
+            },
+            {
+              "pid": 75091,
+              "name": "rustc",
+              "cpu_percent": 20.428494595618155
+            },
+            {
+              "pid": 75137,
+              "name": "rustc",
+              "cpu_percent": 19.939372442475985
+            },
+            {
+              "pid": 75141,
+              "name": "rustc",
+              "cpu_percent": 19.628539335845566
+            },
+            {
+              "pid": 75138,
+              "name": "rustc",
+              "cpu_percent": 19.577262485785067
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 333.74602423758313,
+          "maximum_process_percent": 86.77212515180224,
+          "top_processes": [
+            {
+              "pid": 75002,
+              "name": "python3.10",
+              "cpu_percent": 86.77212515180224
+            },
+            {
+              "pid": 75137,
+              "name": "rustc",
+              "cpu_percent": 20.05811650196568
+            },
+            {
+              "pid": 75146,
+              "name": "rustc",
+              "cpu_percent": 20.0052266883557
+            },
+            {
+              "pid": 75141,
+              "name": "rustc",
+              "cpu_percent": 19.540379585020087
+            },
+            {
+              "pid": 75087,
+              "name": "rustc",
+              "cpu_percent": 19.411047077811386
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 325.8439352002089,
+          "maximum_process_percent": 86.84787211009166,
+          "top_processes": [
+            {
+              "pid": 75002,
+              "name": "python3.10",
+              "cpu_percent": 86.84787211009166
+            },
+            {
+              "pid": 75141,
+              "name": "rustc",
+              "cpu_percent": 19.725516552041995
+            },
+            {
+              "pid": 75115,
+              "name": "rustc",
+              "cpu_percent": 19.522032318945527
+            },
+            {
+              "pid": 75087,
+              "name": "rustc",
+              "cpu_percent": 19.50895839937804
+            },
+            {
+              "pid": 75151,
+              "name": "rustc",
+              "cpu_percent": 19.49506153443008
+            }
+          ],
+          "new_or_exited_processes": 15
+        },
+        {
+          "total_percent": 387.5064234042432,
+          "maximum_process_percent": 87.75174329919022,
+          "top_processes": [
+            {
+              "pid": 75002,
+              "name": "python3.10",
+              "cpu_percent": 87.75174329919022
+            },
+            {
+              "pid": 75087,
+              "name": "rustc",
+              "cpu_percent": 19.090931248268422
+            },
+            {
+              "pid": 75152,
+              "name": "rustc",
+              "cpu_percent": 19.07420044526204
+            },
+            {
+              "pid": 75141,
+              "name": "rustc",
+              "cpu_percent": 19.010035066237105
+            },
+            {
+              "pid": 75091,
+              "name": "rustc",
+              "cpu_percent": 18.8799746462641
+            }
+          ],
+          "new_or_exited_processes": 9
+        },
+        {
+          "total_percent": 421.6288865370763,
+          "maximum_process_percent": 85.02181773920884,
+          "top_processes": [
+            {
+              "pid": 75002,
+              "name": "python3.10",
+              "cpu_percent": 85.02181773920884
+            },
+            {
+              "pid": 75115,
+              "name": "rustc",
+              "cpu_percent": 18.730686899931193
+            },
+            {
+              "pid": 75146,
+              "name": "rustc",
+              "cpu_percent": 18.465496691457833
+            },
+            {
+              "pid": 75090,
+              "name": "rustc",
+              "cpu_percent": 18.46034729551956
+            },
+            {
+              "pid": 75091,
+              "name": "rustc",
+              "cpu_percent": 18.320588919029774
+            }
+          ],
+          "new_or_exited_processes": 5
+        },
+        {
+          "total_percent": 643.7599979388898,
+          "maximum_process_percent": 92.71485207185287,
+          "top_processes": [
+            {
+              "pid": 75175,
+              "name": "rustc",
+              "cpu_percent": 92.71485207185287
+            },
+            {
+              "pid": 75177,
+              "name": "rustc",
+              "cpu_percent": 89.13986782531997
+            },
+            {
+              "pid": 75002,
+              "name": "python3.10",
+              "cpu_percent": 87.03257157725103
+            },
+            {
+              "pid": 1773,
+              "name": "ChatGPT",
+              "cpu_percent": 34.894445314978185
+            },
+            {
+              "pid": 75137,
+              "name": "rustc",
+              "cpu_percent": 19.339748848867323
+            }
+          ],
+          "new_or_exited_processes": 8
+        },
+        {
+          "total_percent": 695.1567080910343,
+          "maximum_process_percent": 153.66339111523737,
+          "top_processes": [
+            {
+              "pid": 75177,
+              "name": "rustc",
+              "cpu_percent": 153.66339111523737
+            },
+            {
+              "pid": 75002,
+              "name": "python3.10",
+              "cpu_percent": 83.74265749020124
+            },
+            {
+              "pid": 75189,
+              "name": "rustc",
+              "cpu_percent": 19.55933587367247
+            },
+            {
+              "pid": 75190,
+              "name": "rustc",
+              "cpu_percent": 19.09935804041151
+            },
+            {
+              "pid": 75151,
+              "name": "rustc",
+              "cpu_percent": 18.605296264837158
+            }
+          ],
+          "new_or_exited_processes": 6
+        },
+        {
+          "total_percent": 531.792882650492,
+          "maximum_process_percent": 81.10870027951208,
+          "top_processes": [
+            {
+              "pid": 75002,
+              "name": "python3.10",
+              "cpu_percent": 81.10870027951208
+            },
+            {
+              "pid": 75151,
+              "name": "rustc",
+              "cpu_percent": 18.333511013636873
+            },
+            {
+              "pid": 75212,
+              "name": "rustc",
+              "cpu_percent": 18.260329979899037
+            },
+            {
+              "pid": 75214,
+              "name": "rustc",
+              "cpu_percent": 18.186257098762912
+            },
+            {
+              "pid": 75189,
+              "name": "rustc",
+              "cpu_percent": 18.041147119468384
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 574.8518904945566,
+          "maximum_process_percent": 81.95925343318665,
+          "top_processes": [
+            {
+              "pid": 75002,
+              "name": "python3.10",
+              "cpu_percent": 81.95925343318665
+            },
+            {
+              "pid": 75138,
+              "name": "rustc",
+              "cpu_percent": 65.95115740739513
+            },
+            {
+              "pid": 75214,
+              "name": "rustc",
+              "cpu_percent": 20.235400704989775
+            },
+            {
+              "pid": 75212,
+              "name": "rustc",
+              "cpu_percent": 20.03159900865499
+            },
+            {
+              "pid": 75141,
+              "name": "rustc",
+              "cpu_percent": 19.157327714048513
+            }
+          ],
+          "new_or_exited_processes": 5
+        },
+        {
+          "total_percent": 426.1004016827925,
+          "maximum_process_percent": 86.78465193445152,
+          "top_processes": [
+            {
+              "pid": 75002,
+              "name": "python3.10",
+              "cpu_percent": 86.78465193445152
+            },
+            {
+              "pid": 75152,
+              "name": "rustc",
+              "cpu_percent": 18.534513770719084
+            },
+            {
+              "pid": 75190,
+              "name": "rustc",
+              "cpu_percent": 18.47167841509688
+            },
+            {
+              "pid": 75151,
+              "name": "rustc",
+              "cpu_percent": 18.199328553420113
+            },
+            {
+              "pid": 75214,
+              "name": "rustc",
+              "cpu_percent": 18.155649695768503
+            }
+          ],
+          "new_or_exited_processes": 4
+        },
+        {
+          "total_percent": 359.53049365291736,
+          "maximum_process_percent": 86.27920791939243,
+          "top_processes": [
+            {
+              "pid": 75002,
+              "name": "python3.10",
+              "cpu_percent": 86.27920791939243
+            },
+            {
+              "pid": 75212,
+              "name": "rustc",
+              "cpu_percent": 19.735187523902518
+            },
+            {
+              "pid": 75214,
+              "name": "rustc",
+              "cpu_percent": 19.579442668939652
+            },
+            {
+              "pid": 75146,
+              "name": "rustc",
+              "cpu_percent": 19.557732659454494
+            },
+            {
+              "pid": 75189,
+              "name": "rustc",
+              "cpu_percent": 19.506230620280128
+            }
+          ],
+          "new_or_exited_processes": 2
+        }
+      ],
+      "repeat": 0,
+      "policy": "baseline",
+      "variant": "baseline"
+    }
+  ],
+  "host_load_window": "requests_only",
+  "quiet_timeout_seconds": 180,
+  "campaign_completed": false,
+  "host_load_rule": "3 consecutive 1s samples: total<=200%, max process<=75%, no PID churn",
+  "notes": [
+    "Export and model initialization excluded from request timing",
+    "Host gate checks sampled CPU counters, not disk/GPU contention",
+    "Aggregate CPU includes benchmark; per-process gate excludes worker tree",
+    "Startup includes import/export/preload/warmup; ready wait is separate",
+    "Request host window includes parity checks; individual latencies exclude them",
+    "Request host sampling uses approx 100ms cadence; startup uses approx 1s",
+    "OS file cache is not reset; this is not cold-disk performance",
+    "Baseline has resident source weights; candidates use file residency",
+    "Phase spans are host wall times; acquire includes nested loading spans",
+    "Router eval includes gate/top-k execution, not just a synchronization wait",
+    "MLX load and eval may include file I/O; checksum_read is separate",
+    "Opt-in instrumentation overhead is included in request timings",
+    "No RSS, GPU, E2E chat, quality-suite or P3 certification"
+  ],
+  "source_sha256": {
+    "scripts/compare_strata_experts.py": "f05dc9de5b7ea83bf2fc29139e7cdba0ce537fc90b8bec56ee5f42daf5550f9c",
+    "scripts/strata_measurement.py": "e24018d3beeae11b71f7d18c1d921e84363517453552c1de98780b663e0f4ddb",
+    "vllm_apple/qwen3_moe_residency.py": "199013dcfa5ecf285f630ebb35b256f8e9e6d1fb887c107f420d237902ee4483",
+    "vllm_apple/mlx_expert_backend.py": "6a286b3bec5b52acafc71d2c16006d974053cb344f3536ae06b6780d6575129b",
+    "vllm_apple/mlx_expert_export.py": "a511d8d2417f63000487e4367e0e1e0e056a435613ba6394138aecdaaa63cb8f",
+    "vllm_apple/expert_manifest.py": "0c62fb0346bae8cb4b92972a8924e5f365d1547a9e3b4384e13f7c6caf788c7d",
+    "vllm_apple/expert_residency.py": "0bb7320cbb3b259c32aa6fc3deb9e22f585f03350d0a07ec4662240e87ea6a57",
+    "vllm_apple/expert_execution.py": "d526e9b9b855949530a2414e48389770a962258f9d8520f033f5f018d89ba340",
+    "vllm_apple/expert_timing.py": "1658bf5ecf2bd677a3473a7f848088d8009dcb131e625b7610deb8b1baf36c7a",
+    "vllm_apple/qwen3_moe_gather.py": "3f30a83acb25b8e10b090156abfab9afa9e78df50b248d8cd4680ecab2f57464"
+  }
+}

@@ -1,0 +1,199 @@
+{
+  "scope": "synthetic_expert_loading_cpu_metal",
+  "report": "docs/evaluation/strata-load-memory-cpu-metal-final-2026-10-11.json",
+  "report_sha256": "741ddad2701ceda26b514d1c701c5dffbb5b4bb177cccde75924f3962c17d731",
+  "groups": [
+    {
+      "device": "cpu",
+      "capacity": 1,
+      "mode": "postload",
+      "runs": 2,
+      "payload_bytes": 4718592,
+      "budget_bytes": 4718592,
+      "mlx_active_peak_bytes_range": [
+        9437184,
+        9437184
+      ],
+      "sampled_rss_peak_bytes_range": [
+        72810496,
+        73416704
+      ],
+      "process_hwm_rss_bytes_range": [
+        72810496,
+        73416704
+      ],
+      "closed_active_bytes": 0,
+      "after_clear_cache_bytes": 0
+    },
+    {
+      "device": "cpu",
+      "capacity": 1,
+      "mode": "preload",
+      "runs": 2,
+      "payload_bytes": 4718592,
+      "budget_bytes": 4718592,
+      "mlx_active_peak_bytes_range": [
+        4718592,
+        4718592
+      ],
+      "sampled_rss_peak_bytes_range": [
+        67796992,
+        68583424
+      ],
+      "process_hwm_rss_bytes_range": [
+        67796992,
+        68583424
+      ],
+      "closed_active_bytes": 0,
+      "after_clear_cache_bytes": 0
+    },
+    {
+      "device": "cpu",
+      "capacity": 2,
+      "mode": "postload",
+      "runs": 2,
+      "payload_bytes": 4718592,
+      "budget_bytes": 9437184,
+      "mlx_active_peak_bytes_range": [
+        14155776,
+        14155776
+      ],
+      "sampled_rss_peak_bytes_range": [
+        76398592,
+        77824000
+      ],
+      "process_hwm_rss_bytes_range": [
+        76398592,
+        77824000
+      ],
+      "closed_active_bytes": 0,
+      "after_clear_cache_bytes": 0
+    },
+    {
+      "device": "cpu",
+      "capacity": 2,
+      "mode": "preload",
+      "runs": 2,
+      "payload_bytes": 4718592,
+      "budget_bytes": 9437184,
+      "mlx_active_peak_bytes_range": [
+        9437184,
+        9437184
+      ],
+      "sampled_rss_peak_bytes_range": [
+        72581120,
+        73007104
+      ],
+      "process_hwm_rss_bytes_range": [
+        72581120,
+        73023488
+      ],
+      "closed_active_bytes": 0,
+      "after_clear_cache_bytes": 0
+    },
+    {
+      "device": "gpu",
+      "capacity": 1,
+      "mode": "postload",
+      "runs": 2,
+      "payload_bytes": 4718592,
+      "budget_bytes": 4718592,
+      "mlx_active_peak_bytes_range": [
+        9437184,
+        9437184
+      ],
+      "sampled_rss_peak_bytes_range": [
+        72155136,
+        74465280
+      ],
+      "process_hwm_rss_bytes_range": [
+        72155136,
+        74465280
+      ],
+      "closed_active_bytes": 0,
+      "after_clear_cache_bytes": 0
+    },
+    {
+      "device": "gpu",
+      "capacity": 1,
+      "mode": "preload",
+      "runs": 2,
+      "payload_bytes": 4718592,
+      "budget_bytes": 4718592,
+      "mlx_active_peak_bytes_range": [
+        4718592,
+        4718592
+      ],
+      "sampled_rss_peak_bytes_range": [
+        67371008,
+        67469312
+      ],
+      "process_hwm_rss_bytes_range": [
+        67371008,
+        67469312
+      ],
+      "closed_active_bytes": 0,
+      "after_clear_cache_bytes": 0
+    },
+    {
+      "device": "gpu",
+      "capacity": 2,
+      "mode": "postload",
+      "runs": 2,
+      "payload_bytes": 4718592,
+      "budget_bytes": 9437184,
+      "mlx_active_peak_bytes_range": [
+        14155776,
+        14155776
+      ],
+      "sampled_rss_peak_bytes_range": [
+        76922880,
+        78774272
+      ],
+      "process_hwm_rss_bytes_range": [
+        76922880,
+        78774272
+      ],
+      "closed_active_bytes": 0,
+      "after_clear_cache_bytes": 0
+    },
+    {
+      "device": "gpu",
+      "capacity": 2,
+      "mode": "preload",
+      "runs": 2,
+      "payload_bytes": 4718592,
+      "budget_bytes": 9437184,
+      "mlx_active_peak_bytes_range": [
+        9437184,
+        9437184
+      ],
+      "sampled_rss_peak_bytes_range": [
+        73367552,
+        74121216
+      ],
+      "process_hwm_rss_bytes_range": [
+        73367552,
+        74121216
+      ],
+      "closed_active_bytes": 0,
+      "after_clear_cache_bytes": 0
+    }
+  ],
+  "observed_preload_active_peak_reduction_bytes": 4718592,
+  "rss_peak_is_sampled_lower_bound": true,
+  "real_oom_qualified": false,
+  "speed_qualified": false,
+  "limitations": [
+    "Fixture exported in another process; workers retain no source model",
+    "Current RSS sampled at requested 1ms interval; short peaks may be missed",
+    "ru_maxrss is process lifetime high-water, not an isolated load peak",
+    "MLX peak reset per acquire; synchronization surrounds each load",
+    "MLX statistics cover process allocator, not total GPU/OS memory",
+    "GPU workers select Metal as default device; no inference kernels measured",
+    "Apple Silicon uses unified memory; RSS and MLX values overlap",
+    "Default allocator cache retained between loads; cleared at start/end",
+    "Checksums, file loading and weight eval included; inference excluded",
+    "Other host workloads may affect RSS sample cadence; no speed claim"
+  ]
+}

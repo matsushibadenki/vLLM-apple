@@ -1,0 +1,163 @@
+{
+  "schema_version": 1,
+  "trials": 12,
+  "requests": 768,
+  "scope": "synthetic_qwen3_cpu_all_resident",
+  "all_parity_passed": true,
+  "measurements": {
+    "baseline": {
+      "reuse_median_us": 50.917,
+      "total_ms": [
+        3.327584,
+        3.475254,
+        3.435665
+      ],
+      "total_relative_spread": 0.0429814897552585,
+      "phase_counts": {
+        "router_to_host": [
+          0,
+          0,
+          0
+        ],
+        "expert_build": [
+          0,
+          0,
+          0
+        ],
+        "expert_eval": [
+          0,
+          0,
+          0
+        ],
+        "mlx_load": [
+          0,
+          0,
+          0
+        ]
+      },
+      "gather_resident_bytes": [
+        null,
+        null,
+        null
+      ]
+    },
+    "sequential": {
+      "reuse_median_us": 162.792,
+      "total_ms": [
+        9.950417,
+        10.844461,
+        11.891915
+      ],
+      "total_relative_spread": 0.179031304552619,
+      "phase_counts": {
+        "router_to_host": [
+          64,
+          64,
+          64
+        ],
+        "expert_build": [
+          128,
+          128,
+          128
+        ],
+        "expert_eval": [
+          128,
+          128,
+          128
+        ],
+        "mlx_load": [
+          0,
+          0,
+          0
+        ]
+      },
+      "gather_resident_bytes": [
+        null,
+        null,
+        null
+      ]
+    },
+    "grouped": {
+      "reuse_median_us": 138.125,
+      "total_ms": [
+        8.69217,
+        9.284917,
+        9.265587
+      ],
+      "total_relative_spread": 0.06397295713698434,
+      "phase_counts": {
+        "router_to_host": [
+          64,
+          64,
+          64
+        ],
+        "expert_build": [
+          128,
+          128,
+          128
+        ],
+        "expert_eval": [
+          64,
+          64,
+          64
+        ],
+        "mlx_load": [
+          0,
+          0,
+          0
+        ]
+      },
+      "gather_resident_bytes": [
+        null,
+        null,
+        null
+      ]
+    },
+    "gather": {
+      "reuse_median_us": 55.958,
+      "total_ms": [
+        3.466922,
+        4.544249,
+        3.86825
+      ],
+      "total_relative_spread": 0.27850500872487555,
+      "phase_counts": {
+        "router_to_host": [
+          0,
+          0,
+          0
+        ],
+        "expert_build": [
+          64,
+          64,
+          64
+        ],
+        "expert_eval": [
+          0,
+          0,
+          0
+        ],
+        "mlx_load": [
+          0,
+          0,
+          0
+        ]
+      },
+      "gather_resident_bytes": [
+        36864,
+        36864,
+        36864
+      ]
+    }
+  },
+  "standard_adoption_eligible": false,
+  "automatic_application": false,
+  "evidence_sha256": "1707056f7704d848bf66651c3e6df1944cc7ae21f5573f602e9810fc54e522d8",
+  "conclusion": "Device-index gather removes host index materialization and per-expert evaluation in the reference hook; exploratory latency approaches baseline but does not beat it. Run spread fails certification.",
+  "limits": [
+    "All experts resident, no dynamic cache eviction",
+    "Startup staging/allocator peaks and RSS are unmeasured",
+    "No GPU, real-model quality or E2E qualification",
+    "Host synchronization and graph changes were applied together; individual causal percentages are unproven"
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "recorded_at": "2026-10-11T00:01:33.463008+00:00",
+  "status": "not_started",
+  "reason": "pinned_runtime_identity_mismatch",
+  "campaign": "p1-stability-m4-2026-10-11-r12",
+  "manifest_sha256": "d371b6f6f95f10bdada97a3ee237569881c8c3b713a997c0aba0e426b7b06529",
+  "mismatches": [
+    {
+      "path": "vllm_apple/expert_residency.py",
+      "expected_sha256": "e85228874e0784cc65871e7d72c570842d6018fb86ef08018e10cd2909a90840",
+      "actual_sha256": "0bb7320cbb3b259c32aa6fc3deb9e22f585f03350d0a07ec4662240e87ea6a57"
+    }
+  ],
+  "model_and_runner_hashes_verified": true,
+  "native_tokenizer_hash_verified": true,
+  "versions_verified": {
+    "mlx": "0.32.1",
+    "mlx_lm": "0.32.0"
+  },
+  "prior_smoke_passed": true,
+  "launch_attempted": false,
+  "worker_started": false,
+  "qualification": false,
+  "trial_failed": false,
+  "audit_1800_registered": false,
+  "recurring_updates_restored": false,
+  "notes": [
+    "No runtime files or pinned manifest changed.",
+    "Previous smoke evidence does not qualify the changed runtime.",
+    "No trial report or r12 launch receipt was created.",
+    "Revalidation and a new 09:00 campaign are required; do not start later today."
+  ]
+}

@@ -1,0 +1,3737 @@
+{
+  "scope": "synthetic_expert_loading_cpu_metal",
+  "trials": [
+    {
+      "status": "passed",
+      "device": "cpu",
+      "mode": "postload",
+      "capacity": 1,
+      "mlx_version": "0.32.1",
+      "metal_device_info": {
+        "device_name": "Apple M4",
+        "max_recommended_working_set_size": 26800603136,
+        "memory_size": 34359738368,
+        "architecture": "applegpu_g16g",
+        "max_buffer_length": 20100448256,
+        "resource_limit": 499000
+      },
+      "payload_bytes": 4718592,
+      "budget_bytes": 4718592,
+      "steps": [
+        {
+          "expert": 0,
+          "before": {
+            "rss_bytes": 59015168,
+            "process_hwm_rss_bytes": 59015168,
+            "mlx_active_bytes": 0,
+            "mlx_cache_bytes": 0
+          },
+          "sampled_rss_peak_bytes": 66420736,
+          "rss_samples": 5,
+          "process_hwm_rss_bytes": 66420736,
+          "mlx_peak_active_bytes": 4718592,
+          "mlx_active_bytes": 4718592,
+          "mlx_cache_bytes": 0,
+          "residency": {
+            "entries": 1,
+            "resident_bytes": 4718592,
+            "peak_resident_bytes": 4718592,
+            "peak_reserved_bytes": 0,
+            "maximum_entries": 4,
+            "maximum_bytes": 4718592,
+            "active_leases": 0,
+            "hits": 0,
+            "misses": 1,
+            "evictions": 0,
+            "rejections": 0,
+            "resize_pending": false,
+            "pending_maximum_entries": null,
+            "pending_maximum_bytes": null
+          }
+        },
+        {
+          "expert": 1,
+          "before": {
+            "rss_bytes": 66387968,
+            "process_hwm_rss_bytes": 66420736,
+            "mlx_active_bytes": 4718592,
+            "mlx_cache_bytes": 0
+          },
+          "sampled_rss_peak_bytes": 72810496,
+          "rss_samples": 5,
+          "process_hwm_rss_bytes": 72810496,
+          "mlx_peak_active_bytes": 9437184,
+          "mlx_active_bytes": 4718592,
+          "mlx_cache_bytes": 4718592,
+          "residency": {
+            "entries": 1,
+            "resident_bytes": 4718592,
+            "peak_resident_bytes": 4718592,
+            "peak_reserved_bytes": 0,
+            "maximum_entries": 4,
+            "maximum_bytes": 4718592,
+            "active_leases": 0,
+            "hits": 0,
+            "misses": 2,
+            "evictions": 1,
+            "rejections": 0,
+            "resize_pending": false,
+            "pending_maximum_entries": null,
+            "pending_maximum_bytes": null
+          }
+        },
+        {
+          "expert": 2,
+          "before": {
+            "rss_bytes": 72777728,
+            "process_hwm_rss_bytes": 72810496,
+            "mlx_active_bytes": 4718592,
+            "mlx_cache_bytes": 4718592
+          },
+          "sampled_rss_peak_bytes": 72810496,
+          "rss_samples": 5,
+          "process_hwm_rss_bytes": 72810496,
+          "mlx_peak_active_bytes": 9437184,
+          "mlx_active_bytes": 4718592,
+          "mlx_cache_bytes": 4718592,
+          "residency": {
+            "entries": 1,
+            "resident_bytes": 4718592,
+            "peak_resident_bytes": 4718592,
+            "peak_reserved_bytes": 0,
+            "maximum_entries": 4,
+            "maximum_bytes": 4718592,
+            "active_leases": 0,
+            "hits": 0,
+            "misses": 3,
+            "evictions": 2,
+            "rejections": 0,
+            "resize_pending": false,
+            "pending_maximum_entries": null,
+            "pending_maximum_bytes": null
+          }
+        },
+        {
+          "expert": 3,
+          "before": {
+            "rss_bytes": 72777728,
+            "process_hwm_rss_bytes": 72810496,
+            "mlx_active_bytes": 4718592,
+            "mlx_cache_bytes": 4718592
+          },
+          "sampled_rss_peak_bytes": 72810496,
+          "rss_samples": 5,
+          "process_hwm_rss_bytes": 72810496,
+          "mlx_peak_active_bytes": 9437184,
+          "mlx_active_bytes": 4718592,
+          "mlx_cache_bytes": 4718592,
+          "residency": {
+            "entries": 1,
+            "resident_bytes": 4718592,
+            "peak_resident_bytes": 4718592,
+            "peak_reserved_bytes": 0,
+            "maximum_entries": 4,
+            "maximum_bytes": 4718592,
+            "active_leases": 0,
+            "hits": 0,
+            "misses": 4,
+            "evictions": 3,
+            "rejections": 0,
+            "resize_pending": false,
+            "pending_maximum_entries": null,
+            "pending_maximum_bytes": null
+          }
+        },
+        {
+          "expert": 0,
+          "before": {
+            "rss_bytes": 72777728,
+            "process_hwm_rss_bytes": 72810496,
+            "mlx_active_bytes": 4718592,
+            "mlx_cache_bytes": 4718592
+          },
+          "sampled_rss_peak_bytes": 72810496,
+          "rss_samples": 5,
+          "process_hwm_rss_bytes": 72810496,
+          "mlx_peak_active_bytes": 9437184,
+          "mlx_active_bytes": 4718592,
+          "mlx_cache_bytes": 4718592,
+          "residency": {
+            "entries": 1,
+            "resident_bytes": 4718592,
+            "peak_resident_bytes": 4718592,
+            "peak_reserved_bytes": 0,
+            "maximum_entries": 4,
+            "maximum_bytes": 4718592,
+            "active_leases": 0,
+            "hits": 0,
+            "misses": 5,
+            "evictions": 4,
+            "rejections": 0,
+            "resize_pending": false,
+            "pending_maximum_entries": null,
+            "pending_maximum_bytes": null
+          }
+        },
+        {
+          "expert": 1,
+          "before": {
+            "rss_bytes": 72777728,
+            "process_hwm_rss_bytes": 72810496,
+            "mlx_active_bytes": 4718592,
+            "mlx_cache_bytes": 4718592
+          },
+          "sampled_rss_peak_bytes": 72810496,
+          "rss_samples": 5,
+          "process_hwm_rss_bytes": 72810496,
+          "mlx_peak_active_bytes": 9437184,
+          "mlx_active_bytes": 4718592,
+          "mlx_cache_bytes": 4718592,
+          "residency": {
+            "entries": 1,
+            "resident_bytes": 4718592,
+            "peak_resident_bytes": 4718592,
+            "peak_reserved_bytes": 0,
+            "maximum_entries": 4,
+            "maximum_bytes": 4718592,
+            "active_leases": 0,
+            "hits": 0,
+            "misses": 6,
+            "evictions": 5,
+            "rejections": 0,
+            "resize_pending": false,
+            "pending_maximum_entries": null,
+            "pending_maximum_bytes": null
+          }
+        }
+      ],
+      "closed": {
+        "residency": {
+          "entries": 0,
+          "resident_bytes": 0,
+          "peak_resident_bytes": 4718592,
+          "peak_reserved_bytes": 0,
+          "maximum_entries": 4,
+          "maximum_bytes": 4718592,
+          "active_leases": 0,
+          "hits": 0,
+          "misses": 6,
+          "evictions": 5,
+          "rejections": 0,
+          "resize_pending": false,
+          "pending_maximum_entries": null,
+          "pending_maximum_bytes": null
+        },
+        "rss_bytes": 72777728,
+        "mlx_active_bytes": 0,
+        "mlx_cache_bytes": 9437184
+      },
+      "after_clear_cache": {
+        "rss_bytes": 63471616,
+        "mlx_active_bytes": 0,
+        "mlx_cache_bytes": 0
+      },
+      "repeat": 0
+    },
+    {
+      "status": "passed",
+      "device": "cpu",
+      "mode": "preload",
+      "capacity": 1,
+      "mlx_version": "0.32.1",
+      "metal_device_info": {
+        "device_name": "Apple M4",
+        "max_recommended_working_set_size": 26800603136,
+        "memory_size": 34359738368,
+        "architecture": "applegpu_g16g",
+        "max_buffer_length": 20100448256,
+        "resource_limit": 499000
+      },
+      "payload_bytes": 4718592,
+      "budget_bytes": 4718592,
+      "steps": [
+        {
+          "expert": 0,
+          "before": {
+            "rss_bytes": 59670528,
+            "process_hwm_rss_bytes": 59670528,
+            "mlx_active_bytes": 0,
+            "mlx_cache_bytes": 0
+          },
+          "sampled_rss_peak_bytes": 67043328,
+          "rss_samples": 5,
+          "process_hwm_rss_bytes": 67076096,
+          "mlx_peak_active_bytes": 4718592,
+          "mlx_active_bytes": 4718592,
+          "mlx_cache_bytes": 0,
+          "residency": {
+            "entries": 1,
+            "resident_bytes": 4718592,
+            "peak_resident_bytes": 4718592,
+            "peak_reserved_bytes": 4718592,
+            "maximum_entries": 4,
+            "maximum_bytes": 4718592,
+            "active_leases": 0,
+            "hits": 0,
+            "misses": 1,
+            "evictions": 0,
+            "rejections": 0,
+            "resize_pending": false,
+            "pending_maximum_entries": null,
+            "pending_maximum_bytes": null
+          }
+        },
+        {
+          "expert": 1,
+          "before": {
+            "rss_bytes": 67043328,
+            "process_hwm_rss_bytes": 67076096,
+            "mlx_active_bytes": 4718592,
+            "mlx_cache_bytes": 0
+          },
+          "sampled_rss_peak_bytes": 68583424,
+          "rss_samples": 5,
+          "process_hwm_rss_bytes": 68583424,
+          "mlx_peak_active_bytes": 4718592,
+          "mlx_active_bytes": 4718592,
+          "mlx_cache_bytes": 0,
+          "residency": {
+            "entries": 1,
+            "resident_bytes": 4718592,
+            "peak_resident_bytes": 4718592,
+            "peak_reserved_bytes": 4718592,
+            "maximum_entries": 4,
+            "maximum_bytes": 4718592,
+            "active_leases": 0,
+            "hits": 0,
+            "misses": 2,
+            "evictions": 1,
+            "rejections": 0,
+            "resize_pending": false,
+            "pending_maximum_entries": null,
+            "pending_maximum_bytes": null
+          }
+        },
+        {
+          "expert": 2,
+          "before": {
+            "rss_bytes": 68550656,
+            "process_hwm_rss_bytes": 68583424,
+            "mlx_active_bytes": 4718592,
+            "mlx_cache_bytes": 0
+          },
+          "sampled_rss_peak_bytes": 68583424,
+          "rss_samples": 5,
+          "process_hwm_rss_bytes": 68583424,
+          "mlx_peak_active_bytes": 4718592,
+          "mlx_active_bytes": 4718592,
+          "mlx_cache_bytes": 0,
+          "residency": {
+            "entries": 1,
+            "resident_bytes": 4718592,
+            "peak_resident_bytes": 4718592,
+            "peak_reserved_bytes": 4718592,
+            "maximum_entries": 4,
+            "maximum_bytes": 4718592,
+            "active_leases": 0,
+            "hits": 0,
+            "misses": 3,
+            "evictions": 2,
+            "rejections": 0,
+            "resize_pending": false,
+            "pending_maximum_entries": null,
+            "pending_maximum_bytes": null
+          }
+        },
+        {
+          "expert": 3,
+          "before": {
+            "rss_bytes": 68550656,
+            "process_hwm_rss_bytes": 68583424,
+            "mlx_active_bytes": 4718592,
+            "mlx_cache_bytes": 0
+          },
+          "sampled_rss_peak_bytes": 68583424,
+          "rss_samples": 5,
+          "process_hwm_rss_bytes": 68583424,
+          "mlx_peak_active_bytes": 4718592,
+          "mlx_active_bytes": 4718592,
+          "mlx_cache_bytes": 0,
+          "residency": {
+            "entries": 1,
+            "resident_bytes": 4718592,
+            "peak_resident_bytes": 4718592,
+            "peak_reserved_bytes": 4718592,
+            "maximum_entries": 4,
+            "maximum_bytes": 4718592,
+            "active_leases": 0,
+            "hits": 0,
+            "misses": 4,
+            "evictions": 3,
+            "rejections": 0,
+            "resize_pending": false,
+            "pending_maximum_entries": null,
+            "pending_maximum_bytes": null
+          }
+        },
+        {
+          "expert": 0,
+          "before": {
+            "rss_bytes": 68550656,
+            "process_hwm_rss_bytes": 68583424,
+            "mlx_active_bytes": 4718592,
+            "mlx_cache_bytes": 0
+          },
+          "sampled_rss_peak_bytes": 68583424,
+          "rss_samples": 5,
+          "process_hwm_rss_bytes": 68583424,
+          "mlx_peak_active_bytes": 4718592,
+          "mlx_active_bytes": 4718592,
+          "mlx_cache_bytes": 0,
+          "residency": {
+            "entries": 1,
+            "resident_bytes": 4718592,
+            "peak_resident_bytes": 4718592,
+            "peak_reserved_bytes": 4718592,
+            "maximum_entries": 4,
+            "maximum_bytes": 4718592,
+            "active_leases": 0,
+            "hits": 0,
+            "misses": 5,
+            "evictions": 4,
+            "rejections": 0,
+            "resize_pending": false,
+            "pending_maximum_entries": null,
+            "pending_maximum_bytes": null
+          }
+        },
+        {
+          "expert": 1,
+          "before": {
+            "rss_bytes": 68550656,
+            "process_hwm_rss_bytes": 68583424,
+            "mlx_active_bytes": 4718592,
+            "mlx_cache_bytes": 0
+          },
+          "sampled_rss_peak_bytes": 68583424,
+          "rss_samples": 5,
+          "process_hwm_rss_bytes": 68583424,
+          "mlx_peak_active_bytes": 4718592,
+          "mlx_active_bytes": 4718592,
+          "mlx_cache_bytes": 0,
+          "residency": {
+            "entries": 1,
+            "resident_bytes": 4718592,
+            "peak_resident_bytes": 4718592,
+            "peak_reserved_bytes": 4718592,
+            "maximum_entries": 4,
+            "maximum_bytes": 4718592,
+            "active_leases": 0,
+            "hits": 0,
+            "misses": 6,
+            "evictions": 5,
+            "rejections": 0,
+            "resize_pending": false,
+            "pending_maximum_entries": null,
+            "pending_maximum_bytes": null
+          }
+        }
+      ],
+      "closed": {
+        "residency": {
+          "entries": 0,
+          "resident_bytes": 0,
+          "peak_resident_bytes": 4718592,
+          "peak_reserved_bytes": 4718592,
+          "maximum_entries": 4,
+          "maximum_bytes": 4718592,
+          "active_leases": 0,
+          "hits": 0,
+          "misses": 6,
+          "evictions": 5,
+          "rejections": 0,
+          "resize_pending": false,
+          "pending_maximum_entries": null,
+          "pending_maximum_bytes": null
+        },
+        "rss_bytes": 68550656,
+        "mlx_active_bytes": 0,
+        "mlx_cache_bytes": 4718592
+      },
+      "after_clear_cache": {
+        "rss_bytes": 63930368,
+        "mlx_active_bytes": 0,
+        "mlx_cache_bytes": 0
+      },
+      "repeat": 0
+    },
+    {
+      "status": "passed",
+      "device": "cpu",
+      "mode": "postload",
+      "capacity": 2,
+      "mlx_version": "0.32.1",
+      "metal_device_info": {
+        "device_name": "Apple M4",
+        "max_recommended_working_set_size": 26800603136,
+        "memory_size": 34359738368,
+        "architecture": "applegpu_g16g",
+        "max_buffer_length": 20100448256,
+        "resource_limit": 499000
+      },
+      "payload_bytes": 4718592,
+      "budget_bytes": 9437184,
+      "steps": [
+        {
+          "expert": 0,
+          "before": {
+            "rss_bytes": 58834944,
+            "process_hwm_rss_bytes": 58834944,
+            "mlx_active_bytes": 0,
+            "mlx_cache_bytes": 0
+          },
+          "sampled_rss_peak_bytes": 68321280,
+          "rss_samples": 6,
+          "process_hwm_rss_bytes": 68321280,
+          "mlx_peak_active_bytes": 4718592,
+          "mlx_active_bytes": 4718592,
+          "mlx_cache_bytes": 0,
+          "residency": {
+            "entries": 1,
+            "resident_bytes": 4718592,
+            "peak_resident_bytes": 4718592,
+            "peak_reserved_bytes": 0,
+            "maximum_entries": 4,
+            "maximum_bytes": 9437184,
+            "active_leases": 0,
+            "hits": 0,
+            "misses": 1,
+            "evictions": 0,
+            "rejections": 0,
+            "resize_pending": false,
+            "pending_maximum_entries": null,
+            "pending_maximum_bytes": null
+          }
+        },
+        {
+          "expert": 1,
+          "before": {
+            "rss_bytes": 68288512,
+            "process_hwm_rss_bytes": 68321280,
+            "mlx_active_bytes": 4718592,
+            "mlx_cache_bytes": 0
+          },
+          "sampled_rss_peak_bytes": 73023488,
+          "rss_samples": 5,
+          "process_hwm_rss_bytes": 73056256,
+          "mlx_peak_active_bytes": 9437184,
+          "mlx_active_bytes": 9437184,
+          "mlx_cache_bytes": 0,
+          "residency": {
+            "entries": 2,
+            "resident_bytes": 9437184,
+            "peak_resident_bytes": 9437184,
+            "peak_reserved_bytes": 0,
+            "maximum_entries": 4,
+            "maximum_bytes": 9437184,
+            "active_leases": 0,
+            "hits": 0,
+            "misses": 2,
+            "evictions": 0,
+            "rejections": 0,
+            "resize_pending": false,
+            "pending_maximum_entries": null,
+            "pending_maximum_bytes": null
+          }
+        },
+        {
+          "expert": 2,
+          "before": {
+            "rss_bytes": 73023488,
+            "process_hwm_rss_bytes": 73056256,
+            "mlx_active_bytes": 9437184,
+            "mlx_cache_bytes": 0
+          },
+          "sampled_rss_peak_bytes": 77807616,
+          "rss_samples": 5,
+          "process_hwm_rss_bytes": 77807616,
+          "mlx_peak_active_bytes": 14155776,
+          "mlx_active_bytes": 9437184,
+          "mlx_cache_bytes": 4718592,
+          "residency": {
+            "entries": 2,
+            "resident_bytes": 9437184,
+            "peak_resident_bytes": 9437184,
+            "peak_reserved_bytes": 0,
+            "maximum_entries": 4,
+            "maximum_bytes": 9437184,
+            "active_leases": 0,
+            "hits": 0,
+            "misses": 3,
+            "evictions": 1,
+            "rejections": 0,
+            "resize_pending": false,
+            "pending_maximum_entries": null,
+            "pending_maximum_bytes": null
+          }
+        },
+        {
+          "expert": 3,
+          "before": {
+            "rss_bytes": 77774848,
+            "process_hwm_rss_bytes": 77807616,
+            "mlx_active_bytes": 9437184,
+            "mlx_cache_bytes": 4718592
+          },
+          "sampled_rss_peak_bytes": 77807616,
+          "rss_samples": 5,
+          "process_hwm_rss_bytes": 77807616,
+          "mlx_peak_active_bytes": 14155776,
+          "mlx_active_bytes": 9437184,
+          "mlx_cache_bytes": 4718592,
+          "residency": {
+            "entries": 2,
+            "resident_bytes": 9437184,
+            "peak_resident_bytes": 9437184,
+            "peak_reserved_bytes": 0,
+            "maximum_entries": 4,
+            "maximum_bytes": 9437184,
+            "active_leases": 0,
+            "hits": 0,
+            "misses": 4,
+            "evictions": 2,
+            "rejections": 0,
+            "resize_pending": false,
+            "pending_maximum_entries": null,
+            "pending_maximum_bytes": null
+          }
+        },
+        {
+          "expert": 0,
+          "before": {
+            "rss_bytes": 77774848,
+            "process_hwm_rss_bytes": 77807616,
+            "mlx_active_bytes": 9437184,
+            "mlx_cache_bytes": 4718592
+          },
+          "sampled_rss_peak_bytes": 77807616,
+          "rss_samples": 4,
+          "process_hwm_rss_bytes": 77807616,
+          "mlx_peak_active_bytes": 14155776,
+          "mlx_active_bytes": 9437184,
+          "mlx_cache_bytes": 4718592,
+          "residency": {
+            "entries": 2,
+            "resident_bytes": 9437184,
+            "peak_resident_bytes": 9437184,
+            "peak_reserved_bytes": 0,
+            "maximum_entries": 4,
+            "maximum_bytes": 9437184,
+            "active_leases": 0,
+            "hits": 0,
+            "misses": 5,
+            "evictions": 3,
+            "rejections": 0,
+            "resize_pending": false,
+            "pending_maximum_entries": null,
+            "pending_maximum_bytes": null
+          }
+        },
+        {
+          "expert": 1,
+          "before": {
+            "rss_bytes": 77774848,
+            "process_hwm_rss_bytes": 77807616,
+            "mlx_active_bytes": 9437184,
+            "mlx_cache_bytes": 4718592
+          },
+          "sampled_rss_peak_bytes": 77824000,
+          "rss_samples": 5,
+          "process_hwm_rss_bytes": 77824000,
+          "mlx_peak_active_bytes": 14155776,
+          "mlx_active_bytes": 9437184,
+          "mlx_cache_bytes": 4718592,
+          "residency": {
+            "entries": 2,
+            "resident_bytes": 9437184,
+            "peak_resident_bytes": 9437184,
+            "peak_reserved_bytes": 0,
+            "maximum_entries": 4,
+            "maximum_bytes": 9437184,
+            "active_leases": 0,
+            "hits": 0,
+            "misses": 6,
+            "evictions": 4,
+            "rejections": 0,
+            "resize_pending": false,
+            "pending_maximum_entries": null,
+            "pending_maximum_bytes": null
+          }
+        }
+      ],
+      "closed": {
+        "residency": {
+          "entries": 0,
+          "resident_bytes": 0,
+          "peak_resident_bytes": 9437184,
+          "peak_reserved_bytes": 0,
+          "maximum_entries": 4,
+          "maximum_bytes": 9437184,
+          "active_leases": 0,
+          "hits": 0,
+          "misses": 6,
+          "evictions": 4,
+          "rejections": 0,
+          "resize_pending": false,
+          "pending_maximum_entries": null,
+          "pending_maximum_bytes": null
+        },
+        "rss_bytes": 77791232,
+        "mlx_active_bytes": 0,
+        "mlx_cache_bytes": 14155776
+      },
+      "after_clear_cache": {
+        "rss_bytes": 63782912,
+        "mlx_active_bytes": 0,
+        "mlx_cache_bytes": 0
+      },
+      "repeat": 0
+    },
+    {
+      "status": "passed",
+      "device": "cpu",
+      "mode": "preload",
+      "capacity": 2,
+      "mlx_version": "0.32.1",
+      "metal_device_info": {
+        "device_name": "Apple M4",
+        "max_recommended_working_set_size": 26800603136,
+        "memory_size": 34359738368,
+        "architecture": "applegpu_g16g",
+        "max_buffer_length": 20100448256,
+        "resource_limit": 499000
+      },
+      "payload_bytes": 4718592,
+      "budget_bytes": 9437184,
+      "steps": [
+        {
+          "expert": 0,
+          "before": {
+            "rss_bytes": 58884096,
+            "process_hwm_rss_bytes": 58884096,
+            "mlx_active_bytes": 0,
+            "mlx_cache_bytes": 0
+          },
+          "sampled_rss_peak_bytes": 66224128,
+          "rss_samples": 5,
+          "process_hwm_rss_bytes": 66256896,
+          "mlx_peak_active_bytes": 4718592,
+          "mlx_active_bytes": 4718592,
+          "mlx_cache_bytes": 0,
+          "residency": {
+            "entries": 1,
+            "resident_bytes": 4718592,
+            "peak_resident_bytes": 4718592,
+            "peak_reserved_bytes": 4718592,
+            "maximum_entries": 4,
+            "maximum_bytes": 9437184,
+            "active_leases": 0,
+            "hits": 0,
+            "misses": 1,
+            "evictions": 0,
+            "rejections": 0,
+            "resize_pending": false,
+            "pending_maximum_entries": null,
+            "pending_maximum_bytes": null
+          }
+        },
+        {
+          "expert": 1,
+          "before": {
+            "rss_bytes": 66224128,
+            "process_hwm_rss_bytes": 66256896,
+            "mlx_active_bytes": 4718592,
+            "mlx_cache_bytes": 0
+          },
+          "sampled_rss_peak_bytes": 70959104,
+          "rss_samples": 5,
+          "process_hwm_rss_bytes": 70991872,
+          "mlx_peak_active_bytes": 9437184,
+          "mlx_active_bytes": 9437184,
+          "mlx_cache_bytes": 0,
+          "residency": {
+            "entries": 2,
+            "resident_bytes": 9437184,
+            "peak_resident_bytes": 9437184,
+            "peak_reserved_bytes": 9437184,
+            "maximum_entries": 4,
+            "maximum_bytes": 9437184,
+            "active_leases": 0,
+            "hits": 0,
+            "misses": 2,
+            "evictions": 0,
+            "rejections": 0,
+            "resize_pending": false,
+            "pending_maximum_entries": null,
+            "pending_maximum_bytes": null
+          }
+        },
+        {
+          "expert": 2,
+          "before": {
+            "rss_bytes": 70959104,
+            "process_hwm_rss_bytes": 70991872,
+            "mlx_active_bytes": 9437184,
+            "mlx_cache_bytes": 0
+          },
+          "sampled_rss_peak_bytes": 73007104,
+          "rss_samples": 5,
+          "process_hwm_rss_bytes": 73007104,
+          "mlx_peak_active_bytes": 9437184,
+          "mlx_active_bytes": 9437184,
+          "mlx_cache_bytes": 0,
+          "residency": {
+            "entries": 2,
+            "resident_bytes": 9437184,
+            "peak_resident_bytes": 9437184,
+            "peak_reserved_bytes": 9437184,
+            "maximum_entries": 4,
+            "maximum_bytes": 9437184,
+            "active_leases": 0,
+            "hits": 0,
+            "misses": 3,
+            "evictions": 1,
+            "rejections": 0,
+            "resize_pending": false,
+            "pending_maximum_entries": null,
+            "pending_maximum_bytes": null
+          }
+        },
+        {
+          "expert": 3,
+          "before": {
+            "rss_bytes": 72974336,
+            "process_hwm_rss_bytes": 73007104,
+            "mlx_active_bytes": 9437184,
+            "mlx_cache_bytes": 0
+          },
+          "sampled_rss_peak_bytes": 73007104,
+          "rss_samples": 5,
+          "process_hwm_rss_bytes": 73007104,
+          "mlx_peak_active_bytes": 9437184,
+          "mlx_active_bytes": 9437184,
+          "mlx_cache_bytes": 0,
+          "residency": {
+            "entries": 2,
+            "resident_bytes": 9437184,
+            "peak_resident_bytes": 9437184,
+            "peak_reserved_bytes": 9437184,
+            "maximum_entries": 4,
+            "maximum_bytes": 9437184,
+            "active_leases": 0,
+            "hits": 0,
+            "misses": 4,
+            "evictions": 2,
+            "rejections": 0,
+            "resize_pending": false,
+            "pending_maximum_entries": null,
+            "pending_maximum_bytes": null
+          }
+        },
+        {
+          "expert": 0,
+          "before": {
+            "rss_bytes": 72974336,
+            "process_hwm_rss_bytes": 73007104,
+            "mlx_active_bytes": 9437184,
+            "mlx_cache_bytes": 0
+          },
+          "sampled_rss_peak_bytes": 73007104,
+          "rss_samples": 5,
+          "process_hwm_rss_bytes": 73007104,
+          "mlx_peak_active_bytes": 9437184,
+          "mlx_active_bytes": 9437184,
+          "mlx_cache_bytes": 0,
+          "residency": {
+            "entries": 2,
+            "resident_bytes": 9437184,
+            "peak_resident_bytes": 9437184,
+            "peak_reserved_bytes": 9437184,
+            "maximum_entries": 4,
+            "maximum_bytes": 9437184,
+            "active_leases": 0,
+            "hits": 0,
+            "misses": 5,
+            "evictions": 3,
+            "rejections": 0,
+            "resize_pending": false,
+            "pending_maximum_entries": null,
+            "pending_maximum_bytes": null
+          }
+        },
+        {
+          "expert": 1,
+          "before": {
+            "rss_bytes": 72974336,
+            "process_hwm_rss_bytes": 73007104,
+            "mlx_active_bytes": 9437184,
+            "mlx_cache_bytes": 0
+          },
+          "sampled_rss_peak_bytes": 73007104,
+          "rss_samples": 5,
+          "process_hwm_rss_bytes": 73023488,
+          "mlx_peak_active_bytes": 9437184,
+          "mlx_active_bytes": 9437184,
+          "mlx_cache_bytes": 0,
+          "residency": {
+            "entries": 2,
+            "resident_bytes": 9437184,
+            "peak_resident_bytes": 9437184,
+            "peak_reserved_bytes": 9437184,
+            "maximum_entries": 4,
+            "maximum_bytes": 9437184,
+            "active_leases": 0,
+            "hits": 0,
+            "misses": 6,
+            "evictions": 4,
+            "rejections": 0,
+            "resize_pending": false,
+            "pending_maximum_entries": null,
+            "pending_maximum_bytes": null
+          }
+        }
+      ],
+      "closed": {
+        "residency": {
+          "entries": 0,
+          "resident_bytes": 0,
+          "peak_resident_bytes": 9437184,
+          "peak_reserved_bytes": 9437184,
+          "maximum_entries": 4,
+          "maximum_bytes": 9437184,
+          "active_leases": 0,
+          "hits": 0,
+          "misses": 6,
+          "evictions": 4,
+          "rejections": 0,
+          "resize_pending": false,
+          "pending_maximum_entries": null,
+          "pending_maximum_bytes": null
+        },
+        "rss_bytes": 72990720,
+        "mlx_active_bytes": 0,
+        "mlx_cache_bytes": 9437184
+      },
+      "after_clear_cache": {
+        "rss_bytes": 63733760,
+        "mlx_active_bytes": 0,
+        "mlx_cache_bytes": 0
+      },
+      "repeat": 0
+    },
+    {
+      "status": "passed",
+      "device": "gpu",
+      "mode": "postload",
+      "capacity": 1,
+      "mlx_version": "0.32.1",
+      "metal_device_info": {
+        "device_name": "Apple M4",
+        "max_recommended_working_set_size": 26800603136,
+        "memory_size": 34359738368,
+        "architecture": "applegpu_g16g",
+        "max_buffer_length": 20100448256,
+        "resource_limit": 499000
+      },
+      "payload_bytes": 4718592,
+      "budget_bytes": 4718592,
+      "steps": [
+        {
+          "expert": 0,
+          "before": {
+            "rss_bytes": 59883520,
+            "process_hwm_rss_bytes": 59883520,
+            "mlx_active_bytes": 0,
+            "mlx_cache_bytes": 0
+          },
+          "sampled_rss_peak_bytes": 67387392,
+          "rss_samples": 5,
+          "process_hwm_rss_bytes": 67387392,
+          "mlx_peak_active_bytes": 4718592,
+          "mlx_active_bytes": 4718592,
+          "mlx_cache_bytes": 0,
+          "residency": {
+            "entries": 1,
+            "resident_bytes": 4718592,
+            "peak_resident_bytes": 4718592,
+            "peak_reserved_bytes": 0,
+            "maximum_entries": 4,
+            "maximum_bytes": 4718592,
+            "active_leases": 0,
+            "hits": 0,
+            "misses": 1,
+            "evictions": 0,
+            "rejections": 0,
+            "resize_pending": false,
+            "pending_maximum_entries": null,
+            "pending_maximum_bytes": null
+          }
+        },
+        {
+          "expert": 1,
+          "before": {
+            "rss_bytes": 67354624,
+            "process_hwm_rss_bytes": 67387392,
+            "mlx_active_bytes": 4718592,
+            "mlx_cache_bytes": 0
+          },
+          "sampled_rss_peak_bytes": 72155136,
+          "rss_samples": 5,
+          "process_hwm_rss_bytes": 72155136,
+          "mlx_peak_active_bytes": 9437184,
+          "mlx_active_bytes": 4718592,
+          "mlx_cache_bytes": 4718592,
+          "residency": {
+            "entries": 1,
+            "resident_bytes": 4718592,
+            "peak_resident_bytes": 4718592,
+            "peak_reserved_bytes": 0,
+            "maximum_entries": 4,
+            "maximum_bytes": 4718592,
+            "active_leases": 0,
+            "hits": 0,
+            "misses": 2,
+            "evictions": 1,
+            "rejections": 0,
+            "resize_pending": false,
+            "pending_maximum_entries": null,
+            "pending_maximum_bytes": null
+          }
+        },
+        {
+          "expert": 2,
+          "before": {
+            "rss_bytes": 72122368,
+            "process_hwm_rss_bytes": 72155136,
+            "mlx_active_bytes": 4718592,
+            "mlx_cache_bytes": 4718592
+          },
+          "sampled_rss_peak_bytes": 72155136,
+          "rss_samples": 4,
+          "process_hwm_rss_bytes": 72155136,
+          "mlx_peak_active_bytes": 9437184,
+          "mlx_active_bytes": 4718592,
+          "mlx_cache_bytes": 4718592,
+          "residency": {
+            "entries": 1,
+            "resident_bytes": 4718592,
+            "peak_resident_bytes": 4718592,
+            "peak_reserved_bytes": 0,
+            "maximum_entries": 4,
+            "maximum_bytes": 4718592,
+            "active_leases": 0,
+            "hits": 0,
+            "misses": 3,
+            "evictions": 2,
+            "rejections": 0,
+            "resize_pending": false,
+            "pending_maximum_entries": null,
+            "pending_maximum_bytes": null
+          }
+        },
+        {
+          "expert": 3,
+          "before": {
+            "rss_bytes": 72122368,
+            "process_hwm_rss_bytes": 72155136,
+            "mlx_active_bytes": 4718592,
+            "mlx_cache_bytes": 4718592
+          },
+          "sampled_rss_peak_bytes": 72155136,
+          "rss_samples": 5,
+          "process_hwm_rss_bytes": 72155136,
+          "mlx_peak_active_bytes": 9437184,
+          "mlx_active_bytes": 4718592,
+          "mlx_cache_bytes": 4718592,
+          "residency": {
+            "entries": 1,
+            "resident_bytes": 4718592,
+            "peak_resident_bytes": 4718592,
+            "peak_reserved_bytes": 0,
+            "maximum_entries": 4,
+            "maximum_bytes": 4718592,
+            "active_leases": 0,
+            "hits": 0,
+            "misses": 4,
+            "evictions": 3,
+            "rejections": 0,
+            "resize_pending": false,
+            "pending_maximum_entries": null,
+            "pending_maximum_bytes": null
+          }
+        },
+        {
+          "expert": 0,
+          "before": {
+            "rss_bytes": 72122368,
+            "process_hwm_rss_bytes": 72155136,
+            "mlx_active_bytes": 4718592,
+            "mlx_cache_bytes": 4718592
+          },
+          "sampled_rss_peak_bytes": 72155136,
+          "rss_samples": 4,
+          "process_hwm_rss_bytes": 72155136,
+          "mlx_peak_active_bytes": 9437184,
+          "mlx_active_bytes": 4718592,
+          "mlx_cache_bytes": 4718592,
+          "residency": {
+            "entries": 1,
+            "resident_bytes": 4718592,
+            "peak_resident_bytes": 4718592,
+            "peak_reserved_bytes": 0,
+            "maximum_entries": 4,
+            "maximum_bytes": 4718592,
+            "active_leases": 0,
+            "hits": 0,
+            "misses": 5,
+            "evictions": 4,
+            "rejections": 0,
+            "resize_pending": false,
+            "pending_maximum_entries": null,
+            "pending_maximum_bytes": null
+          }
+        },
+        {
+          "expert": 1,
+          "before": {
+            "rss_bytes": 72122368,
+            "process_hwm_rss_bytes": 72155136,
+            "mlx_active_bytes": 4718592,
+            "mlx_cache_bytes": 4718592
+          },
+          "sampled_rss_peak_bytes": 72155136,
+          "rss_samples": 4,
+          "process_hwm_rss_bytes": 72155136,
+          "mlx_peak_active_bytes": 9437184,
+          "mlx_active_bytes": 4718592,
+          "mlx_cache_bytes": 4718592,
+          "residency": {
+            "entries": 1,
+            "resident_bytes": 4718592,
+            "peak_resident_bytes": 4718592,
+            "peak_reserved_bytes": 0,
+            "maximum_entries": 4,
+            "maximum_bytes": 4718592,
+            "active_leases": 0,
+            "hits": 0,
+            "misses": 6,
+            "evictions": 5,
+            "rejections": 0,
+            "resize_pending": false,
+            "pending_maximum_entries": null,
+            "pending_maximum_bytes": null
+          }
+        }
+      ],
+      "closed": {
+        "residency": {
+          "entries": 0,
+          "resident_bytes": 0,
+          "peak_resident_bytes": 4718592,
+          "peak_reserved_bytes": 0,
+          "maximum_entries": 4,
+          "maximum_bytes": 4718592,
+          "active_leases": 0,
+          "hits": 0,
+          "misses": 6,
+          "evictions": 5,
+          "rejections": 0,
+          "resize_pending": false,
+          "pending_maximum_entries": null,
+          "pending_maximum_bytes": null
+        },
+        "rss_bytes": 72122368,
+        "mlx_active_bytes": 0,
+        "mlx_cache_bytes": 9437184
+      },
+      "after_clear_cache": {
+        "rss_bytes": 62865408,
+        "mlx_active_bytes": 0,
+        "mlx_cache_bytes": 0
+      },
+      "repeat": 0
+    },
+    {
+      "status": "passed",
+      "device": "gpu",
+      "mode": "preload",
+      "capacity": 1,
+      "mlx_version": "0.32.1",
+      "metal_device_info": {
+        "device_name": "Apple M4",
+        "max_recommended_working_set_size": 26800603136,
+        "memory_size": 34359738368,
+        "architecture": "applegpu_g16g",
+        "max_buffer_length": 20100448256,
+        "resource_limit": 499000
+      },
+      "payload_bytes": 4718592,
+      "budget_bytes": 4718592,
+      "steps": [
+        {
+          "expert": 0,
+          "before": {
+            "rss_bytes": 59883520,
+            "process_hwm_rss_bytes": 59883520,
+            "mlx_active_bytes": 0,
+            "mlx_cache_bytes": 0
+          },
+          "sampled_rss_peak_bytes": 67305472,
+          "rss_samples": 5,
+          "process_hwm_rss_bytes": 67338240,
+          "mlx_peak_active_bytes": 4718592,
+          "mlx_active_bytes": 4718592,
+          "mlx_cache_bytes": 0,
+          "residency": {
+            "entries": 1,
+            "resident_bytes": 4718592,
+            "peak_resident_bytes": 4718592,
+            "peak_reserved_bytes": 4718592,
+            "maximum_entries": 4,
+            "maximum_bytes": 4718592,
+            "active_leases": 0,
+            "hits": 0,
+            "misses": 1,
+            "evictions": 0,
+            "rejections": 0,
+            "resize_pending": false,
+            "pending_maximum_entries": null,
+            "pending_maximum_bytes": null
+          }
+        },
+        {
+          "expert": 1,
+          "before": {
+            "rss_bytes": 67305472,
+            "process_hwm_rss_bytes": 67338240,
+            "mlx_active_bytes": 4718592,
+            "mlx_cache_bytes": 0
+          },
+          "sampled_rss_peak_bytes": 67338240,
+          "rss_samples": 5,
+          "process_hwm_rss_bytes": 67354624,
+          "mlx_peak_active_bytes": 4718592,
+          "mlx_active_bytes": 4718592,
+          "mlx_cache_bytes": 0,
+          "residency": {
+            "entries": 1,
+            "resident_bytes": 4718592,
+            "peak_resident_bytes": 4718592,
+            "peak_reserved_bytes": 4718592,
+            "maximum_entries": 4,
+            "maximum_bytes": 4718592,
+            "active_leases": 0,
+            "hits": 0,
+            "misses": 2,
+            "evictions": 1,
+            "rejections": 0,
+            "resize_pending": false,
+            "pending_maximum_entries": null,
+            "pending_maximum_bytes": null
+          }
+        },
+        {
+          "expert": 2,
+          "before": {
+            "rss_bytes": 67321856,
+            "process_hwm_rss_bytes": 67354624,
+            "mlx_active_bytes": 4718592,
+            "mlx_cache_bytes": 0
+          },
+          "sampled_rss_peak_bytes": 67354624,
+          "rss_samples": 4,
+          "process_hwm_rss_bytes": 67354624,
+          "mlx_peak_active_bytes": 4718592,
+          "mlx_active_bytes": 4718592,
+          "mlx_cache_bytes": 0,
+          "residency": {
+            "entries": 1,
+            "resident_bytes": 4718592,
+            "peak_resident_bytes": 4718592,
+            "peak_reserved_bytes": 4718592,
+            "maximum_entries": 4,
+            "maximum_bytes": 4718592,
+            "active_leases": 0,
+            "hits": 0,
+            "misses": 3,
+            "evictions": 2,
+            "rejections": 0,
+            "resize_pending": false,
+            "pending_maximum_entries": null,
+            "pending_maximum_bytes": null
+          }
+        },
+        {
+          "expert": 3,
+          "before": {
+            "rss_bytes": 67321856,
+            "process_hwm_rss_bytes": 67354624,
+            "mlx_active_bytes": 4718592,
+            "mlx_cache_bytes": 0
+          },
+          "sampled_rss_peak_bytes": 67354624,
+          "rss_samples": 4,
+          "process_hwm_rss_bytes": 67354624,
+          "mlx_peak_active_bytes": 4718592,
+          "mlx_active_bytes": 4718592,
+          "mlx_cache_bytes": 0,
+          "residency": {
+            "entries": 1,
+            "resident_bytes": 4718592,
+            "peak_resident_bytes": 4718592,
+            "peak_reserved_bytes": 4718592,
+            "maximum_entries": 4,
+            "maximum_bytes": 4718592,
+            "active_leases": 0,
+            "hits": 0,
+            "misses": 4,
+            "evictions": 3,
+            "rejections": 0,
+            "resize_pending": false,
+            "pending_maximum_entries": null,
+            "pending_maximum_bytes": null
+          }
+        },
+        {
+          "expert": 0,
+          "before": {
+            "rss_bytes": 67321856,
+            "process_hwm_rss_bytes": 67354624,
+            "mlx_active_bytes": 4718592,
+            "mlx_cache_bytes": 0
+          },
+          "sampled_rss_peak_bytes": 67354624,
+          "rss_samples": 4,
+          "process_hwm_rss_bytes": 67371008,
+          "mlx_peak_active_bytes": 4718592,
+          "mlx_active_bytes": 4718592,
+          "mlx_cache_bytes": 0,
+          "residency": {
+            "entries": 1,
+            "resident_bytes": 4718592,
+            "peak_resident_bytes": 4718592,
+            "peak_reserved_bytes": 4718592,
+            "maximum_entries": 4,
+            "maximum_bytes": 4718592,
+            "active_leases": 0,
+            "hits": 0,
+            "misses": 5,
+            "evictions": 4,
+            "rejections": 0,
+            "resize_pending": false,
+            "pending_maximum_entries": null,
+            "pending_maximum_bytes": null
+          }
+        },
+        {
+          "expert": 1,
+          "before": {
+            "rss_bytes": 67338240,
+            "process_hwm_rss_bytes": 67371008,
+            "mlx_active_bytes": 4718592,
+            "mlx_cache_bytes": 0
+          },
+          "sampled_rss_peak_bytes": 67371008,
+          "rss_samples": 4,
+          "process_hwm_rss_bytes": 67371008,
+          "mlx_peak_active_bytes": 4718592,
+          "mlx_active_bytes": 4718592,
+          "mlx_cache_bytes": 0,
+          "residency": {
+            "entries": 1,
+            "resident_bytes": 4718592,
+            "peak_resident_bytes": 4718592,
+            "peak_reserved_bytes": 4718592,
+            "maximum_entries": 4,
+            "maximum_bytes": 4718592,
+            "active_leases": 0,
+            "hits": 0,
+            "misses": 6,
+            "evictions": 5,
+            "rejections": 0,
+            "resize_pending": false,
+            "pending_maximum_entries": null,
+            "pending_maximum_bytes": null
+          }
+        }
+      ],
+      "closed": {
+        "residency": {
+          "entries": 0,
+          "resident_bytes": 0,
+          "peak_resident_bytes": 4718592,
+          "peak_reserved_bytes": 4718592,
+          "maximum_entries": 4,
+          "maximum_bytes": 4718592,
+          "active_leases": 0,
+          "hits": 0,
+          "misses": 6,
+          "evictions": 5,
+          "rejections": 0,
+          "resize_pending": false,
+          "pending_maximum_entries": null,
+          "pending_maximum_bytes": null
+        },
+        "rss_bytes": 67338240,
+        "mlx_active_bytes": 0,
+        "mlx_cache_bytes": 4718592
+      },
+      "after_clear_cache": {
+        "rss_bytes": 62734336,
+        "mlx_active_bytes": 0,
+        "mlx_cache_bytes": 0
+      },
+      "repeat": 0
+    },
+    {
+      "status": "passed",
+      "device": "gpu",
+      "mode": "postload",
+      "capacity": 2,
+      "mlx_version": "0.32.1",
+      "metal_device_info": {
+        "device_name": "Apple M4",
+        "max_recommended_working_set_size": 26800603136,
+        "memory_size": 34359738368,
+        "architecture": "applegpu_g16g",
+        "max_buffer_length": 20100448256,
+        "resource_limit": 499000
+      },
+      "payload_bytes": 4718592,
+      "budget_bytes": 9437184,
+      "steps": [
+        {
+          "expert": 0,
+          "before": {
+            "rss_bytes": 59916288,
+            "process_hwm_rss_bytes": 59916288,
+            "mlx_active_bytes": 0,
+            "mlx_cache_bytes": 0
+          },
+          "sampled_rss_peak_bytes": 67420160,
+          "rss_samples": 5,
+          "process_hwm_rss_bytes": 67420160,
+          "mlx_peak_active_bytes": 4718592,
+          "mlx_active_bytes": 4718592,
+          "mlx_cache_bytes": 0,
+          "residency": {
+            "entries": 1,
+            "resident_bytes": 4718592,
+            "peak_resident_bytes": 4718592,
+            "peak_reserved_bytes": 0,
+            "maximum_entries": 4,
+            "maximum_bytes": 9437184,
+            "active_leases": 0,
+            "hits": 0,
+            "misses": 1,
+            "evictions": 0,
+            "rejections": 0,
+            "resize_pending": false,
+            "pending_maximum_entries": null,
+            "pending_maximum_bytes": null
+          }
+        },
+        {
+          "expert": 1,
+          "before": {
+            "rss_bytes": 67387392,
+            "process_hwm_rss_bytes": 67420160,
+            "mlx_active_bytes": 4718592,
+            "mlx_cache_bytes": 0
+          },
+          "sampled_rss_peak_bytes": 72171520,
+          "rss_samples": 5,
+          "process_hwm_rss_bytes": 72171520,
+          "mlx_peak_active_bytes": 9437184,
+          "mlx_active_bytes": 9437184,
+          "mlx_cache_bytes": 0,
+          "residency": {
+            "entries": 2,
+            "resident_bytes": 9437184,
+            "peak_resident_bytes": 9437184,
+            "peak_reserved_bytes": 0,
+            "maximum_entries": 4,
+            "maximum_bytes": 9437184,
+            "active_leases": 0,
+            "hits": 0,
+            "misses": 2,
+            "evictions": 0,
+            "rejections": 0,
+            "resize_pending": false,
+            "pending_maximum_entries": null,
+            "pending_maximum_bytes": null
+          }
+        },
+        {
+          "expert": 2,
+          "before": {
+            "rss_bytes": 72138752,
+            "process_hwm_rss_bytes": 72171520,
+            "mlx_active_bytes": 9437184,
+            "mlx_cache_bytes": 0
+          },
+          "sampled_rss_peak_bytes": 76922880,
+          "rss_samples": 5,
+          "process_hwm_rss_bytes": 76922880,
+          "mlx_peak_active_bytes": 14155776,
+          "mlx_active_bytes": 9437184,
+          "mlx_cache_bytes": 4718592,
+          "residency": {
+            "entries": 2,
+            "resident_bytes": 9437184,
+            "peak_resident_bytes": 9437184,
+            "peak_reserved_bytes": 0,
+            "maximum_entries": 4,
+            "maximum_bytes": 9437184,
+            "active_leases": 0,
+            "hits": 0,
+            "misses": 3,
+            "evictions": 1,
+            "rejections": 0,
+            "resize_pending": false,
+            "pending_maximum_entries": null,
+            "pending_maximum_bytes": null
+          }
+        },
+        {
+          "expert": 3,
+          "before": {
+            "rss_bytes": 76890112,
+            "process_hwm_rss_bytes": 76922880,
+            "mlx_active_bytes": 9437184,
+            "mlx_cache_bytes": 4718592
+          },
+          "sampled_rss_peak_bytes": 76922880,
+          "rss_samples": 4,
+          "process_hwm_rss_bytes": 76922880,
+          "mlx_peak_active_bytes": 14155776,
+          "mlx_active_bytes": 9437184,
+          "mlx_cache_bytes": 4718592,
+          "residency": {
+            "entries": 2,
+            "resident_bytes": 9437184,
+            "peak_resident_bytes": 9437184,
+            "peak_reserved_bytes": 0,
+            "maximum_entries": 4,
+            "maximum_bytes": 9437184,
+            "active_leases": 0,
+            "hits": 0,
+            "misses": 4,
+            "evictions": 2,
+            "rejections": 0,
+            "resize_pending": false,
+            "pending_maximum_entries": null,
+            "pending_maximum_bytes": null
+          }
+        },
+        {
+          "expert": 0,
+          "before": {
+            "rss_bytes": 76890112,
+            "process_hwm_rss_bytes": 76922880,
+            "mlx_active_bytes": 9437184,
+            "mlx_cache_bytes": 4718592
+          },
+          "sampled_rss_peak_bytes": 76922880,
+          "rss_samples": 4,
+          "process_hwm_rss_bytes": 76922880,
+          "mlx_peak_active_bytes": 14155776,
+          "mlx_active_bytes": 9437184,
+          "mlx_cache_bytes": 4718592,
+          "residency": {
+            "entries": 2,
+            "resident_bytes": 9437184,
+            "peak_resident_bytes": 9437184,
+            "peak_reserved_bytes": 0,
+            "maximum_entries": 4,
+            "maximum_bytes": 9437184,
+            "active_leases": 0,
+            "hits": 0,
+            "misses": 5,
+            "evictions": 3,
+            "rejections": 0,
+            "resize_pending": false,
+            "pending_maximum_entries": null,
+            "pending_maximum_bytes": null
+          }
+        },
+        {
+          "expert": 1,
+          "before": {
+            "rss_bytes": 76890112,
+            "process_hwm_rss_bytes": 76922880,
+            "mlx_active_bytes": 9437184,
+            "mlx_cache_bytes": 4718592
+          },
+          "sampled_rss_peak_bytes": 76922880,
+          "rss_samples": 5,
+          "process_hwm_rss_bytes": 76922880,
+          "mlx_peak_active_bytes": 14155776,
+          "mlx_active_bytes": 9437184,
+          "mlx_cache_bytes": 4718592,
+          "residency": {
+            "entries": 2,
+            "resident_bytes": 9437184,
+            "peak_resident_bytes": 9437184,
+            "peak_reserved_bytes": 0,
+            "maximum_entries": 4,
+            "maximum_bytes": 9437184,
+            "active_leases": 0,
+            "hits": 0,
+            "misses": 6,
+            "evictions": 4,
+            "rejections": 0,
+            "resize_pending": false,
+            "pending_maximum_entries": null,
+            "pending_maximum_bytes": null
+          }
+        }
+      ],
+      "closed": {
+        "residency": {
+          "entries": 0,
+          "resident_bytes": 0,
+          "peak_resident_bytes": 9437184,
+          "peak_reserved_bytes": 0,
+          "maximum_entries": 4,
+          "maximum_bytes": 9437184,
+          "active_leases": 0,
+          "hits": 0,
+          "misses": 6,
+          "evictions": 4,
+          "rejections": 0,
+          "resize_pending": false,
+          "pending_maximum_entries": null,
+          "pending_maximum_bytes": null
+        },
+        "rss_bytes": 76890112,
+        "mlx_active_bytes": 0,
+        "mlx_cache_bytes": 14155776
+      },
+      "after_clear_cache": {
+        "rss_bytes": 62898176,
+        "mlx_active_bytes": 0,
+        "mlx_cache_bytes": 0
+      },
+      "repeat": 0
+    },
+    {
+      "status": "passed",
+      "device": "gpu",
+      "mode": "preload",
+      "capacity": 2,
+      "mlx_version": "0.32.1",
+      "metal_device_info": {
+        "device_name": "Apple M4",
+        "max_recommended_working_set_size": 26800603136,
+        "memory_size": 34359738368,
+        "architecture": "applegpu_g16g",
+        "max_buffer_length": 20100448256,
+        "resource_limit": 499000
+      },
+      "payload_bytes": 4718592,
+      "budget_bytes": 9437184,
+      "steps": [
+        {
+          "expert": 0,
+          "before": {
+            "rss_bytes": 60194816,
+            "process_hwm_rss_bytes": 60194816,
+            "mlx_active_bytes": 0,
+            "mlx_cache_bytes": 0
+          },
+          "sampled_rss_peak_bytes": 67665920,
+          "rss_samples": 5,
+          "process_hwm_rss_bytes": 67698688,
+          "mlx_peak_active_bytes": 4718592,
+          "mlx_active_bytes": 4718592,
+          "mlx_cache_bytes": 0,
+          "residency": {
+            "entries": 1,
+            "resident_bytes": 4718592,
+            "peak_resident_bytes": 4718592,
+            "peak_reserved_bytes": 4718592,
+            "maximum_entries": 4,
+            "maximum_bytes": 9437184,
+            "active_leases": 0,
+            "hits": 0,
+            "misses": 1,
+            "evictions": 0,
+            "rejections": 0,
+            "resize_pending": false,
+            "pending_maximum_entries": null,
+            "pending_maximum_bytes": null
+          }
+        },
+        {
+          "expert": 1,
+          "before": {
+            "rss_bytes": 67665920,
+            "process_hwm_rss_bytes": 67698688,
+            "mlx_active_bytes": 4718592,
+            "mlx_cache_bytes": 0
+          },
+          "sampled_rss_peak_bytes": 72400896,
+          "rss_samples": 5,
+          "process_hwm_rss_bytes": 72433664,
+          "mlx_peak_active_bytes": 9437184,
+          "mlx_active_bytes": 9437184,
+          "mlx_cache_bytes": 0,
+          "residency": {
+            "entries": 2,
+            "resident_bytes": 9437184,
+            "peak_resident_bytes": 9437184,
+            "peak_reserved_bytes": 9437184,
+            "maximum_entries": 4,
+            "maximum_bytes": 9437184,
+            "active_leases": 0,
+            "hits": 0,
+            "misses": 2,
+            "evictions": 0,
+            "rejections": 0,
+            "resize_pending": false,
+            "pending_maximum_entries": null,
+            "pending_maximum_bytes": null
+          }
+        },
+        {
+          "expert": 2,
+          "before": {
+            "rss_bytes": 72400896,
+            "process_hwm_rss_bytes": 72433664,
+            "mlx_active_bytes": 9437184,
+            "mlx_cache_bytes": 0
+          },
+          "sampled_rss_peak_bytes": 72433664,
+          "rss_samples": 5,
+          "process_hwm_rss_bytes": 72433664,
+          "mlx_peak_active_bytes": 9437184,
+          "mlx_active_bytes": 9437184,
+          "mlx_cache_bytes": 0,
+          "residency": {
+            "entries": 2,
+            "resident_bytes": 9437184,
+            "peak_resident_bytes": 9437184,
+            "peak_reserved_bytes": 9437184,
+            "maximum_entries": 4,
+            "maximum_bytes": 9437184,
+            "active_leases": 0,
+            "hits": 0,
+            "misses": 3,
+            "evictions": 1,
+            "rejections": 0,
+            "resize_pending": false,
+            "pending_maximum_entries": null,
+            "pending_maximum_bytes": null
+          }
+        },
+        {
+          "expert": 3,
+          "before": {
+            "rss_bytes": 72400896,
+            "process_hwm_rss_bytes": 72433664,
+            "mlx_active_bytes": 9437184,
+            "mlx_cache_bytes": 0
+          },
+          "sampled_rss_peak_bytes": 72433664,
+          "rss_samples": 5,
+          "process_hwm_rss_bytes": 72433664,
+          "mlx_peak_active_bytes": 9437184,
+          "mlx_active_bytes": 9437184,
+          "mlx_cache_bytes": 0,
+          "residency": {
+            "entries": 2,
+            "resident_bytes": 9437184,
+            "peak_resident_bytes": 9437184,
+            "peak_reserved_bytes": 9437184,
+            "maximum_entries": 4,
+            "maximum_bytes": 9437184,
+            "active_leases": 0,
+            "hits": 0,
+            "misses": 4,
+            "evictions": 2,
+            "rejections": 0,
+            "resize_pending": false,
+            "pending_maximum_entries": null,
+            "pending_maximum_bytes": null
+          }
+        },
+        {
+          "expert": 0,
+          "before": {
+            "rss_bytes": 72400896,
+            "process_hwm_rss_bytes": 72433664,
+            "mlx_active_bytes": 9437184,
+            "mlx_cache_bytes": 0
+          },
+          "sampled_rss_peak_bytes": 73367552,
+          "rss_samples": 5,
+          "process_hwm_rss_bytes": 73367552,
+          "mlx_peak_active_bytes": 9437184,
+          "mlx_active_bytes": 9437184,
+          "mlx_cache_bytes": 0,
+          "residency": {
+            "entries": 2,
+            "resident_bytes": 9437184,
+            "peak_resident_bytes": 9437184,
+            "peak_reserved_bytes": 9437184,
+            "maximum_entries": 4,
+            "maximum_bytes": 9437184,
+            "active_leases": 0,
+            "hits": 0,
+            "misses": 5,
+            "evictions": 3,
+            "rejections": 0,
+            "resize_pending": false,
+            "pending_maximum_entries": null,
+            "pending_maximum_bytes": null
+          }
+        },
+        {
+          "expert": 1,
+          "before": {
+            "rss_bytes": 73334784,
+            "process_hwm_rss_bytes": 73367552,
+            "mlx_active_bytes": 9437184,
+            "mlx_cache_bytes": 0
+          },
+          "sampled_rss_peak_bytes": 73367552,
+          "rss_samples": 5,
+          "process_hwm_rss_bytes": 73367552,
+          "mlx_peak_active_bytes": 9437184,
+          "mlx_active_bytes": 9437184,
+          "mlx_cache_bytes": 0,
+          "residency": {
+            "entries": 2,
+            "resident_bytes": 9437184,
+            "peak_resident_bytes": 9437184,
+            "peak_reserved_bytes": 9437184,
+            "maximum_entries": 4,
+            "maximum_bytes": 9437184,
+            "active_leases": 0,
+            "hits": 0,
+            "misses": 6,
+            "evictions": 4,
+            "rejections": 0,
+            "resize_pending": false,
+            "pending_maximum_entries": null,
+            "pending_maximum_bytes": null
+          }
+        }
+      ],
+      "closed": {
+        "residency": {
+          "entries": 0,
+          "resident_bytes": 0,
+          "peak_resident_bytes": 9437184,
+          "peak_reserved_bytes": 9437184,
+          "maximum_entries": 4,
+          "maximum_bytes": 9437184,
+          "active_leases": 0,
+          "hits": 0,
+          "misses": 6,
+          "evictions": 4,
+          "rejections": 0,
+          "resize_pending": false,
+          "pending_maximum_entries": null,
+          "pending_maximum_bytes": null
+        },
+        "rss_bytes": 73334784,
+        "mlx_active_bytes": 0,
+        "mlx_cache_bytes": 9437184
+      },
+      "after_clear_cache": {
+        "rss_bytes": 64028672,
+        "mlx_active_bytes": 0,
+        "mlx_cache_bytes": 0
+      },
+      "repeat": 0
+    },
+    {
+      "status": "passed",
+      "device": "cpu",
+      "mode": "preload",
+      "capacity": 1,
+      "mlx_version": "0.32.1",
+      "metal_device_info": {
+        "device_name": "Apple M4",
+        "max_recommended_working_set_size": 26800603136,
+        "memory_size": 34359738368,
+        "architecture": "applegpu_g16g",
+        "max_buffer_length": 20100448256,
+        "resource_limit": 499000
+      },
+      "payload_bytes": 4718592,
+      "budget_bytes": 4718592,
+      "steps": [
+        {
+          "expert": 0,
+          "before": {
+            "rss_bytes": 59588608,
+            "process_hwm_rss_bytes": 59588608,
+            "mlx_active_bytes": 0,
+            "mlx_cache_bytes": 0
+          },
+          "sampled_rss_peak_bytes": 66912256,
+          "rss_samples": 5,
+          "process_hwm_rss_bytes": 66945024,
+          "mlx_peak_active_bytes": 4718592,
+          "mlx_active_bytes": 4718592,
+          "mlx_cache_bytes": 0,
+          "residency": {
+            "entries": 1,
+            "resident_bytes": 4718592,
+            "peak_resident_bytes": 4718592,
+            "peak_reserved_bytes": 4718592,
+            "maximum_entries": 4,
+            "maximum_bytes": 4718592,
+            "active_leases": 0,
+            "hits": 0,
+            "misses": 1,
+            "evictions": 0,
+            "rejections": 0,
+            "resize_pending": false,
+            "pending_maximum_entries": null,
+            "pending_maximum_bytes": null
+          }
+        },
+        {
+          "expert": 1,
+          "before": {
+            "rss_bytes": 66912256,
+            "process_hwm_rss_bytes": 66945024,
+            "mlx_active_bytes": 4718592,
+            "mlx_cache_bytes": 0
+          },
+          "sampled_rss_peak_bytes": 67780608,
+          "rss_samples": 6,
+          "process_hwm_rss_bytes": 67780608,
+          "mlx_peak_active_bytes": 4718592,
+          "mlx_active_bytes": 4718592,
+          "mlx_cache_bytes": 0,
+          "residency": {
+            "entries": 1,
+            "resident_bytes": 4718592,
+            "peak_resident_bytes": 4718592,
+            "peak_reserved_bytes": 4718592,
+            "maximum_entries": 4,
+            "maximum_bytes": 4718592,
+            "active_leases": 0,
+            "hits": 0,
+            "misses": 2,
+            "evictions": 1,
+            "rejections": 0,
+            "resize_pending": false,
+            "pending_maximum_entries": null,
+            "pending_maximum_bytes": null
+          }
+        },
+        {
+          "expert": 2,
+          "before": {
+            "rss_bytes": 67747840,
+            "process_hwm_rss_bytes": 67780608,
+            "mlx_active_bytes": 4718592,
+            "mlx_cache_bytes": 0
+          },
+          "sampled_rss_peak_bytes": 67780608,
+          "rss_samples": 5,
+          "process_hwm_rss_bytes": 67780608,
+          "mlx_peak_active_bytes": 4718592,
+          "mlx_active_bytes": 4718592,
+          "mlx_cache_bytes": 0,
+          "residency": {
+            "entries": 1,
+            "resident_bytes": 4718592,
+            "peak_resident_bytes": 4718592,
+            "peak_reserved_bytes": 4718592,
+            "maximum_entries": 4,
+            "maximum_bytes": 4718592,
+            "active_leases": 0,
+            "hits": 0,
+            "misses": 3,
+            "evictions": 2,
+            "rejections": 0,
+            "resize_pending": false,
+            "pending_maximum_entries": null,
+            "pending_maximum_bytes": null
+          }
+        },
+        {
+          "expert": 3,
+          "before": {
+            "rss_bytes": 67747840,
+            "process_hwm_rss_bytes": 67780608,
+            "mlx_active_bytes": 4718592,
+            "mlx_cache_bytes": 0
+          },
+          "sampled_rss_peak_bytes": 67780608,
+          "rss_samples": 5,
+          "process_hwm_rss_bytes": 67796992,
+          "mlx_peak_active_bytes": 4718592,
+          "mlx_active_bytes": 4718592,
+          "mlx_cache_bytes": 0,
+          "residency": {
+            "entries": 1,
+            "resident_bytes": 4718592,
+            "peak_resident_bytes": 4718592,
+            "peak_reserved_bytes": 4718592,
+            "maximum_entries": 4,
+            "maximum_bytes": 4718592,
+            "active_leases": 0,
+            "hits": 0,
+            "misses": 4,
+            "evictions": 3,
+            "rejections": 0,
+            "resize_pending": false,
+            "pending_maximum_entries": null,
+            "pending_maximum_bytes": null
+          }
+        },
+        {
+          "expert": 0,
+          "before": {
+            "rss_bytes": 67764224,
+            "process_hwm_rss_bytes": 67796992,
+            "mlx_active_bytes": 4718592,
+            "mlx_cache_bytes": 0
+          },
+          "sampled_rss_peak_bytes": 67796992,
+          "rss_samples": 5,
+          "process_hwm_rss_bytes": 67796992,
+          "mlx_peak_active_bytes": 4718592,
+          "mlx_active_bytes": 4718592,
+          "mlx_cache_bytes": 0,
+          "residency": {
+            "entries": 1,
+            "resident_bytes": 4718592,
+            "peak_resident_bytes": 4718592,
+            "peak_reserved_bytes": 4718592,
+            "maximum_entries": 4,
+            "maximum_bytes": 4718592,
+            "active_leases": 0,
+            "hits": 0,
+            "misses": 5,
+            "evictions": 4,
+            "rejections": 0,
+            "resize_pending": false,
+            "pending_maximum_entries": null,
+            "pending_maximum_bytes": null
+          }
+        },
+        {
+          "expert": 1,
+          "before": {
+            "rss_bytes": 67764224,
+            "process_hwm_rss_bytes": 67796992,
+            "mlx_active_bytes": 4718592,
+            "mlx_cache_bytes": 0
+          },
+          "sampled_rss_peak_bytes": 67796992,
+          "rss_samples": 5,
+          "process_hwm_rss_bytes": 67796992,
+          "mlx_peak_active_bytes": 4718592,
+          "mlx_active_bytes": 4718592,
+          "mlx_cache_bytes": 0,
+          "residency": {
+            "entries": 1,
+            "resident_bytes": 4718592,
+            "peak_resident_bytes": 4718592,
+            "peak_reserved_bytes": 4718592,
+            "maximum_entries": 4,
+            "maximum_bytes": 4718592,
+            "active_leases": 0,
+            "hits": 0,
+            "misses": 6,
+            "evictions": 5,
+            "rejections": 0,
+            "resize_pending": false,
+            "pending_maximum_entries": null,
+            "pending_maximum_bytes": null
+          }
+        }
+      ],
+      "closed": {
+        "residency": {
+          "entries": 0,
+          "resident_bytes": 0,
+          "peak_resident_bytes": 4718592,
+          "peak_reserved_bytes": 4718592,
+          "maximum_entries": 4,
+          "maximum_bytes": 4718592,
+          "active_leases": 0,
+          "hits": 0,
+          "misses": 6,
+          "evictions": 5,
+          "rejections": 0,
+          "resize_pending": false,
+          "pending_maximum_entries": null,
+          "pending_maximum_bytes": null
+        },
+        "rss_bytes": 67764224,
+        "mlx_active_bytes": 0,
+        "mlx_cache_bytes": 4718592
+      },
+      "after_clear_cache": {
+        "rss_bytes": 63127552,
+        "mlx_active_bytes": 0,
+        "mlx_cache_bytes": 0
+      },
+      "repeat": 1
+    },
+    {
+      "status": "passed",
+      "device": "cpu",
+      "mode": "postload",
+      "capacity": 2,
+      "mlx_version": "0.32.1",
+      "metal_device_info": {
+        "device_name": "Apple M4",
+        "max_recommended_working_set_size": 26800603136,
+        "memory_size": 34359738368,
+        "architecture": "applegpu_g16g",
+        "max_buffer_length": 20100448256,
+        "resource_limit": 499000
+      },
+      "payload_bytes": 4718592,
+      "budget_bytes": 9437184,
+      "steps": [
+        {
+          "expert": 0,
+          "before": {
+            "rss_bytes": 59228160,
+            "process_hwm_rss_bytes": 59228160,
+            "mlx_active_bytes": 0,
+            "mlx_cache_bytes": 0
+          },
+          "sampled_rss_peak_bytes": 66535424,
+          "rss_samples": 5,
+          "process_hwm_rss_bytes": 66568192,
+          "mlx_peak_active_bytes": 4718592,
+          "mlx_active_bytes": 4718592,
+          "mlx_cache_bytes": 0,
+          "residency": {
+            "entries": 1,
+            "resident_bytes": 4718592,
+            "peak_resident_bytes": 4718592,
+            "peak_reserved_bytes": 0,
+            "maximum_entries": 4,
+            "maximum_bytes": 9437184,
+            "active_leases": 0,
+            "hits": 0,
+            "misses": 1,
+            "evictions": 0,
+            "rejections": 0,
+            "resize_pending": false,
+            "pending_maximum_entries": null,
+            "pending_maximum_bytes": null
+          }
+        },
+        {
+          "expert": 1,
+          "before": {
+            "rss_bytes": 66535424,
+            "process_hwm_rss_bytes": 66568192,
+            "mlx_active_bytes": 4718592,
+            "mlx_cache_bytes": 0
+          },
+          "sampled_rss_peak_bytes": 71286784,
+          "rss_samples": 5,
+          "process_hwm_rss_bytes": 71319552,
+          "mlx_peak_active_bytes": 9437184,
+          "mlx_active_bytes": 9437184,
+          "mlx_cache_bytes": 0,
+          "residency": {
+            "entries": 2,
+            "resident_bytes": 9437184,
+            "peak_resident_bytes": 9437184,
+            "peak_reserved_bytes": 0,
+            "maximum_entries": 4,
+            "maximum_bytes": 9437184,
+            "active_leases": 0,
+            "hits": 0,
+            "misses": 2,
+            "evictions": 0,
+            "rejections": 0,
+            "resize_pending": false,
+            "pending_maximum_entries": null,
+            "pending_maximum_bytes": null
+          }
+        },
+        {
+          "expert": 2,
+          "before": {
+            "rss_bytes": 71286784,
+            "process_hwm_rss_bytes": 71319552,
+            "mlx_active_bytes": 9437184,
+            "mlx_cache_bytes": 0
+          },
+          "sampled_rss_peak_bytes": 76021760,
+          "rss_samples": 5,
+          "process_hwm_rss_bytes": 76054528,
+          "mlx_peak_active_bytes": 14155776,
+          "mlx_active_bytes": 9437184,
+          "mlx_cache_bytes": 4718592,
+          "residency": {
+            "entries": 2,
+            "resident_bytes": 9437184,
+            "peak_resident_bytes": 9437184,
+            "peak_reserved_bytes": 0,
+            "maximum_entries": 4,
+            "maximum_bytes": 9437184,
+            "active_leases": 0,
+            "hits": 0,
+            "misses": 3,
+            "evictions": 1,
+            "rejections": 0,
+            "resize_pending": false,
+            "pending_maximum_entries": null,
+            "pending_maximum_bytes": null
+          }
+        },
+        {
+          "expert": 3,
+          "before": {
+            "rss_bytes": 76021760,
+            "process_hwm_rss_bytes": 76054528,
+            "mlx_active_bytes": 9437184,
+            "mlx_cache_bytes": 4718592
+          },
+          "sampled_rss_peak_bytes": 76054528,
+          "rss_samples": 5,
+          "process_hwm_rss_bytes": 76054528,
+          "mlx_peak_active_bytes": 14155776,
+          "mlx_active_bytes": 9437184,
+          "mlx_cache_bytes": 4718592,
+          "residency": {
+            "entries": 2,
+            "resident_bytes": 9437184,
+            "peak_resident_bytes": 9437184,
+            "peak_reserved_bytes": 0,
+            "maximum_entries": 4,
+            "maximum_bytes": 9437184,
+            "active_leases": 0,
+            "hits": 0,
+            "misses": 4,
+            "evictions": 2,
+            "rejections": 0,
+            "resize_pending": false,
+            "pending_maximum_entries": null,
+            "pending_maximum_bytes": null
+          }
+        },
+        {
+          "expert": 0,
+          "before": {
+            "rss_bytes": 76021760,
+            "process_hwm_rss_bytes": 76054528,
+            "mlx_active_bytes": 9437184,
+            "mlx_cache_bytes": 4718592
+          },
+          "sampled_rss_peak_bytes": 76054528,
+          "rss_samples": 5,
+          "process_hwm_rss_bytes": 76054528,
+          "mlx_peak_active_bytes": 14155776,
+          "mlx_active_bytes": 9437184,
+          "mlx_cache_bytes": 4718592,
+          "residency": {
+            "entries": 2,
+            "resident_bytes": 9437184,
+            "peak_resident_bytes": 9437184,
+            "peak_reserved_bytes": 0,
+            "maximum_entries": 4,
+            "maximum_bytes": 9437184,
+            "active_leases": 0,
+            "hits": 0,
+            "misses": 5,
+            "evictions": 3,
+            "rejections": 0,
+            "resize_pending": false,
+            "pending_maximum_entries": null,
+            "pending_maximum_bytes": null
+          }
+        },
+        {
+          "expert": 1,
+          "before": {
+            "rss_bytes": 76021760,
+            "process_hwm_rss_bytes": 76054528,
+            "mlx_active_bytes": 9437184,
+            "mlx_cache_bytes": 4718592
+          },
+          "sampled_rss_peak_bytes": 76398592,
+          "rss_samples": 5,
+          "process_hwm_rss_bytes": 76398592,
+          "mlx_peak_active_bytes": 14155776,
+          "mlx_active_bytes": 9437184,
+          "mlx_cache_bytes": 4718592,
+          "residency": {
+            "entries": 2,
+            "resident_bytes": 9437184,
+            "peak_resident_bytes": 9437184,
+            "peak_reserved_bytes": 0,
+            "maximum_entries": 4,
+            "maximum_bytes": 9437184,
+            "active_leases": 0,
+            "hits": 0,
+            "misses": 6,
+            "evictions": 4,
+            "rejections": 0,
+            "resize_pending": false,
+            "pending_maximum_entries": null,
+            "pending_maximum_bytes": null
+          }
+        }
+      ],
+      "closed": {
+        "residency": {
+          "entries": 0,
+          "resident_bytes": 0,
+          "peak_resident_bytes": 9437184,
+          "peak_reserved_bytes": 0,
+          "maximum_entries": 4,
+          "maximum_bytes": 9437184,
+          "active_leases": 0,
+          "hits": 0,
+          "misses": 6,
+          "evictions": 4,
+          "rejections": 0,
+          "resize_pending": false,
+          "pending_maximum_entries": null,
+          "pending_maximum_bytes": null
+        },
+        "rss_bytes": 76365824,
+        "mlx_active_bytes": 0,
+        "mlx_cache_bytes": 14155776
+      },
+      "after_clear_cache": {
+        "rss_bytes": 62324736,
+        "mlx_active_bytes": 0,
+        "mlx_cache_bytes": 0
+      },
+      "repeat": 1
+    },
+    {
+      "status": "passed",
+      "device": "cpu",
+      "mode": "preload",
+      "capacity": 2,
+      "mlx_version": "0.32.1",
+      "metal_device_info": {
+        "device_name": "Apple M4",
+        "max_recommended_working_set_size": 26800603136,
+        "memory_size": 34359738368,
+        "architecture": "applegpu_g16g",
+        "max_buffer_length": 20100448256,
+        "resource_limit": 499000
+      },
+      "payload_bytes": 4718592,
+      "budget_bytes": 9437184,
+      "steps": [
+        {
+          "expert": 0,
+          "before": {
+            "rss_bytes": 59424768,
+            "process_hwm_rss_bytes": 59424768,
+            "mlx_active_bytes": 0,
+            "mlx_cache_bytes": 0
+          },
+          "sampled_rss_peak_bytes": 66781184,
+          "rss_samples": 5,
+          "process_hwm_rss_bytes": 66813952,
+          "mlx_peak_active_bytes": 4718592,
+          "mlx_active_bytes": 4718592,
+          "mlx_cache_bytes": 0,
+          "residency": {
+            "entries": 1,
+            "resident_bytes": 4718592,
+            "peak_resident_bytes": 4718592,
+            "peak_reserved_bytes": 4718592,
+            "maximum_entries": 4,
+            "maximum_bytes": 9437184,
+            "active_leases": 0,
+            "hits": 0,
+            "misses": 1,
+            "evictions": 0,
+            "rejections": 0,
+            "resize_pending": false,
+            "pending_maximum_entries": null,
+            "pending_maximum_bytes": null
+          }
+        },
+        {
+          "expert": 1,
+          "before": {
+            "rss_bytes": 66781184,
+            "process_hwm_rss_bytes": 66813952,
+            "mlx_active_bytes": 4718592,
+            "mlx_cache_bytes": 0
+          },
+          "sampled_rss_peak_bytes": 71548928,
+          "rss_samples": 5,
+          "process_hwm_rss_bytes": 71581696,
+          "mlx_peak_active_bytes": 9437184,
+          "mlx_active_bytes": 9437184,
+          "mlx_cache_bytes": 0,
+          "residency": {
+            "entries": 2,
+            "resident_bytes": 9437184,
+            "peak_resident_bytes": 9437184,
+            "peak_reserved_bytes": 9437184,
+            "maximum_entries": 4,
+            "maximum_bytes": 9437184,
+            "active_leases": 0,
+            "hits": 0,
+            "misses": 2,
+            "evictions": 0,
+            "rejections": 0,
+            "resize_pending": false,
+            "pending_maximum_entries": null,
+            "pending_maximum_bytes": null
+          }
+        },
+        {
+          "expert": 2,
+          "before": {
+            "rss_bytes": 71548928,
+            "process_hwm_rss_bytes": 71581696,
+            "mlx_active_bytes": 9437184,
+            "mlx_cache_bytes": 0
+          },
+          "sampled_rss_peak_bytes": 72581120,
+          "rss_samples": 5,
+          "process_hwm_rss_bytes": 72581120,
+          "mlx_peak_active_bytes": 9437184,
+          "mlx_active_bytes": 9437184,
+          "mlx_cache_bytes": 0,
+          "residency": {
+            "entries": 2,
+            "resident_bytes": 9437184,
+            "peak_resident_bytes": 9437184,
+            "peak_reserved_bytes": 9437184,
+            "maximum_entries": 4,
+            "maximum_bytes": 9437184,
+            "active_leases": 0,
+            "hits": 0,
+            "misses": 3,
+            "evictions": 1,
+            "rejections": 0,
+            "resize_pending": false,
+            "pending_maximum_entries": null,
+            "pending_maximum_bytes": null
+          }
+        },
+        {
+          "expert": 3,
+          "before": {
+            "rss_bytes": 72548352,
+            "process_hwm_rss_bytes": 72581120,
+            "mlx_active_bytes": 9437184,
+            "mlx_cache_bytes": 0
+          },
+          "sampled_rss_peak_bytes": 72581120,
+          "rss_samples": 5,
+          "process_hwm_rss_bytes": 72581120,
+          "mlx_peak_active_bytes": 9437184,
+          "mlx_active_bytes": 9437184,
+          "mlx_cache_bytes": 0,
+          "residency": {
+            "entries": 2,
+            "resident_bytes": 9437184,
+            "peak_resident_bytes": 9437184,
+            "peak_reserved_bytes": 9437184,
+            "maximum_entries": 4,
+            "maximum_bytes": 9437184,
+            "active_leases": 0,
+            "hits": 0,
+            "misses": 4,
+            "evictions": 2,
+            "rejections": 0,
+            "resize_pending": false,
+            "pending_maximum_entries": null,
+            "pending_maximum_bytes": null
+          }
+        },
+        {
+          "expert": 0,
+          "before": {
+            "rss_bytes": 72548352,
+            "process_hwm_rss_bytes": 72581120,
+            "mlx_active_bytes": 9437184,
+            "mlx_cache_bytes": 0
+          },
+          "sampled_rss_peak_bytes": 72581120,
+          "rss_samples": 5,
+          "process_hwm_rss_bytes": 72581120,
+          "mlx_peak_active_bytes": 9437184,
+          "mlx_active_bytes": 9437184,
+          "mlx_cache_bytes": 0,
+          "residency": {
+            "entries": 2,
+            "resident_bytes": 9437184,
+            "peak_resident_bytes": 9437184,
+            "peak_reserved_bytes": 9437184,
+            "maximum_entries": 4,
+            "maximum_bytes": 9437184,
+            "active_leases": 0,
+            "hits": 0,
+            "misses": 5,
+            "evictions": 3,
+            "rejections": 0,
+            "resize_pending": false,
+            "pending_maximum_entries": null,
+            "pending_maximum_bytes": null
+          }
+        },
+        {
+          "expert": 1,
+          "before": {
+            "rss_bytes": 72548352,
+            "process_hwm_rss_bytes": 72581120,
+            "mlx_active_bytes": 9437184,
+            "mlx_cache_bytes": 0
+          },
+          "sampled_rss_peak_bytes": 72581120,
+          "rss_samples": 5,
+          "process_hwm_rss_bytes": 72581120,
+          "mlx_peak_active_bytes": 9437184,
+          "mlx_active_bytes": 9437184,
+          "mlx_cache_bytes": 0,
+          "residency": {
+            "entries": 2,
+            "resident_bytes": 9437184,
+            "peak_resident_bytes": 9437184,
+            "peak_reserved_bytes": 9437184,
+            "maximum_entries": 4,
+            "maximum_bytes": 9437184,
+            "active_leases": 0,
+            "hits": 0,
+            "misses": 6,
+            "evictions": 4,
+            "rejections": 0,
+            "resize_pending": false,
+            "pending_maximum_entries": null,
+            "pending_maximum_bytes": null
+          }
+        }
+      ],
+      "closed": {
+        "residency": {
+          "entries": 0,
+          "resident_bytes": 0,
+          "peak_resident_bytes": 9437184,
+          "peak_reserved_bytes": 9437184,
+          "maximum_entries": 4,
+          "maximum_bytes": 9437184,
+          "active_leases": 0,
+          "hits": 0,
+          "misses": 6,
+          "evictions": 4,
+          "rejections": 0,
+          "resize_pending": false,
+          "pending_maximum_entries": null,
+          "pending_maximum_bytes": null
+        },
+        "rss_bytes": 72548352,
+        "mlx_active_bytes": 0,
+        "mlx_cache_bytes": 9437184
+      },
+      "after_clear_cache": {
+        "rss_bytes": 63209472,
+        "mlx_active_bytes": 0,
+        "mlx_cache_bytes": 0
+      },
+      "repeat": 1
+    },
+    {
+      "status": "passed",
+      "device": "gpu",
+      "mode": "postload",
+      "capacity": 1,
+      "mlx_version": "0.32.1",
+      "metal_device_info": {
+        "device_name": "Apple M4",
+        "max_recommended_working_set_size": 26800603136,
+        "memory_size": 34359738368,
+        "architecture": "applegpu_g16g",
+        "max_buffer_length": 20100448256,
+        "resource_limit": 499000
+      },
+      "payload_bytes": 4718592,
+      "budget_bytes": 4718592,
+      "steps": [
+        {
+          "expert": 0,
+          "before": {
+            "rss_bytes": 60129280,
+            "process_hwm_rss_bytes": 60129280,
+            "mlx_active_bytes": 0,
+            "mlx_cache_bytes": 0
+          },
+          "sampled_rss_peak_bytes": 68616192,
+          "rss_samples": 5,
+          "process_hwm_rss_bytes": 68616192,
+          "mlx_peak_active_bytes": 4718592,
+          "mlx_active_bytes": 4718592,
+          "mlx_cache_bytes": 0,
+          "residency": {
+            "entries": 1,
+            "resident_bytes": 4718592,
+            "peak_resident_bytes": 4718592,
+            "peak_reserved_bytes": 0,
+            "maximum_entries": 4,
+            "maximum_bytes": 4718592,
+            "active_leases": 0,
+            "hits": 0,
+            "misses": 1,
+            "evictions": 0,
+            "rejections": 0,
+            "resize_pending": false,
+            "pending_maximum_entries": null,
+            "pending_maximum_bytes": null
+          }
+        },
+        {
+          "expert": 1,
+          "before": {
+            "rss_bytes": 68583424,
+            "process_hwm_rss_bytes": 68616192,
+            "mlx_active_bytes": 4718592,
+            "mlx_cache_bytes": 0
+          },
+          "sampled_rss_peak_bytes": 73383936,
+          "rss_samples": 5,
+          "process_hwm_rss_bytes": 73383936,
+          "mlx_peak_active_bytes": 9437184,
+          "mlx_active_bytes": 4718592,
+          "mlx_cache_bytes": 4718592,
+          "residency": {
+            "entries": 1,
+            "resident_bytes": 4718592,
+            "peak_resident_bytes": 4718592,
+            "peak_reserved_bytes": 0,
+            "maximum_entries": 4,
+            "maximum_bytes": 4718592,
+            "active_leases": 0,
+            "hits": 0,
+            "misses": 2,
+            "evictions": 1,
+            "rejections": 0,
+            "resize_pending": false,
+            "pending_maximum_entries": null,
+            "pending_maximum_bytes": null
+          }
+        },
+        {
+          "expert": 2,
+          "before": {
+            "rss_bytes": 73351168,
+            "process_hwm_rss_bytes": 73383936,
+            "mlx_active_bytes": 4718592,
+            "mlx_cache_bytes": 4718592
+          },
+          "sampled_rss_peak_bytes": 73957376,
+          "rss_samples": 5,
+          "process_hwm_rss_bytes": 73957376,
+          "mlx_peak_active_bytes": 9437184,
+          "mlx_active_bytes": 4718592,
+          "mlx_cache_bytes": 4718592,
+          "residency": {
+            "entries": 1,
+            "resident_bytes": 4718592,
+            "peak_resident_bytes": 4718592,
+            "peak_reserved_bytes": 0,
+            "maximum_entries": 4,
+            "maximum_bytes": 4718592,
+            "active_leases": 0,
+            "hits": 0,
+            "misses": 3,
+            "evictions": 2,
+            "rejections": 0,
+            "resize_pending": false,
+            "pending_maximum_entries": null,
+            "pending_maximum_bytes": null
+          }
+        },
+        {
+          "expert": 3,
+          "before": {
+            "rss_bytes": 73924608,
+            "process_hwm_rss_bytes": 73957376,
+            "mlx_active_bytes": 4718592,
+            "mlx_cache_bytes": 4718592
+          },
+          "sampled_rss_peak_bytes": 74465280,
+          "rss_samples": 5,
+          "process_hwm_rss_bytes": 74465280,
+          "mlx_peak_active_bytes": 9437184,
+          "mlx_active_bytes": 4718592,
+          "mlx_cache_bytes": 4718592,
+          "residency": {
+            "entries": 1,
+            "resident_bytes": 4718592,
+            "peak_resident_bytes": 4718592,
+            "peak_reserved_bytes": 0,
+            "maximum_entries": 4,
+            "maximum_bytes": 4718592,
+            "active_leases": 0,
+            "hits": 0,
+            "misses": 4,
+            "evictions": 3,
+            "rejections": 0,
+            "resize_pending": false,
+            "pending_maximum_entries": null,
+            "pending_maximum_bytes": null
+          }
+        },
+        {
+          "expert": 0,
+          "before": {
+            "rss_bytes": 74432512,
+            "process_hwm_rss_bytes": 74465280,
+            "mlx_active_bytes": 4718592,
+            "mlx_cache_bytes": 4718592
+          },
+          "sampled_rss_peak_bytes": 74465280,
+          "rss_samples": 5,
+          "process_hwm_rss_bytes": 74465280,
+          "mlx_peak_active_bytes": 9437184,
+          "mlx_active_bytes": 4718592,
+          "mlx_cache_bytes": 4718592,
+          "residency": {
+            "entries": 1,
+            "resident_bytes": 4718592,
+            "peak_resident_bytes": 4718592,
+            "peak_reserved_bytes": 0,
+            "maximum_entries": 4,
+            "maximum_bytes": 4718592,
+            "active_leases": 0,
+            "hits": 0,
+            "misses": 5,
+            "evictions": 4,
+            "rejections": 0,
+            "resize_pending": false,
+            "pending_maximum_entries": null,
+            "pending_maximum_bytes": null
+          }
+        },
+        {
+          "expert": 1,
+          "before": {
+            "rss_bytes": 74432512,
+            "process_hwm_rss_bytes": 74465280,
+            "mlx_active_bytes": 4718592,
+            "mlx_cache_bytes": 4718592
+          },
+          "sampled_rss_peak_bytes": 74465280,
+          "rss_samples": 5,
+          "process_hwm_rss_bytes": 74465280,
+          "mlx_peak_active_bytes": 9437184,
+          "mlx_active_bytes": 4718592,
+          "mlx_cache_bytes": 4718592,
+          "residency": {
+            "entries": 1,
+            "resident_bytes": 4718592,
+            "peak_resident_bytes": 4718592,
+            "peak_reserved_bytes": 0,
+            "maximum_entries": 4,
+            "maximum_bytes": 4718592,
+            "active_leases": 0,
+            "hits": 0,
+            "misses": 6,
+            "evictions": 5,
+            "rejections": 0,
+            "resize_pending": false,
+            "pending_maximum_entries": null,
+            "pending_maximum_bytes": null
+          }
+        }
+      ],
+      "closed": {
+        "residency": {
+          "entries": 0,
+          "resident_bytes": 0,
+          "peak_resident_bytes": 4718592,
+          "peak_reserved_bytes": 0,
+          "maximum_entries": 4,
+          "maximum_bytes": 4718592,
+          "active_leases": 0,
+          "hits": 0,
+          "misses": 6,
+          "evictions": 5,
+          "rejections": 0,
+          "resize_pending": false,
+          "pending_maximum_entries": null,
+          "pending_maximum_bytes": null
+        },
+        "rss_bytes": 74432512,
+        "mlx_active_bytes": 0,
+        "mlx_cache_bytes": 9437184
+      },
+      "after_clear_cache": {
+        "rss_bytes": 65110016,
+        "mlx_active_bytes": 0,
+        "mlx_cache_bytes": 0
+      },
+      "repeat": 1
+    },
+    {
+      "status": "passed",
+      "device": "gpu",
+      "mode": "preload",
+      "capacity": 1,
+      "mlx_version": "0.32.1",
+      "metal_device_info": {
+        "device_name": "Apple M4",
+        "max_recommended_working_set_size": 26800603136,
+        "memory_size": 34359738368,
+        "architecture": "applegpu_g16g",
+        "max_buffer_length": 20100448256,
+        "resource_limit": 499000
+      },
+      "payload_bytes": 4718592,
+      "budget_bytes": 4718592,
+      "steps": [
+        {
+          "expert": 0,
+          "before": {
+            "rss_bytes": 59981824,
+            "process_hwm_rss_bytes": 59981824,
+            "mlx_active_bytes": 0,
+            "mlx_cache_bytes": 0
+          },
+          "sampled_rss_peak_bytes": 67420160,
+          "rss_samples": 5,
+          "process_hwm_rss_bytes": 67452928,
+          "mlx_peak_active_bytes": 4718592,
+          "mlx_active_bytes": 4718592,
+          "mlx_cache_bytes": 0,
+          "residency": {
+            "entries": 1,
+            "resident_bytes": 4718592,
+            "peak_resident_bytes": 4718592,
+            "peak_reserved_bytes": 4718592,
+            "maximum_entries": 4,
+            "maximum_bytes": 4718592,
+            "active_leases": 0,
+            "hits": 0,
+            "misses": 1,
+            "evictions": 0,
+            "rejections": 0,
+            "resize_pending": false,
+            "pending_maximum_entries": null,
+            "pending_maximum_bytes": null
+          }
+        },
+        {
+          "expert": 1,
+          "before": {
+            "rss_bytes": 67420160,
+            "process_hwm_rss_bytes": 67452928,
+            "mlx_active_bytes": 4718592,
+            "mlx_cache_bytes": 0
+          },
+          "sampled_rss_peak_bytes": 67469312,
+          "rss_samples": 5,
+          "process_hwm_rss_bytes": 67469312,
+          "mlx_peak_active_bytes": 4718592,
+          "mlx_active_bytes": 4718592,
+          "mlx_cache_bytes": 0,
+          "residency": {
+            "entries": 1,
+            "resident_bytes": 4718592,
+            "peak_resident_bytes": 4718592,
+            "peak_reserved_bytes": 4718592,
+            "maximum_entries": 4,
+            "maximum_bytes": 4718592,
+            "active_leases": 0,
+            "hits": 0,
+            "misses": 2,
+            "evictions": 1,
+            "rejections": 0,
+            "resize_pending": false,
+            "pending_maximum_entries": null,
+            "pending_maximum_bytes": null
+          }
+        },
+        {
+          "expert": 2,
+          "before": {
+            "rss_bytes": 67436544,
+            "process_hwm_rss_bytes": 67469312,
+            "mlx_active_bytes": 4718592,
+            "mlx_cache_bytes": 0
+          },
+          "sampled_rss_peak_bytes": 67469312,
+          "rss_samples": 5,
+          "process_hwm_rss_bytes": 67469312,
+          "mlx_peak_active_bytes": 4718592,
+          "mlx_active_bytes": 4718592,
+          "mlx_cache_bytes": 0,
+          "residency": {
+            "entries": 1,
+            "resident_bytes": 4718592,
+            "peak_resident_bytes": 4718592,
+            "peak_reserved_bytes": 4718592,
+            "maximum_entries": 4,
+            "maximum_bytes": 4718592,
+            "active_leases": 0,
+            "hits": 0,
+            "misses": 3,
+            "evictions": 2,
+            "rejections": 0,
+            "resize_pending": false,
+            "pending_maximum_entries": null,
+            "pending_maximum_bytes": null
+          }
+        },
+        {
+          "expert": 3,
+          "before": {
+            "rss_bytes": 67436544,
+            "process_hwm_rss_bytes": 67469312,
+            "mlx_active_bytes": 4718592,
+            "mlx_cache_bytes": 0
+          },
+          "sampled_rss_peak_bytes": 67469312,
+          "rss_samples": 5,
+          "process_hwm_rss_bytes": 67469312,
+          "mlx_peak_active_bytes": 4718592,
+          "mlx_active_bytes": 4718592,
+          "mlx_cache_bytes": 0,
+          "residency": {
+            "entries": 1,
+            "resident_bytes": 4718592,
+            "peak_resident_bytes": 4718592,
+            "peak_reserved_bytes": 4718592,
+            "maximum_entries": 4,
+            "maximum_bytes": 4718592,
+            "active_leases": 0,
+            "hits": 0,
+            "misses": 4,
+            "evictions": 3,
+            "rejections": 0,
+            "resize_pending": false,
+            "pending_maximum_entries": null,
+            "pending_maximum_bytes": null
+          }
+        },
+        {
+          "expert": 0,
+          "before": {
+            "rss_bytes": 67436544,
+            "process_hwm_rss_bytes": 67469312,
+            "mlx_active_bytes": 4718592,
+            "mlx_cache_bytes": 0
+          },
+          "sampled_rss_peak_bytes": 67469312,
+          "rss_samples": 5,
+          "process_hwm_rss_bytes": 67469312,
+          "mlx_peak_active_bytes": 4718592,
+          "mlx_active_bytes": 4718592,
+          "mlx_cache_bytes": 0,
+          "residency": {
+            "entries": 1,
+            "resident_bytes": 4718592,
+            "peak_resident_bytes": 4718592,
+            "peak_reserved_bytes": 4718592,
+            "maximum_entries": 4,
+            "maximum_bytes": 4718592,
+            "active_leases": 0,
+            "hits": 0,
+            "misses": 5,
+            "evictions": 4,
+            "rejections": 0,
+            "resize_pending": false,
+            "pending_maximum_entries": null,
+            "pending_maximum_bytes": null
+          }
+        },
+        {
+          "expert": 1,
+          "before": {
+            "rss_bytes": 67436544,
+            "process_hwm_rss_bytes": 67469312,
+            "mlx_active_bytes": 4718592,
+            "mlx_cache_bytes": 0
+          },
+          "sampled_rss_peak_bytes": 67469312,
+          "rss_samples": 5,
+          "process_hwm_rss_bytes": 67469312,
+          "mlx_peak_active_bytes": 4718592,
+          "mlx_active_bytes": 4718592,
+          "mlx_cache_bytes": 0,
+          "residency": {
+            "entries": 1,
+            "resident_bytes": 4718592,
+            "peak_resident_bytes": 4718592,
+            "peak_reserved_bytes": 4718592,
+            "maximum_entries": 4,
+            "maximum_bytes": 4718592,
+            "active_leases": 0,
+            "hits": 0,
+            "misses": 6,
+            "evictions": 5,
+            "rejections": 0,
+            "resize_pending": false,
+            "pending_maximum_entries": null,
+            "pending_maximum_bytes": null
+          }
+        }
+      ],
+      "closed": {
+        "residency": {
+          "entries": 0,
+          "resident_bytes": 0,
+          "peak_resident_bytes": 4718592,
+          "peak_reserved_bytes": 4718592,
+          "maximum_entries": 4,
+          "maximum_bytes": 4718592,
+          "active_leases": 0,
+          "hits": 0,
+          "misses": 6,
+          "evictions": 5,
+          "rejections": 0,
+          "resize_pending": false,
+          "pending_maximum_entries": null,
+          "pending_maximum_bytes": null
+        },
+        "rss_bytes": 67436544,
+        "mlx_active_bytes": 0,
+        "mlx_cache_bytes": 4718592
+      },
+      "after_clear_cache": {
+        "rss_bytes": 62865408,
+        "mlx_active_bytes": 0,
+        "mlx_cache_bytes": 0
+      },
+      "repeat": 1
+    },
+    {
+      "status": "passed",
+      "device": "gpu",
+      "mode": "postload",
+      "capacity": 2,
+      "mlx_version": "0.32.1",
+      "metal_device_info": {
+        "device_name": "Apple M4",
+        "max_recommended_working_set_size": 26800603136,
+        "memory_size": 34359738368,
+        "architecture": "applegpu_g16g",
+        "max_buffer_length": 20100448256,
+        "resource_limit": 499000
+      },
+      "payload_bytes": 4718592,
+      "budget_bytes": 9437184,
+      "steps": [
+        {
+          "expert": 0,
+          "before": {
+            "rss_bytes": 60030976,
+            "process_hwm_rss_bytes": 60030976,
+            "mlx_active_bytes": 0,
+            "mlx_cache_bytes": 0
+          },
+          "sampled_rss_peak_bytes": 67502080,
+          "rss_samples": 5,
+          "process_hwm_rss_bytes": 67502080,
+          "mlx_peak_active_bytes": 4718592,
+          "mlx_active_bytes": 4718592,
+          "mlx_cache_bytes": 0,
+          "residency": {
+            "entries": 1,
+            "resident_bytes": 4718592,
+            "peak_resident_bytes": 4718592,
+            "peak_reserved_bytes": 0,
+            "maximum_entries": 4,
+            "maximum_bytes": 9437184,
+            "active_leases": 0,
+            "hits": 0,
+            "misses": 1,
+            "evictions": 0,
+            "rejections": 0,
+            "resize_pending": false,
+            "pending_maximum_entries": null,
+            "pending_maximum_bytes": null
+          }
+        },
+        {
+          "expert": 1,
+          "before": {
+            "rss_bytes": 67469312,
+            "process_hwm_rss_bytes": 67502080,
+            "mlx_active_bytes": 4718592,
+            "mlx_cache_bytes": 0
+          },
+          "sampled_rss_peak_bytes": 72941568,
+          "rss_samples": 5,
+          "process_hwm_rss_bytes": 72941568,
+          "mlx_peak_active_bytes": 9437184,
+          "mlx_active_bytes": 9437184,
+          "mlx_cache_bytes": 0,
+          "residency": {
+            "entries": 2,
+            "resident_bytes": 9437184,
+            "peak_resident_bytes": 9437184,
+            "peak_reserved_bytes": 0,
+            "maximum_entries": 4,
+            "maximum_bytes": 9437184,
+            "active_leases": 0,
+            "hits": 0,
+            "misses": 2,
+            "evictions": 0,
+            "rejections": 0,
+            "resize_pending": false,
+            "pending_maximum_entries": null,
+            "pending_maximum_bytes": null
+          }
+        },
+        {
+          "expert": 2,
+          "before": {
+            "rss_bytes": 72908800,
+            "process_hwm_rss_bytes": 72941568,
+            "mlx_active_bytes": 9437184,
+            "mlx_cache_bytes": 0
+          },
+          "sampled_rss_peak_bytes": 77692928,
+          "rss_samples": 5,
+          "process_hwm_rss_bytes": 77692928,
+          "mlx_peak_active_bytes": 14155776,
+          "mlx_active_bytes": 9437184,
+          "mlx_cache_bytes": 4718592,
+          "residency": {
+            "entries": 2,
+            "resident_bytes": 9437184,
+            "peak_resident_bytes": 9437184,
+            "peak_reserved_bytes": 0,
+            "maximum_entries": 4,
+            "maximum_bytes": 9437184,
+            "active_leases": 0,
+            "hits": 0,
+            "misses": 3,
+            "evictions": 1,
+            "rejections": 0,
+            "resize_pending": false,
+            "pending_maximum_entries": null,
+            "pending_maximum_bytes": null
+          }
+        },
+        {
+          "expert": 3,
+          "before": {
+            "rss_bytes": 77660160,
+            "process_hwm_rss_bytes": 77692928,
+            "mlx_active_bytes": 9437184,
+            "mlx_cache_bytes": 4718592
+          },
+          "sampled_rss_peak_bytes": 77692928,
+          "rss_samples": 5,
+          "process_hwm_rss_bytes": 77692928,
+          "mlx_peak_active_bytes": 14155776,
+          "mlx_active_bytes": 9437184,
+          "mlx_cache_bytes": 4718592,
+          "residency": {
+            "entries": 2,
+            "resident_bytes": 9437184,
+            "peak_resident_bytes": 9437184,
+            "peak_reserved_bytes": 0,
+            "maximum_entries": 4,
+            "maximum_bytes": 9437184,
+            "active_leases": 0,
+            "hits": 0,
+            "misses": 4,
+            "evictions": 2,
+            "rejections": 0,
+            "resize_pending": false,
+            "pending_maximum_entries": null,
+            "pending_maximum_bytes": null
+          }
+        },
+        {
+          "expert": 0,
+          "before": {
+            "rss_bytes": 77660160,
+            "process_hwm_rss_bytes": 77692928,
+            "mlx_active_bytes": 9437184,
+            "mlx_cache_bytes": 4718592
+          },
+          "sampled_rss_peak_bytes": 78774272,
+          "rss_samples": 5,
+          "process_hwm_rss_bytes": 78774272,
+          "mlx_peak_active_bytes": 14155776,
+          "mlx_active_bytes": 9437184,
+          "mlx_cache_bytes": 4718592,
+          "residency": {
+            "entries": 2,
+            "resident_bytes": 9437184,
+            "peak_resident_bytes": 9437184,
+            "peak_reserved_bytes": 0,
+            "maximum_entries": 4,
+            "maximum_bytes": 9437184,
+            "active_leases": 0,
+            "hits": 0,
+            "misses": 5,
+            "evictions": 3,
+            "rejections": 0,
+            "resize_pending": false,
+            "pending_maximum_entries": null,
+            "pending_maximum_bytes": null
+          }
+        },
+        {
+          "expert": 1,
+          "before": {
+            "rss_bytes": 78741504,
+            "process_hwm_rss_bytes": 78774272,
+            "mlx_active_bytes": 9437184,
+            "mlx_cache_bytes": 4718592
+          },
+          "sampled_rss_peak_bytes": 78774272,
+          "rss_samples": 5,
+          "process_hwm_rss_bytes": 78774272,
+          "mlx_peak_active_bytes": 14155776,
+          "mlx_active_bytes": 9437184,
+          "mlx_cache_bytes": 4718592,
+          "residency": {
+            "entries": 2,
+            "resident_bytes": 9437184,
+            "peak_resident_bytes": 9437184,
+            "peak_reserved_bytes": 0,
+            "maximum_entries": 4,
+            "maximum_bytes": 9437184,
+            "active_leases": 0,
+            "hits": 0,
+            "misses": 6,
+            "evictions": 4,
+            "rejections": 0,
+            "resize_pending": false,
+            "pending_maximum_entries": null,
+            "pending_maximum_bytes": null
+          }
+        }
+      ],
+      "closed": {
+        "residency": {
+          "entries": 0,
+          "resident_bytes": 0,
+          "peak_resident_bytes": 9437184,
+          "peak_reserved_bytes": 0,
+          "maximum_entries": 4,
+          "maximum_bytes": 9437184,
+          "active_leases": 0,
+          "hits": 0,
+          "misses": 6,
+          "evictions": 4,
+          "rejections": 0,
+          "resize_pending": false,
+          "pending_maximum_entries": null,
+          "pending_maximum_bytes": null
+        },
+        "rss_bytes": 78741504,
+        "mlx_active_bytes": 0,
+        "mlx_cache_bytes": 14155776
+      },
+      "after_clear_cache": {
+        "rss_bytes": 64700416,
+        "mlx_active_bytes": 0,
+        "mlx_cache_bytes": 0
+      },
+      "repeat": 1
+    },
+    {
+      "status": "passed",
+      "device": "gpu",
+      "mode": "preload",
+      "capacity": 2,
+      "mlx_version": "0.32.1",
+      "metal_device_info": {
+        "device_name": "Apple M4",
+        "max_recommended_working_set_size": 26800603136,
+        "memory_size": 34359738368,
+        "architecture": "applegpu_g16g",
+        "max_buffer_length": 20100448256,
+        "resource_limit": 499000
+      },
+      "payload_bytes": 4718592,
+      "budget_bytes": 9437184,
+      "steps": [
+        {
+          "expert": 0,
+          "before": {
+            "rss_bytes": 59899904,
+            "process_hwm_rss_bytes": 59899904,
+            "mlx_active_bytes": 0,
+            "mlx_cache_bytes": 0
+          },
+          "sampled_rss_peak_bytes": 68288512,
+          "rss_samples": 6,
+          "process_hwm_rss_bytes": 68288512,
+          "mlx_peak_active_bytes": 4718592,
+          "mlx_active_bytes": 4718592,
+          "mlx_cache_bytes": 0,
+          "residency": {
+            "entries": 1,
+            "resident_bytes": 4718592,
+            "peak_resident_bytes": 4718592,
+            "peak_reserved_bytes": 4718592,
+            "maximum_entries": 4,
+            "maximum_bytes": 9437184,
+            "active_leases": 0,
+            "hits": 0,
+            "misses": 1,
+            "evictions": 0,
+            "rejections": 0,
+            "resize_pending": false,
+            "pending_maximum_entries": null,
+            "pending_maximum_bytes": null
+          }
+        },
+        {
+          "expert": 1,
+          "before": {
+            "rss_bytes": 68255744,
+            "process_hwm_rss_bytes": 68288512,
+            "mlx_active_bytes": 4718592,
+            "mlx_cache_bytes": 0
+          },
+          "sampled_rss_peak_bytes": 74104832,
+          "rss_samples": 5,
+          "process_hwm_rss_bytes": 74104832,
+          "mlx_peak_active_bytes": 9437184,
+          "mlx_active_bytes": 9437184,
+          "mlx_cache_bytes": 0,
+          "residency": {
+            "entries": 2,
+            "resident_bytes": 9437184,
+            "peak_resident_bytes": 9437184,
+            "peak_reserved_bytes": 9437184,
+            "maximum_entries": 4,
+            "maximum_bytes": 9437184,
+            "active_leases": 0,
+            "hits": 0,
+            "misses": 2,
+            "evictions": 0,
+            "rejections": 0,
+            "resize_pending": false,
+            "pending_maximum_entries": null,
+            "pending_maximum_bytes": null
+          }
+        },
+        {
+          "expert": 2,
+          "before": {
+            "rss_bytes": 74072064,
+            "process_hwm_rss_bytes": 74104832,
+            "mlx_active_bytes": 9437184,
+            "mlx_cache_bytes": 0
+          },
+          "sampled_rss_peak_bytes": 74104832,
+          "rss_samples": 5,
+          "process_hwm_rss_bytes": 74104832,
+          "mlx_peak_active_bytes": 9437184,
+          "mlx_active_bytes": 9437184,
+          "mlx_cache_bytes": 0,
+          "residency": {
+            "entries": 2,
+            "resident_bytes": 9437184,
+            "peak_resident_bytes": 9437184,
+            "peak_reserved_bytes": 9437184,
+            "maximum_entries": 4,
+            "maximum_bytes": 9437184,
+            "active_leases": 0,
+            "hits": 0,
+            "misses": 3,
+            "evictions": 1,
+            "rejections": 0,
+            "resize_pending": false,
+            "pending_maximum_entries": null,
+            "pending_maximum_bytes": null
+          }
+        },
+        {
+          "expert": 3,
+          "before": {
+            "rss_bytes": 74072064,
+            "process_hwm_rss_bytes": 74104832,
+            "mlx_active_bytes": 9437184,
+            "mlx_cache_bytes": 0
+          },
+          "sampled_rss_peak_bytes": 74121216,
+          "rss_samples": 5,
+          "process_hwm_rss_bytes": 74121216,
+          "mlx_peak_active_bytes": 9437184,
+          "mlx_active_bytes": 9437184,
+          "mlx_cache_bytes": 0,
+          "residency": {
+            "entries": 2,
+            "resident_bytes": 9437184,
+            "peak_resident_bytes": 9437184,
+            "peak_reserved_bytes": 9437184,
+            "maximum_entries": 4,
+            "maximum_bytes": 9437184,
+            "active_leases": 0,
+            "hits": 0,
+            "misses": 4,
+            "evictions": 2,
+            "rejections": 0,
+            "resize_pending": false,
+            "pending_maximum_entries": null,
+            "pending_maximum_bytes": null
+          }
+        },
+        {
+          "expert": 0,
+          "before": {
+            "rss_bytes": 74088448,
+            "process_hwm_rss_bytes": 74121216,
+            "mlx_active_bytes": 9437184,
+            "mlx_cache_bytes": 0
+          },
+          "sampled_rss_peak_bytes": 74121216,
+          "rss_samples": 5,
+          "process_hwm_rss_bytes": 74121216,
+          "mlx_peak_active_bytes": 9437184,
+          "mlx_active_bytes": 9437184,
+          "mlx_cache_bytes": 0,
+          "residency": {
+            "entries": 2,
+            "resident_bytes": 9437184,
+            "peak_resident_bytes": 9437184,
+            "peak_reserved_bytes": 9437184,
+            "maximum_entries": 4,
+            "maximum_bytes": 9437184,
+            "active_leases": 0,
+            "hits": 0,
+            "misses": 5,
+            "evictions": 3,
+            "rejections": 0,
+            "resize_pending": false,
+            "pending_maximum_entries": null,
+            "pending_maximum_bytes": null
+          }
+        },
+        {
+          "expert": 1,
+          "before": {
+            "rss_bytes": 74088448,
+            "process_hwm_rss_bytes": 74121216,
+            "mlx_active_bytes": 9437184,
+            "mlx_cache_bytes": 0
+          },
+          "sampled_rss_peak_bytes": 74121216,
+          "rss_samples": 5,
+          "process_hwm_rss_bytes": 74121216,
+          "mlx_peak_active_bytes": 9437184,
+          "mlx_active_bytes": 9437184,
+          "mlx_cache_bytes": 0,
+          "residency": {
+            "entries": 2,
+            "resident_bytes": 9437184,
+            "peak_resident_bytes": 9437184,
+            "peak_reserved_bytes": 9437184,
+            "maximum_entries": 4,
+            "maximum_bytes": 9437184,
+            "active_leases": 0,
+            "hits": 0,
+            "misses": 6,
+            "evictions": 4,
+            "rejections": 0,
+            "resize_pending": false,
+            "pending_maximum_entries": null,
+            "pending_maximum_bytes": null
+          }
+        }
+      ],
+      "closed": {
+        "residency": {
+          "entries": 0,
+          "resident_bytes": 0,
+          "peak_resident_bytes": 9437184,
+          "peak_reserved_bytes": 9437184,
+          "maximum_entries": 4,
+          "maximum_bytes": 9437184,
+          "active_leases": 0,
+          "hits": 0,
+          "misses": 6,
+          "evictions": 4,
+          "rejections": 0,
+          "resize_pending": false,
+          "pending_maximum_entries": null,
+          "pending_maximum_bytes": null
+        },
+        "rss_bytes": 74088448,
+        "mlx_active_bytes": 0,
+        "mlx_cache_bytes": 9437184
+      },
+      "after_clear_cache": {
+        "rss_bytes": 64765952,
+        "mlx_active_bytes": 0,
+        "mlx_cache_bytes": 0
+      },
+      "repeat": 1
+    },
+    {
+      "status": "passed",
+      "device": "cpu",
+      "mode": "postload",
+      "capacity": 1,
+      "mlx_version": "0.32.1",
+      "metal_device_info": {
+        "device_name": "Apple M4",
+        "max_recommended_working_set_size": 26800603136,
+        "memory_size": 34359738368,
+        "architecture": "applegpu_g16g",
+        "max_buffer_length": 20100448256,
+        "resource_limit": 499000
+      },
+      "payload_bytes": 4718592,
+      "budget_bytes": 4718592,
+      "steps": [
+        {
+          "expert": 0,
+          "before": {
+            "rss_bytes": 59473920,
+            "process_hwm_rss_bytes": 59473920,
+            "mlx_active_bytes": 0,
+            "mlx_cache_bytes": 0
+          },
+          "sampled_rss_peak_bytes": 68632576,
+          "rss_samples": 6,
+          "process_hwm_rss_bytes": 68632576,
+          "mlx_peak_active_bytes": 4718592,
+          "mlx_active_bytes": 4718592,
+          "mlx_cache_bytes": 0,
+          "residency": {
+            "entries": 1,
+            "resident_bytes": 4718592,
+            "peak_resident_bytes": 4718592,
+            "peak_reserved_bytes": 0,
+            "maximum_entries": 4,
+            "maximum_bytes": 4718592,
+            "active_leases": 0,
+            "hits": 0,
+            "misses": 1,
+            "evictions": 0,
+            "rejections": 0,
+            "resize_pending": false,
+            "pending_maximum_entries": null,
+            "pending_maximum_bytes": null
+          }
+        },
+        {
+          "expert": 1,
+          "before": {
+            "rss_bytes": 68599808,
+            "process_hwm_rss_bytes": 68632576,
+            "mlx_active_bytes": 4718592,
+            "mlx_cache_bytes": 0
+          },
+          "sampled_rss_peak_bytes": 73383936,
+          "rss_samples": 6,
+          "process_hwm_rss_bytes": 73383936,
+          "mlx_peak_active_bytes": 9437184,
+          "mlx_active_bytes": 4718592,
+          "mlx_cache_bytes": 4718592,
+          "residency": {
+            "entries": 1,
+            "resident_bytes": 4718592,
+            "peak_resident_bytes": 4718592,
+            "peak_reserved_bytes": 0,
+            "maximum_entries": 4,
+            "maximum_bytes": 4718592,
+            "active_leases": 0,
+            "hits": 0,
+            "misses": 2,
+            "evictions": 1,
+            "rejections": 0,
+            "resize_pending": false,
+            "pending_maximum_entries": null,
+            "pending_maximum_bytes": null
+          }
+        },
+        {
+          "expert": 2,
+          "before": {
+            "rss_bytes": 73351168,
+            "process_hwm_rss_bytes": 73383936,
+            "mlx_active_bytes": 4718592,
+            "mlx_cache_bytes": 4718592
+          },
+          "sampled_rss_peak_bytes": 73383936,
+          "rss_samples": 5,
+          "process_hwm_rss_bytes": 73383936,
+          "mlx_peak_active_bytes": 9437184,
+          "mlx_active_bytes": 4718592,
+          "mlx_cache_bytes": 4718592,
+          "residency": {
+            "entries": 1,
+            "resident_bytes": 4718592,
+            "peak_resident_bytes": 4718592,
+            "peak_reserved_bytes": 0,
+            "maximum_entries": 4,
+            "maximum_bytes": 4718592,
+            "active_leases": 0,
+            "hits": 0,
+            "misses": 3,
+            "evictions": 2,
+            "rejections": 0,
+            "resize_pending": false,
+            "pending_maximum_entries": null,
+            "pending_maximum_bytes": null
+          }
+        },
+        {
+          "expert": 3,
+          "before": {
+            "rss_bytes": 73351168,
+            "process_hwm_rss_bytes": 73383936,
+            "mlx_active_bytes": 4718592,
+            "mlx_cache_bytes": 4718592
+          },
+          "sampled_rss_peak_bytes": 73400320,
+          "rss_samples": 5,
+          "process_hwm_rss_bytes": 73400320,
+          "mlx_peak_active_bytes": 9437184,
+          "mlx_active_bytes": 4718592,
+          "mlx_cache_bytes": 4718592,
+          "residency": {
+            "entries": 1,
+            "resident_bytes": 4718592,
+            "peak_resident_bytes": 4718592,
+            "peak_reserved_bytes": 0,
+            "maximum_entries": 4,
+            "maximum_bytes": 4718592,
+            "active_leases": 0,
+            "hits": 0,
+            "misses": 4,
+            "evictions": 3,
+            "rejections": 0,
+            "resize_pending": false,
+            "pending_maximum_entries": null,
+            "pending_maximum_bytes": null
+          }
+        },
+        {
+          "expert": 0,
+          "before": {
+            "rss_bytes": 73367552,
+            "process_hwm_rss_bytes": 73400320,
+            "mlx_active_bytes": 4718592,
+            "mlx_cache_bytes": 4718592
+          },
+          "sampled_rss_peak_bytes": 73416704,
+          "rss_samples": 5,
+          "process_hwm_rss_bytes": 73416704,
+          "mlx_peak_active_bytes": 9437184,
+          "mlx_active_bytes": 4718592,
+          "mlx_cache_bytes": 4718592,
+          "residency": {
+            "entries": 1,
+            "resident_bytes": 4718592,
+            "peak_resident_bytes": 4718592,
+            "peak_reserved_bytes": 0,
+            "maximum_entries": 4,
+            "maximum_bytes": 4718592,
+            "active_leases": 0,
+            "hits": 0,
+            "misses": 5,
+            "evictions": 4,
+            "rejections": 0,
+            "resize_pending": false,
+            "pending_maximum_entries": null,
+            "pending_maximum_bytes": null
+          }
+        },
+        {
+          "expert": 1,
+          "before": {
+            "rss_bytes": 73383936,
+            "process_hwm_rss_bytes": 73416704,
+            "mlx_active_bytes": 4718592,
+            "mlx_cache_bytes": 4718592
+          },
+          "sampled_rss_peak_bytes": 73416704,
+          "rss_samples": 5,
+          "process_hwm_rss_bytes": 73416704,
+          "mlx_peak_active_bytes": 9437184,
+          "mlx_active_bytes": 4718592,
+          "mlx_cache_bytes": 4718592,
+          "residency": {
+            "entries": 1,
+            "resident_bytes": 4718592,
+            "peak_resident_bytes": 4718592,
+            "peak_reserved_bytes": 0,
+            "maximum_entries": 4,
+            "maximum_bytes": 4718592,
+            "active_leases": 0,
+            "hits": 0,
+            "misses": 6,
+            "evictions": 5,
+            "rejections": 0,
+            "resize_pending": false,
+            "pending_maximum_entries": null,
+            "pending_maximum_bytes": null
+          }
+        }
+      ],
+      "closed": {
+        "residency": {
+          "entries": 0,
+          "resident_bytes": 0,
+          "peak_resident_bytes": 4718592,
+          "peak_reserved_bytes": 0,
+          "maximum_entries": 4,
+          "maximum_bytes": 4718592,
+          "active_leases": 0,
+          "hits": 0,
+          "misses": 6,
+          "evictions": 5,
+          "rejections": 0,
+          "resize_pending": false,
+          "pending_maximum_entries": null,
+          "pending_maximum_bytes": null
+        },
+        "rss_bytes": 73383936,
+        "mlx_active_bytes": 0,
+        "mlx_cache_bytes": 9437184
+      },
+      "after_clear_cache": {
+        "rss_bytes": 64077824,
+        "mlx_active_bytes": 0,
+        "mlx_cache_bytes": 0
+      },
+      "repeat": 1
+    }
+  ],
+  "real_oom_qualified": false,
+  "speed_qualified": false,
+  "source_sha256": {
+    "scripts/probe_strata_load_memory.py": "89c4d1918340ec92ddee59493a3e8dc50cd4cb005cc7c36ea05125ad52323c5d",
+    "scripts/strata_measurement.py": "f396fc34e40ceba9ce0a23dfea79f6cc300c9330c895a61e9bacfecec67554d0",
+    "vllm_apple/expert_residency.py": "0bb7320cbb3b259c32aa6fc3deb9e22f585f03350d0a07ec4662240e87ea6a57",
+    "vllm_apple/mlx_expert_backend.py": "6a286b3bec5b52acafc71d2c16006d974053cb344f3536ae06b6780d6575129b"
+  },
+  "notes": [
+    "Fixture exported in another process; workers retain no source model",
+    "Current RSS sampled at requested 1ms interval; short peaks may be missed",
+    "ru_maxrss is process lifetime high-water, not an isolated load peak",
+    "MLX peak reset per acquire; synchronization surrounds each load",
+    "MLX statistics cover process allocator, not total GPU/OS memory",
+    "GPU workers select Metal as default device; no inference kernels measured",
+    "Apple Silicon uses unified memory; RSS and MLX values overlap",
+    "Default allocator cache retained between loads; cleared at start/end",
+    "Checksums, file loading and weight eval included; inference excluded",
+    "Other host workloads may affect RSS sample cadence; no speed claim"
+  ]
+}

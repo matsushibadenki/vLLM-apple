@@ -7,6 +7,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
+from struct import unpack
 
 from .expert_execution import ResidentExpertExecutor
 from .expert_manifest import ExpertManifest
@@ -64,15 +65,37 @@ class MLXFileExpertBackend:
         backend._manifest = manifest
         return backend
 
-    def load_expert(self, key: ExpertKey) -> ExpertResource:
+    def resident_bytes_upper_bound(self, key: ExpertKey) -> int:
+        """Uncompressed safetensors payload bounds retained tensor bytes only.
+
+        Files must remain immutable between admission and loading. Loader temporary
+        allocations and allocator caches are outside this reservation contract.
+        """
+        path, size = self._file_size(key)
+        with measure(self.timings, "file_stat"):
+            with path.open("rb") as stream:
+                prefix = stream.read(8)
+            if len(prefix) != 8:
+                raise ValueError("invalid safetensors header")
+            header_bytes = unpack("<Q", prefix)[0]
+            if not 0 < header_bytes < size - 8:
+                raise ValueError("invalid safetensors payload size")
+        return size - 8 - header_bytes
+
+    def _file_size(self, key: ExpertKey) -> tuple[Path, int]:
         if not isinstance(key, ExpertKey):
             raise ValueError("invalid expert key")
         path = self.root / f"layer-{key.layer}-expert-{key.expert}.safetensors"
         with measure(self.timings, "file_stat"):
             if path.is_symlink() or not path.is_file():
                 raise ValueError("expert file must be a regular non-symlink file")
-            if not 0 < path.stat().st_size <= self.maximum_file_bytes:
+            size = path.stat().st_size
+            if not 0 < size <= self.maximum_file_bytes:
                 raise ValueError("expert file exceeds limit")
+        return path, size
+
+    def load_expert(self, key: ExpertKey) -> ExpertResource:
+        path, _ = self._file_size(key)
         if self._manifest is not None:
             if (self.quantization_bits != self._manifest.quantization_bits
                     or self.group_size != self._manifest.group_size):

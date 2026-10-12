@@ -2,6 +2,179 @@
 
 ## 日本語
 
+🟢 [Done] 第17工程（2026-10-12）：startupと要求区間をREADY／GO／DONE／ACKで分離。
+startupはimport・reference生成・export・preload・warmupを含む。READY後に再び低負荷を待ち、
+parentが要求monitorを開始してGOを送る。DONEを受けた時点でmonitorを停止し、その後にACKでcleanupを許可する。
+startupは約1秒、要求は約100ms間隔のCPU記録。終了時の短い端数は直前sampleとまとめ、CPU deltaを捨てない。
+要求windowにはparity確認とcontroller合図処理を含むが、各要求のlatencyにはparity・合図は含まれない。
+startup／READY待機／要求の記録を分け、資格判定は要求windowに対して実施する。
+startupの失敗が要求の資格へ自動的に混入しないこと、要求記録欠落の拒否、
+READY待機未達時にGOを送らずworkerを終了することを検証。関連34 unit tests、ruff成功。
+`--quiet-timeout`（3–180秒、既定30秒）で各gateの待機上限を指定できる。
+全体CPUはbenchmark／observerを含み、他process上限・PID条件を維持した。閾値は緩めていない。
+
+[分離した部分常駐試行](evaluation/strata-phased-partial-analysis-cpu-2026-10-12.json)：
+baseline1 trial／4,096要求の誤差0。startup観測約2.50秒、CPU140–222%；
+要求window約0.293秒、CPU161–218%で両windowに条件未達がある。
+次のlaunch前gateでjournal_bench等の高負荷を確認しcampaign停止。
+[全常駐](evaluation/strata-phased-resident-analysis-cpu-2026-10-12.json)はlaunch前gate未達でtrial0。
+[120秒待機の部分常駐再試行](evaluation/strata-phased-partial-retry-analysis-cpu-2026-10-12.json)もtrial0。
+116 sampleの全体CPU約196–959%、中央値234%、他のPython process等の負荷が残った。
+要求区間にも同時負荷があり、startup分離だけで全方式の非競合比較が成立したとはしない。
+raw試行・gate未達の履歴を保存し、速度／既定採用資格はfalse。runtimeの既定経路は変更していない。
+🟠 [Next] 要求中の負荷条件が成立するhost時間帯で、分離runnerによる全方式比較を揃える。
+⭕️ [Pending] 全方式の非競合資格・実weightピーク／system GPU／実OOM／E2E認定。
+
+
+🟢 [Done] 第16工程（2026-10-12）：CPU低負荷gate付き比較を再実行。
+[全常駐](evaluation/strata-quiet-resident-analysis-cpu-2026-10-12.json)は14 trial／57,344要求、
+[部分常駐](evaluation/strata-quiet-partial-analysis-cpu-2026-10-12.json)は16 trial／16,384要求、計73,728要求の誤差0。
+すべてprofile off、64要求warmup、独立process・順序rotation。
+全常駐は各4,096要求、4 repeatを計画したが最後のgate未達で14 trialで終了。
+中央値の中央値はbaseline 47.667、逐次LRU143.459、grouped LRU121.125、gather49.209 μs。
+逐次／gatherのrun変動は0.70／1.56%、grouped13.31%、baseline189.33%。
+全常駐campaignは未完、実行中host条件にも未達があり、速度認定しない。
+
+部分常駐は20,000-byte予算、全Expert36,864 bytes、各1,024要求×4 repeatを完了。
+
+| 条件 | run中央値の中央値 (μs) | run総時間変動 | host条件通過trial |
+|---|---:|---:|---:|
+| baseline（全weight保持の参考値） | 45.781 | 1.74% | 2/4 |
+| 逐次LRU | 217.969 | 1.90% | 4/4 |
+| grouped LRU | 189.250 | 0.33% | 3/4 |
+| grouped cost_frequency | 199.135 | 2.44% | 2/4 |
+
+全方式でrun変動≤5%に到達。逐次LRU単体はhost条件も全試行通過した。
+ただし他方式のCPU上限／PID変動条件が未達で、campaign全体の非競合比較資格はfalse。
+良好なtrialだけを選び直して速度優位を認定しない。baselineは同じ保持予算を満たさない。
+候補の保持／incoming予約ピーク18,432 bytes、拒否・残存Lease0、close後保持0。
+各1,024要求のmiss／evictionは逐次640／640、grouped両方式512／512、再読み込み20%減を再確認。
+source hashとartifact契約を検証。runtimeの既定設定は変更していない。
+🟠 [Next] 全方式で実行中host条件を満たす比較を揃え、source初期化と要求区間の負荷を切り分ける。
+⭕️ [Pending] 実互換weightのload／推論RSS・MLXピーク、system GPU・実OOM・E2E認定。
+
+
+🟢 [Done] 第15工程（2026-10-11）：比較runnerに`--quiet-host`を追加。
+1秒間隔でシステム全体CPU時間と取得可能なprocess CPU時間を計測し、
+全体≤200%・他process最大≤75%・PID増減なしを3 sample連続で満たしてからworkerを開始する。
+実行中も別threadで負荷を記録し、解析はhost条件とrun変動≤5%の両方を要求する。
+全体CPUにはbenchmark自身も含む。取得できないprocessの負荷も全体CPUで検出する。
+CPU sampleは瞬間的負荷・disk／GPU競合を完全には検出しない。
+空／未完campaignやhost記録なしを非競合比較の成功としない。関連30 unit tests、ruff成功。
+
+[低負荷比較の再試行記録](evaluation/strata-quiet-resident-retry-analysis-cpu-2026-10-11.json)：
+30秒確認を2 campaignで実行したが条件未達、worker開始0、速度値は取得していない。
+Rust／Swiftコンパイル等の高負荷を確認。他の作業を停止せず、speed資格／既定採用をfalseのまま維持する。
+⭕️ [Pending] 同時負荷を避けた速度比較は、現hostで低負荷条件が満たされるまで未完。
+
+[読み込みメモリ検証](evaluation/strata-load-memory-analysis-cpu-metal-2026-10-11.json)：
+Apple M4／32 GiB、d1024・intermediate2048・4 Experts・affine4-bit／group32の合成fixture。
+1 Expert payload 4.5 MiB、全Expert18 MiB。source生成／exportは別processで完了し、
+workerは元のmodel bankを保持しない。CPU／Metal default device、保持capacity1／2、
+従来load後退避／事前退避を各2 fresh processで比較（最終16 trial／96 acquire）。
+checksum・load・weight evalを含み、推論kernel・Router・activationは含まない。
+各load前に同期・MLX peak reset、後に同期。RSSは要求1ms間隔のsample最大とprocess生涯HWMを併記。
+
+| device | 保持Expert数 | MLX activeピーク：従来→事前退避 (MiB) | sample RSSピーク：従来→事前退避 (MiB、2 run範囲) |
+|---|---:|---:|---:|
+| CPU | 1 | 9→4.5 | 69.44–70.02 → 64.66–65.41 |
+| CPU | 2 | 13.5→9 | 72.86–74.22 → 69.22–69.62 |
+| Metal default | 1 | 9→4.5 | 68.81–71.02 → 64.25–64.34 |
+| Metal default | 2 | 13.5→9 | 73.36–75.12 → 69.97–70.69 |
+
+MLX activeピークは全試行で旧Expert＋incomingの重なり1 Expert分（4.5 MiB）減。
+close後は保持tensor／active／Lease残存0。ただしallocator cacheは残り、検証用clear後にcache0。
+RSSはimport等とcacheも含むので、保持予算と一致しない。RSS sampleピークは短いtransientを逃し得る下限。
+HWMはprocess生涯値でありload区間だけのピークではない。
+Apple Siliconはunified memoryであり、RSSとMLX値を加算しない。
+Metal defaultの値はMLX process allocator統計であり、専用VRAM／system全体GPUピークとは主張しない。
+本番runtimeへclear_cacheを追加していない。計測は速度資格・実weight E2E・実OOM保証ではない。
+🟠 [Next] 非競合hostの速度比較と実互換weightのload／推論を含むRSS・MLXピーク計測。
+⭕️ [Pending] 実OOM、system全体GPUメモリ、長時間E2E認定。
+
+
+🟢 [Done] 第14工程（2026-10-11）：MLX backendに読み込み前のpayload上限照会を追加。
+safetensorsの8-byte prefixからheader長を確認し、file size−prefix−headerを予約量とする。
+managerは予約量を保持予算に収めるために未使用Expertを先に退避し、pinned／容量不足をload前に拒否する。
+読み込み後も実tensor量が予約以下か検証し、超過resourceは解放して拒否する。
+対応backendで保持重み＋incoming payloadの論理ピーク`peak_reserved_bytes`を記録。
+照会を持たない既存backendは従来のload後退避を維持する。
+ファイルはoffline生成後immutableが契約。header prefix readはfile_stat spanに含まれる。
+
+[実行記録](evaluation/strata-preload-reservation-cpu-2026-10-11.json)：
+20,000 bytes予算のgrouped LRU／cost、10,000 bytes予算の逐次fallback各64要求、計192要求の誤差0。
+保持＋incoming予約ピークはそれぞれ18,432／18,432／9,216 bytes、残存Lease0、close後保持0。
+grouped Expert eval各64回、1 Expert fallbackは128回。
+24 unit testsと14 native関連tests、ruff成功。pinned／単体容量不足のload前拒否、
+予約違反resourceの解放、模擬MemoryError後の再試行、厳密tensor予算での回帰を検証。
+ロード失敗前に退避したcacheは元に戻さないが、managerは再試行可能。
+
+予約で旧Expert＋新Expertの論理重み超過を避ける。loader scratch、checksum buffer、
+中間activation、allocator cache、OS RSS、GPU memoryは上限に含まれず、実OOM安全認定ではない。
+読み込み前に実ファイル全体のMLX allocation量を制限できるとは主張しない。
+確認時はRustコンパイル等の高負荷処理が残っており、追加の速度比較は認定目的で実行しなかった。
+🟠 [Next] 非競合hostで比較を再取得し、実weightでload時RSS／GPUピークを測定する。
+⭕️ [Pending] 実OOM／allocatorピーク・GPU／E2E認定。OSのMemoryErrorを意図的に発生させる検証は未実施。
+
+
+🟢 [Done] 第13工程（2026-10-11）：比較runnerにwarmup、反復数、明示byte予算、部分常駐suiteを追加。
+保持tensorの生涯ピークを記録し、Lease残存・予算超過を検出する。
+[解析runner](../scripts/analyze_strata_comparison.py)はrun総時間の(max−min)/medianを算出し、
+5%以下を安定性条件とする。数値一致・保持契約と速度判定を分離し、合成結果で既定採用しない。
+関連19 unit tests、native関連13 tests、ruff成功。
+
+[全常駐比較](evaluation/strata-stable-resident-analysis-cpu-2026-10-11.json)：
+各方式6 fresh process、32要求warmup後に各1,024要求、24 trial／24,576要求すべて一致。
+計測offでrun中央値の中央値はbaseline 70.969、逐次LRU 190.948、grouped LRU 178.490、
+gather 56.427 μs。全常駐候補は要求中miss／evictionとも0。
+総時間のrun変動は139–352%で、安定計測には未到達。
+確認時には別のSwiftコンパイル等が高負荷で動作しており、host競合が疑われる。
+この速度差を優位性や改善率として認定しない。
+
+[部分常駐比較](evaluation/strata-partial-residency-analysis-cpu-2026-10-11.json)：
+全Expert 36,864 bytesに対して保持予算20,000 bytes、entry上限4（byte制約を検証）。
+各方式6 fresh process、32要求warmup後に各512要求、24 trial／12,288要求すべて一致。
+候補の保持ピーク18,432 bytes、Lease残存0、close後保持0、拒否0。
+512要求のmiss／eviction増分は逐次LRU 320／320、grouped LRU・cost_frequencyとも256／256。
+groupedは再読み込み20%減だが、cost方式の優位はこのfixtureでは認められない。
+run中央値の中央値はbaseline 110.344、逐次LRU 498.562、grouped LRU 377.542、
+grouped cost 402.938 μs。run変動87–139%で速度認定なし。
+baselineは全Expert保持の参考値であり、同じメモリ制約を満たす候補ではない。
+
+[1 Expert予算fallback](evaluation/strata-single-expert-fallback-cpu-2026-10-11.json)：
+10,000 bytes予算、top-k=2、grouped指定でも逐次経路にfallback。
+64要求数値誤差0、Expert eval128回、保持ピーク9,216 bytes、要求中miss／eviction88／88、
+Lease残存0・close後保持0を確認。分解計測onのため速度比較には使用しない。
+保持上限は管理下tensorのみ。現在は読み込み後に退避するため、一時allocationやRSSのOOMを保証しない。
+🟠 [Next] 他の高負荷処理と競合しない環境で同条件比較を再取得する。
+⭕️ [Pending] 実weight・GPU／RSS、読み込み時ピークと実OOM、chat E2E／長時間認定。
+
+
+🟢 [Done] 第12工程（2026-10-11）：全Expert常駐の`install_qwen3_moe_gather`候補を実装。
+Router indicesをhostへ取り出さず、MLX gather_mm／gather_qmmへ直接渡す。
+全Expertをmanifest検証してbank化し、元のSwitchGLU参照を置き換える。
+要求中はlazy graphを返し、最終callerのmx.evalへ評価をまとめる。
+任意indicesの内容検証はhost同期を避けるため行わず、既存blockのRouter出力のみを契約とする。
+全Expertが予算内に収まらなければinstallを拒否し、元blockを維持する。
+startup予算は元source tensor＋file bytes×2で保守的に判定するが、allocator overheadは保証外。
+動的常駐・offloadの代替ではなくall-resident比較候補。closeは要求完了後のidle pointのみ。
+native含む12 tests成功、dense／4／8-bitと40-token入力の数値一致・元source解放・予算拒否を確認。
+
+[順序rotation比較](evaluation/strata-gather-analysis-cpu-2026-10-11.json)：
+baseline／逐次／grouped／gather各3 fresh process、各64要求、12 trial／768要求すべて数値一致。
+再利用中央値はbaseline 50.917 μs、逐次162.792 μs、grouped 138.125 μs、gather 55.958 μs。
+gatherは64要求のRouter to_host 64→0、Expert build区間128→64、内部Expert eval128→0。
+3 projectionのgather演算を1 tokenにつき1回ずつ発行し、ExpertごとのPython loopを省いた。
+最終caller evalは残る。全常駐で要求中loadは全候補0。
+gatherのrun総時間変動は約27.9%、baselineより遅く、P3資格／既定採用はfalse。
+host同期とgraph構築を同時に変更しているため、個別の寄与率はこの比較だけでは確定しない。
+
+判断：全Expertが収まる場合は既存MLX gather経路を基準にするのが適切。
+独立file＋host Router＋Python Expert loopの参照経路が追加固定費を生むことを示す
+有望な結果だが、Strata移植によるbaseline超えの証明ではない。
+🟠 [Next] より安定した同条件計測と、メモリ不足時の部分常駐経路を切り分ける。
+⭕️ [Pending] 実MoE weight・GPU／RSS／chat E2Eと長時間認定。
+
 🟢 [Done] 第11工程：`grouped=True`の明示候補でtop-kの全Leaseを保持し、
 未集約Expert出力を1回のmx.evalで確定してから解放する。既定は逐次実行。
 entry／byte予算不足なら逐次fallback。byte判定はfile header込みの保守的な見積り。
@@ -224,6 +397,110 @@ prefill／decode別の測定を収集する。LRUと同一モデル・精度・w
 
 ## English
 
+🟢 [Done] Stage17 (2026-10-12): READY/GO/DONE/ACK separates startup, ready wait and requests.
+Startup includes imports/reference construction/export/preload/warmup. After READY the parent waits for
+quiet conditions, starts request monitoring and sends GO. DONE stops monitoring before ACK allows cleanup.
+Approx1s startup and100ms request sampling; a short tail merges with the previous sample without losing CPU delta.
+Request windows include parity/controller handoff, individual latencies exclude both. Qualification uses request
+records independently of startup. Missing request records and failed ready gates fail closed.
+`--quiet-timeout` allows3–180s, default30. CPU/PID thresholds unchanged; aggregate includes worker/observer.
+34 related unit tests and ruff pass; runtime defaults unchanged.
+[Partial](evaluation/strata-phased-partial-analysis-cpu-2026-10-12.json): one baseline trial/4,096 requests,
+zero error; startup2.50s at140–222% CPU, request window0.293s at161–218%, both fail load conditions.
+A subsequent launch gate detects journal_bench activity. [Resident](evaluation/strata-phased-resident-analysis-cpu-2026-10-12.json)
+starts zero workers. [120s retry](evaluation/strata-phased-partial-retry-analysis-cpu-2026-10-12.json)
+also starts zero workers;116 samples at196–959% aggregate CPU, median234%, other Python activity persists.
+Raw trials/failures retained, no speed qualification or promotion. Request contention remains observable after startup separation.
+🟠 [Next] Run all variants during host periods satisfying request-window gates.
+⭕️ [Pending] Full uncontended comparison, real-weight/system-GPU/OOM/E2E qualification.
+
+
+🟢 [Done] Stage16 (2026-10-12): repeated CPU comparisons with the host load gate.
+[Resident](evaluation/strata-quiet-resident-analysis-cpu-2026-10-12.json):14 trials/57,344 requests;
+[partial](evaluation/strata-quiet-partial-analysis-cpu-2026-10-12.json):16 trials/16,384 requests.
+All73,728 requests have zero error; profile off,64 warmup requests, fresh workers and rotated order.
+Resident medians: baseline47.667/sequential143.459/grouped121.125/gather49.209 us.
+Sequential/gather spread0.70/1.56%; grouped13.31%,baseline189.33%. The last preflight gate stopped
+this campaign before the planned16 trials, and host conditions fail in some trials: no qualification.
+Partial budget20,000 bytes versus full bank36,864,1,024 requests per worker,4 workers per variant:
+baseline45.781/sequential217.969/grouped LRU189.250/grouped cost199.135 us;
+spreads1.74/1.90/0.33/2.44%. All meet timing stability, but host-pass counts are2/4,4/4,3/4,2/4.
+Only sequential LRU passes both criteria in every trial; the complete uncontended comparison remains false.
+Baseline retains all weights, not the same memory budget. Candidate retained/reserved peak18,432 bytes,
+no rejections/leases, zero retention after close. Timed misses/evictions640 sequential versus512 grouped,
+confirming20% fewer reloads. Source hashes/contracts checked; no runtime defaults changed.
+🟠 [Next] Gather host-qualified results for every variant and separate startup/request load windows.
+⭕️ [Pending] Real-weight load/inference RSS/MLX peaks, system GPU, real OOM and E2E qualification.
+
+
+🟢 [Done] Stage 15 (2026-10-11): `--quiet-host` requires three consecutive approx-1s
+samples with system CPU<=200%, visible background process CPU<=75% and no PID churn.
+A controller thread records load during workers; analysis requires host checks and <=5% run-total spread.
+Aggregate CPU includes benchmark load and inaccessible processes. CPU sampling does not certify disk/GPU isolation.
+Empty/incomplete campaigns cannot qualify. 30 related unit tests and ruff pass.
+[Two bounded quiet-host attempts](evaluation/strata-quiet-resident-retry-analysis-cpu-2026-10-11.json)
+failed the 30-second gate while Rust/Swift compilation remained active: zero timing workers started.
+⭕️ [Pending] Uncontended speed comparison remains unfinished under current host load.
+[Memory evidence](evaluation/strata-load-memory-analysis-cpu-metal-2026-10-11.json): Apple M4, 32 GiB;
+synthetic d1024/i2048/e4 affine4/group32, 4.5 MiB per expert. Fixture export in a separate process;
+no original model bank in workers. CPU/Metal-default, capacities1/2, pre/post-load eviction,
+two fresh processes each: final16 trials /96 acquires. Checksums/load/eval included; inference excluded.
+Per-load sync/reset MLX peak/sync, requested1ms RSS sampling plus lifetime RSS HWM.
+Active peaks consistently drop from9 to4.5 MiB (capacity1),13.5 to9 MiB (capacity2), on both devices.
+Metal sampled RSS ranges: capacity1,68.81–71.02 to64.25–64.34 MiB; capacity2,73.36–75.12 to69.97–70.69 MiB.
+After close: no weights/leases/active allocations, cache remains; test-only cache clear reduces cache to zero.
+Sampled RSS peaks may miss short transients; HWM is lifetime-wide. MLX allocator statistics are not
+system-wide/dedicated GPU memory, and unified RSS/MLX measurements overlap. No runtime cache-clear change.
+🟠 [Next] Uncontended timing and real-weight load/inference peaks.
+⭕️ [Pending] Real OOM, system-wide GPU memory and long-run E2E certification.
+
+
+🟢 [Done] Stage 14 (2026-10-11): MLX payload admission now reserves file size minus the
+8-byte prefix and header before loading. The manager evicts unpinned weights first, rejects
+insufficient/pinned capacity before load, and rejects/releases a resource exceeding its reservation.
+`peak_reserved_bytes` tracks retained weights plus incoming payload. Backends without this optional
+contract keep the previous post-load eviction behavior. Files must remain immutable; prefix reads
+are included in file_stat spans. Failed loads can leave an evicted cache, but retry remains possible.
+[Functional evidence](evaluation/strata-preload-reservation-cpu-2026-10-11.json): 192 requests, zero error;
+grouped LRU/cost at 20,000 bytes reserve at most 18,432 bytes, single-expert fallback at 10,000 reserves
+9,216 bytes. No leases remain; close retains zero bytes. 24 unit / 14 native-related tests and ruff pass,
+including pre-load rejection, reservation violation cleanup and simulated MemoryError recovery.
+Reservations bound logical weight overlap, excluding loader scratch, checksum buffers, activations,
+allocator caches, RSS and GPU memory. Real OS OOM is untested. Other high-load Rust compilation
+was observed; these profile-on runs validate functionality, not speed.
+🟠 [Next] Uncontended comparisons and real-weight load-time RSS/GPU peaks.
+⭕️ [Pending] Real OOM/allocator and GPU/E2E qualification.
+
+
+🟢 [Done] Stage 13 (2026-10-11): added warmup, repeated fresh workers, explicit byte budgets,
+partial-residency suite and retained-tensor peak tracking. The analysis runner separates parity/retention
+contracts from timing stability (run-total spread <=5%). 19 unit and 13 native-related tests pass; ruff passes.
+[All-resident](evaluation/strata-stable-resident-analysis-cpu-2026-10-11.json): 24 trials / 24,576 timed requests,
+32 warmup requests per worker; all parity passes, no timed candidate misses/evictions.
+Median of run medians: baseline/sequential/grouped/gather 70.969/190.948/178.490/56.427 us.
+Run-total spread 139–352%; concurrent high-load Swift compilation was observed. No speed qualification.
+[Partial residency](evaluation/strata-partial-residency-analysis-cpu-2026-10-11.json): full bank 36,864 bytes,
+20,000-byte retained budget, entry cap 4. 24 trials / 12,288 timed requests pass parity.
+Candidate peak 18,432 bytes, no active leases/rejections, zero retained bytes after close.
+Per 512 requests, misses/evictions are 320/320 sequential versus 256/256 grouped for both policies (20% fewer loads).
+Median of run medians: baseline/sequential/grouped LRU/grouped cost 110.344/498.562/377.542/402.938 us;
+spread 87–139%, no qualified speed advantage. Baseline retains all weights and is a reference, not a budget-compliant candidate.
+[Single-expert fallback](evaluation/strata-single-expert-fallback-cpu-2026-10-11.json): 10,000-byte budget,
+top-k=2 with grouped requested safely falls back to sequential, 64 requests with zero error, 128 expert evals,
+peak 9,216 bytes, 88 timed misses/evictions, no leases and zero retention after close. Profile-on, not a speed comparison.
+Loading happens before eviction: retained peaks do not bound transient allocations/RSS or certify real OOM safety.
+🟠 [Next] Repeat under an uncontended host. ⭕️ [Pending] Real weights, GPU/RSS, load-time peaks/OOM and chat E2E certification.
+
+
+🟢 [Done] All-resident device-index gather candidate removes host index materialization
+and per-expert Python loops/internal evals. Twelve tests including native MLX pass
+for dense/4/8-bit and 40-token parity, source release and budget rejection.
+Twelve rotated fresh-process CPU trials (768 requests) pass parity: baseline/sequential/
+grouped/gather reuse medians 50.917/162.792/138.125/55.958 us. Gather approaches baseline
+but is slower and has 27.9% run spread, so no qualification/adoption. It requires all
+experts resident; startup/allocator RSS, GPU and real models remain unverified.
+🟠 [Next] Stable matched measurements and separate memory-constrained residency.
+
 🟢 [Done] Opt-in grouped top-k pins all leases through one expert-result eval;
 insufficient entry/byte budgets retain sequential fallback. Eleven native-related
 tests pass including dense/4/8-bit parity and cleanup. Eighteen preloaded CPU
@@ -309,6 +586,102 @@ LRU and use the existing P3 gate before adoption.
 ⭕️ [Pending] MTP/ANE routes lacking testable artifacts or hardware.
 
 ## 简体中文
+
+🟢 [Done] 第17阶段（2026-10-12）：READY／GO／DONE／ACK分开startup、准备后等待及请求。
+startup含import／reference／export／preload／warmup。READY后再次等待低负荷，parent开始monitor后发送GO，
+收到DONE即停止monitor，然后ACK允许cleanup。startup约1秒、请求约100ms采样，短尾段与前段合并，
+不丢弃CPU delta。请求window含parity及合图通信，但单次latency不含；资格仅依据请求记录，
+不被startup失败自动污染。缺少请求记录及READY等待失败均拒绝认证。
+`--quiet-timeout`可设3–180秒（默认30），CPU／PID阈值不变，系统CPU含worker／observer。
+34个相关unit tests及ruff通过，runtime默认设置未修改。
+[部分常驻](evaluation/strata-phased-partial-analysis-cpu-2026-10-12.json)取得baseline1 trial／4,096请求误差0；
+startup约2.50秒、CPU140–222%，请求约0.293秒、CPU161–218%，两段均有负荷未达标。
+之后launch gate发现journal_bench等竞争负荷。
+[全常驻](evaluation/strata-phased-resident-analysis-cpu-2026-10-12.json)启动0 worker；
+[120秒重试](evaluation/strata-phased-partial-retry-analysis-cpu-2026-10-12.json)也为0，
+116个sample系统CPU约196–959%、中位数234%，其他Python负荷仍持续。
+保留raw试验及失败记录，不认证速度或晋升；分开startup后仍观察到请求期间竞争。
+🟠 [Next] 在请求期间负荷达标的host时间段补齐所有方式。
+⭕️ [Pending] 全方式无竞争资格及实weight／system GPU／OOM／E2E认证。
+
+
+🟢 [Done] 第16阶段（2026-10-12）：重新执行CPU低负荷gate比较。
+[全常驻](evaluation/strata-quiet-resident-analysis-cpu-2026-10-12.json)14 trial／57,344请求；
+[部分常驻](evaluation/strata-quiet-partial-analysis-cpu-2026-10-12.json)16 trial／16,384请求，
+共73,728次误差0。profile off、64次warmup、独立process及顺序rotation。
+全常驻中位数：baseline47.667／逐次143.459／grouped121.125／gather49.209 μs。
+逐次／gather变动0.70／1.56%，grouped13.31%，baseline189.33%；最后gate未通过，
+计划16 trial仅完成14，部分运行期间host条件也未达标，不认证速度。
+部分常驻20,000 bytes预算（全bank36,864）、每进程1,024次、每方式4个进程全部完成：
+baseline45.781／逐次217.969／grouped LRU189.250／grouped cost199.135 μs，
+变动1.74／1.90／0.33／2.44%，全部≤5%。host条件通过分别2/4、4/4、3/4、2/4。
+仅逐次LRU每次均同时满足稳定性及host条件，整体无竞争比较资格仍为false。
+baseline保留全weight，不满足相同预算。候选保持／预约峰值18,432 bytes，无拒绝／残留Lease，
+close保持0。每1,024请求miss／eviction逐次640、grouped512，再次确认加载减少20%。
+source hash及契约检查通过，未修改runtime默认设置。
+🟠 [Next] 补齐所有方式的host达标比较，分开初始化及请求区间负荷。
+⭕️ [Pending] 实weight加载／推理RSS及MLX峰值、system GPU、实际OOM及E2E认证。
+
+
+🟢 [Done] 第15阶段（2026-10-11）：增加`--quiet-host`，约1秒采样，连续3次满足
+系统CPU≤200%、可读取的其他process最大≤75%、PID无增减后才启动worker。运行期间也记录负荷，
+解析要求host条件及run总时间变动≤5%。系统CPU含benchmark及无法单独读取的process；
+不保证瞬间负荷或disk／GPU隔离。空／未完成campaign不认证。30个相关unit tests及ruff通过。
+[两次低负荷尝试](evaluation/strata-quiet-resident-retry-analysis-cpu-2026-10-11.json)
+各确认30秒仍未达标，Rust／Swift编译继续运行，未启动计时worker。
+⭕️ [Pending] 当前host负荷下无竞争速度比较尚未完成。
+[内存记录](evaluation/strata-load-memory-analysis-cpu-metal-2026-10-11.json)：Apple M4／32 GiB，
+合成d1024／i2048／e4／affine4／group32，单Expert4.5 MiB。另一个process生成并export，
+worker不保留原model bank。CPU／Metal default、capacity1／2、加载后／前退避各2个独立process，
+最终16 trial／96 acquire，包含checksum／load／eval，不含推理。每次load前同步并reset MLX峰值，后同步；
+RSS按要求1ms采样，并记录process生涯HWM。两种device下active峰值均由9降至4.5 MiB（capacity1），
+13.5降至9 MiB（capacity2）。Metal sample RSS：capacity1由68.81–71.02降至64.25–64.34 MiB；
+capacity2由73.36–75.12降至69.97–70.69 MiB。close后保持／active／Lease为0，cache仍保留，
+测试clear后cache为0。RSS采样可能漏掉短暂峰值，HWM非独立load峰值。MLX统计是process allocator，
+并非system全体GPU／专用VRAM；unified memory的RSS与MLX值不能相加。未修改runtime的cache策略。
+🟠 [Next] 无竞争速度比较及实权重load／推理峰值。
+⭕️ [Pending] 实际OOM、system全体GPU内存及长时间E2E认证。
+
+
+🟢 [Done] 第14阶段（2026-10-11）：MLX加载前按file size减去8-byte prefix及header预约payload。
+manager先退避未使用Expert，容量不足／pinned时在load前拒绝；实际tensor超出预约则释放并拒绝。
+`peak_reserved_bytes`记录保持权重加incoming payload。无此可选接口的backend维持原加载后退避。
+文件必须immutable，prefix读取计入file_stat。加载失败可能清空部分cache，但可重试。
+[功能记录](evaluation/strata-preload-reservation-cpu-2026-10-11.json)：192次请求误差0；20,000 bytes预算的
+LRU／cost grouped预约峰值18,432 bytes，10,000 bytes预算逐次fallback为9,216 bytes，
+无残留Lease，close保持0。24 unit／14 native相关tests及ruff通过，包括load前拒绝、
+预约超出后的释放与模拟MemoryError恢复。仅约束逻辑权重重叠，不包含loader临时分配、checksum buffer、
+activation、allocator cache、RSS／GPU memory，未实施实际OS OOM试验。观察到Rust编译等竞争负荷，
+本次profile-on结果仅验证功能，不认证速度。
+🟠 [Next] 无竞争host重测及实权重加载期间RSS／GPU峰值。
+⭕️ [Pending] 实际OOM／allocator及GPU／E2E认证。
+
+
+🟢 [Done] 第13阶段（2026-10-11）：增加warmup、独立进程反复比较、明确byte预算、部分常驻suite及保持tensor峰值。
+解析器将数值一致／保持约束与速度稳定性分开（run总时间变动≤5%）。19个unit及13个native相关测试、ruff通过。
+[全常驻](evaluation/strata-stable-resident-analysis-cpu-2026-10-11.json)：24 trial／24,576次计时请求全部一致，
+每个进程先warmup 32次，候选计时期间miss／eviction为0。
+各run中位数的中位数：baseline／逐次／grouped／gather为70.969／190.948／178.490／56.427 μs。
+run总时间变动139–352%，观察到同时运行的高负荷Swift编译，尚未取得稳定速度证据。
+[部分常驻](evaluation/strata-partial-residency-analysis-cpu-2026-10-11.json)：全Expert 36,864 bytes，
+保持预算20,000 bytes、entry上限4。24 trial／12,288次请求全部一致，候选保持峰值18,432 bytes，
+无残留Lease／拒绝，close后保持量0。每512次请求miss／eviction由逐次LRU的320／320降至
+两种grouped策略的256／256（加载次数减少20%），此fixture未显示cost策略优势。
+中位数分别为baseline 110.344、逐次LRU 498.562、grouped LRU 377.542、grouped cost 402.938 μs；
+run变动87–139%，不认证速度优势。baseline保持全部权重，仅作参考，不满足相同内存预算。
+[单Expert预算fallback](evaluation/strata-single-expert-fallback-cpu-2026-10-11.json)：预算10,000 bytes、
+top-k=2时grouped安全退回逐次路径，64次请求误差0，Expert eval 128次，峰值9,216 bytes，
+计时期间miss／eviction 88／88，无残留Lease，close后保持0。此计测开启profile，不用于速度比较。
+当前加载后才退避；保持峰值不包含临时分配／RSS，不保证实际OOM安全。
+🟠 [Next] 在无其他高负荷竞争的环境重测。⭕️ [Pending] 实权重、GPU／RSS、加载峰值／OOM及chat E2E认证。
+
+
+🟢 [Done] 全常驻device-index gather候选移除host indices取值及逐Expert Python loop／eval。
+包含native的12项测试通过，dense/4/8-bit及40-token一致、source释放和预算拒绝已验证。
+轮换顺序的12次CPU试验共768请求全部一致：baseline/逐次/grouped/gather中位数
+50.917/162.792/138.125/55.958 us。gather接近baseline但仍较慢且波动27.9%，不认证或采用。
+必须全Expert常驻，startup／allocator RSS、GPU及实际模型未验证。
+🟠 [Next] 稳定同条件计测，另行验证内存受限常驻路径。
 
 🟢 [Done] 可选top-k合并求值在完成前保持全部Lease，entry／byte不足时逐次fallback。
 包含native的11项测试通过，dense/4/8-bit一致及失败回收验证。

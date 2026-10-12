@@ -2,6 +2,49 @@
 
 ## Strata導入の最初の工程 / First Strata integration step / Strata集成第一步
 
+
+🟢 [Done] READY／GO／DONE／ACKでstartup／低負荷待機／要求を分離。要求100ms sample、startupと独立した資格判定、関連34 unit tests成功。
+🟢 [Done] [分離した負荷検証](evaluation/strata-phased-partial-analysis-cpu-2026-10-12.json)：1 trial／4,096要求誤差0、要求windowにもCPU条件未達を確認。
+⭕️ [Pending] [120秒待機の全方式再試行](evaluation/strata-phased-partial-retry-analysis-cpu-2026-10-12.json)：継続する他process負荷でtrial0。全方式の比較はまだ揃っていない。
+🟠 [Next] 要求中gateが成立する時間帯に全方式を比較。実weight／system GPU／OOM／E2Eも未認定。
+English: Startup/request separation tested; request contention persists,120s retry cannot start a full campaign.
+简体中文：startup／请求分离通过验证，但请求竞争仍在，120秒重试未能开始完整比较。
+
+
+🟢 [Done] [2026-10-12部分常駐比較](evaluation/strata-quiet-partial-analysis-cpu-2026-10-12.json)：16 trial／16,384要求誤差0、全方式run変動0.33–2.44%。逐次LRUはhost条件4/4通過、保持／予約ピーク18,432 bytes、grouped再読み込み20%減。
+🟢 [Done] 全常駐14 trial／57,344要求誤差0。ただしcampaign未完・host未達で速度認定なし。
+🟠 [Next] 全方式のhost条件を満たした比較とstartup／要求区間の負荷分離。
+⭕️ [Pending] 比較全体の非競合資格、実weightピーク／system GPU／実OOM／E2E認定。
+English: Partial timing spread now below5%; only sequential LRU passes every host check, overall qualification remains pending.
+简体中文：部分常驻计时变动已低于5%，仅逐次LRU每次host达标，整体认证仍待完成。
+
+
+🟢 [Done] [CPU／Metal読み込みメモリ検証](evaluation/strata-load-memory-analysis-cpu-metal-2026-10-11.json)：最終16 fresh trial／96 acquire。事前退避でMLX activeピーク9→4.5／13.5→9 MiB、RSS sampleも記録。close active0、cache clear後0、関連30 unit tests成功。
+🟢 [Done] CPU負荷gate・実行中記録・未完campaignの認定拒否を実装。
+⭕️ [Pending] [非競合速度比較](evaluation/strata-quiet-resident-retry-analysis-cpu-2026-10-11.json)：30秒×2の確認でhost条件未達、計測worker0。実weight／system GPU／実OOM／E2E認定も未完。
+🟠 [Next] 静かなhostで比較し、実weightのload／推論ピークを計測。
+English: CPU/Metal loading peaks verified; busy-host gate prevents invalid timing, real-model/OOM certification pending.
+简体中文：CPU／Metal加载峰值已验证，host竞争时拒绝无效计时，实模型／OOM认证待完成。
+
+
+🟢 [Done] [読み込み前payload予約と事前退避](evaluation/strata-preload-reservation-cpu-2026-10-11.json)：192合成CPU要求誤差0。20,000／10,000 bytes予算で保持＋incoming予約ピーク18,432／9,216 bytes。load前拒否・模擬MemoryError後の再試行・Lease解放、24 unit／14 native関連tests成功。
+🟠 [Next] 非競合hostで速度比較、実weightのload時RSS／GPUピーク計測。
+⭕️ [Pending] 実OOM・allocator／GPU／E2E認定。予約はtensorの論理量のみ。
+English: Pre-load payload reservation avoids logical old/new weight overlap; scratch/RSS and real OOM remain unqualified.
+简体中文：加载前payload预约避免新旧权重逻辑量超限；临时分配／RSS及实际OOM尚未认证。
+
+
+🟢 [Done] [warmup反復比較・部分常駐検証](evaluation/strata-partial-residency-analysis-cpu-2026-10-11.json)：全常駐24,576＋部分常駐12,288要求一致。20,000-byte予算でピーク18,432 bytes、退避／再読み込み・Lease解放・close後0を確認。10,000-byte予算の逐次fallbackも64要求一致。19 unit／13 native関連tests成功。
+🟠 [Next] 同時高負荷を避けた再比較。run変動87–352%で安定計測は未達、速度／既定採用は認定しない。
+⭕️ [Pending] 実weight・GPU／RSS・load時ピーク／実OOM・E2E検証。保持tensor予算だけでは実OOMを保証しない。
+English: Partial retention and single-expert fallback pass; timing remains noisy under contention, no promotion or real OOM certification.
+简体中文：部分常驻及单Expert fallback通过；竞争负荷下计时仍不稳定，不晋升，不认证实际OOM安全。
+
+🟢 [Done] [all-resident gather検証](evaluation/strata-gather-analysis-cpu-2026-10-11.json)：12 trial／768合成CPU要求一致、native関連12 tests成功。Router host取り出しとExpert loopを削減し、再利用中央値162.8→56.0 μs（baseline 50.9 μs）。変動27.9%・baseline未達で不採用、全常駐が条件。
+🟠 [Next] 安定計測と部分常駐の切り分け。実weight／GPU／RSS／E2Eは未認定。
+English: All-resident gather removes host index extraction and loops, approaching but not beating baseline; no promotion.
+简体中文：全常驻gather移除host取值及loop，接近但未超过baseline，不晋升。
+
 🟢 [Done] [top-k評価集約と予算fallback比較](evaluation/strata-grouped-analysis-cpu-2026-10-10.json)：18 CPU trial数値一致、eval16→8、native関連11 tests成功。速度変化は不安定、baselineを上回らず既定採用しない。
 🟠 [Next] Router host取り出し／Python graph固定費とgather演算候補の調査。
 English: Grouped completion halves eval calls but does not establish speedup; no promotion.

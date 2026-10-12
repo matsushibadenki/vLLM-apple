@@ -94,6 +94,8 @@ class ExpertResidencyManager:
         self._pending_bounds: tuple[int, int] | None = None
         self._entries: dict[ExpertKey, _Entry] = {}
         self._resident_bytes = 0
+        self._peak_resident_bytes = 0
+        self._peak_reserved_bytes = 0
         self._clock = 0
         self._hits = self._misses = self._evictions = self._rejections = 0
         self._lock = threading.RLock()
@@ -111,11 +113,34 @@ class ExpertResidencyManager:
                 self._hits += 1
                 return ExpertLease(self, key, entry.resource, cache_hit=True)
             self._misses += 1
+            # Optional backend contract: bound incoming tensor bytes before allocation.
+            # This reserves logical weights, not loader scratch space or allocator RSS.
+            bound_method = getattr(self._backend, "resident_bytes_upper_bound", None)
+            bound = bound_method(key) if bound_method is not None else None
+            if bound_method is not None:
+                if type(bound) is not int or not 1 <= bound <= MAX_EXPERT_RESIDENCY_BYTES:
+                    raise ValueError("invalid expert allocation bound")
+                victims = self._victims_for(bound, additional_entries=1)
+                if victims is None:
+                    self._rejections += 1
+                    raise ValueError("expert residency capacity is pinned or insufficient")
+                for victim in victims:
+                    removed = self._entries.pop(victim)
+                    self._resident_bytes -= removed.resource.resident_bytes
+                    self._evictions += 1
+                    self._backend.release_expert(removed.resource)
+                self._peak_reserved_bytes = max(
+                    self._peak_reserved_bytes, self._resident_bytes + bound,
+                )
             started = time.perf_counter_ns()
             resource = self._backend.load_expert(key)
             load_nanoseconds = max(1, time.perf_counter_ns() - started)
             if not isinstance(resource, ExpertResource):
                 raise ValueError("expert backend returned an invalid resource")
+            if bound is not None and resource.resident_bytes > bound:
+                self._rejections += 1
+                self._backend.release_expert(resource)
+                raise ValueError("expert allocation exceeds backend bound")
             victims = self._victims_for(resource.resident_bytes, additional_entries=1)
             if victims is None:
                 self._rejections += 1
@@ -134,6 +159,7 @@ class ExpertResidencyManager:
                 resource, 1, self._clock, load_nanoseconds=load_nanoseconds
             )
             self._resident_bytes += resource.resident_bytes
+            self._peak_resident_bytes = max(self._peak_resident_bytes, self._resident_bytes)
             return ExpertLease(self, key, resource)
 
     def resize(self, *, maximum_entries: int, maximum_bytes: int) -> bool:
@@ -171,6 +197,8 @@ class ExpertResidencyManager:
             return {
                 "entries": len(self._entries),
                 "resident_bytes": self._resident_bytes,
+                "peak_resident_bytes": self._peak_resident_bytes,
+                "peak_reserved_bytes": self._peak_reserved_bytes,
                 "maximum_entries": self._maximum_entries,
                 "maximum_bytes": self._maximum_bytes,
                 "active_leases": sum(entry.leases for entry in self._entries.values()),

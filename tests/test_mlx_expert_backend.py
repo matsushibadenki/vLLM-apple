@@ -1,6 +1,7 @@
 import hashlib
 import importlib.util
 import json
+import struct
 import tempfile
 import unittest
 import weakref
@@ -12,10 +13,22 @@ from vllm_apple.expert_residency import ExpertKey, ExpertResidencyManager
 from vllm_apple.expert_timing import ExpertTimings
 from vllm_apple.mlx_expert_backend import MLXFileExpertBackend
 from vllm_apple.mlx_expert_export import export_switch_experts
+from vllm_apple.qwen3_moe_gather import install_qwen3_moe_gather
 from vllm_apple.qwen3_moe_residency import install_qwen3_moe_residency
 
 
 class FileExpertAdmissionTests(unittest.TestCase):
+    def test_payload_reservation_excludes_header_without_importing_mlx(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            path = root / "layer-0-expert-0.safetensors"
+            path.write_bytes(struct.pack("<Q", 8) + b"{}      " + b"1234")
+            backend = MLXFileExpertBackend(root, maximum_file_bytes=4096)
+            self.assertEqual(backend.resident_bytes_upper_bound(ExpertKey(0, 0)), 4)
+            path.write_bytes(struct.pack("<Q", 100) + b"{}")
+            with self.assertRaisesRegex(ValueError, "payload"):
+                backend.resident_bytes_upper_bound(ExpertKey(0, 0))
+
     def test_unsupported_quantization_rejected(self):
         with tempfile.TemporaryDirectory() as directory:
             for bits, group in ((2, 64), (True, 64), (4, 16), (4, True)):
@@ -41,6 +54,99 @@ class FileExpertAdmissionTests(unittest.TestCase):
 
 @unittest.skipUnless(importlib.util.find_spec("mlx"), "requires native MLX runtime")
 class NativeExpertTests(unittest.TestCase):
+    def test_quantized_partial_byte_budget_with_eviction(self):
+        import mlx.core as mx
+        import mlx.nn as nn
+        from mlx_lm.models.qwen3_moe import Qwen3MoeSparseMoeBlock
+
+        mx.set_default_device(mx.cpu)
+        with tempfile.TemporaryDirectory() as directory:
+            block = Qwen3MoeSparseMoeBlock(SimpleNamespace(
+                hidden_size=64, moe_intermediate_size=64, num_experts=4,
+                num_experts_per_tok=2, norm_topk_prob=True,
+            ))
+            nn.quantize(block, group_size=32, bits=4)
+            x = mx.cos(mx.arange(64).reshape(1, 64))
+            groups = ((0, 1), (2, 3), (0, 1))
+            expected = [block.switch_mlp(x, mx.array([group])) for group in groups]
+            mx.eval(*expected)
+            root = Path(directory) / "experts"
+            export_switch_experts({0: block.switch_mlp}, root, model_sha256="a" * 64,
+                                  maximum_expert_bytes=65536, maximum_total_bytes=262144)
+            backend = MLXFileExpertBackend.from_manifest(
+                root, expected_model_sha256="a" * 64, maximum_file_bytes=65536,
+            )
+            for policy in ("lru", "cost_frequency"):
+                manager = ExpertResidencyManager(backend, maximum_entries=4,
+                                                 maximum_bytes=20000, eviction_policy=policy)
+                executor = ResidentExpertExecutor(manager)
+                try:
+                    for selected, reference in zip(groups, expected):
+                        actual = backend.execute_unaggregated(
+                            executor, x, phase="decode", layer=0, selected_experts=selected,
+                        )
+                        self.assertLess(float(mx.max(mx.abs(actual - reference)).item()), 1e-5)
+                        self.assertEqual(manager.snapshot()["active_leases"], 0)
+                        self.assertLessEqual(manager.snapshot()["peak_resident_bytes"], 20000)
+                        self.assertGreater(manager.snapshot()["peak_reserved_bytes"], 0)
+                        self.assertLessEqual(manager.snapshot()["peak_reserved_bytes"], 20000)
+                    self.assertGreater(manager.snapshot()["evictions"], 0)
+                finally:
+                    manager.close()
+                self.assertEqual(manager.snapshot()["resident_bytes"], 0)
+
+    def test_all_resident_gather_parity_budget_and_ownership(self):
+        import gc
+
+        import mlx.core as mx
+        import mlx.nn as nn
+        from mlx_lm.models.qwen3_moe import Qwen3MoeSparseMoeBlock
+
+        mx.set_default_device(mx.cpu)
+        for bits in (None, 4, 8):
+            with self.subTest(bits=bits), tempfile.TemporaryDirectory() as directory:
+                block = Qwen3MoeSparseMoeBlock(SimpleNamespace(
+                    hidden_size=64, moe_intermediate_size=64, num_experts=3,
+                    num_experts_per_tok=2, norm_topk_prob=True,
+                ))
+                if bits is not None:
+                    nn.quantize(block, group_size=32, bits=bits)
+                x = mx.cos(mx.arange(128).reshape(1, 2, 64))
+                expected = block(x)
+                mx.eval(expected)
+                long_x = mx.cos(mx.arange(40 * 64).reshape(1, 40, 64))
+                long_expected = block(long_x)
+                mx.eval(long_expected)
+                reference = weakref.ref(block.switch_mlp)
+                root = Path(directory) / "experts"
+                export_switch_experts({0: block.switch_mlp}, root, model_sha256="a" * 64,
+                                      maximum_expert_bytes=65536, maximum_total_bytes=262144)
+                timings = ExpertTimings()
+                backend = MLXFileExpertBackend.from_manifest(
+                    root, expected_model_sha256="a" * 64, maximum_file_bytes=65536, timings=timings,
+                )
+                with self.assertRaisesRegex(ValueError, "budget"):
+                    install_qwen3_moe_gather(block, backend, layer=0,
+                                            resident_budget_bytes=1, startup_budget_bytes=1)
+                self.assertIs(block.switch_mlp, reference())
+                hook = install_qwen3_moe_gather(block, backend, layer=0,
+                                               resident_budget_bytes=262144, startup_budget_bytes=1048576)
+                gc.collect()
+                self.assertIsNone(reference())
+                before = timings.snapshot()
+                actual = block(x)
+                mx.eval(actual)
+                self.assertLess(float(mx.max(mx.abs(actual - expected)).item()), 1e-5)
+                long_actual = block(long_x)
+                mx.eval(long_actual)
+                self.assertLess(float(mx.max(mx.abs(long_actual - long_expected)).item()), 1e-5)
+                after = timings.snapshot()
+                for phase in ("router_to_host", "router_eval", "expert_eval", "mlx_load"):
+                    self.assertEqual(before[phase], after[phase])
+                hook.close()
+                with self.assertRaises(ValueError):
+                    block(x)
+
     def test_grouped_eval_and_capacity_fallback(self):
         import mlx.core as mx
         import mlx.nn as nn
