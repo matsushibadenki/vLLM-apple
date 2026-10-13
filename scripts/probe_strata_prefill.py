@@ -69,7 +69,7 @@ def prepare(root):
                             dict(x=x, indices=indices, expected=expected))
 
 
-def worker(root, device, group_rows, measure, repeat):
+def worker(root, device, group_rows, measure, repeat, exact_payload_budget=False):
     import mlx.core as mx
     import mlx.nn as nn
     import psutil
@@ -99,7 +99,8 @@ def worker(root, device, group_rows, measure, repeat):
             maximum_file_bytes=8 << 20, timings=timings,
         )
         payload = backend.resident_bytes_upper_bound(ExpertKey(0, 0))
-        budget = 2 * max(size for size, _ in backend._manifest.entries.values())
+        budget = (2 * payload if exact_payload_budget else
+                  2 * max(size for size, _ in backend._manifest.entries.values()))
         if not payload * 2 <= budget < payload * 3:
             raise RuntimeError("fixture does not enforce two-expert partial residency")
         manager = ExpertResidencyManager(backend, maximum_entries=4, maximum_bytes=budget)
@@ -174,13 +175,16 @@ def main():
     parser.add_argument("--group-rows", type=int, choices=(1, 8), default=1)
     parser.add_argument("--measure", choices=("speed", "memory"), default="speed")
     parser.add_argument("--repeat", type=int, default=0)
+    parser.add_argument("--exact-payload-budget", action="store_true")
+    parser.add_argument("--memory-only", action="store_true")
     parser.add_argument("--output", type=Path)
     args = parser.parse_args()
     if args.prepare:
         prepare(args.prepare)
         return
     if args.worker:
-        print(json.dumps(worker(args.worker, args.device, args.group_rows, args.measure, args.repeat)))
+        print(json.dumps(worker(args.worker, args.device, args.group_rows, args.measure, args.repeat,
+                                args.exact_payload_budget)))
         return
     if args.output is None or args.output.exists() or sys.platform != "darwin":
         parser.error("new --output and macOS required")
@@ -189,13 +193,17 @@ def main():
     with tempfile.TemporaryDirectory() as directory:
         root = Path(directory)
         subprocess.run([sys.executable, script, "--prepare", str(root)], check=True, timeout=90)
-        for measure, devices, repeats in (("speed", ("cpu",), 3), ("memory", ("cpu", "gpu"), 2)):
+        campaigns = (("memory", ("cpu", "gpu"), 2),) if args.memory_only else (
+            ("speed", ("cpu",), 3), ("memory", ("cpu", "gpu"), 2))
+        for measure, devices, repeats in campaigns:
             for repeat in range(repeats):
                 for device in devices:
                     for rows in ((1, 8) if repeat % 2 == 0 else (8, 1)):
                         result = subprocess.run([sys.executable, script, "--worker", str(root),
                                                  "--device", device, "--group-rows", str(rows),
-                                                 "--measure", measure, "--repeat", str(repeat)],
+                                                 "--measure", measure, "--repeat", str(repeat),
+                                                 *(["--exact-payload-budget"]
+                                                   if args.exact_payload_budget else [])],
                                                 capture_output=True, text=True, timeout=120)
                         if result.returncode:
                             raise RuntimeError(result.stderr[-3000:])
@@ -205,10 +213,12 @@ def main():
                ROOT / "scripts/strata_measurement.py"]
     report = dict(scope="synthetic_authoritative_prefill_switch_cpu_metal", trials=trials,
                   speed_qualified=False, real_oom_qualified=False,
+                  exact_payload_budget=args.exact_payload_budget, memory_only=args.memory_only,
                   source_sha256={str(p.relative_to(ROOT)): hashlib.sha256(p.read_bytes()).hexdigest()
                                  for p in sources},
                   notes=["Five synthetic ordered-selection fixtures, not text/tokenizer/real-model quality",
-                         "Budget includes two safetensors files and excludes a third payload",
+                         ("Budget is exactly two payloads" if args.exact_payload_budget else
+                          "Budget includes two safetensors files and excludes a third payload"),
                          "Native SwitchGLU references and experts prepared in a separate process",
                          "Workers discard temporary source bank before measurement",
                          "4 measured CPU requests after 1 warmup per case; no host qualification",

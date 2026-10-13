@@ -2,6 +2,84 @@
 
 ## 日本語
 
+🟢 [Done] 第24工程（2026-10-13）：`mlx_server`へ明示Strata設定を接続。
+root／expected model SHA／resident bytes／entries／file上限を全て指定した場合のみ導入。
+対応はreviewed MLX-LM0.32.0の単一local worker。defaultモデルを起動前にロードして導入し、
+providerのbatchabilityを無効化。異なるモデル、adapter、draft、並行生成指定を拒否する。
+生成workerをstop／join後、MLX同期してruntimeをclose。生成worker構築失敗もcloseする。
+`StrataServingModel`は単一系列forwardだけを許可し、width>1をprefill、width1をdecodeと統計する。
+prompt末尾のsingletonもdecode扱いで、HTTP prompt境界の正確な統計ではない。
+server関連21 testsとnative関連19 tests成功。distributed／draftの導入前拒否、同期→closeの順序も検証。実HTTP／実モデルの長時間認定は保留。
+⭕️ [Pending] 実artifactでHTTP streaming／cancel／cache再利用E2E、長時間安定性、速度資格。
+
+
+🟢 [Done] 第23工程（2026-10-13）：`StrataRuntime.from_model()`を追加。
+標準Qwen3 MoE ModelからMoE層を自動検出し、manifestの全layer／expert coverage一致と
+expected model identityを確認してから導入する。異なるarchitecture、空のMoE集合、欠落／余剰Expertを拒否。
+2層の合成モデルでattention／norm／embeddingを含む全logits一致を確認。native関連19 tests成功。
+この入口はロード済みmodelを受け取るため、初期source bankのstartupメモリを削減しない。
+⭕️ [Pending] serverのbatch／phase管理と同期runtimeの安全な接続、実モデルE2E、速度認定。
+
+
+🟢 [Done] 第22工程（2026-10-13）：標準Qwen3 MoE向けの同期・明示導入型Strata接続層を実装。
+公開API `vllm_apple.StrataRuntime` は `{layer_id: moe_block}` とmanifest-bound backendを受け取り、
+全層が一つのentry／byte予算、LRU／cost_frequency policy、prefill／decode telemetryを共有する。
+`mode="sequential"`が既定、`grouped`／`row_batch`は明示指定。後者のbatch上限は既定8。
+`set_phase()`、`resize()`、`snapshot()`、冪等`close()`とcontext managerを提供。
+導入失敗は変更済み全層の元switchを復元し、成功時は元重みbankを保持しない。
+closeはactive Leaseを拒否し、成功後はhookの再呼出しとphase変更を拒否する。
+元モデルに戻すにはreloadする。呼出し・phase変更・resize・closeの並行実行は非対応。
+all-resident gatherは既存の個別opt-in APIとして維持し、この共有動的予算へ混在させない。
+予測器／SSD tierの補助部品は実装済みだが、非認定の自動prefetchや既定採用は有効にしない。
+
+利用順序：offline exporterで対象層のimmutable expert filesを生成し、expected model SHAを指定して
+`MLXFileExpertBackend.from_manifest()`で開く。モデルload後・要求開始前にruntimeを構築し、
+各prefill／decode区間の前にphaseを設定し、推論終了後にcloseする。外部source bank参照も解放する。
+このAPIはloaderへの明示接続点であり、既存serverの自動切替・未対応architectureの認定ではない。
+複数層のnative数値一致、共有予算、縮小fallback、元bank解放、導入rollback、終了拒否を検証。
+native18 tests／周辺41 tests、ruff成功。
+⭕️ [Pending] 低負荷全方式比較・実weight／GPU E2E・実OOM・自動server導入／既定採用。
+
+
+🟢 [Done] 第21工程（2026-10-13）：[exact payload予算の多様prefillメモリ検証](evaluation/strata-diverse-prefill-exact-payload-memory-analysis-2026-10-13.json)。
+CPU／Metal、1-row／8-row、各2 fresh workersで5入力のcold／warmを測定（8 trials／80要求）。
+予算2,359,296 bytes、保持／予約ピークは予算内、active Leaseとclose後の保持は0。
+最大絶対誤差2.235e-7。warm evalはrepeat128→16、mixed128→28、alternating128→128、
+reversed32→32、random128→120。mixed warmのMLX activeはCPU4,195,352→4,314,136 bytes、
+Metal4,195,352–4,203,544→4,535,320 bytes。batch scratchの増加を確認した。
+全観測のRSSは入力・参照・module・allocator cacheを含むため、候補間の削減を認定しない。
+速度workerを省く`--memory-only`と厳密予算`--exact-payload-budget`をprobeへ追加。
+合成入力の機能／メモリ検証であり、実モデル・system GPU・実OOM・速度資格ではない。
+🟠 [Next] install metadata費用と要求固定費の切り分け。
+⭕️ [Pending] 低負荷全方式比較は自動チェック継続。実weight／GPU E2E・既定採用。
+
+
+🟢 [Done] 第20工程（2026-10-13）：group admissionをfile総量から保守的payload上限へ変更。
+grouped hookのinstall時に各Expertの8-byte safetensors prefix／fileサイズからpayload上限を取得し、
+immutable tupleで保持する。要求時はcached payload合計と現在のentry／byte予算を比較する。
+不足時fallbackは維持。全fileのmetadataを読むstartup費用が増えるが、要求時の追加header readはない。
+manifest identity／設定／checksumは従来どおり各loadで確認し、managerの事前予約・実tensor量の検証も維持。
+ファイルはinstallから利用終了までimmutableが契約。source bankやrollback重みは保持しない。
+
+[2 payloadぴったりの機能比較](evaluation/strata-payload-admission-analysis-cpu-2026-10-13.json)：
+保持予算18,432 bytes、d64／4 Experts／top2／affine4 group32、8-token要求。
+各3 fresh processでbaseline／1行grouped／8行batch、9 trial／576要求（4,608 tokens）誤差0。
+候補の保持／incoming予約ピーク18,432 bytes、残存Lease／拒否0、close保持0。
+各candidate64要求でExpert eval512→64、acquire1024→128、miss／eviction両者32。
+以前のheader込み判定で逐次に退いたpayload予算でも、grouped／batchが有効になった。
+第19工程の厳密payload対照は修正前の履歴であり、今回の認定へ流用しない。
+profile on／host未資格の機能証拠であり、参考速度をspeedup認定しない。
+
+native関連16 tests成功：payload予算でのbatch、1 payloadへのresize後の逐次fallback、
+install時にfile欠落なら元block不変、install後のchecksum不一致で全Lease解放を確認。
+既存dense／4／8-bit・Router／順序／source所有権回帰も通過。
+新しいheader probeは追加metadataのみで、checksum検証や予算を省略しない。
+activation scratch／RSS／GPU／実OOMをweight予算で保証するとは主張しない。
+今回の再開preflightはCPU最大約1,012%で未達。低負荷の自動比較は継続し、source変更後は新規試行を要求する。
+🟠 [Next] exact payload予算で多様prefillのRSS／MLXピークを再取得し、startup費用と要求固定費を比較する。
+⭕️ [Pending] 全方式の非競合資格、実weight／GPU E2E・実OOM・既定採用。
+
+
 🟢 [Done] 第19工程（2026-10-12）：[多様prefillの比較とメモリ記録](evaluation/strata-diverse-prefill-analysis-cpu-metal-final-2026-10-12.json)。
 新規probeはd512／intermediate1024／4 Experts／affine4-bit group32の独立ファイルを使用。
 連続、長さ混在（1／2／3／5／8／13）、交互、順序反転、seed固定ランダムの5種類。
@@ -458,6 +536,73 @@ prefill／decode別の測定を収集する。LRUと同一モデル・精度・w
 
 ## English
 
+🟢 [Done] Stage24 (2026-10-13): explicit Strata flags integrated into mlx_server.
+Root, expected model SHA, resident bytes/entries and file cap are required together.
+Reviewed MLX-LM0.32.0, one local worker only. Preload/install before serving; disable provider batching,
+reject model changes, adapters, drafts and concurrent generation. Join generation worker, synchronize MLX,
+then close runtime; generator construction failure also closes it.
+Single-sequence forwards label width>1 as prefill and width1 as decode, including singleton prompt chunks.
+These labels are forward-shape telemetry, not exact HTTP prompt boundaries.
+21 serving-related and19 native tests pass; distributed/draft admission and synchronize-before-close ordering are tested.
+⭕️ [Pending] Real-artifact HTTP streaming/cancel/cache E2E, long-run stability and speed qualification.
+
+
+🟢 [Done] Stage23 (2026-10-13): `StrataRuntime.from_model()` discovers all standard Qwen3 MoE layers,
+checks exact manifest layer/expert coverage and expected model identity before installation.
+Other architectures, missing/extra experts and empty MoE sets are rejected. Full logits from a synthetic
+2-layer model match, including attention/norm/embeddings;19 native tests pass.
+This accepts a loaded model and does not reduce startup source-bank memory.
+⭕️ [Pending] Safe server batching/phase integration, real-model E2E and speed qualification.
+
+
+🟢 [Done] Stage22 (2026-10-13): explicit synchronous Strata integration for standard Qwen3 MoE.
+Public `vllm_apple.StrataRuntime` accepts `{layer_id: moe_block}` and a manifest-bound backend.
+Layers share one entry/byte budget, LRU or cost_frequency policy and phase telemetry.
+Modes are sequential (default), grouped and row_batch (explicit, default batch limit8).
+Lifecycle: set_phase, resize, snapshot, idempotent close and context manager.
+Failed installation restores all changed switches; successful installation retains no source bank.
+Close rejects active leases and then disables hooks and phase changes. Reload to restore baseline.
+Concurrent inference/lifecycle changes are unsupported. All-resident gather remains a separate opt-in API.
+Predictor/SSD helpers exist; automatic speculative prefetch and default adoption remain disabled.
+
+Export immutable experts offline, open from_manifest with expected model SHA, install before requests,
+set prefill/decode before each phase and close after inference. Release external source-bank references.
+This is an explicit loader integration point; server auto-install and other architectures are unqualified.
+Multi-layer parity, shared bounds, shrink fallback, source release, rollback and shutdown pass:
+18 native and41 supporting tests, plus ruff.
+⭕️ [Pending] Quiet-host comparison, real-weight/GPU E2E/OOM and automatic server/default qualification.
+
+
+🟢 [Done] Stage21 (2026-10-13): [diverse prefill under exact payload budgets](evaluation/strata-diverse-prefill-exact-payload-memory-analysis-2026-10-13.json).
+Eight fresh CPU/Metal workers compare 1-row and 8-row groups across five fixtures, cold and warm (80 requests).
+The 2,359,296-byte budget bounds retained/reserved payloads; leases and retention after close are zero.
+Maximum error is 2.235e-7. Warm eval counts: repeat128→16, mixed128→28, alternating128→128,
+reversed32→32, random128→120. Mixed warm MLX active peaks rise from 4,195,352 to 4,314,136 bytes
+on CPU and from 4,195,352–4,203,544 to 4,535,320 bytes on Metal. Batch scratch increases.
+RSS includes fixtures, references, modules and allocator cache; no RSS reduction is qualified.
+The probe supports `--memory-only` and `--exact-payload-budget`. This is synthetic functional/memory evidence.
+🟠 [Next] Separate install metadata costs and request overhead.
+⭕️ [Pending] Quiet-host automation continues; speed, real-model/system-GPU/OOM/E2E and default qualification.
+
+
+🟢 [Done] Stage20 (2026-10-13): grouped admission uses conservative payload bounds rather
+than whole file sizes. Installation reads each expert prefix/size and caches an immutable tuple;
+requests compare payload totals with current entry/byte limits. Sequential fallback remains.
+Startup metadata work increases; no new per-request header I/O. Misses still verify manifest identity,
+settings/checksums, reserve before allocation and check actual tensor bytes. Files must remain immutable.
+[Exact-payload evidence](evaluation/strata-payload-admission-analysis-cpu-2026-10-13.json):18,432-byte
+budget,d64/e4/top2/q4/g32,9 fresh trials/576 requests/4,608 tokens,zero error.
+Retained/reserved peak18,432,no leases/rejections,zero retention after close. Per64 candidate requests,
+eval512→64/acquire1024→128,32 misses/evictions in both modes. Header-only false fallback removed.
+Stage19 tight-budget results remain historical. Profile-on/no host qualification: no certified speedup.
+16 native-related tests pass, including exact-budget batching, resize fallback, missing-file install
+leaving source intact and checksum-failure lease cleanup, plus existing dense/4/8-bit/ownership regressions.
+Weight reservation does not bound scratch/RSS or certify real OOM. Resume preflight CPU max~1,012% failed;
+automatic quiet comparisons continue with fresh evidence after this source change.
+🟠 [Next] Diverse prefill peaks under exact payload budgets and startup/request costs.
+⭕️ [Pending] Uncontended comparison, real-weight/GPU E2E,OOM and default qualification.
+
+
 🟢 [Done] Stage19 (2026-10-12): [diverse prefill/memory probe](evaluation/strata-diverse-prefill-analysis-cpu-metal-final-2026-10-12.json).
 Synthetic d512/i1024/e4 affine4/group32: repeat, mixed-length runs, alternating, reversed and seeded random selections.
 32 reversed tokens,128 otherwise; sin/random vectors, authoritative ordered selections, not text/tokenizer/router quality.
@@ -688,6 +833,68 @@ LRU and use the existing P3 gate before adoption.
 
 ## 简体中文
 
+🟢 [Done] 第24阶段（2026-10-13）：mlx_server增加显式Strata参数。
+root／expected model SHA／resident bytes／entries／file上限须同时指定。
+仅支持reviewed MLX-LM0.32.0单local worker；服务前加载并安装，关闭provider batchability。
+拒绝模型变更、adapter、draft及并发生成；生成worker停止并join后同步MLX并close runtime。
+worker构建失败也close。仅允许单系列forward，width>1统计prefill，width1统计decode，
+prompt末尾singleton也记为decode，因此并非精确HTTP prompt边界统计。
+server相关21 tests及native相关19 tests通过；验证distributed／draft在安装前拒绝及同步后close顺序。
+⭕️ [Pending] 真实artifact HTTP streaming／cancel／cache E2E、长期稳定性及速度认证。
+
+
+🟢 [Done] 第23阶段（2026-10-13）：增加`StrataRuntime.from_model()`，自动发现标准Qwen3 MoE层，
+安装前检查manifest全部layer／expert覆盖及expected model identity，拒绝其他architecture、缺失／多余Expert及空MoE集合。
+包含attention／norm／embedding的两层合成模型全logits一致，native相关19 tests通过。
+接口接收已加载model，不降低startup原权重bank内存。
+⭕️ [Pending] server batch／phase安全接入、真实模型E2E及速度认证。
+
+
+🟢 [Done] 第22阶段（2026-10-13）：标准Qwen3 MoE的显式同步Strata接入层完成。
+公开`vllm_apple.StrataRuntime`接收`{layer_id: moe_block}`和manifest-bound backend。
+所有层共享entry／byte预算、LRU／cost_frequency策略和prefill／decode统计。
+默认sequential，可显式选择grouped／row_batch（默认batch上限8）。
+提供set_phase、resize、snapshot、幂等close及context manager。
+安装失败恢复所有已修改switch；成功后不保留原权重bank。
+close拒绝active Lease，成功后拒绝hook再次执行及phase修改；恢复baseline需要reload。
+不支持推理与生命周期操作并发。all-resident gather保留独立opt-in接口。
+预测器／SSD辅助组件已有实现；自动预测prefetch及默认采用仍未启用。
+
+先离线导出immutable专家文件，再使用expected model SHA打开from_manifest，要求开始前安装，
+各prefill／decode区间前设置phase，结束后close，并释放外部source-bank引用。
+这是显式loader接入点，未认证server自动切换或其他architecture。
+多层数值一致、共享预算、缩小fallback、原bank释放、安装rollback及关闭后拒绝通过验证。
+native18 tests、周边41 tests与ruff通过。
+⭕️ [Pending] 低负载比较、真实weight／GPU E2E／OOM及自动server接入／默认采用认证。
+
+
+🟢 [Done] 第21阶段（2026-10-13）：[严格payload预算下的多样prefill内存验证](evaluation/strata-diverse-prefill-exact-payload-memory-analysis-2026-10-13.json)。
+CPU／Metal、1-row／8-row各两个独立worker，五种输入分别测量cold／warm，共8 trials／80请求。
+预算2,359,296 bytes，保留及预约峰值均在预算内，Lease及close后保留均为0，最大误差2.235e-7。
+warm eval：repeat128→16、mixed128→28、alternating128→128、reversed32→32、random128→120。
+mixed warm MLX active峰值：CPU4,195,352→4,314,136 bytes，Metal4,195,352–4,203,544→4,535,320 bytes。
+batch临时内存增加；RSS包含输入、参考、模块及allocator cache，不认定RSS降低。
+probe增加`--memory-only`与`--exact-payload-budget`，本结果仅为合成功能／内存证据。
+🟠 [Next] 分离install metadata成本与请求固定开销。
+⭕️ [Pending] 低负载自动比较继续；真实模型／system GPU／OOM／E2E与默认采用认证。
+
+
+🟢 [Done] 第20阶段（2026-10-13）：group admission改用保守payload上限而非file总量。
+install读取各Expert prefix／size并缓存immutable tuple，请求按当前entry／byte预算判定，
+不足仍逐次fallback。startup增加metadata读取，请求不额外读取header。load仍检查manifest／设置／checksum，
+维持加载前预约和实际tensor量检查；文件使用期间必须immutable。
+[恰好payload预算记录](evaluation/strata-payload-admission-analysis-cpu-2026-10-13.json)：
+18,432-byte预算、d64／e4／top2／q4／g32，9个独立trial／576请求／4,608 tokens误差0。
+保持／预约峰值18,432，无残留Lease／拒绝，close保持0。每64候选请求eval512→64、acquire1024→128，
+两者miss／eviction32。消除仅因header引起的fallback。第19阶段严格预算结果保留为修正前历史，
+profile on／无host资格，不认证速度提升。16个native相关tests通过，覆盖预算恰好时batch、
+resize后fallback、缺file时不修改原block、checksum失败后Lease释放及dense／4／8-bit／所有权回归。
+weight预算不保证scratch／RSS／实际OOM。再开preflight CPU最大约1,012%未达标，自动低负荷比较继续，
+代码改变后要求新证据。
+🟠 [Next] 严格payload预算下多样prefill峰值及startup／请求成本。
+⭕️ [Pending] 无竞争比較、实weight／GPU E2E、OOM及默认采用认证。
+
+
 🟢 [Done] 第19阶段（2026-10-12）：[多样prefill及内存记录](evaluation/strata-diverse-prefill-analysis-cpu-metal-final-2026-10-12.json)。
 合成d512／i1024／e4／affine4／group32，连续、混合长度、交替、顺序反转、固定seed随机选择。
 反转32 tokens，其余128，sin／random vector及authoritative选择，不属于文本／tokenizer／实际Router质量。
@@ -885,3 +1092,40 @@ host加载时间不能证明GPU就绪或实际miss成本，尚未证明速度改
 🟠 [Next] 接入实际MoE资源操作及分阶段测量，与LRU比较，通过已有P3判定后再采用。
 🔴 [Later] 预取、兼容推测解码、KV压缩和融合。
 ⭕️ [Pending] 缺少可测试artifact或硬件的MTP／ANE路径。
+
+## Explicit model integration example / 明示的なモデル接続例 / 显式模型接入示例
+
+```python
+from vllm_apple import StrataRuntime
+
+# model: loaded standard mlx_lm.models.qwen3_moe.Model
+# expert_root: previously exported immutable expert directory
+with StrataRuntime.from_model(
+    model, expert_root=expert_root, expected_model_sha256=model_sha256,
+    maximum_file_bytes=maximum_expert_file_bytes,
+    maximum_entries=resident_entries, maximum_bytes=resident_bytes,
+    mode="grouped",
+) as runtime:
+    runtime.set_phase("prefill")
+    logits = model(input_tokens, cache=cache)
+    # Complete lazy non-expert work before lifecycle changes.
+    import mlx.core as mx
+    mx.eval(logits)
+    runtime.set_phase("decode")
+    logits = model(next_token, cache=cache)
+    mx.eval(logits)
+```
+
+### Explicit local server / 明示設定server / 显式本地服务
+
+```sh
+python -m vllm_apple.mlx_server --model /path/to/qwen3-moe \
+  --strata-expert-root /path/to/exported-experts \
+  --strata-model-sha256 YOUR_EXPECTED_MODEL_SHA256 \
+  --strata-resident-bytes 1073741824 --strata-resident-entries 8 \
+  --strata-maximum-file-bytes 536870912 --strata-mode grouped
+```
+
+Budgets above are examples; choose values for your exported experts and available memory.
+例の予算は対象Expertと利用可能メモリに合わせて変更してください。
+示例预算须按导出的Expert及可用内存调整。

@@ -183,11 +183,37 @@ def _parser() -> argparse.ArgumentParser:
                         help="Experimental: bypass the safe generation serialization gate")
     parser.add_argument("--generation-queue-capacity", type=int, default=8)
     parser.add_argument("--generation-queue-timeout", type=float, default=30)
+    parser.add_argument("--strata-expert-root")
+    parser.add_argument("--strata-model-sha256")
+    parser.add_argument("--strata-resident-bytes", type=int)
+    parser.add_argument("--strata-resident-entries", type=int)
+    parser.add_argument("--strata-maximum-file-bytes", type=int)
+    parser.add_argument("--strata-mode", choices=("sequential", "grouped", "row_batch"),
+                        default="sequential")
+    parser.add_argument("--strata-policy", choices=("lru", "cost_frequency"), default="lru")
+    parser.add_argument("--strata-group-rows", type=int, default=8)
     return parser
 
 
 def main(argv: list[str] | None = None) -> int:
     arguments = _parser().parse_args(argv)
+    strata_options = None
+    strata_fields = (arguments.strata_expert_root, arguments.strata_model_sha256,
+                     arguments.strata_resident_bytes, arguments.strata_resident_entries,
+                     arguments.strata_maximum_file_bytes)
+    if any(value is not None for value in strata_fields):
+        if not all(value is not None for value in strata_fields):
+            raise SystemExit("Strata requires root, model SHA, resident bytes/entries and file limit")
+        if arguments.allow_concurrent_generation:
+            raise SystemExit("Strata requires serialized generation")
+        strata_options = dict(
+            expert_root=arguments.strata_expert_root,
+            expected_model_sha256=arguments.strata_model_sha256,
+            maximum_bytes=arguments.strata_resident_bytes,
+            maximum_entries=arguments.strata_resident_entries,
+            maximum_file_bytes=arguments.strata_maximum_file_bytes,
+            mode=arguments.strata_mode, eviction_policy=arguments.strata_policy,
+            maximum_group_rows=arguments.strata_group_rows)
     if arguments.diagnostic_signal:
         enable_stack_diagnostics()
     if arguments.host not in {"127.0.0.1", "::1", "localhost"}:
@@ -198,6 +224,9 @@ def main(argv: list[str] | None = None) -> int:
     import mlx.core as mx
     from mlx_lm.server import APIHandler, ModelProvider, run
     modern_server = version("mlx-lm") == "0.32.0"
+
+    if strata_options is not None and not modern_server:
+        raise SystemExit("Strata serving requires reviewed mlx-lm 0.32.0")
 
     provider = mx
     if not hasattr(provider, "get_active_memory") and hasattr(mx, "metal"):
@@ -318,12 +347,25 @@ def main(argv: list[str] | None = None) -> int:
         group = mx.distributed.init()
         if group.size() != 1:
             raise RuntimeError("MLX telemetry wrapper supports a single local worker")
-        generator = ResponseGenerator(ModelProvider(cli_args), LRUPromptCache(cli_args.prompt_cache_size))
+        model_provider = ModelProvider(cli_args)
+        if strata_options is not None:
+            from .strata_serving import StrataModelProvider
+            model_provider = StrataModelProvider(model_provider, **strata_options)
+        try:
+            generator = ResponseGenerator(model_provider, LRUPromptCache(cli_args.prompt_cache_size))
+        except Exception:
+            if strata_options is not None:
+                model_provider.close()
+            raise
         try:
             _run_http_server(arguments.host, arguments.port, generator,
                              server_class=BoundedHTTPServer, handler_class=TelemetryHandler)
         finally:
-            generator.stop_and_join()
+            try:
+                generator.stop_and_join()
+            finally:
+                if strata_options is not None:
+                    model_provider.close()
         return 0
     run(
         arguments.host,

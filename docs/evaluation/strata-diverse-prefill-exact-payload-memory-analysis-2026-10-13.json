@@ -1,0 +1,1667 @@
+{
+  "scope": "synthetic_authoritative_prefill_switch_cpu_metal",
+  "maximum_absolute_error": 2.2351741790771484e-07,
+  "all_devices_available": true,
+  "all_parity_passed": true,
+  "speed_qualified": false,
+  "real_oom_qualified": false,
+  "speed_groups": [],
+  "memory_groups": [
+    {
+      "device": "cpu",
+      "case": "repeat",
+      "maximum_group_rows": 1,
+      "iteration": 0,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4195352
+      ],
+      "mlx_peak_increment_range_bytes": [
+        3407872,
+        3407872
+      ],
+      "sampled_rss_peak_range_bytes": [
+        349093888,
+        350846976
+      ],
+      "mlx_cache_range_bytes": [
+        552960,
+        552960
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          128,
+          128
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          256,
+          256
+        ],
+        "mlx_load": [
+          2,
+          2
+        ]
+      }
+    },
+    {
+      "device": "cpu",
+      "case": "repeat",
+      "maximum_group_rows": 1,
+      "iteration": 1,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4195352
+      ],
+      "mlx_peak_increment_range_bytes": [
+        1048576,
+        1048576
+      ],
+      "sampled_rss_peak_range_bytes": [
+        349634560,
+        351584256
+      ],
+      "mlx_cache_range_bytes": [
+        1077252,
+        1077252
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          128,
+          128
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          256,
+          256
+        ],
+        "mlx_load": [
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "device": "cpu",
+      "case": "mixed_runs",
+      "maximum_group_rows": 1,
+      "iteration": 0,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4195352
+      ],
+      "mlx_peak_increment_range_bytes": [
+        3407872,
+        3407872
+      ],
+      "sampled_rss_peak_range_bytes": [
+        348766208,
+        351092736
+      ],
+      "mlx_cache_range_bytes": [
+        552960,
+        552960
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          128,
+          128
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          256,
+          256
+        ],
+        "mlx_load": [
+          48,
+          48
+        ]
+      }
+    },
+    {
+      "device": "cpu",
+      "case": "mixed_runs",
+      "maximum_group_rows": 1,
+      "iteration": 1,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4195352
+      ],
+      "mlx_peak_increment_range_bytes": [
+        1048576,
+        1048576
+      ],
+      "sampled_rss_peak_range_bytes": [
+        349503488,
+        351682560
+      ],
+      "mlx_cache_range_bytes": [
+        1077252,
+        1077252
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          128,
+          128
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          256,
+          256
+        ],
+        "mlx_load": [
+          48,
+          48
+        ]
+      }
+    },
+    {
+      "device": "cpu",
+      "case": "alternating",
+      "maximum_group_rows": 1,
+      "iteration": 0,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4195352
+      ],
+      "mlx_peak_increment_range_bytes": [
+        3407872,
+        3407872
+      ],
+      "sampled_rss_peak_range_bytes": [
+        349028352,
+        351174656
+      ],
+      "mlx_cache_range_bytes": [
+        552960,
+        552960
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          128,
+          128
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          256,
+          256
+        ],
+        "mlx_load": [
+          256,
+          256
+        ]
+      }
+    },
+    {
+      "device": "cpu",
+      "case": "alternating",
+      "maximum_group_rows": 1,
+      "iteration": 1,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4195352
+      ],
+      "mlx_peak_increment_range_bytes": [
+        1048576,
+        1048576
+      ],
+      "sampled_rss_peak_range_bytes": [
+        349552640,
+        351879168
+      ],
+      "mlx_cache_range_bytes": [
+        1077252,
+        1077252
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          128,
+          128
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          256,
+          256
+        ],
+        "mlx_load": [
+          256,
+          256
+        ]
+      }
+    },
+    {
+      "device": "cpu",
+      "case": "reversed",
+      "maximum_group_rows": 1,
+      "iteration": 0,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        2818328,
+        2818328
+      ],
+      "mlx_peak_increment_range_bytes": [
+        2621440,
+        2621440
+      ],
+      "sampled_rss_peak_range_bytes": [
+        347619328,
+        349962240
+      ],
+      "mlx_cache_range_bytes": [
+        159744,
+        159744
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          32,
+          32
+        ],
+        "expert_build": [
+          64,
+          64
+        ],
+        "acquire": [
+          64,
+          64
+        ],
+        "mlx_load": [
+          2,
+          2
+        ]
+      }
+    },
+    {
+      "device": "cpu",
+      "case": "reversed",
+      "maximum_group_rows": 1,
+      "iteration": 1,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        2818328,
+        2818328
+      ],
+      "mlx_peak_increment_range_bytes": [
+        262144,
+        262144
+      ],
+      "sampled_rss_peak_range_bytes": [
+        347750400,
+        350126080
+      ],
+      "mlx_cache_range_bytes": [
+        290820,
+        290820
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          32,
+          32
+        ],
+        "expert_build": [
+          64,
+          64
+        ],
+        "acquire": [
+          64,
+          64
+        ],
+        "mlx_load": [
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "device": "cpu",
+      "case": "random",
+      "maximum_group_rows": 1,
+      "iteration": 0,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4195352
+      ],
+      "mlx_peak_increment_range_bytes": [
+        3407872,
+        3407872
+      ],
+      "sampled_rss_peak_range_bytes": [
+        349061120,
+        351420416
+      ],
+      "mlx_cache_range_bytes": [
+        552960,
+        552960
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          128,
+          128
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          256,
+          256
+        ],
+        "mlx_load": [
+          153,
+          153
+        ]
+      }
+    },
+    {
+      "device": "cpu",
+      "case": "random",
+      "maximum_group_rows": 1,
+      "iteration": 1,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4195352
+      ],
+      "mlx_peak_increment_range_bytes": [
+        1048576,
+        1048576
+      ],
+      "sampled_rss_peak_range_bytes": [
+        349585408,
+        351961088
+      ],
+      "mlx_cache_range_bytes": [
+        1077252,
+        1077252
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          128,
+          128
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          256,
+          256
+        ],
+        "mlx_load": [
+          153,
+          153
+        ]
+      }
+    },
+    {
+      "device": "cpu",
+      "case": "repeat",
+      "maximum_group_rows": 8,
+      "iteration": 0,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4195352
+      ],
+      "mlx_peak_increment_range_bytes": [
+        3407872,
+        3407872
+      ],
+      "sampled_rss_peak_range_bytes": [
+        349372416,
+        349667328
+      ],
+      "mlx_cache_range_bytes": [
+        753664,
+        753664
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          16,
+          16
+        ],
+        "expert_build": [
+          32,
+          32
+        ],
+        "acquire": [
+          32,
+          32
+        ],
+        "mlx_load": [
+          2,
+          2
+        ]
+      }
+    },
+    {
+      "device": "cpu",
+      "case": "repeat",
+      "maximum_group_rows": 8,
+      "iteration": 1,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4195352
+      ],
+      "mlx_peak_increment_range_bytes": [
+        1048576,
+        1048576
+      ],
+      "sampled_rss_peak_range_bytes": [
+        349896704,
+        350420992
+      ],
+      "mlx_cache_range_bytes": [
+        1277956,
+        1277956
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          16,
+          16
+        ],
+        "expert_build": [
+          32,
+          32
+        ],
+        "acquire": [
+          32,
+          32
+        ],
+        "mlx_load": [
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "device": "cpu",
+      "case": "mixed_runs",
+      "maximum_group_rows": 8,
+      "iteration": 0,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4310040,
+        4310040
+      ],
+      "mlx_peak_increment_range_bytes": [
+        3522560,
+        3522560
+      ],
+      "sampled_rss_peak_range_bytes": [
+        348946432,
+        350502912
+      ],
+      "mlx_cache_range_bytes": [
+        995328,
+        995328
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          28,
+          28
+        ],
+        "expert_build": [
+          56,
+          56
+        ],
+        "acquire": [
+          56,
+          56
+        ],
+        "mlx_load": [
+          48,
+          48
+        ]
+      }
+    },
+    {
+      "device": "cpu",
+      "case": "mixed_runs",
+      "maximum_group_rows": 8,
+      "iteration": 1,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4314136,
+        4314136
+      ],
+      "mlx_peak_increment_range_bytes": [
+        1167360,
+        1167360
+      ],
+      "sampled_rss_peak_range_bytes": [
+        349667328,
+        351076352
+      ],
+      "mlx_cache_range_bytes": [
+        1536004,
+        1536004
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          28,
+          28
+        ],
+        "expert_build": [
+          56,
+          56
+        ],
+        "acquire": [
+          56,
+          56
+        ],
+        "mlx_load": [
+          48,
+          48
+        ]
+      }
+    },
+    {
+      "device": "cpu",
+      "case": "alternating",
+      "maximum_group_rows": 8,
+      "iteration": 0,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4195352
+      ],
+      "mlx_peak_increment_range_bytes": [
+        3407872,
+        3407872
+      ],
+      "sampled_rss_peak_range_bytes": [
+        348995584,
+        350322688
+      ],
+      "mlx_cache_range_bytes": [
+        552960,
+        552960
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          128,
+          128
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          256,
+          256
+        ],
+        "mlx_load": [
+          256,
+          256
+        ]
+      }
+    },
+    {
+      "device": "cpu",
+      "case": "alternating",
+      "maximum_group_rows": 8,
+      "iteration": 1,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4195352
+      ],
+      "mlx_peak_increment_range_bytes": [
+        1048576,
+        1048576
+      ],
+      "sampled_rss_peak_range_bytes": [
+        349569024,
+        350912512
+      ],
+      "mlx_cache_range_bytes": [
+        1077252,
+        1077252
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          128,
+          128
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          256,
+          256
+        ],
+        "mlx_load": [
+          256,
+          256
+        ]
+      }
+    },
+    {
+      "device": "cpu",
+      "case": "reversed",
+      "maximum_group_rows": 8,
+      "iteration": 0,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        2818328,
+        2818328
+      ],
+      "mlx_peak_increment_range_bytes": [
+        2621440,
+        2621440
+      ],
+      "sampled_rss_peak_range_bytes": [
+        347668480,
+        348995584
+      ],
+      "mlx_cache_range_bytes": [
+        159744,
+        159744
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          32,
+          32
+        ],
+        "expert_build": [
+          64,
+          64
+        ],
+        "acquire": [
+          64,
+          64
+        ],
+        "mlx_load": [
+          2,
+          2
+        ]
+      }
+    },
+    {
+      "device": "cpu",
+      "case": "reversed",
+      "maximum_group_rows": 8,
+      "iteration": 1,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        2818328,
+        2818328
+      ],
+      "mlx_peak_increment_range_bytes": [
+        262144,
+        262144
+      ],
+      "sampled_rss_peak_range_bytes": [
+        347799552,
+        349159424
+      ],
+      "mlx_cache_range_bytes": [
+        290820,
+        290820
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          32,
+          32
+        ],
+        "expert_build": [
+          64,
+          64
+        ],
+        "acquire": [
+          64,
+          64
+        ],
+        "mlx_load": [
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "device": "cpu",
+      "case": "random",
+      "maximum_group_rows": 8,
+      "iteration": 0,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4195352
+      ],
+      "mlx_peak_increment_range_bytes": [
+        3407872,
+        3407872
+      ],
+      "sampled_rss_peak_range_bytes": [
+        349110272,
+        350453760
+      ],
+      "mlx_cache_range_bytes": [
+        602112,
+        602112
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          120,
+          120
+        ],
+        "expert_build": [
+          240,
+          240
+        ],
+        "acquire": [
+          240,
+          240
+        ],
+        "mlx_load": [
+          153,
+          153
+        ]
+      }
+    },
+    {
+      "device": "cpu",
+      "case": "random",
+      "maximum_group_rows": 8,
+      "iteration": 1,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4195352
+      ],
+      "mlx_peak_increment_range_bytes": [
+        1048576,
+        1048576
+      ],
+      "sampled_rss_peak_range_bytes": [
+        349700096,
+        351043584
+      ],
+      "mlx_cache_range_bytes": [
+        1126404,
+        1126404
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          120,
+          120
+        ],
+        "expert_build": [
+          240,
+          240
+        ],
+        "acquire": [
+          240,
+          240
+        ],
+        "mlx_load": [
+          153,
+          153
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "repeat",
+      "maximum_group_rows": 1,
+      "iteration": 0,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4195352
+      ],
+      "mlx_peak_increment_range_bytes": [
+        3407872,
+        3407872
+      ],
+      "sampled_rss_peak_range_bytes": [
+        350453760,
+        350732288
+      ],
+      "mlx_cache_range_bytes": [
+        552960,
+        565248
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          128,
+          128
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          256,
+          256
+        ],
+        "mlx_load": [
+          2,
+          2
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "repeat",
+      "maximum_group_rows": 1,
+      "iteration": 1,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4195352
+      ],
+      "mlx_peak_increment_range_bytes": [
+        1048576,
+        1048576
+      ],
+      "sampled_rss_peak_range_bytes": [
+        350748672,
+        350863360
+      ],
+      "mlx_cache_range_bytes": [
+        1081860,
+        1090052
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          128,
+          128
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          256,
+          256
+        ],
+        "mlx_load": [
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "mixed_runs",
+      "maximum_group_rows": 1,
+      "iteration": 0,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4195352
+      ],
+      "mlx_peak_increment_range_bytes": [
+        3407872,
+        3407872
+      ],
+      "sampled_rss_peak_range_bytes": [
+        349421568,
+        351453184
+      ],
+      "mlx_cache_range_bytes": [
+        552960,
+        565248
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          128,
+          128
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          256,
+          256
+        ],
+        "mlx_load": [
+          48,
+          48
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "mixed_runs",
+      "maximum_group_rows": 1,
+      "iteration": 1,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4203544
+      ],
+      "mlx_peak_increment_range_bytes": [
+        1048576,
+        1056768
+      ],
+      "sampled_rss_peak_range_bytes": [
+        349765632,
+        351485952
+      ],
+      "mlx_cache_range_bytes": [
+        1079812,
+        1090052
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          128,
+          128
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          256,
+          256
+        ],
+        "mlx_load": [
+          48,
+          48
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "alternating",
+      "maximum_group_rows": 1,
+      "iteration": 0,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4863000
+      ],
+      "mlx_peak_increment_range_bytes": [
+        3407872,
+        4075520
+      ],
+      "sampled_rss_peak_range_bytes": [
+        351518720,
+        351748096
+      ],
+      "mlx_cache_range_bytes": [
+        552960,
+        1732608
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          128,
+          128
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          256,
+          256
+        ],
+        "mlx_load": [
+          256,
+          256
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "alternating",
+      "maximum_group_rows": 1,
+      "iteration": 1,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4650008
+      ],
+      "mlx_peak_increment_range_bytes": [
+        1048576,
+        1503232
+      ],
+      "sampled_rss_peak_range_bytes": [
+        351535104,
+        351780864
+      ],
+      "mlx_cache_range_bytes": [
+        1077764,
+        2257412
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          128,
+          128
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          256,
+          256
+        ],
+        "mlx_load": [
+          256,
+          256
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "reversed",
+      "maximum_group_rows": 1,
+      "iteration": 0,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        2818328,
+        2818328
+      ],
+      "mlx_peak_increment_range_bytes": [
+        2621440,
+        2621440
+      ],
+      "sampled_rss_peak_range_bytes": [
+        350011392,
+        350945280
+      ],
+      "mlx_cache_range_bytes": [
+        159744,
+        163840
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          32,
+          32
+        ],
+        "expert_build": [
+          64,
+          64
+        ],
+        "acquire": [
+          64,
+          64
+        ],
+        "mlx_load": [
+          2,
+          2
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "reversed",
+      "maximum_group_rows": 1,
+      "iteration": 1,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        2818328,
+        2847000
+      ],
+      "mlx_peak_increment_range_bytes": [
+        262144,
+        290816
+      ],
+      "sampled_rss_peak_range_bytes": [
+        350076928,
+        350994432
+      ],
+      "mlx_cache_range_bytes": [
+        291332,
+        303620
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          32,
+          32
+        ],
+        "expert_build": [
+          64,
+          64
+        ],
+        "acquire": [
+          64,
+          64
+        ],
+        "mlx_load": [
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "random",
+      "maximum_group_rows": 1,
+      "iteration": 0,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4195352
+      ],
+      "mlx_peak_increment_range_bytes": [
+        3407872,
+        3407872
+      ],
+      "sampled_rss_peak_range_bytes": [
+        350683136,
+        351617024
+      ],
+      "mlx_cache_range_bytes": [
+        552960,
+        557056
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          128,
+          128
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          256,
+          256
+        ],
+        "mlx_load": [
+          153,
+          153
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "random",
+      "maximum_group_rows": 1,
+      "iteration": 1,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4195352
+      ],
+      "mlx_peak_increment_range_bytes": [
+        1048576,
+        1048576
+      ],
+      "sampled_rss_peak_range_bytes": [
+        350699520,
+        351633408
+      ],
+      "mlx_cache_range_bytes": [
+        1077764,
+        1081860
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          128,
+          128
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          256,
+          256
+        ],
+        "mlx_load": [
+          153,
+          153
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "repeat",
+      "maximum_group_rows": 8,
+      "iteration": 0,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4424728
+      ],
+      "mlx_peak_increment_range_bytes": [
+        3407872,
+        3637248
+      ],
+      "sampled_rss_peak_range_bytes": [
+        348045312,
+        351010816
+      ],
+      "mlx_cache_range_bytes": [
+        753664,
+        851968
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          16,
+          16
+        ],
+        "expert_build": [
+          32,
+          32
+        ],
+        "acquire": [
+          32,
+          32
+        ],
+        "mlx_load": [
+          2,
+          2
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "repeat",
+      "maximum_group_rows": 8,
+      "iteration": 1,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4424728,
+        4424728
+      ],
+      "mlx_peak_increment_range_bytes": [
+        1277952,
+        1277952
+      ],
+      "sampled_rss_peak_range_bytes": [
+        348356608,
+        351010816
+      ],
+      "mlx_cache_range_bytes": [
+        1376772,
+        1475076
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          16,
+          16
+        ],
+        "expert_build": [
+          32,
+          32
+        ],
+        "acquire": [
+          32,
+          32
+        ],
+        "mlx_load": [
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "mixed_runs",
+      "maximum_group_rows": 8,
+      "iteration": 0,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4531224,
+        4531224
+      ],
+      "mlx_peak_increment_range_bytes": [
+        3743744,
+        3743744
+      ],
+      "sampled_rss_peak_range_bytes": [
+        348995584,
+        350355456
+      ],
+      "mlx_cache_range_bytes": [
+        995328,
+        995328
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          28,
+          28
+        ],
+        "expert_build": [
+          56,
+          56
+        ],
+        "acquire": [
+          56,
+          56
+        ],
+        "mlx_load": [
+          48,
+          48
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "mixed_runs",
+      "maximum_group_rows": 8,
+      "iteration": 1,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4535320,
+        4535320
+      ],
+      "mlx_peak_increment_range_bytes": [
+        1388544,
+        1388544
+      ],
+      "sampled_rss_peak_range_bytes": [
+        348602368,
+        350437376
+      ],
+      "mlx_cache_range_bytes": [
+        1536516,
+        1602052
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          28,
+          28
+        ],
+        "expert_build": [
+          56,
+          56
+        ],
+        "acquire": [
+          56,
+          56
+        ],
+        "mlx_load": [
+          48,
+          48
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "alternating",
+      "maximum_group_rows": 8,
+      "iteration": 0,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4822040
+      ],
+      "mlx_peak_increment_range_bytes": [
+        3407872,
+        4034560
+      ],
+      "sampled_rss_peak_range_bytes": [
+        350453760,
+        352157696
+      ],
+      "mlx_cache_range_bytes": [
+        552960,
+        1732608
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          128,
+          128
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          256,
+          256
+        ],
+        "mlx_load": [
+          256,
+          256
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "alternating",
+      "maximum_group_rows": 8,
+      "iteration": 1,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4224024,
+        4383768
+      ],
+      "mlx_peak_increment_range_bytes": [
+        1077248,
+        1236992
+      ],
+      "sampled_rss_peak_range_bytes": [
+        348880896,
+        352026624
+      ],
+      "mlx_cache_range_bytes": [
+        1077764,
+        2257412
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          128,
+          128
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          256,
+          256
+        ],
+        "mlx_load": [
+          256,
+          256
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "reversed",
+      "maximum_group_rows": 8,
+      "iteration": 0,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        2847000,
+        2847000
+      ],
+      "mlx_peak_increment_range_bytes": [
+        2650112,
+        2650112
+      ],
+      "sampled_rss_peak_range_bytes": [
+        350273536,
+        350289920
+      ],
+      "mlx_cache_range_bytes": [
+        180224,
+        184320
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          32,
+          32
+        ],
+        "expert_build": [
+          64,
+          64
+        ],
+        "acquire": [
+          64,
+          64
+        ],
+        "mlx_load": [
+          2,
+          2
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "reversed",
+      "maximum_group_rows": 8,
+      "iteration": 1,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        2847000,
+        2847000
+      ],
+      "mlx_peak_increment_range_bytes": [
+        290816,
+        290816
+      ],
+      "sampled_rss_peak_range_bytes": [
+        348323840,
+        350339072
+      ],
+      "mlx_cache_range_bytes": [
+        311812,
+        320004
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          32,
+          32
+        ],
+        "expert_build": [
+          64,
+          64
+        ],
+        "acquire": [
+          64,
+          64
+        ],
+        "mlx_load": [
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "random",
+      "maximum_group_rows": 8,
+      "iteration": 0,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4195352
+      ],
+      "mlx_peak_increment_range_bytes": [
+        3407872,
+        3407872
+      ],
+      "sampled_rss_peak_range_bytes": [
+        350322688,
+        352321536
+      ],
+      "mlx_cache_range_bytes": [
+        602112,
+        602112
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          120,
+          120
+        ],
+        "expert_build": [
+          240,
+          240
+        ],
+        "acquire": [
+          240,
+          240
+        ],
+        "mlx_load": [
+          153,
+          153
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "random",
+      "maximum_group_rows": 8,
+      "iteration": 1,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4224024,
+        4224024
+      ],
+      "mlx_peak_increment_range_bytes": [
+        1077248,
+        1077248
+      ],
+      "sampled_rss_peak_range_bytes": [
+        348995584,
+        350994432
+      ],
+      "mlx_cache_range_bytes": [
+        1131012,
+        1131012
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          120,
+          120
+        ],
+        "expert_build": [
+          240,
+          240
+        ],
+        "acquire": [
+          240,
+          240
+        ],
+        "mlx_load": [
+          153,
+          153
+        ]
+      }
+    }
+  ],
+  "limitations": [
+    "Five synthetic ordered-selection fixtures, not text/tokenizer/real-model quality",
+    "Budget is exactly two payloads",
+    "Native SwitchGLU references and experts prepared in a separate process",
+    "Workers discard temporary source bank before measurement",
+    "4 measured CPU requests after 1 warmup per case; no host qualification",
+    "Memory workers separate from speed; phase counters enabled only for memory",
+    "2 memory requests per case: first cold manager, then existing cache/residency",
+    "Reference/input/output arrays contribute to baseline and observed peaks",
+    "RSS sampling requested at 1ms; sampled peak may miss transients",
+    "RSS HWM is lifetime-wide; MLX peak reset per request",
+    "MLX allocator is process-wide unified memory, not dedicated/system GPU VRAM",
+    "Keep default allocator cache between requests; test-only clear between memory cases"
+  ],
+  "report": "docs/evaluation/strata-diverse-prefill-exact-payload-memory-2026-10-13.json",
+  "report_sha256": "9d266ce8bfe2d0c1931a84a04662cf913fce254421da1bdab1bc4ee31e96c8e3"
+}

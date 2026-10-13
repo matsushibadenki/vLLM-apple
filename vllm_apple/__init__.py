@@ -597,6 +597,7 @@ from .speech_to_speech import (
     SpeechToSpeechResult,
     SynthesizedSpeech,
 )
+from .strata_runtime import StrataRuntime
 from .structural_candidates import (
     SimilarityObservation,
     StructuralCandidate,
@@ -757,6 +758,7 @@ from .workload_telemetry import (
 )
 
 __all__ = [
+    "StrataRuntime",
     "AudioRingBuffer",
     "AudioRingBufferSnapshot",
     "AudioFeatureFrame",

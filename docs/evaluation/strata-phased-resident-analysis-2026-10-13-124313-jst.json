@@ -1,0 +1,141 @@
+{
+  "scope": "synthetic_qwen3_block_cpu",
+  "maximum_spread_percent": 5.0,
+  "spread_definition": "100 * (max - min) / median of run request totals",
+  "campaign_completed": true,
+  "timing_stable": false,
+  "uncontended_comparison_passed": false,
+  "standard_adoption_eligible": false,
+  "groups": [
+    {
+      "variant": "baseline",
+      "policy": "baseline",
+      "runs": 4,
+      "timed_requests": 16384,
+      "median_of_run_medians_us": 46.604,
+      "run_total_spread_percent": 5.842071174151949,
+      "timing_stable": false,
+      "host_load_passed": false,
+      "startup_host_passed_runs": 0,
+      "request_host_passed_runs": 0,
+      "parity_passed": true,
+      "residency_contract_passed": true,
+      "peak_retained_bytes": null,
+      "peak_reserved_bytes": null,
+      "gather_retained_bytes": null,
+      "request_residency_deltas": []
+    },
+    {
+      "variant": "sequential",
+      "policy": "lru",
+      "runs": 4,
+      "timed_requests": 16384,
+      "median_of_run_medians_us": 146.09375,
+      "run_total_spread_percent": 5.436677285437522,
+      "timing_stable": false,
+      "host_load_passed": false,
+      "startup_host_passed_runs": 0,
+      "request_host_passed_runs": 0,
+      "parity_passed": true,
+      "residency_contract_passed": true,
+      "peak_retained_bytes": 36864,
+      "peak_reserved_bytes": 36864,
+      "gather_retained_bytes": null,
+      "request_residency_deltas": [
+        {
+          "hits": 8192,
+          "misses": 0,
+          "evictions": 0,
+          "rejections": 0
+        },
+        {
+          "hits": 8192,
+          "misses": 0,
+          "evictions": 0,
+          "rejections": 0
+        },
+        {
+          "hits": 8192,
+          "misses": 0,
+          "evictions": 0,
+          "rejections": 0
+        },
+        {
+          "hits": 8192,
+          "misses": 0,
+          "evictions": 0,
+          "rejections": 0
+        }
+      ]
+    },
+    {
+      "variant": "grouped",
+      "policy": "lru",
+      "runs": 4,
+      "timed_requests": 16384,
+      "median_of_run_medians_us": 120.625,
+      "run_total_spread_percent": 2.424623960242986,
+      "timing_stable": true,
+      "host_load_passed": false,
+      "startup_host_passed_runs": 1,
+      "request_host_passed_runs": 0,
+      "parity_passed": true,
+      "residency_contract_passed": true,
+      "peak_retained_bytes": 36864,
+      "peak_reserved_bytes": 36864,
+      "gather_retained_bytes": null,
+      "request_residency_deltas": [
+        {
+          "hits": 8192,
+          "misses": 0,
+          "evictions": 0,
+          "rejections": 0
+        },
+        {
+          "hits": 8192,
+          "misses": 0,
+          "evictions": 0,
+          "rejections": 0
+        },
+        {
+          "hits": 8192,
+          "misses": 0,
+          "evictions": 0,
+          "rejections": 0
+        },
+        {
+          "hits": 8192,
+          "misses": 0,
+          "evictions": 0,
+          "rejections": 0
+        }
+      ]
+    },
+    {
+      "variant": "gather",
+      "policy": "lru",
+      "runs": 4,
+      "timed_requests": 16384,
+      "median_of_run_medians_us": 49.8755,
+      "run_total_spread_percent": 4.4792547275226005,
+      "timing_stable": true,
+      "host_load_passed": false,
+      "startup_host_passed_runs": 0,
+      "request_host_passed_runs": 0,
+      "parity_passed": true,
+      "residency_contract_passed": true,
+      "peak_retained_bytes": null,
+      "peak_reserved_bytes": null,
+      "gather_retained_bytes": 36864,
+      "request_residency_deltas": []
+    }
+  ],
+  "limitations": [
+    "Synthetic CPU block, not model/GPU/E2E qualification",
+    "Retained tensor peak excludes transient loading and RSS",
+    "Baseline retains all source weights even in memory suite",
+    "Warmup/export/startup/parity checks excluded from timed spans"
+  ],
+  "report": "docs/evaluation/strata-phased-resident-2026-10-13-124313-jst.json",
+  "report_sha256": "0d278b65366e0c4d3d23a44e1ad2477893b8b177fe1afb48489c6488597db775"
+}

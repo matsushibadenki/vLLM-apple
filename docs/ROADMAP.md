@@ -2,7 +2,7 @@
 
 品質と持続的な安定性を守りながら、Apple Siliconで実行経路を最適化する。
 
-**整理日：2026-10-12** · [状況一覧](#overview) · [直近の更新](#updates) · [段階別計画](#plans) · [環境待ち](#environment) · [検証履歴](#history)
+**整理日：2026-10-13** · [状況一覧](#overview) · [直近の更新](#updates) · [段階別計画](#plans) · [環境待ち](#environment) · [検証履歴](#history)
 
 > 実装の完了と、実モデル・性能・長時間安定性の認定は別に管理します。
 
@@ -46,6 +46,34 @@
 - 🟠 [Next] 全Python回帰1553 testsは3 failures・1 error・40 skips。版固定の配布テストを修正し9 tests成功。daemon／child startup失敗は変更前でも再現、Metal単独再試験は成功。全回帰合格とbackend qualificationを継続。
 - ⭕️ [Pending] CI Actions v7とPython3.13／macOS15 runnerの実環境検証。
 
+### Strata · モデル単位の接続とライフサイクル
+
+- 🟢 [Done] 標準Qwen3 MoE向け公開`StrataRuntime`。複数層の共通予算、mode／phase、resize、close、導入rollback。
+- 🟢 [Done] `from_model()`で全MoE層検出、identity／coverage検証、合成モデル全logits一致。
+- 🟢 [Done] native19／周辺41 tests成功。元bank解放とclose後の再利用拒否を確認。
+- 🟢 [Done] serverへ明示Strata設定を接続。単一系列・batch無効化、モデル差替え拒否、worker終了後close。server関連21 tests成功。distributed／draft拒否と同期後closeも確認。
+- ⭕️ [Pending] 低負荷比較継続、実artifact HTTP／GPU E2E・cancel／cache・OOM・既定採用。
+
+English: Explicit model-level runtime and lifecycle pass integration tests; automatic serving and qualification remain pending.
+
+简体中文：显式模型级runtime及生命周期通过测试；自动服务接入与认证待完成。
+
+### Strata · payload基準のgroup admission
+
+- 🟢 [Done] header込みfile量からpayload上限へ判定を変更。install時にmetadataをcacheし、要求時は現在の予算を使用。
+- 🟢 [Done] [exact payload比較](evaluation/strata-payload-admission-analysis-cpu-2026-10-13.json)：18,432 bytes予算、9 trial／576要求誤差0、eval512→64、acquire1024→128。native関連16 tests成功。
+- 🟢 [Done] resize時fallback、file欠落時の元block維持、checksum失敗時解放を確認。予算・検証・既定経路を維持。
+- 🟢 [Done] [厳密payloadのCPU／Metalメモリ検証](evaluation/strata-diverse-prefill-exact-payload-memory-analysis-2026-10-13.json)：8 trials／80要求、最大誤差2.235e-7、保持予算と解放契約成立。mixed batchのMLX scratch増加を確認。
+- 🟠 [Next] install metadata費用と要求固定費を分けて検証。
+- ⭕️ [Pending] 全方式の低負荷比較・実weight／GPU E2E・OOM・速度資格。
+
+English: Exact-budget diverse prefill memory contracts pass; batch scratch increases. Payload-based group admission removes header-only fallback; fresh quiet-host qualification is still required.
+
+简体中文：严格预算的多样prefill内存契约通过，batch临时内存增加。payload判定消除仅因header导致的fallback，仍需新低负荷认证。
+
+<details>
+<summary>多様prefillの検証履歴 / Prefill evidence history / Prefill验证历史</summary>
+
 ### Strata · 多様prefillとメモリ比較
 
 - 🟢 [Done] [5種類のprefill検証](evaluation/strata-diverse-prefill-analysis-cpu-metal-final-2026-10-12.json)：CPU速度／CPU・Metalメモリを別workerで取得。14 worker／200要求、最大誤差2.24e-7。
@@ -57,6 +85,8 @@
 English: Batching helps contiguous selections, not alternating ones; mixed runs increase peak memory. No certified speedup.
 
 简体中文：连续选择可减少eval，交替选择无减少，混合长度增加峰值内存；未认证加速。
+
+</details>
 
 <details>
 <summary>連続token候補の実装記録 / Implementation details / 实现记录</summary>
@@ -633,3 +663,11 @@ Metal 0.30.0のMLX 0.32.1 ABI固定、MLX 0.32.3のbuffer／stream／GQA修正�
 English: Current baseline: 198 arithmetic checks passed; warmup SLO 2/3. Changed implementation identity prevents speedup attribution. Next: independent repeats with fixed identity.
 
 简体中文：现行基线198件算术质量全部通过，warmup SLO为2/3。实现identity不同，不认证速度提升。下一步：固定identity并独立重复。
+
+## 定期評価 / Recurring evaluation / 定期评估 — 2026-10-13
+
+🟢 [Done] [固定identityの独立3回測定](optimization-2026-10-13.md)：品質・SLO全件合格、正常終了。短文goodput変動9.11%で採用条件5%以内を満たさず、patch採用なし。🟠 [Next] 変動とprefill待ちの原因切り分け。
+
+English: Three baseline runs passed quality/SLO; 9.11% goodput range/median prevents adoption. Next: isolate variability and prefill waits.
+
+简体中文：3次基线质量/SLO全部通过；goodput范围/中位数9.11%，不采用patch。下一步：定位变动及prefill等待。

@@ -1,0 +1,166 @@
+{
+  "scope": "synthetic_qwen3_block_cpu",
+  "maximum_spread_percent": 5.0,
+  "spread_definition": "100 * (max - min) / median of run request totals",
+  "campaign_completed": true,
+  "timing_stable": false,
+  "uncontended_comparison_passed": false,
+  "standard_adoption_eligible": false,
+  "groups": [
+    {
+      "variant": "baseline",
+      "policy": "baseline",
+      "runs": 4,
+      "timed_requests": 16384,
+      "median_of_run_medians_us": 47.0625,
+      "run_total_spread_percent": 9.462192573623627,
+      "timing_stable": false,
+      "host_load_passed": false,
+      "startup_host_passed_runs": 1,
+      "request_host_passed_runs": 2,
+      "parity_passed": true,
+      "residency_contract_passed": true,
+      "peak_retained_bytes": null,
+      "peak_reserved_bytes": null,
+      "gather_retained_bytes": null,
+      "request_residency_deltas": []
+    },
+    {
+      "variant": "sequential",
+      "policy": "lru",
+      "runs": 4,
+      "timed_requests": 16384,
+      "median_of_run_medians_us": 244.37475,
+      "run_total_spread_percent": 2.832973488842713,
+      "timing_stable": true,
+      "host_load_passed": false,
+      "startup_host_passed_runs": 0,
+      "request_host_passed_runs": 0,
+      "parity_passed": true,
+      "residency_contract_passed": true,
+      "peak_retained_bytes": 18432,
+      "peak_reserved_bytes": 18432,
+      "gather_retained_bytes": null,
+      "request_residency_deltas": [
+        {
+          "hits": 5632,
+          "misses": 2560,
+          "evictions": 2560,
+          "rejections": 0
+        },
+        {
+          "hits": 5632,
+          "misses": 2560,
+          "evictions": 2560,
+          "rejections": 0
+        },
+        {
+          "hits": 5632,
+          "misses": 2560,
+          "evictions": 2560,
+          "rejections": 0
+        },
+        {
+          "hits": 5632,
+          "misses": 2560,
+          "evictions": 2560,
+          "rejections": 0
+        }
+      ]
+    },
+    {
+      "variant": "grouped",
+      "policy": "lru",
+      "runs": 4,
+      "timed_requests": 16384,
+      "median_of_run_medians_us": 217.60475,
+      "run_total_spread_percent": 6.846740246784313,
+      "timing_stable": false,
+      "host_load_passed": false,
+      "startup_host_passed_runs": 2,
+      "request_host_passed_runs": 2,
+      "parity_passed": true,
+      "residency_contract_passed": true,
+      "peak_retained_bytes": 18432,
+      "peak_reserved_bytes": 18432,
+      "gather_retained_bytes": null,
+      "request_residency_deltas": [
+        {
+          "hits": 6144,
+          "misses": 2048,
+          "evictions": 2048,
+          "rejections": 0
+        },
+        {
+          "hits": 6144,
+          "misses": 2048,
+          "evictions": 2048,
+          "rejections": 0
+        },
+        {
+          "hits": 6144,
+          "misses": 2048,
+          "evictions": 2048,
+          "rejections": 0
+        },
+        {
+          "hits": 6144,
+          "misses": 2048,
+          "evictions": 2048,
+          "rejections": 0
+        }
+      ]
+    },
+    {
+      "variant": "grouped",
+      "policy": "cost_frequency",
+      "runs": 4,
+      "timed_requests": 16384,
+      "median_of_run_medians_us": 227.17700000000002,
+      "run_total_spread_percent": 7.194582451015987,
+      "timing_stable": false,
+      "host_load_passed": false,
+      "startup_host_passed_runs": 0,
+      "request_host_passed_runs": 0,
+      "parity_passed": true,
+      "residency_contract_passed": true,
+      "peak_retained_bytes": 18432,
+      "peak_reserved_bytes": 18432,
+      "gather_retained_bytes": null,
+      "request_residency_deltas": [
+        {
+          "hits": 6144,
+          "misses": 2048,
+          "evictions": 2048,
+          "rejections": 0
+        },
+        {
+          "hits": 6144,
+          "misses": 2048,
+          "evictions": 2048,
+          "rejections": 0
+        },
+        {
+          "hits": 6144,
+          "misses": 2048,
+          "evictions": 2048,
+          "rejections": 0
+        },
+        {
+          "hits": 6144,
+          "misses": 2048,
+          "evictions": 2048,
+          "rejections": 0
+        }
+      ]
+    }
+  ],
+  "limitations": [
+    "Synthetic CPU block, not model/GPU/E2E qualification",
+    "Retained tensor peak excludes transient loading and RSS",
+    "Baseline retains all source weights even in memory suite",
+    "Warmup/export/startup/parity checks excluded from timed spans"
+  ],
+  "report": "docs/evaluation/strata-phased-partial-2026-10-13-131313-jst.json",
+  "report_sha256": "48c19f56b04a93a35701aa3932876e025d6d9a8cbf968905954f5e68cb22185b"
+}

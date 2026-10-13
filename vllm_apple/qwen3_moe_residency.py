@@ -23,6 +23,8 @@ def install_qwen3_moe_residency(
     With grouped=True, maximum_group_rows>1 batches contiguous tokens only when
     their ordered selections match. This increases activation scratch space;
     resident weight budgets do not bound that scratch allocation.
+    Group admission caches conservative payload bounds at installation; expert
+    files must remain immutable. Loading still verifies manifest checksums.
     """
     import mlx.core as mx
     import mlx.nn as nn
@@ -45,21 +47,33 @@ def install_qwen3_moe_residency(
                 or (backend.quantization_bits is not None
                     and (projection.group_size != backend.group_size or projection.mode != "affine"))):
             raise ValueError("source expert format differs from backend")
+    payload_bounds = []
     for expert in range(num_experts):
         if ExpertKey(layer, expert) not in backend._manifest.entries:
             raise ValueError("manifest is missing a layer expert")
+        if grouped:
+            payload_bounds.append(backend.resident_bytes_upper_bound(ExpertKey(layer, expert)))
+    payload_bounds = tuple(payload_bounds)
 
     class ResidentSwitch(nn.Module):
         def __init__(self):
             super().__init__()
             self.phase = phase
+            self._closed = False
+
+        def close(self):
+            self._closed = True
 
         def set_phase(self, value):
+            if self._closed:
+                raise RuntimeError("resident switch is closed")
             if value not in {"prefill", "decode"}:
                 raise ValueError("invalid expert phase")
             self.phase = value
 
         def __call__(self, x, indices):
+            if self._closed:
+                raise RuntimeError("resident switch is closed")
             if (len(x.shape) not in (2, 3) or len(indices.shape) != len(x.shape)
                     or indices.shape[:-1] != x.shape[:-1]
                     or not 1 <= indices.shape[-1] <= 64
@@ -85,10 +99,10 @@ def install_qwen3_moe_residency(
                 fits = False
                 if grouped:
                     budget = executor.manager.snapshot()
-                    # File bytes include safetensors headers as well as tensors.
+                    # Header bytes do not occupy resident tensors. Bounds are read
+                    # before replacing the source; no per-request header I/O here.
                     fits = (len(selected) <= budget["maximum_entries"] and sum(
-                        backend._manifest.entries[ExpertKey(layer, expert)][0]
-                        for expert in selected
+                        payload_bounds[expert] for expert in selected
                     ) <= budget["maximum_bytes"])
                 if grouped and fits:
                     end = row + 1
