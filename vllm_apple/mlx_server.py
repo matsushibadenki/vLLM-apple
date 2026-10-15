@@ -183,12 +183,14 @@ def _parser() -> argparse.ArgumentParser:
                         help="Experimental: bypass the safe generation serialization gate")
     parser.add_argument("--generation-queue-capacity", type=int, default=8)
     parser.add_argument("--generation-queue-timeout", type=float, default=30)
+    parser.add_argument("--strata-process-bytes", type=int)
+    parser.add_argument("--strata-reserve-bytes", type=int, default=256 * 1024 * 1024)
     parser.add_argument("--strata-expert-root")
     parser.add_argument("--strata-model-sha256")
     parser.add_argument("--strata-resident-bytes", type=int)
     parser.add_argument("--strata-resident-entries", type=int)
     parser.add_argument("--strata-maximum-file-bytes", type=int)
-    parser.add_argument("--strata-mode", choices=("sequential", "grouped", "row_batch"),
+    parser.add_argument("--strata-mode", choices=("sequential", "grouped", "row_batch", "selection_batch"),
                         default="sequential")
     parser.add_argument("--strata-policy", choices=("lru", "cost_frequency"), default="lru")
     parser.add_argument("--strata-group-rows", type=int, default=8)
@@ -214,6 +216,12 @@ def main(argv: list[str] | None = None) -> int:
             maximum_file_bytes=arguments.strata_maximum_file_bytes,
             mode=arguments.strata_mode, eviction_policy=arguments.strata_policy,
             maximum_group_rows=arguments.strata_group_rows)
+    if arguments.strata_process_bytes is not None:
+        if strata_options is None:
+            raise SystemExit("Strata process budget requires expert configuration")
+        from .strata_memory import ProcessMemoryBudget
+        strata_options["process_budget"] = ProcessMemoryBudget(
+            arguments.strata_process_bytes, arguments.strata_reserve_bytes)
     if arguments.diagnostic_signal:
         enable_stack_diagnostics()
     if arguments.host not in {"127.0.0.1", "::1", "localhost"}:

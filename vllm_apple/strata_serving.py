@@ -21,6 +21,7 @@ class StrataServingModel:
     def __call__(self, inputs, *args, **kwargs):
         if len(inputs.shape) != 2 or inputs.shape[0] != 1:
             raise ValueError("Strata serving requires a single sequence")
+        self.runtime.admit_forward()
         self.runtime.set_phase("prefill" if inputs.shape[1] > 1 else "decode")
         return self._model(inputs, *args, **kwargs)
 

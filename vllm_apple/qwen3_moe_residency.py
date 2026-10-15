@@ -11,7 +11,7 @@ from .mlx_expert_backend import MLXFileExpertBackend
 
 def install_qwen3_moe_residency(
     block, backend: MLXFileExpertBackend, executor: ResidentExpertExecutor, *,
-    layer: int, phase: str, grouped: bool = False, maximum_group_rows: int = 1,
+    layer: int, phase: str, grouped: bool = False, maximum_group_rows: int = 1, selection_batch: bool = False,
 ):
     """Replace switch_mlp only, leaving original gate/top-k/aggregation untouched.
 
@@ -32,6 +32,7 @@ def install_qwen3_moe_residency(
     from mlx_lm.models.switch_layers import SwiGLU, SwitchGLU
 
     if (type(block) is not Qwen3MoeSparseMoeBlock or phase not in {"prefill", "decode"}
+            or type(selection_batch) is not bool or (selection_batch and not grouped)
             or type(grouped) is not bool
             or type(maximum_group_rows) is not int or not 1 <= maximum_group_rows <= 64
             or (not grouped and maximum_group_rows != 1)
@@ -104,6 +105,21 @@ def install_qwen3_moe_residency(
                     fits = (len(selected) <= budget["maximum_entries"] and sum(
                         payload_bounds[expert] for expert in selected
                     ) <= budget["maximum_bytes"])
+                if grouped and fits and selection_batch:
+                    end = row + 1
+                    union = set(selected)
+                    while end < min(rows, row + maximum_group_rows):
+                        candidate = union | set(selections[end])
+                        if (len(candidate) > min(64, budget["maximum_entries"])
+                                or sum(payload_bounds[e] for e in candidate) > budget["maximum_bytes"]):
+                            break
+                        union = candidate
+                        end += 1
+                    results.append(backend.execute_selection_batch(
+                        executor, tokens[row:end], phase=self.phase, layer=layer,
+                        selections=tuple(tuple(v) for v in selections[row:end])))
+                    row = end
+                    continue
                 if grouped and fits:
                     end = row + 1
                     while (end < min(rows, row + maximum_group_rows)

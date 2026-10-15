@@ -2,6 +2,37 @@
 
 ## 日本語
 
+🟢 [Done] 2026-10-14：upstream方針を参考にprocess memory admissionとselection_batchを実装。
+`ProcessMemoryBudget(maximum_bytes, reserve_bytes)`はRSSとMLX active＋cacheの最大値（Unified Memoryの重複加算回避）を観測し、
+process上限及びsystem availableからreserveを残して常駐予算を調整する。serveの各forward前に再観測し、headroom不足はMemoryErrorで拒否。
+KV／scratch用reserveは利用者が設定する。`--strata-process-bytes`と`--strata-reserve-bytes`で明示設定。
+OS hard limit・phys_footprint・pressure保証ではなく、瞬間的scratchや起動時source bankは上限保証対象外。
+cache解放でRSSが必ず減るとは仮定せず、上限超過は推論を継続しない。
+
+`--strata-mode selection_batch`は最大group rows内の選択Expert unionが予算に収まる連続tokenのgraphを一度に評価する。
+全union Leaseを評価終了まで保持し、selection順は各rowで維持。容量不足は小さいbatch／逐次へ退く。
+既存row_batchと異なり、異なるordered selectionsもまとめられる。ただしPython graph構築は残り、実Metal kernel dispatch数は未計測。
+4 tokenの反転選択でexpert_eval1回、複数層の数値一致と縮小fallback／解放、admission拒否を検証。
+native関連19／budget及びserver関連23 tests成功、ruff成功。速度・GPU E2E・実OOM認定は保留。
+🟠 [Next] 実weightでKV成長・scratch／cache込みの観測、GPU実行計測とselection_batch速度比較。
+⭕️ [Pending] pressure／phys_footprint adapter、startup全体制御、全方式低負荷資格・既定採用。
+
+
+🟢 [Done] 2026-10-14：upstream Apple Silicon対応を公式release／タグ固定sourceで調査。
+v0.1.44は専用Metal engine、macOS15+、experimental。v0.1.44.1はM2でのthreadgroup制限問題を修正：
+gdn multi-token kernelの必要threadsがpipeline上限を超えて実行されず、古い値で出力していた。
+修正版はdispatchごとの上限確認とkernel compiler設定を追加。upstreamはM2再検証を依頼中で、全chip認定ではない。
+PC共通hostとMetal runtimeの構成であり、MLX pluginとして直接置換できない。対象モデルも当projectの標準Qwen3 MoEと異なる。
+
+🟠 [Next] retained weights以外にKV／activation scratch／allocator cache／process footprintを含む予算を導入し、
+段階的preload前に利用可能メモリとpressureを再確認。upstreamの60% capは64GB+向け実測方針で、そのまま全Macへ固定適用しない。
+🟠 [Next] graph発行／評価境界集約を比較し、native Metal kernel導入時はthreadgroup上限とchip別数値一致を必須にする。
+既存のExpert三行列同梱、元bank解放、単一要求制約はupstreamの方向と整合する。
+🔴 [Later] mmap／MTLResidencySet、read-ahead、native Metal graphはMLXとの所有権／同期設計と実測後に検討。
+⭕️ [Pending] upstream速度の当projectへの再現。MTP・量子化・モデルが異なる結果を速度認定に転用しない。
+Sources: [v0.1.44](https://github.com/Niko1221/Strata/releases/tag/v0.1.44), [v0.1.44.1](https://github.com/Niko1221/Strata/releases/tag/v0.1.44.1), [Mac design](https://github.com/Niko1221/Strata/blob/v0.1.44/docs/MAC.md), [Metal runtime](https://github.com/Niko1221/Strata/blob/v0.1.44.1/metal/src/gpu/runtime.cpp), [arena budget](https://github.com/Niko1221/Strata/blob/v0.1.44.1/metal/src/engine/arena_budget.h)
+
+
 🟢 [Done] 第24工程（2026-10-13）：`mlx_server`へ明示Strata設定を接続。
 root／expected model SHA／resident bytes／entries／file上限を全て指定した場合のみ導入。
 対応はreviewed MLX-LM0.32.0の単一local worker。defaultモデルを起動前にロードして導入し、
@@ -536,6 +567,31 @@ prefill／decode別の測定を収集する。LRUと同一モデル・精度・w
 
 ## English
 
+🟢 [Done] 2026-10-14: process admission and selection_batch implemented following upstream principles.
+ProcessMemoryBudget observes max(RSS, MLX active+cache), leaves a configurable reserve under both process and available-memory limits,
+and adjusts expert residency before each serving forward. Insufficient headroom raises MemoryError.
+Explicit flags: --strata-process-bytes / --strata-reserve-bytes. This is sampled admission, not an OS hard cap or pressure/phys_footprint guarantee;
+startup source banks and transient scratch are not bounded. Cache release is not assumed to reduce RSS.
+selection_batch leases the ordered selections' union within resident bounds and evaluates consecutive rows together, including differing selections.
+Smaller batches/sequential execution handle insufficient union capacity. Python graph construction remains; Metal dispatch counts are unmeasured.
+Four reversed-selection rows use one expert_eval; multi-layer parity, shrink fallback, release and admission rejection pass.
+19 native and23 budget/server tests pass. Speed, GPU E2E and real OOM remain unqualified.
+🟠 [Next] Real-weight KV/scratch/cache observations and GPU timing.
+⭕️ [Pending] Pressure/phys_footprint, startup control, quiet-host qualification and default adoption.
+
+
+🟢 [Done] 2026-10-14: reviewed upstream Apple Silicon support against official releases and tagged sources.
+It is a dedicated experimental Metal engine requiring macOS15+, not an MLX replacement plugin.
+v0.1.44.1 fixes multi-token GDN launches exceeding pipeline thread limits on M2; dispatch guards and compiler bounds were added.
+Upstream still requests M2 revalidation. Its model families and MTP/quantization differ from our standard Qwen3 MoE adapter.
+🟠 [Next] Budget KV, scratch, allocator cache and process footprint; recheck memory/pressure during staged preload.
+The upstream60% footprint policy is measured for64GB+ machines, not a universal Mac constant.
+🟠 [Next] Compare grouped graph/eval submission; guard native Metal launch limits and validate parity by chip.
+🔴 [Later] mmap/residency sets, read-ahead and native graphs require explicit MLX ownership/synchronization design.
+⭕️ [Pending] Local reproduction of upstream performance; its benchmarks do not qualify this project.
+Sources: [v0.1.44](https://github.com/Niko1221/Strata/releases/tag/v0.1.44), [v0.1.44.1](https://github.com/Niko1221/Strata/releases/tag/v0.1.44.1), [Mac design](https://github.com/Niko1221/Strata/blob/v0.1.44/docs/MAC.md), [Metal runtime](https://github.com/Niko1221/Strata/blob/v0.1.44.1/metal/src/gpu/runtime.cpp), [arena budget](https://github.com/Niko1221/Strata/blob/v0.1.44.1/metal/src/engine/arena_budget.h)
+
+
 🟢 [Done] Stage24 (2026-10-13): explicit Strata flags integrated into mlx_server.
 Root, expected model SHA, resident bytes/entries and file cap are required together.
 Reviewed MLX-LM0.32.0, one local worker only. Preload/install before serving; disable provider batching,
@@ -832,6 +888,30 @@ LRU and use the existing P3 gate before adoption.
 ⭕️ [Pending] MTP/ANE routes lacking testable artifacts or hardware.
 
 ## 简体中文
+
+🟢 [Done] 2026-10-14：参考上游实现process admission与selection_batch。
+ProcessMemoryBudget使用max(RSS, MLX active+cache)避免Unified Memory重复计数，按process上限及system available保留可配置reserve，
+每次serving forward前调整常驻预算；余量不足抛出MemoryError。参数为--strata-process-bytes／--strata-reserve-bytes。
+这是观测式admission，不是OS hard cap或pressure／phys_footprint保证；startup原bank及瞬间scratch未受严格限制。
+selection_batch在预算内持有连续row的Expert union Lease，一次评价graph，支持不同ordered selections且保持每row顺序。
+容量不足退到小batch／逐次。Python graph构建仍存在，未测Metal dispatch数。
+反转选择的四row只执行一次expert_eval，多层数值一致、缩小fallback、释放及admission拒绝通过。
+native19／budget及server23 tests通过；速度／GPU E2E／真实OOM未认证。
+🟠 [Next] 真实weight的KV／scratch／cache观测及GPU计时。
+⭕️ [Pending] pressure／phys_footprint、startup控制、低负载认证及默认采用。
+
+
+🟢 [Done] 2026-10-14：通过官方release与固定tag源码调查Apple Silicon支持。
+上游是macOS15+的experimental独立Metal engine，并非可直接替换的MLX plugin。
+v0.1.44.1修复M2 multi-token GDN超过pipeline thread上限而使用旧结果的问题，增加dispatch检查及compiler限制。
+上游仍请求M2复验，不代表所有chip已认证；模型／MTP／量化与本项目标准Qwen3 MoE不同。
+🟠 [Next] 将KV、scratch、allocator cache及process footprint纳入预算，逐步preload时复查memory／pressure。
+上游60% footprint策略面向64GB+实测机器，不应直接固定到所有Mac。
+🟠 [Next] 比较graph／eval提交合并；native Metal须检查launch上限并逐chip验证数值一致。
+🔴 [Later] mmap／residency set、read-ahead及native graph须先明确MLX所有权与同步设计。
+⭕️ [Pending] 本项目复现上游性能；上游benchmark不能作为本项目速度认证。
+Sources: [v0.1.44](https://github.com/Niko1221/Strata/releases/tag/v0.1.44), [v0.1.44.1](https://github.com/Niko1221/Strata/releases/tag/v0.1.44.1), [Mac design](https://github.com/Niko1221/Strata/blob/v0.1.44/docs/MAC.md), [Metal runtime](https://github.com/Niko1221/Strata/blob/v0.1.44.1/metal/src/gpu/runtime.cpp), [arena budget](https://github.com/Niko1221/Strata/blob/v0.1.44.1/metal/src/engine/arena_budget.h)
+
 
 🟢 [Done] 第24阶段（2026-10-13）：mlx_server增加显式Strata参数。
 root／expected model SHA／resident bytes／entries／file上限须同时指定。

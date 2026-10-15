@@ -40,6 +40,19 @@
 
 ## 直近の更新 / Recent updates / 最近更新
 
+### Strata upstream Metal · 2026-10-14
+
+- 🟢 [Done] v0.1.44 Apple Silicon実装とv0.1.44.1のM2 dispatch修正を調査。[調査記録](STRATA-INTEGRATION.md)。
+- 🟢 [Done] process admissionとselection_batchを実装。RSS／MLX cache込みheadroom、異なる選択の評価集約。native19／budget・server23 tests成功。
+- 🟠 [Next] 実weight KV／scratch、GPU計時、pressure／phys_footprintとstartup制御。
+- 🔴 [Later] mmap／residency set／read-ahead／native Metal graphの所有権・同期設計。
+- ⭕️ [Pending] upstream実モデル速度の当projectでの再現、既定採用。
+
+English: Upstream Metal research completed; process-wide budgets and launch validation are next.
+
+简体中文：上游Metal调查完成，下一步优先全process预算与launch验证。
+
+
 ### 依存更新 · 2026-10-12
 
 - 🟢 [Done] setuptools84.0.0、Ruff0.17.0、PyInstaller6.22.3へ更新。[検証記録](dependency-update-2026-10-12.md)：lint・Python3.10/3.12 compile・wheel・Swift38 tests・Mac sample・unsigned arm64 packageとchecksum成功。推論環境は維持。

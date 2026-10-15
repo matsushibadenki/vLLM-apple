@@ -1,0 +1,141 @@
+{
+  "scope": "synthetic_qwen3_block_cpu",
+  "maximum_spread_percent": 5.0,
+  "spread_definition": "100 * (max - min) / median of run request totals",
+  "campaign_completed": true,
+  "timing_stable": false,
+  "uncontended_comparison_passed": false,
+  "standard_adoption_eligible": false,
+  "groups": [
+    {
+      "variant": "baseline",
+      "policy": "baseline",
+      "runs": 4,
+      "timed_requests": 16384,
+      "median_of_run_medians_us": 46.9995,
+      "run_total_spread_percent": 1.9628093834367615,
+      "timing_stable": true,
+      "host_load_passed": false,
+      "startup_host_passed_runs": 3,
+      "request_host_passed_runs": 1,
+      "parity_passed": true,
+      "residency_contract_passed": true,
+      "peak_retained_bytes": null,
+      "peak_reserved_bytes": null,
+      "gather_retained_bytes": null,
+      "request_residency_deltas": []
+    },
+    {
+      "variant": "sequential",
+      "policy": "lru",
+      "runs": 4,
+      "timed_requests": 16384,
+      "median_of_run_medians_us": 145.7495,
+      "run_total_spread_percent": 6.026822352821296,
+      "timing_stable": false,
+      "host_load_passed": false,
+      "startup_host_passed_runs": 3,
+      "request_host_passed_runs": 1,
+      "parity_passed": true,
+      "residency_contract_passed": true,
+      "peak_retained_bytes": 36864,
+      "peak_reserved_bytes": 36864,
+      "gather_retained_bytes": null,
+      "request_residency_deltas": [
+        {
+          "hits": 8192,
+          "misses": 0,
+          "evictions": 0,
+          "rejections": 0
+        },
+        {
+          "hits": 8192,
+          "misses": 0,
+          "evictions": 0,
+          "rejections": 0
+        },
+        {
+          "hits": 8192,
+          "misses": 0,
+          "evictions": 0,
+          "rejections": 0
+        },
+        {
+          "hits": 8192,
+          "misses": 0,
+          "evictions": 0,
+          "rejections": 0
+        }
+      ]
+    },
+    {
+      "variant": "grouped",
+      "policy": "lru",
+      "runs": 4,
+      "timed_requests": 16384,
+      "median_of_run_medians_us": 121.0205,
+      "run_total_spread_percent": 1.502219912950912,
+      "timing_stable": true,
+      "host_load_passed": false,
+      "startup_host_passed_runs": 3,
+      "request_host_passed_runs": 2,
+      "parity_passed": true,
+      "residency_contract_passed": true,
+      "peak_retained_bytes": 36864,
+      "peak_reserved_bytes": 36864,
+      "gather_retained_bytes": null,
+      "request_residency_deltas": [
+        {
+          "hits": 8192,
+          "misses": 0,
+          "evictions": 0,
+          "rejections": 0
+        },
+        {
+          "hits": 8192,
+          "misses": 0,
+          "evictions": 0,
+          "rejections": 0
+        },
+        {
+          "hits": 8192,
+          "misses": 0,
+          "evictions": 0,
+          "rejections": 0
+        },
+        {
+          "hits": 8192,
+          "misses": 0,
+          "evictions": 0,
+          "rejections": 0
+        }
+      ]
+    },
+    {
+      "variant": "gather",
+      "policy": "lru",
+      "runs": 4,
+      "timed_requests": 16384,
+      "median_of_run_medians_us": 49.9375,
+      "run_total_spread_percent": 4.053641790887547,
+      "timing_stable": true,
+      "host_load_passed": false,
+      "startup_host_passed_runs": 3,
+      "request_host_passed_runs": 1,
+      "parity_passed": true,
+      "residency_contract_passed": true,
+      "peak_retained_bytes": null,
+      "peak_reserved_bytes": null,
+      "gather_retained_bytes": 36864,
+      "request_residency_deltas": []
+    }
+  ],
+  "limitations": [
+    "Synthetic CPU block, not model/GPU/E2E qualification",
+    "Retained tensor peak excludes transient loading and RSS",
+    "Baseline retains all source weights even in memory suite",
+    "Warmup/export/startup/parity checks excluded from timed spans"
+  ],
+  "report": "docs/evaluation/strata-phased-resident-2026-10-15-082825-jst.json",
+  "report_sha256": "c566fc976c1a7e737a0fa465da58c7977645458138ed700463f0d255baefdffa"
+}

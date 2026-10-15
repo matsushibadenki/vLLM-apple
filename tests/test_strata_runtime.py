@@ -1,5 +1,6 @@
 """Native multi-layer ownership, rollback and lifecycle integration."""
 import gc
+import importlib.util
 import tempfile
 import unittest
 import weakref
@@ -9,6 +10,7 @@ from types import SimpleNamespace
 from vllm_apple.strata_runtime import StrataRuntime
 
 
+@unittest.skipUnless(importlib.util.find_spec("mlx"), "requires native MLX runtime")
 class StrataRuntimeTests(unittest.TestCase):
     def test_multilayer_shared_budget_and_shutdown(self):
         import mlx.core as mx
@@ -18,7 +20,7 @@ class StrataRuntimeTests(unittest.TestCase):
         from vllm_apple.mlx_expert_backend import MLXFileExpertBackend
         from vllm_apple.mlx_expert_export import export_switch_experts
         mx.set_default_device(mx.cpu)
-        for mode in ('sequential', 'grouped', 'row_batch'):
+        for mode in ('sequential', 'grouped', 'row_batch', 'selection_batch'):
             with self.subTest(mode=mode), tempfile.TemporaryDirectory() as directory:
                 blocks = {i: Qwen3MoeSparseMoeBlock(SimpleNamespace(
                     hidden_size=64, moe_intermediate_size=64, num_experts=3,
@@ -37,6 +39,24 @@ class StrataRuntimeTests(unittest.TestCase):
                     root, expected_model_sha256='a'*64, maximum_file_bytes=65536)
                 runtime = StrataRuntime(blocks, backend, maximum_entries=2,
                                         maximum_bytes=18432, mode=mode)
+                if mode == 'selection_batch':
+                    from vllm_apple.expert_timing import ExpertTimings
+                    backend.timings = ExpertTimings()
+                    indices = mx.array([[[0, 1], [1, 0], [0, 1], [1, 0]]])
+                    grouped_result = blocks[0].switch_mlp(x, indices)
+                    mx.eval(grouped_result)
+                    self.assertEqual(backend.timings.snapshot()['expert_eval']['count'], 1)
+                    from vllm_apple.strata_memory import ProcessMemoryBudget
+                    runtime.process_budget = ProcessMemoryBudget(100000, 10000)
+                    runtime.memory_observer = lambda: dict(rss_bytes=20000, mlx_active_bytes=10000,
+                                                          mlx_cache_bytes=10000, available_bytes=100000)
+                    runtime.admit_forward()
+                    self.assertEqual(runtime.snapshot()['memory_admission']['admitted_resident_bytes'], 18432)
+                    runtime.memory_observer = lambda: dict(rss_bytes=95000, mlx_active_bytes=10000,
+                                                          mlx_cache_bytes=10000, available_bytes=100000)
+                    with self.assertRaises(MemoryError):
+                        runtime.admit_forward()
+                    runtime.process_budget = None
                 gc.collect()
                 self.assertTrue(all(ref() is None for ref in refs))
                 for phase in ('prefill', 'decode'):

@@ -271,3 +271,37 @@ class MLXFileExpertBackend:
             phase=phase, layer=layer, selected_experts=selected_experts,
             routing_weights=(1.0,) * len(selected_experts), consume=consume,
         )
+
+    def execute_selection_batch(self, executor, x, *, phase, layer, selections):
+        """One synchronous evaluation with every union expert leased until completion."""
+        import mlx.core as mx
+
+        if (not isinstance(selections, tuple) or len(selections) != x.shape[0]
+                or not 1 <= len(selections) <= 64):
+            raise ValueError("invalid selection batch")
+        for row in selections:
+            ExpertSelectionSample(layer, row, (1.0,) * len(row), 1, ())
+        selected = tuple(sorted({expert for row in selections for expert in row}))
+        if len(selected) > 64:
+            raise ValueError("selection union too large")
+
+        def consume(resources, _weights):
+            banks = dict(zip(selected, resources))
+            rows = []
+            for row, experts in enumerate(selections):
+                value = x[row:row + 1]
+                outputs = []
+                for expert in experts:
+                    tensors = banks[expert].handle.tensors
+                    with measure(self.timings, "expert_build"):
+                        g = self._linear(value, tensors, "gate_proj", mx)
+                        u = self._linear(value, tensors, "up_proj", mx)
+                        outputs.append(self._linear(g * mx.sigmoid(g) * u, tensors, "down_proj", mx))
+                rows.append(mx.stack(outputs, axis=-2))
+            output = mx.concatenate(rows, axis=0)
+            with measure(self.timings, "expert_eval"):
+                mx.eval(output)
+            return output
+
+        return executor.execute(phase=phase, layer=layer, selected_experts=selected,
+                                routing_weights=(1.0,) * len(selected), consume=consume)
