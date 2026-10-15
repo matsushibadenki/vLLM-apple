@@ -684,3 +684,11 @@ English: Current baseline: 198 arithmetic checks passed; warmup SLO 2/3. Changed
 English: Three baseline runs passed quality/SLO; 9.11% goodput range/median prevents adoption. Next: isolate variability and prefill waits.
 
 简体中文：3次基线质量/SLO全部通过；goodput范围/中位数9.11%，不采用patch。下一步：定位变动及prefill等待。
+
+## 定期最適化 / Optimization / 优化 — 2026-10-15
+
+🟢 [Done] [prefill512/256の交互各3回比較](optimization-2026-10-15.md)：270件算術品質合格。256は再現性ある改善なしで不採用、既定512保持。🟠 [Next] GPU/host待ちの切り分け。
+
+English: Three alternating runs per chunk; no reproducible benefit from256. Retain512.
+
+简体中文：两种chunk交替各3次，256无可复现改善，保持512。

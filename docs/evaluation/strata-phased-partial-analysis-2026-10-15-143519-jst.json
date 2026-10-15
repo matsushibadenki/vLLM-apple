@@ -1,0 +1,18 @@
+{
+  "scope": "synthetic_qwen3_block_cpu",
+  "maximum_spread_percent": 5.0,
+  "spread_definition": "100 * (max - min) / median of run request totals",
+  "campaign_completed": false,
+  "timing_stable": false,
+  "uncontended_comparison_passed": false,
+  "standard_adoption_eligible": false,
+  "groups": [],
+  "limitations": [
+    "Synthetic CPU block, not model/GPU/E2E qualification",
+    "Retained tensor peak excludes transient loading and RSS",
+    "Baseline retains all source weights even in memory suite",
+    "Warmup/export/startup/parity checks excluded from timed spans"
+  ],
+  "report": "docs/evaluation/strata-phased-partial-2026-10-15-143519-jst.json",
+  "report_sha256": "cd5e12bb9e4f84ec3817f04af39b968403fa06affa6171b6f06cee603dd75d2d"
+}

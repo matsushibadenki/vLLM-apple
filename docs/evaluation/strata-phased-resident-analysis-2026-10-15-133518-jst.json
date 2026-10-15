@@ -1,0 +1,111 @@
+{
+  "scope": "synthetic_qwen3_block_cpu",
+  "maximum_spread_percent": 5.0,
+  "spread_definition": "100 * (max - min) / median of run request totals",
+  "campaign_completed": false,
+  "timing_stable": false,
+  "uncontended_comparison_passed": false,
+  "standard_adoption_eligible": false,
+  "groups": [
+    {
+      "variant": "baseline",
+      "policy": "baseline",
+      "runs": 1,
+      "timed_requests": 4096,
+      "median_of_run_medians_us": 47.459,
+      "run_total_spread_percent": 0.0,
+      "timing_stable": false,
+      "host_load_passed": false,
+      "startup_host_passed_runs": 0,
+      "request_host_passed_runs": 0,
+      "parity_passed": true,
+      "residency_contract_passed": true,
+      "peak_retained_bytes": null,
+      "peak_reserved_bytes": null,
+      "gather_retained_bytes": null,
+      "request_residency_deltas": []
+    },
+    {
+      "variant": "sequential",
+      "policy": "lru",
+      "runs": 2,
+      "timed_requests": 8192,
+      "median_of_run_medians_us": 144.29149999999998,
+      "run_total_spread_percent": 1.5325688471653203,
+      "timing_stable": false,
+      "host_load_passed": false,
+      "startup_host_passed_runs": 1,
+      "request_host_passed_runs": 0,
+      "parity_passed": true,
+      "residency_contract_passed": true,
+      "peak_retained_bytes": 36864,
+      "peak_reserved_bytes": 36864,
+      "gather_retained_bytes": null,
+      "request_residency_deltas": [
+        {
+          "hits": 8192,
+          "misses": 0,
+          "evictions": 0,
+          "rejections": 0
+        },
+        {
+          "hits": 8192,
+          "misses": 0,
+          "evictions": 0,
+          "rejections": 0
+        }
+      ]
+    },
+    {
+      "variant": "grouped",
+      "policy": "lru",
+      "runs": 1,
+      "timed_requests": 4096,
+      "median_of_run_medians_us": 120.25,
+      "run_total_spread_percent": 0.0,
+      "timing_stable": false,
+      "host_load_passed": false,
+      "startup_host_passed_runs": 1,
+      "request_host_passed_runs": 0,
+      "parity_passed": true,
+      "residency_contract_passed": true,
+      "peak_retained_bytes": 36864,
+      "peak_reserved_bytes": 36864,
+      "gather_retained_bytes": null,
+      "request_residency_deltas": [
+        {
+          "hits": 8192,
+          "misses": 0,
+          "evictions": 0,
+          "rejections": 0
+        }
+      ]
+    },
+    {
+      "variant": "gather",
+      "policy": "lru",
+      "runs": 1,
+      "timed_requests": 4096,
+      "median_of_run_medians_us": 50.0,
+      "run_total_spread_percent": 0.0,
+      "timing_stable": false,
+      "host_load_passed": true,
+      "startup_host_passed_runs": 0,
+      "request_host_passed_runs": 1,
+      "parity_passed": true,
+      "residency_contract_passed": true,
+      "peak_retained_bytes": null,
+      "peak_reserved_bytes": null,
+      "gather_retained_bytes": 36864,
+      "request_residency_deltas": []
+    }
+  ],
+  "limitations": [
+    "Synthetic CPU block, not model/GPU/E2E qualification",
+    "Retained tensor peak excludes transient loading and RSS",
+    "Baseline retains all source weights even in memory suite",
+    "Warmup/export/startup/parity checks excluded from timed spans"
+  ],
+  "report": "docs/evaluation/strata-phased-resident-2026-10-15-133518-jst.json",
+  "report_sha256": "5bccf9f3347cfdce168f7fb11dab2a6e0b7344f0137bb8d2b1f7ad4522e74f6b"
+}

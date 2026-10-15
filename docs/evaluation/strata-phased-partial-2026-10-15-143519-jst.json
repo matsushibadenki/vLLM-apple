@@ -1,0 +1,5406 @@
+{
+  "schema_version": 1,
+  "scope": "synthetic_qwen3_block_cpu",
+  "model_qualification": false,
+  "standard_adoption_eligible": false,
+  "automatic_application": false,
+  "trials": [],
+  "profiling_enabled": false,
+  "preloaded": false,
+  "grouped": false,
+  "gather": false,
+  "variant_suite": false,
+  "cycles": 512,
+  "memory_suite": true,
+  "runs": 4,
+  "row_suite": false,
+  "tokens_per_request": 1,
+  "warmup_cycles": 8,
+  "resident_budget_bytes": 20000,
+  "quiet_host_requested": true,
+  "host_gates": [
+    {
+      "passed": false,
+      "observations": [
+        {
+          "total_percent": 447.0909127507895,
+          "maximum_process_percent": 57.14090652192651,
+          "top_processes": [
+            {
+              "pid": 7148,
+              "name": "BackgroundShortcutRunner",
+              "cpu_percent": 57.14090652192651
+            },
+            {
+              "pid": 50670,
+              "name": "siriactionsd",
+              "cpu_percent": 23.44764829339036
+            },
+            {
+              "pid": 38093,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 21.496940795182397
+            },
+            {
+              "pid": 1567,
+              "name": "codex",
+              "cpu_percent": 16.040492616841284
+            },
+            {
+              "pid": 1921,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 15.38902294002827
+            }
+          ],
+          "new_or_exited_processes": 3
+        },
+        {
+          "total_percent": 540.2978276504869,
+          "maximum_process_percent": 55.3619971472403,
+          "top_processes": [
+            {
+              "pid": 90542,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 55.3619971472403
+            },
+            {
+              "pid": 1568,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 52.125491454236034
+            },
+            {
+              "pid": 7148,
+              "name": "BackgroundShortcutRunner",
+              "cpu_percent": 50.69992540933972
+            },
+            {
+              "pid": 963,
+              "name": "ChatGPT",
+              "cpu_percent": 38.52385912790768
+            },
+            {
+              "pid": 1567,
+              "name": "codex",
+              "cpu_percent": 37.362191506955
+            }
+          ],
+          "new_or_exited_processes": 9
+        },
+        {
+          "total_percent": 954.3018113978958,
+          "maximum_process_percent": 112.57096855533061,
+          "top_processes": [
+            {
+              "pid": 1567,
+              "name": "codex",
+              "cpu_percent": 112.57096855533061
+            },
+            {
+              "pid": 1568,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 112.18237685774342
+            },
+            {
+              "pid": 90542,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 81.37064341279022
+            },
+            {
+              "pid": 1881,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 60.30462178655011
+            },
+            {
+              "pid": 639,
+              "name": "trustd",
+              "cpu_percent": 50.02602783635242
+            }
+          ],
+          "new_or_exited_processes": 6
+        },
+        {
+          "total_percent": 855.0290103564053,
+          "maximum_process_percent": 137.63943301502675,
+          "top_processes": [
+            {
+              "pid": 1567,
+              "name": "codex",
+              "cpu_percent": 137.63943301502675
+            },
+            {
+              "pid": 639,
+              "name": "trustd",
+              "cpu_percent": 38.48663657512901
+            },
+            {
+              "pid": 1568,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 27.482448592378788
+            },
+            {
+              "pid": 90542,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 27.462069418163136
+            },
+            {
+              "pid": 2307,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 20.545975623471673
+            }
+          ],
+          "new_or_exited_processes": 12
+        },
+        {
+          "total_percent": 525.0171894958394,
+          "maximum_process_percent": 61.825037780912524,
+          "top_processes": [
+            {
+              "pid": 90586,
+              "name": "Docker Desktop Helper (Renderer)",
+              "cpu_percent": 61.825037780912524
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 36.32361539371059
+            },
+            {
+              "pid": 38093,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 25.44736469072703
+            },
+            {
+              "pid": 1567,
+              "name": "codex",
+              "cpu_percent": 23.071982698571986
+            },
+            {
+              "pid": 1921,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 21.81247782830697
+            }
+          ],
+          "new_or_exited_processes": 11
+        },
+        {
+          "total_percent": 381.6609188278325,
+          "maximum_process_percent": 118.60609269706868,
+          "top_processes": [
+            {
+              "pid": 1568,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 118.60609269706868
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 38.37365358375118
+            },
+            {
+              "pid": 963,
+              "name": "ChatGPT",
+              "cpu_percent": 17.594256845302365
+            },
+            {
+              "pid": 90542,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 17.29030711395188
+            },
+            {
+              "pid": 1921,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 15.913034893730861
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 338.88003960941666,
+          "maximum_process_percent": 33.4691707593886,
+          "top_processes": [
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 33.4691707593886
+            },
+            {
+              "pid": 50369,
+              "name": "replayd",
+              "cpu_percent": 28.6801902821913
+            },
+            {
+              "pid": 1921,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 28.02991347129998
+            },
+            {
+              "pid": 90542,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 18.303204182256113
+            },
+            {
+              "pid": 54150,
+              "name": "Adobe Photoshop 2026",
+              "cpu_percent": 13.867003846557761
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 295.02943867721956,
+          "maximum_process_percent": 24.86159839885271,
+          "top_processes": [
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 24.86159839885271
+            },
+            {
+              "pid": 1921,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 20.723771888909532
+            },
+            {
+              "pid": 90542,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 11.134973013093386
+            },
+            {
+              "pid": 1567,
+              "name": "codex",
+              "cpu_percent": 8.252035288688496
+            },
+            {
+              "pid": 54326,
+              "name": "CEPHtmlEngine Helper (GPU)",
+              "cpu_percent": 7.916663505381653
+            }
+          ],
+          "new_or_exited_processes": 5
+        },
+        {
+          "total_percent": 347.90784572200306,
+          "maximum_process_percent": 46.00858365434451,
+          "top_processes": [
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 46.00858365434451
+            },
+            {
+              "pid": 1947,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 27.582202424335936
+            },
+            {
+              "pid": 1568,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 20.768028823906977
+            },
+            {
+              "pid": 90542,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 13.346724546047225
+            },
+            {
+              "pid": 1921,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 9.046953638000339
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 276.3588375067813,
+          "maximum_process_percent": 78.95836136517715,
+          "top_processes": [
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 78.95836136517715
+            },
+            {
+              "pid": 1568,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 11.183191027358815
+            },
+            {
+              "pid": 1921,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 10.912623592624644
+            },
+            {
+              "pid": 963,
+              "name": "ChatGPT",
+              "cpu_percent": 9.527444538928274
+            },
+            {
+              "pid": 90542,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 8.322906717189895
+            }
+          ],
+          "new_or_exited_processes": 4
+        },
+        {
+          "total_percent": 243.26881559737473,
+          "maximum_process_percent": 79.01881006550929,
+          "top_processes": [
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 79.01881006550929
+            },
+            {
+              "pid": 90542,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 14.83766249853503
+            },
+            {
+              "pid": 1921,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 13.999232939532147
+            },
+            {
+              "pid": 1568,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 5.0607481145808615
+            },
+            {
+              "pid": 900,
+              "name": "Brave Browser",
+              "cpu_percent": 3.7983399718051536
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 343.57752850251745,
+          "maximum_process_percent": 88.01773667698654,
+          "top_processes": [
+            {
+              "pid": 90542,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 88.01773667698654
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 78.88727915281714
+            },
+            {
+              "pid": 90478,
+              "name": "com.docker.backend",
+              "cpu_percent": 21.23180241260223
+            },
+            {
+              "pid": 1921,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 14.000402790308378
+            },
+            {
+              "pid": 54326,
+              "name": "CEPHtmlEngine Helper (GPU)",
+              "cpu_percent": 3.386965333216279
+            }
+          ],
+          "new_or_exited_processes": 4
+        },
+        {
+          "total_percent": 266.71888542122343,
+          "maximum_process_percent": 78.62670269509763,
+          "top_processes": [
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 78.62670269509763
+            },
+            {
+              "pid": 963,
+              "name": "ChatGPT",
+              "cpu_percent": 15.900775372624274
+            },
+            {
+              "pid": 1921,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 14.149616760866675
+            },
+            {
+              "pid": 90542,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 8.936809909769398
+            },
+            {
+              "pid": 676,
+              "name": "corespotlightd",
+              "cpu_percent": 6.317647587243939
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 677.5064571897781,
+          "maximum_process_percent": 79.77124529344916,
+          "top_processes": [
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 79.77124529344916
+            },
+            {
+              "pid": 947,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 61.30533048375361
+            },
+            {
+              "pid": 667,
+              "name": "fontd",
+              "cpu_percent": 58.93874074817139
+            },
+            {
+              "pid": 900,
+              "name": "Brave Browser",
+              "cpu_percent": 40.821919304444734
+            },
+            {
+              "pid": 90542,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 20.134990440299593
+            }
+          ],
+          "new_or_exited_processes": 17
+        },
+        {
+          "total_percent": 621.0059700326054,
+          "maximum_process_percent": 112.04127797213668,
+          "top_processes": [
+            {
+              "pid": 7441,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 112.04127797213668
+            },
+            {
+              "pid": 7442,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 90.44599900946511
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 46.06357173958215
+            },
+            {
+              "pid": 900,
+              "name": "Brave Browser",
+              "cpu_percent": 40.77616056321969
+            },
+            {
+              "pid": 90586,
+              "name": "Docker Desktop Helper (Renderer)",
+              "cpu_percent": 30.59773172924769
+            }
+          ],
+          "new_or_exited_processes": 5
+        },
+        {
+          "total_percent": 607.2755052943781,
+          "maximum_process_percent": 134.32379832703168,
+          "top_processes": [
+            {
+              "pid": 7442,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 134.32379832703168
+            },
+            {
+              "pid": 7441,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 86.76445369841886
+            },
+            {
+              "pid": 900,
+              "name": "Brave Browser",
+              "cpu_percent": 42.72825389064892
+            },
+            {
+              "pid": 90542,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 28.362882560912237
+            },
+            {
+              "pid": 929,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 17.07652922159317
+            }
+          ],
+          "new_or_exited_processes": 7
+        },
+        {
+          "total_percent": 738.4933050364906,
+          "maximum_process_percent": 109.13148230063413,
+          "top_processes": [
+            {
+              "pid": 7441,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 109.13148230063413
+            },
+            {
+              "pid": 7442,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 83.66580089141998
+            },
+            {
+              "pid": 900,
+              "name": "Brave Browser",
+              "cpu_percent": 32.80552742254024
+            },
+            {
+              "pid": 7463,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 22.28976817151246
+            },
+            {
+              "pid": 929,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 18.80234229172678
+            }
+          ],
+          "new_or_exited_processes": 3
+        },
+        {
+          "total_percent": 682.6038214270177,
+          "maximum_process_percent": 93.33765551335284,
+          "top_processes": [
+            {
+              "pid": 7442,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 93.33765551335284
+            },
+            {
+              "pid": 7441,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 66.98446707673891
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 23.52805477807399
+            },
+            {
+              "pid": 1921,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 15.01309514973741
+            },
+            {
+              "pid": 900,
+              "name": "Brave Browser",
+              "cpu_percent": 14.273748957448305
+            }
+          ],
+          "new_or_exited_processes": 10
+        },
+        {
+          "total_percent": 492.62136393063776,
+          "maximum_process_percent": 156.07901781285815,
+          "top_processes": [
+            {
+              "pid": 7739,
+              "name": "node",
+              "cpu_percent": 156.07901781285815
+            },
+            {
+              "pid": 1881,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 56.31375035012907
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 23.211939224647757
+            },
+            {
+              "pid": 90542,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 16.306482073700547
+            },
+            {
+              "pid": 1568,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 14.836782192898482
+            }
+          ],
+          "new_or_exited_processes": 3
+        },
+        {
+          "total_percent": 445.01338962466656,
+          "maximum_process_percent": 67.48287409230757,
+          "top_processes": [
+            {
+              "pid": 7441,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 67.48287409230757
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 17.430089703935526
+            },
+            {
+              "pid": 1921,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 9.565673112441607
+            },
+            {
+              "pid": 54326,
+              "name": "CEPHtmlEngine Helper (GPU)",
+              "cpu_percent": 7.90492269913656
+            },
+            {
+              "pid": 90542,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 7.717971433074475
+            }
+          ],
+          "new_or_exited_processes": 11
+        },
+        {
+          "total_percent": 600.9573868628088,
+          "maximum_process_percent": 82.40993725321107,
+          "top_processes": [
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 82.40993725321107
+            },
+            {
+              "pid": 90542,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 75.13268921526951
+            },
+            {
+              "pid": 8110,
+              "name": "rustc",
+              "cpu_percent": 57.04094037127577
+            },
+            {
+              "pid": 50369,
+              "name": "replayd",
+              "cpu_percent": 31.364136047279565
+            },
+            {
+              "pid": 1921,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 29.542760262187702
+            }
+          ],
+          "new_or_exited_processes": 8
+        },
+        {
+          "total_percent": 832.8959140812659,
+          "maximum_process_percent": 141.12118447391256,
+          "top_processes": [
+            {
+              "pid": 90542,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 141.12118447391256
+            },
+            {
+              "pid": 8110,
+              "name": "rustc",
+              "cpu_percent": 75.79622620581551
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 70.00864672528625
+            },
+            {
+              "pid": 21472,
+              "name": "Antigravity IDE Helper (Renderer)",
+              "cpu_percent": 31.917545217861957
+            },
+            {
+              "pid": 90478,
+              "name": "com.docker.backend",
+              "cpu_percent": 27.013501722984902
+            }
+          ],
+          "new_or_exited_processes": 8
+        },
+        {
+          "total_percent": 874.1318459174352,
+          "maximum_process_percent": 78.47528904843787,
+          "top_processes": [
+            {
+              "pid": 1568,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 78.47528904843787
+            },
+            {
+              "pid": 8410,
+              "name": "rustc",
+              "cpu_percent": 77.63100428969383
+            },
+            {
+              "pid": 8110,
+              "name": "rustc",
+              "cpu_percent": 72.20002330636187
+            },
+            {
+              "pid": 50369,
+              "name": "replayd",
+              "cpu_percent": 46.98928791661047
+            },
+            {
+              "pid": 1921,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 43.13052450443521
+            }
+          ],
+          "new_or_exited_processes": 9
+        },
+        {
+          "total_percent": 947.4903549148294,
+          "maximum_process_percent": 275.80366712626005,
+          "top_processes": [
+            {
+              "pid": 1568,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 275.80366712626005
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 60.19045630052228
+            },
+            {
+              "pid": 96058,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 42.100324566812134
+            },
+            {
+              "pid": 8110,
+              "name": "rustc",
+              "cpu_percent": 41.542768840584394
+            },
+            {
+              "pid": 90586,
+              "name": "Docker Desktop Helper (Renderer)",
+              "cpu_percent": 33.93329161401678
+            }
+          ],
+          "new_or_exited_processes": 13
+        },
+        {
+          "total_percent": 911.7243725123984,
+          "maximum_process_percent": 140.412770700811,
+          "top_processes": [
+            {
+              "pid": 1568,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 140.412770700811
+            },
+            {
+              "pid": 8434,
+              "name": "rustc",
+              "cpu_percent": 87.76321627898396
+            },
+            {
+              "pid": 8110,
+              "name": "rustc",
+              "cpu_percent": 86.84660363955801
+            },
+            {
+              "pid": 1921,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 26.025052086898782
+            },
+            {
+              "pid": 90542,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 19.716832465323854
+            }
+          ],
+          "new_or_exited_processes": 12
+        },
+        {
+          "total_percent": 697.4818136509014,
+          "maximum_process_percent": 90.81767555209822,
+          "top_processes": [
+            {
+              "pid": 8110,
+              "name": "rustc",
+              "cpu_percent": 90.81767555209822
+            },
+            {
+              "pid": 1568,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 82.86833696428093
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 37.59739067850869
+            },
+            {
+              "pid": 900,
+              "name": "Brave Browser",
+              "cpu_percent": 18.47219413827888
+            },
+            {
+              "pid": 90542,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 16.728522248186334
+            }
+          ],
+          "new_or_exited_processes": 12
+        },
+        {
+          "total_percent": 777.2254373822037,
+          "maximum_process_percent": 84.80582456803829,
+          "top_processes": [
+            {
+              "pid": 8110,
+              "name": "rustc",
+              "cpu_percent": 84.80582456803829
+            },
+            {
+              "pid": 8502,
+              "name": "rustc",
+              "cpu_percent": 84.72218378595204
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 59.74983294158535
+            },
+            {
+              "pid": 50369,
+              "name": "replayd",
+              "cpu_percent": 44.400874479293996
+            },
+            {
+              "pid": 1921,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 40.91808619550871
+            }
+          ],
+          "new_or_exited_processes": 7
+        },
+        {
+          "total_percent": 697.0876728498596,
+          "maximum_process_percent": 94.33553815737554,
+          "top_processes": [
+            {
+              "pid": 8502,
+              "name": "rustc",
+              "cpu_percent": 94.33553815737554
+            },
+            {
+              "pid": 8110,
+              "name": "rustc",
+              "cpu_percent": 94.02315077441918
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 22.730168552074723
+            },
+            {
+              "pid": 1921,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 19.437948859074552
+            },
+            {
+              "pid": 90542,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 18.723210026867797
+            }
+          ],
+          "new_or_exited_processes": 7
+        },
+        {
+          "total_percent": 752.9054021260649,
+          "maximum_process_percent": 81.05820719289812,
+          "top_processes": [
+            {
+              "pid": 8502,
+              "name": "rustc",
+              "cpu_percent": 81.05820719289812
+            },
+            {
+              "pid": 8110,
+              "name": "rustc",
+              "cpu_percent": 80.09484728871509
+            },
+            {
+              "pid": 8546,
+              "name": "strata",
+              "cpu_percent": 54.73878489182988
+            },
+            {
+              "pid": 1044,
+              "name": "browser_crashpad_handler",
+              "cpu_percent": 37.87594770006582
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 29.461840844784785
+            }
+          ],
+          "new_or_exited_processes": 6
+        },
+        {
+          "total_percent": 784.3541347581644,
+          "maximum_process_percent": 98.74027361852903,
+          "top_processes": [
+            {
+              "pid": 8502,
+              "name": "rustc",
+              "cpu_percent": 98.74027361852903
+            },
+            {
+              "pid": 90542,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 97.67498497132576
+            },
+            {
+              "pid": 8110,
+              "name": "rustc",
+              "cpu_percent": 68.08756145263776
+            },
+            {
+              "pid": 54150,
+              "name": "Adobe Photoshop 2026",
+              "cpu_percent": 33.67914362795065
+            },
+            {
+              "pid": 8546,
+              "name": "strata",
+              "cpu_percent": 30.505414432808834
+            }
+          ],
+          "new_or_exited_processes": 11
+        },
+        {
+          "total_percent": 1017.6975081408646,
+          "maximum_process_percent": 140.57060338803032,
+          "top_processes": [
+            {
+              "pid": 8546,
+              "name": "strata",
+              "cpu_percent": 140.57060338803032
+            },
+            {
+              "pid": 8110,
+              "name": "rustc",
+              "cpu_percent": 74.79924342383984
+            },
+            {
+              "pid": 90542,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 49.590040225983586
+            },
+            {
+              "pid": 8568,
+              "name": "ReportCrashService",
+              "cpu_percent": 30.78427038024836
+            },
+            {
+              "pid": 90478,
+              "name": "com.docker.backend",
+              "cpu_percent": 24.80333151742707
+            }
+          ],
+          "new_or_exited_processes": 5
+        },
+        {
+          "total_percent": 741.6966644552589,
+          "maximum_process_percent": 114.22479193836053,
+          "top_processes": [
+            {
+              "pid": 8546,
+              "name": "strata",
+              "cpu_percent": 114.22479193836053
+            },
+            {
+              "pid": 8575,
+              "name": "rustc",
+              "cpu_percent": 64.85726784516706
+            },
+            {
+              "pid": 8110,
+              "name": "rustc",
+              "cpu_percent": 60.5995401279097
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 28.10107083891352
+            },
+            {
+              "pid": 8568,
+              "name": "ReportCrashService",
+              "cpu_percent": 22.105565040298185
+            }
+          ],
+          "new_or_exited_processes": 3
+        },
+        {
+          "total_percent": 510.99629813569226,
+          "maximum_process_percent": 59.54002124962225,
+          "top_processes": [
+            {
+              "pid": 8546,
+              "name": "strata",
+              "cpu_percent": 59.54002124962225
+            },
+            {
+              "pid": 8575,
+              "name": "rustc",
+              "cpu_percent": 36.245605509587584
+            },
+            {
+              "pid": 90542,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 35.74451251558486
+            },
+            {
+              "pid": 8110,
+              "name": "rustc",
+              "cpu_percent": 31.344661790566057
+            },
+            {
+              "pid": 8568,
+              "name": "ReportCrashService",
+              "cpu_percent": 20.04254544807389
+            }
+          ],
+          "new_or_exited_processes": 3
+        },
+        {
+          "total_percent": 1185.0650985897735,
+          "maximum_process_percent": 75.07163583431432,
+          "top_processes": [
+            {
+              "pid": 8110,
+              "name": "rustc",
+              "cpu_percent": 75.07163583431432
+            },
+            {
+              "pid": 8575,
+              "name": "rustc",
+              "cpu_percent": 74.21834649059657
+            },
+            {
+              "pid": 90542,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 31.846298004796076
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 31.081303405711772
+            },
+            {
+              "pid": 90586,
+              "name": "Docker Desktop Helper (Renderer)",
+              "cpu_percent": 28.131851196144446
+            }
+          ],
+          "new_or_exited_processes": 6
+        },
+        {
+          "total_percent": 525.8469022025968,
+          "maximum_process_percent": 99.24406043510719,
+          "top_processes": [
+            {
+              "pid": 8577,
+              "name": "bun",
+              "cpu_percent": 99.24406043510719
+            },
+            {
+              "pid": 8575,
+              "name": "rustc",
+              "cpu_percent": 98.32329124801845
+            },
+            {
+              "pid": 8110,
+              "name": "rustc",
+              "cpu_percent": 97.9540295284802
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 24.554887393838133
+            },
+            {
+              "pid": 1567,
+              "name": "codex",
+              "cpu_percent": 11.062520906227773
+            }
+          ],
+          "new_or_exited_processes": 6
+        },
+        {
+          "total_percent": 733.493459238173,
+          "maximum_process_percent": 108.97920250511314,
+          "top_processes": [
+            {
+              "pid": 8577,
+              "name": "bun",
+              "cpu_percent": 108.97920250511314
+            },
+            {
+              "pid": 8110,
+              "name": "rustc",
+              "cpu_percent": 86.29122664336396
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 25.685240131259746
+            },
+            {
+              "pid": 54326,
+              "name": "CEPHtmlEngine Helper (GPU)",
+              "cpu_percent": 8.128626641729223
+            },
+            {
+              "pid": 90542,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 7.019900268628161
+            }
+          ],
+          "new_or_exited_processes": 6
+        },
+        {
+          "total_percent": 877.7481427878774,
+          "maximum_process_percent": 159.18576013709585,
+          "top_processes": [
+            {
+              "pid": 8598,
+              "name": "rustc",
+              "cpu_percent": 159.18576013709585
+            },
+            {
+              "pid": 8110,
+              "name": "rustc",
+              "cpu_percent": 94.39508159647711
+            },
+            {
+              "pid": 8596,
+              "name": "rustc",
+              "cpu_percent": 94.05074665080026
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 46.7846239620511
+            },
+            {
+              "pid": 1568,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 33.27463797589238
+            }
+          ],
+          "new_or_exited_processes": 5
+        },
+        {
+          "total_percent": 578.1459417017887,
+          "maximum_process_percent": 99.02796870754518,
+          "top_processes": [
+            {
+              "pid": 8110,
+              "name": "rustc",
+              "cpu_percent": 99.02796870754518
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 25.210053032227247
+            },
+            {
+              "pid": 90542,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 19.19000752206461
+            },
+            {
+              "pid": 54326,
+              "name": "CEPHtmlEngine Helper (GPU)",
+              "cpu_percent": 7.9833898293504175
+            },
+            {
+              "pid": 1567,
+              "name": "codex",
+              "cpu_percent": 4.640209908556966
+            }
+          ],
+          "new_or_exited_processes": 5
+        },
+        {
+          "total_percent": 843.0767982884435,
+          "maximum_process_percent": 148.77143866423077,
+          "top_processes": [
+            {
+              "pid": 90542,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 148.77143866423077
+            },
+            {
+              "pid": 8110,
+              "name": "rustc",
+              "cpu_percent": 82.91693275551444
+            },
+            {
+              "pid": 8605,
+              "name": "rustc",
+              "cpu_percent": 78.58895846561062
+            },
+            {
+              "pid": 8608,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 48.30098597340961
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 39.089618209174276
+            }
+          ],
+          "new_or_exited_processes": 6
+        },
+        {
+          "total_percent": 661.6242699749411,
+          "maximum_process_percent": 91.25829392384487,
+          "top_processes": [
+            {
+              "pid": 8110,
+              "name": "rustc",
+              "cpu_percent": 91.25829392384487
+            },
+            {
+              "pid": 8605,
+              "name": "rustc",
+              "cpu_percent": 90.90361290566975
+            },
+            {
+              "pid": 8617,
+              "name": "Google Chrome",
+              "cpu_percent": 58.067176982378456
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 36.555310183080145
+            },
+            {
+              "pid": 635,
+              "name": "Finder",
+              "cpu_percent": 22.076835234832373
+            }
+          ],
+          "new_or_exited_processes": 12
+        },
+        {
+          "total_percent": 820.9933582955322,
+          "maximum_process_percent": 83.11135701859995,
+          "top_processes": [
+            {
+              "pid": 8605,
+              "name": "rustc",
+              "cpu_percent": 83.11135701859995
+            },
+            {
+              "pid": 8110,
+              "name": "rustc",
+              "cpu_percent": 82.87035253526028
+            },
+            {
+              "pid": 90586,
+              "name": "Docker Desktop Helper (Renderer)",
+              "cpu_percent": 43.711482036168846
+            },
+            {
+              "pid": 8641,
+              "name": "Google Chrome Helper (Renderer)",
+              "cpu_percent": 38.00860269035421
+            },
+            {
+              "pid": 17723,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 36.45931177295158
+            }
+          ],
+          "new_or_exited_processes": 5
+        },
+        {
+          "total_percent": 577.0482583316291,
+          "maximum_process_percent": 93.32193751352736,
+          "top_processes": [
+            {
+              "pid": 8110,
+              "name": "rustc",
+              "cpu_percent": 93.32193751352736
+            },
+            {
+              "pid": 8605,
+              "name": "rustc",
+              "cpu_percent": 92.71393390549912
+            },
+            {
+              "pid": 8652,
+              "name": "rustc",
+              "cpu_percent": 87.94377895119764
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 20.473151922351438
+            },
+            {
+              "pid": 90542,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 18.60999655036429
+            }
+          ],
+          "new_or_exited_processes": 3
+        },
+        {
+          "total_percent": 908.155790891111,
+          "maximum_process_percent": 87.7691255469292,
+          "top_processes": [
+            {
+              "pid": 8605,
+              "name": "rustc",
+              "cpu_percent": 87.7691255469292
+            },
+            {
+              "pid": 8110,
+              "name": "rustc",
+              "cpu_percent": 87.3081150848138
+            },
+            {
+              "pid": 65263,
+              "name": "Antigravity IDE Helper (Plugin)",
+              "cpu_percent": 52.050456475717475
+            },
+            {
+              "pid": 90542,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 24.973113157424446
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 20.418451167567845
+            }
+          ],
+          "new_or_exited_processes": 5
+        },
+        {
+          "total_percent": 705.7090448439551,
+          "maximum_process_percent": 94.13276972359806,
+          "top_processes": [
+            {
+              "pid": 8110,
+              "name": "rustc",
+              "cpu_percent": 94.13276972359806
+            },
+            {
+              "pid": 8681,
+              "name": "rustc",
+              "cpu_percent": 54.24052653975076
+            },
+            {
+              "pid": 8683,
+              "name": "rustc",
+              "cpu_percent": 51.45635758537663
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 23.093923085189164
+            },
+            {
+              "pid": 8641,
+              "name": "Google Chrome Helper (Renderer)",
+              "cpu_percent": 16.275682115236766
+            }
+          ],
+          "new_or_exited_processes": 4
+        },
+        {
+          "total_percent": 502.6683670600251,
+          "maximum_process_percent": 99.77855654942586,
+          "top_processes": [
+            {
+              "pid": 8110,
+              "name": "rustc",
+              "cpu_percent": 99.77855654942586
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 29.45055224021446
+            },
+            {
+              "pid": 1567,
+              "name": "codex",
+              "cpu_percent": 12.092675255427297
+            },
+            {
+              "pid": 90542,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 8.783456675981391
+            },
+            {
+              "pid": 54326,
+              "name": "CEPHtmlEngine Helper (GPU)",
+              "cpu_percent": 7.261263280487133
+            }
+          ],
+          "new_or_exited_processes": 7
+        },
+        {
+          "total_percent": 422.6133609113578,
+          "maximum_process_percent": 108.99346983544812,
+          "top_processes": [
+            {
+              "pid": 8685,
+              "name": "rustc",
+              "cpu_percent": 108.99346983544812
+            },
+            {
+              "pid": 8110,
+              "name": "rustc",
+              "cpu_percent": 99.38329668813797
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 21.390571219297144
+            },
+            {
+              "pid": 90542,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 16.530296539148317
+            },
+            {
+              "pid": 54326,
+              "name": "CEPHtmlEngine Helper (GPU)",
+              "cpu_percent": 7.807353453446255
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 482.0064266009325,
+          "maximum_process_percent": 95.06634980393844,
+          "top_processes": [
+            {
+              "pid": 8110,
+              "name": "rustc",
+              "cpu_percent": 95.06634980393844
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 27.45744469024129
+            },
+            {
+              "pid": 90542,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 10.795479121836756
+            },
+            {
+              "pid": 54326,
+              "name": "CEPHtmlEngine Helper (GPU)",
+              "cpu_percent": 7.6652033093560865
+            },
+            {
+              "pid": 8641,
+              "name": "Google Chrome Helper (Renderer)",
+              "cpu_percent": 3.6219122813671216
+            }
+          ],
+          "new_or_exited_processes": 6
+        },
+        {
+          "total_percent": 551.0132375808515,
+          "maximum_process_percent": 110.0634130215195,
+          "top_processes": [
+            {
+              "pid": 90542,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 110.0634130215195
+            },
+            {
+              "pid": 8110,
+              "name": "rustc",
+              "cpu_percent": 98.05498039582311
+            },
+            {
+              "pid": 71867,
+              "name": "siriknowledged",
+              "cpu_percent": 41.445221294097436
+            },
+            {
+              "pid": 90478,
+              "name": "com.docker.backend",
+              "cpu_percent": 26.475663566488926
+            },
+            {
+              "pid": 50706,
+              "name": "swcd",
+              "cpu_percent": 20.558567455714012
+            }
+          ],
+          "new_or_exited_processes": 12
+        },
+        {
+          "total_percent": 331.2869663151829,
+          "maximum_process_percent": 99.58918624111281,
+          "top_processes": [
+            {
+              "pid": 8110,
+              "name": "rustc",
+              "cpu_percent": 99.58918624111281
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 22.40636264707937
+            },
+            {
+              "pid": 90542,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 9.966847812971126
+            },
+            {
+              "pid": 8641,
+              "name": "Google Chrome Helper (Renderer)",
+              "cpu_percent": 7.793969535874418
+            },
+            {
+              "pid": 54326,
+              "name": "CEPHtmlEngine Helper (GPU)",
+              "cpu_percent": 6.046765950217486
+            }
+          ],
+          "new_or_exited_processes": 6
+        },
+        {
+          "total_percent": 313.426556002406,
+          "maximum_process_percent": 99.85001030589038,
+          "top_processes": [
+            {
+              "pid": 8110,
+              "name": "rustc",
+              "cpu_percent": 99.85001030589038
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 20.35253913384312
+            },
+            {
+              "pid": 90586,
+              "name": "Docker Desktop Helper (Renderer)",
+              "cpu_percent": 19.779466125352414
+            },
+            {
+              "pid": 90542,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 10.94096495281458
+            },
+            {
+              "pid": 1567,
+              "name": "codex",
+              "cpu_percent": 9.3071163129053
+            }
+          ],
+          "new_or_exited_processes": 3
+        },
+        {
+          "total_percent": 337.3118143947406,
+          "maximum_process_percent": 100.08878221921168,
+          "top_processes": [
+            {
+              "pid": 8110,
+              "name": "rustc",
+              "cpu_percent": 100.08878221921168
+            },
+            {
+              "pid": 90586,
+              "name": "Docker Desktop Helper (Renderer)",
+              "cpu_percent": 24.602655091117004
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 15.499729445797268
+            },
+            {
+              "pid": 50670,
+              "name": "siriactionsd",
+              "cpu_percent": 14.380092187208223
+            },
+            {
+              "pid": 90542,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 11.82308277237138
+            }
+          ],
+          "new_or_exited_processes": 4
+        },
+        {
+          "total_percent": 439.0451907838323,
+          "maximum_process_percent": 99.13873332931524,
+          "top_processes": [
+            {
+              "pid": 8110,
+              "name": "rustc",
+              "cpu_percent": 99.13873332931524
+            },
+            {
+              "pid": 8748,
+              "name": "BackgroundShortcutRunner",
+              "cpu_percent": 89.43104362862503
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 23.17005073867761
+            },
+            {
+              "pid": 54326,
+              "name": "CEPHtmlEngine Helper (GPU)",
+              "cpu_percent": 6.155333468301636
+            },
+            {
+              "pid": 65262,
+              "name": "Antigravity IDE Helper",
+              "cpu_percent": 5.382219562104933
+            }
+          ],
+          "new_or_exited_processes": 6
+        },
+        {
+          "total_percent": 662.8182467753082,
+          "maximum_process_percent": 228.3811560301703,
+          "top_processes": [
+            {
+              "pid": 8755,
+              "name": "rustc",
+              "cpu_percent": 228.3811560301703
+            },
+            {
+              "pid": 8110,
+              "name": "rustc",
+              "cpu_percent": 95.71621074796964
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 39.78777781955847
+            },
+            {
+              "pid": 90542,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 23.814132601241415
+            },
+            {
+              "pid": 900,
+              "name": "Brave Browser",
+              "cpu_percent": 10.411366251728738
+            }
+          ],
+          "new_or_exited_processes": 21
+        },
+        {
+          "total_percent": 557.094859346377,
+          "maximum_process_percent": 98.92108888970192,
+          "top_processes": [
+            {
+              "pid": 8110,
+              "name": "rustc",
+              "cpu_percent": 98.92108888970192
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 32.04046942994686
+            },
+            {
+              "pid": 2414,
+              "name": "mdbulkimport",
+              "cpu_percent": 31.361124137857182
+            },
+            {
+              "pid": 1567,
+              "name": "codex",
+              "cpu_percent": 10.41944735244978
+            },
+            {
+              "pid": 90542,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 8.353183287537425
+            }
+          ],
+          "new_or_exited_processes": 4
+        },
+        {
+          "total_percent": 596.5892424301559,
+          "maximum_process_percent": 84.5245438171651,
+          "top_processes": [
+            {
+              "pid": 8110,
+              "name": "rustc",
+              "cpu_percent": 84.5245438171651
+            },
+            {
+              "pid": 1881,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 69.55171053979471
+            },
+            {
+              "pid": 1568,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 33.257721872912754
+            },
+            {
+              "pid": 1567,
+              "name": "codex",
+              "cpu_percent": 24.754500088466763
+            },
+            {
+              "pid": 2414,
+              "name": "mdbulkimport",
+              "cpu_percent": 20.97172730871394
+            }
+          ],
+          "new_or_exited_processes": 15
+        },
+        {
+          "total_percent": 977.460153509887,
+          "maximum_process_percent": 103.03684642401885,
+          "top_processes": [
+            {
+              "pid": 1567,
+              "name": "codex",
+              "cpu_percent": 103.03684642401885
+            },
+            {
+              "pid": 1568,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 99.33566965934943
+            },
+            {
+              "pid": 639,
+              "name": "trustd",
+              "cpu_percent": 73.28285508877042
+            },
+            {
+              "pid": 8110,
+              "name": "rustc",
+              "cpu_percent": 37.42260790671274
+            },
+            {
+              "pid": 8796,
+              "name": "node",
+              "cpu_percent": 35.90408464084059
+            }
+          ],
+          "new_or_exited_processes": 30
+        },
+        {
+          "total_percent": 963.9714508253265,
+          "maximum_process_percent": 137.89567393375629,
+          "top_processes": [
+            {
+              "pid": 1567,
+              "name": "codex",
+              "cpu_percent": 137.89567393375629
+            },
+            {
+              "pid": 1568,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 98.85917092849124
+            },
+            {
+              "pid": 8110,
+              "name": "rustc",
+              "cpu_percent": 74.55750903065623
+            },
+            {
+              "pid": 639,
+              "name": "trustd",
+              "cpu_percent": 48.61381834935614
+            },
+            {
+              "pid": 963,
+              "name": "ChatGPT",
+              "cpu_percent": 35.35536579779672
+            }
+          ],
+          "new_or_exited_processes": 33
+        },
+        {
+          "total_percent": 809.1237972820913,
+          "maximum_process_percent": 155.7016418774885,
+          "top_processes": [
+            {
+              "pid": 90542,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 155.7016418774885
+            },
+            {
+              "pid": 1567,
+              "name": "codex",
+              "cpu_percent": 93.081086254287
+            },
+            {
+              "pid": 8110,
+              "name": "rustc",
+              "cpu_percent": 87.50363869651879
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 36.65693105079434
+            },
+            {
+              "pid": 90478,
+              "name": "com.docker.backend",
+              "cpu_percent": 30.279900454096676
+            }
+          ],
+          "new_or_exited_processes": 21
+        },
+        {
+          "total_percent": 279.2107078301671,
+          "maximum_process_percent": 99.66978761357596,
+          "top_processes": [
+            {
+              "pid": 8110,
+              "name": "rustc",
+              "cpu_percent": 99.66978761357596
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 23.507326592594197
+            },
+            {
+              "pid": 90542,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 10.292026566878349
+            },
+            {
+              "pid": 54326,
+              "name": "CEPHtmlEngine Helper (GPU)",
+              "cpu_percent": 6.866664155209707
+            },
+            {
+              "pid": 6407,
+              "name": "com.apple.WebKit.WebContent",
+              "cpu_percent": 4.031797951348033
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 442.2561469595558,
+          "maximum_process_percent": 236.2072658811993,
+          "top_processes": [
+            {
+              "pid": 8110,
+              "name": "rustc",
+              "cpu_percent": 236.2072658811993
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 25.398872937110852
+            },
+            {
+              "pid": 90586,
+              "name": "Docker Desktop Helper (Renderer)",
+              "cpu_percent": 22.594175697508536
+            },
+            {
+              "pid": 1568,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 17.30860731413409
+            },
+            {
+              "pid": 90542,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 10.203024723106989
+            }
+          ],
+          "new_or_exited_processes": 4
+        },
+        {
+          "total_percent": 1009.3358108909684,
+          "maximum_process_percent": 725.4560561544928,
+          "top_processes": [
+            {
+              "pid": 8110,
+              "name": "rustc",
+              "cpu_percent": 725.4560561544928
+            },
+            {
+              "pid": 1568,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 100.15664508247694
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 28.16953537282058
+            },
+            {
+              "pid": 90542,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 14.446465746704407
+            },
+            {
+              "pid": 54326,
+              "name": "CEPHtmlEngine Helper (GPU)",
+              "cpu_percent": 9.437867183120577
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 949.9807107027773,
+          "maximum_process_percent": 690.4326407136931,
+          "top_processes": [
+            {
+              "pid": 8110,
+              "name": "rustc",
+              "cpu_percent": 690.4326407136931
+            },
+            {
+              "pid": 1568,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 79.44742426957762
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 29.19131774657842
+            },
+            {
+              "pid": 90542,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 16.819587075710913
+            },
+            {
+              "pid": 54326,
+              "name": "CEPHtmlEngine Helper (GPU)",
+              "cpu_percent": 12.391318114364095
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 1007.3575593576628,
+          "maximum_process_percent": 762.8446245295388,
+          "top_processes": [
+            {
+              "pid": 8110,
+              "name": "rustc",
+              "cpu_percent": 762.8446245295388
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 31.92622199595566
+            },
+            {
+              "pid": 90542,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 21.17903982764376
+            },
+            {
+              "pid": 54326,
+              "name": "CEPHtmlEngine Helper (GPU)",
+              "cpu_percent": 12.569911647291773
+            },
+            {
+              "pid": 1568,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 11.32168804211971
+            }
+          ],
+          "new_or_exited_processes": 3
+        },
+        {
+          "total_percent": 676.1552646281037,
+          "maximum_process_percent": 750.5204344139863,
+          "top_processes": [
+            {
+              "pid": 8110,
+              "name": "rustc",
+              "cpu_percent": 750.5204344139863
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 72.17354266963504
+            },
+            {
+              "pid": 54326,
+              "name": "CEPHtmlEngine Helper (GPU)",
+              "cpu_percent": 10.719086038758357
+            },
+            {
+              "pid": 90542,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 9.866745315217488
+            },
+            {
+              "pid": 1567,
+              "name": "codex",
+              "cpu_percent": 8.399123529347992
+            }
+          ],
+          "new_or_exited_processes": 7
+        },
+        {
+          "total_percent": 1274.1744850148436,
+          "maximum_process_percent": 765.5382913088347,
+          "top_processes": [
+            {
+              "pid": 8110,
+              "name": "rustc",
+              "cpu_percent": 765.5382913088347
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 52.050621311419114
+            },
+            {
+              "pid": 90542,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 17.39354589377535
+            },
+            {
+              "pid": 1568,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 12.91349029992476
+            },
+            {
+              "pid": 54326,
+              "name": "CEPHtmlEngine Helper (GPU)",
+              "cpu_percent": 10.636367437036714
+            }
+          ],
+          "new_or_exited_processes": 6
+        },
+        {
+          "total_percent": 994.9724702625581,
+          "maximum_process_percent": 688.6815224540692,
+          "top_processes": [
+            {
+              "pid": 8110,
+              "name": "rustc",
+              "cpu_percent": 688.6815224540692
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 65.6198372544771
+            },
+            {
+              "pid": 963,
+              "name": "ChatGPT",
+              "cpu_percent": 43.96381687700964
+            },
+            {
+              "pid": 54326,
+              "name": "CEPHtmlEngine Helper (GPU)",
+              "cpu_percent": 10.023767590114403
+            },
+            {
+              "pid": 90542,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 9.488328447650359
+            }
+          ],
+          "new_or_exited_processes": 8
+        },
+        {
+          "total_percent": 403.3242220235199,
+          "maximum_process_percent": 325.0577351076277,
+          "top_processes": [
+            {
+              "pid": 8110,
+              "name": "rustc",
+              "cpu_percent": 325.0577351076277
+            },
+            {
+              "pid": 90542,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 127.5970573431091
+            },
+            {
+              "pid": 963,
+              "name": "ChatGPT",
+              "cpu_percent": 47.94799981473682
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 34.95214050925125
+            },
+            {
+              "pid": 8608,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 28.07213665019368
+            }
+          ],
+          "new_or_exited_processes": 11
+        },
+        {
+          "total_percent": 1696.0607741378928,
+          "maximum_process_percent": 641.508122064818,
+          "top_processes": [
+            {
+              "pid": 8110,
+              "name": "rustc",
+              "cpu_percent": 641.508122064818
+            },
+            {
+              "pid": 90478,
+              "name": "com.docker.backend",
+              "cpu_percent": 34.82475946035112
+            },
+            {
+              "pid": 90542,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 31.053303307821942
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 29.102278206540515
+            },
+            {
+              "pid": 8608,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 13.686181916973496
+            }
+          ],
+          "new_or_exited_processes": 16
+        },
+        {
+          "total_percent": 551.161374896874,
+          "maximum_process_percent": 199.10545972065674,
+          "top_processes": [
+            {
+              "pid": 8110,
+              "name": "rustc",
+              "cpu_percent": 199.10545972065674
+            },
+            {
+              "pid": 50670,
+              "name": "siriactionsd",
+              "cpu_percent": 90.43243273162975
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 23.984285478554153
+            },
+            {
+              "pid": 8608,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 17.699381776659383
+            },
+            {
+              "pid": 90542,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 10.321943184130888
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 457.1818866350484,
+          "maximum_process_percent": 115.32950049966021,
+          "top_processes": [
+            {
+              "pid": 8110,
+              "name": "rustc",
+              "cpu_percent": 115.32950049966021
+            },
+            {
+              "pid": 50670,
+              "name": "siriactionsd",
+              "cpu_percent": 90.43582238780422
+            },
+            {
+              "pid": 90586,
+              "name": "Docker Desktop Helper (Renderer)",
+              "cpu_percent": 48.00033458301436
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 24.681810862452853
+            },
+            {
+              "pid": 90542,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 18.252625562405854
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 437.20101913500736,
+          "maximum_process_percent": 99.30450198215716,
+          "top_processes": [
+            {
+              "pid": 8110,
+              "name": "rustc",
+              "cpu_percent": 99.30450198215716
+            },
+            {
+              "pid": 50670,
+              "name": "siriactionsd",
+              "cpu_percent": 44.61583235065493
+            },
+            {
+              "pid": 8901,
+              "name": "BackgroundShortcutRunner",
+              "cpu_percent": 39.90407003406081
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 33.342721892621725
+            },
+            {
+              "pid": 90542,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 14.898932045696597
+            }
+          ],
+          "new_or_exited_processes": 11
+        },
+        {
+          "total_percent": 418.7831869323015,
+          "maximum_process_percent": 99.60445345000613,
+          "top_processes": [
+            {
+              "pid": 8110,
+              "name": "rustc",
+              "cpu_percent": 99.60445345000613
+            },
+            {
+              "pid": 8901,
+              "name": "BackgroundShortcutRunner",
+              "cpu_percent": 55.07690648613913
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 28.81764368583531
+            },
+            {
+              "pid": 90542,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 17.190770375737657
+            },
+            {
+              "pid": 50670,
+              "name": "siriactionsd",
+              "cpu_percent": 17.01107799196914
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 753.5620898855301,
+          "maximum_process_percent": 73.58678559553667,
+          "top_processes": [
+            {
+              "pid": 1567,
+              "name": "codex",
+              "cpu_percent": 73.58678559553667
+            },
+            {
+              "pid": 8110,
+              "name": "rustc",
+              "cpu_percent": 70.29711868601738
+            },
+            {
+              "pid": 639,
+              "name": "trustd",
+              "cpu_percent": 54.87718079122978
+            },
+            {
+              "pid": 1881,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 45.74160742621097
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 32.391041948105155
+            }
+          ],
+          "new_or_exited_processes": 18
+        },
+        {
+          "total_percent": 840.3875516017594,
+          "maximum_process_percent": 155.82637385476045,
+          "top_processes": [
+            {
+              "pid": 1567,
+              "name": "codex",
+              "cpu_percent": 155.82637385476045
+            },
+            {
+              "pid": 8110,
+              "name": "rustc",
+              "cpu_percent": 73.1711563285013
+            },
+            {
+              "pid": 1568,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 60.429570395497976
+            },
+            {
+              "pid": 639,
+              "name": "trustd",
+              "cpu_percent": 49.320415519843316
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 29.013266661329205
+            }
+          ],
+          "new_or_exited_processes": 24
+        },
+        {
+          "total_percent": 808.1954131819188,
+          "maximum_process_percent": 127.33092909812207,
+          "top_processes": [
+            {
+              "pid": 1568,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 127.33092909812207
+            },
+            {
+              "pid": 1567,
+              "name": "codex",
+              "cpu_percent": 88.64592556069302
+            },
+            {
+              "pid": 8110,
+              "name": "rustc",
+              "cpu_percent": 87.80752213878719
+            },
+            {
+              "pid": 963,
+              "name": "ChatGPT",
+              "cpu_percent": 49.56597402309661
+            },
+            {
+              "pid": 8901,
+              "name": "BackgroundShortcutRunner",
+              "cpu_percent": 42.02086346089739
+            }
+          ],
+          "new_or_exited_processes": 12
+        },
+        {
+          "total_percent": 476.42728467266045,
+          "maximum_process_percent": 98.13079366535051,
+          "top_processes": [
+            {
+              "pid": 8110,
+              "name": "rustc",
+              "cpu_percent": 98.13079366535051
+            },
+            {
+              "pid": 90542,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 94.75389514946961
+            },
+            {
+              "pid": 8901,
+              "name": "BackgroundShortcutRunner",
+              "cpu_percent": 57.751215347661734
+            },
+            {
+              "pid": 1568,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 31.55943517848017
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 26.928414335491883
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 400.7035494570511,
+          "maximum_process_percent": 102.0865539292092,
+          "top_processes": [
+            {
+              "pid": 8110,
+              "name": "rustc",
+              "cpu_percent": 102.0865539292092
+            },
+            {
+              "pid": 8901,
+              "name": "BackgroundShortcutRunner",
+              "cpu_percent": 62.559661925783466
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 24.377017511331594
+            },
+            {
+              "pid": 87077,
+              "name": "axassetsd",
+              "cpu_percent": 19.234504867388754
+            },
+            {
+              "pid": 90542,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 18.730530287416343
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 371.1418084799358,
+          "maximum_process_percent": 99.87551143913011,
+          "top_processes": [
+            {
+              "pid": 8110,
+              "name": "rustc",
+              "cpu_percent": 99.87551143913011
+            },
+            {
+              "pid": 8901,
+              "name": "BackgroundShortcutRunner",
+              "cpu_percent": 63.253524245637955
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 23.703898771190026
+            },
+            {
+              "pid": 38093,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 13.49583679029341
+            },
+            {
+              "pid": 87077,
+              "name": "axassetsd",
+              "cpu_percent": 12.836389687083996
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 578.462979861801,
+          "maximum_process_percent": 97.3688138951351,
+          "top_processes": [
+            {
+              "pid": 8110,
+              "name": "rustc",
+              "cpu_percent": 97.3688138951351
+            },
+            {
+              "pid": 8901,
+              "name": "BackgroundShortcutRunner",
+              "cpu_percent": 56.32509152080241
+            },
+            {
+              "pid": 90586,
+              "name": "Docker Desktop Helper (Renderer)",
+              "cpu_percent": 45.33856473150319
+            },
+            {
+              "pid": 38093,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 26.816692248883395
+            },
+            {
+              "pid": 50670,
+              "name": "siriactionsd",
+              "cpu_percent": 23.802242989861153
+            }
+          ],
+          "new_or_exited_processes": 11
+        },
+        {
+          "total_percent": 553.9467683640462,
+          "maximum_process_percent": 96.77588693787527,
+          "top_processes": [
+            {
+              "pid": 8110,
+              "name": "rustc",
+              "cpu_percent": 96.77588693787527
+            },
+            {
+              "pid": 8901,
+              "name": "BackgroundShortcutRunner",
+              "cpu_percent": 58.823189223191065
+            },
+            {
+              "pid": 9003,
+              "name": "Google Chrome Helper (Renderer)",
+              "cpu_percent": 33.64966407338303
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 30.965269054908344
+            },
+            {
+              "pid": 38093,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 28.068884677514237
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 403.979753260855,
+          "maximum_process_percent": 100.2483056674814,
+          "top_processes": [
+            {
+              "pid": 8110,
+              "name": "rustc",
+              "cpu_percent": 100.2483056674814
+            },
+            {
+              "pid": 8901,
+              "name": "BackgroundShortcutRunner",
+              "cpu_percent": 64.95011454067726
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 24.76775745553968
+            },
+            {
+              "pid": 50670,
+              "name": "siriactionsd",
+              "cpu_percent": 24.718196360698737
+            },
+            {
+              "pid": 38093,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 22.40481235358861
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 591.6498027719111,
+          "maximum_process_percent": 98.34123862674247,
+          "top_processes": [
+            {
+              "pid": 14846,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 98.34123862674247
+            },
+            {
+              "pid": 8110,
+              "name": "rustc",
+              "cpu_percent": 93.10864404457169
+            },
+            {
+              "pid": 8901,
+              "name": "BackgroundShortcutRunner",
+              "cpu_percent": 52.85937805103232
+            },
+            {
+              "pid": 1881,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 34.74020966417434
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 20.813725316544854
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 569.6283036279,
+          "maximum_process_percent": 89.84485413331522,
+          "top_processes": [
+            {
+              "pid": 14846,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 89.84485413331522
+            },
+            {
+              "pid": 8901,
+              "name": "BackgroundShortcutRunner",
+              "cpu_percent": 51.88283684207226
+            },
+            {
+              "pid": 38093,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 23.819648657146438
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 21.466975353082667
+            },
+            {
+              "pid": 50670,
+              "name": "siriactionsd",
+              "cpu_percent": 21.048635762275616
+            }
+          ],
+          "new_or_exited_processes": 5
+        },
+        {
+          "total_percent": 390.2484919013592,
+          "maximum_process_percent": 60.49970084233339,
+          "top_processes": [
+            {
+              "pid": 8901,
+              "name": "BackgroundShortcutRunner",
+              "cpu_percent": 60.49970084233339
+            },
+            {
+              "pid": 38093,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 30.95886903653243
+            },
+            {
+              "pid": 50670,
+              "name": "siriactionsd",
+              "cpu_percent": 25.4379819445781
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 19.42048659696875
+            },
+            {
+              "pid": 1568,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 19.12950519718418
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 419.9199234716589,
+          "maximum_process_percent": 55.31836561549246,
+          "top_processes": [
+            {
+              "pid": 8901,
+              "name": "BackgroundShortcutRunner",
+              "cpu_percent": 55.31836561549246
+            },
+            {
+              "pid": 21472,
+              "name": "Antigravity IDE Helper (Renderer)",
+              "cpu_percent": 47.44331054722154
+            },
+            {
+              "pid": 38093,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 30.08997510287467
+            },
+            {
+              "pid": 50670,
+              "name": "siriactionsd",
+              "cpu_percent": 27.354792412020604
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 16.698552280472224
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 533.9969748983096,
+          "maximum_process_percent": 93.1330138656883,
+          "top_processes": [
+            {
+              "pid": 90542,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 93.1330138656883
+            },
+            {
+              "pid": 8901,
+              "name": "BackgroundShortcutRunner",
+              "cpu_percent": 44.45598250360257
+            },
+            {
+              "pid": 38093,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 27.415682213819487
+            },
+            {
+              "pid": 50670,
+              "name": "siriactionsd",
+              "cpu_percent": 21.315724851921377
+            },
+            {
+              "pid": 90478,
+              "name": "com.docker.backend",
+              "cpu_percent": 19.029887266921996
+            }
+          ],
+          "new_or_exited_processes": 7
+        },
+        {
+          "total_percent": 564.856913614253,
+          "maximum_process_percent": 16.888894594512557,
+          "top_processes": [
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 16.888894594512557
+            },
+            {
+              "pid": 90542,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 16.571059308811858
+            },
+            {
+              "pid": 38093,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 15.54900074294061
+            },
+            {
+              "pid": 50670,
+              "name": "siriactionsd",
+              "cpu_percent": 10.544263504812227
+            },
+            {
+              "pid": 54326,
+              "name": "CEPHtmlEngine Helper (GPU)",
+              "cpu_percent": 8.403938878508416
+            }
+          ],
+          "new_or_exited_processes": 7
+        },
+        {
+          "total_percent": 367.6000337033648,
+          "maximum_process_percent": 38.433624442897425,
+          "top_processes": [
+            {
+              "pid": 90586,
+              "name": "Docker Desktop Helper (Renderer)",
+              "cpu_percent": 38.433624442897425
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 25.61658952760229
+            },
+            {
+              "pid": 630,
+              "name": "MenuBarAgent",
+              "cpu_percent": 13.973416552520101
+            },
+            {
+              "pid": 90542,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 11.767422174432243
+            },
+            {
+              "pid": 54326,
+              "name": "CEPHtmlEngine Helper (GPU)",
+              "cpu_percent": 9.140609364927707
+            }
+          ],
+          "new_or_exited_processes": 9
+        },
+        {
+          "total_percent": 484.0367896891876,
+          "maximum_process_percent": 21.497546381840042,
+          "top_processes": [
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 21.497546381840042
+            },
+            {
+              "pid": 90542,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 16.12079012738857
+            },
+            {
+              "pid": 54326,
+              "name": "CEPHtmlEngine Helper (GPU)",
+              "cpu_percent": 9.333296885942357
+            },
+            {
+              "pid": 90586,
+              "name": "Docker Desktop Helper (Renderer)",
+              "cpu_percent": 5.753482666398049
+            },
+            {
+              "pid": 609,
+              "name": "WindowManager",
+              "cpu_percent": 4.302609580219006
+            }
+          ],
+          "new_or_exited_processes": 6
+        },
+        {
+          "total_percent": 438.50557063652536,
+          "maximum_process_percent": 94.3661631400742,
+          "top_processes": [
+            {
+              "pid": 9263,
+              "name": "clang",
+              "cpu_percent": 94.3661631400742
+            },
+            {
+              "pid": 947,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 52.53529633530243
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 25.232128681040653
+            },
+            {
+              "pid": 34014,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 19.86091789280541
+            },
+            {
+              "pid": 13504,
+              "name": "JapaneseIM-RomajiTyping",
+              "cpu_percent": 11.381773061334453
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 539.5814835369787,
+          "maximum_process_percent": 95.88877452462074,
+          "top_processes": [
+            {
+              "pid": 9290,
+              "name": "rustc",
+              "cpu_percent": 95.88877452462074
+            },
+            {
+              "pid": 90542,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 25.79208948286963
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 19.961418493968434
+            },
+            {
+              "pid": 54326,
+              "name": "CEPHtmlEngine Helper (GPU)",
+              "cpu_percent": 9.343443304463559
+            },
+            {
+              "pid": 13504,
+              "name": "JapaneseIM-RomajiTyping",
+              "cpu_percent": 6.051683564550426
+            }
+          ],
+          "new_or_exited_processes": 18
+        },
+        {
+          "total_percent": 611.605328727965,
+          "maximum_process_percent": 196.2759966899283,
+          "top_processes": [
+            {
+              "pid": 9290,
+              "name": "rustc",
+              "cpu_percent": 196.2759966899283
+            },
+            {
+              "pid": 9297,
+              "name": "rustc",
+              "cpu_percent": 89.74855573502377
+            },
+            {
+              "pid": 9298,
+              "name": "rustc",
+              "cpu_percent": 89.6142735509108
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 13.754349707661168
+            },
+            {
+              "pid": 9300,
+              "name": "mdworker_shared",
+              "cpu_percent": 9.865072572247607
+            }
+          ],
+          "new_or_exited_processes": 3
+        },
+        {
+          "total_percent": 666.713863423969,
+          "maximum_process_percent": 224.21161897680656,
+          "top_processes": [
+            {
+              "pid": 9297,
+              "name": "rustc",
+              "cpu_percent": 224.21161897680656
+            },
+            {
+              "pid": 9303,
+              "name": "rustc",
+              "cpu_percent": 97.22666473891331
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 11.850843101212138
+            },
+            {
+              "pid": 54326,
+              "name": "CEPHtmlEngine Helper (GPU)",
+              "cpu_percent": 8.097661173649916
+            },
+            {
+              "pid": 90542,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 6.907286308586397
+            }
+          ],
+          "new_or_exited_processes": 4
+        },
+        {
+          "total_percent": 454.97619335598307,
+          "maximum_process_percent": 100.01915091603539,
+          "top_processes": [
+            {
+              "pid": 9303,
+              "name": "rustc",
+              "cpu_percent": 100.01915091603539
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 29.64285676634836
+            },
+            {
+              "pid": 90542,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 15.838865120247487
+            },
+            {
+              "pid": 1568,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 12.525653360780645
+            },
+            {
+              "pid": 54326,
+              "name": "CEPHtmlEngine Helper (GPU)",
+              "cpu_percent": 8.079224845788772
+            }
+          ],
+          "new_or_exited_processes": 3
+        },
+        {
+          "total_percent": 436.7580534770834,
+          "maximum_process_percent": 151.65220028155295,
+          "top_processes": [
+            {
+              "pid": 9303,
+              "name": "rustc",
+              "cpu_percent": 151.65220028155295
+            },
+            {
+              "pid": 90542,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 18.865478259385554
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 17.026190457793682
+            },
+            {
+              "pid": 630,
+              "name": "MenuBarAgent",
+              "cpu_percent": 12.679064406531724
+            },
+            {
+              "pid": 54326,
+              "name": "CEPHtmlEngine Helper (GPU)",
+              "cpu_percent": 8.690811792877971
+            }
+          ],
+          "new_or_exited_processes": 4
+        },
+        {
+          "total_percent": 811.9798088710443,
+          "maximum_process_percent": 176.25342684423134,
+          "top_processes": [
+            {
+              "pid": 90542,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 176.25342684423134
+            },
+            {
+              "pid": 9328,
+              "name": "rustc",
+              "cpu_percent": 140.71443458617392
+            },
+            {
+              "pid": 90478,
+              "name": "com.docker.backend",
+              "cpu_percent": 30.872084455546833
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 27.90201028795581
+            },
+            {
+              "pid": 54326,
+              "name": "CEPHtmlEngine Helper (GPU)",
+              "cpu_percent": 8.104840427893583
+            }
+          ],
+          "new_or_exited_processes": 9
+        },
+        {
+          "total_percent": 857.1391190282441,
+          "maximum_process_percent": 60.43746202411465,
+          "top_processes": [
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 60.43746202411465
+            },
+            {
+              "pid": 9335,
+              "name": "strata-studio",
+              "cpu_percent": 43.165978177521616
+            },
+            {
+              "pid": 71867,
+              "name": "siriknowledged",
+              "cpu_percent": 40.948958614787095
+            },
+            {
+              "pid": 50706,
+              "name": "swcd",
+              "cpu_percent": 23.697989247289765
+            },
+            {
+              "pid": 630,
+              "name": "MenuBarAgent",
+              "cpu_percent": 15.563959657383378
+            }
+          ],
+          "new_or_exited_processes": 8
+        },
+        {
+          "total_percent": 525.2482495398123,
+          "maximum_process_percent": 86.35189306838124,
+          "top_processes": [
+            {
+              "pid": 9340,
+              "name": "rustc",
+              "cpu_percent": 86.35189306838124
+            },
+            {
+              "pid": 90586,
+              "name": "Docker Desktop Helper (Renderer)",
+              "cpu_percent": 59.94918016974512
+            },
+            {
+              "pid": 9339,
+              "name": "com.apple.WebKit.WebContent",
+              "cpu_percent": 15.504617101353029
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 15.152349052401673
+            },
+            {
+              "pid": 9338,
+              "name": "com.apple.WebKit.GPU",
+              "cpu_percent": 14.873697074535155
+            }
+          ],
+          "new_or_exited_processes": 10
+        },
+        {
+          "total_percent": 430.0542225892538,
+          "maximum_process_percent": 99.96262858009005,
+          "top_processes": [
+            {
+              "pid": 9340,
+              "name": "rustc",
+              "cpu_percent": 99.96262858009005
+            },
+            {
+              "pid": 90542,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 15.729177537138172
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 13.699863358030688
+            },
+            {
+              "pid": 71867,
+              "name": "siriknowledged",
+              "cpu_percent": 13.539903425116426
+            },
+            {
+              "pid": 54326,
+              "name": "CEPHtmlEngine Helper (GPU)",
+              "cpu_percent": 10.428730054514277
+            }
+          ],
+          "new_or_exited_processes": 5
+        },
+        {
+          "total_percent": 505.40395025234267,
+          "maximum_process_percent": 13.394287274427608,
+          "top_processes": [
+            {
+              "pid": 90542,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 13.394287274427608
+            },
+            {
+              "pid": 50670,
+              "name": "siriactionsd",
+              "cpu_percent": 9.019985624943628
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 8.436295087843844
+            },
+            {
+              "pid": 54326,
+              "name": "CEPHtmlEngine Helper (GPU)",
+              "cpu_percent": 7.002697090632663
+            },
+            {
+              "pid": 8915,
+              "name": "mdworker_shared",
+              "cpu_percent": 4.0628560202853725
+            }
+          ],
+          "new_or_exited_processes": 17
+        },
+        {
+          "total_percent": 327.772095514159,
+          "maximum_process_percent": 88.02676809055428,
+          "top_processes": [
+            {
+              "pid": 9361,
+              "name": "rustc",
+              "cpu_percent": 88.02676809055428
+            },
+            {
+              "pid": 90542,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 12.671005498371402
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 8.837753441973906
+            },
+            {
+              "pid": 630,
+              "name": "MenuBarAgent",
+              "cpu_percent": 7.991137377097176
+            },
+            {
+              "pid": 54326,
+              "name": "CEPHtmlEngine Helper (GPU)",
+              "cpu_percent": 7.830638372493921
+            }
+          ],
+          "new_or_exited_processes": 18
+        },
+        {
+          "total_percent": 315.75927850713754,
+          "maximum_process_percent": 97.27391247780831,
+          "top_processes": [
+            {
+              "pid": 9361,
+              "name": "rustc",
+              "cpu_percent": 97.27391247780831
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 11.89086096690275
+            },
+            {
+              "pid": 54326,
+              "name": "CEPHtmlEngine Helper (GPU)",
+              "cpu_percent": 10.528266992617741
+            },
+            {
+              "pid": 90542,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 10.179659422120368
+            },
+            {
+              "pid": 801,
+              "name": "duetexpertd",
+              "cpu_percent": 7.595347135677296
+            }
+          ],
+          "new_or_exited_processes": 16
+        },
+        {
+          "total_percent": 340.38461022601695,
+          "maximum_process_percent": 105.56806977792297,
+          "top_processes": [
+            {
+              "pid": 1568,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 105.56806977792297
+            },
+            {
+              "pid": 9361,
+              "name": "rustc",
+              "cpu_percent": 15.18139861501508
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 11.15691881704053
+            },
+            {
+              "pid": 90542,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 10.638382558649257
+            },
+            {
+              "pid": 54326,
+              "name": "CEPHtmlEngine Helper (GPU)",
+              "cpu_percent": 10.63278971765253
+            }
+          ],
+          "new_or_exited_processes": 4
+        },
+        {
+          "total_percent": 542.9169723336981,
+          "maximum_process_percent": 21.977952879655152,
+          "top_processes": [
+            {
+              "pid": 65262,
+              "name": "Antigravity IDE Helper",
+              "cpu_percent": 21.977952879655152
+            },
+            {
+              "pid": 9383,
+              "name": "cargo",
+              "cpu_percent": 17.24214910515496
+            },
+            {
+              "pid": 90542,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 13.242225798365567
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 10.245174694493354
+            },
+            {
+              "pid": 54326,
+              "name": "CEPHtmlEngine Helper (GPU)",
+              "cpu_percent": 8.727148810049322
+            }
+          ],
+          "new_or_exited_processes": 15
+        },
+        {
+          "total_percent": 888.4796713524715,
+          "maximum_process_percent": 116.11546183730854,
+          "top_processes": [
+            {
+              "pid": 90542,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 116.11546183730854
+            },
+            {
+              "pid": 9461,
+              "name": "rustc",
+              "cpu_percent": 37.0791714906405
+            },
+            {
+              "pid": 9459,
+              "name": "rustc",
+              "cpu_percent": 36.22200345384077
+            },
+            {
+              "pid": 9456,
+              "name": "rustc",
+              "cpu_percent": 35.72929816166436
+            },
+            {
+              "pid": 9457,
+              "name": "rustc",
+              "cpu_percent": 35.27470593510136
+            }
+          ],
+          "new_or_exited_processes": 15
+        },
+        {
+          "total_percent": 1060.0489185334911,
+          "maximum_process_percent": 77.5756204822578,
+          "top_processes": [
+            {
+              "pid": 9506,
+              "name": "rustc",
+              "cpu_percent": 77.5756204822578
+            },
+            {
+              "pid": 9531,
+              "name": "python3.10",
+              "cpu_percent": 55.12179491864324
+            },
+            {
+              "pid": 9408,
+              "name": "rustc",
+              "cpu_percent": 45.404335214315466
+            },
+            {
+              "pid": 9455,
+              "name": "rustc",
+              "cpu_percent": 41.24921309378426
+            },
+            {
+              "pid": 90542,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 34.31293196105456
+            }
+          ],
+          "new_or_exited_processes": 16
+        },
+        {
+          "total_percent": 974.097974406304,
+          "maximum_process_percent": 206.02769981902364,
+          "top_processes": [
+            {
+              "pid": 9408,
+              "name": "rustc",
+              "cpu_percent": 206.02769981902364
+            },
+            {
+              "pid": 9455,
+              "name": "rustc",
+              "cpu_percent": 113.33590441243817
+            },
+            {
+              "pid": 9639,
+              "name": "strata",
+              "cpu_percent": 62.28005834779935
+            },
+            {
+              "pid": 65262,
+              "name": "Antigravity IDE Helper",
+              "cpu_percent": 16.148900778253907
+            },
+            {
+              "pid": 90542,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 15.258785672448866
+            }
+          ],
+          "new_or_exited_processes": 6
+        },
+        {
+          "total_percent": 765.7541508466329,
+          "maximum_process_percent": 63.78010717241653,
+          "top_processes": [
+            {
+              "pid": 90586,
+              "name": "Docker Desktop Helper (Renderer)",
+              "cpu_percent": 63.78010717241653
+            },
+            {
+              "pid": 9639,
+              "name": "strata",
+              "cpu_percent": 44.56588872499712
+            },
+            {
+              "pid": 65262,
+              "name": "Antigravity IDE Helper",
+              "cpu_percent": 16.488244090260995
+            },
+            {
+              "pid": 90542,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 15.949056361612703
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 12.524431362518818
+            }
+          ],
+          "new_or_exited_processes": 6
+        },
+        {
+          "total_percent": 768.9092711592773,
+          "maximum_process_percent": 351.5252433426422,
+          "top_processes": [
+            {
+              "pid": 9747,
+              "name": "threex_core-22e318b637b9ea26",
+              "cpu_percent": 351.5252433426422
+            },
+            {
+              "pid": 9639,
+              "name": "strata",
+              "cpu_percent": 56.46471483829127
+            },
+            {
+              "pid": 90542,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 17.515721941889478
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 9.786795573769979
+            },
+            {
+              "pid": 54326,
+              "name": "CEPHtmlEngine Helper (GPU)",
+              "cpu_percent": 7.833794620126214
+            }
+          ],
+          "new_or_exited_processes": 15
+        },
+        {
+          "total_percent": 925.1217916102391,
+          "maximum_process_percent": 325.05680983176865,
+          "top_processes": [
+            {
+              "pid": 9747,
+              "name": "threex_core-22e318b637b9ea26",
+              "cpu_percent": 325.05680983176865
+            },
+            {
+              "pid": 9765,
+              "name": "clippy-driver",
+              "cpu_percent": 62.17609855127423
+            },
+            {
+              "pid": 9639,
+              "name": "strata",
+              "cpu_percent": 57.88600857537588
+            },
+            {
+              "pid": 9762,
+              "name": "clippy-driver",
+              "cpu_percent": 53.61041045779174
+            },
+            {
+              "pid": 90542,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 18.995826673524785
+            }
+          ],
+          "new_or_exited_processes": 9
+        },
+        {
+          "total_percent": 723.7326868084024,
+          "maximum_process_percent": 151.4300456872817,
+          "top_processes": [
+            {
+              "pid": 9639,
+              "name": "strata",
+              "cpu_percent": 151.4300456872817
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 23.314851410544442
+            },
+            {
+              "pid": 54150,
+              "name": "Adobe Photoshop 2026",
+              "cpu_percent": 21.205535490694277
+            },
+            {
+              "pid": 54326,
+              "name": "CEPHtmlEngine Helper (GPU)",
+              "cpu_percent": 13.725407816522361
+            },
+            {
+              "pid": 14846,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 11.042585302424193
+            }
+          ],
+          "new_or_exited_processes": 10
+        },
+        {
+          "total_percent": 919.2520064161995,
+          "maximum_process_percent": 99.9925730156213,
+          "top_processes": [
+            {
+              "pid": 9639,
+              "name": "strata",
+              "cpu_percent": 99.9925730156213
+            },
+            {
+              "pid": 54150,
+              "name": "Adobe Photoshop 2026",
+              "cpu_percent": 36.082469848908914
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 34.17057809043417
+            },
+            {
+              "pid": 1567,
+              "name": "codex",
+              "cpu_percent": 11.763206680707283
+            },
+            {
+              "pid": 9769,
+              "name": "BackgroundShortcutRunner",
+              "cpu_percent": 11.179155679389675
+            }
+          ],
+          "new_or_exited_processes": 4
+        },
+        {
+          "total_percent": 424.9004573658351,
+          "maximum_process_percent": 70.74752604326687,
+          "top_processes": [
+            {
+              "pid": 50670,
+              "name": "siriactionsd",
+              "cpu_percent": 70.74752604326687
+            },
+            {
+              "pid": 9774,
+              "name": "threex_storage-7e616d7dd8285b98",
+              "cpu_percent": 33.15426054632324
+            },
+            {
+              "pid": 90542,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 21.29157231857564
+            },
+            {
+              "pid": 54150,
+              "name": "Adobe Photoshop 2026",
+              "cpu_percent": 19.091716485039317
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 17.15949430774073
+            }
+          ],
+          "new_or_exited_processes": 4
+        },
+        {
+          "total_percent": 419.74280117935024,
+          "maximum_process_percent": 87.06458558374554,
+          "top_processes": [
+            {
+              "pid": 90542,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 87.06458558374554
+            },
+            {
+              "pid": 50670,
+              "name": "siriactionsd",
+              "cpu_percent": 76.28703043193897
+            },
+            {
+              "pid": 9774,
+              "name": "threex_storage-7e616d7dd8285b98",
+              "cpu_percent": 40.85990533334313
+            },
+            {
+              "pid": 90478,
+              "name": "com.docker.backend",
+              "cpu_percent": 19.711642273251453
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 12.852678855971917
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 364.6157751599425,
+          "maximum_process_percent": 77.99404257964696,
+          "top_processes": [
+            {
+              "pid": 50670,
+              "name": "siriactionsd",
+              "cpu_percent": 77.99404257964696
+            },
+            {
+              "pid": 9774,
+              "name": "threex_storage-7e616d7dd8285b98",
+              "cpu_percent": 53.11887930261523
+            },
+            {
+              "pid": 90542,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 22.99006979255235
+            },
+            {
+              "pid": 54326,
+              "name": "CEPHtmlEngine Helper (GPU)",
+              "cpu_percent": 15.755486698851234
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 14.538990581878556
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 417.72885216144584,
+          "maximum_process_percent": 45.56076574664662,
+          "top_processes": [
+            {
+              "pid": 50670,
+              "name": "siriactionsd",
+              "cpu_percent": 45.56076574664662
+            },
+            {
+              "pid": 90586,
+              "name": "Docker Desktop Helper (Renderer)",
+              "cpu_percent": 33.63376231967918
+            },
+            {
+              "pid": 9769,
+              "name": "BackgroundShortcutRunner",
+              "cpu_percent": 32.130810099939666
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 14.549167127715743
+            },
+            {
+              "pid": 90542,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 14.07844022682059
+            }
+          ],
+          "new_or_exited_processes": 13
+        },
+        {
+          "total_percent": 514.8526164944752,
+          "maximum_process_percent": 51.92756997212994,
+          "top_processes": [
+            {
+              "pid": 9769,
+              "name": "BackgroundShortcutRunner",
+              "cpu_percent": 51.92756997212994
+            },
+            {
+              "pid": 90586,
+              "name": "Docker Desktop Helper (Renderer)",
+              "cpu_percent": 29.448421386139838
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 26.32211148600912
+            },
+            {
+              "pid": 50670,
+              "name": "siriactionsd",
+              "cpu_percent": 23.166445625821943
+            },
+            {
+              "pid": 784,
+              "name": "StocksWidget",
+              "cpu_percent": 22.43948621260663
+            }
+          ],
+          "new_or_exited_processes": 5
+        },
+        {
+          "total_percent": 331.7055408316258,
+          "maximum_process_percent": 51.3659684875429,
+          "top_processes": [
+            {
+              "pid": 9769,
+              "name": "BackgroundShortcutRunner",
+              "cpu_percent": 51.3659684875429
+            },
+            {
+              "pid": 38093,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 20.448309913798788
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 19.521311583005776
+            },
+            {
+              "pid": 90542,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 18.670398542306827
+            },
+            {
+              "pid": 50670,
+              "name": "siriactionsd",
+              "cpu_percent": 17.39577583742199
+            }
+          ],
+          "new_or_exited_processes": 4
+        },
+        {
+          "total_percent": 351.31865624171894,
+          "maximum_process_percent": 63.44836030079977,
+          "top_processes": [
+            {
+              "pid": 9769,
+              "name": "BackgroundShortcutRunner",
+              "cpu_percent": 63.44836030079977
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 45.96603555385042
+            },
+            {
+              "pid": 38093,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 25.241264068708496
+            },
+            {
+              "pid": 50670,
+              "name": "siriactionsd",
+              "cpu_percent": 24.777038333973476
+            },
+            {
+              "pid": 90542,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 20.379411193295702
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 330.41916705109253,
+          "maximum_process_percent": 62.821932345975846,
+          "top_processes": [
+            {
+              "pid": 9769,
+              "name": "BackgroundShortcutRunner",
+              "cpu_percent": 62.821932345975846
+            },
+            {
+              "pid": 38093,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 24.55615831206396
+            },
+            {
+              "pid": 50670,
+              "name": "siriactionsd",
+              "cpu_percent": 22.291461151336524
+            },
+            {
+              "pid": 90542,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 18.41321845476608
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 18.14097896138904
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 297.2642076914778,
+          "maximum_process_percent": 66.21198760639072,
+          "top_processes": [
+            {
+              "pid": 9769,
+              "name": "BackgroundShortcutRunner",
+              "cpu_percent": 66.21198760639072
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 25.89235450461872
+            },
+            {
+              "pid": 87077,
+              "name": "axassetsd",
+              "cpu_percent": 22.42576074523329
+            },
+            {
+              "pid": 90542,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 9.639611547837047
+            },
+            {
+              "pid": 54326,
+              "name": "CEPHtmlEngine Helper (GPU)",
+              "cpu_percent": 8.719997274253602
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 417.8169791579705,
+          "maximum_process_percent": 61.60166057959513,
+          "top_processes": [
+            {
+              "pid": 21472,
+              "name": "Antigravity IDE Helper (Renderer)",
+              "cpu_percent": 61.60166057959513
+            },
+            {
+              "pid": 9769,
+              "name": "BackgroundShortcutRunner",
+              "cpu_percent": 58.02203168366575
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 21.192435860830585
+            },
+            {
+              "pid": 87077,
+              "name": "axassetsd",
+              "cpu_percent": 20.465550917200748
+            },
+            {
+              "pid": 90542,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 17.608889201987687
+            }
+          ],
+          "new_or_exited_processes": 4
+        },
+        {
+          "total_percent": 377.1284243030146,
+          "maximum_process_percent": 62.17054619827393,
+          "top_processes": [
+            {
+              "pid": 9769,
+              "name": "BackgroundShortcutRunner",
+              "cpu_percent": 62.17054619827393
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 32.40055885865087
+            },
+            {
+              "pid": 50670,
+              "name": "siriactionsd",
+              "cpu_percent": 22.472895871305486
+            },
+            {
+              "pid": 38093,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 21.706236199648647
+            },
+            {
+              "pid": 90542,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 14.404790385427262
+            }
+          ],
+          "new_or_exited_processes": 6
+        },
+        {
+          "total_percent": 459.4523102108507,
+          "maximum_process_percent": 88.78070078779487,
+          "top_processes": [
+            {
+              "pid": 90542,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 88.78070078779487
+            },
+            {
+              "pid": 9904,
+              "name": "strata",
+              "cpu_percent": 75.19202941765327
+            },
+            {
+              "pid": 9769,
+              "name": "BackgroundShortcutRunner",
+              "cpu_percent": 46.26880257420186
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 32.47785737263323
+            },
+            {
+              "pid": 90478,
+              "name": "com.docker.backend",
+              "cpu_percent": 23.30854392272257
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 561.4628466653024,
+          "maximum_process_percent": 201.47032769938704,
+          "top_processes": [
+            {
+              "pid": 9904,
+              "name": "strata",
+              "cpu_percent": 201.47032769938704
+            },
+            {
+              "pid": 9769,
+              "name": "BackgroundShortcutRunner",
+              "cpu_percent": 34.69628519609536
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 32.7819168514323
+            },
+            {
+              "pid": 90542,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 19.5680083670147
+            },
+            {
+              "pid": 38093,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 15.379540987247431
+            }
+          ],
+          "new_or_exited_processes": 3
+        },
+        {
+          "total_percent": 560.6455649318845,
+          "maximum_process_percent": 51.04281200155642,
+          "top_processes": [
+            {
+              "pid": 9769,
+              "name": "BackgroundShortcutRunner",
+              "cpu_percent": 51.04281200155642
+            },
+            {
+              "pid": 9917,
+              "name": "Google Chrome",
+              "cpu_percent": 44.31799958263546
+            },
+            {
+              "pid": 90586,
+              "name": "Docker Desktop Helper (Renderer)",
+              "cpu_percent": 42.97562718681686
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 34.8278939605255
+            },
+            {
+              "pid": 50670,
+              "name": "siriactionsd",
+              "cpu_percent": 22.027473429040413
+            }
+          ],
+          "new_or_exited_processes": 12
+        },
+        {
+          "total_percent": 540.5900543849215,
+          "maximum_process_percent": 52.029330678818795,
+          "top_processes": [
+            {
+              "pid": 9769,
+              "name": "BackgroundShortcutRunner",
+              "cpu_percent": 52.029330678818795
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 40.79826539556354
+            },
+            {
+              "pid": 38093,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 17.836810194839433
+            },
+            {
+              "pid": 50670,
+              "name": "siriactionsd",
+              "cpu_percent": 16.517579263971886
+            },
+            {
+              "pid": 90542,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 16.401816361323867
+            }
+          ],
+          "new_or_exited_processes": 12
+        },
+        {
+          "total_percent": 350.75666282445246,
+          "maximum_process_percent": 62.2938455559362,
+          "top_processes": [
+            {
+              "pid": 9769,
+              "name": "BackgroundShortcutRunner",
+              "cpu_percent": 62.2938455559362
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 33.968533652953276
+            },
+            {
+              "pid": 38093,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 26.731411096650508
+            },
+            {
+              "pid": 50670,
+              "name": "siriactionsd",
+              "cpu_percent": 25.940826291852623
+            },
+            {
+              "pid": 90542,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 19.37583088291858
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 357.56884661998674,
+          "maximum_process_percent": 55.76814449533813,
+          "top_processes": [
+            {
+              "pid": 9769,
+              "name": "BackgroundShortcutRunner",
+              "cpu_percent": 55.76814449533813
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 34.35682889656208
+            },
+            {
+              "pid": 38093,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 25.951966243620465
+            },
+            {
+              "pid": 50670,
+              "name": "siriactionsd",
+              "cpu_percent": 23.069238955452402
+            },
+            {
+              "pid": 963,
+              "name": "ChatGPT",
+              "cpu_percent": 20.234160052220172
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 373.16447625881875,
+          "maximum_process_percent": 60.42929643592901,
+          "top_processes": [
+            {
+              "pid": 9769,
+              "name": "BackgroundShortcutRunner",
+              "cpu_percent": 60.42929643592901
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 38.97114878170308
+            },
+            {
+              "pid": 38093,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 27.564804764999014
+            },
+            {
+              "pid": 50670,
+              "name": "siriactionsd",
+              "cpu_percent": 27.3452089452875
+            },
+            {
+              "pid": 90542,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 11.824208004567112
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 379.83139471964165,
+          "maximum_process_percent": 57.92652993142344,
+          "top_processes": [
+            {
+              "pid": 9769,
+              "name": "BackgroundShortcutRunner",
+              "cpu_percent": 57.92652993142344
+            },
+            {
+              "pid": 38093,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 35.58373564779051
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 32.199020769325045
+            },
+            {
+              "pid": 50670,
+              "name": "siriactionsd",
+              "cpu_percent": 27.933597182272987
+            },
+            {
+              "pid": 90542,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 9.877128768389468
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 625.7075776230024,
+          "maximum_process_percent": 88.51016525823121,
+          "top_processes": [
+            {
+              "pid": 801,
+              "name": "duetexpertd",
+              "cpu_percent": 88.51016525823121
+            },
+            {
+              "pid": 636,
+              "name": "linkd",
+              "cpu_percent": 53.43543948869373
+            },
+            {
+              "pid": 71867,
+              "name": "siriknowledged",
+              "cpu_percent": 36.74594899552995
+            },
+            {
+              "pid": 38093,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 27.46730815259227
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 23.83811768480221
+            }
+          ],
+          "new_or_exited_processes": 4
+        },
+        {
+          "total_percent": 452.7455544777425,
+          "maximum_process_percent": 80.0068690251146,
+          "top_processes": [
+            {
+              "pid": 90542,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 80.0068690251146
+            },
+            {
+              "pid": 801,
+              "name": "duetexpertd",
+              "cpu_percent": 75.13544251830811
+            },
+            {
+              "pid": 636,
+              "name": "linkd",
+              "cpu_percent": 56.28204017156355
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 36.421938681048005
+            },
+            {
+              "pid": 90478,
+              "name": "com.docker.backend",
+              "cpu_percent": 15.75947771432497
+            }
+          ],
+          "new_or_exited_processes": 6
+        },
+        {
+          "total_percent": 322.95087187318876,
+          "maximum_process_percent": 90.25121539047257,
+          "top_processes": [
+            {
+              "pid": 801,
+              "name": "duetexpertd",
+              "cpu_percent": 90.25121539047257
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 27.806954573782445
+            },
+            {
+              "pid": 90542,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 21.97960168584375
+            },
+            {
+              "pid": 71867,
+              "name": "siriknowledged",
+              "cpu_percent": 17.27517557537821
+            },
+            {
+              "pid": 54326,
+              "name": "CEPHtmlEngine Helper (GPU)",
+              "cpu_percent": 11.572224883063862
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 485.3762558234894,
+          "maximum_process_percent": 82.96385055664535,
+          "top_processes": [
+            {
+              "pid": 801,
+              "name": "duetexpertd",
+              "cpu_percent": 82.96385055664535
+            },
+            {
+              "pid": 90586,
+              "name": "Docker Desktop Helper (Renderer)",
+              "cpu_percent": 30.05326737933472
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 20.88831601805669
+            },
+            {
+              "pid": 50670,
+              "name": "siriactionsd",
+              "cpu_percent": 16.283328015643423
+            },
+            {
+              "pid": 96058,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 15.472470243972118
+            }
+          ],
+          "new_or_exited_processes": 6
+        },
+        {
+          "total_percent": 426.1444186881283,
+          "maximum_process_percent": 85.73621312900619,
+          "top_processes": [
+            {
+              "pid": 9947,
+              "name": "BackgroundShortcutRunner",
+              "cpu_percent": 85.73621312900619
+            },
+            {
+              "pid": 801,
+              "name": "duetexpertd",
+              "cpu_percent": 82.72366934596248
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 33.6066607499322
+            },
+            {
+              "pid": 90586,
+              "name": "Docker Desktop Helper (Renderer)",
+              "cpu_percent": 18.129113685797453
+            },
+            {
+              "pid": 54326,
+              "name": "CEPHtmlEngine Helper (GPU)",
+              "cpu_percent": 10.835240241801646
+            }
+          ],
+          "new_or_exited_processes": 4
+        },
+        {
+          "total_percent": 362.69228752439494,
+          "maximum_process_percent": 90.1230556730947,
+          "top_processes": [
+            {
+              "pid": 801,
+              "name": "duetexpertd",
+              "cpu_percent": 90.1230556730947
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 43.84894611740511
+            },
+            {
+              "pid": 90542,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 16.7295831921369
+            },
+            {
+              "pid": 54326,
+              "name": "CEPHtmlEngine Helper (GPU)",
+              "cpu_percent": 5.152111165763787
+            },
+            {
+              "pid": 8608,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 5.01222359884797
+            }
+          ],
+          "new_or_exited_processes": 4
+        },
+        {
+          "total_percent": 340.14548088547417,
+          "maximum_process_percent": 95.74751692625466,
+          "top_processes": [
+            {
+              "pid": 801,
+              "name": "duetexpertd",
+              "cpu_percent": 95.74751692625466
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 22.018560289316078
+            },
+            {
+              "pid": 90542,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 20.17203762541181
+            },
+            {
+              "pid": 54326,
+              "name": "CEPHtmlEngine Helper (GPU)",
+              "cpu_percent": 12.052460665945155
+            },
+            {
+              "pid": 630,
+              "name": "MenuBarAgent",
+              "cpu_percent": 10.040564006695218
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 228.37093518909145,
+          "maximum_process_percent": 25.107730577268914,
+          "top_processes": [
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 25.107730577268914
+            },
+            {
+              "pid": 90542,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 19.22824902299856
+            },
+            {
+              "pid": 54326,
+              "name": "CEPHtmlEngine Helper (GPU)",
+              "cpu_percent": 11.302515372436366
+            },
+            {
+              "pid": 1568,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 11.150366126967704
+            },
+            {
+              "pid": 1567,
+              "name": "codex",
+              "cpu_percent": 7.140146730472048
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 238.13759324421102,
+          "maximum_process_percent": 26.450364108538153,
+          "top_processes": [
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 26.450364108538153
+            },
+            {
+              "pid": 1567,
+              "name": "codex",
+              "cpu_percent": 10.919946395306008
+            },
+            {
+              "pid": 90542,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 9.965519763750113
+            },
+            {
+              "pid": 54326,
+              "name": "CEPHtmlEngine Helper (GPU)",
+              "cpu_percent": 8.599166328670957
+            },
+            {
+              "pid": 8608,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 5.946604238560652
+            }
+          ],
+          "new_or_exited_processes": 7
+        },
+        {
+          "total_percent": 234.51491017581606,
+          "maximum_process_percent": 41.85388263608669,
+          "top_processes": [
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 41.85388263608669
+            },
+            {
+              "pid": 90542,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 9.520435020611513
+            },
+            {
+              "pid": 8608,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 5.64578940560109
+            },
+            {
+              "pid": 54326,
+              "name": "CEPHtmlEngine Helper (GPU)",
+              "cpu_percent": 5.108176137648747
+            },
+            {
+              "pid": 1567,
+              "name": "codex",
+              "cpu_percent": 4.977442541130366
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 332.59623570128844,
+          "maximum_process_percent": 22.231689022918424,
+          "top_processes": [
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 22.231689022918424
+            },
+            {
+              "pid": 90542,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 14.025843484366712
+            },
+            {
+              "pid": 9956,
+              "name": "cargo",
+              "cpu_percent": 12.393285595548713
+            },
+            {
+              "pid": 65262,
+              "name": "Antigravity IDE Helper",
+              "cpu_percent": 8.12339756522027
+            },
+            {
+              "pid": 630,
+              "name": "MenuBarAgent",
+              "cpu_percent": 8.028614855676759
+            }
+          ],
+          "new_or_exited_processes": 7
+        },
+        {
+          "total_percent": 567.9252578816165,
+          "maximum_process_percent": 85.86458019755989,
+          "top_processes": [
+            {
+              "pid": 90542,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 85.86458019755989
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 20.445346499308265
+            },
+            {
+              "pid": 90478,
+              "name": "com.docker.backend",
+              "cpu_percent": 17.375210008446725
+            },
+            {
+              "pid": 65262,
+              "name": "Antigravity IDE Helper",
+              "cpu_percent": 12.733707676412873
+            },
+            {
+              "pid": 1568,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 11.859761805143558
+            }
+          ],
+          "new_or_exited_processes": 8
+        },
+        {
+          "total_percent": 853.3802833028122,
+          "maximum_process_percent": 139.69828080283168,
+          "top_processes": [
+            {
+              "pid": 10070,
+              "name": "threex_core-22e318b637b9ea26",
+              "cpu_percent": 139.69828080283168
+            },
+            {
+              "pid": 1568,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 81.22091690980862
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 22.376671779192137
+            },
+            {
+              "pid": 90542,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 16.970915992724436
+            },
+            {
+              "pid": 65262,
+              "name": "Antigravity IDE Helper",
+              "cpu_percent": 16.65488005820519
+            }
+          ],
+          "new_or_exited_processes": 18
+        },
+        {
+          "total_percent": 1042.901933975494,
+          "maximum_process_percent": 140.8187438204257,
+          "top_processes": [
+            {
+              "pid": 10070,
+              "name": "threex_core-22e318b637b9ea26",
+              "cpu_percent": 140.8187438204257
+            },
+            {
+              "pid": 1568,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 60.486616266804866
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 52.30973136824638
+            },
+            {
+              "pid": 10072,
+              "name": "clippy-driver",
+              "cpu_percent": 37.67640505742627
+            },
+            {
+              "pid": 10251,
+              "name": "rustc",
+              "cpu_percent": 35.683158153236654
+            }
+          ],
+          "new_or_exited_processes": 18
+        },
+        {
+          "total_percent": 1010.4422153369991,
+          "maximum_process_percent": 164.13319705698643,
+          "top_processes": [
+            {
+              "pid": 10070,
+              "name": "threex_core-22e318b637b9ea26",
+              "cpu_percent": 164.13319705698643
+            },
+            {
+              "pid": 10375,
+              "name": "rustc",
+              "cpu_percent": 40.87968422510646
+            },
+            {
+              "pid": 10374,
+              "name": "rustc",
+              "cpu_percent": 40.53742460607803
+            },
+            {
+              "pid": 10252,
+              "name": "rustc",
+              "cpu_percent": 40.310069279960466
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 40.095646486274596
+            }
+          ],
+          "new_or_exited_processes": 15
+        },
+        {
+          "total_percent": 992.7869736546302,
+          "maximum_process_percent": 138.52174830451122,
+          "top_processes": [
+            {
+              "pid": 10070,
+              "name": "threex_core-22e318b637b9ea26",
+              "cpu_percent": 138.52174830451122
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 48.108523589995784
+            },
+            {
+              "pid": 10374,
+              "name": "rustc",
+              "cpu_percent": 37.262407927978636
+            },
+            {
+              "pid": 10441,
+              "name": "rustc",
+              "cpu_percent": 33.03922790779137
+            },
+            {
+              "pid": 10251,
+              "name": "rustc",
+              "cpu_percent": 32.601985291114
+            }
+          ],
+          "new_or_exited_processes": 9
+        },
+        {
+          "total_percent": 1006.2790068560732,
+          "maximum_process_percent": 150.57787360470468,
+          "top_processes": [
+            {
+              "pid": 10070,
+              "name": "threex_core-22e318b637b9ea26",
+              "cpu_percent": 150.57787360470468
+            },
+            {
+              "pid": 10440,
+              "name": "rustc",
+              "cpu_percent": 42.03982318570803
+            },
+            {
+              "pid": 10252,
+              "name": "rustc",
+              "cpu_percent": 41.99990036043621
+            },
+            {
+              "pid": 10441,
+              "name": "rustc",
+              "cpu_percent": 41.45201994149447
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 41.277336683480875
+            }
+          ],
+          "new_or_exited_processes": 13
+        },
+        {
+          "total_percent": 950.783649258393,
+          "maximum_process_percent": 60.46581920716587,
+          "top_processes": [
+            {
+              "pid": 10440,
+              "name": "rustc",
+              "cpu_percent": 60.46581920716587
+            },
+            {
+              "pid": 10441,
+              "name": "rustc",
+              "cpu_percent": 58.709602231629184
+            },
+            {
+              "pid": 10251,
+              "name": "rustc",
+              "cpu_percent": 51.60289297537806
+            },
+            {
+              "pid": 10252,
+              "name": "rustc",
+              "cpu_percent": 46.590211403356946
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 26.54811106002393
+            }
+          ],
+          "new_or_exited_processes": 14
+        },
+        {
+          "total_percent": 749.5255890894147,
+          "maximum_process_percent": 76.50968205870758,
+          "top_processes": [
+            {
+              "pid": 50670,
+              "name": "siriactionsd",
+              "cpu_percent": 76.50968205870758
+            },
+            {
+              "pid": 10440,
+              "name": "rustc",
+              "cpu_percent": 73.06012530000056
+            },
+            {
+              "pid": 10441,
+              "name": "rustc",
+              "cpu_percent": 59.52785386918558
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 29.999278343371934
+            },
+            {
+              "pid": 10629,
+              "name": "threex_storage-7e616d7dd8285b98",
+              "cpu_percent": 28.055701762454113
+            }
+          ],
+          "new_or_exited_processes": 16
+        },
+        {
+          "total_percent": 797.2940854478994,
+          "maximum_process_percent": 73.467192667923,
+          "top_processes": [
+            {
+              "pid": 10441,
+              "name": "rustc",
+              "cpu_percent": 73.467192667923
+            },
+            {
+              "pid": 50670,
+              "name": "siriactionsd",
+              "cpu_percent": 68.68520871644729
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 59.82609210407396
+            },
+            {
+              "pid": 10440,
+              "name": "rustc",
+              "cpu_percent": 57.9648380031711
+            },
+            {
+              "pid": 10629,
+              "name": "threex_storage-7e616d7dd8285b98",
+              "cpu_percent": 38.86506479032644
+            }
+          ],
+          "new_or_exited_processes": 22
+        },
+        {
+          "total_percent": 548.8252844025543,
+          "maximum_process_percent": 106.50085814717117,
+          "top_processes": [
+            {
+              "pid": 90542,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 106.50085814717117
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 51.34468180869308
+            },
+            {
+              "pid": 10768,
+              "name": "rustc",
+              "cpu_percent": 32.12682129039157
+            },
+            {
+              "pid": 10441,
+              "name": "rustc",
+              "cpu_percent": 31.181151222356963
+            },
+            {
+              "pid": 10440,
+              "name": "rustc",
+              "cpu_percent": 28.92426521219497
+            }
+          ],
+          "new_or_exited_processes": 17
+        },
+        {
+          "total_percent": 1301.4647095795424,
+          "maximum_process_percent": 130.97236593988444,
+          "top_processes": [
+            {
+              "pid": 1568,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 130.97236593988444
+            },
+            {
+              "pid": 1881,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 60.38989293738386
+            },
+            {
+              "pid": 963,
+              "name": "ChatGPT",
+              "cpu_percent": 47.77128434555778
+            },
+            {
+              "pid": 10462,
+              "name": "BackgroundShortcutRunner",
+              "cpu_percent": 47.08634413594015
+            },
+            {
+              "pid": 10789,
+              "name": "komyaku",
+              "cpu_percent": 43.5293950027542
+            }
+          ],
+          "new_or_exited_processes": 25
+        },
+        {
+          "total_percent": 1290.2870785130838,
+          "maximum_process_percent": 107.87166303691656,
+          "top_processes": [
+            {
+              "pid": 1567,
+              "name": "codex",
+              "cpu_percent": 107.87166303691656
+            },
+            {
+              "pid": 1568,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 80.36091088638943
+            },
+            {
+              "pid": 10462,
+              "name": "BackgroundShortcutRunner",
+              "cpu_percent": 69.06991571565503
+            },
+            {
+              "pid": 639,
+              "name": "trustd",
+              "cpu_percent": 43.69436856685418
+            },
+            {
+              "pid": 50670,
+              "name": "siriactionsd",
+              "cpu_percent": 41.90704485457205
+            }
+          ],
+          "new_or_exited_processes": 25
+        },
+        {
+          "total_percent": 993.6661787174207,
+          "maximum_process_percent": 89.82859958383298,
+          "top_processes": [
+            {
+              "pid": 11003,
+              "name": "BackgroundShortcutRunner",
+              "cpu_percent": 89.82859958383298
+            },
+            {
+              "pid": 1567,
+              "name": "codex",
+              "cpu_percent": 67.01127186646409
+            },
+            {
+              "pid": 10462,
+              "name": "BackgroundShortcutRunner",
+              "cpu_percent": 58.28310725183601
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 45.38675347371937
+            },
+            {
+              "pid": 11004,
+              "name": "rustc",
+              "cpu_percent": 35.331569270904644
+            }
+          ],
+          "new_or_exited_processes": 19
+        },
+        {
+          "total_percent": 1023.5375779428242,
+          "maximum_process_percent": 75.50591024143856,
+          "top_processes": [
+            {
+              "pid": 1567,
+              "name": "codex",
+              "cpu_percent": 75.50591024143856
+            },
+            {
+              "pid": 10462,
+              "name": "BackgroundShortcutRunner",
+              "cpu_percent": 49.92209599600194
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 27.985855200162206
+            },
+            {
+              "pid": 639,
+              "name": "trustd",
+              "cpu_percent": 26.035283320585016
+            },
+            {
+              "pid": 11042,
+              "name": "rustc",
+              "cpu_percent": 22.164543263130835
+            }
+          ],
+          "new_or_exited_processes": 25
+        },
+        {
+          "total_percent": 974.0591441101103,
+          "maximum_process_percent": 49.30116036104997,
+          "top_processes": [
+            {
+              "pid": 10949,
+              "name": "rustc",
+              "cpu_percent": 49.30116036104997
+            },
+            {
+              "pid": 10768,
+              "name": "rustc",
+              "cpu_percent": 47.43063843316432
+            },
+            {
+              "pid": 11042,
+              "name": "rustc",
+              "cpu_percent": 47.02144805665368
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 43.806300454356034
+            },
+            {
+              "pid": 11065,
+              "name": "rustc",
+              "cpu_percent": 38.71606634715672
+            }
+          ],
+          "new_or_exited_processes": 19
+        },
+        {
+          "total_percent": 1007.7959483446552,
+          "maximum_process_percent": 83.84456666176733,
+          "top_processes": [
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 83.84456666176733
+            },
+            {
+              "pid": 10928,
+              "name": "rustc",
+              "cpu_percent": 57.47948530933594
+            },
+            {
+              "pid": 11116,
+              "name": "rustc",
+              "cpu_percent": 54.2912264689273
+            },
+            {
+              "pid": 21472,
+              "name": "Antigravity IDE Helper (Renderer)",
+              "cpu_percent": 28.020132129814378
+            },
+            {
+              "pid": 1568,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 20.92340919556489
+            }
+          ],
+          "new_or_exited_processes": 20
+        },
+        {
+          "total_percent": 993.0255895399958,
+          "maximum_process_percent": 76.00980690196607,
+          "top_processes": [
+            {
+              "pid": 11327,
+              "name": "rustc",
+              "cpu_percent": 76.00980690196607
+            },
+            {
+              "pid": 11350,
+              "name": "rustc",
+              "cpu_percent": 75.15160794974597
+            },
+            {
+              "pid": 11116,
+              "name": "rustc",
+              "cpu_percent": 74.86257172663265
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 45.82989252999824
+            },
+            {
+              "pid": 65262,
+              "name": "Antigravity IDE Helper",
+              "cpu_percent": 17.49998975085765
+            }
+          ],
+          "new_or_exited_processes": 12
+        },
+        {
+          "total_percent": 958.0688207651996,
+          "maximum_process_percent": 125.7117116134188,
+          "top_processes": [
+            {
+              "pid": 90542,
+              "name": "com.apple.Virtualization.VirtualMachine",
+              "cpu_percent": 125.7117116134188
+            },
+            {
+              "pid": 11385,
+              "name": "rustc",
+              "cpu_percent": 70.88565972363897
+            },
+            {
+              "pid": 11386,
+              "name": "rustc",
+              "cpu_percent": 68.61398090196678
+            },
+            {
+              "pid": 11383,
+              "name": "rustc",
+              "cpu_percent": 62.89902658061409
+            },
+            {
+              "pid": 11327,
+              "name": "rustc",
+              "cpu_percent": 60.04431072679883
+            }
+          ],
+          "new_or_exited_processes": 12
+        },
+        {
+          "total_percent": 1057.83672940192,
+          "maximum_process_percent": 80.95393541421092,
+          "top_processes": [
+            {
+              "pid": 11385,
+              "name": "rustc",
+              "cpu_percent": 80.95393541421092
+            },
+            {
+              "pid": 11438,
+              "name": "rustc",
+              "cpu_percent": 80.08269812489183
+            },
+            {
+              "pid": 11350,
+              "name": "rustc",
+              "cpu_percent": 78.35069095165292
+            },
+            {
+              "pid": 11327,
+              "name": "rustc",
+              "cpu_percent": 77.9856174411631
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 33.32999418171371
+            }
+          ],
+          "new_or_exited_processes": 12
+        },
+        {
+          "total_percent": 985.1675654693959,
+          "maximum_process_percent": 84.39361337588447,
+          "top_processes": [
+            {
+              "pid": 11327,
+              "name": "rustc",
+              "cpu_percent": 84.39361337588447
+            },
+            {
+              "pid": 11468,
+              "name": "rustc",
+              "cpu_percent": 84.08506362463889
+            },
+            {
+              "pid": 11350,
+              "name": "rustc",
+              "cpu_percent": 84.0243576538345
+            },
+            {
+              "pid": 11471,
+              "name": "rustc",
+              "cpu_percent": 82.10225443479493
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 48.46170646613219
+            }
+          ],
+          "new_or_exited_processes": 15
+        },
+        {
+          "total_percent": 997.5268708985968,
+          "maximum_process_percent": 79.84671610314503,
+          "top_processes": [
+            {
+              "pid": 11350,
+              "name": "rustc",
+              "cpu_percent": 79.84671610314503
+            },
+            {
+              "pid": 11468,
+              "name": "rustc",
+              "cpu_percent": 77.5948547105559
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 54.72477550712112
+            },
+            {
+              "pid": 65262,
+              "name": "Antigravity IDE Helper",
+              "cpu_percent": 17.54488320022713
+            },
+            {
+              "pid": 54326,
+              "name": "CEPHtmlEngine Helper (GPU)",
+              "cpu_percent": 9.554649993922801
+            }
+          ],
+          "new_or_exited_processes": 16
+        },
+        {
+          "total_percent": 1018.7561040134549,
+          "maximum_process_percent": 67.08023700151001,
+          "top_processes": [
+            {
+              "pid": 1881,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 67.08023700151001
+            },
+            {
+              "pid": 11625,
+              "name": "rustc",
+              "cpu_percent": 61.01675993166977
+            },
+            {
+              "pid": 11623,
+              "name": "rustc",
+              "cpu_percent": 55.922723985688
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 36.77518974667757
+            },
+            {
+              "pid": 90586,
+              "name": "Docker Desktop Helper (Renderer)",
+              "cpu_percent": 31.335425652711024
+            }
+          ],
+          "new_or_exited_processes": 15
+        },
+        {
+          "total_percent": 1001.50689694946,
+          "maximum_process_percent": 99.0667001737408,
+          "top_processes": [
+            {
+              "pid": 1568,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 99.0667001737408
+            },
+            {
+              "pid": 11662,
+              "name": "rustc",
+              "cpu_percent": 70.96667986547521
+            },
+            {
+              "pid": 11625,
+              "name": "rustc",
+              "cpu_percent": 66.32192734432486
+            },
+            {
+              "pid": 11628,
+              "name": "rustc",
+              "cpu_percent": 65.92976506311504
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 39.259307754687356
+            }
+          ],
+          "new_or_exited_processes": 14
+        },
+        {
+          "total_percent": 996.2411977138275,
+          "maximum_process_percent": 76.09560319007996,
+          "top_processes": [
+            {
+              "pid": 11750,
+              "name": "rustc",
+              "cpu_percent": 76.09560319007996
+            },
+            {
+              "pid": 11775,
+              "name": "rustc",
+              "cpu_percent": 75.64663592716144
+            },
+            {
+              "pid": 11628,
+              "name": "rustc",
+              "cpu_percent": 66.62632411865803
+            },
+            {
+              "pid": 1568,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 63.933004668032
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 61.76705805266993
+            }
+          ],
+          "new_or_exited_processes": 15
+        },
+        {
+          "total_percent": 1003.1055405900745,
+          "maximum_process_percent": 80.59696179117594,
+          "top_processes": [
+            {
+              "pid": 11786,
+              "name": "rustc",
+              "cpu_percent": 80.59696179117594
+            },
+            {
+              "pid": 11783,
+              "name": "rustc",
+              "cpu_percent": 77.7914294901914
+            },
+            {
+              "pid": 11628,
+              "name": "rustc",
+              "cpu_percent": 74.34312866716003
+            },
+            {
+              "pid": 11784,
+              "name": "rustc",
+              "cpu_percent": 70.3641861256583
+            },
+            {
+              "pid": 53862,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 54.572311546042066
+            }
+          ],
+          "new_or_exited_processes": 11
+        }
+      ],
+      "repeat": 0,
+      "policy": "baseline",
+      "variant": "baseline"
+    }
+  ],
+  "host_load_window": "requests_only",
+  "quiet_timeout_seconds": 180,
+  "campaign_completed": false,
+  "host_load_rule": "3 consecutive 1s samples: total<=200%, max process<=75%, no PID churn",
+  "notes": [
+    "Export and model initialization excluded from request timing",
+    "Host gate checks sampled CPU counters, not disk/GPU contention",
+    "Aggregate CPU includes benchmark; per-process gate excludes worker tree",
+    "Startup includes import/export/preload/warmup; ready wait is separate",
+    "Request host window includes parity checks; individual latencies exclude them",
+    "Request host sampling uses approx 100ms cadence; startup uses approx 1s",
+    "OS file cache is not reset; this is not cold-disk performance",
+    "Baseline has resident source weights; candidates use file residency",
+    "Phase spans are host wall times; acquire includes nested loading spans",
+    "Router eval includes gate/top-k execution, not just a synchronization wait",
+    "MLX load and eval may include file I/O; checksum_read is separate",
+    "Opt-in instrumentation overhead is included in request timings",
+    "No RSS, GPU, E2E chat, quality-suite or P3 certification"
+  ],
+  "source_sha256": {
+    "scripts/compare_strata_experts.py": "025c795d27177a42523af1f827b83174ea0e0b1b1b5ea10ae09f82089381448e",
+    "scripts/strata_measurement.py": "e24018d3beeae11b71f7d18c1d921e84363517453552c1de98780b663e0f4ddb",
+    "vllm_apple/qwen3_moe_residency.py": "9d554ee624327b5c93e0b5b303032e758b09e1b93a356f6e486e99898564e39d",
+    "vllm_apple/mlx_expert_backend.py": "1bad64f95789fa4244a8941112a488fc17f70e7b73c097f8205b86d056b9d9ba",
+    "vllm_apple/mlx_expert_export.py": "a511d8d2417f63000487e4367e0e1e0e056a435613ba6394138aecdaaa63cb8f",
+    "vllm_apple/expert_manifest.py": "0c62fb0346bae8cb4b92972a8924e5f365d1547a9e3b4384e13f7c6caf788c7d",
+    "vllm_apple/expert_residency.py": "0bb7320cbb3b259c32aa6fc3deb9e22f585f03350d0a07ec4662240e87ea6a57",
+    "vllm_apple/expert_execution.py": "d526e9b9b855949530a2414e48389770a962258f9d8520f033f5f018d89ba340",
+    "vllm_apple/expert_timing.py": "1658bf5ecf2bd677a3473a7f848088d8009dcb131e625b7610deb8b1baf36c7a",
+    "vllm_apple/qwen3_moe_gather.py": "3f30a83acb25b8e10b090156abfab9afa9e78df50b248d8cd4680ecab2f57464"
+  }
+}
