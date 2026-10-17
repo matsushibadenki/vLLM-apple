@@ -1,0 +1,5406 @@
+{
+  "schema_version": 1,
+  "scope": "synthetic_qwen3_block_cpu",
+  "model_qualification": false,
+  "standard_adoption_eligible": false,
+  "automatic_application": false,
+  "trials": [],
+  "profiling_enabled": false,
+  "preloaded": false,
+  "grouped": false,
+  "gather": false,
+  "variant_suite": false,
+  "cycles": 512,
+  "memory_suite": true,
+  "runs": 4,
+  "row_suite": false,
+  "tokens_per_request": 1,
+  "warmup_cycles": 8,
+  "resident_budget_bytes": 20000,
+  "quiet_host_requested": true,
+  "host_gates": [
+    {
+      "passed": false,
+      "observations": [
+        {
+          "total_percent": 685.699018301322,
+          "maximum_process_percent": 16.210424026362745,
+          "top_processes": [
+            {
+              "pid": 1882,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 16.210424026362745
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 15.347174177350153
+            },
+            {
+              "pid": 15804,
+              "name": "backboardd",
+              "cpu_percent": 8.758006446873345
+            },
+            {
+              "pid": 24349,
+              "name": "audio",
+              "cpu_percent": 8.721846380057542
+            },
+            {
+              "pid": 24523,
+              "name": "audio",
+              "cpu_percent": 7.747820453356671
+            }
+          ],
+          "new_or_exited_processes": 6
+        },
+        {
+          "total_percent": 389.9525454025218,
+          "maximum_process_percent": 14.418687669098915,
+          "top_processes": [
+            {
+              "pid": 36600,
+              "name": "com.apple.appkit.xpc.openAndSavePanelService",
+              "cpu_percent": 14.418687669098915
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 12.55065014562271
+            },
+            {
+              "pid": 1882,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 8.405363506875565
+            },
+            {
+              "pid": 24349,
+              "name": "audio",
+              "cpu_percent": 7.7022733518910185
+            },
+            {
+              "pid": 15804,
+              "name": "backboardd",
+              "cpu_percent": 7.2680339973164205
+            }
+          ],
+          "new_or_exited_processes": 6
+        },
+        {
+          "total_percent": 343.3887373378813,
+          "maximum_process_percent": 51.84513754221084,
+          "top_processes": [
+            {
+              "pid": 1607,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 51.84513754221084
+            },
+            {
+              "pid": 30511,
+              "name": "Terminal",
+              "cpu_percent": 9.570293617146268
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 8.54394358001524
+            },
+            {
+              "pid": 1882,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 6.935021614762489
+            },
+            {
+              "pid": 15804,
+              "name": "backboardd",
+              "cpu_percent": 6.5416533446502765
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 384.41037967421533,
+          "maximum_process_percent": 14.237841411449585,
+          "top_processes": [
+            {
+              "pid": 1882,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 14.237841411449585
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 13.642252682679125
+            },
+            {
+              "pid": 15804,
+              "name": "backboardd",
+              "cpu_percent": 7.870442626577281
+            },
+            {
+              "pid": 24349,
+              "name": "audio",
+              "cpu_percent": 7.469770387904082
+            },
+            {
+              "pid": 24523,
+              "name": "audio",
+              "cpu_percent": 7.3693646251939215
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 292.9831347023687,
+          "maximum_process_percent": 14.049396413061437,
+          "top_processes": [
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 14.049396413061437
+            },
+            {
+              "pid": 1882,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 12.707753254837797
+            },
+            {
+              "pid": 15804,
+              "name": "backboardd",
+              "cpu_percent": 8.805479644527866
+            },
+            {
+              "pid": 24349,
+              "name": "audio",
+              "cpu_percent": 7.97887754634518
+            },
+            {
+              "pid": 24523,
+              "name": "audio",
+              "cpu_percent": 7.369951750629526
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 411.67290699536426,
+          "maximum_process_percent": 14.187570885791473,
+          "top_processes": [
+            {
+              "pid": 1882,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 14.187570885791473
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 11.918540338649128
+            },
+            {
+              "pid": 15804,
+              "name": "backboardd",
+              "cpu_percent": 7.697728569410247
+            },
+            {
+              "pid": 24349,
+              "name": "audio",
+              "cpu_percent": 6.9059255571912885
+            },
+            {
+              "pid": 24523,
+              "name": "audio",
+              "cpu_percent": 6.5764162998575575
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 365.19044238601185,
+          "maximum_process_percent": 19.039263851640648,
+          "top_processes": [
+            {
+              "pid": 1882,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 19.039263851640648
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 10.521248573633784
+            },
+            {
+              "pid": 15804,
+              "name": "backboardd",
+              "cpu_percent": 8.200202082535107
+            },
+            {
+              "pid": 24349,
+              "name": "audio",
+              "cpu_percent": 7.268325616371143
+            },
+            {
+              "pid": 36560,
+              "name": "com.apple.WebKit.WebContent",
+              "cpu_percent": 6.060705134858513
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 240.11090338448398,
+          "maximum_process_percent": 16.501898886149707,
+          "top_processes": [
+            {
+              "pid": 702,
+              "name": "replayd",
+              "cpu_percent": 16.501898886149707
+            },
+            {
+              "pid": 1882,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 14.278067056887407
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 12.799042996256844
+            },
+            {
+              "pid": 15804,
+              "name": "backboardd",
+              "cpu_percent": 8.16602849637273
+            },
+            {
+              "pid": 24349,
+              "name": "audio",
+              "cpu_percent": 7.50481773985875
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 224.31243751652406,
+          "maximum_process_percent": 15.998180155957547,
+          "top_processes": [
+            {
+              "pid": 1882,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 15.998180155957547
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 12.56162647290368
+            },
+            {
+              "pid": 15804,
+              "name": "backboardd",
+              "cpu_percent": 8.50650068890057
+            },
+            {
+              "pid": 24349,
+              "name": "audio",
+              "cpu_percent": 7.52759899614812
+            },
+            {
+              "pid": 24523,
+              "name": "audio",
+              "cpu_percent": 7.437233022966505
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 173.38952660402532,
+          "maximum_process_percent": 15.335862407111062,
+          "top_processes": [
+            {
+              "pid": 1882,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 15.335862407111062
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 11.982795239765025
+            },
+            {
+              "pid": 15804,
+              "name": "backboardd",
+              "cpu_percent": 8.166584725512642
+            },
+            {
+              "pid": 24349,
+              "name": "audio",
+              "cpu_percent": 7.368172438652065
+            },
+            {
+              "pid": 24523,
+              "name": "audio",
+              "cpu_percent": 6.80567615516852
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 251.35627657557134,
+          "maximum_process_percent": 13.780201826196334,
+          "top_processes": [
+            {
+              "pid": 1882,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 13.780201826196334
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 12.86265308391169
+            },
+            {
+              "pid": 24523,
+              "name": "audio",
+              "cpu_percent": 7.266284583636507
+            },
+            {
+              "pid": 24349,
+              "name": "audio",
+              "cpu_percent": 7.22781768198634
+            },
+            {
+              "pid": 15804,
+              "name": "backboardd",
+              "cpu_percent": 6.885575395259434
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 234.85301654889545,
+          "maximum_process_percent": 14.39541787950354,
+          "top_processes": [
+            {
+              "pid": 1882,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 14.39541787950354
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 11.088168703677546
+            },
+            {
+              "pid": 24349,
+              "name": "audio",
+              "cpu_percent": 8.24907239966634
+            },
+            {
+              "pid": 15804,
+              "name": "backboardd",
+              "cpu_percent": 8.017070775032419
+            },
+            {
+              "pid": 635,
+              "name": "BiomeAgent",
+              "cpu_percent": 6.526790420394219
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 236.20249431655003,
+          "maximum_process_percent": 17.17575703948048,
+          "top_processes": [
+            {
+              "pid": 1882,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 17.17575703948048
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 12.034208045996326
+            },
+            {
+              "pid": 15804,
+              "name": "backboardd",
+              "cpu_percent": 7.608829532303054
+            },
+            {
+              "pid": 24349,
+              "name": "audio",
+              "cpu_percent": 7.380641736802539
+            },
+            {
+              "pid": 642,
+              "name": "MenuBarAgent",
+              "cpu_percent": 7.152116670492942
+            }
+          ],
+          "new_or_exited_processes": 4
+        },
+        {
+          "total_percent": 233.3588143977825,
+          "maximum_process_percent": 22.79730504082746,
+          "top_processes": [
+            {
+              "pid": 1882,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 22.79730504082746
+            },
+            {
+              "pid": 36560,
+              "name": "com.apple.WebKit.WebContent",
+              "cpu_percent": 13.636628403617955
+            },
+            {
+              "pid": 36557,
+              "name": "lumapaint",
+              "cpu_percent": 11.421567793675754
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 11.171785017228673
+            },
+            {
+              "pid": 1608,
+              "name": "codex",
+              "cpu_percent": 7.023295834627706
+            }
+          ],
+          "new_or_exited_processes": 4
+        },
+        {
+          "total_percent": 286.6230741033186,
+          "maximum_process_percent": 29.33586671554403,
+          "top_processes": [
+            {
+              "pid": 702,
+              "name": "replayd",
+              "cpu_percent": 29.33586671554403
+            },
+            {
+              "pid": 1882,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 17.997583095862407
+            },
+            {
+              "pid": 634,
+              "name": "WindowManager",
+              "cpu_percent": 9.311957243027482
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 8.42961071762139
+            },
+            {
+              "pid": 36560,
+              "name": "com.apple.WebKit.WebContent",
+              "cpu_percent": 7.712169892753167
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 241.87919257025263,
+          "maximum_process_percent": 19.914205697018847,
+          "top_processes": [
+            {
+              "pid": 1882,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 19.914205697018847
+            },
+            {
+              "pid": 702,
+              "name": "replayd",
+              "cpu_percent": 18.806522685426746
+            },
+            {
+              "pid": 634,
+              "name": "WindowManager",
+              "cpu_percent": 18.76461061777399
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 10.896943327305246
+            },
+            {
+              "pid": 36560,
+              "name": "com.apple.WebKit.WebContent",
+              "cpu_percent": 10.167862148727506
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 260.75980330855555,
+          "maximum_process_percent": 19.333262750582016,
+          "top_processes": [
+            {
+              "pid": 1882,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 19.333262750582016
+            },
+            {
+              "pid": 702,
+              "name": "replayd",
+              "cpu_percent": 15.222148920373764
+            },
+            {
+              "pid": 36560,
+              "name": "com.apple.WebKit.WebContent",
+              "cpu_percent": 10.387299927430728
+            },
+            {
+              "pid": 36557,
+              "name": "lumapaint",
+              "cpu_percent": 9.869093947195774
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 8.878494377640614
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 222.17242384539747,
+          "maximum_process_percent": 16.479259909699334,
+          "top_processes": [
+            {
+              "pid": 1882,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 16.479259909699334
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 13.04648982951706
+            },
+            {
+              "pid": 24349,
+              "name": "audio",
+              "cpu_percent": 8.571352374321604
+            },
+            {
+              "pid": 645,
+              "name": "Finder",
+              "cpu_percent": 7.980784515405768
+            },
+            {
+              "pid": 15804,
+              "name": "backboardd",
+              "cpu_percent": 7.931885194609026
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 259.5925946642248,
+          "maximum_process_percent": 22.89526266463845,
+          "top_processes": [
+            {
+              "pid": 645,
+              "name": "Finder",
+              "cpu_percent": 22.89526266463845
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 13.279075130280464
+            },
+            {
+              "pid": 1882,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 12.782872538666423
+            },
+            {
+              "pid": 24349,
+              "name": "audio",
+              "cpu_percent": 8.562511134466378
+            },
+            {
+              "pid": 15804,
+              "name": "backboardd",
+              "cpu_percent": 8.232589198554066
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 214.02645646153158,
+          "maximum_process_percent": 12.922618176338014,
+          "top_processes": [
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 12.922618176338014
+            },
+            {
+              "pid": 1882,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 12.416446723457474
+            },
+            {
+              "pid": 24349,
+              "name": "audio",
+              "cpu_percent": 7.584186422620788
+            },
+            {
+              "pid": 15804,
+              "name": "backboardd",
+              "cpu_percent": 7.27697694143799
+            },
+            {
+              "pid": 24523,
+              "name": "audio",
+              "cpu_percent": 7.112890487779064
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 233.37245279812583,
+          "maximum_process_percent": 20.181066786427785,
+          "top_processes": [
+            {
+              "pid": 1882,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 20.181066786427785
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 13.459963759808604
+            },
+            {
+              "pid": 24349,
+              "name": "audio",
+              "cpu_percent": 8.463625212175469
+            },
+            {
+              "pid": 15804,
+              "name": "backboardd",
+              "cpu_percent": 8.1284957285206
+            },
+            {
+              "pid": 24523,
+              "name": "audio",
+              "cpu_percent": 7.488273732985243
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 354.19528642217665,
+          "maximum_process_percent": 23.995281977839493,
+          "top_processes": [
+            {
+              "pid": 933,
+              "name": "ChatGPT",
+              "cpu_percent": 23.995281977839493
+            },
+            {
+              "pid": 1607,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 23.799881895890913
+            },
+            {
+              "pid": 13952,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 15.428820853572825
+            },
+            {
+              "pid": 1882,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 11.365486593576971
+            },
+            {
+              "pid": 642,
+              "name": "MenuBarAgent",
+              "cpu_percent": 9.420244597006498
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 367.5372634938048,
+          "maximum_process_percent": 101.5943713850389,
+          "top_processes": [
+            {
+              "pid": 1607,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 101.5943713850389
+            },
+            {
+              "pid": 933,
+              "name": "ChatGPT",
+              "cpu_percent": 13.387184805441496
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 10.479120185495693
+            },
+            {
+              "pid": 13952,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 9.49654625327148
+            },
+            {
+              "pid": 13878,
+              "name": "Brave Browser",
+              "cpu_percent": 7.147147297768917
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 301.5655677129964,
+          "maximum_process_percent": 36.169527160539204,
+          "top_processes": [
+            {
+              "pid": 16028,
+              "name": "com.apple.MapKit.SnapshotService",
+              "cpu_percent": 36.169527160539204
+            },
+            {
+              "pid": 13878,
+              "name": "Brave Browser",
+              "cpu_percent": 18.596605942736787
+            },
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 17.521527221930768
+            },
+            {
+              "pid": 13952,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 13.829573018369882
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 10.805891002104033
+            }
+          ],
+          "new_or_exited_processes": 4
+        },
+        {
+          "total_percent": 502.590326522474,
+          "maximum_process_percent": 30.354469011948055,
+          "top_processes": [
+            {
+              "pid": 677,
+              "name": "fontd",
+              "cpu_percent": 30.354469011948055
+            },
+            {
+              "pid": 13878,
+              "name": "Brave Browser",
+              "cpu_percent": 29.398010056441905
+            },
+            {
+              "pid": 36787,
+              "name": "Stocks",
+              "cpu_percent": 28.065797942995378
+            },
+            {
+              "pid": 36126,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 24.420064810142218
+            },
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 24.32262825177841
+            }
+          ],
+          "new_or_exited_processes": 14
+        },
+        {
+          "total_percent": 242.16616243726875,
+          "maximum_process_percent": 19.173708299287398,
+          "top_processes": [
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 19.173708299287398
+            },
+            {
+              "pid": 13878,
+              "name": "Brave Browser",
+              "cpu_percent": 14.790058046274456
+            },
+            {
+              "pid": 36126,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 13.825766751678737
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 10.043586529953517
+            },
+            {
+              "pid": 15804,
+              "name": "backboardd",
+              "cpu_percent": 7.406532192084738
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 203.90493389587016,
+          "maximum_process_percent": 14.52213608506935,
+          "top_processes": [
+            {
+              "pid": 13878,
+              "name": "Brave Browser",
+              "cpu_percent": 14.52213608506935
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 12.652059428203703
+            },
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 7.818940078117831
+            },
+            {
+              "pid": 24349,
+              "name": "audio",
+              "cpu_percent": 7.79900929766481
+            },
+            {
+              "pid": 1882,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 7.4878993057243814
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 225.47940797581234,
+          "maximum_process_percent": 26.895712908355396,
+          "top_processes": [
+            {
+              "pid": 1607,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 26.895712908355396
+            },
+            {
+              "pid": 13878,
+              "name": "Brave Browser",
+              "cpu_percent": 13.571767911226226
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 10.956543494628349
+            },
+            {
+              "pid": 15804,
+              "name": "backboardd",
+              "cpu_percent": 6.812051592511635
+            },
+            {
+              "pid": 24349,
+              "name": "audio",
+              "cpu_percent": 6.752212364026451
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 253.40774761347632,
+          "maximum_process_percent": 31.622355631497147,
+          "top_processes": [
+            {
+              "pid": 1607,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 31.622355631497147
+            },
+            {
+              "pid": 13878,
+              "name": "Brave Browser",
+              "cpu_percent": 14.98888431608561
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 11.836182590608198
+            },
+            {
+              "pid": 1006,
+              "name": "Codex (Service)",
+              "cpu_percent": 10.218890045911293
+            },
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 8.097611162706116
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 212.65624413624053,
+          "maximum_process_percent": 18.939060069085567,
+          "top_processes": [
+            {
+              "pid": 933,
+              "name": "ChatGPT",
+              "cpu_percent": 18.939060069085567
+            },
+            {
+              "pid": 13878,
+              "name": "Brave Browser",
+              "cpu_percent": 13.610946407305606
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 11.805621378822957
+            },
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 8.293815423480531
+            },
+            {
+              "pid": 24349,
+              "name": "audio",
+              "cpu_percent": 6.78729497806877
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 226.0900366585221,
+          "maximum_process_percent": 10.483809395789747,
+          "top_processes": [
+            {
+              "pid": 933,
+              "name": "ChatGPT",
+              "cpu_percent": 10.483809395789747
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 10.247190392268827
+            },
+            {
+              "pid": 24349,
+              "name": "audio",
+              "cpu_percent": 7.838287980983547
+            },
+            {
+              "pid": 15804,
+              "name": "backboardd",
+              "cpu_percent": 7.728294163046034
+            },
+            {
+              "pid": 13878,
+              "name": "Brave Browser",
+              "cpu_percent": 6.257174096400916
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 319.14581960815633,
+          "maximum_process_percent": 67.55865890873258,
+          "top_processes": [
+            {
+              "pid": 13973,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 67.55865890873258
+            },
+            {
+              "pid": 702,
+              "name": "replayd",
+              "cpu_percent": 17.900346759738873
+            },
+            {
+              "pid": 36560,
+              "name": "com.apple.WebKit.WebContent",
+              "cpu_percent": 15.92549300576234
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 11.727530824601628
+            },
+            {
+              "pid": 1882,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 10.96270882367503
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 250.73512510913287,
+          "maximum_process_percent": 21.70055018514515,
+          "top_processes": [
+            {
+              "pid": 1882,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 21.70055018514515
+            },
+            {
+              "pid": 36560,
+              "name": "com.apple.WebKit.WebContent",
+              "cpu_percent": 13.890754694634014
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 10.34142017252738
+            },
+            {
+              "pid": 702,
+              "name": "replayd",
+              "cpu_percent": 7.482066326292415
+            },
+            {
+              "pid": 1607,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 7.174738107254659
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 227.86678550156577,
+          "maximum_process_percent": 14.675769361089602,
+          "top_processes": [
+            {
+              "pid": 1882,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 14.675769361089602
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 9.511023091268946
+            },
+            {
+              "pid": 13878,
+              "name": "Brave Browser",
+              "cpu_percent": 7.611085701402823
+            },
+            {
+              "pid": 36560,
+              "name": "com.apple.WebKit.WebContent",
+              "cpu_percent": 6.581834863747314
+            },
+            {
+              "pid": 24349,
+              "name": "audio",
+              "cpu_percent": 5.822242502590043
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 213.3361901298736,
+          "maximum_process_percent": 13.571524143938987,
+          "top_processes": [
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 13.571524143938987
+            },
+            {
+              "pid": 24349,
+              "name": "audio",
+              "cpu_percent": 8.09196027329952
+            },
+            {
+              "pid": 15804,
+              "name": "backboardd",
+              "cpu_percent": 8.067939541815845
+            },
+            {
+              "pid": 24523,
+              "name": "audio",
+              "cpu_percent": 7.761533360795872
+            },
+            {
+              "pid": 13878,
+              "name": "Brave Browser",
+              "cpu_percent": 6.6516620828668325
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 221.95758369915683,
+          "maximum_process_percent": 9.625171276422904,
+          "top_processes": [
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 9.625171276422904
+            },
+            {
+              "pid": 15804,
+              "name": "backboardd",
+              "cpu_percent": 7.164462194081378
+            },
+            {
+              "pid": 24349,
+              "name": "audio",
+              "cpu_percent": 6.938120717856078
+            },
+            {
+              "pid": 1607,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 6.476384106361282
+            },
+            {
+              "pid": 24523,
+              "name": "audio",
+              "cpu_percent": 5.438797055772652
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 193.1053571335194,
+          "maximum_process_percent": 13.460624829161016,
+          "top_processes": [
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 13.460624829161016
+            },
+            {
+              "pid": 1607,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 9.298859368033698
+            },
+            {
+              "pid": 13878,
+              "name": "Brave Browser",
+              "cpu_percent": 8.885488845053736
+            },
+            {
+              "pid": 24349,
+              "name": "audio",
+              "cpu_percent": 8.321836008949491
+            },
+            {
+              "pid": 15804,
+              "name": "backboardd",
+              "cpu_percent": 7.783041901325958
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 246.99566386495266,
+          "maximum_process_percent": 13.697887001220709,
+          "top_processes": [
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 13.697887001220709
+            },
+            {
+              "pid": 13878,
+              "name": "Brave Browser",
+              "cpu_percent": 13.278864387233295
+            },
+            {
+              "pid": 24349,
+              "name": "audio",
+              "cpu_percent": 8.811743573994436
+            },
+            {
+              "pid": 15804,
+              "name": "backboardd",
+              "cpu_percent": 8.061844094088626
+            },
+            {
+              "pid": 24523,
+              "name": "audio",
+              "cpu_percent": 7.495219820571357
+            }
+          ],
+          "new_or_exited_processes": 3
+        },
+        {
+          "total_percent": 245.32689524719217,
+          "maximum_process_percent": 15.683307931480353,
+          "top_processes": [
+            {
+              "pid": 13970,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 15.683307931480353
+            },
+            {
+              "pid": 702,
+              "name": "replayd",
+              "cpu_percent": 12.336343719370094
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 11.35792841336066
+            },
+            {
+              "pid": 13878,
+              "name": "Brave Browser",
+              "cpu_percent": 9.528782887594385
+            },
+            {
+              "pid": 24523,
+              "name": "audio",
+              "cpu_percent": 6.7034670290367435
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 245.18237891754333,
+          "maximum_process_percent": 18.376553307933865,
+          "top_processes": [
+            {
+              "pid": 13878,
+              "name": "Brave Browser",
+              "cpu_percent": 18.376553307933865
+            },
+            {
+              "pid": 36789,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 12.577560322305729
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 12.404997595103092
+            },
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 10.678961561032569
+            },
+            {
+              "pid": 15804,
+              "name": "backboardd",
+              "cpu_percent": 7.7297896209536665
+            }
+          ],
+          "new_or_exited_processes": 3
+        },
+        {
+          "total_percent": 252.6370250341294,
+          "maximum_process_percent": 20.501933480092205,
+          "top_processes": [
+            {
+              "pid": 36789,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 20.501933480092205
+            },
+            {
+              "pid": 13878,
+              "name": "Brave Browser",
+              "cpu_percent": 19.737974778017
+            },
+            {
+              "pid": 1607,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 8.757817038199612
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 8.206623085826076
+            },
+            {
+              "pid": 24349,
+              "name": "audio",
+              "cpu_percent": 6.237445938341344
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 282.8797776318003,
+          "maximum_process_percent": 37.8771511310176,
+          "top_processes": [
+            {
+              "pid": 36789,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 37.8771511310176
+            },
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 22.010960645302884
+            },
+            {
+              "pid": 13878,
+              "name": "Brave Browser",
+              "cpu_percent": 13.711898441433853
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 10.914413848144777
+            },
+            {
+              "pid": 24523,
+              "name": "audio",
+              "cpu_percent": 6.256460556660842
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 268.8135688488626,
+          "maximum_process_percent": 30.234219155193774,
+          "top_processes": [
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 30.234219155193774
+            },
+            {
+              "pid": 36789,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 25.959105441135065
+            },
+            {
+              "pid": 13878,
+              "name": "Brave Browser",
+              "cpu_percent": 15.67438095258963
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 13.510085740180553
+            },
+            {
+              "pid": 24349,
+              "name": "audio",
+              "cpu_percent": 8.688826972749734
+            }
+          ],
+          "new_or_exited_processes": 4
+        },
+        {
+          "total_percent": 271.5069862312679,
+          "maximum_process_percent": 15.116816324005494,
+          "top_processes": [
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 15.116816324005494
+            },
+            {
+              "pid": 13878,
+              "name": "Brave Browser",
+              "cpu_percent": 14.301663901639031
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 11.088824513532147
+            },
+            {
+              "pid": 36789,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 10.56295858643711
+            },
+            {
+              "pid": 24349,
+              "name": "audio",
+              "cpu_percent": 7.518472190067607
+            }
+          ],
+          "new_or_exited_processes": 3
+        },
+        {
+          "total_percent": 283.31102582504616,
+          "maximum_process_percent": 19.30377866255884,
+          "top_processes": [
+            {
+              "pid": 36789,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 19.30377866255884
+            },
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 18.00945641981301
+            },
+            {
+              "pid": 13878,
+              "name": "Brave Browser",
+              "cpu_percent": 10.604480342927207
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 10.006928085991335
+            },
+            {
+              "pid": 24349,
+              "name": "audio",
+              "cpu_percent": 7.586012558259525
+            }
+          ],
+          "new_or_exited_processes": 3
+        },
+        {
+          "total_percent": 215.1205759294543,
+          "maximum_process_percent": 16.33928693026412,
+          "top_processes": [
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 16.33928693026412
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 14.460173157857222
+            },
+            {
+              "pid": 36789,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 12.141246677400966
+            },
+            {
+              "pid": 24349,
+              "name": "audio",
+              "cpu_percent": 9.84801195379423
+            },
+            {
+              "pid": 15804,
+              "name": "backboardd",
+              "cpu_percent": 8.241283480511616
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 238.73464180165104,
+          "maximum_process_percent": 23.924651837014647,
+          "top_processes": [
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 23.924651837014647
+            },
+            {
+              "pid": 36789,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 19.189486821021095
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 13.529917675029568
+            },
+            {
+              "pid": 1607,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 9.3987546211122
+            },
+            {
+              "pid": 24349,
+              "name": "audio",
+              "cpu_percent": 9.24735666967655
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 316.11616968567245,
+          "maximum_process_percent": 28.119174347707485,
+          "top_processes": [
+            {
+              "pid": 36789,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 28.119174347707485
+            },
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 24.146735053586887
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 13.305697159003737
+            },
+            {
+              "pid": 13878,
+              "name": "Brave Browser",
+              "cpu_percent": 10.41043768100955
+            },
+            {
+              "pid": 1607,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 9.43707041500248
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 248.24322664467144,
+          "maximum_process_percent": 18.988819487090122,
+          "top_processes": [
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 18.988819487090122
+            },
+            {
+              "pid": 36789,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 12.846735924800589
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 12.341846814418698
+            },
+            {
+              "pid": 13878,
+              "name": "Brave Browser",
+              "cpu_percent": 9.967762937116754
+            },
+            {
+              "pid": 24523,
+              "name": "audio",
+              "cpu_percent": 6.795449203286266
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 334.54117805923346,
+          "maximum_process_percent": 15.30044673630494,
+          "top_processes": [
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 15.30044673630494
+            },
+            {
+              "pid": 36789,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 13.188667324154617
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 11.619061418098273
+            },
+            {
+              "pid": 13878,
+              "name": "Brave Browser",
+              "cpu_percent": 10.011852336053195
+            },
+            {
+              "pid": 24349,
+              "name": "audio",
+              "cpu_percent": 8.806541214511258
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 352.68388968298945,
+          "maximum_process_percent": 86.87666957012681,
+          "top_processes": [
+            {
+              "pid": 1607,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 86.87666957012681
+            },
+            {
+              "pid": 36560,
+              "name": "com.apple.WebKit.WebContent",
+              "cpu_percent": 15.294031070935372
+            },
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 15.263782549325574
+            },
+            {
+              "pid": 1882,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 12.399425070875184
+            },
+            {
+              "pid": 36789,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 10.96941974612648
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 225.82353857504273,
+          "maximum_process_percent": 14.149403530039743,
+          "top_processes": [
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 14.149403530039743
+            },
+            {
+              "pid": 36789,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 13.461261299727234
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 13.291212614480328
+            },
+            {
+              "pid": 13878,
+              "name": "Brave Browser",
+              "cpu_percent": 9.100431484314635
+            },
+            {
+              "pid": 24349,
+              "name": "audio",
+              "cpu_percent": 8.967826403220707
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 259.12465347929657,
+          "maximum_process_percent": 15.079828739489267,
+          "top_processes": [
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 15.079828739489267
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 11.399389624224172
+            },
+            {
+              "pid": 36789,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 11.214566798076662
+            },
+            {
+              "pid": 1882,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 11.085132097144337
+            },
+            {
+              "pid": 24349,
+              "name": "audio",
+              "cpu_percent": 7.286090982485423
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 349.9976687353531,
+          "maximum_process_percent": 40.80833490382247,
+          "top_processes": [
+            {
+              "pid": 1458,
+              "name": "icloudmailagent",
+              "cpu_percent": 40.80833490382247
+            },
+            {
+              "pid": 770,
+              "name": "contactsd",
+              "cpu_percent": 39.60883782676656
+            },
+            {
+              "pid": 756,
+              "name": "Mail",
+              "cpu_percent": 22.73531096463004
+            },
+            {
+              "pid": 36789,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 17.32313816069937
+            },
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 14.929984394351221
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 346.0866764921842,
+          "maximum_process_percent": 39.73670576412275,
+          "top_processes": [
+            {
+              "pid": 1458,
+              "name": "icloudmailagent",
+              "cpu_percent": 39.73670576412275
+            },
+            {
+              "pid": 770,
+              "name": "contactsd",
+              "cpu_percent": 33.82748117618743
+            },
+            {
+              "pid": 756,
+              "name": "Mail",
+              "cpu_percent": 24.70413637722396
+            },
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 18.615649711905984
+            },
+            {
+              "pid": 36789,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 15.154439658850606
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 242.01521414702813,
+          "maximum_process_percent": 22.19889243133428,
+          "top_processes": [
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 22.19889243133428
+            },
+            {
+              "pid": 36789,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 19.459205740974145
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 13.883458178665743
+            },
+            {
+              "pid": 1882,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 11.979410555658653
+            },
+            {
+              "pid": 24349,
+              "name": "audio",
+              "cpu_percent": 8.954056553139697
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 247.016361492297,
+          "maximum_process_percent": 24.568108689946158,
+          "top_processes": [
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 24.568108689946158
+            },
+            {
+              "pid": 36789,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 20.534999556992375
+            },
+            {
+              "pid": 1882,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 14.472215233272786
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 14.293643787419239
+            },
+            {
+              "pid": 24349,
+              "name": "audio",
+              "cpu_percent": 9.29609724517399
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 320.0238556666258,
+          "maximum_process_percent": 24.0876241843734,
+          "top_processes": [
+            {
+              "pid": 36789,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 24.0876241843734
+            },
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 23.530500095373817
+            },
+            {
+              "pid": 702,
+              "name": "replayd",
+              "cpu_percent": 12.0111700278099
+            },
+            {
+              "pid": 1882,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 12.002103853429501
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 11.247344836081231
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 259.5421076120855,
+          "maximum_process_percent": 25.816684847832434,
+          "top_processes": [
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 25.816684847832434
+            },
+            {
+              "pid": 36789,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 21.016649193950187
+            },
+            {
+              "pid": 1882,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 13.269261494032975
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 12.909099067668686
+            },
+            {
+              "pid": 13878,
+              "name": "Brave Browser",
+              "cpu_percent": 9.142148144022059
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 501.5932617738712,
+          "maximum_process_percent": 27.96411498672556,
+          "top_processes": [
+            {
+              "pid": 1483,
+              "name": "hybridsearchd",
+              "cpu_percent": 27.96411498672556
+            },
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 25.042943836775628
+            },
+            {
+              "pid": 762,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 17.29738081592361
+            },
+            {
+              "pid": 36789,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 13.682531123972245
+            },
+            {
+              "pid": 721,
+              "name": "mediaanalysisd",
+              "cpu_percent": 12.39032787557004
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 402.320430664315,
+          "maximum_process_percent": 35.66245895650091,
+          "top_processes": [
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 35.66245895650091
+            },
+            {
+              "pid": 36789,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 16.66230602145713
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 11.771606277493031
+            },
+            {
+              "pid": 1882,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 10.738467986839526
+            },
+            {
+              "pid": 875,
+              "name": "generativeexperiencesd",
+              "cpu_percent": 8.634379898532607
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 490.5636564054036,
+          "maximum_process_percent": 36.579280410137976,
+          "top_processes": [
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 36.579280410137976
+            },
+            {
+              "pid": 36789,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 16.335302979551727
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 12.590015957228694
+            },
+            {
+              "pid": 875,
+              "name": "generativeexperiencesd",
+              "cpu_percent": 10.732058138070329
+            },
+            {
+              "pid": 1882,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 10.593986767135753
+            }
+          ],
+          "new_or_exited_processes": 3
+        },
+        {
+          "total_percent": 411.5034433124498,
+          "maximum_process_percent": 41.162921943223836,
+          "top_processes": [
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 41.162921943223836
+            },
+            {
+              "pid": 36789,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 16.52429536351954
+            },
+            {
+              "pid": 1882,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 11.113081919411318
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 11.093052219971499
+            },
+            {
+              "pid": 1607,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 9.750117560360739
+            }
+          ],
+          "new_or_exited_processes": 3
+        },
+        {
+          "total_percent": 351.7691650287593,
+          "maximum_process_percent": 36.351356488485614,
+          "top_processes": [
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 36.351356488485614
+            },
+            {
+              "pid": 36789,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 14.159075318607155
+            },
+            {
+              "pid": 1882,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 10.442384920259197
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 9.944467392796827
+            },
+            {
+              "pid": 24349,
+              "name": "audio",
+              "cpu_percent": 6.924693269972854
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 340.65579173774216,
+          "maximum_process_percent": 31.70301955252714,
+          "top_processes": [
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 31.70301955252714
+            },
+            {
+              "pid": 36789,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 14.582638037394643
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 11.89127929232376
+            },
+            {
+              "pid": 1882,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 10.215753533297292
+            },
+            {
+              "pid": 15804,
+              "name": "backboardd",
+              "cpu_percent": 7.59148163807643
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 325.5129912999546,
+          "maximum_process_percent": 19.17838593738849,
+          "top_processes": [
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 19.17838593738849
+            },
+            {
+              "pid": 36789,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 11.710857506578847
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 11.406335215915618
+            },
+            {
+              "pid": 1882,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 8.550502222514915
+            },
+            {
+              "pid": 13878,
+              "name": "Brave Browser",
+              "cpu_percent": 8.04928672427639
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 374.7537964671107,
+          "maximum_process_percent": 26.194443612283592,
+          "top_processes": [
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 26.194443612283592
+            },
+            {
+              "pid": 36789,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 12.259844136694234
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 11.680536921642364
+            },
+            {
+              "pid": 1607,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 10.225477248391897
+            },
+            {
+              "pid": 1882,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 8.421487788564875
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 359.78569914780434,
+          "maximum_process_percent": 25.559605573284557,
+          "top_processes": [
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 25.559605573284557
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 11.88108569995423
+            },
+            {
+              "pid": 36789,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 11.038636859606111
+            },
+            {
+              "pid": 1882,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 7.951775480677629
+            },
+            {
+              "pid": 24349,
+              "name": "audio",
+              "cpu_percent": 6.798027377035928
+            }
+          ],
+          "new_or_exited_processes": 3
+        },
+        {
+          "total_percent": 657.3643602037969,
+          "maximum_process_percent": 134.4768856390895,
+          "top_processes": [
+            {
+              "pid": 1483,
+              "name": "hybridsearchd",
+              "cpu_percent": 134.4768856390895
+            },
+            {
+              "pid": 756,
+              "name": "Mail",
+              "cpu_percent": 72.2228924292569
+            },
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 27.852694512081925
+            },
+            {
+              "pid": 36789,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 9.050827758560137
+            },
+            {
+              "pid": 635,
+              "name": "BiomeAgent",
+              "cpu_percent": 8.44350125253612
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 486.20732204135555,
+          "maximum_process_percent": 43.908926444847935,
+          "top_processes": [
+            {
+              "pid": 756,
+              "name": "Mail",
+              "cpu_percent": 43.908926444847935
+            },
+            {
+              "pid": 1483,
+              "name": "hybridsearchd",
+              "cpu_percent": 33.841742269972144
+            },
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 31.352312537291358
+            },
+            {
+              "pid": 762,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 21.070588062398624
+            },
+            {
+              "pid": 36789,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 11.247415135545868
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 338.2061387590311,
+          "maximum_process_percent": 38.34050658750122,
+          "top_processes": [
+            {
+              "pid": 756,
+              "name": "Mail",
+              "cpu_percent": 38.34050658750122
+            },
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 36.631947992951055
+            },
+            {
+              "pid": 762,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 14.485151294750443
+            },
+            {
+              "pid": 36789,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 13.54157381315029
+            },
+            {
+              "pid": 1483,
+              "name": "hybridsearchd",
+              "cpu_percent": 13.23076531255397
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 340.17895875091347,
+          "maximum_process_percent": 40.62118954376872,
+          "top_processes": [
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 40.62118954376872
+            },
+            {
+              "pid": 36789,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 15.18652008599876
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 11.071430651691978
+            },
+            {
+              "pid": 24349,
+              "name": "audio",
+              "cpu_percent": 6.943515636410659
+            },
+            {
+              "pid": 15804,
+              "name": "backboardd",
+              "cpu_percent": 6.863596012533687
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 462.2459668926997,
+          "maximum_process_percent": 159.8676127551218,
+          "top_processes": [
+            {
+              "pid": 756,
+              "name": "Mail",
+              "cpu_percent": 159.8676127551218
+            },
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 31.893698054473894
+            },
+            {
+              "pid": 36789,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 11.553969396600703
+            },
+            {
+              "pid": 36864,
+              "name": "com.apple.WebKit.WebContent.EnhancedSecurity",
+              "cpu_percent": 10.196818238184333
+            },
+            {
+              "pid": 762,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 9.540726752862842
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 429.94798848910364,
+          "maximum_process_percent": 106.15872597749981,
+          "top_processes": [
+            {
+              "pid": 756,
+              "name": "Mail",
+              "cpu_percent": 106.15872597749981
+            },
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 30.878131495095236
+            },
+            {
+              "pid": 36864,
+              "name": "com.apple.WebKit.WebContent.EnhancedSecurity",
+              "cpu_percent": 20.84048180039053
+            },
+            {
+              "pid": 762,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 11.79498267285554
+            },
+            {
+              "pid": 36789,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 11.550131639122334
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 343.6589971093096,
+          "maximum_process_percent": 50.716161882724144,
+          "top_processes": [
+            {
+              "pid": 756,
+              "name": "Mail",
+              "cpu_percent": 50.716161882724144
+            },
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 41.93505187734727
+            },
+            {
+              "pid": 1483,
+              "name": "hybridsearchd",
+              "cpu_percent": 15.986289500185157
+            },
+            {
+              "pid": 36789,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 15.436013221642735
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 12.708966050046106
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 314.0104969634136,
+          "maximum_process_percent": 40.45340986750341,
+          "top_processes": [
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 40.45340986750341
+            },
+            {
+              "pid": 756,
+              "name": "Mail",
+              "cpu_percent": 17.33995063153838
+            },
+            {
+              "pid": 36789,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 15.36575613941559
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 14.041314746001127
+            },
+            {
+              "pid": 1882,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 12.137682556371363
+            }
+          ],
+          "new_or_exited_processes": 7
+        },
+        {
+          "total_percent": 341.09282457926935,
+          "maximum_process_percent": 53.70603205808978,
+          "top_processes": [
+            {
+              "pid": 756,
+              "name": "Mail",
+              "cpu_percent": 53.70603205808978
+            },
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 40.44180699950206
+            },
+            {
+              "pid": 36789,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 15.663394390358782
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 12.30177768598001
+            },
+            {
+              "pid": 1882,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 10.790557376376967
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 332.1946800799971,
+          "maximum_process_percent": 56.35990158266674,
+          "top_processes": [
+            {
+              "pid": 756,
+              "name": "Mail",
+              "cpu_percent": 56.35990158266674
+            },
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 40.20701663283479
+            },
+            {
+              "pid": 36789,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 15.586675913998098
+            },
+            {
+              "pid": 1607,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 13.125491066074467
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 11.743800078522487
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 305.17803018578485,
+          "maximum_process_percent": 42.19157598091863,
+          "top_processes": [
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 42.19157598091863
+            },
+            {
+              "pid": 36789,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 15.582475524079259
+            },
+            {
+              "pid": 1483,
+              "name": "hybridsearchd",
+              "cpu_percent": 14.733918819037479
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 13.119449090262325
+            },
+            {
+              "pid": 1882,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 12.318614875462782
+            }
+          ],
+          "new_or_exited_processes": 4
+        },
+        {
+          "total_percent": 372.7400471091287,
+          "maximum_process_percent": 102.0048709152539,
+          "top_processes": [
+            {
+              "pid": 756,
+              "name": "Mail",
+              "cpu_percent": 102.0048709152539
+            },
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 37.33113948628597
+            },
+            {
+              "pid": 36789,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 15.094965140739731
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 12.340922528590854
+            },
+            {
+              "pid": 1882,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 11.008423360412868
+            }
+          ],
+          "new_or_exited_processes": 3
+        },
+        {
+          "total_percent": 326.558486511913,
+          "maximum_process_percent": 52.627748275163086,
+          "top_processes": [
+            {
+              "pid": 756,
+              "name": "Mail",
+              "cpu_percent": 52.627748275163086
+            },
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 36.77159186650551
+            },
+            {
+              "pid": 36789,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 14.537697864246699
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 10.72308608759124
+            },
+            {
+              "pid": 1882,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 10.223173572431326
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 415.472995586902,
+          "maximum_process_percent": 76.49934811575727,
+          "top_processes": [
+            {
+              "pid": 756,
+              "name": "Mail",
+              "cpu_percent": 76.49934811575727
+            },
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 39.062336396408966
+            },
+            {
+              "pid": 1607,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 14.804917850860178
+            },
+            {
+              "pid": 36789,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 13.369259082033718
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 12.542244814796643
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 289.91774218183457,
+          "maximum_process_percent": 37.975971256743506,
+          "top_processes": [
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 37.975971256743506
+            },
+            {
+              "pid": 756,
+              "name": "Mail",
+              "cpu_percent": 23.184772278780322
+            },
+            {
+              "pid": 36789,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 13.899093185530198
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 10.576694027751987
+            },
+            {
+              "pid": 24349,
+              "name": "audio",
+              "cpu_percent": 8.486500128511334
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 263.732777834864,
+          "maximum_process_percent": 42.159945630497496,
+          "top_processes": [
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 42.159945630497496
+            },
+            {
+              "pid": 756,
+              "name": "Mail",
+              "cpu_percent": 18.723442616462986
+            },
+            {
+              "pid": 36789,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 15.856278546086289
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 14.002072607671185
+            },
+            {
+              "pid": 24349,
+              "name": "audio",
+              "cpu_percent": 8.967203630299489
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 269.93783837361764,
+          "maximum_process_percent": 39.17451708162664,
+          "top_processes": [
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 39.17451708162664
+            },
+            {
+              "pid": 36789,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 14.67620445431418
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 13.258173266535996
+            },
+            {
+              "pid": 756,
+              "name": "Mail",
+              "cpu_percent": 11.80354403561701
+            },
+            {
+              "pid": 24349,
+              "name": "audio",
+              "cpu_percent": 8.986078442427358
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 281.49019688271386,
+          "maximum_process_percent": 38.59433862873049,
+          "top_processes": [
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 38.59433862873049
+            },
+            {
+              "pid": 756,
+              "name": "Mail",
+              "cpu_percent": 24.263599979432694
+            },
+            {
+              "pid": 36789,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 14.246237691778514
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 12.457139898843284
+            },
+            {
+              "pid": 24349,
+              "name": "audio",
+              "cpu_percent": 7.351689624089887
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 342.0252457963149,
+          "maximum_process_percent": 40.67697139871504,
+          "top_processes": [
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 40.67697139871504
+            },
+            {
+              "pid": 756,
+              "name": "Mail",
+              "cpu_percent": 26.72576936666046
+            },
+            {
+              "pid": 36789,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 14.062325757842434
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 12.620502200924669
+            },
+            {
+              "pid": 1483,
+              "name": "hybridsearchd",
+              "cpu_percent": 12.371231989224492
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 289.2437367451545,
+          "maximum_process_percent": 39.765934345499545,
+          "top_processes": [
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 39.765934345499545
+            },
+            {
+              "pid": 756,
+              "name": "Mail",
+              "cpu_percent": 19.329224734954828
+            },
+            {
+              "pid": 36789,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 15.08516205681697
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 10.577180288376221
+            },
+            {
+              "pid": 24349,
+              "name": "audio",
+              "cpu_percent": 8.253321596672782
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 328.38334533508174,
+          "maximum_process_percent": 39.51166056422636,
+          "top_processes": [
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 39.51166056422636
+            },
+            {
+              "pid": 36789,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 14.411703957728266
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 12.444862606762575
+            },
+            {
+              "pid": 756,
+              "name": "Mail",
+              "cpu_percent": 8.508838062447456
+            },
+            {
+              "pid": 24349,
+              "name": "audio",
+              "cpu_percent": 6.747003994551911
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 278.45858630115094,
+          "maximum_process_percent": 39.48693470610095,
+          "top_processes": [
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 39.48693470610095
+            },
+            {
+              "pid": 756,
+              "name": "Mail",
+              "cpu_percent": 14.857947297601733
+            },
+            {
+              "pid": 36789,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 14.183106314019003
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 13.294938483170464
+            },
+            {
+              "pid": 24349,
+              "name": "audio",
+              "cpu_percent": 8.531850510790692
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 306.42265570852607,
+          "maximum_process_percent": 39.36789712631065,
+          "top_processes": [
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 39.36789712631065
+            },
+            {
+              "pid": 36789,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 15.22574072802837
+            },
+            {
+              "pid": 756,
+              "name": "Mail",
+              "cpu_percent": 14.007242798444574
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 11.137844024301724
+            },
+            {
+              "pid": 24349,
+              "name": "audio",
+              "cpu_percent": 7.181602046030766
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 314.37390472052545,
+          "maximum_process_percent": 39.81753289465792,
+          "top_processes": [
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 39.81753289465792
+            },
+            {
+              "pid": 756,
+              "name": "Mail",
+              "cpu_percent": 37.90623536314564
+            },
+            {
+              "pid": 36789,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 14.60143433094448
+            },
+            {
+              "pid": 1483,
+              "name": "hybridsearchd",
+              "cpu_percent": 13.426125032868116
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 10.489190122299622
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 365.01357310396116,
+          "maximum_process_percent": 40.985401750242524,
+          "top_processes": [
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 40.985401750242524
+            },
+            {
+              "pid": 756,
+              "name": "Mail",
+              "cpu_percent": 30.149572782115953
+            },
+            {
+              "pid": 36789,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 14.966559587996555
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 13.156460808369252
+            },
+            {
+              "pid": 875,
+              "name": "generativeexperiencesd",
+              "cpu_percent": 12.35401199713506
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 360.45092845537295,
+          "maximum_process_percent": 40.23452036098016,
+          "top_processes": [
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 40.23452036098016
+            },
+            {
+              "pid": 13970,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 21.20115784066307
+            },
+            {
+              "pid": 756,
+              "name": "Mail",
+              "cpu_percent": 15.766064478431753
+            },
+            {
+              "pid": 36789,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 14.417856091467485
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 13.226737876833504
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 342.2265610449197,
+          "maximum_process_percent": 37.98779080868778,
+          "top_processes": [
+            {
+              "pid": 756,
+              "name": "Mail",
+              "cpu_percent": 37.98779080868778
+            },
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 34.190027908840264
+            },
+            {
+              "pid": 762,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 27.458920772148446
+            },
+            {
+              "pid": 36789,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 13.189827899208732
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 12.011829542426769
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 300.03562344593837,
+          "maximum_process_percent": 41.66011072367611,
+          "top_processes": [
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 41.66011072367611
+            },
+            {
+              "pid": 36789,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 16.155823145498807
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 13.465240618598672
+            },
+            {
+              "pid": 756,
+              "name": "Mail",
+              "cpu_percent": 9.63932780721749
+            },
+            {
+              "pid": 24349,
+              "name": "audio",
+              "cpu_percent": 7.2636867487787
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 311.6637984789823,
+          "maximum_process_percent": 40.143371285520374,
+          "top_processes": [
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 40.143371285520374
+            },
+            {
+              "pid": 1483,
+              "name": "hybridsearchd",
+              "cpu_percent": 15.72557122509077
+            },
+            {
+              "pid": 36789,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 14.479222900144709
+            },
+            {
+              "pid": 756,
+              "name": "Mail",
+              "cpu_percent": 11.81086736977003
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 10.29531233885395
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 330.5988593962352,
+          "maximum_process_percent": 38.19985508056422,
+          "top_processes": [
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 38.19985508056422
+            },
+            {
+              "pid": 756,
+              "name": "Mail",
+              "cpu_percent": 19.338368432315146
+            },
+            {
+              "pid": 36789,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 13.80235943877201
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 12.795382066711339
+            },
+            {
+              "pid": 1483,
+              "name": "hybridsearchd",
+              "cpu_percent": 8.566896530622158
+            }
+          ],
+          "new_or_exited_processes": 3
+        },
+        {
+          "total_percent": 349.2098666065251,
+          "maximum_process_percent": 35.91005219949248,
+          "top_processes": [
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 35.91005219949248
+            },
+            {
+              "pid": 36789,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 13.961695731779903
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 13.17066738474046
+            },
+            {
+              "pid": 762,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 12.588520716134695
+            },
+            {
+              "pid": 635,
+              "name": "BiomeAgent",
+              "cpu_percent": 8.692855594576478
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 343.3650029372988,
+          "maximum_process_percent": 26.10531771977628,
+          "top_processes": [
+            {
+              "pid": 13952,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 26.10531771977628
+            },
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 23.54818489790204
+            },
+            {
+              "pid": 36560,
+              "name": "com.apple.WebKit.WebContent",
+              "cpu_percent": 13.3899835766559
+            },
+            {
+              "pid": 1882,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 12.784912011477596
+            },
+            {
+              "pid": 1607,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 12.098246639016947
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 272.0799682340244,
+          "maximum_process_percent": 41.863504724330156,
+          "top_processes": [
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 41.863504724330156
+            },
+            {
+              "pid": 36789,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 15.731934732736022
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 13.269411865080112
+            },
+            {
+              "pid": 1882,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 11.525730936693117
+            },
+            {
+              "pid": 1607,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 11.235938747615322
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 238.52664826927355,
+          "maximum_process_percent": 31.000373451070352,
+          "top_processes": [
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 31.000373451070352
+            },
+            {
+              "pid": 36789,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 13.57068375165016
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 10.980034815881515
+            },
+            {
+              "pid": 1882,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 10.517836225062386
+            },
+            {
+              "pid": 24349,
+              "name": "audio",
+              "cpu_percent": 8.23690496796645
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 350.04445043182767,
+          "maximum_process_percent": 98.78690664080548,
+          "top_processes": [
+            {
+              "pid": 1607,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 98.78690664080548
+            },
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 23.464538417600476
+            },
+            {
+              "pid": 13878,
+              "name": "Brave Browser",
+              "cpu_percent": 13.431792446106796
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 12.796250748869342
+            },
+            {
+              "pid": 36789,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 12.50786311138534
+            }
+          ],
+          "new_or_exited_processes": 4
+        },
+        {
+          "total_percent": 424.91795873508545,
+          "maximum_process_percent": 35.85725415726702,
+          "top_processes": [
+            {
+              "pid": 677,
+              "name": "fontd",
+              "cpu_percent": 35.85725415726702
+            },
+            {
+              "pid": 13878,
+              "name": "Brave Browser",
+              "cpu_percent": 24.3412549310688
+            },
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 19.29503962142579
+            },
+            {
+              "pid": 36789,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 14.295961877346658
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 11.092255586183594
+            }
+          ],
+          "new_or_exited_processes": 8
+        },
+        {
+          "total_percent": 349.05384591873536,
+          "maximum_process_percent": 47.82227574379751,
+          "top_processes": [
+            {
+              "pid": 36789,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 47.82227574379751
+            },
+            {
+              "pid": 13878,
+              "name": "Brave Browser",
+              "cpu_percent": 24.031036030843868
+            },
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 20.22232507062284
+            },
+            {
+              "pid": 13970,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 15.35989770884727
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 10.919333150996712
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 303.3718106821761,
+          "maximum_process_percent": 29.527162376520582,
+          "top_processes": [
+            {
+              "pid": 36789,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 29.527162376520582
+            },
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 19.998816014979013
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 12.789392562891035
+            },
+            {
+              "pid": 13878,
+              "name": "Brave Browser",
+              "cpu_percent": 11.51562135209301
+            },
+            {
+              "pid": 24349,
+              "name": "audio",
+              "cpu_percent": 8.39997393043423
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 246.53699260576138,
+          "maximum_process_percent": 23.68695632722664,
+          "top_processes": [
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 23.68695632722664
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 12.034137362861133
+            },
+            {
+              "pid": 1607,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 11.515853314311142
+            },
+            {
+              "pid": 36789,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 10.936057182209225
+            },
+            {
+              "pid": 24349,
+              "name": "audio",
+              "cpu_percent": 8.751671722046273
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 273.5138344693178,
+          "maximum_process_percent": 20.232016886469463,
+          "top_processes": [
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 20.232016886469463
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 12.83229514619031
+            },
+            {
+              "pid": 36789,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 9.414728549245213
+            },
+            {
+              "pid": 1607,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 7.864066821704561
+            },
+            {
+              "pid": 24349,
+              "name": "audio",
+              "cpu_percent": 7.44762736606993
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 272.5395410935198,
+          "maximum_process_percent": 23.567391632146617,
+          "top_processes": [
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 23.567391632146617
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 12.445460649401669
+            },
+            {
+              "pid": 36789,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 11.077488370456825
+            },
+            {
+              "pid": 24349,
+              "name": "audio",
+              "cpu_percent": 8.057206669422238
+            },
+            {
+              "pid": 15804,
+              "name": "backboardd",
+              "cpu_percent": 7.63227795062859
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 208.6613376191106,
+          "maximum_process_percent": 24.045410413539216,
+          "top_processes": [
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 24.045410413539216
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 12.296427700985685
+            },
+            {
+              "pid": 36789,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 12.03903631156347
+            },
+            {
+              "pid": 24349,
+              "name": "audio",
+              "cpu_percent": 7.958848616219886
+            },
+            {
+              "pid": 15804,
+              "name": "backboardd",
+              "cpu_percent": 7.870557110175646
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 227.53899710019076,
+          "maximum_process_percent": 18.82714924454213,
+          "top_processes": [
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 18.82714924454213
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 10.77120014299439
+            },
+            {
+              "pid": 36789,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 10.547079205385767
+            },
+            {
+              "pid": 1607,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 9.086054068639035
+            },
+            {
+              "pid": 24349,
+              "name": "audio",
+              "cpu_percent": 8.246499654071313
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 236.40615018647364,
+          "maximum_process_percent": 22.015383945135852,
+          "top_processes": [
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 22.015383945135852
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 14.471123440493026
+            },
+            {
+              "pid": 13878,
+              "name": "Brave Browser",
+              "cpu_percent": 12.812219334705249
+            },
+            {
+              "pid": 24349,
+              "name": "audio",
+              "cpu_percent": 9.822063449901206
+            },
+            {
+              "pid": 36789,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 9.092234781297714
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 238.40322509664125,
+          "maximum_process_percent": 22.692131180434078,
+          "top_processes": [
+            {
+              "pid": 36789,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 22.692131180434078
+            },
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 21.939448214336068
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 13.563882373408642
+            },
+            {
+              "pid": 24349,
+              "name": "audio",
+              "cpu_percent": 8.272617044831321
+            },
+            {
+              "pid": 15804,
+              "name": "backboardd",
+              "cpu_percent": 7.8248654794723755
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 287.14272819048296,
+          "maximum_process_percent": 21.465881978357885,
+          "top_processes": [
+            {
+              "pid": 36789,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 21.465881978357885
+            },
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 19.85487172371016
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 13.929365202842165
+            },
+            {
+              "pid": 24349,
+              "name": "audio",
+              "cpu_percent": 8.705326480492223
+            },
+            {
+              "pid": 15804,
+              "name": "backboardd",
+              "cpu_percent": 8.13717970538948
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 248.08736218097093,
+          "maximum_process_percent": 13.460986387352028,
+          "top_processes": [
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 13.460986387352028
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 11.73539325109483
+            },
+            {
+              "pid": 1607,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 10.03133225336364
+            },
+            {
+              "pid": 36789,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 9.585142428961406
+            },
+            {
+              "pid": 24349,
+              "name": "audio",
+              "cpu_percent": 7.503761396372578
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 257.2947660729853,
+          "maximum_process_percent": 14.513424354419085,
+          "top_processes": [
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 14.513424354419085
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 10.995725598804919
+            },
+            {
+              "pid": 36789,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 9.367999514813548
+            },
+            {
+              "pid": 24349,
+              "name": "audio",
+              "cpu_percent": 8.724803766792355
+            },
+            {
+              "pid": 15804,
+              "name": "backboardd",
+              "cpu_percent": 7.3801666167338995
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 305.7657944501862,
+          "maximum_process_percent": 35.74899118401492,
+          "top_processes": [
+            {
+              "pid": 14920,
+              "name": "com.apple.MapKit.SnapshotService",
+              "cpu_percent": 35.74899118401492
+            },
+            {
+              "pid": 36560,
+              "name": "com.apple.WebKit.WebContent",
+              "cpu_percent": 16.48569243821118
+            },
+            {
+              "pid": 1607,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 12.46288252620402
+            },
+            {
+              "pid": 1882,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 12.224045135322442
+            },
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 10.063626338054696
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 275.5193776392971,
+          "maximum_process_percent": 24.828357025661184,
+          "top_processes": [
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 24.828357025661184
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 12.603650332277637
+            },
+            {
+              "pid": 36789,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 11.5279990923515
+            },
+            {
+              "pid": 1607,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 10.085222612638248
+            },
+            {
+              "pid": 24349,
+              "name": "audio",
+              "cpu_percent": 8.53604515660764
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 236.28182499820323,
+          "maximum_process_percent": 22.598560083670808,
+          "top_processes": [
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 22.598560083670808
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 10.73328044500561
+            },
+            {
+              "pid": 36789,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 10.388898122117785
+            },
+            {
+              "pid": 24349,
+              "name": "audio",
+              "cpu_percent": 6.847917277813881
+            },
+            {
+              "pid": 15804,
+              "name": "backboardd",
+              "cpu_percent": 6.68278698958183
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 227.46310832699345,
+          "maximum_process_percent": 21.446195800389248,
+          "top_processes": [
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 21.446195800389248
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 10.27611355336262
+            },
+            {
+              "pid": 36789,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 10.1217082801796
+            },
+            {
+              "pid": 15804,
+              "name": "backboardd",
+              "cpu_percent": 7.91746956961773
+            },
+            {
+              "pid": 24349,
+              "name": "audio",
+              "cpu_percent": 7.794313123003236
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 227.74752428029026,
+          "maximum_process_percent": 24.109929020114535,
+          "top_processes": [
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 24.109929020114535
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 13.515428426860408
+            },
+            {
+              "pid": 36789,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 11.784727227415393
+            },
+            {
+              "pid": 1607,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 11.228803450325318
+            },
+            {
+              "pid": 24349,
+              "name": "audio",
+              "cpu_percent": 9.049437783931273
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 316.18066133869434,
+          "maximum_process_percent": 30.606661871084064,
+          "top_processes": [
+            {
+              "pid": 13970,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 30.606661871084064
+            },
+            {
+              "pid": 13878,
+              "name": "Brave Browser",
+              "cpu_percent": 24.95812717971288
+            },
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 15.522682057473281
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 12.254609070971117
+            },
+            {
+              "pid": 677,
+              "name": "fontd",
+              "cpu_percent": 11.694659610251295
+            }
+          ],
+          "new_or_exited_processes": 3
+        },
+        {
+          "total_percent": 518.7222529866006,
+          "maximum_process_percent": 113.35211092365022,
+          "top_processes": [
+            {
+              "pid": 36955,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 113.35211092365022
+            },
+            {
+              "pid": 36956,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 107.50148733359312
+            },
+            {
+              "pid": 13878,
+              "name": "Brave Browser",
+              "cpu_percent": 47.03071429427083
+            },
+            {
+              "pid": 677,
+              "name": "fontd",
+              "cpu_percent": 17.418994989599806
+            },
+            {
+              "pid": 13889,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 17.297884053233055
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 468.46866217989117,
+          "maximum_process_percent": 127.48350305219127,
+          "top_processes": [
+            {
+              "pid": 36956,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 127.48350305219127
+            },
+            {
+              "pid": 36955,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 103.85372267318286
+            },
+            {
+              "pid": 13878,
+              "name": "Brave Browser",
+              "cpu_percent": 37.61428582375199
+            },
+            {
+              "pid": 13889,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 18.282458010236226
+            },
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 11.446375904244013
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 519.4733989430559,
+          "maximum_process_percent": 106.64529050672135,
+          "top_processes": [
+            {
+              "pid": 36956,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 106.64529050672135
+            },
+            {
+              "pid": 36955,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 52.61090090304013
+            },
+            {
+              "pid": 36964,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 22.2335817249551
+            },
+            {
+              "pid": 13878,
+              "name": "Brave Browser",
+              "cpu_percent": 20.05464246825938
+            },
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 17.951620856908065
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 334.8968831564144,
+          "maximum_process_percent": 50.412905995604824,
+          "top_processes": [
+            {
+              "pid": 19364,
+              "name": "Antigravity IDE Helper (Renderer)",
+              "cpu_percent": 50.412905995604824
+            },
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 24.16925502420881
+            },
+            {
+              "pid": 36789,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 15.161380249595002
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 13.517712300787412
+            },
+            {
+              "pid": 36956,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 9.900739633719894
+            }
+          ],
+          "new_or_exited_processes": 4
+        },
+        {
+          "total_percent": 305.4475204131844,
+          "maximum_process_percent": 34.80376166463092,
+          "top_processes": [
+            {
+              "pid": 36955,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 34.80376166463092
+            },
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 25.83718525955967
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 12.614696893506702
+            },
+            {
+              "pid": 13878,
+              "name": "Brave Browser",
+              "cpu_percent": 9.648689626670075
+            },
+            {
+              "pid": 36789,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 8.653291710335944
+            }
+          ],
+          "new_or_exited_processes": 3
+        },
+        {
+          "total_percent": 412.7355892218876,
+          "maximum_process_percent": 54.18734181646913,
+          "top_processes": [
+            {
+              "pid": 36955,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 54.18734181646913
+            },
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 31.988200225957584
+            },
+            {
+              "pid": 36789,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 12.480659453891905
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 11.695772777359368
+            },
+            {
+              "pid": 1882,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 9.021366762566073
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 237.77001233994488,
+          "maximum_process_percent": 19.788410382912105,
+          "top_processes": [
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 19.788410382912105
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 14.30471579604801
+            },
+            {
+              "pid": 13878,
+              "name": "Brave Browser",
+              "cpu_percent": 13.288909219793718
+            },
+            {
+              "pid": 36789,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 12.436352216291722
+            },
+            {
+              "pid": 1882,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 9.974609056465761
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 238.32783904876425,
+          "maximum_process_percent": 23.594010702059514,
+          "top_processes": [
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 23.594010702059514
+            },
+            {
+              "pid": 13970,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 18.580972722921302
+            },
+            {
+              "pid": 36789,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 11.10373986755762
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 10.854720386947712
+            },
+            {
+              "pid": 24349,
+              "name": "audio",
+              "cpu_percent": 8.346245289804568
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 264.75081586826525,
+          "maximum_process_percent": 21.42465000644263,
+          "top_processes": [
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 21.42465000644263
+            },
+            {
+              "pid": 13970,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 19.89210476242574
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 14.157151184107914
+            },
+            {
+              "pid": 36789,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 13.270534464413982
+            },
+            {
+              "pid": 1882,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 11.668654394885692
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 248.1309572403349,
+          "maximum_process_percent": 24.353870387654393,
+          "top_processes": [
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 24.353870387654393
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 14.32292757504664
+            },
+            {
+              "pid": 1607,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 12.08414671425619
+            },
+            {
+              "pid": 36789,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 11.768185943354807
+            },
+            {
+              "pid": 24349,
+              "name": "audio",
+              "cpu_percent": 9.235559212979675
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 221.82920907251545,
+          "maximum_process_percent": 22.339256717382717,
+          "top_processes": [
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 22.339256717382717
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 12.653077240914481
+            },
+            {
+              "pid": 36789,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 10.018506794417197
+            },
+            {
+              "pid": 24523,
+              "name": "audio",
+              "cpu_percent": 7.308396349372982
+            },
+            {
+              "pid": 24349,
+              "name": "audio",
+              "cpu_percent": 7.092739968120295
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 348.9634973302867,
+          "maximum_process_percent": 43.92045302805762,
+          "top_processes": [
+            {
+              "pid": 36965,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 43.92045302805762
+            },
+            {
+              "pid": 36955,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 37.2266675060597
+            },
+            {
+              "pid": 13878,
+              "name": "Brave Browser",
+              "cpu_percent": 30.58016019316023
+            },
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 11.707712645845
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 10.52715756445994
+            }
+          ],
+          "new_or_exited_processes": 3
+        },
+        {
+          "total_percent": 320.48038006208606,
+          "maximum_process_percent": 16.332878114326068,
+          "top_processes": [
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 16.332878114326068
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 11.285308784212262
+            },
+            {
+              "pid": 13878,
+              "name": "Brave Browser",
+              "cpu_percent": 8.63748464970989
+            },
+            {
+              "pid": 36789,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 8.251787534126638
+            },
+            {
+              "pid": 15804,
+              "name": "backboardd",
+              "cpu_percent": 8.218566073463931
+            }
+          ],
+          "new_or_exited_processes": 6
+        },
+        {
+          "total_percent": 250.8105526232647,
+          "maximum_process_percent": 19.030348053815988,
+          "top_processes": [
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 19.030348053815988
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 12.787112763664062
+            },
+            {
+              "pid": 1607,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 10.061126635012817
+            },
+            {
+              "pid": 36789,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 9.741115975560927
+            },
+            {
+              "pid": 24349,
+              "name": "audio",
+              "cpu_percent": 7.483761987699016
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 342.28480673362384,
+          "maximum_process_percent": 16.16135402350597,
+          "top_processes": [
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 16.16135402350597
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 15.272560720548247
+            },
+            {
+              "pid": 24349,
+              "name": "audio",
+              "cpu_percent": 9.748501887635166
+            },
+            {
+              "pid": 15804,
+              "name": "backboardd",
+              "cpu_percent": 8.636311181220808
+            },
+            {
+              "pid": 13878,
+              "name": "Brave Browser",
+              "cpu_percent": 8.389485643784413
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 375.35691785246735,
+          "maximum_process_percent": 29.154215700058852,
+          "top_processes": [
+            {
+              "pid": 1607,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 29.154215700058852
+            },
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 21.79146048711802
+            },
+            {
+              "pid": 933,
+              "name": "ChatGPT",
+              "cpu_percent": 15.466117089940452
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 11.351343963476133
+            },
+            {
+              "pid": 36789,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 9.761254424656578
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 249.88341736313146,
+          "maximum_process_percent": 20.558511106933747,
+          "top_processes": [
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 20.558511106933747
+            },
+            {
+              "pid": 36789,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 19.883807020927012
+            },
+            {
+              "pid": 1607,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 13.704386621632585
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 10.540350343957721
+            },
+            {
+              "pid": 24349,
+              "name": "audio",
+              "cpu_percent": 8.330700497208515
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 430.33215270837223,
+          "maximum_process_percent": 135.8433933802494,
+          "top_processes": [
+            {
+              "pid": 1607,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 135.8433933802494
+            },
+            {
+              "pid": 933,
+              "name": "ChatGPT",
+              "cpu_percent": 25.293506283037182
+            },
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 19.20123574257081
+            },
+            {
+              "pid": 642,
+              "name": "MenuBarAgent",
+              "cpu_percent": 17.51295664106633
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 11.649976091630823
+            }
+          ],
+          "new_or_exited_processes": 16
+        },
+        {
+          "total_percent": 223.4088551767584,
+          "maximum_process_percent": 23.764923840758748,
+          "top_processes": [
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 23.764923840758748
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 12.697339257395118
+            },
+            {
+              "pid": 1607,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 11.559536052247102
+            },
+            {
+              "pid": 36789,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 10.296925213213793
+            },
+            {
+              "pid": 1006,
+              "name": "Codex (Service)",
+              "cpu_percent": 9.450308309387225
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 217.05073234815197,
+          "maximum_process_percent": 21.492632548256935,
+          "top_processes": [
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 21.492632548256935
+            },
+            {
+              "pid": 1607,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 21.08436105226632
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 13.319952947503614
+            },
+            {
+              "pid": 36789,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 9.531207773213454
+            },
+            {
+              "pid": 24349,
+              "name": "audio",
+              "cpu_percent": 8.291726990236468
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 237.38123983491548,
+          "maximum_process_percent": 22.30472110485911,
+          "top_processes": [
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 22.30472110485911
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 13.461605253541894
+            },
+            {
+              "pid": 36789,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 10.873793667484604
+            },
+            {
+              "pid": 1607,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 8.213200993285826
+            },
+            {
+              "pid": 24349,
+              "name": "audio",
+              "cpu_percent": 7.497259173951962
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 235.42576153406617,
+          "maximum_process_percent": 20.847332349360265,
+          "top_processes": [
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 20.847332349360265
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 11.307994094271162
+            },
+            {
+              "pid": 634,
+              "name": "WindowManager",
+              "cpu_percent": 9.80523932091363
+            },
+            {
+              "pid": 36789,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 9.197897657291682
+            },
+            {
+              "pid": 24349,
+              "name": "audio",
+              "cpu_percent": 8.995003999087386
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 427.7086748895035,
+          "maximum_process_percent": 111.30873990879509,
+          "top_processes": [
+            {
+              "pid": 1607,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 111.30873990879509
+            },
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 17.805356669759252
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 11.945232443690621
+            },
+            {
+              "pid": 933,
+              "name": "ChatGPT",
+              "cpu_percent": 10.165714474902963
+            },
+            {
+              "pid": 1608,
+              "name": "codex",
+              "cpu_percent": 8.5517541929546
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 281.9930356263507,
+          "maximum_process_percent": 53.91058466082296,
+          "top_processes": [
+            {
+              "pid": 1607,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 53.91058466082296
+            },
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 19.30205983094705
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 12.262517096428903
+            },
+            {
+              "pid": 1006,
+              "name": "Codex (Service)",
+              "cpu_percent": 8.758885225516877
+            },
+            {
+              "pid": 24349,
+              "name": "audio",
+              "cpu_percent": 8.515820521406175
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 421.61918273566505,
+          "maximum_process_percent": 75.0963055463752,
+          "top_processes": [
+            {
+              "pid": 1607,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 75.0963055463752
+            },
+            {
+              "pid": 933,
+              "name": "ChatGPT",
+              "cpu_percent": 36.46957011667679
+            },
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 16.454461295533783
+            },
+            {
+              "pid": 1608,
+              "name": "codex",
+              "cpu_percent": 9.73078459219871
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 8.930210737402785
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 245.2494067390476,
+          "maximum_process_percent": 25.02252627325362,
+          "top_processes": [
+            {
+              "pid": 1607,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 25.02252627325362
+            },
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 22.855208953609655
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 13.353227584113393
+            },
+            {
+              "pid": 1006,
+              "name": "Codex (Service)",
+              "cpu_percent": 12.173835357378914
+            },
+            {
+              "pid": 36789,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 10.450819976497652
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 247.54162982449347,
+          "maximum_process_percent": 21.236039359501525,
+          "top_processes": [
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 21.236039359501525
+            },
+            {
+              "pid": 1607,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 17.002105463431423
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 11.352925805490385
+            },
+            {
+              "pid": 1006,
+              "name": "Codex (Service)",
+              "cpu_percent": 9.941937003781774
+            },
+            {
+              "pid": 36789,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 9.328753333212825
+            }
+          ],
+          "new_or_exited_processes": 3
+        },
+        {
+          "total_percent": 268.4872143976458,
+          "maximum_process_percent": 41.788584141292006,
+          "top_processes": [
+            {
+              "pid": 36955,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 41.788584141292006
+            },
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 20.5986396424573
+            },
+            {
+              "pid": 1607,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 17.99602515020928
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 13.94356300276876
+            },
+            {
+              "pid": 36789,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 9.034892661949742
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 373.4194813654971,
+          "maximum_process_percent": 130.05851658171457,
+          "top_processes": [
+            {
+              "pid": 1607,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 130.05851658171457
+            },
+            {
+              "pid": 36955,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 31.190738913267598
+            },
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 18.2017489503288
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 11.26118501836855
+            },
+            {
+              "pid": 24349,
+              "name": "audio",
+              "cpu_percent": 7.629431552748367
+            }
+          ],
+          "new_or_exited_processes": 3
+        },
+        {
+          "total_percent": 345.8639242510563,
+          "maximum_process_percent": 40.067892692508636,
+          "top_processes": [
+            {
+              "pid": 1607,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 40.067892692508636
+            },
+            {
+              "pid": 933,
+              "name": "ChatGPT",
+              "cpu_percent": 22.684680634492913
+            },
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 16.78759781500226
+            },
+            {
+              "pid": 641,
+              "name": "trustd",
+              "cpu_percent": 11.949462499090497
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 9.89576586767654
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 254.8583161151205,
+          "maximum_process_percent": 38.92299139745728,
+          "top_processes": [
+            {
+              "pid": 1607,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 38.92299139745728
+            },
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 19.37196273138702
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 13.30092379353223
+            },
+            {
+              "pid": 933,
+              "name": "ChatGPT",
+              "cpu_percent": 10.320922583823252
+            },
+            {
+              "pid": 36789,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 8.850922725083858
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 269.2970860090253,
+          "maximum_process_percent": 74.10434375485923,
+          "top_processes": [
+            {
+              "pid": 1607,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 74.10434375485923
+            },
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 14.538389307099884
+            },
+            {
+              "pid": 933,
+              "name": "ChatGPT",
+              "cpu_percent": 12.388236411072345
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 7.9651979031312345
+            },
+            {
+              "pid": 36789,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 6.368021919263242
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 307.1747880430884,
+          "maximum_process_percent": 30.225739037279617,
+          "top_processes": [
+            {
+              "pid": 1607,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 30.225739037279617
+            },
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 19.386933923051718
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 11.578426050769467
+            },
+            {
+              "pid": 933,
+              "name": "ChatGPT",
+              "cpu_percent": 11.287300720085495
+            },
+            {
+              "pid": 1882,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 8.793378671831638
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 331.74843165827684,
+          "maximum_process_percent": 36.86237394163833,
+          "top_processes": [
+            {
+              "pid": 1607,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 36.86237394163833
+            },
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 17.079353746712655
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 10.945488362917299
+            },
+            {
+              "pid": 933,
+              "name": "ChatGPT",
+              "cpu_percent": 9.283340887766434
+            },
+            {
+              "pid": 15804,
+              "name": "backboardd",
+              "cpu_percent": 7.448320730741141
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 690.1341879491032,
+          "maximum_process_percent": 52.59090678599321,
+          "top_processes": [
+            {
+              "pid": 1607,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 52.59090678599321
+            },
+            {
+              "pid": 933,
+              "name": "ChatGPT",
+              "cpu_percent": 46.278224016957466
+            },
+            {
+              "pid": 37068,
+              "name": "lumapaint",
+              "cpu_percent": 45.0440435804661
+            },
+            {
+              "pid": 878,
+              "name": "siriknowledged",
+              "cpu_percent": 39.60732498500634
+            },
+            {
+              "pid": 642,
+              "name": "MenuBarAgent",
+              "cpu_percent": 25.216511687929096
+            }
+          ],
+          "new_or_exited_processes": 7
+        },
+        {
+          "total_percent": 311.51367102595407,
+          "maximum_process_percent": 45.54554768075431,
+          "top_processes": [
+            {
+              "pid": 1607,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 45.54554768075431
+            },
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 16.490226906281702
+            },
+            {
+              "pid": 1483,
+              "name": "hybridsearchd",
+              "cpu_percent": 13.434001230157813
+            },
+            {
+              "pid": 1006,
+              "name": "Codex (Service)",
+              "cpu_percent": 10.464428020261472
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 9.144120633614193
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 352.7551136004276,
+          "maximum_process_percent": 23.49475147769436,
+          "top_processes": [
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 23.49475147769436
+            },
+            {
+              "pid": 784,
+              "name": "siriactionsd",
+              "cpu_percent": 19.950388183082676
+            },
+            {
+              "pid": 1607,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 17.70829469406538
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 13.787122890362676
+            },
+            {
+              "pid": 36789,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 9.929717202512675
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 371.35504261611914,
+          "maximum_process_percent": 34.2756884682684,
+          "top_processes": [
+            {
+              "pid": 933,
+              "name": "ChatGPT",
+              "cpu_percent": 34.2756884682684
+            },
+            {
+              "pid": 756,
+              "name": "Mail",
+              "cpu_percent": 31.666975376077435
+            },
+            {
+              "pid": 34799,
+              "name": "parsec-fbf",
+              "cpu_percent": 28.769721689380543
+            },
+            {
+              "pid": 1607,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 27.93065254926368
+            },
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 20.90152304384009
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 263.4218942280874,
+          "maximum_process_percent": 35.698308914327505,
+          "top_processes": [
+            {
+              "pid": 1607,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 35.698308914327505
+            },
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 19.244309061856782
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 13.509936551851593
+            },
+            {
+              "pid": 1006,
+              "name": "Codex (Service)",
+              "cpu_percent": 9.5867024597718
+            },
+            {
+              "pid": 1882,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 9.520422500645514
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 268.7904595533713,
+          "maximum_process_percent": 34.7628954241054,
+          "top_processes": [
+            {
+              "pid": 1607,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 34.7628954241054
+            },
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 15.273467935926591
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 11.41697563717857
+            },
+            {
+              "pid": 933,
+              "name": "ChatGPT",
+              "cpu_percent": 9.244999796979224
+            },
+            {
+              "pid": 1006,
+              "name": "Codex (Service)",
+              "cpu_percent": 7.600942856141912
+            }
+          ],
+          "new_or_exited_processes": 12
+        },
+        {
+          "total_percent": 467.3775342921668,
+          "maximum_process_percent": 146.80431795833766,
+          "top_processes": [
+            {
+              "pid": 1607,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 146.80431795833766
+            },
+            {
+              "pid": 13973,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 86.68686641653132
+            },
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 17.6785332292927
+            },
+            {
+              "pid": 933,
+              "name": "ChatGPT",
+              "cpu_percent": 10.950860635106165
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 10.389643472063174
+            }
+          ],
+          "new_or_exited_processes": 3
+        },
+        {
+          "total_percent": 467.92770425009763,
+          "maximum_process_percent": 26.32055203517166,
+          "top_processes": [
+            {
+              "pid": 1607,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 26.32055203517166
+            },
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 17.120907301709945
+            },
+            {
+              "pid": 26865,
+              "name": "Audit",
+              "cpu_percent": 9.834693782574288
+            },
+            {
+              "pid": 1006,
+              "name": "Codex (Service)",
+              "cpu_percent": 8.866964131714889
+            },
+            {
+              "pid": 933,
+              "name": "ChatGPT",
+              "cpu_percent": 8.087885280490367
+            }
+          ],
+          "new_or_exited_processes": 8
+        },
+        {
+          "total_percent": 458.51385032356217,
+          "maximum_process_percent": 61.22597633480282,
+          "top_processes": [
+            {
+              "pid": 37098,
+              "name": "com.apple.appkit.xpc.openAndSavePanelService",
+              "cpu_percent": 61.22597633480282
+            },
+            {
+              "pid": 1483,
+              "name": "hybridsearchd",
+              "cpu_percent": 38.15660063930909
+            },
+            {
+              "pid": 642,
+              "name": "MenuBarAgent",
+              "cpu_percent": 22.108217800267145
+            },
+            {
+              "pid": 702,
+              "name": "replayd",
+              "cpu_percent": 17.511368796098235
+            },
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 14.099211291830667
+            }
+          ],
+          "new_or_exited_processes": 5
+        },
+        {
+          "total_percent": 363.0029417219937,
+          "maximum_process_percent": 17.2225051686265,
+          "top_processes": [
+            {
+              "pid": 1089,
+              "name": "mdbulkimport",
+              "cpu_percent": 17.2225051686265
+            },
+            {
+              "pid": 702,
+              "name": "replayd",
+              "cpu_percent": 15.940378778464945
+            },
+            {
+              "pid": 37098,
+              "name": "com.apple.appkit.xpc.openAndSavePanelService",
+              "cpu_percent": 15.697351334006155
+            },
+            {
+              "pid": 634,
+              "name": "WindowManager",
+              "cpu_percent": 14.24752665984293
+            },
+            {
+              "pid": 13887,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 14.060120341127819
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 515.3006321952414,
+          "maximum_process_percent": 46.84297593166879,
+          "top_processes": [
+            {
+              "pid": 37098,
+              "name": "com.apple.appkit.xpc.openAndSavePanelService",
+              "cpu_percent": 46.84297593166879
+            },
+            {
+              "pid": 1607,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 43.92854087289087
+            },
+            {
+              "pid": 702,
+              "name": "replayd",
+              "cpu_percent": 31.921978970698927
+            },
+            {
+              "pid": 1089,
+              "name": "mdbulkimport",
+              "cpu_percent": 23.868737319504632
+            },
+            {
+              "pid": 37068,
+              "name": "lumapaint",
+              "cpu_percent": 18.508115244444795
+            }
+          ],
+          "new_or_exited_processes": 0
+        }
+      ],
+      "repeat": 0,
+      "policy": "baseline",
+      "variant": "baseline"
+    }
+  ],
+  "host_load_window": "requests_only",
+  "quiet_timeout_seconds": 180,
+  "campaign_completed": false,
+  "host_load_rule": "3 consecutive 1s samples: total<=200%, max process<=75%, no PID churn",
+  "notes": [
+    "Export and model initialization excluded from request timing",
+    "Host gate checks sampled CPU counters, not disk/GPU contention",
+    "Aggregate CPU includes benchmark; per-process gate excludes worker tree",
+    "Startup includes import/export/preload/warmup; ready wait is separate",
+    "Request host window includes parity checks; individual latencies exclude them",
+    "Request host sampling uses approx 100ms cadence; startup uses approx 1s",
+    "OS file cache is not reset; this is not cold-disk performance",
+    "Baseline has resident source weights; candidates use file residency",
+    "Phase spans are host wall times; acquire includes nested loading spans",
+    "Router eval includes gate/top-k execution, not just a synchronization wait",
+    "MLX load and eval may include file I/O; checksum_read is separate",
+    "Opt-in instrumentation overhead is included in request timings",
+    "No RSS, GPU, E2E chat, quality-suite or P3 certification"
+  ],
+  "source_sha256": {
+    "scripts/compare_strata_experts.py": "025c795d27177a42523af1f827b83174ea0e0b1b1b5ea10ae09f82089381448e",
+    "scripts/strata_measurement.py": "e24018d3beeae11b71f7d18c1d921e84363517453552c1de98780b663e0f4ddb",
+    "vllm_apple/qwen3_moe_residency.py": "9d554ee624327b5c93e0b5b303032e758b09e1b93a356f6e486e99898564e39d",
+    "vllm_apple/mlx_expert_backend.py": "1bad64f95789fa4244a8941112a488fc17f70e7b73c097f8205b86d056b9d9ba",
+    "vllm_apple/mlx_expert_export.py": "a511d8d2417f63000487e4367e0e1e0e056a435613ba6394138aecdaaa63cb8f",
+    "vllm_apple/expert_manifest.py": "0c62fb0346bae8cb4b92972a8924e5f365d1547a9e3b4384e13f7c6caf788c7d",
+    "vllm_apple/expert_residency.py": "0bb7320cbb3b259c32aa6fc3deb9e22f585f03350d0a07ec4662240e87ea6a57",
+    "vllm_apple/expert_execution.py": "d526e9b9b855949530a2414e48389770a962258f9d8520f033f5f018d89ba340",
+    "vllm_apple/expert_timing.py": "1658bf5ecf2bd677a3473a7f848088d8009dcb131e625b7610deb8b1baf36c7a",
+    "vllm_apple/qwen3_moe_gather.py": "3f30a83acb25b8e10b090156abfab9afa9e78df50b248d8cd4680ecab2f57464"
+  }
+}

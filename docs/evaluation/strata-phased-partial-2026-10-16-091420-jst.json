@@ -1,0 +1,5406 @@
+{
+  "schema_version": 1,
+  "scope": "synthetic_qwen3_block_cpu",
+  "model_qualification": false,
+  "standard_adoption_eligible": false,
+  "automatic_application": false,
+  "trials": [],
+  "profiling_enabled": false,
+  "preloaded": false,
+  "grouped": false,
+  "gather": false,
+  "variant_suite": false,
+  "cycles": 512,
+  "memory_suite": true,
+  "runs": 4,
+  "row_suite": false,
+  "tokens_per_request": 1,
+  "warmup_cycles": 8,
+  "resident_budget_bytes": 20000,
+  "quiet_host_requested": true,
+  "host_gates": [
+    {
+      "passed": false,
+      "observations": [
+        {
+          "total_percent": 352.5798530153196,
+          "maximum_process_percent": 99.00539671674102,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 99.00539671674102
+            },
+            {
+              "pid": 685,
+              "name": "Siri AI",
+              "cpu_percent": 35.937691199843115
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 10.880037280831768
+            },
+            {
+              "pid": 1332,
+              "name": "ChatGPT",
+              "cpu_percent": 5.53081145000881
+            },
+            {
+              "pid": 1342,
+              "name": "Codex (Service)",
+              "cpu_percent": 5.514162875113558
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 343.46413428057696,
+          "maximum_process_percent": 99.27249252025653,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 99.27249252025653
+            },
+            {
+              "pid": 685,
+              "name": "Siri AI",
+              "cpu_percent": 34.00769752165668
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 8.084475638348954
+            },
+            {
+              "pid": 1342,
+              "name": "Codex (Service)",
+              "cpu_percent": 7.349244520549959
+            },
+            {
+              "pid": 1332,
+              "name": "ChatGPT",
+              "cpu_percent": 5.949315405744507
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 427.0961533068596,
+          "maximum_process_percent": 96.00091239003642,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 96.00091239003642
+            },
+            {
+              "pid": 685,
+              "name": "Siri AI",
+              "cpu_percent": 35.91662153801242
+            },
+            {
+              "pid": 745,
+              "name": "JapaneseIM-RomajiTyping",
+              "cpu_percent": 11.857183458099351
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 10.3648227650741
+            },
+            {
+              "pid": 1332,
+              "name": "ChatGPT",
+              "cpu_percent": 7.672306487014826
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 382.0107209384166,
+          "maximum_process_percent": 98.59795898804686,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 98.59795898804686
+            },
+            {
+              "pid": 685,
+              "name": "Siri AI",
+              "cpu_percent": 33.1150785943681
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 8.109226720423788
+            },
+            {
+              "pid": 745,
+              "name": "JapaneseIM-RomajiTyping",
+              "cpu_percent": 6.648600938530214
+            },
+            {
+              "pid": 1342,
+              "name": "Codex (Service)",
+              "cpu_percent": 6.438017857122811
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 334.56544691245114,
+          "maximum_process_percent": 99.48174597367964,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 99.48174597367964
+            },
+            {
+              "pid": 685,
+              "name": "Siri AI",
+              "cpu_percent": 33.7496285085175
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 13.967350057090398
+            },
+            {
+              "pid": 1342,
+              "name": "Codex (Service)",
+              "cpu_percent": 7.085400867578263
+            },
+            {
+              "pid": 1332,
+              "name": "ChatGPT",
+              "cpu_percent": 6.61878262567901
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 486.6376253387159,
+          "maximum_process_percent": 92.86536904399367,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 92.86536904399367
+            },
+            {
+              "pid": 685,
+              "name": "Siri AI",
+              "cpu_percent": 39.03902642641932
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 16.654286338225873
+            },
+            {
+              "pid": 745,
+              "name": "JapaneseIM-RomajiTyping",
+              "cpu_percent": 10.715150441642239
+            },
+            {
+              "pid": 615,
+              "name": "WindowManager",
+              "cpu_percent": 10.486492659530363
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 355.6047209576222,
+          "maximum_process_percent": 98.25639095692844,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 98.25639095692844
+            },
+            {
+              "pid": 685,
+              "name": "Siri AI",
+              "cpu_percent": 34.57305067450367
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 13.348633343743607
+            },
+            {
+              "pid": 1332,
+              "name": "ChatGPT",
+              "cpu_percent": 9.405745244638542
+            },
+            {
+              "pid": 745,
+              "name": "JapaneseIM-RomajiTyping",
+              "cpu_percent": 9.124810384223313
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 343.08251607078375,
+          "maximum_process_percent": 98.22635034393032,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 98.22635034393032
+            },
+            {
+              "pid": 685,
+              "name": "Siri AI",
+              "cpu_percent": 33.761999216468894
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 12.433119844012019
+            },
+            {
+              "pid": 1332,
+              "name": "ChatGPT",
+              "cpu_percent": 9.069966055623695
+            },
+            {
+              "pid": 745,
+              "name": "JapaneseIM-RomajiTyping",
+              "cpu_percent": 7.4172300198132195
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 339.052674912557,
+          "maximum_process_percent": 98.98413936689096,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 98.98413936689096
+            },
+            {
+              "pid": 685,
+              "name": "Siri AI",
+              "cpu_percent": 33.950188786221354
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 14.639330918771012
+            },
+            {
+              "pid": 745,
+              "name": "JapaneseIM-RomajiTyping",
+              "cpu_percent": 9.536789719722464
+            },
+            {
+              "pid": 1342,
+              "name": "Codex (Service)",
+              "cpu_percent": 6.867071723844627
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 338.19969023772757,
+          "maximum_process_percent": 97.10848483367779,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 97.10848483367779
+            },
+            {
+              "pid": 685,
+              "name": "Siri AI",
+              "cpu_percent": 35.25866338604504
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 6.4234512619253605
+            },
+            {
+              "pid": 1342,
+              "name": "Codex (Service)",
+              "cpu_percent": 6.396782014771251
+            },
+            {
+              "pid": 24146,
+              "name": "Xcode",
+              "cpu_percent": 4.681699998274407
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 450.153934836363,
+          "maximum_process_percent": 88.96885468333367,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 88.96885468333367
+            },
+            {
+              "pid": 685,
+              "name": "Siri AI",
+              "cpu_percent": 36.09655639739707
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 26.64206798848869
+            },
+            {
+              "pid": 1332,
+              "name": "ChatGPT",
+              "cpu_percent": 12.090469571607485
+            },
+            {
+              "pid": 650,
+              "name": "trustd",
+              "cpu_percent": 12.074661382531453
+            }
+          ],
+          "new_or_exited_processes": 7
+        },
+        {
+          "total_percent": 474.37372075456096,
+          "maximum_process_percent": 97.28985154282823,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 97.28985154282823
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 87.59732720451278
+            },
+            {
+              "pid": 685,
+              "name": "Siri AI",
+              "cpu_percent": 41.11369027140432
+            },
+            {
+              "pid": 1332,
+              "name": "ChatGPT",
+              "cpu_percent": 20.081110037665482
+            },
+            {
+              "pid": 1877,
+              "name": "codex",
+              "cpu_percent": 10.537879391982207
+            }
+          ],
+          "new_or_exited_processes": 6
+        },
+        {
+          "total_percent": 427.08811906617075,
+          "maximum_process_percent": 97.37379415164956,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 97.37379415164956
+            },
+            {
+              "pid": 685,
+              "name": "Siri AI",
+              "cpu_percent": 36.09485294546416
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 11.682846063554502
+            },
+            {
+              "pid": 1332,
+              "name": "ChatGPT",
+              "cpu_percent": 5.217028156340114
+            },
+            {
+              "pid": 1342,
+              "name": "Codex (Service)",
+              "cpu_percent": 4.366012559680733
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 379.6974571981854,
+          "maximum_process_percent": 97.46823601015278,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 97.46823601015278
+            },
+            {
+              "pid": 685,
+              "name": "Siri AI",
+              "cpu_percent": 37.161743485972465
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 20.2200645799851
+            },
+            {
+              "pid": 1332,
+              "name": "ChatGPT",
+              "cpu_percent": 5.916878746507515
+            },
+            {
+              "pid": 1342,
+              "name": "Codex (Service)",
+              "cpu_percent": 5.166339661364475
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 700.9223781580877,
+          "maximum_process_percent": 75.45062560231098,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 75.45062560231098
+            },
+            {
+              "pid": 20291,
+              "name": "com.apple.appkit.xpc.openAndSavePanelService",
+              "cpu_percent": 55.120358743209074
+            },
+            {
+              "pid": 678,
+              "name": "fontd",
+              "cpu_percent": 40.35195079669123
+            },
+            {
+              "pid": 685,
+              "name": "Siri AI",
+              "cpu_percent": 39.12085368294804
+            },
+            {
+              "pid": 1225,
+              "name": "Brave Browser",
+              "cpu_percent": 26.831934301330488
+            }
+          ],
+          "new_or_exited_processes": 13
+        },
+        {
+          "total_percent": 684.127620267449,
+          "maximum_process_percent": 83.72892415205195,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 83.72892415205195
+            },
+            {
+              "pid": 33975,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 82.63141601305637
+            },
+            {
+              "pid": 31319,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 76.44904506517608
+            },
+            {
+              "pid": 685,
+              "name": "Siri AI",
+              "cpu_percent": 43.91502453039851
+            },
+            {
+              "pid": 1225,
+              "name": "Brave Browser",
+              "cpu_percent": 31.410927129197887
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 703.1353042408899,
+          "maximum_process_percent": 119.38870571992967,
+          "top_processes": [
+            {
+              "pid": 33975,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 119.38870571992967
+            },
+            {
+              "pid": 31319,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 112.78889037192627
+            },
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 80.89914704226477
+            },
+            {
+              "pid": 685,
+              "name": "Siri AI",
+              "cpu_percent": 65.8350289778142
+            },
+            {
+              "pid": 1225,
+              "name": "Brave Browser",
+              "cpu_percent": 32.933412026113785
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 599.3843027497876,
+          "maximum_process_percent": 95.1198629712554,
+          "top_processes": [
+            {
+              "pid": 31319,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 95.1198629712554
+            },
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 94.77260114611747
+            },
+            {
+              "pid": 685,
+              "name": "Siri AI",
+              "cpu_percent": 76.28076577637833
+            },
+            {
+              "pid": 33975,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 39.63070245883369
+            },
+            {
+              "pid": 1225,
+              "name": "Brave Browser",
+              "cpu_percent": 13.995854274109526
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 686.3168403139908,
+          "maximum_process_percent": 78.14931525503664,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 78.14931525503664
+            },
+            {
+              "pid": 685,
+              "name": "Siri AI",
+              "cpu_percent": 57.86874017553642
+            },
+            {
+              "pid": 31319,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 36.81046795079365
+            },
+            {
+              "pid": 1332,
+              "name": "ChatGPT",
+              "cpu_percent": 15.887197587380728
+            },
+            {
+              "pid": 20291,
+              "name": "com.apple.appkit.xpc.openAndSavePanelService",
+              "cpu_percent": 8.207583703149195
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 449.3645964557919,
+          "maximum_process_percent": 92.31407362915076,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 92.31407362915076
+            },
+            {
+              "pid": 685,
+              "name": "Siri AI",
+              "cpu_percent": 54.988801605822964
+            },
+            {
+              "pid": 718,
+              "name": "ImageThumbnailExtension",
+              "cpu_percent": 15.463788076584214
+            },
+            {
+              "pid": 20291,
+              "name": "com.apple.appkit.xpc.openAndSavePanelService",
+              "cpu_percent": 13.799838336325779
+            },
+            {
+              "pid": 1332,
+              "name": "ChatGPT",
+              "cpu_percent": 13.479129993628028
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 590.2396323614803,
+          "maximum_process_percent": 92.63087896644925,
+          "top_processes": [
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 92.63087896644925
+            },
+            {
+              "pid": 685,
+              "name": "Siri AI",
+              "cpu_percent": 82.5209659397849
+            },
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 80.48919680249017
+            },
+            {
+              "pid": 33975,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 64.1545958365178
+            },
+            {
+              "pid": 1332,
+              "name": "ChatGPT",
+              "cpu_percent": 22.38872268403008
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 427.19988495210424,
+          "maximum_process_percent": 102.86594756669945,
+          "top_processes": [
+            {
+              "pid": 685,
+              "name": "Siri AI",
+              "cpu_percent": 102.86594756669945
+            },
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 99.48858362733881
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 11.783141395457987
+            },
+            {
+              "pid": 1332,
+              "name": "ChatGPT",
+              "cpu_percent": 6.998096750824153
+            },
+            {
+              "pid": 1342,
+              "name": "Codex (Service)",
+              "cpu_percent": 4.470804617463417
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 771.8522762930143,
+          "maximum_process_percent": 127.76815373743314,
+          "top_processes": [
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 127.76815373743314
+            },
+            {
+              "pid": 1332,
+              "name": "ChatGPT",
+              "cpu_percent": 83.0274662191845
+            },
+            {
+              "pid": 685,
+              "name": "Siri AI",
+              "cpu_percent": 80.73000915156058
+            },
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 64.05574240303389
+            },
+            {
+              "pid": 1875,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 41.63226726694801
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 573.3024272341423,
+          "maximum_process_percent": 93.85108234872135,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 93.85108234872135
+            },
+            {
+              "pid": 685,
+              "name": "Siri AI",
+              "cpu_percent": 92.19885440377128
+            },
+            {
+              "pid": 1877,
+              "name": "codex",
+              "cpu_percent": 42.402956307599254
+            },
+            {
+              "pid": 1332,
+              "name": "ChatGPT",
+              "cpu_percent": 31.300860786366947
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 29.270261496495102
+            }
+          ],
+          "new_or_exited_processes": 3
+        },
+        {
+          "total_percent": 543.1601833754237,
+          "maximum_process_percent": 92.8274868061614,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 92.8274868061614
+            },
+            {
+              "pid": 685,
+              "name": "Siri AI",
+              "cpu_percent": 63.763846958168976
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 14.93731559701149
+            },
+            {
+              "pid": 31294,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 8.583206012687409
+            },
+            {
+              "pid": 1342,
+              "name": "Codex (Service)",
+              "cpu_percent": 7.192190014350548
+            }
+          ],
+          "new_or_exited_processes": 3
+        },
+        {
+          "total_percent": 433.2421539427799,
+          "maximum_process_percent": 97.51942657581799,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 97.51942657581799
+            },
+            {
+              "pid": 685,
+              "name": "Siri AI",
+              "cpu_percent": 88.54441796925722
+            },
+            {
+              "pid": 31319,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 33.924760943433505
+            },
+            {
+              "pid": 27964,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 8.703536085015747
+            },
+            {
+              "pid": 1342,
+              "name": "Codex (Service)",
+              "cpu_percent": 8.199690399369432
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 498.633726996867,
+          "maximum_process_percent": 91.71494834959088,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 91.71494834959088
+            },
+            {
+              "pid": 685,
+              "name": "Siri AI",
+              "cpu_percent": 68.84957720574965
+            },
+            {
+              "pid": 31319,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 63.27932047007924
+            },
+            {
+              "pid": 33975,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 15.881765448622843
+            },
+            {
+              "pid": 1225,
+              "name": "Brave Browser",
+              "cpu_percent": 15.773160870504144
+            }
+          ],
+          "new_or_exited_processes": 3
+        },
+        {
+          "total_percent": 601.2079024601882,
+          "maximum_process_percent": 95.70205146308807,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 95.70205146308807
+            },
+            {
+              "pid": 685,
+              "name": "Siri AI",
+              "cpu_percent": 84.43964202198967
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 74.17454513748261
+            },
+            {
+              "pid": 31319,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 68.34983738597943
+            },
+            {
+              "pid": 1342,
+              "name": "Codex (Service)",
+              "cpu_percent": 9.258564181007651
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 410.1376893933266,
+          "maximum_process_percent": 97.53157255152254,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 97.53157255152254
+            },
+            {
+              "pid": 685,
+              "name": "Siri AI",
+              "cpu_percent": 62.42106557217023
+            },
+            {
+              "pid": 13702,
+              "name": "Antigravity IDE Helper (Renderer)",
+              "cpu_percent": 46.63064317472527
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 11.034569128414986
+            },
+            {
+              "pid": 1342,
+              "name": "Codex (Service)",
+              "cpu_percent": 7.847316105927815
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 419.6595532855151,
+          "maximum_process_percent": 95.7317633828954,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 95.7317633828954
+            },
+            {
+              "pid": 685,
+              "name": "Siri AI",
+              "cpu_percent": 82.59979176435611
+            },
+            {
+              "pid": 1875,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 35.41134191511289
+            },
+            {
+              "pid": 2279,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 22.179704555304976
+            },
+            {
+              "pid": 1342,
+              "name": "Codex (Service)",
+              "cpu_percent": 7.271364709301053
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 431.53287478577863,
+          "maximum_process_percent": 95.67617480786541,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 95.67617480786541
+            },
+            {
+              "pid": 685,
+              "name": "Siri AI",
+              "cpu_percent": 70.84130761967324
+            },
+            {
+              "pid": 1875,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 34.253177500507086
+            },
+            {
+              "pid": 2279,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 18.68401121374972
+            },
+            {
+              "pid": 1332,
+              "name": "ChatGPT",
+              "cpu_percent": 10.158308478215996
+            }
+          ],
+          "new_or_exited_processes": 8
+        },
+        {
+          "total_percent": 411.4492675907875,
+          "maximum_process_percent": 99.35604513639494,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 99.35604513639494
+            },
+            {
+              "pid": 685,
+              "name": "Siri AI",
+              "cpu_percent": 73.84883874893998
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 25.40421606411962
+            },
+            {
+              "pid": 1332,
+              "name": "ChatGPT",
+              "cpu_percent": 13.460969013750834
+            },
+            {
+              "pid": 1342,
+              "name": "Codex (Service)",
+              "cpu_percent": 5.442627773500112
+            }
+          ],
+          "new_or_exited_processes": 4
+        },
+        {
+          "total_percent": 485.99694070711786,
+          "maximum_process_percent": 98.7633831208651,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 98.7633831208651
+            },
+            {
+              "pid": 685,
+              "name": "Siri AI",
+              "cpu_percent": 94.7132849972884
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 15.510940785083545
+            },
+            {
+              "pid": 1342,
+              "name": "Codex (Service)",
+              "cpu_percent": 8.673080468608925
+            },
+            {
+              "pid": 2279,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 2.862794139051269
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 423.90586301945353,
+          "maximum_process_percent": 98.31281544921018,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 98.31281544921018
+            },
+            {
+              "pid": 685,
+              "name": "Siri AI",
+              "cpu_percent": 90.15546532771403
+            },
+            {
+              "pid": 729,
+              "name": "Mail",
+              "cpu_percent": 14.758706526887632
+            },
+            {
+              "pid": 753,
+              "name": "contactsd",
+              "cpu_percent": 12.666352005265034
+            },
+            {
+              "pid": 959,
+              "name": "icloudmailagent",
+              "cpu_percent": 10.753482587412059
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 668.2615092604254,
+          "maximum_process_percent": 101.20429634126631,
+          "top_processes": [
+            {
+              "pid": 685,
+              "name": "Siri AI",
+              "cpu_percent": 101.20429634126631
+            },
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 92.59045715081751
+            },
+            {
+              "pid": 959,
+              "name": "icloudmailagent",
+              "cpu_percent": 73.69391151996135
+            },
+            {
+              "pid": 753,
+              "name": "contactsd",
+              "cpu_percent": 50.268815586051126
+            },
+            {
+              "pid": 729,
+              "name": "Mail",
+              "cpu_percent": 30.42891382235719
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 539.6734556157477,
+          "maximum_process_percent": 102.37031665500216,
+          "top_processes": [
+            {
+              "pid": 685,
+              "name": "Siri AI",
+              "cpu_percent": 102.37031665500216
+            },
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 88.13118744002585
+            },
+            {
+              "pid": 789,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 14.312335406581969
+            },
+            {
+              "pid": 849,
+              "name": "generativeexperiencesd",
+              "cpu_percent": 13.549051097471981
+            },
+            {
+              "pid": 970,
+              "name": "hybridsearchd",
+              "cpu_percent": 12.890684527772732
+            }
+          ],
+          "new_or_exited_processes": 4
+        },
+        {
+          "total_percent": 526.7185287713949,
+          "maximum_process_percent": 91.3463497316156,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 91.3463497316156
+            },
+            {
+              "pid": 685,
+              "name": "Siri AI",
+              "cpu_percent": 56.04345469261318
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 9.802721945888019
+            },
+            {
+              "pid": 725,
+              "name": "mediaanalysisd",
+              "cpu_percent": 8.753619874244242
+            },
+            {
+              "pid": 1342,
+              "name": "Codex (Service)",
+              "cpu_percent": 8.541944819291926
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 571.9532054370497,
+          "maximum_process_percent": 85.76165824001924,
+          "top_processes": [
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 85.76165824001924
+            },
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 84.99084611210195
+            },
+            {
+              "pid": 685,
+              "name": "Siri AI",
+              "cpu_percent": 33.241487289577904
+            },
+            {
+              "pid": 1342,
+              "name": "Codex (Service)",
+              "cpu_percent": 8.180855576539672
+            },
+            {
+              "pid": 703,
+              "name": "NotificationCenter",
+              "cpu_percent": 5.854580715233349
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 501.4642976712739,
+          "maximum_process_percent": 84.66212128465816,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 84.66212128465816
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 72.65652306511748
+            },
+            {
+              "pid": 703,
+              "name": "NotificationCenter",
+              "cpu_percent": 15.986329597308996
+            },
+            {
+              "pid": 1342,
+              "name": "Codex (Service)",
+              "cpu_percent": 8.132933219996573
+            },
+            {
+              "pid": 31897,
+              "name": "Preview",
+              "cpu_percent": 4.855954462701025
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 743.8674312559135,
+          "maximum_process_percent": 116.68785536763205,
+          "top_processes": [
+            {
+              "pid": 970,
+              "name": "hybridsearchd",
+              "cpu_percent": 116.68785536763205
+            },
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 60.503439426217746
+            },
+            {
+              "pid": 729,
+              "name": "Mail",
+              "cpu_percent": 33.86069452011413
+            },
+            {
+              "pid": 703,
+              "name": "NotificationCenter",
+              "cpu_percent": 26.11172371014238
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 11.429147881780638
+            }
+          ],
+          "new_or_exited_processes": 7
+        },
+        {
+          "total_percent": 528.8877833555042,
+          "maximum_process_percent": 87.42798916697507,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 87.42798916697507
+            },
+            {
+              "pid": 34101,
+              "name": "itunescloudd",
+              "cpu_percent": 22.31472583620552
+            },
+            {
+              "pid": 729,
+              "name": "Mail",
+              "cpu_percent": 18.36551223335553
+            },
+            {
+              "pid": 789,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 11.257190028902995
+            },
+            {
+              "pid": 970,
+              "name": "hybridsearchd",
+              "cpu_percent": 10.534902007408379
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 395.48539624196,
+          "maximum_process_percent": 94.72224738719065,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 94.72224738719065
+            },
+            {
+              "pid": 729,
+              "name": "Mail",
+              "cpu_percent": 19.76787141023049
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 18.220764914752834
+            },
+            {
+              "pid": 1342,
+              "name": "Codex (Service)",
+              "cpu_percent": 12.954744790058259
+            },
+            {
+              "pid": 1304,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 5.491300378979012
+            }
+          ],
+          "new_or_exited_processes": 4
+        },
+        {
+          "total_percent": 465.0057873001322,
+          "maximum_process_percent": 89.82343215619878,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 89.82343215619878
+            },
+            {
+              "pid": 33975,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 58.23961711456782
+            },
+            {
+              "pid": 729,
+              "name": "Mail",
+              "cpu_percent": 14.212611857546866
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 13.871861498106062
+            },
+            {
+              "pid": 1342,
+              "name": "Codex (Service)",
+              "cpu_percent": 11.796116834077704
+            }
+          ],
+          "new_or_exited_processes": 3
+        },
+        {
+          "total_percent": 517.1865834875706,
+          "maximum_process_percent": 90.1969618752097,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 90.1969618752097
+            },
+            {
+              "pid": 33975,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 20.369916687950546
+            },
+            {
+              "pid": 1877,
+              "name": "codex",
+              "cpu_percent": 19.040221115749123
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 13.49702122463448
+            },
+            {
+              "pid": 729,
+              "name": "Mail",
+              "cpu_percent": 11.022942466117138
+            }
+          ],
+          "new_or_exited_processes": 3
+        },
+        {
+          "total_percent": 426.03231472969543,
+          "maximum_process_percent": 94.50579115553201,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 94.50579115553201
+            },
+            {
+              "pid": 796,
+              "name": "duetexpertd",
+              "cpu_percent": 69.6802807305904
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 12.057878684428758
+            },
+            {
+              "pid": 1342,
+              "name": "Codex (Service)",
+              "cpu_percent": 11.744766374559534
+            },
+            {
+              "pid": 789,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 5.742747054105232
+            }
+          ],
+          "new_or_exited_processes": 3
+        },
+        {
+          "total_percent": 441.6438443348397,
+          "maximum_process_percent": 94.83722446956448,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 94.83722446956448
+            },
+            {
+              "pid": 796,
+              "name": "duetexpertd",
+              "cpu_percent": 79.55187609001122
+            },
+            {
+              "pid": 970,
+              "name": "hybridsearchd",
+              "cpu_percent": 13.65183324105879
+            },
+            {
+              "pid": 1342,
+              "name": "Codex (Service)",
+              "cpu_percent": 13.37044005120374
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 11.510732007588711
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 426.3699815265075,
+          "maximum_process_percent": 96.0416433359912,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 96.0416433359912
+            },
+            {
+              "pid": 796,
+              "name": "duetexpertd",
+              "cpu_percent": 94.02493589045959
+            },
+            {
+              "pid": 902,
+              "name": "IntelligencePlatformComputeService",
+              "cpu_percent": 16.718912203693893
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 11.126648705320283
+            },
+            {
+              "pid": 1342,
+              "name": "Codex (Service)",
+              "cpu_percent": 11.112631954033825
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 441.84090383691114,
+          "maximum_process_percent": 97.31130336723231,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 97.31130336723231
+            },
+            {
+              "pid": 796,
+              "name": "duetexpertd",
+              "cpu_percent": 92.82416270166456
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 14.149913067340682
+            },
+            {
+              "pid": 1342,
+              "name": "Codex (Service)",
+              "cpu_percent": 12.4100302958484
+            },
+            {
+              "pid": 1304,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.172507141576257
+            }
+          ],
+          "new_or_exited_processes": 3
+        },
+        {
+          "total_percent": 424.3744212935698,
+          "maximum_process_percent": 97.41763856323169,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 97.41763856323169
+            },
+            {
+              "pid": 796,
+              "name": "duetexpertd",
+              "cpu_percent": 95.24427470959118
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 13.264264624968277
+            },
+            {
+              "pid": 1342,
+              "name": "Codex (Service)",
+              "cpu_percent": 11.613694632325517
+            },
+            {
+              "pid": 729,
+              "name": "Mail",
+              "cpu_percent": 8.487228634920012
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 510.13543105781156,
+          "maximum_process_percent": 90.95169167100414,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 90.95169167100414
+            },
+            {
+              "pid": 796,
+              "name": "duetexpertd",
+              "cpu_percent": 89.95624911873719
+            },
+            {
+              "pid": 789,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 19.565438923078574
+            },
+            {
+              "pid": 729,
+              "name": "Mail",
+              "cpu_percent": 16.823705183156914
+            },
+            {
+              "pid": 970,
+              "name": "hybridsearchd",
+              "cpu_percent": 13.329401975553633
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 449.6438465148931,
+          "maximum_process_percent": 100.10878233573435,
+          "top_processes": [
+            {
+              "pid": 796,
+              "name": "duetexpertd",
+              "cpu_percent": 100.10878233573435
+            },
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 93.05124886852938
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 12.868696770394354
+            },
+            {
+              "pid": 1342,
+              "name": "Codex (Service)",
+              "cpu_percent": 12.627579020028602
+            },
+            {
+              "pid": 24146,
+              "name": "Xcode",
+              "cpu_percent": 10.806134564404065
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 521.2488043670561,
+          "maximum_process_percent": 87.97714955297752,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 87.97714955297752
+            },
+            {
+              "pid": 796,
+              "name": "duetexpertd",
+              "cpu_percent": 56.12210000762007
+            },
+            {
+              "pid": 24146,
+              "name": "Xcode",
+              "cpu_percent": 20.36677830272911
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 17.717341564881917
+            },
+            {
+              "pid": 1342,
+              "name": "Codex (Service)",
+              "cpu_percent": 11.900233356916207
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 338.59429837002034,
+          "maximum_process_percent": 99.06390591708822,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 99.06390591708822
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 15.881686068990208
+            },
+            {
+              "pid": 1342,
+              "name": "Codex (Service)",
+              "cpu_percent": 10.403878066979463
+            },
+            {
+              "pid": 24146,
+              "name": "Xcode",
+              "cpu_percent": 5.979610640792871
+            },
+            {
+              "pid": 29987,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 2.4585125903772
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 443.76198996306135,
+          "maximum_process_percent": 96.8522614158711,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 96.8522614158711
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 12.507579853804035
+            },
+            {
+              "pid": 24146,
+              "name": "Xcode",
+              "cpu_percent": 12.395346634267348
+            },
+            {
+              "pid": 1342,
+              "name": "Codex (Service)",
+              "cpu_percent": 9.878790656313871
+            },
+            {
+              "pid": 416,
+              "name": "loginwindow",
+              "cpu_percent": 2.832329998389202
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 399.2805130755447,
+          "maximum_process_percent": 96.10518999118426,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 96.10518999118426
+            },
+            {
+              "pid": 24146,
+              "name": "Xcode",
+              "cpu_percent": 23.499462132813314
+            },
+            {
+              "pid": 1342,
+              "name": "Codex (Service)",
+              "cpu_percent": 10.815092297392772
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 9.54893515037767
+            },
+            {
+              "pid": 1225,
+              "name": "Brave Browser",
+              "cpu_percent": 8.06496882748779
+            }
+          ],
+          "new_or_exited_processes": 14
+        },
+        {
+          "total_percent": 447.3122165012722,
+          "maximum_process_percent": 90.7196479965911,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 90.7196479965911
+            },
+            {
+              "pid": 1877,
+              "name": "codex",
+              "cpu_percent": 25.82279823104043
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 16.51171148924172
+            },
+            {
+              "pid": 24146,
+              "name": "Xcode",
+              "cpu_percent": 14.263548304480388
+            },
+            {
+              "pid": 1229,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 9.20914961058327
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 369.19413709415994,
+          "maximum_process_percent": 97.47186119420768,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 97.47186119420768
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 18.733595302908064
+            },
+            {
+              "pid": 1342,
+              "name": "Codex (Service)",
+              "cpu_percent": 11.955119477171715
+            },
+            {
+              "pid": 1225,
+              "name": "Brave Browser",
+              "cpu_percent": 6.179935738225121
+            },
+            {
+              "pid": 640,
+              "name": "Dock",
+              "cpu_percent": 5.83693268901562
+            }
+          ],
+          "new_or_exited_processes": 13
+        },
+        {
+          "total_percent": 421.4285655757356,
+          "maximum_process_percent": 96.08694764327721,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 96.08694764327721
+            },
+            {
+              "pid": 1225,
+              "name": "Brave Browser",
+              "cpu_percent": 17.989391191425934
+            },
+            {
+              "pid": 1229,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 11.102734474372356
+            },
+            {
+              "pid": 1342,
+              "name": "Codex (Service)",
+              "cpu_percent": 10.043248825588332
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 10.022151175088153
+            }
+          ],
+          "new_or_exited_processes": 6
+        },
+        {
+          "total_percent": 380.2533455633441,
+          "maximum_process_percent": 96.97749776804892,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 96.97749776804892
+            },
+            {
+              "pid": 31287,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 31.030137896301913
+            },
+            {
+              "pid": 1225,
+              "name": "Brave Browser",
+              "cpu_percent": 14.773735885911469
+            },
+            {
+              "pid": 1342,
+              "name": "Codex (Service)",
+              "cpu_percent": 11.078789761326895
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 10.731750622552456
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 418.1882499222109,
+          "maximum_process_percent": 93.77640310102906,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 93.77640310102906
+            },
+            {
+              "pid": 1250,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 22.292265953864554
+            },
+            {
+              "pid": 31287,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 18.648715988666655
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 17.246965222412353
+            },
+            {
+              "pid": 1225,
+              "name": "Brave Browser",
+              "cpu_percent": 14.098709665943463
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 514.2360910211555,
+          "maximum_process_percent": 88.09303078786637,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 88.09303078786637
+            },
+            {
+              "pid": 29987,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 80.85320556940057
+            },
+            {
+              "pid": 678,
+              "name": "fontd",
+              "cpu_percent": 21.66950790166403
+            },
+            {
+              "pid": 1225,
+              "name": "Brave Browser",
+              "cpu_percent": 18.374421399897088
+            },
+            {
+              "pid": 1229,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 12.42609240583934
+            }
+          ],
+          "new_or_exited_processes": 7
+        },
+        {
+          "total_percent": 481.8302531512423,
+          "maximum_process_percent": 92.05298681017187,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 92.05298681017187
+            },
+            {
+              "pid": 29987,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 51.384640767543736
+            },
+            {
+              "pid": 1225,
+              "name": "Brave Browser",
+              "cpu_percent": 12.53977374898086
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 11.465081829864374
+            },
+            {
+              "pid": 1342,
+              "name": "Codex (Service)",
+              "cpu_percent": 9.08298985574454
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 473.2707764143752,
+          "maximum_process_percent": 94.87815378452855,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 94.87815378452855
+            },
+            {
+              "pid": 29987,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 26.19164663195318
+            },
+            {
+              "pid": 1342,
+              "name": "Codex (Service)",
+              "cpu_percent": 9.088224287378875
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 7.5337996439890755
+            },
+            {
+              "pid": 1225,
+              "name": "Brave Browser",
+              "cpu_percent": 7.335196666571709
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 366.8381032225636,
+          "maximum_process_percent": 98.5309537027052,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 98.5309537027052
+            },
+            {
+              "pid": 1229,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 21.144396996309023
+            },
+            {
+              "pid": 29987,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 19.683458577468446
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 13.12792098857393
+            },
+            {
+              "pid": 18907,
+              "name": "Adobe Photoshop 2026",
+              "cpu_percent": 13.016970993350705
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 351.4585066795343,
+          "maximum_process_percent": 99.02200739077539,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 99.02200739077539
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 21.597955821395644
+            },
+            {
+              "pid": 29987,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 15.825301691613976
+            },
+            {
+              "pid": 1229,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 10.926404773195772
+            },
+            {
+              "pid": 1342,
+              "name": "Codex (Service)",
+              "cpu_percent": 10.741262704625042
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 329.8863310945902,
+          "maximum_process_percent": 99.45089047201145,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 99.45089047201145
+            },
+            {
+              "pid": 29987,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 14.478186939493442
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 11.689703119080455
+            },
+            {
+              "pid": 1342,
+              "name": "Codex (Service)",
+              "cpu_percent": 11.023343050740632
+            },
+            {
+              "pid": 1225,
+              "name": "Brave Browser",
+              "cpu_percent": 5.716240858163866
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 330.41125876364146,
+          "maximum_process_percent": 99.81890360823753,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 99.81890360823753
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 11.3761565598683
+            },
+            {
+              "pid": 1342,
+              "name": "Codex (Service)",
+              "cpu_percent": 11.227662397707421
+            },
+            {
+              "pid": 29987,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 10.317148826179064
+            },
+            {
+              "pid": 645,
+              "name": "Finder",
+              "cpu_percent": 8.740667132454018
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 400.13080137948583,
+          "maximum_process_percent": 97.0217004271851,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 97.0217004271851
+            },
+            {
+              "pid": 29987,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 51.5814528795701
+            },
+            {
+              "pid": 1229,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 14.52888295898949
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 12.431798716735017
+            },
+            {
+              "pid": 1342,
+              "name": "Codex (Service)",
+              "cpu_percent": 11.91788874432917
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 426.8863658344318,
+          "maximum_process_percent": 98.21221390997083,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 98.21221390997083
+            },
+            {
+              "pid": 18907,
+              "name": "Adobe Photoshop 2026",
+              "cpu_percent": 29.885939112961225
+            },
+            {
+              "pid": 29987,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 13.972421777354455
+            },
+            {
+              "pid": 1225,
+              "name": "Brave Browser",
+              "cpu_percent": 10.394104548838667
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 7.788838496494379
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 384.2117399070038,
+          "maximum_process_percent": 99.52929179559933,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 99.52929179559933
+            },
+            {
+              "pid": 18907,
+              "name": "Adobe Photoshop 2026",
+              "cpu_percent": 38.1852462416339
+            },
+            {
+              "pid": 645,
+              "name": "Finder",
+              "cpu_percent": 10.134829486083229
+            },
+            {
+              "pid": 29987,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 9.067570987899478
+            },
+            {
+              "pid": 1225,
+              "name": "Brave Browser",
+              "cpu_percent": 6.965872046409678
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 317.71219307972984,
+          "maximum_process_percent": 100.00585684355607,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 100.00585684355607
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 9.051779427183703
+            },
+            {
+              "pid": 1342,
+              "name": "Codex (Service)",
+              "cpu_percent": 7.924982504686428
+            },
+            {
+              "pid": 29987,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 7.361389230694659
+            },
+            {
+              "pid": 1225,
+              "name": "Brave Browser",
+              "cpu_percent": 5.630477983050562
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 441.58678814327703,
+          "maximum_process_percent": 93.99901218383422,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 93.99901218383422
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 15.229881160239424
+            },
+            {
+              "pid": 645,
+              "name": "Finder",
+              "cpu_percent": 14.821901734818674
+            },
+            {
+              "pid": 1342,
+              "name": "Codex (Service)",
+              "cpu_percent": 11.584037030810638
+            },
+            {
+              "pid": 29987,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 11.27238863902374
+            }
+          ],
+          "new_or_exited_processes": 6
+        },
+        {
+          "total_percent": 465.4010673906085,
+          "maximum_process_percent": 97.75839998990082,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 97.75839998990082
+            },
+            {
+              "pid": 29987,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 19.892588156164358
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 11.115587586716584
+            },
+            {
+              "pid": 1342,
+              "name": "Codex (Service)",
+              "cpu_percent": 10.94341936007438
+            },
+            {
+              "pid": 1229,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 7.500054827193686
+            }
+          ],
+          "new_or_exited_processes": 7
+        },
+        {
+          "total_percent": 355.8131924843385,
+          "maximum_process_percent": 99.03504109127621,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 99.03504109127621
+            },
+            {
+              "pid": 29987,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 17.514671319293555
+            },
+            {
+              "pid": 18907,
+              "name": "Adobe Photoshop 2026",
+              "cpu_percent": 11.68502797363249
+            },
+            {
+              "pid": 1342,
+              "name": "Codex (Service)",
+              "cpu_percent": 10.797710830624538
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 9.196830200184534
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 351.52002221327314,
+          "maximum_process_percent": 99.74309662008433,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 99.74309662008433
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 17.304743535179462
+            },
+            {
+              "pid": 645,
+              "name": "Finder",
+              "cpu_percent": 15.607279365932602
+            },
+            {
+              "pid": 1342,
+              "name": "Codex (Service)",
+              "cpu_percent": 11.970584966928293
+            },
+            {
+              "pid": 1225,
+              "name": "Brave Browser",
+              "cpu_percent": 7.74671742760824
+            }
+          ],
+          "new_or_exited_processes": 3
+        },
+        {
+          "total_percent": 437.06956432069234,
+          "maximum_process_percent": 96.86044699854202,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 96.86044699854202
+            },
+            {
+              "pid": 29987,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 21.07510917768415
+            },
+            {
+              "pid": 1229,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 11.547786808672333
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 9.146138445259096
+            },
+            {
+              "pid": 1342,
+              "name": "Codex (Service)",
+              "cpu_percent": 8.769126683849812
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 478.6029231055247,
+          "maximum_process_percent": 93.01064099778192,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 93.01064099778192
+            },
+            {
+              "pid": 29987,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 48.83939488725527
+            },
+            {
+              "pid": 34200,
+              "name": "PhotosReliveWidget",
+              "cpu_percent": 42.31416698293882
+            },
+            {
+              "pid": 1229,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 12.811958547818506
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 11.004493727579954
+            }
+          ],
+          "new_or_exited_processes": 3
+        },
+        {
+          "total_percent": 445.06303107015765,
+          "maximum_process_percent": 95.7340951735585,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 95.7340951735585
+            },
+            {
+              "pid": 1229,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 30.004786537698614
+            },
+            {
+              "pid": 29987,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 24.28127669530026
+            },
+            {
+              "pid": 34200,
+              "name": "PhotosReliveWidget",
+              "cpu_percent": 16.668619323114747
+            },
+            {
+              "pid": 1342,
+              "name": "Codex (Service)",
+              "cpu_percent": 10.118095015003481
+            }
+          ],
+          "new_or_exited_processes": 3
+        },
+        {
+          "total_percent": 409.051105995015,
+          "maximum_process_percent": 98.28317141923489,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 98.28317141923489
+            },
+            {
+              "pid": 29987,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 28.590540463385256
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 19.663091445109444
+            },
+            {
+              "pid": 1229,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 13.656048917922346
+            },
+            {
+              "pid": 1342,
+              "name": "Codex (Service)",
+              "cpu_percent": 11.007671523690016
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 340.7546091899076,
+          "maximum_process_percent": 101.48240075208483,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 101.48240075208483
+            },
+            {
+              "pid": 29987,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 16.30414137785103
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 12.392879817745369
+            },
+            {
+              "pid": 1342,
+              "name": "Codex (Service)",
+              "cpu_percent": 10.00614218955875
+            },
+            {
+              "pid": 1229,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 5.25763122532928
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 389.4134391515697,
+          "maximum_process_percent": 98.596996397504,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 98.596996397504
+            },
+            {
+              "pid": 29987,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 23.98584363314627
+            },
+            {
+              "pid": 1229,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 16.020016947718606
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 11.49662554059177
+            },
+            {
+              "pid": 27964,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 11.302388311019172
+            }
+          ],
+          "new_or_exited_processes": 3
+        },
+        {
+          "total_percent": 543.2737337299016,
+          "maximum_process_percent": 92.685764489956,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 92.685764489956
+            },
+            {
+              "pid": 29987,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 25.10321680149834
+            },
+            {
+              "pid": 1229,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 24.953613898304816
+            },
+            {
+              "pid": 1342,
+              "name": "Codex (Service)",
+              "cpu_percent": 9.867025650447703
+            },
+            {
+              "pid": 1225,
+              "name": "Brave Browser",
+              "cpu_percent": 9.036691949043352
+            }
+          ],
+          "new_or_exited_processes": 4
+        },
+        {
+          "total_percent": 408.66703105842265,
+          "maximum_process_percent": 97.06722199230434,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 97.06722199230434
+            },
+            {
+              "pid": 29987,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 47.50097896508947
+            },
+            {
+              "pid": 34234,
+              "name": "gamecontrollerd",
+              "cpu_percent": 17.30271311255529
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 12.373447305589737
+            },
+            {
+              "pid": 1342,
+              "name": "Codex (Service)",
+              "cpu_percent": 9.959517019552807
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 349.4668078415566,
+          "maximum_process_percent": 98.44582733045104,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 98.44582733045104
+            },
+            {
+              "pid": 29987,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 19.57905218168365
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 14.25222054645029
+            },
+            {
+              "pid": 1342,
+              "name": "Codex (Service)",
+              "cpu_percent": 11.570675976809973
+            },
+            {
+              "pid": 1229,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 5.588943174855304
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 353.07773038669524,
+          "maximum_process_percent": 98.79013031900975,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 98.79013031900975
+            },
+            {
+              "pid": 29987,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 20.449586014038264
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 11.082078339695135
+            },
+            {
+              "pid": 1342,
+              "name": "Codex (Service)",
+              "cpu_percent": 10.975985246723518
+            },
+            {
+              "pid": 1225,
+              "name": "Brave Browser",
+              "cpu_percent": 7.051110179249472
+            }
+          ],
+          "new_or_exited_processes": 4
+        },
+        {
+          "total_percent": 335.9489840417783,
+          "maximum_process_percent": 99.61722912675394,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 99.61722912675394
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 13.429990391202749
+            },
+            {
+              "pid": 1342,
+              "name": "Codex (Service)",
+              "cpu_percent": 12.596357462261492
+            },
+            {
+              "pid": 645,
+              "name": "Finder",
+              "cpu_percent": 10.454241023096968
+            },
+            {
+              "pid": 29987,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 10.075256322775795
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 367.4318900206609,
+          "maximum_process_percent": 99.0581110956855,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 99.0581110956855
+            },
+            {
+              "pid": 29987,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 18.868525964971248
+            },
+            {
+              "pid": 645,
+              "name": "Finder",
+              "cpu_percent": 14.3452246491517
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 13.710031235563637
+            },
+            {
+              "pid": 1342,
+              "name": "Codex (Service)",
+              "cpu_percent": 10.327550869507967
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 378.835798877008,
+          "maximum_process_percent": 98.54434160114242,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 98.54434160114242
+            },
+            {
+              "pid": 29987,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 13.405691892662334
+            },
+            {
+              "pid": 645,
+              "name": "Finder",
+              "cpu_percent": 13.267415904330727
+            },
+            {
+              "pid": 1342,
+              "name": "Codex (Service)",
+              "cpu_percent": 11.191954670596413
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 10.923708691856195
+            }
+          ],
+          "new_or_exited_processes": 3
+        },
+        {
+          "total_percent": 391.38867014553557,
+          "maximum_process_percent": 97.56582526117585,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 97.56582526117585
+            },
+            {
+              "pid": 1229,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 25.309899417912103
+            },
+            {
+              "pid": 29987,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 17.487798675892787
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 10.700222333049476
+            },
+            {
+              "pid": 1342,
+              "name": "Codex (Service)",
+              "cpu_percent": 10.358384385142925
+            }
+          ],
+          "new_or_exited_processes": 9
+        },
+        {
+          "total_percent": 371.53692325927585,
+          "maximum_process_percent": 98.41936111015984,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 98.41936111015984
+            },
+            {
+              "pid": 1229,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 34.021776604715825
+            },
+            {
+              "pid": 29987,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 23.125579502996825
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 20.81166882804306
+            },
+            {
+              "pid": 1342,
+              "name": "Codex (Service)",
+              "cpu_percent": 12.957599174271579
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 566.2350944891263,
+          "maximum_process_percent": 82.82153701686174,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 82.82153701686174
+            },
+            {
+              "pid": 29987,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 50.41314260480807
+            },
+            {
+              "pid": 1229,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 11.837945561475424
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 10.926411566455903
+            },
+            {
+              "pid": 1342,
+              "name": "Codex (Service)",
+              "cpu_percent": 10.425039306390886
+            }
+          ],
+          "new_or_exited_processes": 4
+        },
+        {
+          "total_percent": 309.8149920595885,
+          "maximum_process_percent": 99.29186915041076,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 99.29186915041076
+            },
+            {
+              "pid": 1342,
+              "name": "Codex (Service)",
+              "cpu_percent": 12.649232718088202
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 10.657730146653591
+            },
+            {
+              "pid": 29987,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 9.025022842214788
+            },
+            {
+              "pid": 1225,
+              "name": "Brave Browser",
+              "cpu_percent": 2.9632712261444336
+            }
+          ],
+          "new_or_exited_processes": 3
+        },
+        {
+          "total_percent": 307.7876830028228,
+          "maximum_process_percent": 99.59187674801143,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 99.59187674801143
+            },
+            {
+              "pid": 29987,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 23.29413038551809
+            },
+            {
+              "pid": 1342,
+              "name": "Codex (Service)",
+              "cpu_percent": 11.161131836372904
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 9.921696011195719
+            },
+            {
+              "pid": 1229,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 6.138660142787715
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 383.9241741593769,
+          "maximum_process_percent": 96.93190498360742,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 96.93190498360742
+            },
+            {
+              "pid": 22389,
+              "name": "NewsToday2",
+              "cpu_percent": 24.88092938207327
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 15.432310493664653
+            },
+            {
+              "pid": 22262,
+              "name": "diagnosticd",
+              "cpu_percent": 14.338426994566857
+            },
+            {
+              "pid": 1342,
+              "name": "Codex (Service)",
+              "cpu_percent": 10.942670487113173
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 345.1823925288036,
+          "maximum_process_percent": 97.44305041884147,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 97.44305041884147
+            },
+            {
+              "pid": 29987,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 16.923606818956003
+            },
+            {
+              "pid": 1229,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 12.318221401192021
+            },
+            {
+              "pid": 1342,
+              "name": "Codex (Service)",
+              "cpu_percent": 11.858141410898867
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 11.259922785650732
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 390.3913488468694,
+          "maximum_process_percent": 97.33167456888548,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 97.33167456888548
+            },
+            {
+              "pid": 22450,
+              "name": "com.apple.MapKit.SnapshotService",
+              "cpu_percent": 35.30953852936567
+            },
+            {
+              "pid": 29987,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 16.043922812694028
+            },
+            {
+              "pid": 1229,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 13.052331999628596
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 10.805235650901945
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 342.65780143897496,
+          "maximum_process_percent": 99.11469838432114,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 99.11469838432114
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 17.055929882843934
+            },
+            {
+              "pid": 34258,
+              "name": "itunescloudd",
+              "cpu_percent": 14.552468031784937
+            },
+            {
+              "pid": 1342,
+              "name": "Codex (Service)",
+              "cpu_percent": 12.98184761259543
+            },
+            {
+              "pid": 29987,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 3.049970732316332
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 340.83569973756,
+          "maximum_process_percent": 99.10034294867812,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 99.10034294867812
+            },
+            {
+              "pid": 29987,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 12.667484549851151
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 11.514133289721265
+            },
+            {
+              "pid": 1229,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 11.41836562391639
+            },
+            {
+              "pid": 1342,
+              "name": "Codex (Service)",
+              "cpu_percent": 10.202925307368602
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 402.4764311161063,
+          "maximum_process_percent": 97.39853555606491,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 97.39853555606491
+            },
+            {
+              "pid": 29987,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 53.409166033097144
+            },
+            {
+              "pid": 1229,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 19.402973163795675
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 12.85231319614011
+            },
+            {
+              "pid": 1342,
+              "name": "Codex (Service)",
+              "cpu_percent": 10.566013443867506
+            }
+          ],
+          "new_or_exited_processes": 3
+        },
+        {
+          "total_percent": 347.7985239032505,
+          "maximum_process_percent": 98.98532366133104,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 98.98532366133104
+            },
+            {
+              "pid": 29987,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 15.398872760133834
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 10.817783959837532
+            },
+            {
+              "pid": 1342,
+              "name": "Codex (Service)",
+              "cpu_percent": 10.780096585394435
+            },
+            {
+              "pid": 1225,
+              "name": "Brave Browser",
+              "cpu_percent": 7.769629114966142
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 550.2683934092868,
+          "maximum_process_percent": 85.1644317516272,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 85.1644317516272
+            },
+            {
+              "pid": 1250,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 25.26372291419534
+            },
+            {
+              "pid": 29987,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 17.256980292145524
+            },
+            {
+              "pid": 1229,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 11.894578113811072
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 11.107779419413898
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 403.4081374302693,
+          "maximum_process_percent": 97.5563394219625,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 97.5563394219625
+            },
+            {
+              "pid": 29987,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 23.17103672547428
+            },
+            {
+              "pid": 1229,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 23.000696208590792
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 19.018206765604777
+            },
+            {
+              "pid": 1342,
+              "name": "Codex (Service)",
+              "cpu_percent": 12.291741449097309
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 367.0873157605022,
+          "maximum_process_percent": 97.75696292164182,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 97.75696292164182
+            },
+            {
+              "pid": 29987,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 22.055305992351897
+            },
+            {
+              "pid": 1229,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 19.339352271840262
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 11.489741026075885
+            },
+            {
+              "pid": 1342,
+              "name": "Codex (Service)",
+              "cpu_percent": 11.112134990138747
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 368.3530705724845,
+          "maximum_process_percent": 99.38993170582104,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 99.38993170582104
+            },
+            {
+              "pid": 1229,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 27.34851718848782
+            },
+            {
+              "pid": 29987,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 25.97020092898466
+            },
+            {
+              "pid": 1342,
+              "name": "Codex (Service)",
+              "cpu_percent": 12.904367811161286
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 11.139971743440304
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 321.69700717802857,
+          "maximum_process_percent": 99.35844723886731,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 99.35844723886731
+            },
+            {
+              "pid": 29987,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 14.672909622331881
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 12.858082949304276
+            },
+            {
+              "pid": 1342,
+              "name": "Codex (Service)",
+              "cpu_percent": 12.62237888004293
+            },
+            {
+              "pid": 1229,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 8.931385679819796
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 319.7908721196821,
+          "maximum_process_percent": 97.56840345757132,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 97.56840345757132
+            },
+            {
+              "pid": 1342,
+              "name": "Codex (Service)",
+              "cpu_percent": 11.408340814449318
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 11.119031852101585
+            },
+            {
+              "pid": 29987,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 3.80372944786826
+            },
+            {
+              "pid": 1225,
+              "name": "Brave Browser",
+              "cpu_percent": 3.2416271922797426
+            }
+          ],
+          "new_or_exited_processes": 6
+        },
+        {
+          "total_percent": 402.7750524897428,
+          "maximum_process_percent": 97.73892847752902,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 97.73892847752902
+            },
+            {
+              "pid": 1229,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 20.61754204541446
+            },
+            {
+              "pid": 970,
+              "name": "hybridsearchd",
+              "cpu_percent": 17.69289557546473
+            },
+            {
+              "pid": 29987,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 11.798101618263352
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 11.043219875846006
+            }
+          ],
+          "new_or_exited_processes": 3
+        },
+        {
+          "total_percent": 353.40831063923065,
+          "maximum_process_percent": 93.38157454220116,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 93.38157454220116
+            },
+            {
+              "pid": 29987,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 18.65401414092015
+            },
+            {
+              "pid": 1342,
+              "name": "Codex (Service)",
+              "cpu_percent": 11.485747892114713
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 10.258353057986225
+            },
+            {
+              "pid": 1229,
+              "name": "Brave Browser Helper",
+              "cpu_percent": 9.647118767321842
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 349.32629351547087,
+          "maximum_process_percent": 97.80088165618943,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 97.80088165618943
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 17.43467791227439
+            },
+            {
+              "pid": 1342,
+              "name": "Codex (Service)",
+              "cpu_percent": 11.447481044382808
+            },
+            {
+              "pid": 1225,
+              "name": "Brave Browser",
+              "cpu_percent": 9.178198296510882
+            },
+            {
+              "pid": 29987,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 6.098105932972704
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 558.0609758685392,
+          "maximum_process_percent": 85.30267485008828,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 85.30267485008828
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 78.42063574808299
+            },
+            {
+              "pid": 1332,
+              "name": "ChatGPT",
+              "cpu_percent": 12.67451772988307
+            },
+            {
+              "pid": 642,
+              "name": "MenuBarAgent",
+              "cpu_percent": 7.293033026701758
+            },
+            {
+              "pid": 29987,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 6.498633042151495
+            }
+          ],
+          "new_or_exited_processes": 13
+        },
+        {
+          "total_percent": 429.5190665335281,
+          "maximum_process_percent": 97.17583296227606,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 97.17583296227606
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 23.8226065977556
+            },
+            {
+              "pid": 29987,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 12.813893559234087
+            },
+            {
+              "pid": 1332,
+              "name": "ChatGPT",
+              "cpu_percent": 9.070640424684283
+            },
+            {
+              "pid": 1342,
+              "name": "Codex (Service)",
+              "cpu_percent": 7.904814334970275
+            }
+          ],
+          "new_or_exited_processes": 3
+        },
+        {
+          "total_percent": 320.77344953806085,
+          "maximum_process_percent": 99.96510973294862,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 99.96510973294862
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 22.69092300040002
+            },
+            {
+              "pid": 1332,
+              "name": "ChatGPT",
+              "cpu_percent": 6.013711434990302
+            },
+            {
+              "pid": 1342,
+              "name": "Codex (Service)",
+              "cpu_percent": 4.69180255747269
+            },
+            {
+              "pid": 854,
+              "name": "Creative Cloud Content Manager.node",
+              "cpu_percent": 4.612310420767967
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 493.43336026989687,
+          "maximum_process_percent": 141.91877205788356,
+          "top_processes": [
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 141.91877205788356
+            },
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 87.01294434530058
+            },
+            {
+              "pid": 1332,
+              "name": "ChatGPT",
+              "cpu_percent": 32.88082014161797
+            },
+            {
+              "pid": 642,
+              "name": "MenuBarAgent",
+              "cpu_percent": 7.633019336684244
+            },
+            {
+              "pid": 1342,
+              "name": "Codex (Service)",
+              "cpu_percent": 5.313569068107928
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 366.0343186324972,
+          "maximum_process_percent": 99.75763663209311,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 99.75763663209311
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 35.440871010851666
+            },
+            {
+              "pid": 1332,
+              "name": "ChatGPT",
+              "cpu_percent": 9.821026464750224
+            },
+            {
+              "pid": 1342,
+              "name": "Codex (Service)",
+              "cpu_percent": 7.5216257674156735
+            },
+            {
+              "pid": 1250,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 5.022337463727005
+            }
+          ],
+          "new_or_exited_processes": 3
+        },
+        {
+          "total_percent": 360.7103863295476,
+          "maximum_process_percent": 95.97629874113083,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 95.97629874113083
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 27.970712611545853
+            },
+            {
+              "pid": 1332,
+              "name": "ChatGPT",
+              "cpu_percent": 9.478685804104783
+            },
+            {
+              "pid": 1342,
+              "name": "Codex (Service)",
+              "cpu_percent": 8.510380831195697
+            },
+            {
+              "pid": 29987,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 5.883509430914798
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 334.2047729080922,
+          "maximum_process_percent": 99.16124637586884,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 99.16124637586884
+            },
+            {
+              "pid": 29987,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 36.34030770327035
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 16.803667949883373
+            },
+            {
+              "pid": 1332,
+              "name": "ChatGPT",
+              "cpu_percent": 5.141119225709175
+            },
+            {
+              "pid": 28039,
+              "name": "node",
+              "cpu_percent": 2.9429475642926186
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 290.78601407971297,
+          "maximum_process_percent": 98.94329243362375,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 98.94329243362375
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 9.911981754064877
+            },
+            {
+              "pid": 1332,
+              "name": "ChatGPT",
+              "cpu_percent": 6.106604802985226
+            },
+            {
+              "pid": 18907,
+              "name": "Adobe Photoshop 2026",
+              "cpu_percent": 4.164828625163576
+            },
+            {
+              "pid": 29987,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 2.5440953618537674
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 283.6957750928934,
+          "maximum_process_percent": 100.16291447042867,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 100.16291447042867
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 15.916427845110622
+            },
+            {
+              "pid": 1332,
+              "name": "ChatGPT",
+              "cpu_percent": 8.566759287484906
+            },
+            {
+              "pid": 29987,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 3.2154208521700496
+            },
+            {
+              "pid": 1342,
+              "name": "Codex (Service)",
+              "cpu_percent": 1.704040574035879
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 296.43156597966373,
+          "maximum_process_percent": 99.70743695859515,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 99.70743695859515
+            },
+            {
+              "pid": 18907,
+              "name": "Adobe Photoshop 2026",
+              "cpu_percent": 17.53015651817487
+            },
+            {
+              "pid": 28706,
+              "name": "AMPDevicesAgent",
+              "cpu_percent": 4.014371124596839
+            },
+            {
+              "pid": 1332,
+              "name": "ChatGPT",
+              "cpu_percent": 3.18647333260098
+            },
+            {
+              "pid": 1225,
+              "name": "Brave Browser",
+              "cpu_percent": 3.184196738175455
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 473.961436520815,
+          "maximum_process_percent": 97.27390069870663,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 97.27390069870663
+            },
+            {
+              "pid": 29987,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 10.587889815400287
+            },
+            {
+              "pid": 34282,
+              "name": "mdworker_shared",
+              "cpu_percent": 4.0327449592072
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 3.4122744814070236
+            },
+            {
+              "pid": 1332,
+              "name": "ChatGPT",
+              "cpu_percent": 2.9573423199296243
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 454.5082574281756,
+          "maximum_process_percent": 95.98145452588413,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 95.98145452588413
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 74.92372483069497
+            },
+            {
+              "pid": 16534,
+              "name": "Antigravity IDE Helper (Plugin)",
+              "cpu_percent": 31.634129455164416
+            },
+            {
+              "pid": 29987,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 10.440085712716058
+            },
+            {
+              "pid": 1332,
+              "name": "ChatGPT",
+              "cpu_percent": 2.835256505576527
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 331.90046540228013,
+          "maximum_process_percent": 95.34275353199516,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 95.34275353199516
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 75.13728926382493
+            },
+            {
+              "pid": 29987,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 2.4328352188722815
+            },
+            {
+              "pid": 729,
+              "name": "Mail",
+              "cpu_percent": 1.683615126951252
+            },
+            {
+              "pid": 22262,
+              "name": "diagnosticd",
+              "cpu_percent": 1.5950038044801336
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 265.1706035641853,
+          "maximum_process_percent": 100.26896513025109,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 100.26896513025109
+            },
+            {
+              "pid": 27102,
+              "name": "diagnosticd",
+              "cpu_percent": 4.71798633716064
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 3.271851194411277
+            },
+            {
+              "pid": 27088,
+              "name": "dasd",
+              "cpu_percent": 2.6223262414951454
+            },
+            {
+              "pid": 27070,
+              "name": "axassetsd",
+              "cpu_percent": 2.4374053171753802
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 272.1729142905304,
+          "maximum_process_percent": 100.23660701857685,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 100.23660701857685
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 2.847326517249595
+            },
+            {
+              "pid": 29987,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 2.489450319508286
+            },
+            {
+              "pid": 22336,
+              "name": "homed",
+              "cpu_percent": 1.743772558244916
+            },
+            {
+              "pid": 1342,
+              "name": "Codex (Service)",
+              "cpu_percent": 1.3219122910995995
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 304.696463485033,
+          "maximum_process_percent": 100.52993514244255,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 100.52993514244255
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 23.7777957855801
+            },
+            {
+              "pid": 1332,
+              "name": "ChatGPT",
+              "cpu_percent": 8.031347375291785
+            },
+            {
+              "pid": 1342,
+              "name": "Codex (Service)",
+              "cpu_percent": 4.583068156897954
+            },
+            {
+              "pid": 1877,
+              "name": "codex",
+              "cpu_percent": 2.763014615012033
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 442.4153417035791,
+          "maximum_process_percent": 137.59689279920389,
+          "top_processes": [
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 137.59689279920389
+            },
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 91.21493855242498
+            },
+            {
+              "pid": 1332,
+              "name": "ChatGPT",
+              "cpu_percent": 14.586325983101265
+            },
+            {
+              "pid": 1877,
+              "name": "codex",
+              "cpu_percent": 10.297225907674115
+            },
+            {
+              "pid": 29987,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 8.057259937174017
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 886.9694638241245,
+          "maximum_process_percent": 114.85613161046287,
+          "top_processes": [
+            {
+              "pid": 1877,
+              "name": "codex",
+              "cpu_percent": 114.85613161046287
+            },
+            {
+              "pid": 650,
+              "name": "trustd",
+              "cpu_percent": 63.0681454175635
+            },
+            {
+              "pid": 24573,
+              "name": "lldb-rpc-server",
+              "cpu_percent": 39.958386666218566
+            },
+            {
+              "pid": 1332,
+              "name": "ChatGPT",
+              "cpu_percent": 36.62450040289947
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 30.402476240206212
+            }
+          ],
+          "new_or_exited_processes": 17
+        },
+        {
+          "total_percent": 1016.4682796045885,
+          "maximum_process_percent": 164.48943210149565,
+          "top_processes": [
+            {
+              "pid": 1877,
+              "name": "codex",
+              "cpu_percent": 164.48943210149565
+            },
+            {
+              "pid": 1875,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 56.99842311645142
+            },
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 50.84650727061704
+            },
+            {
+              "pid": 650,
+              "name": "trustd",
+              "cpu_percent": 48.17511205023236
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 34.55166376532757
+            }
+          ],
+          "new_or_exited_processes": 12
+        },
+        {
+          "total_percent": 704.3308625120764,
+          "maximum_process_percent": 86.52063125060381,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 86.52063125060381
+            },
+            {
+              "pid": 1877,
+              "name": "codex",
+              "cpu_percent": 68.03784575986529
+            },
+            {
+              "pid": 34886,
+              "name": "ruby",
+              "cpu_percent": 24.399543610713177
+            },
+            {
+              "pid": 1332,
+              "name": "ChatGPT",
+              "cpu_percent": 17.811482327750845
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 15.734403960599073
+            }
+          ],
+          "new_or_exited_processes": 11
+        },
+        {
+          "total_percent": 416.9283999264101,
+          "maximum_process_percent": 95.16496842135557,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 95.16496842135557
+            },
+            {
+              "pid": 1342,
+              "name": "Codex (Service)",
+              "cpu_percent": 8.552295089378354
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 7.649687165338533
+            },
+            {
+              "pid": 641,
+              "name": "ControlCenter",
+              "cpu_percent": 7.35782252686213
+            },
+            {
+              "pid": 1877,
+              "name": "codex",
+              "cpu_percent": 4.242143897487636
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 293.11876056853635,
+          "maximum_process_percent": 100.32540053802585,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 100.32540053802585
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 9.969252948121937
+            },
+            {
+              "pid": 1342,
+              "name": "Codex (Service)",
+              "cpu_percent": 6.542971164209701
+            },
+            {
+              "pid": 34964,
+              "name": "curl",
+              "cpu_percent": 3.883581708467427
+            },
+            {
+              "pid": 1332,
+              "name": "ChatGPT",
+              "cpu_percent": 3.055903554707518
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 309.527007423907,
+          "maximum_process_percent": 99.95431381373632,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 99.95431381373632
+            },
+            {
+              "pid": 34886,
+              "name": "ruby",
+              "cpu_percent": 23.550993642078634
+            },
+            {
+              "pid": 29987,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 11.555772769639407
+            },
+            {
+              "pid": 1342,
+              "name": "Codex (Service)",
+              "cpu_percent": 7.712587619649213
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 6.294504538291941
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 347.38109893159617,
+          "maximum_process_percent": 100.08301532751595,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 100.08301532751595
+            },
+            {
+              "pid": 29987,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 14.080465676395013
+            },
+            {
+              "pid": 1877,
+              "name": "codex",
+              "cpu_percent": 4.215791410224168
+            },
+            {
+              "pid": 1304,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.045355134424473
+            },
+            {
+              "pid": 1342,
+              "name": "Codex (Service)",
+              "cpu_percent": 2.8873910253083728
+            }
+          ],
+          "new_or_exited_processes": 3
+        },
+        {
+          "total_percent": 342.01047358272433,
+          "maximum_process_percent": 99.18691869063811,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 99.18691869063811
+            },
+            {
+              "pid": 29987,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 11.665919691487328
+            },
+            {
+              "pid": 35019,
+              "name": "yt-dlp",
+              "cpu_percent": 8.554342603880293
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 6.800750059988404
+            },
+            {
+              "pid": 1342,
+              "name": "Codex (Service)",
+              "cpu_percent": 6.281737392197828
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 376.0565498871465,
+          "maximum_process_percent": 98.64618674249037,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 98.64618674249037
+            },
+            {
+              "pid": 35019,
+              "name": "yt-dlp",
+              "cpu_percent": 10.74046226875
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 8.384592229839814
+            },
+            {
+              "pid": 1342,
+              "name": "Codex (Service)",
+              "cpu_percent": 6.641530303366352
+            },
+            {
+              "pid": 641,
+              "name": "ControlCenter",
+              "cpu_percent": 6.419825058327897
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 326.2292258976066,
+          "maximum_process_percent": 100.90043423439083,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 100.90043423439083
+            },
+            {
+              "pid": 1332,
+              "name": "ChatGPT",
+              "cpu_percent": 17.53789229355244
+            },
+            {
+              "pid": 35019,
+              "name": "yt-dlp",
+              "cpu_percent": 10.3205579638246
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 5.127896909697329
+            },
+            {
+              "pid": 1342,
+              "name": "Codex (Service)",
+              "cpu_percent": 3.817050463698183
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 338.1090204248376,
+          "maximum_process_percent": 99.5083726251845,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 99.5083726251845
+            },
+            {
+              "pid": 1332,
+              "name": "ChatGPT",
+              "cpu_percent": 9.617997777705206
+            },
+            {
+              "pid": 27964,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 8.808943094380579
+            },
+            {
+              "pid": 1250,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 6.8116892028746525
+            },
+            {
+              "pid": 29987,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 6.473907731353105
+            }
+          ],
+          "new_or_exited_processes": 3
+        },
+        {
+          "total_percent": 288.842467567099,
+          "maximum_process_percent": 99.40240699001616,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 99.40240699001616
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 8.321757833029913
+            },
+            {
+              "pid": 1342,
+              "name": "Codex (Service)",
+              "cpu_percent": 7.614166505652653
+            },
+            {
+              "pid": 1250,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 5.631342143707054
+            },
+            {
+              "pid": 1225,
+              "name": "Brave Browser",
+              "cpu_percent": 3.953364152236654
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 488.8178160274109,
+          "maximum_process_percent": 95.0000887590001,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 95.0000887590001
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 78.21841247121873
+            },
+            {
+              "pid": 1332,
+              "name": "ChatGPT",
+              "cpu_percent": 7.025255348946513
+            },
+            {
+              "pid": 1877,
+              "name": "codex",
+              "cpu_percent": 5.515996324813047
+            },
+            {
+              "pid": 1342,
+              "name": "Codex (Service)",
+              "cpu_percent": 2.824152650273432
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 393.2158575177353,
+          "maximum_process_percent": 96.87851000536337,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 96.87851000536337
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 10.462740704048786
+            },
+            {
+              "pid": 1332,
+              "name": "ChatGPT",
+              "cpu_percent": 6.518820359516836
+            },
+            {
+              "pid": 1342,
+              "name": "Codex (Service)",
+              "cpu_percent": 5.087417164929435
+            },
+            {
+              "pid": 854,
+              "name": "Creative Cloud Content Manager.node",
+              "cpu_percent": 4.927490183597332
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 273.4222420623606,
+          "maximum_process_percent": 100.50677231556304,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 100.50677231556304
+            },
+            {
+              "pid": 29987,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 10.420180421483176
+            },
+            {
+              "pid": 1342,
+              "name": "Codex (Service)",
+              "cpu_percent": 6.97180142477334
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 6.352216952173517
+            },
+            {
+              "pid": 18907,
+              "name": "Adobe Photoshop 2026",
+              "cpu_percent": 1.2719290218176853
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 282.153121087125,
+          "maximum_process_percent": 102.37638072946561,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 102.37638072946561
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 8.01581586470678
+            },
+            {
+              "pid": 1342,
+              "name": "Codex (Service)",
+              "cpu_percent": 7.566987771778059
+            },
+            {
+              "pid": 29987,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 6.560582187312809
+            },
+            {
+              "pid": 1225,
+              "name": "Brave Browser",
+              "cpu_percent": 1.410331922210744
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 292.9507344249557,
+          "maximum_process_percent": 99.33609933530478,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 99.33609933530478
+            },
+            {
+              "pid": 29987,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 9.230347188349183
+            },
+            {
+              "pid": 1342,
+              "name": "Codex (Service)",
+              "cpu_percent": 8.977113550090987
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 7.2709093281668515
+            },
+            {
+              "pid": 1225,
+              "name": "Brave Browser",
+              "cpu_percent": 4.817874062470742
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 274.9821071311644,
+          "maximum_process_percent": 100.52116279139476,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 100.52116279139476
+            },
+            {
+              "pid": 1342,
+              "name": "Codex (Service)",
+              "cpu_percent": 8.092921990553496
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 7.642202325239185
+            },
+            {
+              "pid": 1877,
+              "name": "codex",
+              "cpu_percent": 4.230150519256053
+            },
+            {
+              "pid": 29987,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 2.775752806773044
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 185.82387987101214,
+          "maximum_process_percent": 100.52060575346745,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 100.52060575346745
+            },
+            {
+              "pid": 1342,
+              "name": "Codex (Service)",
+              "cpu_percent": 7.91807200790668
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 6.793221080148915
+            },
+            {
+              "pid": 29987,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 2.346074372309428
+            },
+            {
+              "pid": 1877,
+              "name": "codex",
+              "cpu_percent": 1.6434448835152977
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 199.77706132012614,
+          "maximum_process_percent": 100.87110532047154,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 100.87110532047154
+            },
+            {
+              "pid": 1877,
+              "name": "codex",
+              "cpu_percent": 10.104145604924543
+            },
+            {
+              "pid": 29987,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 7.357416864999385
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 6.240662723962794
+            },
+            {
+              "pid": 1342,
+              "name": "Codex (Service)",
+              "cpu_percent": 4.872766169315369
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 297.717401253427,
+          "maximum_process_percent": 95.45578703265224,
+          "top_processes": [
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 95.45578703265224
+            },
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 94.95548223165929
+            },
+            {
+              "pid": 29987,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 14.017272528247368
+            },
+            {
+              "pid": 1342,
+              "name": "Codex (Service)",
+              "cpu_percent": 5.23043280398045
+            },
+            {
+              "pid": 1332,
+              "name": "ChatGPT",
+              "cpu_percent": 2.996585945611402
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 320.0461530533661,
+          "maximum_process_percent": 98.60529374321078,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 98.60529374321078
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 15.686707835329717
+            },
+            {
+              "pid": 1332,
+              "name": "ChatGPT",
+              "cpu_percent": 6.343741973625967
+            },
+            {
+              "pid": 1342,
+              "name": "Codex (Service)",
+              "cpu_percent": 4.917986720621571
+            },
+            {
+              "pid": 29987,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 2.208711734683248
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 181.43147805157253,
+          "maximum_process_percent": 100.70214655360125,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 100.70214655360125
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 10.689580572018695
+            },
+            {
+              "pid": 1342,
+              "name": "Codex (Service)",
+              "cpu_percent": 8.160020259274912
+            },
+            {
+              "pid": 31319,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 2.8859530856653395
+            },
+            {
+              "pid": 29987,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 2.4297722516463276
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 314.75204655379065,
+          "maximum_process_percent": 98.94332637136388,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 98.94332637136388
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 13.87053762311269
+            },
+            {
+              "pid": 1332,
+              "name": "ChatGPT",
+              "cpu_percent": 9.054905370145166
+            },
+            {
+              "pid": 690,
+              "name": "corespotlightd",
+              "cpu_percent": 3.8883386565388185
+            },
+            {
+              "pid": 1342,
+              "name": "Codex (Service)",
+              "cpu_percent": 3.7311670369425203
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 400.26137273845586,
+          "maximum_process_percent": 121.00425555921396,
+          "top_processes": [
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 121.00425555921396
+            },
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 92.91632336245708
+            },
+            {
+              "pid": 1875,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 39.13168152688434
+            },
+            {
+              "pid": 1877,
+              "name": "codex",
+              "cpu_percent": 23.904786529559175
+            },
+            {
+              "pid": 1332,
+              "name": "ChatGPT",
+              "cpu_percent": 17.373012863627913
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 248.05180913858084,
+          "maximum_process_percent": 99.68874250701118,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 99.68874250701118
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 15.83517910861642
+            },
+            {
+              "pid": 1332,
+              "name": "ChatGPT",
+              "cpu_percent": 14.1715429628625
+            },
+            {
+              "pid": 29987,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 9.860631257884748
+            },
+            {
+              "pid": 1342,
+              "name": "Codex (Service)",
+              "cpu_percent": 5.853362234060598
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 204.43012805480717,
+          "maximum_process_percent": 100.45072311858556,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 100.45072311858556
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 16.085528666795682
+            },
+            {
+              "pid": 1342,
+              "name": "Codex (Service)",
+              "cpu_percent": 6.363828114297329
+            },
+            {
+              "pid": 1332,
+              "name": "ChatGPT",
+              "cpu_percent": 6.29012624855845
+            },
+            {
+              "pid": 1304,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 3.4267508834015006
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 217.92526493059813,
+          "maximum_process_percent": 100.37320569549718,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 100.37320569549718
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 12.390055465634457
+            },
+            {
+              "pid": 29987,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 10.24544444285892
+            },
+            {
+              "pid": 1342,
+              "name": "Codex (Service)",
+              "cpu_percent": 7.110834602008415
+            },
+            {
+              "pid": 1332,
+              "name": "ChatGPT",
+              "cpu_percent": 4.106447088111526
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 193.38039059278873,
+          "maximum_process_percent": 99.96491610344302,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 99.96491610344302
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 12.532839674868688
+            },
+            {
+              "pid": 1342,
+              "name": "Codex (Service)",
+              "cpu_percent": 7.381011839381534
+            },
+            {
+              "pid": 1332,
+              "name": "ChatGPT",
+              "cpu_percent": 4.925544991798546
+            },
+            {
+              "pid": 29987,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 2.577355822015756
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 222.21770432096184,
+          "maximum_process_percent": 99.980649471442,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 99.980649471442
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 13.606189945079159
+            },
+            {
+              "pid": 1342,
+              "name": "Codex (Service)",
+              "cpu_percent": 7.395502029982061
+            },
+            {
+              "pid": 1332,
+              "name": "ChatGPT",
+              "cpu_percent": 4.661792313442794
+            },
+            {
+              "pid": 28886,
+              "name": "ScreenTimeWidgetExtension",
+              "cpu_percent": 3.5709760983586434
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 221.78288731697907,
+          "maximum_process_percent": 100.42221458306187,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 100.42221458306187
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 29.509445964500316
+            },
+            {
+              "pid": 1332,
+              "name": "ChatGPT",
+              "cpu_percent": 7.386416351075545
+            },
+            {
+              "pid": 1342,
+              "name": "Codex (Service)",
+              "cpu_percent": 6.450584338827079
+            },
+            {
+              "pid": 29987,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 2.4310096435355226
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 714.3544084049886,
+          "maximum_process_percent": 131.7420308388569,
+          "top_processes": [
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 131.7420308388569
+            },
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 66.7504766140071
+            },
+            {
+              "pid": 1877,
+              "name": "codex",
+              "cpu_percent": 46.0947760241017
+            },
+            {
+              "pid": 1875,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 40.46320417493804
+            },
+            {
+              "pid": 1332,
+              "name": "ChatGPT",
+              "cpu_percent": 33.776777641538146
+            }
+          ],
+          "new_or_exited_processes": 13
+        },
+        {
+          "total_percent": 946.0619736503837,
+          "maximum_process_percent": 154.7056304107123,
+          "top_processes": [
+            {
+              "pid": 1877,
+              "name": "codex",
+              "cpu_percent": 154.7056304107123
+            },
+            {
+              "pid": 650,
+              "name": "trustd",
+              "cpu_percent": 62.21395702297596
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 50.90882340670622
+            },
+            {
+              "pid": 1875,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 48.85663233574349
+            },
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 33.79113168942779
+            }
+          ],
+          "new_or_exited_processes": 23
+        },
+        {
+          "total_percent": 904.6198912243666,
+          "maximum_process_percent": 148.34303652430353,
+          "top_processes": [
+            {
+              "pid": 1877,
+              "name": "codex",
+              "cpu_percent": 148.34303652430353
+            },
+            {
+              "pid": 31319,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 61.41060795195357
+            },
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 52.90746923906728
+            },
+            {
+              "pid": 650,
+              "name": "trustd",
+              "cpu_percent": 41.335859855142935
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 29.16155287365123
+            }
+          ],
+          "new_or_exited_processes": 13
+        },
+        {
+          "total_percent": 275.3526491354704,
+          "maximum_process_percent": 100.1408066692264,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 100.1408066692264
+            },
+            {
+              "pid": 29987,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 10.301429940626814
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 9.767248818872408
+            },
+            {
+              "pid": 1875,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 7.809671028529497
+            },
+            {
+              "pid": 1332,
+              "name": "ChatGPT",
+              "cpu_percent": 6.31399768431152
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 267.0188922555806,
+          "maximum_process_percent": 97.87921865676206,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 97.87921865676206
+            },
+            {
+              "pid": 1877,
+              "name": "codex",
+              "cpu_percent": 15.441641452710208
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 12.20311040694187
+            },
+            {
+              "pid": 1332,
+              "name": "ChatGPT",
+              "cpu_percent": 6.274438037472001
+            },
+            {
+              "pid": 1342,
+              "name": "Codex (Service)",
+              "cpu_percent": 5.968199410323379
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 310.663180393686,
+          "maximum_process_percent": 97.3161140563895,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 97.3161140563895
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 11.320898648000668
+            },
+            {
+              "pid": 35739,
+              "name": "yt-dlp",
+              "cpu_percent": 10.401847033422449
+            },
+            {
+              "pid": 1332,
+              "name": "ChatGPT",
+              "cpu_percent": 6.727183596858166
+            },
+            {
+              "pid": 642,
+              "name": "MenuBarAgent",
+              "cpu_percent": 6.5601828358361685
+            }
+          ],
+          "new_or_exited_processes": 7
+        },
+        {
+          "total_percent": 406.91860082338707,
+          "maximum_process_percent": 97.64102054046596,
+          "top_processes": [
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 97.64102054046596
+            },
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 95.90558265602641
+            },
+            {
+              "pid": 642,
+              "name": "MenuBarAgent",
+              "cpu_percent": 6.6548295157444715
+            },
+            {
+              "pid": 1332,
+              "name": "ChatGPT",
+              "cpu_percent": 6.643143804618682
+            },
+            {
+              "pid": 650,
+              "name": "trustd",
+              "cpu_percent": 5.242175856574544
+            }
+          ],
+          "new_or_exited_processes": 10
+        },
+        {
+          "total_percent": 321.2903962229779,
+          "maximum_process_percent": 98.06265322614531,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 98.06265322614531
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 54.300410024267876
+            },
+            {
+              "pid": 1332,
+              "name": "ChatGPT",
+              "cpu_percent": 28.020793241454957
+            },
+            {
+              "pid": 1877,
+              "name": "codex",
+              "cpu_percent": 10.865221434472113
+            },
+            {
+              "pid": 2238,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 7.783327908835956
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 245.79866566575606,
+          "maximum_process_percent": 99.81510046869498,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 99.81510046869498
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 20.52241124045782
+            },
+            {
+              "pid": 1877,
+              "name": "codex",
+              "cpu_percent": 12.668467024530358
+            },
+            {
+              "pid": 1332,
+              "name": "ChatGPT",
+              "cpu_percent": 7.147052307854003
+            },
+            {
+              "pid": 1342,
+              "name": "Codex (Service)",
+              "cpu_percent": 7.106625165467223
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 414.4772789535241,
+          "maximum_process_percent": 96.49397833386175,
+          "top_processes": [
+            {
+              "pid": 31737,
+              "name": "Adobe Illustrator",
+              "cpu_percent": 96.49397833386175
+            },
+            {
+              "pid": 1875,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 33.14500968076031
+            },
+            {
+              "pid": 1877,
+              "name": "codex",
+              "cpu_percent": 10.190060803314474
+            },
+            {
+              "pid": 1876,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 9.854194852361308
+            },
+            {
+              "pid": 1332,
+              "name": "ChatGPT",
+              "cpu_percent": 8.402256207726507
+            }
+          ],
+          "new_or_exited_processes": 1
+        }
+      ],
+      "repeat": 0,
+      "policy": "baseline",
+      "variant": "baseline"
+    }
+  ],
+  "host_load_window": "requests_only",
+  "quiet_timeout_seconds": 180,
+  "campaign_completed": false,
+  "host_load_rule": "3 consecutive 1s samples: total<=200%, max process<=75%, no PID churn",
+  "notes": [
+    "Export and model initialization excluded from request timing",
+    "Host gate checks sampled CPU counters, not disk/GPU contention",
+    "Aggregate CPU includes benchmark; per-process gate excludes worker tree",
+    "Startup includes import/export/preload/warmup; ready wait is separate",
+    "Request host window includes parity checks; individual latencies exclude them",
+    "Request host sampling uses approx 100ms cadence; startup uses approx 1s",
+    "OS file cache is not reset; this is not cold-disk performance",
+    "Baseline has resident source weights; candidates use file residency",
+    "Phase spans are host wall times; acquire includes nested loading spans",
+    "Router eval includes gate/top-k execution, not just a synchronization wait",
+    "MLX load and eval may include file I/O; checksum_read is separate",
+    "Opt-in instrumentation overhead is included in request timings",
+    "No RSS, GPU, E2E chat, quality-suite or P3 certification"
+  ],
+  "source_sha256": {
+    "scripts/compare_strata_experts.py": "025c795d27177a42523af1f827b83174ea0e0b1b1b5ea10ae09f82089381448e",
+    "scripts/strata_measurement.py": "e24018d3beeae11b71f7d18c1d921e84363517453552c1de98780b663e0f4ddb",
+    "vllm_apple/qwen3_moe_residency.py": "9d554ee624327b5c93e0b5b303032e758b09e1b93a356f6e486e99898564e39d",
+    "vllm_apple/mlx_expert_backend.py": "1bad64f95789fa4244a8941112a488fc17f70e7b73c097f8205b86d056b9d9ba",
+    "vllm_apple/mlx_expert_export.py": "a511d8d2417f63000487e4367e0e1e0e056a435613ba6394138aecdaaa63cb8f",
+    "vllm_apple/expert_manifest.py": "0c62fb0346bae8cb4b92972a8924e5f365d1547a9e3b4384e13f7c6caf788c7d",
+    "vllm_apple/expert_residency.py": "0bb7320cbb3b259c32aa6fc3deb9e22f585f03350d0a07ec4662240e87ea6a57",
+    "vllm_apple/expert_execution.py": "d526e9b9b855949530a2414e48389770a962258f9d8520f033f5f018d89ba340",
+    "vllm_apple/expert_timing.py": "1658bf5ecf2bd677a3473a7f848088d8009dcb131e625b7610deb8b1baf36c7a",
+    "vllm_apple/qwen3_moe_gather.py": "3f30a83acb25b8e10b090156abfab9afa9e78df50b248d8cd4680ecab2f57464"
+  }
+}
