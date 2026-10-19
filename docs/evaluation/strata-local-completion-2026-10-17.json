@@ -1,0 +1,42 @@
+{
+  "scope": "local_synthetic_functional_regression",
+  "date": "2026-10-17",
+  "machine": "arm64",
+  "macos": "27.0.1",
+  "chip": "Apple M4",
+  "mlx": "0.32.1",
+  "mlx_lm": "0.32.0",
+  "metal_available": true,
+  "tests": 84,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0,
+  "passed": true,
+  "cache_matrix": {
+    "devices": [
+      "cpu",
+      "metal"
+    ],
+    "modes": [
+      "sequential",
+      "grouped",
+      "row_batch",
+      "selection_batch"
+    ],
+    "layers": 2,
+    "experts": 3,
+    "top_k": 2,
+    "quantization": "4-bit/group32",
+    "requests_per_case": 2,
+    "prompt_tokens": 4,
+    "decode_tokens": 3,
+    "maximum_absolute_error_tolerance": 1e-05,
+    "resident_bytes_prefill": 27648,
+    "resident_bytes_decode": 9216
+  },
+  "limitations": [
+    "Synthetic weights, no real-model quality or HTTP certification",
+    "No speed qualification; no GPU dispatch-count claim",
+    "No physical OOM, cross-chip, startup hard-cap or long-duration certification"
+  ]
+}

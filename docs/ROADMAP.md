@@ -2,7 +2,7 @@
 
 品質と持続的な安定性を守りながら、Apple Siliconで実行経路を最適化する。
 
-**整理日：2026-10-13** · [状況一覧](#overview) · [直近の更新](#updates) · [段階別計画](#plans) · [環境待ち](#environment) · [検証履歴](#history)
+**整理日：2026-10-17** · [状況一覧](#overview) · [直近の更新](#updates) · [段階別計画](#plans) · [環境待ち](#environment) · [検証履歴](#history)
 
 > 実装の完了と、実モデル・性能・長時間安定性の認定は別に管理します。
 
@@ -17,7 +17,8 @@
 | 🟠 [Next] | P2 · Batching・KV | 数値一致、tail latency、goodputの検証 |
 | 🟠 [Next] | P3 · 実測最適化 | 広い品質scopeとE2E改善を確認して採用 |
 | 🟠 [Next] | P4 · 機種別選択・配布 | 前提gate、24時間認定、復旧と配布 |
-| 🟠 [Next] | Strata · Expert常駐 | startupと要求を分け、全方式の負荷条件を満たす比較 |
+| 🟢 [Done] | Strata · opt-in実装 | 共有予算・4方式・server接続、CPU／Metal cache検証済み |
+| 🟠 [Next] | Strata · 性能認定 | startupと要求を分け、全方式の低負荷比較を継続 |
 | 🟠 [Next] | R0 / L0 · RAG・固定LoRA | 実モデル品質・context予算・adapter互換性 |
 | 🔴 [Later] | R1 / L1 / RL2 | 取り込み、検索、学習、複数adapter、統合認定 |
 | ⭕️ [Pending] | 追加実機・artifact・署名環境 | 必要な環境が整った条件から再開 |
@@ -40,6 +41,32 @@
 
 ## 直近の更新 / Recent updates / 最近更新
 
+### Strata · この筐体での機能検証完了 · 2026-10-17
+
+- 🟢 [Done] 現行opt-in実装の仕上げ。source model読込前のprocess budget不足拒否と、bank変更前の設定検証を追加。関連87 tests成功・skip 0、compile／diff確認済み。[最終回帰](evaluation/strata-startup-admission-regression-2026-10-17.json)。起動中ピークのhard capは含まない。
+
+English: Current explicit opt-in integration is implemented and passes 87 tests; performance qualification remains open. 简体中文：当前显式opt-in集成已实现并通过87项测试，性能认证仍未完成。
+
+
+- 🟢 [Done] install metadataと要求13 phaseを分離記録。12 workers／120要求で機能・メモリ契約成立。[診断解析](evaluation/strata-install-request-profile-analysis-2026-10-17.json)。速度／GPU kernel認定とは分離。
+- 🟢 [Done] 実RSS／MLX admissionとKV cacheを接続し、拒否時cache不変→予算復旧後再開をCPU／Metal全4方式で確認。関連86 tests成功。[記録](evaluation/strata-admission-cache-regression-2026-10-17.json)。
+
+English: Metadata/request phase separation and actual-observer admission/cache recovery pass locally (86 tests). 简体中文：metadata／请求phase分离与实观测admission／cache恢复通过本机验证（86 tests）。
+
+
+- 🟢 [Done] 明示opt-in実装と関連84 tests成功。Apple M4 CPU／Metalで全4方式のprefill→KV cache成長→連続decode、予算縮小fallback、独立要求、Lease／close解放を検証。[記録](evaluation/strata-local-completion-2026-10-17.json)。
+- 🟢 [Done] selection_batchのCPU／Metalメモリ検証：12 workers／120要求、誤差2.235e-7、保持・解放契約成立。反転eval32→4、active peakは増加。[解析](evaluation/strata-selection-prefill-memory-analysis-2026-10-17.json)。
+- 🟠 [Next] 本筐体の低負荷比較は継続。最新両campaign各16試行は数値・保持契約成立、全方式の要求負荷／変動条件は未達。
+- ⭕️ [Pending] 互換実weight／tokenizer／export未準備のHTTP・品質認定、別SoC／RAM・容量超過・隔離環境が必要な実OOM認定。
+- 🔴 [Later] startup source-bank削減、pressure／phys_footprint、native Metal graph／mmap／prefetchの追加実装。現行process admissionはOS hard capではない。
+
+English: Local opt-in functionality is verified on CPU and Metal; quiet-host qualification remains next. Unavailable artifacts/hardware are Pending, and additional unimplemented architecture is Later.
+
+简体中文：本机CPU／Metal的opt-in功能验证完成；低负载认证继续。缺少artifact／硬件的认证列为Pending，尚未实现的扩展列为Later。
+
+現在のStrata状態は本節と[完了範囲](STRATA-INTEGRATION.md)を参照。以下の日付付き記録は履歴として維持する。
+
+
 ### Strata upstream Metal · 2026-10-14
 
 - 🟢 [Done] v0.1.44 Apple Silicon実装とv0.1.44.1のM2 dispatch修正を調査。[調査記録](STRATA-INTEGRATION.md)。
@@ -52,6 +79,17 @@ English: Upstream Metal research completed; process-wide budgets and launch vali
 
 简体中文：上游Metal调查完成，下一步优先全process预算与launch验证。
 
+
+### 依存更新 · 2026-10-19
+
+- 🟢 [Done] Ruff0.17.1へ更新。既存Strata追加内容を保持してimport整形のみ。lint・Python3.10/3.12 compile・native Strata4・backend関連50・Swift38 tests・Mac sample成功。全回帰再実行1573 tests成功（46 skip）。初回APIログ取得1 errorも[更新記録](dependency-update-2026-10-19.md)に保持。
+- 🟢 [Done] 公式vLLM/Metal0.31.0を別venvへ導入しpip check・直接MetalPlatform可用性確認。Homebrew0.30.0と既定runtimeは維持。
+- 🟠 [Next] 新backendのplatform import実測9.823秒で既存5秒preflight不合格。gateを緩めず起動検査を通す方法を検証してからモデル品質・数値・メモリqualificationへ進む。新versionを認定・昇格していない。
+- ⭕️ [Pending] 生成・変換用モデルartifact不足によるDiffusers／MLX-Gen／Core ML tools最新版のqualification、remote CI Actionsの実runner検証。
+
+English: Ruff0.17.1 is applied and the full retry passed. Metal0.31.0 is an installed, unpromoted candidate because the existing startup probe times out.
+
+简体中文：已应用Ruff0.17.1并通过完整回归重跑。Metal0.31.0已安装为候选版本，因现有启动检查超时而未切换默认环境。
 
 ### 依存更新 · 2026-10-12
 

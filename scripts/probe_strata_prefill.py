@@ -69,7 +69,7 @@ def prepare(root):
                             dict(x=x, indices=indices, expected=expected))
 
 
-def worker(root, device, group_rows, measure, repeat, exact_payload_budget=False):
+def worker(root, device, group_rows, measure, repeat, exact_payload_budget=False, selection_batch=False):
     import mlx.core as mx
     import mlx.nn as nn
     import psutil
@@ -94,10 +94,12 @@ def worker(root, device, group_rows, measure, repeat, exact_payload_budget=False
         block = Qwen3MoeSparseMoeBlock(arguments())
         nn.quantize(block, bits=4, group_size=32)
         timings = ExpertTimings() if measure == "memory" else None
+        metadata_started = time.perf_counter_ns()
         backend = MLXFileExpertBackend.from_manifest(
             root / "experts", expected_model_sha256=IDENTITY,
             maximum_file_bytes=8 << 20, timings=timings,
         )
+        manifest_open_ns = time.perf_counter_ns() - metadata_started
         payload = backend.resident_bytes_upper_bound(ExpertKey(0, 0))
         budget = (2 * payload if exact_payload_budget else
                   2 * max(size for size, _ in backend._manifest.entries.values()))
@@ -105,9 +107,12 @@ def worker(root, device, group_rows, measure, repeat, exact_payload_budget=False
             raise RuntimeError("fixture does not enforce two-expert partial residency")
         manager = ExpertResidencyManager(backend, maximum_entries=4, maximum_bytes=budget)
         executor = ResidentExpertExecutor(manager, timings=timings)
+        install_started = time.perf_counter_ns()
         hook = install_qwen3_moe_residency(block, backend, executor, layer=0,
                                          phase="prefill", grouped=True,
-                                         maximum_group_rows=group_rows)
+                                         maximum_group_rows=group_rows,
+                                         selection_batch=selection_batch)
+        hook_install_ns = time.perf_counter_ns() - install_started
         gc.collect()
         mx.synchronize()
         if measure == "memory":
@@ -137,6 +142,9 @@ def worker(root, device, group_rows, measure, repeat, exact_payload_budget=False
                                        process_hwm_rss_bytes=resource.getrusage(resource.RUSAGE_SELF).ru_maxrss,
                                        mlx_peak_active_bytes=mx.get_peak_memory(),
                                        mlx_cache_bytes=mx.get_cache_memory(),
+                                       phase_nanoseconds={key: phases_after[key]["nanoseconds"]
+                                                          - phases_before[key]["nanoseconds"]
+                                                          for key in phases_after},
                                        counts={key: phases_after[key]["count"] - phases_before[key]["count"]
                                                for key in phases_after}))
                 else:
@@ -157,6 +165,8 @@ def worker(root, device, group_rows, measure, repeat, exact_payload_budget=False
         results.append(dict(case=name, rows=x.shape[1], latencies_ns=latencies,
                             maximum_absolute_error=max(errors), memory=memory,
                             residency=snapshot, budget_bytes=budget, payload_bytes=payload,
+                            installation=dict(manifest_open_ns=manifest_open_ns,
+                                              hook_install_ns=hook_install_ns),
                             closed_resident_bytes=manager.snapshot()["resident_bytes"]))
         del tensors, x, indices, expected, hook, block, executor, manager, backend
         gc.collect()
@@ -164,7 +174,7 @@ def worker(root, device, group_rows, measure, repeat, exact_payload_budget=False
         if measure == "memory":
             mx.clear_cache()
     return dict(status="passed", device=device, maximum_group_rows=group_rows,
-                measure=measure, repeat=repeat, results=results)
+                measure=measure, repeat=repeat, selection_batch=selection_batch, results=results)
 
 
 def main():
@@ -177,6 +187,9 @@ def main():
     parser.add_argument("--repeat", type=int, default=0)
     parser.add_argument("--exact-payload-budget", action="store_true")
     parser.add_argument("--memory-only", action="store_true")
+    parser.add_argument("--selection-batch", action="store_true", help="Worker: aggregate different selections")
+    parser.add_argument("--selection-batch-suite", action="store_true",
+                        help="Compare single-row, identical-row and union-selection batches")
     parser.add_argument("--output", type=Path)
     args = parser.parse_args()
     if args.prepare:
@@ -184,7 +197,7 @@ def main():
         return
     if args.worker:
         print(json.dumps(worker(args.worker, args.device, args.group_rows, args.measure, args.repeat,
-                                args.exact_payload_budget)))
+                                args.exact_payload_budget, args.selection_batch)))
         return
     if args.output is None or args.output.exists() or sys.platform != "darwin":
         parser.error("new --output and macOS required")
@@ -198,10 +211,14 @@ def main():
         for measure, devices, repeats in campaigns:
             for repeat in range(repeats):
                 for device in devices:
-                    for rows in ((1, 8) if repeat % 2 == 0 else (8, 1)):
+                    variants = [(1, False), (8, False)]
+                    if args.selection_batch_suite:
+                        variants.append((8, True))
+                    for rows, selection_batch in (variants if repeat % 2 == 0 else variants[::-1]):
                         result = subprocess.run([sys.executable, script, "--worker", str(root),
                                                  "--device", device, "--group-rows", str(rows),
                                                  "--measure", measure, "--repeat", str(repeat),
+                                                 *(["--selection-batch"] if selection_batch else []),
                                                  *(["--exact-payload-budget"]
                                                    if args.exact_payload_budget else [])],
                                                 capture_output=True, text=True, timeout=120)
@@ -214,6 +231,7 @@ def main():
     report = dict(scope="synthetic_authoritative_prefill_switch_cpu_metal", trials=trials,
                   speed_qualified=False, real_oom_qualified=False,
                   exact_payload_budget=args.exact_payload_budget, memory_only=args.memory_only,
+                  selection_batch_suite=args.selection_batch_suite,
                   source_sha256={str(p.relative_to(ROOT)): hashlib.sha256(p.read_bytes()).hexdigest()
                                  for p in sources},
                   notes=["Five synthetic ordered-selection fixtures, not text/tokenizer/real-model quality",
@@ -227,6 +245,8 @@ def main():
                          "Reference/input/output arrays contribute to baseline and observed peaks",
                          "RSS sampling requested at 1ms; sampled peak may miss transients",
                          "RSS HWM is lifetime-wide; MLX peak reset per request",
+                         "Installation separates manifest opening from hook validation/payload metadata; excludes model load/export",
+                         "Request phase host wall times are instrumented inclusive spans, not additive or GPU kernel times",
                          "MLX allocator is process-wide unified memory, not dedicated/system GPU VRAM",
                          "Keep default allocator cache between requests; test-only clear between memory cases"])
     with args.output.open("x") as stream:

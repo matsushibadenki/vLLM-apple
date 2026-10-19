@@ -1,0 +1,47 @@
+{
+  "architecture": "arm64",
+  "available_memory_bytes": 10394320896,
+  "backend": {
+    "architecture_features": [],
+    "compatible": false,
+    "executable": "/Users/Shared/Program/vLLM-apple/.venv-vllm-metal-031/bin/vllm",
+    "issues": [
+      "backend_environment_inspection_failed"
+    ],
+    "platform_class": null,
+    "platform_is_cpu": null,
+    "platform_module": null,
+    "python_version": null,
+    "transformers_version": null,
+    "vllm_metal_version": null,
+    "vllm_version": null
+  },
+  "backend_kind": "vllm_metal",
+  "eligible": false,
+  "gpu_core_count": 10,
+  "issues": [
+    "backend:backend_environment_inspection_failed",
+    "backend:vllm_candidate_version_mismatch",
+    "backend:vllm_metal_candidate_version_mismatch",
+    "backend:transformers_candidate_version_mismatch"
+  ],
+  "memory_pressure": "normal",
+  "model": {
+    "architecture": "gemma2",
+    "artifact_bytes": 1470988882,
+    "context_tokens": 2048,
+    "estimated_resident_bytes": 1689092690,
+    "fits_memory": true,
+    "hard_ceiling_bytes": 7645541827,
+    "identifier": "models/gemma-2-2b-it-4bit",
+    "missing_features": [],
+    "requested_modes": [
+      "text"
+    ],
+    "required_features": []
+  },
+  "platform": "Darwin",
+  "schema_version": 1,
+  "soc": "Apple M4",
+  "total_memory_bytes": 34359738368
+}

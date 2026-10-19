@@ -1,0 +1,5470 @@
+{
+  "schema_version": 1,
+  "scope": "synthetic_qwen3_block_cpu",
+  "model_qualification": false,
+  "standard_adoption_eligible": false,
+  "automatic_application": false,
+  "trials": [],
+  "profiling_enabled": false,
+  "preloaded": false,
+  "grouped": false,
+  "gather": false,
+  "variant_suite": false,
+  "cycles": 512,
+  "memory_suite": true,
+  "runs": 4,
+  "row_suite": false,
+  "tokens_per_request": 1,
+  "warmup_cycles": 8,
+  "resident_budget_bytes": 20000,
+  "quiet_host_requested": true,
+  "host_gates": [
+    {
+      "passed": false,
+      "observations": [
+        {
+          "total_percent": 321.7437135505228,
+          "maximum_process_percent": 222.00155812044747,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 222.00155812044747
+            },
+            {
+              "pid": 735,
+              "name": "Mail",
+              "cpu_percent": 43.77907748872755
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.462342876796922
+            },
+            {
+              "pid": 652,
+              "name": "trustd",
+              "cpu_percent": 3.973412150789715
+            },
+            {
+              "pid": 2933,
+              "name": "codex",
+              "cpu_percent": 2.569831388869418
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 303.9918930209988,
+          "maximum_process_percent": 223.2474917411673,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 223.2474917411673
+            },
+            {
+              "pid": 735,
+              "name": "Mail",
+              "cpu_percent": 32.533299940774135
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.635792186205556
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 2.2956749404651413
+            },
+            {
+              "pid": 2933,
+              "name": "codex",
+              "cpu_percent": 1.8964604398077387
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 273.8810594449543,
+          "maximum_process_percent": 224.8534408697774,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 224.8534408697774
+            },
+            {
+              "pid": 735,
+              "name": "Mail",
+              "cpu_percent": 15.02392218315448
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.566904785948034
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.9143631731869342
+            },
+            {
+              "pid": 2100,
+              "name": "ChatGPT",
+              "cpu_percent": 0.95947882240008
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 268.57903675143945,
+          "maximum_process_percent": 225.20843122921428,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 225.20843122921428
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.604319864524327
+            },
+            {
+              "pid": 735,
+              "name": "Mail",
+              "cpu_percent": 4.361684626915863
+            },
+            {
+              "pid": 3201,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 3.1235932880460378
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.9472148611314761
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 282.85928896804165,
+          "maximum_process_percent": 222.854719778715,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 222.854719778715
+            },
+            {
+              "pid": 2933,
+              "name": "codex",
+              "cpu_percent": 13.418562933280459
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.671195993814935
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 2.040962769955233
+            },
+            {
+              "pid": 735,
+              "name": "Mail",
+              "cpu_percent": 1.7018253472876883
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 278.83138771232655,
+          "maximum_process_percent": 223.5191689329024,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 223.5191689329024
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.59903368082843
+            },
+            {
+              "pid": 735,
+              "name": "Mail",
+              "cpu_percent": 3.2660804189998696
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.3521159021738554
+            },
+            {
+              "pid": 24937,
+              "name": "Code Helper (Plugin)",
+              "cpu_percent": 1.1164154260227288
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 277.8008909572107,
+          "maximum_process_percent": 224.02524732276217,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 224.02524732276217
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.586737024828357
+            },
+            {
+              "pid": 2933,
+              "name": "codex",
+              "cpu_percent": 2.1746006810008383
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.9156101840995126
+            },
+            {
+              "pid": 2145,
+              "name": "Codex (Service)",
+              "cpu_percent": 1.4037591429199985
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 258.28095774417335,
+          "maximum_process_percent": 226.1615750458478,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 226.1615750458478
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.587381243975851
+            },
+            {
+              "pid": 2145,
+              "name": "Codex (Service)",
+              "cpu_percent": 1.9563831775693314
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.9471838836357203
+            },
+            {
+              "pid": 24937,
+              "name": "Code Helper (Plugin)",
+              "cpu_percent": 1.0560022833516765
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 257.27628003497017,
+          "maximum_process_percent": 225.37755993475426,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 225.37755993475426
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.523308437170093
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.9957124992208708
+            },
+            {
+              "pid": 2145,
+              "name": "Codex (Service)",
+              "cpu_percent": 0.977929780729401
+            },
+            {
+              "pid": 647,
+              "name": "Finder",
+              "cpu_percent": 0.5999016738728454
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 267.7882249243539,
+          "maximum_process_percent": 224.81499679543512,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 224.81499679543512
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.599144037393583
+            },
+            {
+              "pid": 735,
+              "name": "Mail",
+              "cpu_percent": 2.75480750672398
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.9636105296418964
+            },
+            {
+              "pid": 24937,
+              "name": "Code Helper (Plugin)",
+              "cpu_percent": 1.1056814759670084
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 259.42779866755245,
+          "maximum_process_percent": 225.59074739520992,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 225.59074739520992
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.61106407413616
+            },
+            {
+              "pid": 3201,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 2.724248878739753
+            },
+            {
+              "pid": 735,
+              "name": "Mail",
+              "cpu_percent": 2.458211196926638
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.96411381528203
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 269.52207209106484,
+          "maximum_process_percent": 224.74834674998712,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 224.74834674998712
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.501713371935989
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 4.437315564825005
+            },
+            {
+              "pid": 2145,
+              "name": "Codex (Service)",
+              "cpu_percent": 1.4734831574930227
+            },
+            {
+              "pid": 2100,
+              "name": "ChatGPT",
+              "cpu_percent": 1.414451834335439
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 303.2309726653258,
+          "maximum_process_percent": 221.7776024740114,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 221.7776024740114
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 32.768298088173374
+            },
+            {
+              "pid": 696,
+              "name": "corespotlightd",
+              "cpu_percent": 10.301621609262916
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.656290164971882
+            },
+            {
+              "pid": 608,
+              "name": "cfprefsd",
+              "cpu_percent": 1.5590393736075068
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 309.7441798297768,
+          "maximum_process_percent": 222.6739327549403,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 222.6739327549403
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 43.41372028902285
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.596494329236629
+            },
+            {
+              "pid": 608,
+              "name": "cfprefsd",
+              "cpu_percent": 1.4342963458960065
+            },
+            {
+              "pid": 2145,
+              "name": "Codex (Service)",
+              "cpu_percent": 1.3814013978070592
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 257.51742116863295,
+          "maximum_process_percent": 225.58880288488194,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 225.58880288488194
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.645684697182483
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 2.215445410416686
+            },
+            {
+              "pid": 2145,
+              "name": "Codex (Service)",
+              "cpu_percent": 1.0816405916539464
+            },
+            {
+              "pid": 647,
+              "name": "Finder",
+              "cpu_percent": 0.6182995155089047
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 260.82341203282306,
+          "maximum_process_percent": 225.06208789151475,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 225.06208789151475
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.54137124404046
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 2.1320704120458362
+            },
+            {
+              "pid": 24937,
+              "name": "Code Helper (Plugin)",
+              "cpu_percent": 1.0982000613760043
+            },
+            {
+              "pid": 2145,
+              "name": "Codex (Service)",
+              "cpu_percent": 0.914400887930557
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 262.8486780554869,
+          "maximum_process_percent": 224.7110762184929,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 224.7110762184929
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.545593163899739
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 2.0045973898871607
+            },
+            {
+              "pid": 2248,
+              "name": "Brave Browser",
+              "cpu_percent": 1.7839077689716154
+            },
+            {
+              "pid": 2765,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 1.618198982446871
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 257.1937681482153,
+          "maximum_process_percent": 225.01107415586492,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 225.01107415586492
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.531051634918728
+            },
+            {
+              "pid": 3201,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 2.6099133233702965
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.9337798996444313
+            },
+            {
+              "pid": 2145,
+              "name": "Codex (Service)",
+              "cpu_percent": 1.4219871211452968
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 262.97583359736814,
+          "maximum_process_percent": 224.47018806302577,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 224.47018806302577
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.690389800850309
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 2.079165926759784
+            },
+            {
+              "pid": 2145,
+              "name": "Codex (Service)",
+              "cpu_percent": 0.998183641824587
+            },
+            {
+              "pid": 2765,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 0.7777705872749706
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 262.9800275858426,
+          "maximum_process_percent": 224.890834439548,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 224.890834439548
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.486531360421933
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.9749324648776792
+            },
+            {
+              "pid": 67359,
+              "name": "Antigravity IDE Helper (Plugin)",
+              "cpu_percent": 1.7150325791621452
+            },
+            {
+              "pid": 24937,
+              "name": "Code Helper (Plugin)",
+              "cpu_percent": 1.1714661515254343
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 329.1306324965946,
+          "maximum_process_percent": 215.09239773157506,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 215.09239773157506
+            },
+            {
+              "pid": 696,
+              "name": "corespotlightd",
+              "cpu_percent": 54.52758652638604
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 24.768624017262695
+            },
+            {
+              "pid": 5084,
+              "name": "SetStoreUpdateService",
+              "cpu_percent": 5.393146512480752
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.3415561890841
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 252.2618210641255,
+          "maximum_process_percent": 220.49097322036576,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 220.49097322036576
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 3.7029135255355725
+            },
+            {
+              "pid": 2100,
+              "name": "ChatGPT",
+              "cpu_percent": 1.6187809232183026
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.3072708353975082
+            },
+            {
+              "pid": 2145,
+              "name": "Codex (Service)",
+              "cpu_percent": 1.0455105158977005
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 246.3670040105758,
+          "maximum_process_percent": 220.35173952089278,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 220.35173952089278
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 3.6880814509073505
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.3352604503882135
+            },
+            {
+              "pid": 647,
+              "name": "Finder",
+              "cpu_percent": 0.8997660218867678
+            },
+            {
+              "pid": 67359,
+              "name": "Antigravity IDE Helper (Plugin)",
+              "cpu_percent": 0.8654252717985318
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 287.206684618269,
+          "maximum_process_percent": 218.0330231084636,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 218.0330231084636
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 18.941933099759442
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 3.822720598056896
+            },
+            {
+              "pid": 826,
+              "name": "Creative Cloud Content Manager.node",
+              "cpu_percent": 3.534656222599441
+            },
+            {
+              "pid": 3201,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 2.706674713747072
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 246.23170301973778,
+          "maximum_process_percent": 221.04678139608785,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 221.04678139608785
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 3.6983275269653078
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.3467986597507522
+            },
+            {
+              "pid": 900,
+              "name": "node",
+              "cpu_percent": 1.072511147971076
+            },
+            {
+              "pid": 647,
+              "name": "Finder",
+              "cpu_percent": 0.6158766080771516
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 254.4771291031626,
+          "maximum_process_percent": 220.4238978410981,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 220.4238978410981
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 3.732490898772025
+            },
+            {
+              "pid": 2145,
+              "name": "Codex (Service)",
+              "cpu_percent": 1.5389818736590886
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.4470108453585315
+            },
+            {
+              "pid": 2100,
+              "name": "ChatGPT",
+              "cpu_percent": 1.0155134375473613
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 250.75257936583048,
+          "maximum_process_percent": 220.40885254845102,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 220.40885254845102
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 3.6729698894612537
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.3183447850391767
+            },
+            {
+              "pid": 2145,
+              "name": "Codex (Service)",
+              "cpu_percent": 0.8584570693174464
+            },
+            {
+              "pid": 647,
+              "name": "Finder",
+              "cpu_percent": 0.6329204687444272
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 299.39633388676975,
+          "maximum_process_percent": 218.04024473736177,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 218.04024473736177
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 30.574901297298442
+            },
+            {
+              "pid": 696,
+              "name": "corespotlightd",
+              "cpu_percent": 10.126178700847065
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 3.7469841054062827
+            },
+            {
+              "pid": 735,
+              "name": "Mail",
+              "cpu_percent": 2.9160613454899917
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 265.2334376426355,
+          "maximum_process_percent": 220.11691424381664,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 220.11691424381664
+            },
+            {
+              "pid": 696,
+              "name": "corespotlightd",
+              "cpu_percent": 5.989382649265364
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 3.754400865898644
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.8180820552894286
+            },
+            {
+              "pid": 640,
+              "name": "ControlCenter",
+              "cpu_percent": 0.6472310695210942
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 253.40624703176235,
+          "maximum_process_percent": 220.4717264443578,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 220.4717264443578
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 3.6860700852434367
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.4309183124031284
+            },
+            {
+              "pid": 2145,
+              "name": "Codex (Service)",
+              "cpu_percent": 1.3864893712069721
+            },
+            {
+              "pid": 24937,
+              "name": "Code Helper (Plugin)",
+              "cpu_percent": 1.071656701838142
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 319.969612242461,
+          "maximum_process_percent": 220.38238688930542,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 220.38238688930542
+            },
+            {
+              "pid": 3201,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 75.07930446837311
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.022225351218059
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.43169149316016
+            },
+            {
+              "pid": 2100,
+              "name": "ChatGPT",
+              "cpu_percent": 1.1335501704440825
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 304.58264935700794,
+          "maximum_process_percent": 218.60497239291462,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 218.60497239291462
+            },
+            {
+              "pid": 3201,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 46.39297675158134
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 3.8621109836193233
+            },
+            {
+              "pid": 2145,
+              "name": "Codex (Service)",
+              "cpu_percent": 1.8292598594636214
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.429731137018778
+            }
+          ],
+          "new_or_exited_processes": 6
+        },
+        {
+          "total_percent": 273.04513824228695,
+          "maximum_process_percent": 221.159895186702,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 221.159895186702
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.02927848057247
+            },
+            {
+              "pid": 2100,
+              "name": "ChatGPT",
+              "cpu_percent": 2.4520381019583035
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.5289809595491641
+            },
+            {
+              "pid": 67359,
+              "name": "Antigravity IDE Helper (Plugin)",
+              "cpu_percent": 1.4866582150484124
+            }
+          ],
+          "new_or_exited_processes": 5
+        },
+        {
+          "total_percent": 309.91220113091345,
+          "maximum_process_percent": 222.51588454745269,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 222.51588454745269
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.115934551936521
+            },
+            {
+              "pid": 685,
+              "name": "fontd",
+              "cpu_percent": 3.101616334968039
+            },
+            {
+              "pid": 2248,
+              "name": "Brave Browser",
+              "cpu_percent": 2.198755317673642
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.8740965548633142
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 273.13307142953806,
+          "maximum_process_percent": 224.87243025255424,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 224.87243025255424
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.372332166877061
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.9340635101935835
+            },
+            {
+              "pid": 67359,
+              "name": "Antigravity IDE Helper (Plugin)",
+              "cpu_percent": 1.3679821242451335
+            },
+            {
+              "pid": 2100,
+              "name": "ChatGPT",
+              "cpu_percent": 1.3448024803493106
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 262.8308841843107,
+          "maximum_process_percent": 224.90427909691292,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 224.90427909691292
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.631103375789896
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.973812424900274
+            },
+            {
+              "pid": 2145,
+              "name": "Codex (Service)",
+              "cpu_percent": 1.2612171006905157
+            },
+            {
+              "pid": 24937,
+              "name": "Code Helper (Plugin)",
+              "cpu_percent": 1.1209967304383643
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 255.73563866922677,
+          "maximum_process_percent": 226.25852601366805,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 226.25852601366805
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.605900397290448
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.9276944015272395
+            },
+            {
+              "pid": 3138,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 0.5717087297504452
+            },
+            {
+              "pid": 67359,
+              "name": "Antigravity IDE Helper (Plugin)",
+              "cpu_percent": 0.4997655171169762
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 281.44857655288706,
+          "maximum_process_percent": 224.11611090953397,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 224.11611090953397
+            },
+            {
+              "pid": 1102,
+              "name": "Code Helper",
+              "cpu_percent": 10.483324767947238
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.432012063964068
+            },
+            {
+              "pid": 1014,
+              "name": "Code",
+              "cpu_percent": 2.628682578722185
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.9180363304686583
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 255.4742534055949,
+          "maximum_process_percent": 225.53050583244834,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 225.53050583244834
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.533731071863043
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.9287905608474256
+            },
+            {
+              "pid": 2145,
+              "name": "Codex (Service)",
+              "cpu_percent": 1.370698538469491
+            },
+            {
+              "pid": 67359,
+              "name": "Antigravity IDE Helper (Plugin)",
+              "cpu_percent": 0.8693356502386648
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 263.156364792012,
+          "maximum_process_percent": 225.04163152403476,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 225.04163152403476
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.639907094446342
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.8780576334696721
+            },
+            {
+              "pid": 2100,
+              "name": "ChatGPT",
+              "cpu_percent": 1.288863081794791
+            },
+            {
+              "pid": 24937,
+              "name": "Code Helper (Plugin)",
+              "cpu_percent": 1.096684390134774
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 265.9347841754535,
+          "maximum_process_percent": 225.8683394339596,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 225.8683394339596
+            },
+            {
+              "pid": 1102,
+              "name": "Code Helper",
+              "cpu_percent": 12.219372225341171
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.593339457317235
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.8809065379667402
+            },
+            {
+              "pid": 2145,
+              "name": "Codex (Service)",
+              "cpu_percent": 0.9358507244340587
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 287.0311362176812,
+          "maximum_process_percent": 220.49161187732972,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 220.49161187732972
+            },
+            {
+              "pid": 2765,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 19.447730870464078
+            },
+            {
+              "pid": 417,
+              "name": "loginwindow",
+              "cpu_percent": 10.41625260049955
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.4162659235930075
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.9668697349603357
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 313.9719379400704,
+          "maximum_process_percent": 215.76505615955864,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 215.76505615955864
+            },
+            {
+              "pid": 696,
+              "name": "corespotlightd",
+              "cpu_percent": 44.868635234537145
+            },
+            {
+              "pid": 417,
+              "name": "loginwindow",
+              "cpu_percent": 13.50560158738417
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.521004532964508
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 3.809095590244794
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 408.3096635455081,
+          "maximum_process_percent": 206.11781082303307,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 206.11781082303307
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 88.86928003558015
+            },
+            {
+              "pid": 696,
+              "name": "corespotlightd",
+              "cpu_percent": 52.99475247149092
+            },
+            {
+              "pid": 608,
+              "name": "cfprefsd",
+              "cpu_percent": 9.999328349308303
+            },
+            {
+              "pid": 417,
+              "name": "loginwindow",
+              "cpu_percent": 4.830694397997886
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 285.7415549571614,
+          "maximum_process_percent": 220.08979043676698,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 220.08979043676698
+            },
+            {
+              "pid": 641,
+              "name": "MenuBarAgent",
+              "cpu_percent": 4.769441157621711
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.3832530419299465
+            },
+            {
+              "pid": 417,
+              "name": "loginwindow",
+              "cpu_percent": 2.5289763624137844
+            },
+            {
+              "pid": 2765,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 1.7625764250002596
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 271.260139981532,
+          "maximum_process_percent": 224.25763164117367,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 224.25763164117367
+            },
+            {
+              "pid": 1014,
+              "name": "Code",
+              "cpu_percent": 7.435338464692064
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.565395707435791
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.9401782361907713
+            },
+            {
+              "pid": 66633,
+              "name": "Electron",
+              "cpu_percent": 1.043841944017341
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 259.3524997251085,
+          "maximum_process_percent": 224.7828046875176,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 224.7828046875176
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.597453564063618
+            },
+            {
+              "pid": 66633,
+              "name": "Electron",
+              "cpu_percent": 2.9034177152219143
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.9788839164729937
+            },
+            {
+              "pid": 67358,
+              "name": "language_server_macos_arm",
+              "cpu_percent": 1.394998109714234
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 269.23601135102086,
+          "maximum_process_percent": 224.82226454805212,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 224.82226454805212
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.5689231465715325
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.93294703686016
+            },
+            {
+              "pid": 66655,
+              "name": "Antigravity IDE Helper (Renderer)",
+              "cpu_percent": 1.7208129920111745
+            },
+            {
+              "pid": 66633,
+              "name": "Electron",
+              "cpu_percent": 1.670938516666436
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 257.4916010926338,
+          "maximum_process_percent": 225.33300274620865,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 225.33300274620865
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.502548698686137
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 2.0311327008708315
+            },
+            {
+              "pid": 2145,
+              "name": "Codex (Service)",
+              "cpu_percent": 1.5049404679403064
+            },
+            {
+              "pid": 2100,
+              "name": "ChatGPT",
+              "cpu_percent": 0.8046292308249093
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 261.4946958171839,
+          "maximum_process_percent": 225.3251081132027,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 225.3251081132027
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.484774493276194
+            },
+            {
+              "pid": 2933,
+              "name": "codex",
+              "cpu_percent": 3.1252650639801653
+            },
+            {
+              "pid": 2100,
+              "name": "ChatGPT",
+              "cpu_percent": 2.0717791415591345
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.9340685634627308
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 257.2682569615571,
+          "maximum_process_percent": 225.8732760720744,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 225.8732760720744
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.506307046865359
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.946602023648453
+            },
+            {
+              "pid": 2145,
+              "name": "Codex (Service)",
+              "cpu_percent": 1.40860414150932
+            },
+            {
+              "pid": 3138,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 0.6146357570665771
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 263.404857438464,
+          "maximum_process_percent": 224.08807251169932,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 224.08807251169932
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.5497708059666
+            },
+            {
+              "pid": 826,
+              "name": "Creative Cloud Content Manager.node",
+              "cpu_percent": 3.6530734189466934
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.873164973600633
+            },
+            {
+              "pid": 2145,
+              "name": "Codex (Service)",
+              "cpu_percent": 1.3084608271585105
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 267.2628690929069,
+          "maximum_process_percent": 225.07211114734878,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 225.07211114734878
+            },
+            {
+              "pid": 2933,
+              "name": "codex",
+              "cpu_percent": 5.8563034135753
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.614857151046347
+            },
+            {
+              "pid": 2100,
+              "name": "ChatGPT",
+              "cpu_percent": 2.2049452067585515
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.8664395341671531
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 259.9293743279034,
+          "maximum_process_percent": 224.76654146347977,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 224.76654146347977
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.578850034323544
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.801514767599395
+            },
+            {
+              "pid": 2149,
+              "name": "Codex (Service)",
+              "cpu_percent": 1.2398818154993847
+            },
+            {
+              "pid": 24937,
+              "name": "Code Helper (Plugin)",
+              "cpu_percent": 1.1144574774072853
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 260.10503378133774,
+          "maximum_process_percent": 225.47029478898634,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 225.47029478898634
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.620267795900031
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.8425885503125736
+            },
+            {
+              "pid": 2145,
+              "name": "Codex (Service)",
+              "cpu_percent": 1.4532229165635102
+            },
+            {
+              "pid": 67359,
+              "name": "Antigravity IDE Helper (Plugin)",
+              "cpu_percent": 0.8850786724180976
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 261.94299255133643,
+          "maximum_process_percent": 224.74270492855945,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 224.74270492855945
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.589025687853566
+            },
+            {
+              "pid": 1102,
+              "name": "Code Helper",
+              "cpu_percent": 2.9122073503339423
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.8086340386451294
+            },
+            {
+              "pid": 24937,
+              "name": "Code Helper (Plugin)",
+              "cpu_percent": 1.10702197830735
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 265.7259593447642,
+          "maximum_process_percent": 225.04099454525485,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 225.04099454525485
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.457896540433792
+            },
+            {
+              "pid": 1102,
+              "name": "Code Helper",
+              "cpu_percent": 4.359402780906976
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.8487700232997908
+            },
+            {
+              "pid": 2145,
+              "name": "Codex (Service)",
+              "cpu_percent": 1.5023172660319037
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 261.73111356980183,
+          "maximum_process_percent": 224.47515225653135,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 224.47515225653135
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.579187738761264
+            },
+            {
+              "pid": 2933,
+              "name": "codex",
+              "cpu_percent": 4.240726036341226
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.8408641010019042
+            },
+            {
+              "pid": 24937,
+              "name": "Code Helper (Plugin)",
+              "cpu_percent": 1.1524544392741383
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 262.69854745817776,
+          "maximum_process_percent": 225.40984196418398,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 225.40984196418398
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 7.152999116458343
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.4878559766995085
+            },
+            {
+              "pid": 608,
+              "name": "cfprefsd",
+              "cpu_percent": 1.380436927987443
+            },
+            {
+              "pid": 2145,
+              "name": "Codex (Service)",
+              "cpu_percent": 1.1901242641401553
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 281.5288654181147,
+          "maximum_process_percent": 225.09336383397198,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 225.09336383397198
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 23.44288355704505
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.612568931025585
+            },
+            {
+              "pid": 608,
+              "name": "cfprefsd",
+              "cpu_percent": 1.5893058314222503
+            },
+            {
+              "pid": 24937,
+              "name": "Code Helper (Plugin)",
+              "cpu_percent": 1.0964428804434823
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 288.64634379846143,
+          "maximum_process_percent": 223.5357158271395,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 223.5357158271395
+            },
+            {
+              "pid": 66655,
+              "name": "Antigravity IDE Helper (Renderer)",
+              "cpu_percent": 35.47689774335902
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.733773135332784
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.980440490497982
+            },
+            {
+              "pid": 2145,
+              "name": "Codex (Service)",
+              "cpu_percent": 1.5274185544997843
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 285.15103988618625,
+          "maximum_process_percent": 223.51052335878396,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 223.51052335878396
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.584603445904842
+            },
+            {
+              "pid": 66655,
+              "name": "Antigravity IDE Helper (Renderer)",
+              "cpu_percent": 3.5889495067789645
+            },
+            {
+              "pid": 2933,
+              "name": "codex",
+              "cpu_percent": 3.468705146430905
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.8994013608198188
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 274.15525327836895,
+          "maximum_process_percent": 224.79647471973988,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 224.79647471973988
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.591406215294808
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.9684025310339222
+            },
+            {
+              "pid": 2145,
+              "name": "Codex (Service)",
+              "cpu_percent": 1.8672229616714713
+            },
+            {
+              "pid": 2933,
+              "name": "codex",
+              "cpu_percent": 1.8357959742271697
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 272.09769094807524,
+          "maximum_process_percent": 224.88786861143555,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 224.88786861143555
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.667929205559645
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 2.086550567103359
+            },
+            {
+              "pid": 2145,
+              "name": "Codex (Service)",
+              "cpu_percent": 1.165833319803357
+            },
+            {
+              "pid": 24937,
+              "name": "Code Helper (Plugin)",
+              "cpu_percent": 1.0183806824414623
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 255.8386822282682,
+          "maximum_process_percent": 225.80308748668241,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 225.80308748668241
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.615433287443132
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.8701256633817325
+            },
+            {
+              "pid": 2145,
+              "name": "Codex (Service)",
+              "cpu_percent": 0.9627001567561574
+            },
+            {
+              "pid": 647,
+              "name": "Finder",
+              "cpu_percent": 0.6026472273189535
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 255.42399806951502,
+          "maximum_process_percent": 225.62103765209633,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 225.62103765209633
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.637077663990387
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 2.0203862350897657
+            },
+            {
+              "pid": 24937,
+              "name": "Code Helper (Plugin)",
+              "cpu_percent": 1.0140254131329445
+            },
+            {
+              "pid": 2145,
+              "name": "Codex (Service)",
+              "cpu_percent": 0.6101014579385139
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 259.55181416165533,
+          "maximum_process_percent": 225.44964263790757,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 225.44964263790757
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.582906756117925
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.9426874433408314
+            },
+            {
+              "pid": 2145,
+              "name": "Codex (Service)",
+              "cpu_percent": 1.4073011400627726
+            },
+            {
+              "pid": 608,
+              "name": "cfprefsd",
+              "cpu_percent": 0.7527913842951028
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 258.31686501751864,
+          "maximum_process_percent": 226.16234837416513,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 226.16234837416513
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.552750137795506
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 2.1130649005957065
+            },
+            {
+              "pid": 24937,
+              "name": "Code Helper (Plugin)",
+              "cpu_percent": 1.0971683137735075
+            },
+            {
+              "pid": 2100,
+              "name": "ChatGPT",
+              "cpu_percent": 0.9844612962141764
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 257.3891653637033,
+          "maximum_process_percent": 224.8753257193934,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 224.8753257193934
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.49615705388085
+            },
+            {
+              "pid": 68166,
+              "name": "language_server_macos_arm",
+              "cpu_percent": 2.354559395091884
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 2.192873324360793
+            },
+            {
+              "pid": 2145,
+              "name": "Codex (Service)",
+              "cpu_percent": 1.4982078586845773
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 256.61555514288165,
+          "maximum_process_percent": 225.89317860058247,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 225.89317860058247
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.47798370333669
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 2.0187251351733697
+            },
+            {
+              "pid": 2145,
+              "name": "Codex (Service)",
+              "cpu_percent": 1.4112527169881763
+            },
+            {
+              "pid": 24937,
+              "name": "Code Helper (Plugin)",
+              "cpu_percent": 1.061917433273854
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 256.42757403114064,
+          "maximum_process_percent": 225.16564919496076,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 225.16564919496076
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.566240625019444
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.9534555259519122
+            },
+            {
+              "pid": 2145,
+              "name": "Codex (Service)",
+              "cpu_percent": 0.9874610351068598
+            },
+            {
+              "pid": 67359,
+              "name": "Antigravity IDE Helper (Plugin)",
+              "cpu_percent": 0.9295780318729944
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 259.1618468037408,
+          "maximum_process_percent": 226.23629708972913,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 226.23629708972913
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.546554307718143
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.9866265619665542
+            },
+            {
+              "pid": 24937,
+              "name": "Code Helper (Plugin)",
+              "cpu_percent": 1.2217140199772807
+            },
+            {
+              "pid": 2145,
+              "name": "Codex (Service)",
+              "cpu_percent": 0.9074713924950992
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 266.2370028674178,
+          "maximum_process_percent": 224.4745038560005,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 224.4745038560005
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.639054036357592
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.9039865460956902
+            },
+            {
+              "pid": 2100,
+              "name": "ChatGPT",
+              "cpu_percent": 1.7241485885705763
+            },
+            {
+              "pid": 2765,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 1.6532656489274387
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 255.63044382036625,
+          "maximum_process_percent": 225.7113458090501,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 225.7113458090501
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.527297935639318
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.9176965162835715
+            },
+            {
+              "pid": 24937,
+              "name": "Code Helper (Plugin)",
+              "cpu_percent": 1.0390079725227477
+            },
+            {
+              "pid": 2145,
+              "name": "Codex (Service)",
+              "cpu_percent": 0.7103147896294335
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 257.3455786159499,
+          "maximum_process_percent": 225.53639240808891,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 225.53639240808891
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.641051392376122
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.931854890788155
+            },
+            {
+              "pid": 2145,
+              "name": "Codex (Service)",
+              "cpu_percent": 1.4120939320742798
+            },
+            {
+              "pid": 2765,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 0.875467573521128
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 265.70704434478733,
+          "maximum_process_percent": 224.46701176078284,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 224.46701176078284
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.578675763676486
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.8976901892859328
+            },
+            {
+              "pid": 2145,
+              "name": "Codex (Service)",
+              "cpu_percent": 1.761264965679915
+            },
+            {
+              "pid": 67359,
+              "name": "Antigravity IDE Helper (Plugin)",
+              "cpu_percent": 1.589392176917502
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 257.67981494557904,
+          "maximum_process_percent": 225.54069609186905,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 225.54069609186905
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.5795298984484045
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.9220822772020756
+            },
+            {
+              "pid": 2145,
+              "name": "Codex (Service)",
+              "cpu_percent": 1.0285903559960607
+            },
+            {
+              "pid": 67359,
+              "name": "Antigravity IDE Helper (Plugin)",
+              "cpu_percent": 0.9211256919444821
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 260.05151538213806,
+          "maximum_process_percent": 225.2277273452007,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 225.2277273452007
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.591729981274985
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.9065794715236069
+            },
+            {
+              "pid": 2100,
+              "name": "ChatGPT",
+              "cpu_percent": 1.4437281850317285
+            },
+            {
+              "pid": 24937,
+              "name": "Code Helper (Plugin)",
+              "cpu_percent": 1.1111496116217736
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 250.8408257016594,
+          "maximum_process_percent": 226.70629021989186,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 226.70629021989186
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.577493143115648
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.9322081609089135
+            },
+            {
+              "pid": 3138,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 0.5658609614162594
+            },
+            {
+              "pid": 67359,
+              "name": "Antigravity IDE Helper (Plugin)",
+              "cpu_percent": 0.4458647006232677
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 266.52561071422144,
+          "maximum_process_percent": 224.17237866461298,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 224.17237866461298
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.625696552401673
+            },
+            {
+              "pid": 66655,
+              "name": "Antigravity IDE Helper (Renderer)",
+              "cpu_percent": 3.9120767546916424
+            },
+            {
+              "pid": 826,
+              "name": "Creative Cloud Content Manager.node",
+              "cpu_percent": 3.791607926793095
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.9091149070248838
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 265.0239963688969,
+          "maximum_process_percent": 224.852954339098,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 224.852954339098
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.564630968414578
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.9056375337114235
+            },
+            {
+              "pid": 900,
+              "name": "node",
+              "cpu_percent": 1.573263354364879
+            },
+            {
+              "pid": 2145,
+              "name": "Codex (Service)",
+              "cpu_percent": 1.1829682274385152
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 257.3508166557595,
+          "maximum_process_percent": 225.54711599793882,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 225.54711599793882
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.62734661247543
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.8981627257171951
+            },
+            {
+              "pid": 2145,
+              "name": "Codex (Service)",
+              "cpu_percent": 1.2787299784054185
+            },
+            {
+              "pid": 24937,
+              "name": "Code Helper (Plugin)",
+              "cpu_percent": 1.2047506960757803
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 256.60422240357997,
+          "maximum_process_percent": 225.2962116928611,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 225.2962116928611
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.5617143222437395
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.899563515292947
+            },
+            {
+              "pid": 2145,
+              "name": "Codex (Service)",
+              "cpu_percent": 1.362530211291004
+            },
+            {
+              "pid": 2100,
+              "name": "ChatGPT",
+              "cpu_percent": 0.7372700073505238
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 262.0667095497485,
+          "maximum_process_percent": 225.5787812078916,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 225.5787812078916
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.647931299212672
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.9689685873165659
+            },
+            {
+              "pid": 804,
+              "name": "Slack Helper (Renderer)",
+              "cpu_percent": 1.3343777939677826
+            },
+            {
+              "pid": 2145,
+              "name": "Codex (Service)",
+              "cpu_percent": 1.2053032006495428
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 257.375705437635,
+          "maximum_process_percent": 225.77133748751885,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 225.77133748751885
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.597126176936776
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.9474150249287778
+            },
+            {
+              "pid": 66633,
+              "name": "Electron",
+              "cpu_percent": 0.6013793937688914
+            },
+            {
+              "pid": 3138,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 0.5650570367592846
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 261.23499694996264,
+          "maximum_process_percent": 225.25156038349846,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 225.25156038349846
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.517856089479218
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.9789590340893437
+            },
+            {
+              "pid": 2145,
+              "name": "Codex (Service)",
+              "cpu_percent": 1.6660073728881315
+            },
+            {
+              "pid": 24937,
+              "name": "Code Helper (Plugin)",
+              "cpu_percent": 1.026680878736551
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 250.57102096970522,
+          "maximum_process_percent": 225.20020096290645,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 225.20020096290645
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.506700073678332
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.9607668573445152
+            },
+            {
+              "pid": 2100,
+              "name": "ChatGPT",
+              "cpu_percent": 1.5785705050773953
+            },
+            {
+              "pid": 67359,
+              "name": "Antigravity IDE Helper (Plugin)",
+              "cpu_percent": 0.8394533108003216
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 262.0772367401225,
+          "maximum_process_percent": 225.5265016327229,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 225.5265016327229
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.5269694338555375
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.9659806281145091
+            },
+            {
+              "pid": 2145,
+              "name": "Codex (Service)",
+              "cpu_percent": 1.792692164009143
+            },
+            {
+              "pid": 68823,
+              "name": "codex",
+              "cpu_percent": 1.21201287211659
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 257.3984003494278,
+          "maximum_process_percent": 226.0488791065267,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 226.0488791065267
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.568394418457451
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.9322514156661341
+            },
+            {
+              "pid": 2145,
+              "name": "Codex (Service)",
+              "cpu_percent": 1.1409484549681093
+            },
+            {
+              "pid": 2100,
+              "name": "ChatGPT",
+              "cpu_percent": 0.8902158307866082
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 269.2427755596779,
+          "maximum_process_percent": 224.55833508555236,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 224.55833508555236
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.645622546620378
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.9758829822439707
+            },
+            {
+              "pid": 2145,
+              "name": "Codex (Service)",
+              "cpu_percent": 1.4535759303474662
+            },
+            {
+              "pid": 24937,
+              "name": "Code Helper (Plugin)",
+              "cpu_percent": 1.133835176438985
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 282.934750994941,
+          "maximum_process_percent": 224.7425989665932,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 224.7425989665932
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 3.9486769770681693
+            },
+            {
+              "pid": 3201,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 3.7119246476571863
+            },
+            {
+              "pid": 685,
+              "name": "fontd",
+              "cpu_percent": 3.350102832448803
+            },
+            {
+              "pid": 2100,
+              "name": "ChatGPT",
+              "cpu_percent": 2.0385943711554786
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 266.568446763903,
+          "maximum_process_percent": 225.18917006456874,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 225.18917006456874
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.580466759158425
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 2.010562859823802
+            },
+            {
+              "pid": 67358,
+              "name": "language_server_macos_arm",
+              "cpu_percent": 2.0052950931795688
+            },
+            {
+              "pid": 2145,
+              "name": "Codex (Service)",
+              "cpu_percent": 1.7715020319777317
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 257.6425765883933,
+          "maximum_process_percent": 225.80281991302425,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 225.80281991302425
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.581938067213729
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.9832040143537246
+            },
+            {
+              "pid": 647,
+              "name": "Finder",
+              "cpu_percent": 0.5946158320899109
+            },
+            {
+              "pid": 3138,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 0.5387806571489575
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 282.5330602185869,
+          "maximum_process_percent": 223.76261516927426,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 223.76261516927426
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.434357502778499
+            },
+            {
+              "pid": 2145,
+              "name": "Codex (Service)",
+              "cpu_percent": 2.266994381827052
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.9558382901985176
+            },
+            {
+              "pid": 24937,
+              "name": "Code Helper (Plugin)",
+              "cpu_percent": 1.1752656810390383
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 259.3214615966782,
+          "maximum_process_percent": 225.63325729827503,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 225.63325729827503
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.613775546230153
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.834466606815935
+            },
+            {
+              "pid": 2145,
+              "name": "Codex (Service)",
+              "cpu_percent": 1.199458935220482
+            },
+            {
+              "pid": 2248,
+              "name": "Brave Browser",
+              "cpu_percent": 0.7975941768811209
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 264.4247457282554,
+          "maximum_process_percent": 225.3120389764805,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 225.3120389764805
+            },
+            {
+              "pid": 2248,
+              "name": "Brave Browser",
+              "cpu_percent": 5.24319699342353
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.4639890314848065
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.9196989867843217
+            },
+            {
+              "pid": 2145,
+              "name": "Codex (Service)",
+              "cpu_percent": 1.2690833014797707
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 258.8251068760492,
+          "maximum_process_percent": 225.81374319250668,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 225.81374319250668
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.581981053919562
+            },
+            {
+              "pid": 3201,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 2.7416489541960547
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 2.2075565251442804
+            },
+            {
+              "pid": 2145,
+              "name": "Codex (Service)",
+              "cpu_percent": 0.710337189778704
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 271.40377511037354,
+          "maximum_process_percent": 223.65877637969584,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 223.65877637969584
+            },
+            {
+              "pid": 417,
+              "name": "loginwindow",
+              "cpu_percent": 9.006059226840184
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.636813331393157
+            },
+            {
+              "pid": 2765,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 2.0034015933559055
+            },
+            {
+              "pid": 2145,
+              "name": "Codex (Service)",
+              "cpu_percent": 1.5624711589670799
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 275.2808988761213,
+          "maximum_process_percent": 224.57739026197115,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 224.57739026197115
+            },
+            {
+              "pid": 417,
+              "name": "loginwindow",
+              "cpu_percent": 14.443385767800422
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.706564794013487
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.8961258427004468
+            },
+            {
+              "pid": 2765,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 0.9501722846449947
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 264.0539323157461,
+          "maximum_process_percent": 223.63857715983445,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 223.63857715983445
+            },
+            {
+              "pid": 417,
+              "name": "loginwindow",
+              "cpu_percent": 6.734365802861608
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.509705264957377
+            },
+            {
+              "pid": 2145,
+              "name": "Codex (Service)",
+              "cpu_percent": 2.0163733032115063
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.8833752157429215
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 303.9803656747263,
+          "maximum_process_percent": 222.3379543336897,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 222.3379543336897
+            },
+            {
+              "pid": 641,
+              "name": "MenuBarAgent",
+              "cpu_percent": 4.531985468809238
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.49309992629766
+            },
+            {
+              "pid": 417,
+              "name": "loginwindow",
+              "cpu_percent": 2.530050470097202
+            },
+            {
+              "pid": 2100,
+              "name": "ChatGPT",
+              "cpu_percent": 1.9484913220596718
+            }
+          ],
+          "new_or_exited_processes": 3
+        },
+        {
+          "total_percent": 259.9612255677355,
+          "maximum_process_percent": 224.7756988626988,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 224.7756988626988
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.5043388042906445
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.8293131062263133
+            },
+            {
+              "pid": 2145,
+              "name": "Codex (Service)",
+              "cpu_percent": 1.1368093172703664
+            },
+            {
+              "pid": 24937,
+              "name": "Code Helper (Plugin)",
+              "cpu_percent": 1.106550578709423
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 256.5180492024061,
+          "maximum_process_percent": 225.44756449964908,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 225.44756449964908
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.613867696391409
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.8958578699301296
+            },
+            {
+              "pid": 2145,
+              "name": "Codex (Service)",
+              "cpu_percent": 1.0951800316661071
+            },
+            {
+              "pid": 2765,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 0.9195524215360841
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 303.0734208415995,
+          "maximum_process_percent": 223.14134338101903,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 223.14134338101903
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.854020924091592
+            },
+            {
+              "pid": 57465,
+              "name": "mdworker_shared",
+              "cpu_percent": 3.4987454070677675
+            },
+            {
+              "pid": 3201,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 2.761994436739734
+            },
+            {
+              "pid": 2248,
+              "name": "Brave Browser",
+              "cpu_percent": 2.140536139337955
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 277.03506797328544,
+          "maximum_process_percent": 225.43210226473684,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 225.43210226473684
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.555810245616016
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.9597191160750036
+            },
+            {
+              "pid": 608,
+              "name": "cfprefsd",
+              "cpu_percent": 0.7853060659823361
+            },
+            {
+              "pid": 2100,
+              "name": "ChatGPT",
+              "cpu_percent": 0.7253107526681227
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 261.85102898351755,
+          "maximum_process_percent": 225.4789335047339,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 225.4789335047339
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.584350156612412
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.9213820509422896
+            },
+            {
+              "pid": 2145,
+              "name": "Codex (Service)",
+              "cpu_percent": 1.6210703428099473
+            },
+            {
+              "pid": 2100,
+              "name": "ChatGPT",
+              "cpu_percent": 1.5138161613363892
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 255.79067568051946,
+          "maximum_process_percent": 226.38144874932595,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 226.38144874932595
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.447584819809862
+            },
+            {
+              "pid": 2933,
+              "name": "codex",
+              "cpu_percent": 4.037002841487308
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.9423388503737402
+            },
+            {
+              "pid": 2145,
+              "name": "Codex (Service)",
+              "cpu_percent": 1.7413005935657468
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 261.7869068638205,
+          "maximum_process_percent": 223.72645344549449,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 223.72645344549449
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.51429530785431
+            },
+            {
+              "pid": 826,
+              "name": "Creative Cloud Content Manager.node",
+              "cpu_percent": 4.107786615181234
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.948484435555743
+            },
+            {
+              "pid": 2145,
+              "name": "Codex (Service)",
+              "cpu_percent": 1.2208664270042504
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 260.9722235646989,
+          "maximum_process_percent": 225.67477660963257,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 225.67477660963257
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.540897234043787
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.9401876133355402
+            },
+            {
+              "pid": 2145,
+              "name": "Codex (Service)",
+              "cpu_percent": 1.0896314321288758
+            },
+            {
+              "pid": 640,
+              "name": "ControlCenter",
+              "cpu_percent": 0.6689509425078843
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 261.0260099791752,
+          "maximum_process_percent": 225.45150670045078,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 225.45150670045078
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.515774671858021
+            },
+            {
+              "pid": 3201,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 2.7229155576283577
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.900733398887112
+            },
+            {
+              "pid": 2933,
+              "name": "codex",
+              "cpu_percent": 1.6704227592224021
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 269.5275581977977,
+          "maximum_process_percent": 225.16998244387474,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 225.16998244387474
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.511004878052683
+            },
+            {
+              "pid": 2933,
+              "name": "codex",
+              "cpu_percent": 3.497102099118298
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.9258402878256773
+            },
+            {
+              "pid": 2145,
+              "name": "Codex (Service)",
+              "cpu_percent": 1.3109820430768044
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 259.10202060542434,
+          "maximum_process_percent": 225.0622544986481,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 225.0622544986481
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.5562325177408765
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.958582293205416
+            },
+            {
+              "pid": 2145,
+              "name": "Codex (Service)",
+              "cpu_percent": 1.3731531570547963
+            },
+            {
+              "pid": 24937,
+              "name": "Code Helper (Plugin)",
+              "cpu_percent": 1.1241158936275646
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 254.87214577758354,
+          "maximum_process_percent": 225.50684460578387,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 225.50684460578387
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.449096152616072
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.9804465275568586
+            },
+            {
+              "pid": 2145,
+              "name": "Codex (Service)",
+              "cpu_percent": 1.4001296380805652
+            },
+            {
+              "pid": 647,
+              "name": "Finder",
+              "cpu_percent": 0.6430694102588052
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 265.63232184170386,
+          "maximum_process_percent": 224.8268393402308,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 224.8268393402308
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.563596212689868
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.9676486021087225
+            },
+            {
+              "pid": 24937,
+              "name": "Code Helper (Plugin)",
+              "cpu_percent": 1.140899053172467
+            },
+            {
+              "pid": 2145,
+              "name": "Codex (Service)",
+              "cpu_percent": 1.1217435956021455
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 261.1114095583846,
+          "maximum_process_percent": 225.29833146022483,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 225.29833146022483
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.504985284561255
+            },
+            {
+              "pid": 2933,
+              "name": "codex",
+              "cpu_percent": 4.287632778062246
+            },
+            {
+              "pid": 2100,
+              "name": "ChatGPT",
+              "cpu_percent": 2.3904942337034183
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.9442890881138775
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 258.2767080139264,
+          "maximum_process_percent": 225.36672754220137,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 225.36672754220137
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.610303620051949
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.8612931808145998
+            },
+            {
+              "pid": 24937,
+              "name": "Code Helper (Plugin)",
+              "cpu_percent": 1.2257857479998917
+            },
+            {
+              "pid": 3138,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 0.5289506980142442
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 257.22055103117043,
+          "maximum_process_percent": 225.4819878891717,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 225.4819878891717
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.661783704593191
+            },
+            {
+              "pid": 3201,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 3.1126447820407606
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.8420328773543992
+            },
+            {
+              "pid": 2145,
+              "name": "Codex (Service)",
+              "cpu_percent": 1.4267326196429015
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 261.3426557804955,
+          "maximum_process_percent": 224.57089657569662,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 224.57089657569662
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.562689816840282
+            },
+            {
+              "pid": 2933,
+              "name": "codex",
+              "cpu_percent": 3.763873789375447
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.8662061275737936
+            },
+            {
+              "pid": 3254,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 1.158417526867713
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 279.01267570966036,
+          "maximum_process_percent": 223.97129613528705,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 223.97129613528705
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.534527488117793
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.8898977893712121
+            },
+            {
+              "pid": 2933,
+              "name": "codex",
+              "cpu_percent": 1.4319964175069164
+            },
+            {
+              "pid": 2145,
+              "name": "Codex (Service)",
+              "cpu_percent": 1.1489719515017973
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 269.0135714518157,
+          "maximum_process_percent": 224.59978948978335,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 224.59978948978335
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.652380485489816
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 2.035416462401131
+            },
+            {
+              "pid": 2145,
+              "name": "Codex (Service)",
+              "cpu_percent": 1.3727583208813137
+            },
+            {
+              "pid": 2100,
+              "name": "ChatGPT",
+              "cpu_percent": 1.2151283241724629
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 254.7498178468531,
+          "maximum_process_percent": 225.9203384137398,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 225.9203384137398
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.635703414752255
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 2.0040478846959613
+            },
+            {
+              "pid": 2145,
+              "name": "Codex (Service)",
+              "cpu_percent": 1.0664726491992225
+            },
+            {
+              "pid": 647,
+              "name": "Finder",
+              "cpu_percent": 0.6371982267383686
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 260.93709681152376,
+          "maximum_process_percent": 225.73021121150876,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 225.73021121150876
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.59085283473878
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.9215385362979616
+            },
+            {
+              "pid": 24937,
+              "name": "Code Helper (Plugin)",
+              "cpu_percent": 1.0032913529848964
+            },
+            {
+              "pid": 647,
+              "name": "Finder",
+              "cpu_percent": 0.610440920573074
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 257.49421317365017,
+          "maximum_process_percent": 225.88756593313036,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 225.88756593313036
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.548617485193541
+            },
+            {
+              "pid": 3201,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 2.594552891008706
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.9329706682527519
+            },
+            {
+              "pid": 2145,
+              "name": "Codex (Service)",
+              "cpu_percent": 1.4512621048937153
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 257.15708085470874,
+          "maximum_process_percent": 224.7338423274694,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 224.7338423274694
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.617734727548946
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.9335040564493717
+            },
+            {
+              "pid": 2100,
+              "name": "ChatGPT",
+              "cpu_percent": 1.4815359925430405
+            },
+            {
+              "pid": 24937,
+              "name": "Code Helper (Plugin)",
+              "cpu_percent": 1.0422077134762002
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 258.36746484614935,
+          "maximum_process_percent": 226.33548293775667,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 226.33548293775667
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.614991110506352
+            },
+            {
+              "pid": 2145,
+              "name": "Codex (Service)",
+              "cpu_percent": 2.3174647949349705
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.966240812118525
+            },
+            {
+              "pid": 2100,
+              "name": "ChatGPT",
+              "cpu_percent": 0.8619558006373824
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 259.0356104960554,
+          "maximum_process_percent": 225.6664553747259,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 225.6664553747259
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.525953975738214
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.939694561036738
+            },
+            {
+              "pid": 24937,
+              "name": "Code Helper (Plugin)",
+              "cpu_percent": 1.0407089499027546
+            },
+            {
+              "pid": 2145,
+              "name": "Codex (Service)",
+              "cpu_percent": 0.8779186283375661
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 256.3932810924716,
+          "maximum_process_percent": 225.16006693378094,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 225.16006693378094
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.602424834773873
+            },
+            {
+              "pid": 635,
+              "name": "identityservicesd",
+              "cpu_percent": 2.007260702140543
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.934796849268123
+            },
+            {
+              "pid": 2145,
+              "name": "Codex (Service)",
+              "cpu_percent": 1.4349998818639151
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 259.0506704756307,
+          "maximum_process_percent": 225.3792575937083,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 225.3792575937083
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.515491475586581
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.9275494659931691
+            },
+            {
+              "pid": 24937,
+              "name": "Code Helper (Plugin)",
+              "cpu_percent": 1.198206424808648
+            },
+            {
+              "pid": 640,
+              "name": "ControlCenter",
+              "cpu_percent": 0.6450702107982729
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 261.9514470646867,
+          "maximum_process_percent": 225.58992777952938,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 225.58992777952938
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.583042643247099
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.9711681736394544
+            },
+            {
+              "pid": 2100,
+              "name": "ChatGPT",
+              "cpu_percent": 1.8899302940157499
+            },
+            {
+              "pid": 2765,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 1.8792007627442933
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 262.944909606275,
+          "maximum_process_percent": 225.52311408862957,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 225.52311408862957
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.553389862966834
+            },
+            {
+              "pid": 3201,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 2.5911777919795767
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.9409399213913645
+            },
+            {
+              "pid": 24937,
+              "name": "Code Helper (Plugin)",
+              "cpu_percent": 1.1337480820441492
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 255.6112562444798,
+          "maximum_process_percent": 224.8782935799955,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 224.8782935799955
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.665021902820804
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.9666419202310403
+            },
+            {
+              "pid": 2145,
+              "name": "Codex (Service)",
+              "cpu_percent": 1.8607930181097552
+            },
+            {
+              "pid": 3254,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 0.7553239590264169
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 263.91606431504675,
+          "maximum_process_percent": 225.37550824656014,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 225.37550824656014
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.641400856288998
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.9258670219684022
+            },
+            {
+              "pid": 2145,
+              "name": "Codex (Service)",
+              "cpu_percent": 1.1147335389897994
+            },
+            {
+              "pid": 24937,
+              "name": "Code Helper (Plugin)",
+              "cpu_percent": 1.0737168647562456
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 257.4845894323896,
+          "maximum_process_percent": 225.16732596215607,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 225.16732596215607
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.583730548956989
+            },
+            {
+              "pid": 67359,
+              "name": "Antigravity IDE Helper (Plugin)",
+              "cpu_percent": 2.045650832340141
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.9451707952031279
+            },
+            {
+              "pid": 2145,
+              "name": "Codex (Service)",
+              "cpu_percent": 0.9004852182793968
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 284.47534292456123,
+          "maximum_process_percent": 224.86119313352452,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 224.86119313352452
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 19.64607080680972
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.614848847236255
+            },
+            {
+              "pid": 2100,
+              "name": "ChatGPT",
+              "cpu_percent": 1.8191090223421387
+            },
+            {
+              "pid": 608,
+              "name": "cfprefsd",
+              "cpu_percent": 1.6452856043831356
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 251.31450732922815,
+          "maximum_process_percent": 225.35832490416757,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 225.35832490416757
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.644520153978297
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 2.0249677681047697
+            },
+            {
+              "pid": 2145,
+              "name": "Codex (Service)",
+              "cpu_percent": 1.2752073198167473
+            },
+            {
+              "pid": 67359,
+              "name": "Antigravity IDE Helper (Plugin)",
+              "cpu_percent": 0.9763786165586267
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 268.43961523408547,
+          "maximum_process_percent": 224.76664558322466,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 224.76664558322466
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.627981275641452
+            },
+            {
+              "pid": 826,
+              "name": "Creative Cloud Content Manager.node",
+              "cpu_percent": 3.6203034817472792
+            },
+            {
+              "pid": 3201,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 3.095345589121559
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.9952422585741427
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 255.71297202329757,
+          "maximum_process_percent": 226.40421448678077,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 226.40421448678077
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.603957509494671
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.9827710340869937
+            },
+            {
+              "pid": 900,
+              "name": "node",
+              "cpu_percent": 1.4809876234431938
+            },
+            {
+              "pid": 2145,
+              "name": "Codex (Service)",
+              "cpu_percent": 1.4395040479549515
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 261.93771402622843,
+          "maximum_process_percent": 224.87305450685292,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 224.87305450685292
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.585867792768627
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 2.0047844495099714
+            },
+            {
+              "pid": 2145,
+              "name": "Codex (Service)",
+              "cpu_percent": 1.8928966323792975
+            },
+            {
+              "pid": 24937,
+              "name": "Code Helper (Plugin)",
+              "cpu_percent": 1.176737967214612
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 270.2644358136459,
+          "maximum_process_percent": 224.78368866802938,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 224.78368866802938
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 7.820268471818619
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.526072309120933
+            },
+            {
+              "pid": 2145,
+              "name": "Codex (Service)",
+              "cpu_percent": 0.9851944802885413
+            },
+            {
+              "pid": 2100,
+              "name": "ChatGPT",
+              "cpu_percent": 0.9698726376740873
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 255.4372520848017,
+          "maximum_process_percent": 224.79266240197782,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 224.79266240197782
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.5054804740896195
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 2.167658860287497
+            },
+            {
+              "pid": 24937,
+              "name": "Code Helper (Plugin)",
+              "cpu_percent": 1.0826796818043747
+            },
+            {
+              "pid": 2145,
+              "name": "Codex (Service)",
+              "cpu_percent": 0.9197986677228094
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 252.0386398355647,
+          "maximum_process_percent": 224.17889048222278,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 224.17889048222278
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.402647688955944
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.756146776895527
+            },
+            {
+              "pid": 66633,
+              "name": "Electron",
+              "cpu_percent": 0.5761397178383627
+            },
+            {
+              "pid": 3138,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 0.5541686944612719
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 264.75695134808905,
+          "maximum_process_percent": 224.45299122213177,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 224.45299122213177
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.543089086423805
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 2.0006263866905925
+            },
+            {
+              "pid": 2145,
+              "name": "Codex (Service)",
+              "cpu_percent": 1.4032171184380209
+            },
+            {
+              "pid": 24937,
+              "name": "Code Helper (Plugin)",
+              "cpu_percent": 1.0967940183151137
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 258.51155330475905,
+          "maximum_process_percent": 225.22176324574465,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 225.22176324574465
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.574596469405148
+            },
+            {
+              "pid": 3201,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 2.5876931554979854
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.9734756993087124
+            },
+            {
+              "pid": 2100,
+              "name": "ChatGPT",
+              "cpu_percent": 1.5721818459966523
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 259.1424507042339,
+          "maximum_process_percent": 225.0667175340106,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 225.0667175340106
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.538550155400491
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.965019013590614
+            },
+            {
+              "pid": 2145,
+              "name": "Codex (Service)",
+              "cpu_percent": 1.6921848603733833
+            },
+            {
+              "pid": 24937,
+              "name": "Code Helper (Plugin)",
+              "cpu_percent": 1.146899747982107
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 253.66572123182385,
+          "maximum_process_percent": 226.27365135029694,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 226.27365135029694
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.606937921279512
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.9783455121136917
+            },
+            {
+              "pid": 2145,
+              "name": "Codex (Service)",
+              "cpu_percent": 1.0827224275647964
+            },
+            {
+              "pid": 2765,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 0.8723315167584214
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 255.22847330660167,
+          "maximum_process_percent": 225.56473939171366,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 225.56473939171366
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.552345548492824
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.8840461052065947
+            },
+            {
+              "pid": 24937,
+              "name": "Code Helper (Plugin)",
+              "cpu_percent": 1.001378163636406
+            },
+            {
+              "pid": 2145,
+              "name": "Codex (Service)",
+              "cpu_percent": 0.9649992246058279
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 289.9071513904554,
+          "maximum_process_percent": 222.87469266087976,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 222.87469266087976
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.622665665876638
+            },
+            {
+              "pid": 685,
+              "name": "fontd",
+              "cpu_percent": 3.1127723622227457
+            },
+            {
+              "pid": 2248,
+              "name": "Brave Browser",
+              "cpu_percent": 2.509753516979596
+            },
+            {
+              "pid": 2100,
+              "name": "ChatGPT",
+              "cpu_percent": 1.776592919981322
+            }
+          ],
+          "new_or_exited_processes": 1
+        },
+        {
+          "total_percent": 268.53627371671735,
+          "maximum_process_percent": 225.0744619041117,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 225.0744619041117
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.60358676676428
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.888650981245901
+            },
+            {
+              "pid": 2145,
+              "name": "Codex (Service)",
+              "cpu_percent": 1.5544578693007594
+            },
+            {
+              "pid": 2100,
+              "name": "ChatGPT",
+              "cpu_percent": 1.3551683988762213
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 255.59310817506602,
+          "maximum_process_percent": 226.1385598865284,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 226.1385598865284
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.5542475058554714
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 2.080013343858519
+            },
+            {
+              "pid": 2145,
+              "name": "Codex (Service)",
+              "cpu_percent": 1.1074997302918979
+            },
+            {
+              "pid": 647,
+              "name": "Finder",
+              "cpu_percent": 0.6431014708094172
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 261.77427181542635,
+          "maximum_process_percent": 225.54150548788598,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 225.54150548788598
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.552371263415855
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 2.0494861206224892
+            },
+            {
+              "pid": 2145,
+              "name": "Codex (Service)",
+              "cpu_percent": 1.1779184056471432
+            },
+            {
+              "pid": 24937,
+              "name": "Code Helper (Plugin)",
+              "cpu_percent": 1.1097553769629698
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 258.4280350902088,
+          "maximum_process_percent": 224.9342276534154,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 224.9342276534154
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.6068684911345406
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 2.132383350869106
+            },
+            {
+              "pid": 2145,
+              "name": "Codex (Service)",
+              "cpu_percent": 1.3484640038906737
+            },
+            {
+              "pid": 608,
+              "name": "cfprefsd",
+              "cpu_percent": 0.7125842204899964
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 261.8274409882287,
+          "maximum_process_percent": 225.93662611748908,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 225.93662611748908
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.53184699505339
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.92427309865279
+            },
+            {
+              "pid": 24937,
+              "name": "Code Helper (Plugin)",
+              "cpu_percent": 1.149814459023942
+            },
+            {
+              "pid": 2145,
+              "name": "Codex (Service)",
+              "cpu_percent": 1.0142267446657267
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 256.67039543552414,
+          "maximum_process_percent": 226.054169131405,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 226.054169131405
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.539869047653608
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 2.0811570076342982
+            },
+            {
+              "pid": 2100,
+              "name": "ChatGPT",
+              "cpu_percent": 0.9983721485798833
+            },
+            {
+              "pid": 3138,
+              "name": "SkyComputerUseService",
+              "cpu_percent": 0.5809129258091575
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 265.906700073947,
+          "maximum_process_percent": 223.6784510264238,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 223.6784510264238
+            },
+            {
+              "pid": 417,
+              "name": "loginwindow",
+              "cpu_percent": 6.824660993690234
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.689497605050257
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.675149291701218
+            },
+            {
+              "pid": 2145,
+              "name": "Codex (Service)",
+              "cpu_percent": 1.489532932447388
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 273.46711092175786,
+          "maximum_process_percent": 224.3986539711059,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 224.3986539711059
+            },
+            {
+              "pid": 417,
+              "name": "loginwindow",
+              "cpu_percent": 14.045822246521494
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.6216511156830995
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.8903964722776083
+            },
+            {
+              "pid": 2765,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 0.9970805662698744
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 273.3213872234325,
+          "maximum_process_percent": 224.72075299100507,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 224.72075299100507
+            },
+            {
+              "pid": 417,
+              "name": "loginwindow",
+              "cpu_percent": 8.722513667527098
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.5701133125390205
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.9108594588617158
+            },
+            {
+              "pid": 2145,
+              "name": "Codex (Service)",
+              "cpu_percent": 1.8587172264535716
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 274.47199838277805,
+          "maximum_process_percent": 224.1837733967798,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 224.1837733967798
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.411662253509236
+            },
+            {
+              "pid": 641,
+              "name": "MenuBarAgent",
+              "cpu_percent": 2.4927781613978848
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.8918200173368502
+            },
+            {
+              "pid": 2765,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 1.4171205068265926
+            }
+          ],
+          "new_or_exited_processes": 2
+        },
+        {
+          "total_percent": 272.24093228951654,
+          "maximum_process_percent": 223.24049233021674,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 223.24049233021674
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.64126370310185
+            },
+            {
+              "pid": 641,
+              "name": "MenuBarAgent",
+              "cpu_percent": 4.109675767828222
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.9343708035892004
+            },
+            {
+              "pid": 2145,
+              "name": "Codex (Service)",
+              "cpu_percent": 1.4193560730196562
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 254.47379598303255,
+          "maximum_process_percent": 226.15379642406407,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 226.15379642406407
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.705789311528041
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.8761844030401755
+            },
+            {
+              "pid": 2765,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 0.862408700777173
+            },
+            {
+              "pid": 647,
+              "name": "Finder",
+              "cpu_percent": 0.6129405540520506
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 260.9332226764593,
+          "maximum_process_percent": 224.8565107627453,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 224.8565107627453
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.641350727116886
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.9307038349921215
+            },
+            {
+              "pid": 2145,
+              "name": "Codex (Service)",
+              "cpu_percent": 1.518513889262246
+            },
+            {
+              "pid": 24937,
+              "name": "Code Helper (Plugin)",
+              "cpu_percent": 1.0442656059905964
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 254.89704549048116,
+          "maximum_process_percent": 225.73154561803395,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 225.73154561803395
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.5938565126460995
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.873163417583685
+            },
+            {
+              "pid": 608,
+              "name": "cfprefsd",
+              "cpu_percent": 0.7404369328946465
+            },
+            {
+              "pid": 647,
+              "name": "Finder",
+              "cpu_percent": 0.6377584053943599
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 260.3228346885252,
+          "maximum_process_percent": 224.71575270397773,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 224.71575270397773
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.526540475628461
+            },
+            {
+              "pid": 2100,
+              "name": "ChatGPT",
+              "cpu_percent": 2.1142200195224476
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.8803258308076487
+            },
+            {
+              "pid": 2145,
+              "name": "Codex (Service)",
+              "cpu_percent": 1.8680960693234847
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 256.6353865969233,
+          "maximum_process_percent": 225.9926448819018,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 225.9926448819018
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.585286843773386
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.9120707521215567
+            },
+            {
+              "pid": 2145,
+              "name": "Codex (Service)",
+              "cpu_percent": 1.107957530511924
+            },
+            {
+              "pid": 67359,
+              "name": "Antigravity IDE Helper (Plugin)",
+              "cpu_percent": 0.6402981712027042
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 266.1198524019705,
+          "maximum_process_percent": 223.26225048121836,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 223.26225048121836
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.660058330676779
+            },
+            {
+              "pid": 2933,
+              "name": "codex",
+              "cpu_percent": 4.006042181417245
+            },
+            {
+              "pid": 826,
+              "name": "Creative Cloud Content Manager.node",
+              "cpu_percent": 3.9180089792961503
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.914118186260497
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 257.52243517915684,
+          "maximum_process_percent": 225.18814746004824,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 225.18814746004824
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.561390199758055
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.9914848567994372
+            },
+            {
+              "pid": 2100,
+              "name": "ChatGPT",
+              "cpu_percent": 1.7467684972779236
+            },
+            {
+              "pid": 2933,
+              "name": "codex",
+              "cpu_percent": 1.4015573318105978
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 271.6911179301486,
+          "maximum_process_percent": 224.5910355289473,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 224.5910355289473
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.534850787582346
+            },
+            {
+              "pid": 2932,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 3.871779557910107
+            },
+            {
+              "pid": 2100,
+              "name": "ChatGPT",
+              "cpu_percent": 2.174688158877079
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.9845768272946054
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 265.6247959292276,
+          "maximum_process_percent": 224.6181936307185,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 224.6181936307185
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.574193668897474
+            },
+            {
+              "pid": 2933,
+              "name": "codex",
+              "cpu_percent": 4.504469778806782
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 2.0013055047182307
+            },
+            {
+              "pid": 2100,
+              "name": "ChatGPT",
+              "cpu_percent": 0.9362922384214758
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 261.83375590726644,
+          "maximum_process_percent": 224.9983008629236,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 224.9983008629236
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.5779193426081175
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.9825393672440388
+            },
+            {
+              "pid": 2145,
+              "name": "Codex (Service)",
+              "cpu_percent": 1.383487672820546
+            },
+            {
+              "pid": 24937,
+              "name": "Code Helper (Plugin)",
+              "cpu_percent": 1.0920053585807343
+            }
+          ],
+          "new_or_exited_processes": 0
+        },
+        {
+          "total_percent": 257.30368196888946,
+          "maximum_process_percent": 226.0576749479246,
+          "top_processes": [
+            {
+              "pid": 734,
+              "name": "mediaanalysisd",
+              "cpu_percent": 226.0576749479246
+            },
+            {
+              "pid": 16556,
+              "name": "Brave Browser Helper (Renderer)",
+              "cpu_percent": 4.5406528589744335
+            },
+            {
+              "pid": 818,
+              "name": "spotlightknowledged.updater",
+              "cpu_percent": 1.9867272468658952
+            },
+            {
+              "pid": 2145,
+              "name": "Codex (Service)",
+              "cpu_percent": 1.59122135976375
+            },
+            {
+              "pid": 3254,
+              "name": "Codex (Renderer)",
+              "cpu_percent": 0.7528791814173148
+            }
+          ],
+          "new_or_exited_processes": 0
+        }
+      ],
+      "repeat": 0,
+      "policy": "baseline",
+      "variant": "baseline"
+    }
+  ],
+  "host_load_window": "requests_only",
+  "quiet_timeout_seconds": 180,
+  "campaign_completed": false,
+  "host_load_rule": "3 consecutive 1s samples: total<=200%, max process<=75%, no PID churn",
+  "notes": [
+    "Export and model initialization excluded from request timing",
+    "Host gate checks sampled CPU counters, not disk/GPU contention",
+    "Aggregate CPU includes benchmark; per-process gate excludes worker tree",
+    "Startup includes import/export/preload/warmup; ready wait is separate",
+    "Request host window includes parity checks; individual latencies exclude them",
+    "Request host sampling uses approx 100ms cadence; startup uses approx 1s",
+    "OS file cache is not reset; this is not cold-disk performance",
+    "Baseline has resident source weights; candidates use file residency",
+    "Phase spans are host wall times; acquire includes nested loading spans",
+    "Router eval includes gate/top-k execution, not just a synchronization wait",
+    "MLX load and eval may include file I/O; checksum_read is separate",
+    "Opt-in instrumentation overhead is included in request timings",
+    "No RSS, GPU, E2E chat, quality-suite or P3 certification"
+  ],
+  "source_sha256": {
+    "scripts/compare_strata_experts.py": "025c795d27177a42523af1f827b83174ea0e0b1b1b5ea10ae09f82089381448e",
+    "scripts/strata_measurement.py": "e24018d3beeae11b71f7d18c1d921e84363517453552c1de98780b663e0f4ddb",
+    "vllm_apple/qwen3_moe_residency.py": "9d554ee624327b5c93e0b5b303032e758b09e1b93a356f6e486e99898564e39d",
+    "vllm_apple/mlx_expert_backend.py": "1bad64f95789fa4244a8941112a488fc17f70e7b73c097f8205b86d056b9d9ba",
+    "vllm_apple/mlx_expert_export.py": "a511d8d2417f63000487e4367e0e1e0e056a435613ba6394138aecdaaa63cb8f",
+    "vllm_apple/expert_manifest.py": "0c62fb0346bae8cb4b92972a8924e5f365d1547a9e3b4384e13f7c6caf788c7d",
+    "vllm_apple/expert_residency.py": "0bb7320cbb3b259c32aa6fc3deb9e22f585f03350d0a07ec4662240e87ea6a57",
+    "vllm_apple/expert_execution.py": "d526e9b9b855949530a2414e48389770a962258f9d8520f033f5f018d89ba340",
+    "vllm_apple/expert_timing.py": "1658bf5ecf2bd677a3473a7f848088d8009dcb131e625b7610deb8b1baf36c7a",
+    "vllm_apple/qwen3_moe_gather.py": "3f30a83acb25b8e10b090156abfab9afa9e78df50b248d8cd4680ecab2f57464"
+  }
+}

@@ -94,6 +94,12 @@ class StrataRuntimeTests(unittest.TestCase):
                                   maximum_expert_bytes=65536, maximum_total_bytes=262144)
             backend = MLXFileExpertBackend.from_manifest(
                 root, expected_model_sha256='a'*64, maximum_file_bytes=65536)
+            for invalid in ({'process_budget': object()}, {'memory_observer': object()}):
+                with self.assertRaisesRegex(ValueError, 'admission configuration'):
+                    StrataRuntime(blocks, backend, maximum_entries=2, maximum_bytes=100000,
+                                  **invalid)
+                for i, block in blocks.items():
+                    self.assertIs(block.switch_mlp, originals[i])
             with self.assertRaises(ValueError):
                 StrataRuntime(blocks, backend, maximum_entries=2, maximum_bytes=100000)
             for i, block in blocks.items():
@@ -146,3 +152,89 @@ class StrataRuntimeTests(unittest.TestCase):
                 self.assertEqual(runtime.snapshot()['residency']['active_leases'], 0)
             with self.assertRaises(RuntimeError):
                 model(tokens)
+
+    def test_cpu_and_metal_cached_decode_all_modes(self):
+        """Exercise real cache growth, shrinking and reuse on each local device."""
+        import mlx.core as mx
+        import mlx.nn as nn
+        from mlx_lm.models.cache import make_prompt_cache
+        from mlx_lm.models.qwen3_moe import Model, ModelArgs
+
+        from vllm_apple.mlx_expert_export import export_switch_experts
+        from vllm_apple.strata_serving import StrataServingModel
+
+        previous_device = mx.default_device()
+        devices = [mx.cpu] + ([mx.gpu] if mx.metal.is_available() else [])
+        try:
+            for device in devices:
+                mx.set_default_device(device)
+                for mode in ('sequential', 'grouped', 'row_batch', 'selection_batch'):
+                    with self.subTest(device=str(device), mode=mode):
+                        mx.random.seed(11)
+                        model = Model(ModelArgs(
+                            model_type='qwen3_moe', hidden_size=64, num_hidden_layers=2,
+                            intermediate_size=64, num_attention_heads=2, num_experts=3,
+                            num_experts_per_tok=2, decoder_sparse_step=1, mlp_only_layers=[],
+                            moe_intermediate_size=64, rms_norm_eps=1e-6, vocab_size=32,
+                            num_key_value_heads=2, head_dim=32, rope_theta=10000,
+                            tie_word_embeddings=True, max_position_embeddings=128,
+                            norm_topk_prob=True))
+                        for layer in model.layers:
+                            nn.quantize(layer.mlp, bits=4, group_size=32)
+                        chunks = [mx.array([[1, 2, 3, 4]]), mx.array([[5]]),
+                                  mx.array([[6]]), mx.array([[7]])]
+                        cache = make_prompt_cache(model)
+                        expected = []
+                        for chunk in chunks:
+                            output = model(chunk, cache=cache)
+                            mx.eval(output)
+                            expected.append(output)
+                        with tempfile.TemporaryDirectory() as directory:
+                            root = Path(directory) / 'experts'
+                            export_switch_experts(
+                                {i: layer.mlp.switch_mlp for i, layer in enumerate(model.layers)},
+                                root, model_sha256='a'*64, maximum_expert_bytes=65536,
+                                maximum_total_bytes=524288)
+                            with StrataRuntime.from_model(
+                                    model, expert_root=root, expected_model_sha256='a'*64,
+                                    maximum_file_bytes=65536, maximum_entries=3,
+                                    maximum_bytes=27648, mode=mode) as runtime:
+                                from vllm_apple.strata_memory import (
+                                    ProcessMemoryBudget,
+                                    observe_process_memory,
+                                )
+                                observed = observe_process_memory()
+                                runtime.process_budget = ProcessMemoryBudget(
+                                    max(observed['rss_bytes'], observed['mlx_active_bytes']
+                                        + observed['mlx_cache_bytes']) + (256 << 20), 16 << 20)
+                                accepted_budget = runtime.process_budget
+                                wrapped = StrataServingModel(model, runtime)
+                                # A fresh cache represents a second independent request.
+                                for _request in range(2):
+                                    cache = make_prompt_cache(model)
+                                    runtime.resize(maximum_entries=3, maximum_bytes=27648)
+                                    for index, chunk in enumerate(chunks):
+                                        if index == 1:
+                                            runtime.resize(maximum_entries=1, maximum_bytes=9216)
+                                        if index == 1:
+                                            offsets = [entry.offset for entry in cache]
+                                            runtime.process_budget = ProcessMemoryBudget(1, 0)
+                                            with self.assertRaises(MemoryError):
+                                                wrapped(chunk, cache=cache)
+                                            self.assertEqual([entry.offset for entry in cache], offsets)
+                                            self.assertEqual(runtime.snapshot()['residency']['active_leases'], 0)
+                                            runtime.process_budget = accepted_budget
+                                        actual = wrapped(chunk, cache=cache)
+                                        mx.eval(actual)
+                                        self.assertLess(float(mx.max(mx.abs(
+                                            actual - expected[index])).item()), 1e-5)
+                                        self.assertIsNotNone(runtime.snapshot()['memory_admission'])
+                                        state = runtime.snapshot()['residency']
+                                        self.assertEqual(state['active_leases'], 0)
+                                        self.assertLessEqual(state['resident_bytes'],
+                                                             27648 if index == 0 else 9216)
+                                    self.assertTrue(all(entry.offset == 7 for entry in cache))
+                                mx.synchronize()
+                            self.assertEqual(runtime.snapshot()['residency']['resident_bytes'], 0)
+        finally:
+            mx.set_default_device(previous_device)

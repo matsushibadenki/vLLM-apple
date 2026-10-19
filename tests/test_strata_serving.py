@@ -60,6 +60,21 @@ class StrataServingTests(unittest.TestCase):
                 StrataModelProvider(provider)
             install.assert_not_called()
 
+    def test_exhausted_startup_rejects_before_model_load(self):
+        from vllm_apple.strata_memory import ProcessMemoryBudget
+        provider = SimpleNamespace(is_distributed=False, load_default=MagicMock())
+        observation = dict(rss_bytes=950, mlx_active_bytes=100, mlx_cache_bytes=0,
+                           available_bytes=1000)
+        with self.assertRaises(MemoryError):
+            StrataModelProvider(provider, process_budget=ProcessMemoryBudget(1000, 100),
+                                memory_observer=lambda: observation)
+        provider.load_default.assert_not_called()
+        observation['rss_bytes'] = 900  # Exactly zero remaining headroom also rejects.
+        with self.assertRaises(MemoryError):
+            StrataModelProvider(provider, process_budget=ProcessMemoryBudget(1000, 100),
+                                memory_observer=lambda: observation)
+        provider.load_default.assert_not_called()
+
     def test_close_synchronizes_before_releasing_weights(self):
         import sys
         from types import ModuleType

@@ -32,6 +32,16 @@ class StrataModelProvider:
     def __init__(self, provider, **runtime_options):
         if provider.is_distributed:
             raise ValueError("Strata serving supports one local worker")
+        # Reject known exhausted admission before loading the original source bank.
+        # Loading itself can still exceed the observed budget; this is not a hard cap.
+        budget = runtime_options.get("process_budget")
+        if budget is not None:
+            from .strata_memory import ProcessMemoryBudget, observe_process_memory
+            observer = runtime_options.get("memory_observer") or observe_process_memory
+            if not isinstance(budget, ProcessMemoryBudget) or not callable(observer):
+                raise ValueError("invalid process memory admission configuration")
+            if budget.resident_limit(**observer(), resident_bytes=0, requested_bytes=1) <= 0:
+                raise MemoryError("Strata startup has no memory headroom")
         provider.load_default()
         if provider.model is None or provider.draft_model is not None:
             raise ValueError("Strata serving requires a preloaded model without draft")

@@ -19,6 +19,28 @@ class PrefillAnalysisTests(unittest.TestCase):
         self.assertFalse(result["speed_qualified"])
         self.assertEqual(result["speed_groups"][0]["median_of_run_medians_us"], 1.5)
 
+    def test_distinct_batch_modes_are_not_combined(self):
+        from copy import deepcopy
+        report = self.report()
+        alternate = deepcopy(report['trials'][0])
+        alternate['selection_batch'] = True
+        report['trials'].append(alternate)
+        result = summarize(report)
+        self.assertEqual(len(result['speed_groups']), 2)
+        self.assertEqual({g['selection_batch'] for g in result['speed_groups']}, {False, True})
+        self.assertTrue(all(g['runs'] == 1 for g in result['speed_groups']))
+
+    def test_installation_is_separate_from_request_phases(self):
+        report = self.report()
+        case = report['trials'][0]['results'][0]
+        case['installation'] = dict(manifest_open_ns=100, hook_install_ns=200)
+        result = summarize(report)
+        self.assertEqual(result['installation_groups'][0]['ranges_ns'],
+                         dict(manifest_open_ns=[100, 100], hook_install_ns=[200, 200]))
+        self.assertEqual(result['speed_groups'][0]['median_of_run_medians_us'], 1.5)
+        del case['installation']
+        self.assertEqual(summarize(report)['installation_groups'], [])
+
     def test_nonfinite_and_budget_violation_rejected(self):
         report = self.report()
         case = report["trials"][0]["results"][0]

@@ -2,6 +2,31 @@
 
 ## 日本語
 
+### 現在の完了範囲 · 2026-10-17
+
+🟢 [Done] 現行opt-in実装の仕上げ：server起動時にprocess予算の既知の不足／headroom 0をsource model load前に拒否。runtimeも不正なbudget／observer設定を元bank変更前に拒否する。通常設定の互換性を維持し、CPU／Metalを含む関連87 tests成功（skip 0）、compile・diff検査成功。[最終回帰](evaluation/strata-startup-admission-regression-2026-10-17.json)。事前観測後のメモリ変動やmodel load中のピークは制限しない。対象architectureの明示導入機能は実装完了、低負荷性能認定は継続中、実artifact／追加実機の認定はPending。
+
+
+🟢 [Done] install metadata費用と要求固定費の切り分けを完了。[診断解析](evaluation/strata-install-request-profile-analysis-2026-10-17.json)／[生記録](evaluation/strata-install-request-profile-2026-10-17.json)：12 workers／120要求、CPU／Metal、数値一致・保持契約成立。manifest openとhook installを独立記録し、要求の13 phaseの回数・inclusive host wall時間を保存。Metal反転入力のwarm要求ではchecksum／load／weight_eval 0、router_to_host約24–31 μsに対しexpert_evalは1-row約9.09–9.21 ms、selection_batch約2.62–3.14 ms。診断counterとRSS samplerが有効な非認定値であり、phaseを加算せず、GPU kernel時間・E2E速度として扱わない。installはmodel load／exportを含まない。
+🟢 [Done] 実RSS／MLX observerによるprocess admissionをCPU／Metal全4方式のKV cache推論で検証。上限不足でforward前に拒否しcache offset不変・Lease 0、予算復旧後decode再開・数値一致・close解放。関連86 tests成功、compile／diff検査成功。[回帰記録](evaluation/strata-admission-cache-regression-2026-10-17.json)。上限1 byteでの拒否注入であり、物理OOM試験ではない。
+
+現在残る本筐体の🟠 [Next]は低負荷速度比較。過去のmetadata／cache／多様prefillのNextは上記検証で完了。実weight計測はartifact待ちの⭕️ [Pending]、GPU kernel単位のdispatch計時とstartup制御は追加設計の🔴 [Later]として管理する。
+
+
+🟢 [Done] selection_batchの多様prefillメモリ検証を追加。CPU／Metal、3候補、各2 fresh workers、5入力cold／warm＝12 workers／120要求。厳密2-payload予算2,359,296 bytes、最大誤差2.235e-7、保持／予約予算内、Lease及びclose後保持0。[解析](evaluation/strata-selection-prefill-memory-analysis-2026-10-17.json)／[生記録](evaluation/strata-selection-prefill-memory-2026-10-17.json)。Metal warmのexpert_evalはrow_batch→selection_batchで反転32→4、random120→110、repeat16／mixed28／alternating128は同じ。反転のMLX active peakは2,847,000→2,949,400 bytesに増加。RSS sampled peakは全worker約348.8–353.2 MBで、入力・参照・allocatorを含む。RSS削減・速度・GPU dispatch数の認定ではない。解析器はselection_batchを別groupにし、旧形式はfalseとして読み取る。解析器3 tests及びcompile成功。
+
+
+この節を現在の状態とし、以下の工程記録は当時の履歴として読む。
+🟢 [Done] 標準Qwen3 MoEの明示opt-in実装：offline export／identity検証、独立Expert I/O、全層共有の常駐予算、Leaseと解放、LRU／cost_frequency、4実行方式、process memory admission、単一系列server接続。
+🟢 [Done] Apple M4のCPU／Metalで全4方式の合成2層モデルを検証。4-token prefill＋3回decode、2独立要求、実KV cacheのoffset 7、常駐予算27,648→9,216 bytesへの縮小を確認。全logitsの最大絶対誤差は1e-5未満、各forward後Lease 0、close後保持0。関連84 tests成功・skip 0。[環境と検証記録](evaluation/strata-local-completion-2026-10-17.json)。
+🟠 [Next] この筐体で実行できる全方式の低負荷速度比較を継続。最新の全常駐／部分常駐各16試行は数値・保持契約を通過したが、要求負荷条件と全方式の変動5%以下は未達。startup判定を要求判定へ混ぜない。[全常駐解析](evaluation/strata-phased-resident-analysis-2026-10-17-135755-jst.json)／[部分常駐解析](evaluation/strata-phased-partial-analysis-2026-10-17-135755-jst.json)。
+⭕️ [Pending] 実weightのHTTP streaming／cancel／cache／長時間品質認定：標準Qwen3 MoEの互換実weight、tokenizer、identity一致のexportが準備できた時に再開。合成cache検証は実HTTP認定を代替しない。
+⭕️ [Pending] 別SoC・別RAM容量の性能／thermal、容量を超えるcontext、実OOM・回復認定：対象実機と隔離した負荷環境が必要。現在の注入MemoryError検証を実OOM認定にしない。
+🔴 [Later] startup source-bank削減、phys_footprint／pressure adapter、native Metal graph／mmap／prefetch。未実装の追加設計であり、現行MLX admissionの保証に含めない。
+
+process予算はforward前の観測制御で、OS hard capではない。GPU dispatch数／実モデル速度／既定採用は未認定。標準経路を変更せず、既存の負荷チェック自動化を継続する。
+
+
 🟢 [Done] 2026-10-14：upstream方針を参考にprocess memory admissionとselection_batchを実装。
 `ProcessMemoryBudget(maximum_bytes, reserve_bytes)`はRSSとMLX active＋cacheの最大値（Unified Memoryの重複加算回避）を観測し、
 process上限及びsystem availableからreserveを残して常駐予算を調整する。serveの各forward前に再観測し、headroom不足はMemoryErrorで拒否。
@@ -567,6 +592,31 @@ prefill／decode別の測定を収集する。LRUと同一モデル・精度・w
 
 ## English
 
+### Current completion scope · 2026-10-17
+
+🟢 [Done] Finalized the current opt-in implementation: serving rejects known exhausted process budgets, including zero headroom, before loading the source model. Runtime rejects invalid budget/observer configuration before mutating source banks. All 87 related tests passed without skips, including CPU/Metal coverage; compilation and diff checks passed. [Final regression](evaluation/strata-startup-admission-regression-2026-10-17.json). This preflight does not cap subsequent memory changes or model-loading peaks. Explicit integration for the supported architecture is implemented; quiet-host performance qualification continues and real-artifact/additional-hardware qualification stays Pending.
+
+
+🟢 [Done] Separated install metadata from request overhead. [Diagnostic analysis](evaluation/strata-install-request-profile-analysis-2026-10-17.json) / [raw report](evaluation/strata-install-request-profile-2026-10-17.json): 12 workers, 120 requests on CPU/Metal; parity and retention passed. Manifest opening and hook installation have separate counters; requests retain counts and inclusive host wall times for 13 phases. Warm Metal reversed selections performed no checksum/load/weight_eval; router_to_host was about 24–31 μs, versus expert_eval about 9.09–9.21 ms for single-row and 2.62–3.14 ms for selection_batch. These instrumented, unqualified diagnostics are not additive GPU kernel times or E2E speed measurements. Installation excludes model loading/export.
+🟢 [Done] Actual RSS/MLX process observations now participate in all four CPU/Metal cached-inference tests. Admission rejection leaves cache offsets unchanged and leases at zero; restoring the budget resumes correct decode and cleanup. All 86 related tests, compilation and diff checks passed. [Regression evidence](evaluation/strata-admission-cache-regression-2026-10-17.json). The injected one-byte admission cap does not create physical OOM.
+
+The remaining local 🟠 [Next] is quiet-host speed qualification. Earlier metadata/cache/diverse-prefill Next items are completed above. Real weights await artifacts (⭕️ [Pending]); kernel-level GPU dispatch timing and startup control remain additional design work (🔴 [Later]).
+
+
+🟢 [Done] Added diverse selection_batch memory coverage: CPU/Metal, three candidates, two fresh workers each, five cold/warm fixtures (12 workers, 120 requests). Exact two-payload budget 2,359,296 bytes, maximum error 2.235e-7, residency/reservation within budget, zero leases and retained bytes after close. [Analysis](evaluation/strata-selection-prefill-memory-analysis-2026-10-17.json) / [raw data](evaluation/strata-selection-prefill-memory-2026-10-17.json). Metal warm expert_eval counts changed from row_batch to selection_batch: reversed 32→4, random 120→110; repeat16/mixed28/alternating128 unchanged. Reversed active peak increased from 2,847,000 to 2,949,400 bytes. Sampled RSS across workers was approximately 348.8–353.2 MB, including inputs/references/allocator. This certifies neither RSS reduction, speed nor GPU dispatch counts. Analysis separates selection_batch modes and reads old reports as false; three analyzer tests and compilation passed.
+
+
+This section supersedes historical stage statuses below.
+🟢 [Done] Explicit opt-in standard Qwen3 MoE integration: offline export and identity checks, independent expert I/O, shared residency budget, leases and release, LRU/cost_frequency, four execution modes, process admission and serialized serving.
+🟢 [Done] All four modes passed on this Apple M4 CPU and Metal with a synthetic two-layer model: four-token prefill, three cached decode forwards, two independent requests, cache offset 7, and residency shrinking from 27,648 to 9,216 bytes. Logit errors stayed below 1e-5, leases returned to zero after each forward, and close released all resident weights. All 84 related tests passed without skips. [Evidence](evaluation/strata-local-completion-2026-10-17.json).
+🟠 [Next] Continue quiet-host comparisons on this machine. Both latest campaigns completed 16 trials with parity and residency contracts passing, but request host conditions and the 5% spread criterion did not pass across every mode. Keep startup results separate. [Resident](evaluation/strata-phased-resident-analysis-2026-10-17-135755-jst.json) / [partial](evaluation/strata-phased-partial-analysis-2026-10-17-135755-jst.json).
+⭕️ [Pending] Real-weight HTTP streaming, cancellation, cache and long-duration quality qualification need compatible standard Qwen3 MoE weights, tokenizer and matching identity-bound exports. Synthetic cache tests do not certify HTTP behavior.
+⭕️ [Pending] Other SoCs/RAM sizes, thermal behavior, contexts exceeding this machine and physical OOM/recovery need target hardware and an isolated load environment.
+🔴 [Later] Startup source-bank reduction, phys_footprint/pressure adapters and native Metal graph/mmap/prefetch require additional implementation.
+
+Process admission observes memory before forwards; it is not an OS hard cap. GPU dispatch counts, real-model speed and default adoption remain unqualified. Quiet-host automation continues.
+
+
 🟢 [Done] 2026-10-14: process admission and selection_batch implemented following upstream principles.
 ProcessMemoryBudget observes max(RSS, MLX active+cache), leaves a configurable reserve under both process and available-memory limits,
 and adjusts expert residency before each serving forward. Insufficient headroom raises MemoryError.
@@ -888,6 +938,31 @@ LRU and use the existing P3 gate before adoption.
 ⭕️ [Pending] MTP/ANE routes lacking testable artifacts or hardware.
 
 ## 简体中文
+
+### 当前完成范围 · 2026-10-17
+
+🟢 [Done] 完成当前opt-in实现的收尾：服务启动时，在source model load前拒绝已知预算不足或headroom为0的情况；runtime在修改原bank前拒绝无效budget／observer。包含CPU／Metal的87项相关测试全部通过，无skip，compile及diff检查通过。[最终回归](evaluation/strata-startup-admission-regression-2026-10-17.json)。事前观测不限制后续内存变化或model load峰值。支持架构的显式接入功能已实现，低负载性能认证继续；实artifact及额外硬件认证保持Pending。
+
+
+🟢 [Done] 完成install metadata与请求固定开销分离。[诊断分析](evaluation/strata-install-request-profile-analysis-2026-10-17.json)／[原始记录](evaluation/strata-install-request-profile-2026-10-17.json)：CPU／Metal共12 workers／120请求，数值及常驻契约通过。分别记录manifest open、hook install，以及请求13个phase的次数和inclusive host wall时间。Metal反转warm请求无checksum／load／weight_eval；router_to_host约24–31 μs，expert_eval单行约9.09–9.21 ms、selection_batch约2.62–3.14 ms。启用counter和RSS sampler的诊断值未经速度认证，phase不可相加，也不是GPU kernel或E2E计时；install不含模型load／export。
+🟢 [Done] 实RSS／MLX observer接入CPU／Metal全部四种方式的KV cache验证。admission拒绝时cache offset不变、Lease为0；恢复预算后decode正确继续，close释放成功。相关86项测试、compile及diff检查通过。[回归记录](evaluation/strata-admission-cache-regression-2026-10-17.json)。注入1-byte上限的拒绝测试不代表真实OOM。
+
+本机剩余🟠 [Next]为低负载速度认证。历史metadata／cache／多样prefill的Next已完成；实权重测试待artifact（⭕️ [Pending]），kernel级GPU dispatch计时及startup控制仍属新增设计（🔴 [Later]）。
+
+
+🟢 [Done] 新增selection_batch多样prefill内存验证：CPU／Metal、三种候选、每种两个fresh worker、五种cold／warm输入，共12 workers／120请求。严格双payload预算2,359,296 bytes，最大误差2.235e-7，常驻／预约未超预算，Lease及close后持有为0。[分析](evaluation/strata-selection-prefill-memory-analysis-2026-10-17.json)／[原始记录](evaluation/strata-selection-prefill-memory-2026-10-17.json)。Metal warm expert_eval从row_batch到selection_batch：反转32→4、random120→110；repeat16／mixed28／alternating128不变。反转active peak从2,847,000升至2,949,400 bytes。RSS采样峰值约348.8–353.2 MB，包含输入／参考／allocator，不认证RSS减少、速度或GPU dispatch数。分析器分开处理selection_batch，旧记录默认false；3项分析测试及compile通过。
+
+
+本节为当前状态，后续阶段记录保留为历史。
+🟢 [Done] 标准Qwen3 MoE显式opt-in集成：离线导出及identity验证、独立Expert I/O、跨层共享常驻预算、Lease与释放、LRU／cost_frequency、四种执行方式、process admission及单序列服务接入。
+🟢 [Done] 当前Apple M4的CPU／Metal均通过四种方式的合成双层模型验证：4-token prefill、3次带KV cache的decode、2个独立请求、cache offset 7，以及常驻预算27,648→9,216 bytes缩小。logits误差小于1e-5，每次forward后Lease为0，close后常驻为0。相关84项测试全部通过，无skip。[验证记录](evaluation/strata-local-completion-2026-10-17.json)。
+🟠 [Next] 继续本机低负载比较。最新两组各完成16次试验，数值和常驻契约通过，但未同时满足所有方式的请求负载条件及5%波动限制。startup单独判定。[全常驻](evaluation/strata-phased-resident-analysis-2026-10-17-135755-jst.json)／[部分常驻](evaluation/strata-phased-partial-analysis-2026-10-17-135755-jst.json)。
+⭕️ [Pending] 实权重HTTP streaming／cancel／cache及长时间质量认证，待兼容标准Qwen3 MoE权重、tokenizer和identity匹配的导出准备完成后恢复。合成cache验证不替代HTTP认证。
+⭕️ [Pending] 其他SoC／RAM容量、thermal、超出本机容量的context及真实OOM恢复，需要对应硬件和隔离负载环境。
+🔴 [Later] startup原始bank削减、phys_footprint／pressure adapter、native Metal graph／mmap／prefetch仍需新增设计和实现。
+
+process预算仅在forward前观测控制，不是OS硬上限。GPU dispatch数、实模型速度及默认采用均未认证；低负载自动检查继续。
+
 
 🟢 [Done] 2026-10-14：参考上游实现process admission与selection_batch。
 ProcessMemoryBudget使用max(RSS, MLX active+cache)避免Unified Memory重复计数，按process上限及system available保留可配置reserve，

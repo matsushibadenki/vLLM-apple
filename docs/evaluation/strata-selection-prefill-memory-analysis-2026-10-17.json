@@ -1,0 +1,2547 @@
+{
+  "scope": "synthetic_authoritative_prefill_switch_cpu_metal",
+  "maximum_absolute_error": 2.2351741790771484e-07,
+  "all_devices_available": true,
+  "all_parity_passed": true,
+  "speed_qualified": false,
+  "real_oom_qualified": false,
+  "speed_groups": [],
+  "memory_groups": [
+    {
+      "device": "cpu",
+      "case": "repeat",
+      "maximum_group_rows": 1,
+      "iteration": 0,
+      "selection_batch": false,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4195352
+      ],
+      "mlx_peak_increment_range_bytes": [
+        3407872,
+        3407872
+      ],
+      "sampled_rss_peak_range_bytes": [
+        349388800,
+        349962240
+      ],
+      "mlx_cache_range_bytes": [
+        552960,
+        552960
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          128,
+          128
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          256,
+          256
+        ],
+        "mlx_load": [
+          2,
+          2
+        ]
+      }
+    },
+    {
+      "device": "cpu",
+      "case": "repeat",
+      "maximum_group_rows": 1,
+      "iteration": 1,
+      "selection_batch": false,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4195352
+      ],
+      "mlx_peak_increment_range_bytes": [
+        1048576,
+        1048576
+      ],
+      "sampled_rss_peak_range_bytes": [
+        349913088,
+        350699520
+      ],
+      "mlx_cache_range_bytes": [
+        1077252,
+        1077252
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          128,
+          128
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          256,
+          256
+        ],
+        "mlx_load": [
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "device": "cpu",
+      "case": "mixed_runs",
+      "maximum_group_rows": 1,
+      "iteration": 0,
+      "selection_batch": false,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4195352
+      ],
+      "mlx_peak_increment_range_bytes": [
+        3407872,
+        3407872
+      ],
+      "sampled_rss_peak_range_bytes": [
+        348962816,
+        350208000
+      ],
+      "mlx_cache_range_bytes": [
+        552960,
+        552960
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          128,
+          128
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          256,
+          256
+        ],
+        "mlx_load": [
+          48,
+          48
+        ]
+      }
+    },
+    {
+      "device": "cpu",
+      "case": "mixed_runs",
+      "maximum_group_rows": 1,
+      "iteration": 1,
+      "selection_batch": false,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4195352
+      ],
+      "mlx_peak_increment_range_bytes": [
+        1048576,
+        1048576
+      ],
+      "sampled_rss_peak_range_bytes": [
+        349732864,
+        350945280
+      ],
+      "mlx_cache_range_bytes": [
+        1077252,
+        1077252
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          128,
+          128
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          256,
+          256
+        ],
+        "mlx_load": [
+          48,
+          48
+        ]
+      }
+    },
+    {
+      "device": "cpu",
+      "case": "alternating",
+      "maximum_group_rows": 1,
+      "iteration": 0,
+      "selection_batch": false,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4195352
+      ],
+      "mlx_peak_increment_range_bytes": [
+        3407872,
+        3407872
+      ],
+      "sampled_rss_peak_range_bytes": [
+        349241344,
+        350584832
+      ],
+      "mlx_cache_range_bytes": [
+        552960,
+        552960
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          128,
+          128
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          256,
+          256
+        ],
+        "mlx_load": [
+          256,
+          256
+        ]
+      }
+    },
+    {
+      "device": "cpu",
+      "case": "alternating",
+      "maximum_group_rows": 1,
+      "iteration": 1,
+      "selection_batch": false,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4195352
+      ],
+      "mlx_peak_increment_range_bytes": [
+        1048576,
+        1048576
+      ],
+      "sampled_rss_peak_range_bytes": [
+        349814784,
+        351141888
+      ],
+      "mlx_cache_range_bytes": [
+        1077252,
+        1077252
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          128,
+          128
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          256,
+          256
+        ],
+        "mlx_load": [
+          256,
+          256
+        ]
+      }
+    },
+    {
+      "device": "cpu",
+      "case": "reversed",
+      "maximum_group_rows": 1,
+      "iteration": 0,
+      "selection_batch": false,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        2818328,
+        2818328
+      ],
+      "mlx_peak_increment_range_bytes": [
+        2621440,
+        2621440
+      ],
+      "sampled_rss_peak_range_bytes": [
+        347914240,
+        349274112
+      ],
+      "mlx_cache_range_bytes": [
+        159744,
+        159744
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          32,
+          32
+        ],
+        "expert_build": [
+          64,
+          64
+        ],
+        "acquire": [
+          64,
+          64
+        ],
+        "mlx_load": [
+          2,
+          2
+        ]
+      }
+    },
+    {
+      "device": "cpu",
+      "case": "reversed",
+      "maximum_group_rows": 1,
+      "iteration": 1,
+      "selection_batch": false,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        2818328,
+        2818328
+      ],
+      "mlx_peak_increment_range_bytes": [
+        262144,
+        262144
+      ],
+      "sampled_rss_peak_range_bytes": [
+        348045312,
+        349405184
+      ],
+      "mlx_cache_range_bytes": [
+        290820,
+        290820
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          32,
+          32
+        ],
+        "expert_build": [
+          64,
+          64
+        ],
+        "acquire": [
+          64,
+          64
+        ],
+        "mlx_load": [
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "device": "cpu",
+      "case": "random",
+      "maximum_group_rows": 1,
+      "iteration": 0,
+      "selection_batch": false,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4195352
+      ],
+      "mlx_peak_increment_range_bytes": [
+        3407872,
+        3407872
+      ],
+      "sampled_rss_peak_range_bytes": [
+        349356032,
+        350666752
+      ],
+      "mlx_cache_range_bytes": [
+        552960,
+        552960
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          128,
+          128
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          256,
+          256
+        ],
+        "mlx_load": [
+          153,
+          153
+        ]
+      }
+    },
+    {
+      "device": "cpu",
+      "case": "random",
+      "maximum_group_rows": 1,
+      "iteration": 1,
+      "selection_batch": false,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4195352
+      ],
+      "mlx_peak_increment_range_bytes": [
+        1048576,
+        1048576
+      ],
+      "sampled_rss_peak_range_bytes": [
+        349896704,
+        351207424
+      ],
+      "mlx_cache_range_bytes": [
+        1077252,
+        1077252
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          128,
+          128
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          256,
+          256
+        ],
+        "mlx_load": [
+          153,
+          153
+        ]
+      }
+    },
+    {
+      "device": "cpu",
+      "case": "repeat",
+      "maximum_group_rows": 8,
+      "iteration": 0,
+      "selection_batch": false,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4195352
+      ],
+      "mlx_peak_increment_range_bytes": [
+        3407872,
+        3407872
+      ],
+      "sampled_rss_peak_range_bytes": [
+        349487104,
+        350863360
+      ],
+      "mlx_cache_range_bytes": [
+        753664,
+        753664
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          16,
+          16
+        ],
+        "expert_build": [
+          32,
+          32
+        ],
+        "acquire": [
+          32,
+          32
+        ],
+        "mlx_load": [
+          2,
+          2
+        ]
+      }
+    },
+    {
+      "device": "cpu",
+      "case": "repeat",
+      "maximum_group_rows": 8,
+      "iteration": 1,
+      "selection_batch": false,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4195352
+      ],
+      "mlx_peak_increment_range_bytes": [
+        1048576,
+        1048576
+      ],
+      "sampled_rss_peak_range_bytes": [
+        350011392,
+        351567872
+      ],
+      "mlx_cache_range_bytes": [
+        1277956,
+        1277956
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          16,
+          16
+        ],
+        "expert_build": [
+          32,
+          32
+        ],
+        "acquire": [
+          32,
+          32
+        ],
+        "mlx_load": [
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "device": "cpu",
+      "case": "mixed_runs",
+      "maximum_group_rows": 8,
+      "iteration": 0,
+      "selection_batch": false,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4310040,
+        4310040
+      ],
+      "mlx_peak_increment_range_bytes": [
+        3522560,
+        3522560
+      ],
+      "sampled_rss_peak_range_bytes": [
+        349044736,
+        351387648
+      ],
+      "mlx_cache_range_bytes": [
+        995328,
+        995328
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          28,
+          28
+        ],
+        "expert_build": [
+          56,
+          56
+        ],
+        "acquire": [
+          56,
+          56
+        ],
+        "mlx_load": [
+          48,
+          48
+        ]
+      }
+    },
+    {
+      "device": "cpu",
+      "case": "mixed_runs",
+      "maximum_group_rows": 8,
+      "iteration": 1,
+      "selection_batch": false,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4314136,
+        4314136
+      ],
+      "mlx_peak_increment_range_bytes": [
+        1167360,
+        1167360
+      ],
+      "sampled_rss_peak_range_bytes": [
+        349765632,
+        351928320
+      ],
+      "mlx_cache_range_bytes": [
+        1536004,
+        1536004
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          28,
+          28
+        ],
+        "expert_build": [
+          56,
+          56
+        ],
+        "acquire": [
+          56,
+          56
+        ],
+        "mlx_load": [
+          48,
+          48
+        ]
+      }
+    },
+    {
+      "device": "cpu",
+      "case": "alternating",
+      "maximum_group_rows": 8,
+      "iteration": 0,
+      "selection_batch": false,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4195352
+      ],
+      "mlx_peak_increment_range_bytes": [
+        3407872,
+        3407872
+      ],
+      "sampled_rss_peak_range_bytes": [
+        349143040,
+        351174656
+      ],
+      "mlx_cache_range_bytes": [
+        552960,
+        552960
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          128,
+          128
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          256,
+          256
+        ],
+        "mlx_load": [
+          256,
+          256
+        ]
+      }
+    },
+    {
+      "device": "cpu",
+      "case": "alternating",
+      "maximum_group_rows": 8,
+      "iteration": 1,
+      "selection_batch": false,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4195352
+      ],
+      "mlx_peak_increment_range_bytes": [
+        1048576,
+        1048576
+      ],
+      "sampled_rss_peak_range_bytes": [
+        349732864,
+        351748096
+      ],
+      "mlx_cache_range_bytes": [
+        1077252,
+        1077252
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          128,
+          128
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          256,
+          256
+        ],
+        "mlx_load": [
+          256,
+          256
+        ]
+      }
+    },
+    {
+      "device": "cpu",
+      "case": "reversed",
+      "maximum_group_rows": 8,
+      "iteration": 0,
+      "selection_batch": false,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        2818328,
+        2818328
+      ],
+      "mlx_peak_increment_range_bytes": [
+        2621440,
+        2621440
+      ],
+      "sampled_rss_peak_range_bytes": [
+        347832320,
+        349847552
+      ],
+      "mlx_cache_range_bytes": [
+        159744,
+        159744
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          32,
+          32
+        ],
+        "expert_build": [
+          64,
+          64
+        ],
+        "acquire": [
+          64,
+          64
+        ],
+        "mlx_load": [
+          2,
+          2
+        ]
+      }
+    },
+    {
+      "device": "cpu",
+      "case": "reversed",
+      "maximum_group_rows": 8,
+      "iteration": 1,
+      "selection_batch": false,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        2818328,
+        2818328
+      ],
+      "mlx_peak_increment_range_bytes": [
+        262144,
+        262144
+      ],
+      "sampled_rss_peak_range_bytes": [
+        347963392,
+        349978624
+      ],
+      "mlx_cache_range_bytes": [
+        290820,
+        290820
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          32,
+          32
+        ],
+        "expert_build": [
+          64,
+          64
+        ],
+        "acquire": [
+          64,
+          64
+        ],
+        "mlx_load": [
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "device": "cpu",
+      "case": "random",
+      "maximum_group_rows": 8,
+      "iteration": 0,
+      "selection_batch": false,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4195352
+      ],
+      "mlx_peak_increment_range_bytes": [
+        3407872,
+        3407872
+      ],
+      "sampled_rss_peak_range_bytes": [
+        349290496,
+        351305728
+      ],
+      "mlx_cache_range_bytes": [
+        602112,
+        602112
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          120,
+          120
+        ],
+        "expert_build": [
+          240,
+          240
+        ],
+        "acquire": [
+          240,
+          240
+        ],
+        "mlx_load": [
+          153,
+          153
+        ]
+      }
+    },
+    {
+      "device": "cpu",
+      "case": "random",
+      "maximum_group_rows": 8,
+      "iteration": 1,
+      "selection_batch": false,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4195352
+      ],
+      "mlx_peak_increment_range_bytes": [
+        1048576,
+        1048576
+      ],
+      "sampled_rss_peak_range_bytes": [
+        349831168,
+        351862784
+      ],
+      "mlx_cache_range_bytes": [
+        1126404,
+        1126404
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          120,
+          120
+        ],
+        "expert_build": [
+          240,
+          240
+        ],
+        "acquire": [
+          240,
+          240
+        ],
+        "mlx_load": [
+          153,
+          153
+        ]
+      }
+    },
+    {
+      "device": "cpu",
+      "case": "repeat",
+      "maximum_group_rows": 8,
+      "iteration": 0,
+      "selection_batch": true,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4195352
+      ],
+      "mlx_peak_increment_range_bytes": [
+        3407872,
+        3407872
+      ],
+      "sampled_rss_peak_range_bytes": [
+        349356032,
+        350453760
+      ],
+      "mlx_cache_range_bytes": [
+        753664,
+        753664
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          16,
+          16
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          32,
+          32
+        ],
+        "mlx_load": [
+          2,
+          2
+        ]
+      }
+    },
+    {
+      "device": "cpu",
+      "case": "repeat",
+      "maximum_group_rows": 8,
+      "iteration": 1,
+      "selection_batch": true,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4195352
+      ],
+      "mlx_peak_increment_range_bytes": [
+        1048576,
+        1048576
+      ],
+      "sampled_rss_peak_range_bytes": [
+        349880320,
+        351141888
+      ],
+      "mlx_cache_range_bytes": [
+        1277956,
+        1277956
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          16,
+          16
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          32,
+          32
+        ],
+        "mlx_load": [
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "device": "cpu",
+      "case": "mixed_runs",
+      "maximum_group_rows": 8,
+      "iteration": 0,
+      "selection_batch": true,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4293656,
+        4293656
+      ],
+      "mlx_peak_increment_range_bytes": [
+        3506176,
+        3506176
+      ],
+      "sampled_rss_peak_range_bytes": [
+        349028352,
+        350945280
+      ],
+      "mlx_cache_range_bytes": [
+        851968,
+        851968
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          28,
+          28
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          56,
+          56
+        ],
+        "mlx_load": [
+          48,
+          48
+        ]
+      }
+    },
+    {
+      "device": "cpu",
+      "case": "mixed_runs",
+      "maximum_group_rows": 8,
+      "iteration": 1,
+      "selection_batch": true,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4293656,
+        4293656
+      ],
+      "mlx_peak_increment_range_bytes": [
+        1146880,
+        1146880
+      ],
+      "sampled_rss_peak_range_bytes": [
+        349716480,
+        351469568
+      ],
+      "mlx_cache_range_bytes": [
+        1376260,
+        1376260
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          28,
+          28
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          56,
+          56
+        ],
+        "mlx_load": [
+          48,
+          48
+        ]
+      }
+    },
+    {
+      "device": "cpu",
+      "case": "alternating",
+      "maximum_group_rows": 8,
+      "iteration": 0,
+      "selection_batch": true,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4195352
+      ],
+      "mlx_peak_increment_range_bytes": [
+        3407872,
+        3407872
+      ],
+      "sampled_rss_peak_range_bytes": [
+        348979200,
+        350666752
+      ],
+      "mlx_cache_range_bytes": [
+        552960,
+        552960
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          128,
+          128
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          256,
+          256
+        ],
+        "mlx_load": [
+          256,
+          256
+        ]
+      }
+    },
+    {
+      "device": "cpu",
+      "case": "alternating",
+      "maximum_group_rows": 8,
+      "iteration": 1,
+      "selection_batch": true,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4195352
+      ],
+      "mlx_peak_increment_range_bytes": [
+        1048576,
+        1048576
+      ],
+      "sampled_rss_peak_range_bytes": [
+        349569024,
+        351272960
+      ],
+      "mlx_cache_range_bytes": [
+        1077252,
+        1077252
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          128,
+          128
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          256,
+          256
+        ],
+        "mlx_load": [
+          256,
+          256
+        ]
+      }
+    },
+    {
+      "device": "cpu",
+      "case": "reversed",
+      "maximum_group_rows": 8,
+      "iteration": 0,
+      "selection_batch": true,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        2873624,
+        2892056
+      ],
+      "mlx_peak_increment_range_bytes": [
+        2676736,
+        2695168
+      ],
+      "sampled_rss_peak_range_bytes": [
+        347881472,
+        349585408
+      ],
+      "mlx_cache_range_bytes": [
+        360448,
+        360448
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          4,
+          4
+        ],
+        "expert_build": [
+          64,
+          64
+        ],
+        "acquire": [
+          8,
+          8
+        ],
+        "mlx_load": [
+          2,
+          2
+        ]
+      }
+    },
+    {
+      "device": "cpu",
+      "case": "reversed",
+      "maximum_group_rows": 8,
+      "iteration": 1,
+      "selection_batch": true,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        2863384,
+        2869528
+      ],
+      "mlx_peak_increment_range_bytes": [
+        307200,
+        313344
+      ],
+      "sampled_rss_peak_range_bytes": [
+        348012544,
+        349716480
+      ],
+      "mlx_cache_range_bytes": [
+        491524,
+        491524
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          4,
+          4
+        ],
+        "expert_build": [
+          64,
+          64
+        ],
+        "acquire": [
+          8,
+          8
+        ],
+        "mlx_load": [
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "device": "cpu",
+      "case": "random",
+      "maximum_group_rows": 8,
+      "iteration": 0,
+      "selection_batch": true,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4195352
+      ],
+      "mlx_peak_increment_range_bytes": [
+        3407872,
+        3407872
+      ],
+      "sampled_rss_peak_range_bytes": [
+        349110272,
+        350830592
+      ],
+      "mlx_cache_range_bytes": [
+        589824,
+        589824
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          110,
+          110
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          220,
+          220
+        ],
+        "mlx_load": [
+          159,
+          159
+        ]
+      }
+    },
+    {
+      "device": "cpu",
+      "case": "random",
+      "maximum_group_rows": 8,
+      "iteration": 1,
+      "selection_batch": true,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4195352
+      ],
+      "mlx_peak_increment_range_bytes": [
+        1048576,
+        1048576
+      ],
+      "sampled_rss_peak_range_bytes": [
+        349650944,
+        351371264
+      ],
+      "mlx_cache_range_bytes": [
+        1114116,
+        1114116
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          110,
+          110
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          220,
+          220
+        ],
+        "mlx_load": [
+          159,
+          159
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "repeat",
+      "maximum_group_rows": 1,
+      "iteration": 0,
+      "selection_batch": false,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4195352
+      ],
+      "mlx_peak_increment_range_bytes": [
+        3407872,
+        3407872
+      ],
+      "sampled_rss_peak_range_bytes": [
+        351698944,
+        352600064
+      ],
+      "mlx_cache_range_bytes": [
+        552960,
+        557056
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          128,
+          128
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          256,
+          256
+        ],
+        "mlx_load": [
+          2,
+          2
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "repeat",
+      "maximum_group_rows": 1,
+      "iteration": 1,
+      "selection_batch": false,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4224024
+      ],
+      "mlx_peak_increment_range_bytes": [
+        1048576,
+        1077248
+      ],
+      "sampled_rss_peak_range_bytes": [
+        349749248,
+        352960512
+      ],
+      "mlx_cache_range_bytes": [
+        1081860,
+        1102340
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          128,
+          128
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          256,
+          256
+        ],
+        "mlx_load": [
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "mixed_runs",
+      "maximum_group_rows": 1,
+      "iteration": 0,
+      "selection_batch": false,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4195352
+      ],
+      "mlx_peak_increment_range_bytes": [
+        3407872,
+        3407872
+      ],
+      "sampled_rss_peak_range_bytes": [
+        349192192,
+        354942976
+      ],
+      "mlx_cache_range_bytes": [
+        552960,
+        557056
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          128,
+          128
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          256,
+          256
+        ],
+        "mlx_load": [
+          48,
+          48
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "mixed_runs",
+      "maximum_group_rows": 1,
+      "iteration": 1,
+      "selection_batch": false,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4224024
+      ],
+      "mlx_peak_increment_range_bytes": [
+        1048576,
+        1077248
+      ],
+      "sampled_rss_peak_range_bytes": [
+        349552640,
+        353009664
+      ],
+      "mlx_cache_range_bytes": [
+        1081860,
+        1081860
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          128,
+          128
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          256,
+          256
+        ],
+        "mlx_load": [
+          48,
+          48
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "alternating",
+      "maximum_group_rows": 1,
+      "iteration": 0,
+      "selection_batch": false,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4195352
+      ],
+      "mlx_peak_increment_range_bytes": [
+        3407872,
+        3407872
+      ],
+      "sampled_rss_peak_range_bytes": [
+        351535104,
+        354992128
+      ],
+      "mlx_cache_range_bytes": [
+        552960,
+        552960
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          128,
+          128
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          256,
+          256
+        ],
+        "mlx_load": [
+          256,
+          256
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "alternating",
+      "maximum_group_rows": 1,
+      "iteration": 1,
+      "selection_batch": false,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4224024
+      ],
+      "mlx_peak_increment_range_bytes": [
+        1048576,
+        1077248
+      ],
+      "sampled_rss_peak_range_bytes": [
+        349585408,
+        353042432
+      ],
+      "mlx_cache_range_bytes": [
+        1077764,
+        1077764
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          128,
+          128
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          256,
+          256
+        ],
+        "mlx_load": [
+          256,
+          256
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "reversed",
+      "maximum_group_rows": 1,
+      "iteration": 0,
+      "selection_batch": false,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        2818328,
+        2847000
+      ],
+      "mlx_peak_increment_range_bytes": [
+        2621440,
+        2650112
+      ],
+      "sampled_rss_peak_range_bytes": [
+        350994432,
+        354451456
+      ],
+      "mlx_cache_range_bytes": [
+        159744,
+        180224
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          32,
+          32
+        ],
+        "expert_build": [
+          64,
+          64
+        ],
+        "acquire": [
+          64,
+          64
+        ],
+        "mlx_load": [
+          2,
+          2
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "reversed",
+      "maximum_group_rows": 1,
+      "iteration": 1,
+      "selection_batch": false,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        2818328,
+        2847000
+      ],
+      "mlx_peak_increment_range_bytes": [
+        262144,
+        290816
+      ],
+      "sampled_rss_peak_range_bytes": [
+        349061120,
+        352518144
+      ],
+      "mlx_cache_range_bytes": [
+        291332,
+        311812
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          32,
+          32
+        ],
+        "expert_build": [
+          64,
+          64
+        ],
+        "acquire": [
+          64,
+          64
+        ],
+        "mlx_load": [
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "random",
+      "maximum_group_rows": 1,
+      "iteration": 0,
+      "selection_batch": false,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4195352
+      ],
+      "mlx_peak_increment_range_bytes": [
+        3407872,
+        3407872
+      ],
+      "sampled_rss_peak_range_bytes": [
+        349683712,
+        353140736
+      ],
+      "mlx_cache_range_bytes": [
+        552960,
+        557056
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          128,
+          128
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          256,
+          256
+        ],
+        "mlx_load": [
+          153,
+          153
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "random",
+      "maximum_group_rows": 1,
+      "iteration": 1,
+      "selection_batch": false,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4224024
+      ],
+      "mlx_peak_increment_range_bytes": [
+        1048576,
+        1077248
+      ],
+      "sampled_rss_peak_range_bytes": [
+        349716480,
+        353173504
+      ],
+      "mlx_cache_range_bytes": [
+        1077764,
+        1081860
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          128,
+          128
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          256,
+          256
+        ],
+        "mlx_load": [
+          153,
+          153
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "repeat",
+      "maximum_group_rows": 8,
+      "iteration": 0,
+      "selection_batch": false,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4424728
+      ],
+      "mlx_peak_increment_range_bytes": [
+        3407872,
+        3637248
+      ],
+      "sampled_rss_peak_range_bytes": [
+        351518720,
+        351633408
+      ],
+      "mlx_cache_range_bytes": [
+        753664,
+        753664
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          16,
+          16
+        ],
+        "expert_build": [
+          32,
+          32
+        ],
+        "acquire": [
+          32,
+          32
+        ],
+        "mlx_load": [
+          2,
+          2
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "repeat",
+      "maximum_group_rows": 8,
+      "iteration": 1,
+      "selection_batch": false,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4424728,
+        4424728
+      ],
+      "mlx_peak_increment_range_bytes": [
+        1277952,
+        1277952
+      ],
+      "sampled_rss_peak_range_bytes": [
+        349552640,
+        351879168
+      ],
+      "mlx_cache_range_bytes": [
+        1278468,
+        1311236
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          16,
+          16
+        ],
+        "expert_build": [
+          32,
+          32
+        ],
+        "acquire": [
+          32,
+          32
+        ],
+        "mlx_load": [
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "mixed_runs",
+      "maximum_group_rows": 8,
+      "iteration": 0,
+      "selection_batch": false,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4531224,
+        4531224
+      ],
+      "mlx_peak_increment_range_bytes": [
+        3743744,
+        3743744
+      ],
+      "sampled_rss_peak_range_bytes": [
+        348782592,
+        353566720
+      ],
+      "mlx_cache_range_bytes": [
+        995328,
+        995328
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          28,
+          28
+        ],
+        "expert_build": [
+          56,
+          56
+        ],
+        "acquire": [
+          56,
+          56
+        ],
+        "mlx_load": [
+          48,
+          48
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "mixed_runs",
+      "maximum_group_rows": 8,
+      "iteration": 1,
+      "selection_batch": false,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4535320,
+        4535320
+      ],
+      "mlx_peak_increment_range_bytes": [
+        1388544,
+        1388544
+      ],
+      "sampled_rss_peak_range_bytes": [
+        349011968,
+        352141312
+      ],
+      "mlx_cache_range_bytes": [
+        1536516,
+        1569284
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          28,
+          28
+        ],
+        "expert_build": [
+          56,
+          56
+        ],
+        "acquire": [
+          56,
+          56
+        ],
+        "mlx_load": [
+          48,
+          48
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "alternating",
+      "maximum_group_rows": 8,
+      "iteration": 0,
+      "selection_batch": false,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4195352
+      ],
+      "mlx_peak_increment_range_bytes": [
+        3407872,
+        3407872
+      ],
+      "sampled_rss_peak_range_bytes": [
+        349388800,
+        352337920
+      ],
+      "mlx_cache_range_bytes": [
+        552960,
+        552960
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          128,
+          128
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          256,
+          256
+        ],
+        "mlx_load": [
+          256,
+          256
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "alternating",
+      "maximum_group_rows": 8,
+      "iteration": 1,
+      "selection_batch": false,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4224024
+      ],
+      "mlx_peak_increment_range_bytes": [
+        1048576,
+        1077248
+      ],
+      "sampled_rss_peak_range_bytes": [
+        349421568,
+        352403456
+      ],
+      "mlx_cache_range_bytes": [
+        1077764,
+        1077764
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          128,
+          128
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          256,
+          256
+        ],
+        "mlx_load": [
+          256,
+          256
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "reversed",
+      "maximum_group_rows": 8,
+      "iteration": 0,
+      "selection_batch": false,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        2847000,
+        2847000
+      ],
+      "mlx_peak_increment_range_bytes": [
+        2650112,
+        2650112
+      ],
+      "sampled_rss_peak_range_bytes": [
+        350814208,
+        353796096
+      ],
+      "mlx_cache_range_bytes": [
+        163840,
+        180224
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          32,
+          32
+        ],
+        "expert_build": [
+          64,
+          64
+        ],
+        "acquire": [
+          64,
+          64
+        ],
+        "mlx_load": [
+          2,
+          2
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "reversed",
+      "maximum_group_rows": 8,
+      "iteration": 1,
+      "selection_batch": false,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        2847000,
+        2847000
+      ],
+      "mlx_peak_increment_range_bytes": [
+        290816,
+        290816
+      ],
+      "sampled_rss_peak_range_bytes": [
+        348897280,
+        351862784
+      ],
+      "mlx_cache_range_bytes": [
+        295428,
+        311812
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          32,
+          32
+        ],
+        "expert_build": [
+          64,
+          64
+        ],
+        "acquire": [
+          64,
+          64
+        ],
+        "mlx_load": [
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "random",
+      "maximum_group_rows": 8,
+      "iteration": 0,
+      "selection_batch": false,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4195352
+      ],
+      "mlx_peak_increment_range_bytes": [
+        3407872,
+        3407872
+      ],
+      "sampled_rss_peak_range_bytes": [
+        350879744,
+        353845248
+      ],
+      "mlx_cache_range_bytes": [
+        602112,
+        606208
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          120,
+          120
+        ],
+        "expert_build": [
+          240,
+          240
+        ],
+        "acquire": [
+          240,
+          240
+        ],
+        "mlx_load": [
+          153,
+          153
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "random",
+      "maximum_group_rows": 8,
+      "iteration": 1,
+      "selection_batch": false,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4224024,
+        4224024
+      ],
+      "mlx_peak_increment_range_bytes": [
+        1077248,
+        1077248
+      ],
+      "sampled_rss_peak_range_bytes": [
+        349536256,
+        352501760
+      ],
+      "mlx_cache_range_bytes": [
+        1126916,
+        1131012
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          120,
+          120
+        ],
+        "expert_build": [
+          240,
+          240
+        ],
+        "acquire": [
+          240,
+          240
+        ],
+        "mlx_load": [
+          153,
+          153
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "repeat",
+      "maximum_group_rows": 8,
+      "iteration": 0,
+      "selection_batch": true,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4318232,
+        4318232
+      ],
+      "mlx_peak_increment_range_bytes": [
+        3530752,
+        3530752
+      ],
+      "sampled_rss_peak_range_bytes": [
+        348864512,
+        351404032
+      ],
+      "mlx_cache_range_bytes": [
+        786432,
+        786432
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          16,
+          16
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          32,
+          32
+        ],
+        "mlx_load": [
+          2,
+          2
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "repeat",
+      "maximum_group_rows": 8,
+      "iteration": 1,
+      "selection_batch": true,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4318232,
+        4318232
+      ],
+      "mlx_peak_increment_range_bytes": [
+        122364,
+        1171456
+      ],
+      "sampled_rss_peak_range_bytes": [
+        349143040,
+        349454336
+      ],
+      "mlx_cache_range_bytes": [
+        1311236,
+        1311236
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          16,
+          16
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          32,
+          32
+        ],
+        "mlx_load": [
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "mixed_runs",
+      "maximum_group_rows": 8,
+      "iteration": 0,
+      "selection_batch": true,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4293656,
+        4457496
+      ],
+      "mlx_peak_increment_range_bytes": [
+        3506176,
+        3670016
+      ],
+      "sampled_rss_peak_range_bytes": [
+        348930048,
+        350076928
+      ],
+      "mlx_cache_range_bytes": [
+        884736,
+        884736
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          28,
+          28
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          56,
+          56
+        ],
+        "mlx_load": [
+          48,
+          48
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "mixed_runs",
+      "maximum_group_rows": 8,
+      "iteration": 1,
+      "selection_batch": true,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4457496,
+        4457496
+      ],
+      "mlx_peak_increment_range_bytes": [
+        1310720,
+        1310720
+      ],
+      "sampled_rss_peak_range_bytes": [
+        349175808,
+        349175808
+      ],
+      "mlx_cache_range_bytes": [
+        1409540,
+        1409540
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          28,
+          28
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          56,
+          56
+        ],
+        "mlx_load": [
+          48,
+          48
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "alternating",
+      "maximum_group_rows": 8,
+      "iteration": 0,
+      "selection_batch": true,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4224024
+      ],
+      "mlx_peak_increment_range_bytes": [
+        3407872,
+        3436544
+      ],
+      "sampled_rss_peak_range_bytes": [
+        350093312,
+        350109696
+      ],
+      "mlx_cache_range_bytes": [
+        552960,
+        552960
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          128,
+          128
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          256,
+          256
+        ],
+        "mlx_load": [
+          256,
+          256
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "alternating",
+      "maximum_group_rows": 8,
+      "iteration": 1,
+      "selection_batch": true,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4224024,
+        4224024
+      ],
+      "mlx_peak_increment_range_bytes": [
+        1077248,
+        1077248
+      ],
+      "sampled_rss_peak_range_bytes": [
+        349306880,
+        349323264
+      ],
+      "mlx_cache_range_bytes": [
+        1077764,
+        1077764
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          128,
+          128
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          256,
+          256
+        ],
+        "mlx_load": [
+          256,
+          256
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "reversed",
+      "maximum_group_rows": 8,
+      "iteration": 0,
+      "selection_batch": true,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        2949400,
+        2949400
+      ],
+      "mlx_peak_increment_range_bytes": [
+        2752512,
+        2752512
+      ],
+      "sampled_rss_peak_range_bytes": [
+        350715904,
+        350715904
+      ],
+      "mlx_cache_range_bytes": [
+        393216,
+        393216
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          4,
+          4
+        ],
+        "expert_build": [
+          64,
+          64
+        ],
+        "acquire": [
+          8,
+          8
+        ],
+        "mlx_load": [
+          2,
+          2
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "reversed",
+      "maximum_group_rows": 8,
+      "iteration": 1,
+      "selection_batch": true,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        2949400,
+        2949400
+      ],
+      "mlx_peak_increment_range_bytes": [
+        393216,
+        393216
+      ],
+      "sampled_rss_peak_range_bytes": [
+        348798976,
+        348798976
+      ],
+      "mlx_cache_range_bytes": [
+        524804,
+        524804
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          4,
+          4
+        ],
+        "expert_build": [
+          64,
+          64
+        ],
+        "acquire": [
+          8,
+          8
+        ],
+        "mlx_load": [
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "random",
+      "maximum_group_rows": 8,
+      "iteration": 0,
+      "selection_batch": true,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4195352
+      ],
+      "mlx_peak_increment_range_bytes": [
+        3407872,
+        3407872
+      ],
+      "sampled_rss_peak_range_bytes": [
+        349405184,
+        350797824
+      ],
+      "mlx_cache_range_bytes": [
+        589824,
+        589824
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          110,
+          110
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          220,
+          220
+        ],
+        "mlx_load": [
+          159,
+          159
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "random",
+      "maximum_group_rows": 8,
+      "iteration": 1,
+      "selection_batch": true,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4224024,
+        4224024
+      ],
+      "mlx_peak_increment_range_bytes": [
+        1077248,
+        1077248
+      ],
+      "sampled_rss_peak_range_bytes": [
+        349421568,
+        349437952
+      ],
+      "mlx_cache_range_bytes": [
+        1114628,
+        1114628
+      ],
+      "phase_count_ranges": {
+        "expert_eval": [
+          110,
+          110
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          220,
+          220
+        ],
+        "mlx_load": [
+          159,
+          159
+        ]
+      }
+    }
+  ],
+  "limitations": [
+    "Five synthetic ordered-selection fixtures, not text/tokenizer/real-model quality",
+    "Budget is exactly two payloads",
+    "Native SwitchGLU references and experts prepared in a separate process",
+    "Workers discard temporary source bank before measurement",
+    "4 measured CPU requests after 1 warmup per case; no host qualification",
+    "Memory workers separate from speed; phase counters enabled only for memory",
+    "2 memory requests per case: first cold manager, then existing cache/residency",
+    "Reference/input/output arrays contribute to baseline and observed peaks",
+    "RSS sampling requested at 1ms; sampled peak may miss transients",
+    "RSS HWM is lifetime-wide; MLX peak reset per request",
+    "MLX allocator is process-wide unified memory, not dedicated/system GPU VRAM",
+    "Keep default allocator cache between requests; test-only clear between memory cases"
+  ],
+  "report": "docs/evaluation/strata-selection-prefill-memory-2026-10-17.json",
+  "report_sha256": "5cadecde4955aee4d170cd2858db4f44f6fa8c8d866b18e14924079fcc46079d"
+}

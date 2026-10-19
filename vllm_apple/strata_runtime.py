@@ -10,6 +10,7 @@ from .expert_execution import ResidentExpertExecutor
 from .expert_residency import ExpertResidencyManager
 from .mlx_expert_backend import MLXFileExpertBackend
 from .qwen3_moe_residency import install_qwen3_moe_residency
+from .strata_memory import ProcessMemoryBudget
 
 
 class StrataRuntime:
@@ -23,6 +24,9 @@ class StrataRuntime:
                 or any(type(layer) is not int or layer < 0 for layer in blocks)
                 or len({id(block) for block in blocks.values()}) != len(blocks)):
             raise ValueError("invalid Strata layer mapping or mode")
+        if (process_budget is not None and not isinstance(process_budget, ProcessMemoryBudget)
+                or memory_observer is not None and not callable(memory_observer)):
+            raise ValueError("invalid process memory admission configuration")
         self.manager = ExpertResidencyManager(
             backend, maximum_entries=maximum_entries, maximum_bytes=maximum_bytes,
             eviction_policy=eviction_policy)

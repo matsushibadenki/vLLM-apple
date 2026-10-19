@@ -1,0 +1,6301 @@
+{
+  "scope": "synthetic_authoritative_prefill_switch_cpu_metal",
+  "maximum_absolute_error": 2.2351741790771484e-07,
+  "all_devices_available": true,
+  "all_parity_passed": true,
+  "speed_qualified": false,
+  "real_oom_qualified": false,
+  "installation_groups": [
+    {
+      "device": "cpu",
+      "case": "repeat",
+      "maximum_group_rows": 1,
+      "selection_batch": false,
+      "runs": 2,
+      "ranges_ns": {
+        "manifest_open_ns": [
+          160584,
+          165625
+        ],
+        "hook_install_ns": [
+          141875,
+          165875
+        ]
+      }
+    },
+    {
+      "device": "cpu",
+      "case": "mixed_runs",
+      "maximum_group_rows": 1,
+      "selection_batch": false,
+      "runs": 2,
+      "ranges_ns": {
+        "manifest_open_ns": [
+          153750,
+          167667
+        ],
+        "hook_install_ns": [
+          144625,
+          174208
+        ]
+      }
+    },
+    {
+      "device": "cpu",
+      "case": "alternating",
+      "maximum_group_rows": 1,
+      "selection_batch": false,
+      "runs": 2,
+      "ranges_ns": {
+        "manifest_open_ns": [
+          157417,
+          162917
+        ],
+        "hook_install_ns": [
+          136167,
+          145125
+        ]
+      }
+    },
+    {
+      "device": "cpu",
+      "case": "reversed",
+      "maximum_group_rows": 1,
+      "selection_batch": false,
+      "runs": 2,
+      "ranges_ns": {
+        "manifest_open_ns": [
+          150833,
+          151875
+        ],
+        "hook_install_ns": [
+          146458,
+          186666
+        ]
+      }
+    },
+    {
+      "device": "cpu",
+      "case": "random",
+      "maximum_group_rows": 1,
+      "selection_batch": false,
+      "runs": 2,
+      "ranges_ns": {
+        "manifest_open_ns": [
+          153292,
+          160167
+        ],
+        "hook_install_ns": [
+          139416,
+          143083
+        ]
+      }
+    },
+    {
+      "device": "cpu",
+      "case": "repeat",
+      "maximum_group_rows": 8,
+      "selection_batch": false,
+      "runs": 2,
+      "ranges_ns": {
+        "manifest_open_ns": [
+          152667,
+          156541
+        ],
+        "hook_install_ns": [
+          143625,
+          174458
+        ]
+      }
+    },
+    {
+      "device": "cpu",
+      "case": "mixed_runs",
+      "maximum_group_rows": 8,
+      "selection_batch": false,
+      "runs": 2,
+      "ranges_ns": {
+        "manifest_open_ns": [
+          158375,
+          160416
+        ],
+        "hook_install_ns": [
+          145250,
+          176459
+        ]
+      }
+    },
+    {
+      "device": "cpu",
+      "case": "alternating",
+      "maximum_group_rows": 8,
+      "selection_batch": false,
+      "runs": 2,
+      "ranges_ns": {
+        "manifest_open_ns": [
+          154084,
+          170583
+        ],
+        "hook_install_ns": [
+          138917,
+          140833
+        ]
+      }
+    },
+    {
+      "device": "cpu",
+      "case": "reversed",
+      "maximum_group_rows": 8,
+      "selection_batch": false,
+      "runs": 2,
+      "ranges_ns": {
+        "manifest_open_ns": [
+          140666,
+          180500
+        ],
+        "hook_install_ns": [
+          135250,
+          150417
+        ]
+      }
+    },
+    {
+      "device": "cpu",
+      "case": "random",
+      "maximum_group_rows": 8,
+      "selection_batch": false,
+      "runs": 2,
+      "ranges_ns": {
+        "manifest_open_ns": [
+          142417,
+          156542
+        ],
+        "hook_install_ns": [
+          142125,
+          143208
+        ]
+      }
+    },
+    {
+      "device": "cpu",
+      "case": "repeat",
+      "maximum_group_rows": 8,
+      "selection_batch": true,
+      "runs": 2,
+      "ranges_ns": {
+        "manifest_open_ns": [
+          153125,
+          169000
+        ],
+        "hook_install_ns": [
+          136583,
+          171417
+        ]
+      }
+    },
+    {
+      "device": "cpu",
+      "case": "mixed_runs",
+      "maximum_group_rows": 8,
+      "selection_batch": true,
+      "runs": 2,
+      "ranges_ns": {
+        "manifest_open_ns": [
+          165041,
+          165583
+        ],
+        "hook_install_ns": [
+          143125,
+          184708
+        ]
+      }
+    },
+    {
+      "device": "cpu",
+      "case": "alternating",
+      "maximum_group_rows": 8,
+      "selection_batch": true,
+      "runs": 2,
+      "ranges_ns": {
+        "manifest_open_ns": [
+          150292,
+          154334
+        ],
+        "hook_install_ns": [
+          134834,
+          136292
+        ]
+      }
+    },
+    {
+      "device": "cpu",
+      "case": "reversed",
+      "maximum_group_rows": 8,
+      "selection_batch": true,
+      "runs": 2,
+      "ranges_ns": {
+        "manifest_open_ns": [
+          141916,
+          150916
+        ],
+        "hook_install_ns": [
+          138167,
+          144750
+        ]
+      }
+    },
+    {
+      "device": "cpu",
+      "case": "random",
+      "maximum_group_rows": 8,
+      "selection_batch": true,
+      "runs": 2,
+      "ranges_ns": {
+        "manifest_open_ns": [
+          146709,
+          156125
+        ],
+        "hook_install_ns": [
+          137666,
+          138500
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "repeat",
+      "maximum_group_rows": 1,
+      "selection_batch": false,
+      "runs": 2,
+      "ranges_ns": {
+        "manifest_open_ns": [
+          137834,
+          162750
+        ],
+        "hook_install_ns": [
+          129792,
+          169833
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "mixed_runs",
+      "maximum_group_rows": 1,
+      "selection_batch": false,
+      "runs": 2,
+      "ranges_ns": {
+        "manifest_open_ns": [
+          160250,
+          169625
+        ],
+        "hook_install_ns": [
+          140334,
+          176375
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "alternating",
+      "maximum_group_rows": 1,
+      "selection_batch": false,
+      "runs": 2,
+      "ranges_ns": {
+        "manifest_open_ns": [
+          153958,
+          159250
+        ],
+        "hook_install_ns": [
+          135875,
+          139542
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "reversed",
+      "maximum_group_rows": 1,
+      "selection_batch": false,
+      "runs": 2,
+      "ranges_ns": {
+        "manifest_open_ns": [
+          146417,
+          156208
+        ],
+        "hook_install_ns": [
+          135375,
+          137208
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "random",
+      "maximum_group_rows": 1,
+      "selection_batch": false,
+      "runs": 2,
+      "ranges_ns": {
+        "manifest_open_ns": [
+          154709,
+          159709
+        ],
+        "hook_install_ns": [
+          136917,
+          137542
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "repeat",
+      "maximum_group_rows": 8,
+      "selection_batch": false,
+      "runs": 2,
+      "ranges_ns": {
+        "manifest_open_ns": [
+          152166,
+          162125
+        ],
+        "hook_install_ns": [
+          148666,
+          166166
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "mixed_runs",
+      "maximum_group_rows": 8,
+      "selection_batch": false,
+      "runs": 2,
+      "ranges_ns": {
+        "manifest_open_ns": [
+          151417,
+          158750
+        ],
+        "hook_install_ns": [
+          137750,
+          171459
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "alternating",
+      "maximum_group_rows": 8,
+      "selection_batch": false,
+      "runs": 2,
+      "ranges_ns": {
+        "manifest_open_ns": [
+          148083,
+          155709
+        ],
+        "hook_install_ns": [
+          136250,
+          141000
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "reversed",
+      "maximum_group_rows": 8,
+      "selection_batch": false,
+      "runs": 2,
+      "ranges_ns": {
+        "manifest_open_ns": [
+          148166,
+          150333
+        ],
+        "hook_install_ns": [
+          137750,
+          137958
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "random",
+      "maximum_group_rows": 8,
+      "selection_batch": false,
+      "runs": 2,
+      "ranges_ns": {
+        "manifest_open_ns": [
+          153958,
+          188041
+        ],
+        "hook_install_ns": [
+          139709,
+          176917
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "repeat",
+      "maximum_group_rows": 8,
+      "selection_batch": true,
+      "runs": 2,
+      "ranges_ns": {
+        "manifest_open_ns": [
+          158209,
+          158292
+        ],
+        "hook_install_ns": [
+          146166,
+          167250
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "mixed_runs",
+      "maximum_group_rows": 8,
+      "selection_batch": true,
+      "runs": 2,
+      "ranges_ns": {
+        "manifest_open_ns": [
+          159083,
+          172250
+        ],
+        "hook_install_ns": [
+          144792,
+          186334
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "alternating",
+      "maximum_group_rows": 8,
+      "selection_batch": true,
+      "runs": 2,
+      "ranges_ns": {
+        "manifest_open_ns": [
+          151334,
+          153041
+        ],
+        "hook_install_ns": [
+          144792,
+          150417
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "reversed",
+      "maximum_group_rows": 8,
+      "selection_batch": true,
+      "runs": 2,
+      "ranges_ns": {
+        "manifest_open_ns": [
+          146167,
+          177333
+        ],
+        "hook_install_ns": [
+          141917,
+          143708
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "random",
+      "maximum_group_rows": 8,
+      "selection_batch": true,
+      "runs": 2,
+      "ranges_ns": {
+        "manifest_open_ns": [
+          149084,
+          184375
+        ],
+        "hook_install_ns": [
+          139584,
+          153250
+        ]
+      }
+    }
+  ],
+  "speed_groups": [],
+  "memory_groups": [
+    {
+      "device": "cpu",
+      "case": "repeat",
+      "maximum_group_rows": 1,
+      "iteration": 0,
+      "selection_batch": false,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4195352
+      ],
+      "mlx_peak_increment_range_bytes": [
+        3407872,
+        3407872
+      ],
+      "sampled_rss_peak_range_bytes": [
+        349192192,
+        350339072
+      ],
+      "mlx_cache_range_bytes": [
+        552960,
+        552960
+      ],
+      "phase_nanosecond_ranges": {
+        "acquire": [
+          1763002,
+          1891330
+        ],
+        "checksum_hash": [
+          697043,
+          698082
+        ],
+        "checksum_read": [
+          174083,
+          194583
+        ],
+        "expert_build": [
+          540746,
+          552553
+        ],
+        "expert_eval": [
+          51015296,
+          52316298
+        ],
+        "file_stat": [
+          137835,
+          148416
+        ],
+        "mlx_load": [
+          64041,
+          76126
+        ],
+        "output_assembly": [
+          103077,
+          109920
+        ],
+        "output_eval": [
+          132750,
+          133542
+        ],
+        "release": [
+          171251,
+          172966
+        ],
+        "router_eval": [
+          1833,
+          3500
+        ],
+        "router_to_host": [
+          39833,
+          67208
+        ],
+        "weight_eval": [
+          282167,
+          335417
+        ]
+      },
+      "phase_count_ranges": {
+        "expert_eval": [
+          128,
+          128
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          256,
+          256
+        ],
+        "mlx_load": [
+          2,
+          2
+        ]
+      }
+    },
+    {
+      "device": "cpu",
+      "case": "repeat",
+      "maximum_group_rows": 1,
+      "iteration": 1,
+      "selection_batch": false,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4195352
+      ],
+      "mlx_peak_increment_range_bytes": [
+        1048576,
+        1048576
+      ],
+      "sampled_rss_peak_range_bytes": [
+        349716480,
+        351076352
+      ],
+      "mlx_cache_range_bytes": [
+        1077252,
+        1077252
+      ],
+      "phase_nanosecond_ranges": {
+        "acquire": [
+          301548,
+          316334
+        ],
+        "checksum_hash": [
+          0,
+          0
+        ],
+        "checksum_read": [
+          0,
+          0
+        ],
+        "expert_build": [
+          526133,
+          532921
+        ],
+        "expert_eval": [
+          50810089,
+          52470169
+        ],
+        "file_stat": [
+          0,
+          0
+        ],
+        "mlx_load": [
+          0,
+          0
+        ],
+        "output_assembly": [
+          96999,
+          101164
+        ],
+        "output_eval": [
+          101792,
+          110500
+        ],
+        "release": [
+          169574,
+          177754
+        ],
+        "router_eval": [
+          916,
+          959
+        ],
+        "router_to_host": [
+          18667,
+          20458
+        ],
+        "weight_eval": [
+          0,
+          0
+        ]
+      },
+      "phase_count_ranges": {
+        "expert_eval": [
+          128,
+          128
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          256,
+          256
+        ],
+        "mlx_load": [
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "device": "cpu",
+      "case": "mixed_runs",
+      "maximum_group_rows": 1,
+      "iteration": 0,
+      "selection_batch": false,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4195352
+      ],
+      "mlx_peak_increment_range_bytes": [
+        3407872,
+        3407872
+      ],
+      "sampled_rss_peak_range_bytes": [
+        348848128,
+        350584832
+      ],
+      "mlx_cache_range_bytes": [
+        552960,
+        552960
+      ],
+      "phase_nanosecond_ranges": {
+        "acquire": [
+          26852590,
+          28473980
+        ],
+        "checksum_hash": [
+          16890334,
+          17309878
+        ],
+        "checksum_read": [
+          2376342,
+          2742872
+        ],
+        "expert_build": [
+          551635,
+          597827
+        ],
+        "expert_eval": [
+          49553586,
+          52015744
+        ],
+        "file_stat": [
+          1766711,
+          1857966
+        ],
+        "mlx_load": [
+          1044169,
+          1086626
+        ],
+        "output_assembly": [
+          108585,
+          119458
+        ],
+        "output_eval": [
+          136125,
+          140334
+        ],
+        "release": [
+          164243,
+          195754
+        ],
+        "router_eval": [
+          2125,
+          3333
+        ],
+        "router_to_host": [
+          39208,
+          50167
+        ],
+        "weight_eval": [
+          2859588,
+          3403754
+        ]
+      },
+      "phase_count_ranges": {
+        "expert_eval": [
+          128,
+          128
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          256,
+          256
+        ],
+        "mlx_load": [
+          48,
+          48
+        ]
+      }
+    },
+    {
+      "device": "cpu",
+      "case": "mixed_runs",
+      "maximum_group_rows": 1,
+      "iteration": 1,
+      "selection_batch": false,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4195352
+      ],
+      "mlx_peak_increment_range_bytes": [
+        1048576,
+        1048576
+      ],
+      "sampled_rss_peak_range_bytes": [
+        349618176,
+        351141888
+      ],
+      "mlx_cache_range_bytes": [
+        1077252,
+        1077252
+      ],
+      "phase_nanosecond_ranges": {
+        "acquire": [
+          26234213,
+          27487383
+        ],
+        "checksum_hash": [
+          16789837,
+          17492292
+        ],
+        "checksum_read": [
+          2125003,
+          2338032
+        ],
+        "expert_build": [
+          567449,
+          578126
+        ],
+        "expert_eval": [
+          50094174,
+          52051583
+        ],
+        "file_stat": [
+          1657122,
+          1743085
+        ],
+        "mlx_load": [
+          972085,
+          1024915
+        ],
+        "output_assembly": [
+          101740,
+          106839
+        ],
+        "output_eval": [
+          104375,
+          119708
+        ],
+        "release": [
+          175630,
+          191126
+        ],
+        "router_eval": [
+          667,
+          792
+        ],
+        "router_to_host": [
+          14917,
+          19333
+        ],
+        "weight_eval": [
+          2844834,
+          2969668
+        ]
+      },
+      "phase_count_ranges": {
+        "expert_eval": [
+          128,
+          128
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          256,
+          256
+        ],
+        "mlx_load": [
+          48,
+          48
+        ]
+      }
+    },
+    {
+      "device": "cpu",
+      "case": "alternating",
+      "maximum_group_rows": 1,
+      "iteration": 0,
+      "selection_batch": false,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4195352
+      ],
+      "mlx_peak_increment_range_bytes": [
+        3407872,
+        3407872
+      ],
+      "sampled_rss_peak_range_bytes": [
+        349110272,
+        350633984
+      ],
+      "mlx_cache_range_bytes": [
+        552960,
+        552960
+      ],
+      "phase_nanosecond_ranges": {
+        "acquire": [
+          135692042,
+          139626004
+        ],
+        "checksum_hash": [
+          90386001,
+          92300043
+        ],
+        "checksum_read": [
+          10830534,
+          11471491
+        ],
+        "expert_build": [
+          690789,
+          692743
+        ],
+        "expert_eval": [
+          48614208,
+          50785627
+        ],
+        "file_stat": [
+          8006107,
+          8487544
+        ],
+        "mlx_load": [
+          5224840,
+          5303337
+        ],
+        "output_assembly": [
+          120794,
+          124499
+        ],
+        "output_eval": [
+          120042,
+          155333
+        ],
+        "release": [
+          145958,
+          177088
+        ],
+        "router_eval": [
+          2417,
+          2542
+        ],
+        "router_to_host": [
+          37166,
+          43333
+        ],
+        "weight_eval": [
+          13340326,
+          13852960
+        ]
+      },
+      "phase_count_ranges": {
+        "expert_eval": [
+          128,
+          128
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          256,
+          256
+        ],
+        "mlx_load": [
+          256,
+          256
+        ]
+      }
+    },
+    {
+      "device": "cpu",
+      "case": "alternating",
+      "maximum_group_rows": 1,
+      "iteration": 1,
+      "selection_batch": false,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4195352
+      ],
+      "mlx_peak_increment_range_bytes": [
+        1048576,
+        1048576
+      ],
+      "sampled_rss_peak_range_bytes": [
+        349634560,
+        351207424
+      ],
+      "mlx_cache_range_bytes": [
+        1077252,
+        1077252
+      ],
+      "phase_nanosecond_ranges": {
+        "acquire": [
+          134722510,
+          138687292
+        ],
+        "checksum_hash": [
+          90100530,
+          92336408
+        ],
+        "checksum_read": [
+          10352830,
+          11132134
+        ],
+        "expert_build": [
+          655671,
+          670999
+        ],
+        "expert_eval": [
+          48565832,
+          50830163
+        ],
+        "file_stat": [
+          7906160,
+          8202212
+        ],
+        "mlx_load": [
+          5148750,
+          5164792
+        ],
+        "output_assembly": [
+          116923,
+          118249
+        ],
+        "output_eval": [
+          112958,
+          126791
+        ],
+        "release": [
+          142406,
+          175089
+        ],
+        "router_eval": [
+          667,
+          708
+        ],
+        "router_to_host": [
+          15917,
+          17917
+        ],
+        "weight_eval": [
+          13485998,
+          13800036
+        ]
+      },
+      "phase_count_ranges": {
+        "expert_eval": [
+          128,
+          128
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          256,
+          256
+        ],
+        "mlx_load": [
+          256,
+          256
+        ]
+      }
+    },
+    {
+      "device": "cpu",
+      "case": "reversed",
+      "maximum_group_rows": 1,
+      "iteration": 0,
+      "selection_batch": false,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        2818328,
+        2818328
+      ],
+      "mlx_peak_increment_range_bytes": [
+        2621440,
+        2621440
+      ],
+      "sampled_rss_peak_range_bytes": [
+        347750400,
+        349323264
+      ],
+      "mlx_cache_range_bytes": [
+        159744,
+        159744
+      ],
+      "phase_nanosecond_ranges": {
+        "acquire": [
+          1461500,
+          1523913
+        ],
+        "checksum_hash": [
+          696083,
+          696250
+        ],
+        "checksum_read": [
+          174040,
+          176333
+        ],
+        "expert_build": [
+          135912,
+          146708
+        ],
+        "expert_eval": [
+          12368413,
+          13120999
+        ],
+        "file_stat": [
+          133002,
+          133666
+        ],
+        "mlx_load": [
+          62334,
+          63541
+        ],
+        "output_assembly": [
+          28749,
+          32456
+        ],
+        "output_eval": [
+          45292,
+          50958
+        ],
+        "release": [
+          41585,
+          47748
+        ],
+        "router_eval": [
+          2041,
+          2416
+        ],
+        "router_to_host": [
+          28125,
+          34875
+        ],
+        "weight_eval": [
+          237750,
+          280626
+        ]
+      },
+      "phase_count_ranges": {
+        "expert_eval": [
+          32,
+          32
+        ],
+        "expert_build": [
+          64,
+          64
+        ],
+        "acquire": [
+          64,
+          64
+        ],
+        "mlx_load": [
+          2,
+          2
+        ]
+      }
+    },
+    {
+      "device": "cpu",
+      "case": "reversed",
+      "maximum_group_rows": 1,
+      "iteration": 1,
+      "selection_batch": false,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        2818328,
+        2818328
+      ],
+      "mlx_peak_increment_range_bytes": [
+        262144,
+        262144
+      ],
+      "sampled_rss_peak_range_bytes": [
+        347897856,
+        349454336
+      ],
+      "mlx_cache_range_bytes": [
+        290820,
+        290820
+      ],
+      "phase_nanosecond_ranges": {
+        "acquire": [
+          71498,
+          88753
+        ],
+        "checksum_hash": [
+          0,
+          0
+        ],
+        "checksum_read": [
+          0,
+          0
+        ],
+        "expert_build": [
+          129795,
+          135510
+        ],
+        "expert_eval": [
+          12557082,
+          13180666
+        ],
+        "file_stat": [
+          0,
+          0
+        ],
+        "mlx_load": [
+          0,
+          0
+        ],
+        "output_assembly": [
+          25251,
+          28122
+        ],
+        "output_eval": [
+          32417,
+          43292
+        ],
+        "release": [
+          39250,
+          46170
+        ],
+        "router_eval": [
+          625,
+          625
+        ],
+        "router_to_host": [
+          12541,
+          15875
+        ],
+        "weight_eval": [
+          0,
+          0
+        ]
+      },
+      "phase_count_ranges": {
+        "expert_eval": [
+          32,
+          32
+        ],
+        "expert_build": [
+          64,
+          64
+        ],
+        "acquire": [
+          64,
+          64
+        ],
+        "mlx_load": [
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "device": "cpu",
+      "case": "random",
+      "maximum_group_rows": 1,
+      "iteration": 0,
+      "selection_batch": false,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4195352
+      ],
+      "mlx_peak_increment_range_bytes": [
+        3407872,
+        3407872
+      ],
+      "sampled_rss_peak_range_bytes": [
+        349175808,
+        350732288
+      ],
+      "mlx_cache_range_bytes": [
+        552960,
+        552960
+      ],
+      "phase_nanosecond_ranges": {
+        "acquire": [
+          83974835,
+          85096341
+        ],
+        "checksum_hash": [
+          54455590,
+          55409824
+        ],
+        "checksum_read": [
+          7213735,
+          7248032
+        ],
+        "expert_build": [
+          655005,
+          679219
+        ],
+        "expert_eval": [
+          49564638,
+          51103666
+        ],
+        "file_stat": [
+          5193796,
+          5252505
+        ],
+        "mlx_load": [
+          3200455,
+          3232793
+        ],
+        "output_assembly": [
+          117662,
+          119298
+        ],
+        "output_eval": [
+          135000,
+          138167
+        ],
+        "release": [
+          170633,
+          186791
+        ],
+        "router_eval": [
+          2375,
+          2625
+        ],
+        "router_to_host": [
+          38459,
+          42625
+        ],
+        "weight_eval": [
+          8780340,
+          8795460
+        ]
+      },
+      "phase_count_ranges": {
+        "expert_eval": [
+          128,
+          128
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          256,
+          256
+        ],
+        "mlx_load": [
+          153,
+          153
+        ]
+      }
+    },
+    {
+      "device": "cpu",
+      "case": "random",
+      "maximum_group_rows": 1,
+      "iteration": 1,
+      "selection_batch": false,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4195352
+      ],
+      "mlx_peak_increment_range_bytes": [
+        1048576,
+        1048576
+      ],
+      "sampled_rss_peak_range_bytes": [
+        349700096,
+        351256576
+      ],
+      "mlx_cache_range_bytes": [
+        1077252,
+        1077252
+      ],
+      "phase_nanosecond_ranges": {
+        "acquire": [
+          82358333,
+          83928549
+        ],
+        "checksum_hash": [
+          54523500,
+          55384358
+        ],
+        "checksum_read": [
+          6673215,
+          6819121
+        ],
+        "expert_build": [
+          633043,
+          641719
+        ],
+        "expert_eval": [
+          49301875,
+          51444745
+        ],
+        "file_stat": [
+          5014825,
+          5160507
+        ],
+        "mlx_load": [
+          3157083,
+          3185498
+        ],
+        "output_assembly": [
+          113242,
+          116877
+        ],
+        "output_eval": [
+          120791,
+          124042
+        ],
+        "release": [
+          164797,
+          188957
+        ],
+        "router_eval": [
+          666,
+          667
+        ],
+        "router_to_host": [
+          18000,
+          19250
+        ],
+        "weight_eval": [
+          8092995,
+          8377300
+        ]
+      },
+      "phase_count_ranges": {
+        "expert_eval": [
+          128,
+          128
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          256,
+          256
+        ],
+        "mlx_load": [
+          153,
+          153
+        ]
+      }
+    },
+    {
+      "device": "cpu",
+      "case": "repeat",
+      "maximum_group_rows": 8,
+      "iteration": 0,
+      "selection_batch": false,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4195352
+      ],
+      "mlx_peak_increment_range_bytes": [
+        3407872,
+        3407872
+      ],
+      "sampled_rss_peak_range_bytes": [
+        348651520,
+        349224960
+      ],
+      "mlx_cache_range_bytes": [
+        753664,
+        753664
+      ],
+      "phase_nanosecond_ranges": {
+        "acquire": [
+          1519040,
+          1570002
+        ],
+        "checksum_hash": [
+          700875,
+          700960
+        ],
+        "checksum_read": [
+          177457,
+          177751
+        ],
+        "expert_build": [
+          75914,
+          89752
+        ],
+        "expert_eval": [
+          48934002,
+          49423165
+        ],
+        "file_stat": [
+          133709,
+          136875
+        ],
+        "mlx_load": [
+          64000,
+          78000
+        ],
+        "output_assembly": [
+          19750,
+          29750
+        ],
+        "output_eval": [
+          98916,
+          103542
+        ],
+        "release": [
+          27792,
+          29828
+        ],
+        "router_eval": [
+          2084,
+          4084
+        ],
+        "router_to_host": [
+          39167,
+          65042
+        ],
+        "weight_eval": [
+          306542,
+          315666
+        ]
+      },
+      "phase_count_ranges": {
+        "expert_eval": [
+          16,
+          16
+        ],
+        "expert_build": [
+          32,
+          32
+        ],
+        "acquire": [
+          32,
+          32
+        ],
+        "mlx_load": [
+          2,
+          2
+        ]
+      }
+    },
+    {
+      "device": "cpu",
+      "case": "repeat",
+      "maximum_group_rows": 8,
+      "iteration": 1,
+      "selection_batch": false,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4195352
+      ],
+      "mlx_peak_increment_range_bytes": [
+        1048576,
+        1048576
+      ],
+      "sampled_rss_peak_range_bytes": [
+        349339648,
+        349749248
+      ],
+      "mlx_cache_range_bytes": [
+        1277956,
+        1277956
+      ],
+      "phase_nanosecond_ranges": {
+        "acquire": [
+          41958,
+          44166
+        ],
+        "checksum_hash": [
+          0,
+          0
+        ],
+        "checksum_read": [
+          0,
+          0
+        ],
+        "expert_build": [
+          66540,
+          67706
+        ],
+        "expert_eval": [
+          49358751,
+          49474874
+        ],
+        "file_stat": [
+          0,
+          0
+        ],
+        "mlx_load": [
+          0,
+          0
+        ],
+        "output_assembly": [
+          15165,
+          23707
+        ],
+        "output_eval": [
+          60958,
+          88208
+        ],
+        "release": [
+          24539,
+          32663
+        ],
+        "router_eval": [
+          667,
+          750
+        ],
+        "router_to_host": [
+          18708,
+          23958
+        ],
+        "weight_eval": [
+          0,
+          0
+        ]
+      },
+      "phase_count_ranges": {
+        "expert_eval": [
+          16,
+          16
+        ],
+        "expert_build": [
+          32,
+          32
+        ],
+        "acquire": [
+          32,
+          32
+        ],
+        "mlx_load": [
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "device": "cpu",
+      "case": "mixed_runs",
+      "maximum_group_rows": 8,
+      "iteration": 0,
+      "selection_batch": false,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4310040,
+        4310040
+      ],
+      "mlx_peak_increment_range_bytes": [
+        3522560,
+        3522560
+      ],
+      "sampled_rss_peak_range_bytes": [
+        348880896,
+        349143040
+      ],
+      "mlx_cache_range_bytes": [
+        995328,
+        995328
+      ],
+      "phase_nanosecond_ranges": {
+        "acquire": [
+          26874711,
+          28478960
+        ],
+        "checksum_hash": [
+          17218841,
+          18068871
+        ],
+        "checksum_read": [
+          2387918,
+          2582877
+        ],
+        "expert_build": [
+          157918,
+          180332
+        ],
+        "expert_eval": [
+          48970501,
+          49934792
+        ],
+        "file_stat": [
+          1688663,
+          1804839
+        ],
+        "mlx_load": [
+          1051417,
+          1112792
+        ],
+        "output_assembly": [
+          35455,
+          42374
+        ],
+        "output_eval": [
+          96208,
+          106334
+        ],
+        "release": [
+          39040,
+          45501
+        ],
+        "router_eval": [
+          3166,
+          3500
+        ],
+        "router_to_host": [
+          45833,
+          60042
+        ],
+        "weight_eval": [
+          2851953,
+          3112915
+        ]
+      },
+      "phase_count_ranges": {
+        "expert_eval": [
+          28,
+          28
+        ],
+        "expert_build": [
+          56,
+          56
+        ],
+        "acquire": [
+          56,
+          56
+        ],
+        "mlx_load": [
+          48,
+          48
+        ]
+      }
+    },
+    {
+      "device": "cpu",
+      "case": "mixed_runs",
+      "maximum_group_rows": 8,
+      "iteration": 1,
+      "selection_batch": false,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4314136,
+        4314136
+      ],
+      "mlx_peak_increment_range_bytes": [
+        1167360,
+        1167360
+      ],
+      "sampled_rss_peak_range_bytes": [
+        349601792,
+        349700096
+      ],
+      "mlx_cache_range_bytes": [
+        1536004,
+        1536004
+      ],
+      "phase_nanosecond_ranges": {
+        "acquire": [
+          26438582,
+          27240454
+        ],
+        "checksum_hash": [
+          17258578,
+          17826835
+        ],
+        "checksum_read": [
+          2238248,
+          2330174
+        ],
+        "expert_build": [
+          143874,
+          146084
+        ],
+        "expert_eval": [
+          48990666,
+          49693957
+        ],
+        "file_stat": [
+          1607340,
+          1655751
+        ],
+        "mlx_load": [
+          991710,
+          1029296
+        ],
+        "output_assembly": [
+          29336,
+          30461
+        ],
+        "output_eval": [
+          70416,
+          70417
+        ],
+        "release": [
+          39753,
+          41792
+        ],
+        "router_eval": [
+          791,
+          792
+        ],
+        "router_to_host": [
+          20875,
+          24584
+        ],
+        "weight_eval": [
+          2785792,
+          2792795
+        ]
+      },
+      "phase_count_ranges": {
+        "expert_eval": [
+          28,
+          28
+        ],
+        "expert_build": [
+          56,
+          56
+        ],
+        "acquire": [
+          56,
+          56
+        ],
+        "mlx_load": [
+          48,
+          48
+        ]
+      }
+    },
+    {
+      "device": "cpu",
+      "case": "alternating",
+      "maximum_group_rows": 8,
+      "iteration": 0,
+      "selection_batch": false,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4195352
+      ],
+      "mlx_peak_increment_range_bytes": [
+        3407872,
+        3407872
+      ],
+      "sampled_rss_peak_range_bytes": [
+        348880896,
+        348962816
+      ],
+      "mlx_cache_range_bytes": [
+        552960,
+        552960
+      ],
+      "phase_nanosecond_ranges": {
+        "acquire": [
+          136967167,
+          139567780
+        ],
+        "checksum_hash": [
+          90653134,
+          92251411
+        ],
+        "checksum_read": [
+          10952036,
+          11657922
+        ],
+        "expert_build": [
+          678708,
+          685205
+        ],
+        "expert_eval": [
+          49040867,
+          50974499
+        ],
+        "file_stat": [
+          8295978,
+          8465598
+        ],
+        "mlx_load": [
+          5143379,
+          5264628
+        ],
+        "output_assembly": [
+          122373,
+          122740
+        ],
+        "output_eval": [
+          145541,
+          153375
+        ],
+        "release": [
+          151090,
+          170759
+        ],
+        "router_eval": [
+          2166,
+          2875
+        ],
+        "router_to_host": [
+          40584,
+          42625
+        ],
+        "weight_eval": [
+          13871927,
+          14067629
+        ]
+      },
+      "phase_count_ranges": {
+        "expert_eval": [
+          128,
+          128
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          256,
+          256
+        ],
+        "mlx_load": [
+          256,
+          256
+        ]
+      }
+    },
+    {
+      "device": "cpu",
+      "case": "alternating",
+      "maximum_group_rows": 8,
+      "iteration": 1,
+      "selection_batch": false,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4195352
+      ],
+      "mlx_peak_increment_range_bytes": [
+        1048576,
+        1048576
+      ],
+      "sampled_rss_peak_range_bytes": [
+        349454336,
+        349569024
+      ],
+      "mlx_cache_range_bytes": [
+        1077252,
+        1077252
+      ],
+      "phase_nanosecond_ranges": {
+        "acquire": [
+          137236116,
+          139045050
+        ],
+        "checksum_hash": [
+          90919752,
+          92260222
+        ],
+        "checksum_read": [
+          10812541,
+          11422078
+        ],
+        "expert_build": [
+          649297,
+          668670
+        ],
+        "expert_eval": [
+          49026420,
+          50730332
+        ],
+        "file_stat": [
+          8292534,
+          8329208
+        ],
+        "mlx_load": [
+          5171339,
+          5201625
+        ],
+        "output_assembly": [
+          119378,
+          121206
+        ],
+        "output_eval": [
+          109000,
+          131750
+        ],
+        "release": [
+          155503,
+          172215
+        ],
+        "router_eval": [
+          708,
+          1209
+        ],
+        "router_to_host": [
+          18458,
+          26334
+        ],
+        "weight_eval": [
+          13767133,
+          14027947
+        ]
+      },
+      "phase_count_ranges": {
+        "expert_eval": [
+          128,
+          128
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          256,
+          256
+        ],
+        "mlx_load": [
+          256,
+          256
+        ]
+      }
+    },
+    {
+      "device": "cpu",
+      "case": "reversed",
+      "maximum_group_rows": 8,
+      "iteration": 0,
+      "selection_batch": false,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        2818328,
+        2818328
+      ],
+      "mlx_peak_increment_range_bytes": [
+        2621440,
+        2621440
+      ],
+      "sampled_rss_peak_range_bytes": [
+        347553792,
+        347668480
+      ],
+      "mlx_cache_range_bytes": [
+        159744,
+        159744
+      ],
+      "phase_nanosecond_ranges": {
+        "acquire": [
+          1524833,
+          1564706
+        ],
+        "checksum_hash": [
+          698209,
+          701333
+        ],
+        "checksum_read": [
+          172251,
+          189125
+        ],
+        "expert_build": [
+          136209,
+          140583
+        ],
+        "expert_eval": [
+          12619539,
+          12844791
+        ],
+        "file_stat": [
+          127334,
+          144750
+        ],
+        "mlx_load": [
+          64250,
+          66958
+        ],
+        "output_assembly": [
+          30041,
+          33790
+        ],
+        "output_eval": [
+          51417,
+          53291
+        ],
+        "release": [
+          39919,
+          45837
+        ],
+        "router_eval": [
+          2333,
+          2583
+        ],
+        "router_to_host": [
+          31917,
+          33042
+        ],
+        "weight_eval": [
+          288667,
+          292708
+        ]
+      },
+      "phase_count_ranges": {
+        "expert_eval": [
+          32,
+          32
+        ],
+        "expert_build": [
+          64,
+          64
+        ],
+        "acquire": [
+          64,
+          64
+        ],
+        "mlx_load": [
+          2,
+          2
+        ]
+      }
+    },
+    {
+      "device": "cpu",
+      "case": "reversed",
+      "maximum_group_rows": 8,
+      "iteration": 1,
+      "selection_batch": false,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        2818328,
+        2818328
+      ],
+      "mlx_peak_increment_range_bytes": [
+        262144,
+        262144
+      ],
+      "sampled_rss_peak_range_bytes": [
+        347701248,
+        347799552
+      ],
+      "mlx_cache_range_bytes": [
+        290820,
+        290820
+      ],
+      "phase_nanosecond_ranges": {
+        "acquire": [
+          76338,
+          77500
+        ],
+        "checksum_hash": [
+          0,
+          0
+        ],
+        "checksum_read": [
+          0,
+          0
+        ],
+        "expert_build": [
+          124284,
+          134919
+        ],
+        "expert_eval": [
+          12673958,
+          12837541
+        ],
+        "file_stat": [
+          0,
+          0
+        ],
+        "mlx_load": [
+          0,
+          0
+        ],
+        "output_assembly": [
+          25086,
+          26419
+        ],
+        "output_eval": [
+          32917,
+          42041
+        ],
+        "release": [
+          41956,
+          43079
+        ],
+        "router_eval": [
+          583,
+          833
+        ],
+        "router_to_host": [
+          13167,
+          16208
+        ],
+        "weight_eval": [
+          0,
+          0
+        ]
+      },
+      "phase_count_ranges": {
+        "expert_eval": [
+          32,
+          32
+        ],
+        "expert_build": [
+          64,
+          64
+        ],
+        "acquire": [
+          64,
+          64
+        ],
+        "mlx_load": [
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "device": "cpu",
+      "case": "random",
+      "maximum_group_rows": 8,
+      "iteration": 0,
+      "selection_batch": false,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4195352
+      ],
+      "mlx_peak_increment_range_bytes": [
+        3407872,
+        3407872
+      ],
+      "sampled_rss_peak_range_bytes": [
+        349028352,
+        349110272
+      ],
+      "mlx_cache_range_bytes": [
+        602112,
+        602112
+      ],
+      "phase_nanosecond_ranges": {
+        "acquire": [
+          83735290,
+          84499377
+        ],
+        "checksum_hash": [
+          55078294,
+          55543573
+        ],
+        "checksum_read": [
+          6813265,
+          7192250
+        ],
+        "expert_build": [
+          605079,
+          608502
+        ],
+        "expert_eval": [
+          49906752,
+          50508626
+        ],
+        "file_stat": [
+          5068967,
+          5164586
+        ],
+        "mlx_load": [
+          3150714,
+          3175090
+        ],
+        "output_assembly": [
+          110208,
+          111086
+        ],
+        "output_eval": [
+          127417,
+          131000
+        ],
+        "release": [
+          160924,
+          168990
+        ],
+        "router_eval": [
+          2625,
+          2667
+        ],
+        "router_to_host": [
+          36084,
+          36250
+        ],
+        "weight_eval": [
+          8510368,
+          8634299
+        ]
+      },
+      "phase_count_ranges": {
+        "expert_eval": [
+          120,
+          120
+        ],
+        "expert_build": [
+          240,
+          240
+        ],
+        "acquire": [
+          240,
+          240
+        ],
+        "mlx_load": [
+          153,
+          153
+        ]
+      }
+    },
+    {
+      "device": "cpu",
+      "case": "random",
+      "maximum_group_rows": 8,
+      "iteration": 1,
+      "selection_batch": false,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4195352
+      ],
+      "mlx_peak_increment_range_bytes": [
+        1048576,
+        1048576
+      ],
+      "sampled_rss_peak_range_bytes": [
+        349569024,
+        349634560
+      ],
+      "mlx_cache_range_bytes": [
+        1126404,
+        1126404
+      ],
+      "phase_nanosecond_ranges": {
+        "acquire": [
+          81639793,
+          83780447
+        ],
+        "checksum_hash": [
+          54314580,
+          55279660
+        ],
+        "checksum_read": [
+          6406864,
+          7072658
+        ],
+        "expert_build": [
+          596969,
+          611705
+        ],
+        "expert_eval": [
+          49282218,
+          50993917
+        ],
+        "file_stat": [
+          4945011,
+          5102728
+        ],
+        "mlx_load": [
+          3080579,
+          3090203
+        ],
+        "output_assembly": [
+          108500,
+          115002
+        ],
+        "output_eval": [
+          114125,
+          114417
+        ],
+        "release": [
+          164280,
+          183960
+        ],
+        "router_eval": [
+          625,
+          750
+        ],
+        "router_to_host": [
+          15750,
+          24584
+        ],
+        "weight_eval": [
+          8056000,
+          8241959
+        ]
+      },
+      "phase_count_ranges": {
+        "expert_eval": [
+          120,
+          120
+        ],
+        "expert_build": [
+          240,
+          240
+        ],
+        "acquire": [
+          240,
+          240
+        ],
+        "mlx_load": [
+          153,
+          153
+        ]
+      }
+    },
+    {
+      "device": "cpu",
+      "case": "repeat",
+      "maximum_group_rows": 8,
+      "iteration": 0,
+      "selection_batch": true,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4195352
+      ],
+      "mlx_peak_increment_range_bytes": [
+        3407872,
+        3407872
+      ],
+      "sampled_rss_peak_range_bytes": [
+        348880896,
+        349519872
+      ],
+      "mlx_cache_range_bytes": [
+        753664,
+        753664
+      ],
+      "phase_nanosecond_ranges": {
+        "acquire": [
+          1542292,
+          1655040
+        ],
+        "checksum_hash": [
+          696916,
+          706458
+        ],
+        "checksum_read": [
+          180667,
+          196125
+        ],
+        "expert_build": [
+          443916,
+          455001
+        ],
+        "expert_eval": [
+          50330332,
+          50932624
+        ],
+        "file_stat": [
+          140375,
+          156626
+        ],
+        "mlx_load": [
+          69333,
+          78209
+        ],
+        "output_assembly": [
+          5167,
+          5542
+        ],
+        "output_eval": [
+          91334,
+          92875
+        ],
+        "release": [
+          30377,
+          30578
+        ],
+        "router_eval": [
+          2125,
+          3875
+        ],
+        "router_to_host": [
+          42458,
+          63541
+        ],
+        "weight_eval": [
+          311917,
+          343167
+        ]
+      },
+      "phase_count_ranges": {
+        "expert_eval": [
+          16,
+          16
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          32,
+          32
+        ],
+        "mlx_load": [
+          2,
+          2
+        ]
+      }
+    },
+    {
+      "device": "cpu",
+      "case": "repeat",
+      "maximum_group_rows": 8,
+      "iteration": 1,
+      "selection_batch": true,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4195352
+      ],
+      "mlx_peak_increment_range_bytes": [
+        1048576,
+        1048576
+      ],
+      "sampled_rss_peak_range_bytes": [
+        349569024,
+        350044160
+      ],
+      "mlx_cache_range_bytes": [
+        1277956,
+        1277956
+      ],
+      "phase_nanosecond_ranges": {
+        "acquire": [
+          36666,
+          37454
+        ],
+        "checksum_hash": [
+          0,
+          0
+        ],
+        "checksum_read": [
+          0,
+          0
+        ],
+        "expert_build": [
+          417745,
+          423890
+        ],
+        "expert_eval": [
+          50741125,
+          50841626
+        ],
+        "file_stat": [
+          0,
+          0
+        ],
+        "mlx_load": [
+          0,
+          0
+        ],
+        "output_assembly": [
+          3167,
+          4125
+        ],
+        "output_eval": [
+          63833,
+          68792
+        ],
+        "release": [
+          24875,
+          25331
+        ],
+        "router_eval": [
+          708,
+          1125
+        ],
+        "router_to_host": [
+          20666,
+          21125
+        ],
+        "weight_eval": [
+          0,
+          0
+        ]
+      },
+      "phase_count_ranges": {
+        "expert_eval": [
+          16,
+          16
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          32,
+          32
+        ],
+        "mlx_load": [
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "device": "cpu",
+      "case": "mixed_runs",
+      "maximum_group_rows": 8,
+      "iteration": 0,
+      "selection_batch": true,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4293656,
+        4293656
+      ],
+      "mlx_peak_increment_range_bytes": [
+        3506176,
+        3506176
+      ],
+      "sampled_rss_peak_range_bytes": [
+        348979200,
+        349257728
+      ],
+      "mlx_cache_range_bytes": [
+        851968,
+        851968
+      ],
+      "phase_nanosecond_ranges": {
+        "acquire": [
+          27190625,
+          27452538
+        ],
+        "checksum_hash": [
+          17227630,
+          17444625
+        ],
+        "checksum_read": [
+          2470207,
+          2532040
+        ],
+        "expert_build": [
+          472250,
+          492956
+        ],
+        "expert_eval": [
+          50207164,
+          50584712
+        ],
+        "file_stat": [
+          1752411,
+          1786461
+        ],
+        "mlx_load": [
+          1042418,
+          1080876
+        ],
+        "output_assembly": [
+          5125,
+          5500
+        ],
+        "output_eval": [
+          93000,
+          136208
+        ],
+        "release": [
+          42960,
+          47998
+        ],
+        "router_eval": [
+          2750,
+          3250
+        ],
+        "router_to_host": [
+          41542,
+          62459
+        ],
+        "weight_eval": [
+          2913915,
+          2916793
+        ]
+      },
+      "phase_count_ranges": {
+        "expert_eval": [
+          28,
+          28
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          56,
+          56
+        ],
+        "mlx_load": [
+          48,
+          48
+        ]
+      }
+    },
+    {
+      "device": "cpu",
+      "case": "mixed_runs",
+      "maximum_group_rows": 8,
+      "iteration": 1,
+      "selection_batch": true,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4293656,
+        4293656
+      ],
+      "mlx_peak_increment_range_bytes": [
+        1146880,
+        1146880
+      ],
+      "sampled_rss_peak_range_bytes": [
+        349667328,
+        349782016
+      ],
+      "mlx_cache_range_bytes": [
+        1376260,
+        1376260
+      ],
+      "phase_nanosecond_ranges": {
+        "acquire": [
+          26601580,
+          26747748
+        ],
+        "checksum_hash": [
+          17381790,
+          17514125
+        ],
+        "checksum_read": [
+          2148544,
+          2281954
+        ],
+        "expert_build": [
+          468787,
+          469911
+        ],
+        "expert_eval": [
+          50261997,
+          50626458
+        ],
+        "file_stat": [
+          1601670,
+          1613636
+        ],
+        "mlx_load": [
+          981501,
+          994585
+        ],
+        "output_assembly": [
+          4708,
+          5458
+        ],
+        "output_eval": [
+          69041,
+          70459
+        ],
+        "release": [
+          41040,
+          41460
+        ],
+        "router_eval": [
+          625,
+          792
+        ],
+        "router_to_host": [
+          20292,
+          27375
+        ],
+        "weight_eval": [
+          2764164,
+          2940624
+        ]
+      },
+      "phase_count_ranges": {
+        "expert_eval": [
+          28,
+          28
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          56,
+          56
+        ],
+        "mlx_load": [
+          48,
+          48
+        ]
+      }
+    },
+    {
+      "device": "cpu",
+      "case": "alternating",
+      "maximum_group_rows": 8,
+      "iteration": 0,
+      "selection_batch": true,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4195352
+      ],
+      "mlx_peak_increment_range_bytes": [
+        3407872,
+        3407872
+      ],
+      "sampled_rss_peak_range_bytes": [
+        349011968,
+        349143040
+      ],
+      "mlx_cache_range_bytes": [
+        552960,
+        552960
+      ],
+      "phase_nanosecond_ranges": {
+        "acquire": [
+          138152297,
+          139909924
+        ],
+        "checksum_hash": [
+          91220953,
+          92339289
+        ],
+        "checksum_read": [
+          11410724,
+          11717337
+        ],
+        "expert_build": [
+          659297,
+          661583
+        ],
+        "expert_eval": [
+          49811631,
+          50858755
+        ],
+        "file_stat": [
+          8251599,
+          8503877
+        ],
+        "mlx_load": [
+          5201500,
+          5276164
+        ],
+        "output_assembly": [
+          10375,
+          13042
+        ],
+        "output_eval": [
+          136834,
+          137541
+        ],
+        "release": [
+          161874,
+          169708
+        ],
+        "router_eval": [
+          2209,
+          2541
+        ],
+        "router_to_host": [
+          40167,
+          41125
+        ],
+        "weight_eval": [
+          13862506,
+          14087374
+        ]
+      },
+      "phase_count_ranges": {
+        "expert_eval": [
+          128,
+          128
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          256,
+          256
+        ],
+        "mlx_load": [
+          256,
+          256
+        ]
+      }
+    },
+    {
+      "device": "cpu",
+      "case": "alternating",
+      "maximum_group_rows": 8,
+      "iteration": 1,
+      "selection_batch": true,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4195352
+      ],
+      "mlx_peak_increment_range_bytes": [
+        1048576,
+        1048576
+      ],
+      "sampled_rss_peak_range_bytes": [
+        349601792,
+        349716480
+      ],
+      "mlx_cache_range_bytes": [
+        1077252,
+        1077252
+      ],
+      "phase_nanosecond_ranges": {
+        "acquire": [
+          137312493,
+          140649830
+        ],
+        "checksum_hash": [
+          90957911,
+          93434455
+        ],
+        "checksum_read": [
+          11244499,
+          11370291
+        ],
+        "expert_build": [
+          643283,
+          717005
+        ],
+        "expert_eval": [
+          49412414,
+          51604125
+        ],
+        "file_stat": [
+          8138200,
+          8564464
+        ],
+        "mlx_load": [
+          5129667,
+          5296613
+        ],
+        "output_assembly": [
+          8250,
+          8500
+        ],
+        "output_eval": [
+          106666,
+          113292
+        ],
+        "release": [
+          155842,
+          181299
+        ],
+        "router_eval": [
+          625,
+          667
+        ],
+        "router_to_host": [
+          17125,
+          19875
+        ],
+        "weight_eval": [
+          13889081,
+          13902156
+        ]
+      },
+      "phase_count_ranges": {
+        "expert_eval": [
+          128,
+          128
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          256,
+          256
+        ],
+        "mlx_load": [
+          256,
+          256
+        ]
+      }
+    },
+    {
+      "device": "cpu",
+      "case": "reversed",
+      "maximum_group_rows": 8,
+      "iteration": 0,
+      "selection_batch": true,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        2863384,
+        2892056
+      ],
+      "mlx_peak_increment_range_bytes": [
+        2666496,
+        2695168
+      ],
+      "sampled_rss_peak_range_bytes": [
+        347930624,
+        348045312
+      ],
+      "mlx_cache_range_bytes": [
+        360448,
+        360448
+      ],
+      "phase_nanosecond_ranges": {
+        "acquire": [
+          1454416,
+          1457958
+        ],
+        "checksum_hash": [
+          700083,
+          701582
+        ],
+        "checksum_read": [
+          179417,
+          182044
+        ],
+        "expert_build": [
+          115329,
+          116338
+        ],
+        "expert_eval": [
+          12529791,
+          12786041
+        ],
+        "file_stat": [
+          128460,
+          133958
+        ],
+        "mlx_load": [
+          67166,
+          67209
+        ],
+        "output_assembly": [
+          3916,
+          4250
+        ],
+        "output_eval": [
+          41250,
+          42084
+        ],
+        "release": [
+          7417,
+          7709
+        ],
+        "router_eval": [
+          2250,
+          2458
+        ],
+        "router_to_host": [
+          31333,
+          37333
+        ],
+        "weight_eval": [
+          264500,
+          279791
+        ]
+      },
+      "phase_count_ranges": {
+        "expert_eval": [
+          4,
+          4
+        ],
+        "expert_build": [
+          64,
+          64
+        ],
+        "acquire": [
+          8,
+          8
+        ],
+        "mlx_load": [
+          2,
+          2
+        ]
+      }
+    },
+    {
+      "device": "cpu",
+      "case": "reversed",
+      "maximum_group_rows": 8,
+      "iteration": 1,
+      "selection_batch": true,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        2859288,
+        2861336
+      ],
+      "mlx_peak_increment_range_bytes": [
+        303104,
+        305152
+      ],
+      "sampled_rss_peak_range_bytes": [
+        348061696,
+        348192768
+      ],
+      "mlx_cache_range_bytes": [
+        491524,
+        491524
+      ],
+      "phase_nanosecond_ranges": {
+        "acquire": [
+          10167,
+          12751
+        ],
+        "checksum_hash": [
+          0,
+          0
+        ],
+        "checksum_read": [
+          0,
+          0
+        ],
+        "expert_build": [
+          110624,
+          117168
+        ],
+        "expert_eval": [
+          12687001,
+          12820250
+        ],
+        "file_stat": [
+          0,
+          0
+        ],
+        "mlx_load": [
+          0,
+          0
+        ],
+        "output_assembly": [
+          2542,
+          4125
+        ],
+        "output_eval": [
+          27250,
+          33708
+        ],
+        "release": [
+          6750,
+          9042
+        ],
+        "router_eval": [
+          750,
+          750
+        ],
+        "router_to_host": [
+          13500,
+          16750
+        ],
+        "weight_eval": [
+          0,
+          0
+        ]
+      },
+      "phase_count_ranges": {
+        "expert_eval": [
+          4,
+          4
+        ],
+        "expert_build": [
+          64,
+          64
+        ],
+        "acquire": [
+          8,
+          8
+        ],
+        "mlx_load": [
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "device": "cpu",
+      "case": "random",
+      "maximum_group_rows": 8,
+      "iteration": 0,
+      "selection_batch": true,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4195352
+      ],
+      "mlx_peak_increment_range_bytes": [
+        3407872,
+        3407872
+      ],
+      "sampled_rss_peak_range_bytes": [
+        349159424,
+        349290496
+      ],
+      "mlx_cache_range_bytes": [
+        589824,
+        589824
+      ],
+      "phase_nanosecond_ranges": {
+        "acquire": [
+          87240367,
+          87953093
+        ],
+        "checksum_hash": [
+          56721077,
+          57649954
+        ],
+        "checksum_read": [
+          7253276,
+          7551614
+        ],
+        "expert_build": [
+          600578,
+          640248
+        ],
+        "expert_eval": [
+          49529628,
+          50816875
+        ],
+        "file_stat": [
+          5412451,
+          5545252
+        ],
+        "mlx_load": [
+          3284123,
+          3349003
+        ],
+        "output_assembly": [
+          8791,
+          8958
+        ],
+        "output_eval": [
+          133500,
+          138042
+        ],
+        "release": [
+          152717,
+          157588
+        ],
+        "router_eval": [
+          1917,
+          2250
+        ],
+        "router_to_host": [
+          38500,
+          39375
+        ],
+        "weight_eval": [
+          8837632,
+          9150702
+        ]
+      },
+      "phase_count_ranges": {
+        "expert_eval": [
+          110,
+          110
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          220,
+          220
+        ],
+        "mlx_load": [
+          159,
+          159
+        ]
+      }
+    },
+    {
+      "device": "cpu",
+      "case": "random",
+      "maximum_group_rows": 8,
+      "iteration": 1,
+      "selection_batch": true,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4195352
+      ],
+      "mlx_peak_increment_range_bytes": [
+        1048576,
+        1048576
+      ],
+      "sampled_rss_peak_range_bytes": [
+        349683712,
+        349814784
+      ],
+      "mlx_cache_range_bytes": [
+        1114116,
+        1114116
+      ],
+      "phase_nanosecond_ranges": {
+        "acquire": [
+          84142299,
+          85798001
+        ],
+        "checksum_hash": [
+          56825789,
+          57116865
+        ],
+        "checksum_read": [
+          6592998,
+          7031467
+        ],
+        "expert_build": [
+          601339,
+          623660
+        ],
+        "expert_eval": [
+          49724838,
+          49773168
+        ],
+        "file_stat": [
+          5075812,
+          5130957
+        ],
+        "mlx_load": [
+          3181006,
+          3190624
+        ],
+        "output_assembly": [
+          7667,
+          9583
+        ],
+        "output_eval": [
+          91584,
+          116583
+        ],
+        "release": [
+          148251,
+          161905
+        ],
+        "router_eval": [
+          666,
+          708
+        ],
+        "router_to_host": [
+          14959,
+          21417
+        ],
+        "weight_eval": [
+          7109759,
+          8697673
+        ]
+      },
+      "phase_count_ranges": {
+        "expert_eval": [
+          110,
+          110
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          220,
+          220
+        ],
+        "mlx_load": [
+          159,
+          159
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "repeat",
+      "maximum_group_rows": 1,
+      "iteration": 0,
+      "selection_batch": false,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4207640,
+        4224024
+      ],
+      "mlx_peak_increment_range_bytes": [
+        3420160,
+        3436544
+      ],
+      "sampled_rss_peak_range_bytes": [
+        348946432,
+        351371264
+      ],
+      "mlx_cache_range_bytes": [
+        557056,
+        577536
+      ],
+      "phase_nanosecond_ranges": {
+        "acquire": [
+          1701325,
+          1770203
+        ],
+        "checksum_hash": [
+          697291,
+          697542
+        ],
+        "checksum_read": [
+          170998,
+          175251
+        ],
+        "expert_build": [
+          518787,
+          521412
+        ],
+        "expert_eval": [
+          41869831,
+          51615047
+        ],
+        "file_stat": [
+          138832,
+          141751
+        ],
+        "mlx_load": [
+          63583,
+          72125
+        ],
+        "output_assembly": [
+          97042,
+          111624
+        ],
+        "output_eval": [
+          283750,
+          301292
+        ],
+        "release": [
+          158529,
+          189296
+        ],
+        "router_eval": [
+          2375,
+          3667
+        ],
+        "router_to_host": [
+          55916,
+          89041
+        ],
+        "weight_eval": [
+          251959,
+          268751
+        ]
+      },
+      "phase_count_ranges": {
+        "expert_eval": [
+          128,
+          128
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          256,
+          256
+        ],
+        "mlx_load": [
+          2,
+          2
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "repeat",
+      "maximum_group_rows": 1,
+      "iteration": 1,
+      "selection_batch": false,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4224024,
+        4224024
+      ],
+      "mlx_peak_increment_range_bytes": [
+        1077248,
+        1077248
+      ],
+      "sampled_rss_peak_range_bytes": [
+        349290496,
+        349405184
+      ],
+      "mlx_cache_range_bytes": [
+        1090052,
+        1102340
+      ],
+      "phase_nanosecond_ranges": {
+        "acquire": [
+          227037,
+          237914
+        ],
+        "checksum_hash": [
+          0,
+          0
+        ],
+        "checksum_read": [
+          0,
+          0
+        ],
+        "expert_build": [
+          459711,
+          467326
+        ],
+        "expert_eval": [
+          33510123,
+          33520298
+        ],
+        "file_stat": [
+          0,
+          0
+        ],
+        "mlx_load": [
+          0,
+          0
+        ],
+        "output_assembly": [
+          91580,
+          94083
+        ],
+        "output_eval": [
+          264250,
+          292209
+        ],
+        "release": [
+          195495,
+          199487
+        ],
+        "router_eval": [
+          750,
+          833
+        ],
+        "router_to_host": [
+          28000,
+          28625
+        ],
+        "weight_eval": [
+          0,
+          0
+        ]
+      },
+      "phase_count_ranges": {
+        "expert_eval": [
+          128,
+          128
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          256,
+          256
+        ],
+        "mlx_load": [
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "mixed_runs",
+      "maximum_group_rows": 1,
+      "iteration": 0,
+      "selection_batch": false,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4224024
+      ],
+      "mlx_peak_increment_range_bytes": [
+        3407872,
+        3436544
+      ],
+      "sampled_rss_peak_range_bytes": [
+        348864512,
+        351272960
+      ],
+      "mlx_cache_range_bytes": [
+        557056,
+        557056
+      ],
+      "phase_nanosecond_ranges": {
+        "acquire": [
+          27267589,
+          27515252
+        ],
+        "checksum_hash": [
+          16790784,
+          16935423
+        ],
+        "checksum_read": [
+          2579493,
+          2659044
+        ],
+        "expert_build": [
+          557789,
+          621290
+        ],
+        "expert_eval": [
+          42692003,
+          54130835
+        ],
+        "file_stat": [
+          1771958,
+          1828378
+        ],
+        "mlx_load": [
+          1078631,
+          1091126
+        ],
+        "output_assembly": [
+          102831,
+          130250
+        ],
+        "output_eval": [
+          303708,
+          322167
+        ],
+        "release": [
+          225251,
+          252378
+        ],
+        "router_eval": [
+          2333,
+          3875
+        ],
+        "router_to_host": [
+          54584,
+          85791
+        ],
+        "weight_eval": [
+          2978416,
+          2979334
+        ]
+      },
+      "phase_count_ranges": {
+        "expert_eval": [
+          128,
+          128
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          256,
+          256
+        ],
+        "mlx_load": [
+          48,
+          48
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "mixed_runs",
+      "maximum_group_rows": 1,
+      "iteration": 1,
+      "selection_batch": false,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4219928
+      ],
+      "mlx_peak_increment_range_bytes": [
+        1048576,
+        1073152
+      ],
+      "sampled_rss_peak_range_bytes": [
+        349192192,
+        349339648
+      ],
+      "mlx_cache_range_bytes": [
+        1085956,
+        1090052
+      ],
+      "phase_nanosecond_ranges": {
+        "acquire": [
+          25923718,
+          26621002
+        ],
+        "checksum_hash": [
+          16761494,
+          16915042
+        ],
+        "checksum_read": [
+          2127454,
+          2379373
+        ],
+        "expert_build": [
+          562203,
+          566548
+        ],
+        "expert_eval": [
+          37327133,
+          38129291
+        ],
+        "file_stat": [
+          1598499,
+          1656798
+        ],
+        "mlx_load": [
+          978833,
+          1015413
+        ],
+        "output_assembly": [
+          101583,
+          110670
+        ],
+        "output_eval": [
+          289625,
+          296458
+        ],
+        "release": [
+          202043,
+          211542
+        ],
+        "router_eval": [
+          750,
+          750
+        ],
+        "router_to_host": [
+          27792,
+          33416
+        ],
+        "weight_eval": [
+          2592039,
+          2796251
+        ]
+      },
+      "phase_count_ranges": {
+        "expert_eval": [
+          128,
+          128
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          256,
+          256
+        ],
+        "mlx_load": [
+          48,
+          48
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "alternating",
+      "maximum_group_rows": 1,
+      "iteration": 0,
+      "selection_batch": false,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4195352
+      ],
+      "mlx_peak_increment_range_bytes": [
+        3407872,
+        3407872
+      ],
+      "sampled_rss_peak_range_bytes": [
+        351191040,
+        351322112
+      ],
+      "mlx_cache_range_bytes": [
+        552960,
+        552960
+      ],
+      "phase_nanosecond_ranges": {
+        "acquire": [
+          137671250,
+          138752094
+        ],
+        "checksum_hash": [
+          89690331,
+          89807175
+        ],
+        "checksum_read": [
+          11770291,
+          12280858
+        ],
+        "expert_build": [
+          712787,
+          721048
+        ],
+        "expert_eval": [
+          43957791,
+          45015003
+        ],
+        "file_stat": [
+          8639395,
+          8751332
+        ],
+        "mlx_load": [
+          5202959,
+          5302118
+        ],
+        "output_assembly": [
+          133658,
+          138960
+        ],
+        "output_eval": [
+          356500,
+          371166
+        ],
+        "release": [
+          170370,
+          201918
+        ],
+        "router_eval": [
+          2292,
+          2917
+        ],
+        "router_to_host": [
+          48958,
+          55000
+        ],
+        "weight_eval": [
+          13988960,
+          14246583
+        ]
+      },
+      "phase_count_ranges": {
+        "expert_eval": [
+          128,
+          128
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          256,
+          256
+        ],
+        "mlx_load": [
+          256,
+          256
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "alternating",
+      "maximum_group_rows": 1,
+      "iteration": 1,
+      "selection_batch": false,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4224024,
+        4224024
+      ],
+      "mlx_peak_increment_range_bytes": [
+        1077248,
+        1077248
+      ],
+      "sampled_rss_peak_range_bytes": [
+        349257728,
+        349388800
+      ],
+      "mlx_cache_range_bytes": [
+        1077764,
+        1077764
+      ],
+      "phase_nanosecond_ranges": {
+        "acquire": [
+          136053215,
+          136259753
+        ],
+        "checksum_hash": [
+          89680547,
+          89745322
+        ],
+        "checksum_read": [
+          11021006,
+          11250605
+        ],
+        "expert_build": [
+          666836,
+          681914
+        ],
+        "expert_eval": [
+          38657756,
+          39121967
+        ],
+        "file_stat": [
+          8345158,
+          8452402
+        ],
+        "mlx_load": [
+          5094461,
+          5099954
+        ],
+        "output_assembly": [
+          121720,
+          125379
+        ],
+        "output_eval": [
+          304875,
+          666833
+        ],
+        "release": [
+          149714,
+          155083
+        ],
+        "router_eval": [
+          750,
+          791
+        ],
+        "router_to_host": [
+          29708,
+          33833
+        ],
+        "weight_eval": [
+          13744834,
+          13832876
+        ]
+      },
+      "phase_count_ranges": {
+        "expert_eval": [
+          128,
+          128
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          256,
+          256
+        ],
+        "mlx_load": [
+          256,
+          256
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "reversed",
+      "maximum_group_rows": 1,
+      "iteration": 0,
+      "selection_batch": false,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        2847000,
+        2847000
+      ],
+      "mlx_peak_increment_range_bytes": [
+        2650112,
+        2650112
+      ],
+      "sampled_rss_peak_range_bytes": [
+        350650368,
+        350781440
+      ],
+      "mlx_cache_range_bytes": [
+        180224,
+        184320
+      ],
+      "phase_nanosecond_ranges": {
+        "acquire": [
+          1474041,
+          1593749
+        ],
+        "checksum_hash": [
+          696751,
+          696832
+        ],
+        "checksum_read": [
+          166251,
+          178042
+        ],
+        "expert_build": [
+          130876,
+          148582
+        ],
+        "expert_eval": [
+          11870583,
+          13555288
+        ],
+        "file_stat": [
+          122916,
+          148127
+        ],
+        "mlx_load": [
+          58833,
+          70417
+        ],
+        "output_assembly": [
+          33332,
+          37709
+        ],
+        "output_eval": [
+          228875,
+          236291
+        ],
+        "release": [
+          53827,
+          59581
+        ],
+        "router_eval": [
+          2542,
+          2791
+        ],
+        "router_to_host": [
+          47000,
+          49875
+        ],
+        "weight_eval": [
+          259375,
+          299500
+        ]
+      },
+      "phase_count_ranges": {
+        "expert_eval": [
+          32,
+          32
+        ],
+        "expert_build": [
+          64,
+          64
+        ],
+        "acquire": [
+          64,
+          64
+        ],
+        "mlx_load": [
+          2,
+          2
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "reversed",
+      "maximum_group_rows": 1,
+      "iteration": 1,
+      "selection_batch": false,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        2847000,
+        2847000
+      ],
+      "mlx_peak_increment_range_bytes": [
+        290816,
+        290816
+      ],
+      "sampled_rss_peak_range_bytes": [
+        348733440,
+        348864512
+      ],
+      "mlx_cache_range_bytes": [
+        311812,
+        315908
+      ],
+      "phase_nanosecond_ranges": {
+        "acquire": [
+          61084,
+          61666
+        ],
+        "checksum_hash": [
+          0,
+          0
+        ],
+        "checksum_read": [
+          0,
+          0
+        ],
+        "expert_build": [
+          119210,
+          123916
+        ],
+        "expert_eval": [
+          9086831,
+          9207294
+        ],
+        "file_stat": [
+          0,
+          0
+        ],
+        "mlx_load": [
+          0,
+          0
+        ],
+        "output_assembly": [
+          23998,
+          25624
+        ],
+        "output_eval": [
+          179959,
+          192209
+        ],
+        "release": [
+          29580,
+          57834
+        ],
+        "router_eval": [
+          542,
+          583
+        ],
+        "router_to_host": [
+          23834,
+          27458
+        ],
+        "weight_eval": [
+          0,
+          0
+        ]
+      },
+      "phase_count_ranges": {
+        "expert_eval": [
+          32,
+          32
+        ],
+        "expert_build": [
+          64,
+          64
+        ],
+        "acquire": [
+          64,
+          64
+        ],
+        "mlx_load": [
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "random",
+      "maximum_group_rows": 1,
+      "iteration": 0,
+      "selection_batch": false,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4195352
+      ],
+      "mlx_peak_increment_range_bytes": [
+        3407872,
+        3407872
+      ],
+      "sampled_rss_peak_range_bytes": [
+        349388800,
+        350846976
+      ],
+      "mlx_cache_range_bytes": [
+        552960,
+        552960
+      ],
+      "phase_nanosecond_ranges": {
+        "acquire": [
+          83013119,
+          83719707
+        ],
+        "checksum_hash": [
+          53450160,
+          53907163
+        ],
+        "checksum_read": [
+          7352003,
+          7405214
+        ],
+        "expert_build": [
+          686424,
+          692033
+        ],
+        "expert_eval": [
+          43797172,
+          44441006
+        ],
+        "file_stat": [
+          5298670,
+          5383416
+        ],
+        "mlx_load": [
+          3137956,
+          3149923
+        ],
+        "output_assembly": [
+          122918,
+          125755
+        ],
+        "output_eval": [
+          314208,
+          331791
+        ],
+        "release": [
+          181077,
+          213462
+        ],
+        "router_eval": [
+          2333,
+          2500
+        ],
+        "router_to_host": [
+          51875,
+          55958
+        ],
+        "weight_eval": [
+          8446044,
+          8578212
+        ]
+      },
+      "phase_count_ranges": {
+        "expert_eval": [
+          128,
+          128
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          256,
+          256
+        ],
+        "mlx_load": [
+          153,
+          153
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "random",
+      "maximum_group_rows": 1,
+      "iteration": 1,
+      "selection_batch": false,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4224024
+      ],
+      "mlx_peak_increment_range_bytes": [
+        1048576,
+        1077248
+      ],
+      "sampled_rss_peak_range_bytes": [
+        349388800,
+        349487104
+      ],
+      "mlx_cache_range_bytes": [
+        1077764,
+        1079812
+      ],
+      "phase_nanosecond_ranges": {
+        "acquire": [
+          81352219,
+          81636129
+        ],
+        "checksum_hash": [
+          53489707,
+          53572046
+        ],
+        "checksum_read": [
+          6592139,
+          6617426
+        ],
+        "expert_build": [
+          638996,
+          644633
+        ],
+        "expert_eval": [
+          36845495,
+          36884549
+        ],
+        "file_stat": [
+          4936256,
+          4949748
+        ],
+        "mlx_load": [
+          3060251,
+          3063873
+        ],
+        "output_assembly": [
+          116380,
+          131460
+        ],
+        "output_eval": [
+          267125,
+          273625
+        ],
+        "release": [
+          162258,
+          184582
+        ],
+        "router_eval": [
+          583,
+          708
+        ],
+        "router_to_host": [
+          27541,
+          29167
+        ],
+        "weight_eval": [
+          8182409,
+          8413418
+        ]
+      },
+      "phase_count_ranges": {
+        "expert_eval": [
+          128,
+          128
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          256,
+          256
+        ],
+        "mlx_load": [
+          153,
+          153
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "repeat",
+      "maximum_group_rows": 8,
+      "iteration": 0,
+      "selection_batch": false,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4424728
+      ],
+      "mlx_peak_increment_range_bytes": [
+        3407872,
+        3637248
+      ],
+      "sampled_rss_peak_range_bytes": [
+        349765632,
+        350945280
+      ],
+      "mlx_cache_range_bytes": [
+        770048,
+        786432
+      ],
+      "phase_nanosecond_ranges": {
+        "acquire": [
+          1542127,
+          1671084
+        ],
+        "checksum_hash": [
+          699750,
+          747541
+        ],
+        "checksum_read": [
+          176418,
+          176623
+        ],
+        "expert_build": [
+          90295,
+          103873
+        ],
+        "expert_eval": [
+          19179085,
+          21721706
+        ],
+        "file_stat": [
+          134166,
+          138707
+        ],
+        "mlx_load": [
+          64084,
+          78000
+        ],
+        "output_assembly": [
+          29624,
+          36627
+        ],
+        "output_eval": [
+          299333,
+          314875
+        ],
+        "release": [
+          70461,
+          79585
+        ],
+        "router_eval": [
+          2125,
+          4041
+        ],
+        "router_to_host": [
+          55875,
+          90459
+        ],
+        "weight_eval": [
+          291417,
+          336750
+        ]
+      },
+      "phase_count_ranges": {
+        "expert_eval": [
+          16,
+          16
+        ],
+        "expert_build": [
+          32,
+          32
+        ],
+        "acquire": [
+          32,
+          32
+        ],
+        "mlx_load": [
+          2,
+          2
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "repeat",
+      "maximum_group_rows": 8,
+      "iteration": 1,
+      "selection_batch": false,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4424728,
+        4424728
+      ],
+      "mlx_peak_increment_range_bytes": [
+        1277952,
+        1277952
+      ],
+      "sampled_rss_peak_range_bytes": [
+        349765632,
+        351174656
+      ],
+      "mlx_cache_range_bytes": [
+        1294852,
+        1475076
+      ],
+      "phase_nanosecond_ranges": {
+        "acquire": [
+          31587,
+          62757
+        ],
+        "checksum_hash": [
+          0,
+          0
+        ],
+        "checksum_read": [
+          0,
+          0
+        ],
+        "expert_build": [
+          69459,
+          70794
+        ],
+        "expert_eval": [
+          8750124,
+          14995960
+        ],
+        "file_stat": [
+          0,
+          0
+        ],
+        "mlx_load": [
+          0,
+          0
+        ],
+        "output_assembly": [
+          14165,
+          14916
+        ],
+        "output_eval": [
+          182375,
+          186709
+        ],
+        "release": [
+          50626,
+          50915
+        ],
+        "router_eval": [
+          666,
+          1083
+        ],
+        "router_to_host": [
+          32750,
+          37500
+        ],
+        "weight_eval": [
+          0,
+          0
+        ]
+      },
+      "phase_count_ranges": {
+        "expert_eval": [
+          16,
+          16
+        ],
+        "expert_build": [
+          32,
+          32
+        ],
+        "acquire": [
+          32,
+          32
+        ],
+        "mlx_load": [
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "mixed_runs",
+      "maximum_group_rows": 8,
+      "iteration": 0,
+      "selection_batch": false,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4310040,
+        4531224
+      ],
+      "mlx_peak_increment_range_bytes": [
+        3522560,
+        3743744
+      ],
+      "sampled_rss_peak_range_bytes": [
+        349028352,
+        353189888
+      ],
+      "mlx_cache_range_bytes": [
+        995328,
+        995328
+      ],
+      "phase_nanosecond_ranges": {
+        "acquire": [
+          27531337,
+          28539963
+        ],
+        "checksum_hash": [
+          16905751,
+          17428865
+        ],
+        "checksum_read": [
+          2674745,
+          2941998
+        ],
+        "expert_build": [
+          194673,
+          199961
+        ],
+        "expert_eval": [
+          24406544,
+          27412583
+        ],
+        "file_stat": [
+          1926831,
+          1927248
+        ],
+        "mlx_load": [
+          1059583,
+          1115998
+        ],
+        "output_assembly": [
+          42456,
+          59210
+        ],
+        "output_eval": [
+          247000,
+          457916
+        ],
+        "release": [
+          84378,
+          111789
+        ],
+        "router_eval": [
+          3208,
+          3375
+        ],
+        "router_to_host": [
+          70709,
+          89500
+        ],
+        "weight_eval": [
+          3126583,
+          3247959
+        ]
+      },
+      "phase_count_ranges": {
+        "expert_eval": [
+          28,
+          28
+        ],
+        "expert_build": [
+          56,
+          56
+        ],
+        "acquire": [
+          56,
+          56
+        ],
+        "mlx_load": [
+          48,
+          48
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "mixed_runs",
+      "maximum_group_rows": 8,
+      "iteration": 1,
+      "selection_batch": false,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4314136,
+        4535320
+      ],
+      "mlx_peak_increment_range_bytes": [
+        1167360,
+        1388544
+      ],
+      "sampled_rss_peak_range_bytes": [
+        349290496,
+        351420416
+      ],
+      "mlx_cache_range_bytes": [
+        1536516,
+        1536516
+      ],
+      "phase_nanosecond_ranges": {
+        "acquire": [
+          25879538,
+          26390958
+        ],
+        "checksum_hash": [
+          16914037,
+          16930248
+        ],
+        "checksum_read": [
+          2164955,
+          2375541
+        ],
+        "expert_build": [
+          146838,
+          182420
+        ],
+        "expert_eval": [
+          12777331,
+          16675456
+        ],
+        "file_stat": [
+          1710492,
+          1730792
+        ],
+        "mlx_load": [
+          974788,
+          976498
+        ],
+        "output_assembly": [
+          28663,
+          39000
+        ],
+        "output_eval": [
+          195416,
+          204708
+        ],
+        "release": [
+          53709,
+          70837
+        ],
+        "router_eval": [
+          791,
+          916
+        ],
+        "router_to_host": [
+          32208,
+          32292
+        ],
+        "weight_eval": [
+          2553375,
+          2691333
+        ]
+      },
+      "phase_count_ranges": {
+        "expert_eval": [
+          28,
+          28
+        ],
+        "expert_build": [
+          56,
+          56
+        ],
+        "acquire": [
+          56,
+          56
+        ],
+        "mlx_load": [
+          48,
+          48
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "alternating",
+      "maximum_group_rows": 8,
+      "iteration": 0,
+      "selection_batch": false,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4195352
+      ],
+      "mlx_peak_increment_range_bytes": [
+        3407872,
+        3407872
+      ],
+      "sampled_rss_peak_range_bytes": [
+        351010816,
+        353124352
+      ],
+      "mlx_cache_range_bytes": [
+        552960,
+        552960
+      ],
+      "phase_nanosecond_ranges": {
+        "acquire": [
+          140479624,
+          140654585
+        ],
+        "checksum_hash": [
+          90358799,
+          90694159
+        ],
+        "checksum_read": [
+          12781109,
+          12831197
+        ],
+        "expert_build": [
+          708331,
+          737575
+        ],
+        "expert_eval": [
+          46828090,
+          48070130
+        ],
+        "file_stat": [
+          8952012,
+          9075801
+        ],
+        "mlx_load": [
+          5238910,
+          5378454
+        ],
+        "output_assembly": [
+          132669,
+          134420
+        ],
+        "output_eval": [
+          335541,
+          348708
+        ],
+        "release": [
+          175178,
+          203335
+        ],
+        "router_eval": [
+          2083,
+          2708
+        ],
+        "router_to_host": [
+          55708,
+          58542
+        ],
+        "weight_eval": [
+          14170999,
+          14769990
+        ]
+      },
+      "phase_count_ranges": {
+        "expert_eval": [
+          128,
+          128
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          256,
+          256
+        ],
+        "mlx_load": [
+          256,
+          256
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "alternating",
+      "maximum_group_rows": 8,
+      "iteration": 1,
+      "selection_batch": false,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4207640
+      ],
+      "mlx_peak_increment_range_bytes": [
+        1048576,
+        1060864
+      ],
+      "sampled_rss_peak_range_bytes": [
+        349618176,
+        351748096
+      ],
+      "mlx_cache_range_bytes": [
+        1077764,
+        1077764
+      ],
+      "phase_nanosecond_ranges": {
+        "acquire": [
+          137844130,
+          139293376
+        ],
+        "checksum_hash": [
+          90173531,
+          91236570
+        ],
+        "checksum_read": [
+          11630912,
+          11694692
+        ],
+        "expert_build": [
+          690419,
+          695002
+        ],
+        "expert_eval": [
+          39375952,
+          40416048
+        ],
+        "file_stat": [
+          8548322,
+          8744000
+        ],
+        "mlx_load": [
+          5190040,
+          5199338
+        ],
+        "output_assembly": [
+          126412,
+          138757
+        ],
+        "output_eval": [
+          308458,
+          313959
+        ],
+        "release": [
+          156500,
+          171952
+        ],
+        "router_eval": [
+          667,
+          750
+        ],
+        "router_to_host": [
+          34416,
+          34625
+        ],
+        "weight_eval": [
+          13747790,
+          14235501
+        ]
+      },
+      "phase_count_ranges": {
+        "expert_eval": [
+          128,
+          128
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          256,
+          256
+        ],
+        "mlx_load": [
+          256,
+          256
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "reversed",
+      "maximum_group_rows": 8,
+      "iteration": 0,
+      "selection_batch": false,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        2847000,
+        2847000
+      ],
+      "mlx_peak_increment_range_bytes": [
+        2650112,
+        2650112
+      ],
+      "sampled_rss_peak_range_bytes": [
+        351027200,
+        353157120
+      ],
+      "mlx_cache_range_bytes": [
+        180224,
+        180224
+      ],
+      "phase_nanosecond_ranges": {
+        "acquire": [
+          1533624,
+          1575707
+        ],
+        "checksum_hash": [
+          697625,
+          734833
+        ],
+        "checksum_read": [
+          178834,
+          181292
+        ],
+        "expert_build": [
+          143132,
+          155496
+        ],
+        "expert_eval": [
+          12587790,
+          13203290
+        ],
+        "file_stat": [
+          131043,
+          157206
+        ],
+        "mlx_load": [
+          67417,
+          68333
+        ],
+        "output_assembly": [
+          28539,
+          31545
+        ],
+        "output_eval": [
+          283917,
+          461084
+        ],
+        "release": [
+          36294,
+          38160
+        ],
+        "router_eval": [
+          2291,
+          2833
+        ],
+        "router_to_host": [
+          45125,
+          61458
+        ],
+        "weight_eval": [
+          266834,
+          280709
+        ]
+      },
+      "phase_count_ranges": {
+        "expert_eval": [
+          32,
+          32
+        ],
+        "expert_build": [
+          64,
+          64
+        ],
+        "acquire": [
+          64,
+          64
+        ],
+        "mlx_load": [
+          2,
+          2
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "reversed",
+      "maximum_group_rows": 8,
+      "iteration": 1,
+      "selection_batch": false,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        2847000,
+        2847000
+      ],
+      "mlx_peak_increment_range_bytes": [
+        290816,
+        290816
+      ],
+      "sampled_rss_peak_range_bytes": [
+        349126656,
+        351240192
+      ],
+      "mlx_cache_range_bytes": [
+        311812,
+        311812
+      ],
+      "phase_nanosecond_ranges": {
+        "acquire": [
+          74584,
+          75916
+        ],
+        "checksum_hash": [
+          0,
+          0
+        ],
+        "checksum_read": [
+          0,
+          0
+        ],
+        "expert_build": [
+          120835,
+          143997
+        ],
+        "expert_eval": [
+          9558001,
+          9742294
+        ],
+        "file_stat": [
+          0,
+          0
+        ],
+        "mlx_load": [
+          0,
+          0
+        ],
+        "output_assembly": [
+          24624,
+          26667
+        ],
+        "output_eval": [
+          179875,
+          190416
+        ],
+        "release": [
+          30753,
+          44167
+        ],
+        "router_eval": [
+          750,
+          1000
+        ],
+        "router_to_host": [
+          28917,
+          30500
+        ],
+        "weight_eval": [
+          0,
+          0
+        ]
+      },
+      "phase_count_ranges": {
+        "expert_eval": [
+          32,
+          32
+        ],
+        "expert_build": [
+          64,
+          64
+        ],
+        "acquire": [
+          64,
+          64
+        ],
+        "mlx_load": [
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "random",
+      "maximum_group_rows": 8,
+      "iteration": 0,
+      "selection_batch": false,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4195352
+      ],
+      "mlx_peak_increment_range_bytes": [
+        3407872,
+        3407872
+      ],
+      "sampled_rss_peak_range_bytes": [
+        351109120,
+        353222656
+      ],
+      "mlx_cache_range_bytes": [
+        602112,
+        606208
+      ],
+      "phase_nanosecond_ranges": {
+        "acquire": [
+          83510333,
+          83764877
+        ],
+        "checksum_hash": [
+          53595207,
+          53727959
+        ],
+        "checksum_read": [
+          7443168,
+          7557468
+        ],
+        "expert_build": [
+          649715,
+          651205
+        ],
+        "expert_eval": [
+          41809751,
+          42315831
+        ],
+        "file_stat": [
+          5423495,
+          5646796
+        ],
+        "mlx_load": [
+          3151991,
+          3183716
+        ],
+        "output_assembly": [
+          116082,
+          118419
+        ],
+        "output_eval": [
+          303333,
+          338042
+        ],
+        "release": [
+          206335,
+          245333
+        ],
+        "router_eval": [
+          2291,
+          2708
+        ],
+        "router_to_host": [
+          51250,
+          54667
+        ],
+        "weight_eval": [
+          8449580,
+          8612461
+        ]
+      },
+      "phase_count_ranges": {
+        "expert_eval": [
+          120,
+          120
+        ],
+        "expert_build": [
+          240,
+          240
+        ],
+        "acquire": [
+          240,
+          240
+        ],
+        "mlx_load": [
+          153,
+          153
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "random",
+      "maximum_group_rows": 8,
+      "iteration": 1,
+      "selection_batch": false,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4224024,
+        4224024
+      ],
+      "mlx_peak_increment_range_bytes": [
+        1077248,
+        1077248
+      ],
+      "sampled_rss_peak_range_bytes": [
+        349765632,
+        351879168
+      ],
+      "mlx_cache_range_bytes": [
+        1126916,
+        1131012
+      ],
+      "phase_nanosecond_ranges": {
+        "acquire": [
+          82248752,
+          82263206
+        ],
+        "checksum_hash": [
+          53962504,
+          54021576
+        ],
+        "checksum_read": [
+          6572483,
+          6809988
+        ],
+        "expert_build": [
+          606881,
+          621137
+        ],
+        "expert_eval": [
+          34391283,
+          34696251
+        ],
+        "file_stat": [
+          4938130,
+          5040118
+        ],
+        "mlx_load": [
+          3100834,
+          3121788
+        ],
+        "output_assembly": [
+          110170,
+          112335
+        ],
+        "output_eval": [
+          275125,
+          283166
+        ],
+        "release": [
+          139207,
+          160457
+        ],
+        "router_eval": [
+          625,
+          708
+        ],
+        "router_to_host": [
+          28917,
+          29334
+        ],
+        "weight_eval": [
+          8262540,
+          8331122
+        ]
+      },
+      "phase_count_ranges": {
+        "expert_eval": [
+          120,
+          120
+        ],
+        "expert_build": [
+          240,
+          240
+        ],
+        "acquire": [
+          240,
+          240
+        ],
+        "mlx_load": [
+          153,
+          153
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "repeat",
+      "maximum_group_rows": 8,
+      "iteration": 0,
+      "selection_batch": true,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4244504,
+        4314136
+      ],
+      "mlx_peak_increment_range_bytes": [
+        3457024,
+        3526656
+      ],
+      "sampled_rss_peak_range_bytes": [
+        349257728,
+        351682560
+      ],
+      "mlx_cache_range_bytes": [
+        786432,
+        786432
+      ],
+      "phase_nanosecond_ranges": {
+        "acquire": [
+          1503542,
+          1525206
+        ],
+        "checksum_hash": [
+          697167,
+          701084
+        ],
+        "checksum_read": [
+          169416,
+          176583
+        ],
+        "expert_build": [
+          401700,
+          433425
+        ],
+        "expert_eval": [
+          12744835,
+          15739794
+        ],
+        "file_stat": [
+          132709,
+          138583
+        ],
+        "mlx_load": [
+          68458,
+          72291
+        ],
+        "output_assembly": [
+          4667,
+          4833
+        ],
+        "output_eval": [
+          236834,
+          264167
+        ],
+        "release": [
+          25585,
+          54874
+        ],
+        "router_eval": [
+          2042,
+          3708
+        ],
+        "router_to_host": [
+          55750,
+          89792
+        ],
+        "weight_eval": [
+          269791,
+          297667
+        ]
+      },
+      "phase_count_ranges": {
+        "expert_eval": [
+          16,
+          16
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          32,
+          32
+        ],
+        "mlx_load": [
+          2,
+          2
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "repeat",
+      "maximum_group_rows": 8,
+      "iteration": 1,
+      "selection_batch": true,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4318232,
+        4457496
+      ],
+      "mlx_peak_increment_range_bytes": [
+        1171456,
+        1310720
+      ],
+      "sampled_rss_peak_range_bytes": [
+        349536256,
+        349716480
+      ],
+      "mlx_cache_range_bytes": [
+        1311236,
+        1311236
+      ],
+      "phase_nanosecond_ranges": {
+        "acquire": [
+          34170,
+          36584
+        ],
+        "checksum_hash": [
+          0,
+          0
+        ],
+        "checksum_read": [
+          0,
+          0
+        ],
+        "expert_build": [
+          405787,
+          416410
+        ],
+        "expert_eval": [
+          8501959,
+          13665460
+        ],
+        "file_stat": [
+          0,
+          0
+        ],
+        "mlx_load": [
+          0,
+          0
+        ],
+        "output_assembly": [
+          2708,
+          2875
+        ],
+        "output_eval": [
+          195459,
+          260458
+        ],
+        "release": [
+          22290,
+          36372
+        ],
+        "router_eval": [
+          583,
+          916
+        ],
+        "router_to_host": [
+          31708,
+          32667
+        ],
+        "weight_eval": [
+          0,
+          0
+        ]
+      },
+      "phase_count_ranges": {
+        "expert_eval": [
+          16,
+          16
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          32,
+          32
+        ],
+        "mlx_load": [
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "mixed_runs",
+      "maximum_group_rows": 8,
+      "iteration": 0,
+      "selection_batch": true,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4293656,
+        4457496
+      ],
+      "mlx_peak_increment_range_bytes": [
+        3506176,
+        3670016
+      ],
+      "sampled_rss_peak_range_bytes": [
+        349126656,
+        350453760
+      ],
+      "mlx_cache_range_bytes": [
+        884736,
+        884736
+      ],
+      "phase_nanosecond_ranges": {
+        "acquire": [
+          26895788,
+          27084129
+        ],
+        "checksum_hash": [
+          16822290,
+          16947208
+        ],
+        "checksum_read": [
+          2514419,
+          2594093
+        ],
+        "expert_build": [
+          485664,
+          500709
+        ],
+        "expert_eval": [
+          20609337,
+          23323959
+        ],
+        "file_stat": [
+          1708415,
+          1782714
+        ],
+        "mlx_load": [
+          1062622,
+          1067836
+        ],
+        "output_assembly": [
+          16250,
+          16333
+        ],
+        "output_eval": [
+          270875,
+          502334
+        ],
+        "release": [
+          68832,
+          78586
+        ],
+        "router_eval": [
+          2250,
+          3500
+        ],
+        "router_to_host": [
+          57667,
+          85666
+        ],
+        "weight_eval": [
+          2932332,
+          3008337
+        ]
+      },
+      "phase_count_ranges": {
+        "expert_eval": [
+          28,
+          28
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          56,
+          56
+        ],
+        "mlx_load": [
+          48,
+          48
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "mixed_runs",
+      "maximum_group_rows": 8,
+      "iteration": 1,
+      "selection_batch": true,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4457496,
+        4457496
+      ],
+      "mlx_peak_increment_range_bytes": [
+        1310720,
+        1310720
+      ],
+      "sampled_rss_peak_range_bytes": [
+        349405184,
+        349569024
+      ],
+      "mlx_cache_range_bytes": [
+        1409540,
+        1409540
+      ],
+      "phase_nanosecond_ranges": {
+        "acquire": [
+          25510753,
+          25947466
+        ],
+        "checksum_hash": [
+          16806614,
+          16834667
+        ],
+        "checksum_read": [
+          2053166,
+          2181001
+        ],
+        "expert_build": [
+          452626,
+          458582
+        ],
+        "expert_eval": [
+          13252083,
+          17949540
+        ],
+        "file_stat": [
+          1503246,
+          1633088
+        ],
+        "mlx_load": [
+          968830,
+          983838
+        ],
+        "output_assembly": [
+          3625,
+          7542
+        ],
+        "output_eval": [
+          200417,
+          258042
+        ],
+        "release": [
+          52126,
+          60296
+        ],
+        "router_eval": [
+          625,
+          666
+        ],
+        "router_to_host": [
+          32750,
+          33083
+        ],
+        "weight_eval": [
+          2607625,
+          2763332
+        ]
+      },
+      "phase_count_ranges": {
+        "expert_eval": [
+          28,
+          28
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          56,
+          56
+        ],
+        "mlx_load": [
+          48,
+          48
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "alternating",
+      "maximum_group_rows": 8,
+      "iteration": 0,
+      "selection_batch": true,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4211736
+      ],
+      "mlx_peak_increment_range_bytes": [
+        3407872,
+        3424256
+      ],
+      "sampled_rss_peak_range_bytes": [
+        349716480,
+        350322688
+      ],
+      "mlx_cache_range_bytes": [
+        552960,
+        552960
+      ],
+      "phase_nanosecond_ranges": {
+        "acquire": [
+          138021838,
+          138211550
+        ],
+        "checksum_hash": [
+          89832507,
+          89897876
+        ],
+        "checksum_read": [
+          11553013,
+          11739333
+        ],
+        "expert_build": [
+          656079,
+          683035
+        ],
+        "expert_eval": [
+          46201796,
+          47558623
+        ],
+        "file_stat": [
+          8600541,
+          8625796
+        ],
+        "mlx_load": [
+          5211535,
+          5247630
+        ],
+        "output_assembly": [
+          12333,
+          14166
+        ],
+        "output_eval": [
+          324125,
+          374916
+        ],
+        "release": [
+          179834,
+          200983
+        ],
+        "router_eval": [
+          2458,
+          2583
+        ],
+        "router_to_host": [
+          54500,
+          56958
+        ],
+        "weight_eval": [
+          14342996,
+          14552444
+        ]
+      },
+      "phase_count_ranges": {
+        "expert_eval": [
+          128,
+          128
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          256,
+          256
+        ],
+        "mlx_load": [
+          256,
+          256
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "alternating",
+      "maximum_group_rows": 8,
+      "iteration": 1,
+      "selection_batch": true,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4224024
+      ],
+      "mlx_peak_increment_range_bytes": [
+        1048576,
+        1077248
+      ],
+      "sampled_rss_peak_range_bytes": [
+        349552640,
+        349798400
+      ],
+      "mlx_cache_range_bytes": [
+        1077764,
+        1077764
+      ],
+      "phase_nanosecond_ranges": {
+        "acquire": [
+          135245171,
+          139818499
+        ],
+        "checksum_hash": [
+          89707545,
+          90419169
+        ],
+        "checksum_read": [
+          10708533,
+          12248341
+        ],
+        "expert_build": [
+          653796,
+          705450
+        ],
+        "expert_eval": [
+          38347291,
+          40540328
+        ],
+        "file_stat": [
+          8235798,
+          8737523
+        ],
+        "mlx_load": [
+          5158046,
+          5266282
+        ],
+        "output_assembly": [
+          14125,
+          19750
+        ],
+        "output_eval": [
+          305875,
+          378500
+        ],
+        "release": [
+          150598,
+          166289
+        ],
+        "router_eval": [
+          750,
+          750
+        ],
+        "router_to_host": [
+          28667,
+          29083
+        ],
+        "weight_eval": [
+          13360168,
+          14682587
+        ]
+      },
+      "phase_count_ranges": {
+        "expert_eval": [
+          128,
+          128
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          256,
+          256
+        ],
+        "mlx_load": [
+          256,
+          256
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "reversed",
+      "maximum_group_rows": 8,
+      "iteration": 0,
+      "selection_batch": true,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        2949400,
+        2949400
+      ],
+      "mlx_peak_increment_range_bytes": [
+        2752512,
+        2752512
+      ],
+      "sampled_rss_peak_range_bytes": [
+        350961664,
+        351191040
+      ],
+      "mlx_cache_range_bytes": [
+        393216,
+        393216
+      ],
+      "phase_nanosecond_ranges": {
+        "acquire": [
+          1459041,
+          1508208
+        ],
+        "checksum_hash": [
+          697042,
+          736168
+        ],
+        "checksum_read": [
+          174166,
+          174375
+        ],
+        "expert_build": [
+          107291,
+          108333
+        ],
+        "expert_eval": [
+          3870458,
+          4410792
+        ],
+        "file_stat": [
+          131001,
+          138876
+        ],
+        "mlx_load": [
+          65375,
+          68166
+        ],
+        "output_assembly": [
+          3125,
+          4000
+        ],
+        "output_eval": [
+          238375,
+          240166
+        ],
+        "release": [
+          6001,
+          7333
+        ],
+        "router_eval": [
+          2167,
+          2458
+        ],
+        "router_to_host": [
+          45042,
+          48125
+        ],
+        "weight_eval": [
+          276708,
+          293417
+        ]
+      },
+      "phase_count_ranges": {
+        "expert_eval": [
+          4,
+          4
+        ],
+        "expert_build": [
+          64,
+          64
+        ],
+        "acquire": [
+          8,
+          8
+        ],
+        "mlx_load": [
+          2,
+          2
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "reversed",
+      "maximum_group_rows": 8,
+      "iteration": 1,
+      "selection_batch": true,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        2949400,
+        2949400
+      ],
+      "mlx_peak_increment_range_bytes": [
+        393216,
+        393216
+      ],
+      "sampled_rss_peak_range_bytes": [
+        349077504,
+        349257728
+      ],
+      "mlx_cache_range_bytes": [
+        524804,
+        524804
+      ],
+      "phase_nanosecond_ranges": {
+        "acquire": [
+          9376,
+          12416
+        ],
+        "checksum_hash": [
+          0,
+          0
+        ],
+        "checksum_read": [
+          0,
+          0
+        ],
+        "expert_build": [
+          101248,
+          110457
+        ],
+        "expert_eval": [
+          2615416,
+          3143959
+        ],
+        "file_stat": [
+          0,
+          0
+        ],
+        "mlx_load": [
+          0,
+          0
+        ],
+        "output_assembly": [
+          1708,
+          3250
+        ],
+        "output_eval": [
+          185875,
+          264209
+        ],
+        "release": [
+          10667,
+          12126
+        ],
+        "router_eval": [
+          667,
+          791
+        ],
+        "router_to_host": [
+          23500,
+          30917
+        ],
+        "weight_eval": [
+          0,
+          0
+        ]
+      },
+      "phase_count_ranges": {
+        "expert_eval": [
+          4,
+          4
+        ],
+        "expert_build": [
+          64,
+          64
+        ],
+        "acquire": [
+          8,
+          8
+        ],
+        "mlx_load": [
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "random",
+      "maximum_group_rows": 8,
+      "iteration": 0,
+      "selection_batch": true,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4195352,
+        4224024
+      ],
+      "mlx_peak_increment_range_bytes": [
+        3407872,
+        3436544
+      ],
+      "sampled_rss_peak_range_bytes": [
+        351076352,
+        351240192
+      ],
+      "mlx_cache_range_bytes": [
+        589824,
+        589824
+      ],
+      "phase_nanosecond_ranges": {
+        "acquire": [
+          85874389,
+          87591715
+        ],
+        "checksum_hash": [
+          55587627,
+          55941419
+        ],
+        "checksum_read": [
+          7392847,
+          7933234
+        ],
+        "expert_build": [
+          641072,
+          651329
+        ],
+        "expert_eval": [
+          40396707,
+          41980831
+        ],
+        "file_stat": [
+          5353959,
+          5698170
+        ],
+        "mlx_load": [
+          3261049,
+          3347122
+        ],
+        "output_assembly": [
+          7084,
+          14041
+        ],
+        "output_eval": [
+          291708,
+          319875
+        ],
+        "release": [
+          194797,
+          206669
+        ],
+        "router_eval": [
+          2500,
+          3041
+        ],
+        "router_to_host": [
+          57958,
+          62834
+        ],
+        "weight_eval": [
+          8940246,
+          9058800
+        ]
+      },
+      "phase_count_ranges": {
+        "expert_eval": [
+          110,
+          110
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          220,
+          220
+        ],
+        "mlx_load": [
+          159,
+          159
+        ]
+      }
+    },
+    {
+      "device": "gpu",
+      "case": "random",
+      "maximum_group_rows": 8,
+      "iteration": 1,
+      "selection_batch": true,
+      "runs": 2,
+      "mlx_active_peak_range_bytes": [
+        4224024,
+        4224024
+      ],
+      "mlx_peak_increment_range_bytes": [
+        1077248,
+        1077248
+      ],
+      "sampled_rss_peak_range_bytes": [
+        349700096,
+        349880320
+      ],
+      "mlx_cache_range_bytes": [
+        1114628,
+        1114628
+      ],
+      "phase_nanosecond_ranges": {
+        "acquire": [
+          84973504,
+          85402334
+        ],
+        "checksum_hash": [
+          55814995,
+          55843411
+        ],
+        "checksum_read": [
+          7005332,
+          7027340
+        ],
+        "expert_build": [
+          625623,
+          644375
+        ],
+        "expert_eval": [
+          33081250,
+          33122630
+        ],
+        "file_stat": [
+          5135041,
+          5216138
+        ],
+        "mlx_load": [
+          3178214,
+          3217246
+        ],
+        "output_assembly": [
+          7833,
+          7917
+        ],
+        "output_eval": [
+          266625,
+          284541
+        ],
+        "release": [
+          143381,
+          149213
+        ],
+        "router_eval": [
+          583,
+          750
+        ],
+        "router_to_host": [
+          28000,
+          33167
+        ],
+        "weight_eval": [
+          8494716,
+          8895537
+        ]
+      },
+      "phase_count_ranges": {
+        "expert_eval": [
+          110,
+          110
+        ],
+        "expert_build": [
+          256,
+          256
+        ],
+        "acquire": [
+          220,
+          220
+        ],
+        "mlx_load": [
+          159,
+          159
+        ]
+      }
+    }
+  ],
+  "limitations": [
+    "Five synthetic ordered-selection fixtures, not text/tokenizer/real-model quality",
+    "Budget is exactly two payloads",
+    "Native SwitchGLU references and experts prepared in a separate process",
+    "Workers discard temporary source bank before measurement",
+    "4 measured CPU requests after 1 warmup per case; no host qualification",
+    "Memory workers separate from speed; phase counters enabled only for memory",
+    "2 memory requests per case: first cold manager, then existing cache/residency",
+    "Reference/input/output arrays contribute to baseline and observed peaks",
+    "RSS sampling requested at 1ms; sampled peak may miss transients",
+    "RSS HWM is lifetime-wide; MLX peak reset per request",
+    "Installation separates manifest opening from hook validation/payload metadata; excludes model load/export",
+    "Request phase host wall times are instrumented inclusive spans, not additive or GPU kernel times",
+    "MLX allocator is process-wide unified memory, not dedicated/system GPU VRAM",
+    "Keep default allocator cache between requests; test-only clear between memory cases"
+  ],
+  "report": "docs/evaluation/strata-install-request-profile-2026-10-17.json",
+  "report_sha256": "5cc21926fd27f48fe7eac5f865feeb535197c2555ba31ec3f439e594b378b26e"
+}

@@ -1,0 +1,25 @@
+{
+  "observed_at": "2026-10-19T09:58:22+09:00",
+  "decision": "defer_due_to_active_benchmark",
+  "runner_pid": 82715,
+  "elapsed_observed": "09:05",
+  "script": "scripts/compare_strata_experts.py",
+  "arguments": [
+    "--quiet-host",
+    "--quiet-timeout",
+    "180",
+    "--cycles",
+    "512",
+    "--warmup-cycles",
+    "8",
+    "--runs",
+    "4",
+    "--variant-suite",
+    "--preload"
+  ],
+  "intended_report": "docs/evaluation/strata-phased-resident-2026-10-19-094852-jst.json",
+  "report_exists_at_check": false,
+  "legacy_r11_status": "failed",
+  "new_benchmark_started": false,
+  "runtime_changed": false
+}
