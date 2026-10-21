@@ -730,3 +730,11 @@ English: Three baseline runs passed quality/SLO; 9.11% goodput range/median prev
 English: Three alternating runs per chunk; no reproducible benefit from256. Retain512.
 
 简体中文：两种chunk交替各3次，256无可复现改善，保持512。
+
+## 定期診断 / Recurring diagnostics / 定期诊断 — 2026-10-20
+
+🟢 [Done] [現在identityのMetal traceと独立HTTP確認](optimization-2026-10-20.md)：prefill代表GPU active比率98.49%、HTTP算術品質・SLO45/45。速度改善patchなし。🟠 [Next] 量子化演算の帯域／compute判別。
+
+English: Fresh GPU diagnostic and45/45 unprofiled HTTP arithmetic/SLO checks passed; no speedup claim.
+
+简体中文：新GPU诊断及45/45无profiler HTTP算术／SLO通过，不认证速度提升。
