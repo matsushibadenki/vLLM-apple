@@ -14,15 +14,47 @@ MAX_FILES = 100_000
 MAX_BYTES = 32 * 1024**3
 
 
+# The platform resolver checks the full path on every call; no path/content cache.
+# Other platforms retain pathlib's implementation. Errors never use a stale result.
+_native_libc = None
+if sys.platform == "darwin":
+    try:
+        import ctypes
+        _native_libc = ctypes.CDLL(None, use_errno=True)
+        _native_libc.realpath.argtypes = [ctypes.c_char_p, ctypes.c_void_p]
+        _native_libc.realpath.restype = ctypes.c_void_p
+        _native_libc.free.argtypes = [ctypes.c_void_p]
+        _native_libc.free.restype = None
+    except (ImportError, AttributeError, OSError):
+        _native_libc = None
+
+
+def _resolve(path: Path) -> Path:
+    if _native_libc is None:
+        return path.resolve(strict=True)
+    raw = os.fsencode(path)
+    if b"\0" in raw:
+        raise ValueError("embedded null byte")
+    pointer = _native_libc.realpath(raw, None)
+    if pointer is None:
+        code = ctypes.get_errno()
+        raise OSError(code, os.strerror(code), os.fspath(path))
+    try:
+        return Path(os.fsdecode(ctypes.string_at(pointer)))
+    finally:
+        _native_libc.free(pointer)
+
+
 def _environment_inventory(prefix: Path) -> set[Path]:
     """Inventory a brew-managed isolated venv when RECORD was deliberately removed."""
-    prefix = prefix.resolve(strict=True)
+    prefix = _resolve(prefix)
     config = prefix / "pyvenv.cfg"
     if not config.is_file() or not any(
         line.strip().lower() == "include-system-site-packages = false"
         for line in config.read_text().splitlines()
     ):
         raise ValueError("Homebrew inventory requires an isolated virtual environment")
+    prefix_boundary = os.fspath(prefix).rstrip(os.sep) + os.sep
     paths: set[Path] = set()
     entries = 0
     for root, directories, files in os.walk(prefix, followlinks=False):
@@ -37,12 +69,15 @@ def _environment_inventory(prefix: Path) -> set[Path]:
             path = Path(root) / name
             if path.suffix in {".pyc", ".pyo"}:
                 continue
-            resolved = path.resolve(strict=True)
+            resolved = _resolve(path)
             # The interpreter is a normal external venv symlink; other files must
             # remain inside the environment so its inventory stays complete.
-            if not resolved.is_relative_to(prefix) and not (
+            inside = (
+                resolved == prefix or os.fspath(resolved).startswith(prefix_boundary)
+            ) if os.name == "posix" else resolved.is_relative_to(prefix)
+            if not inside and not (
                 path.parent == prefix / "bin" and name.startswith("python")
-                and resolved == Path(sys.executable).resolve(strict=True)
+                and resolved == _resolve(Path(sys.executable))
             ):
                 raise ValueError("backend inventory contains an external symlink")
             if not resolved.is_file():
@@ -67,7 +102,7 @@ def installed_fingerprint(executable: Path) -> str:
     """
     import importlib.metadata as metadata
 
-    paths = {executable.resolve(strict=True), Path(sys.executable).resolve(strict=True)}
+    paths = {_resolve(executable), _resolve(Path(sys.executable))}
     versions = []
     environment_paths = None
     for distribution in metadata.distributions():
@@ -92,7 +127,7 @@ def installed_fingerprint(executable: Path) -> str:
                 continue
             path = Path(distribution.locate_file(item))
             _check_search_path(path)
-            paths.add(path.resolve(strict=True))
+            paths.add(_resolve(path))
             if len(paths) > MAX_FILES:
                 raise ValueError("backend file inventory exceeds limit")
     digest = hashlib.sha256(json.dumps(sorted(versions), separators=(",", ":")).encode())
@@ -103,7 +138,7 @@ def installed_fingerprint(executable: Path) -> str:
         _check_search_path(path)
         # Hash the logical path and resolved target, including symlink identity.
         digest.update(str(path).encode() + b"\0")
-        path = path.resolve(strict=True)
+        path = _resolve(path)
         descriptor = os.open(path, os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0))
         try:
             before = os.fstat(descriptor)
