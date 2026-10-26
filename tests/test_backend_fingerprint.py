@@ -16,8 +16,10 @@ class BackendFingerprintTests(unittest.TestCase):
             launcher.write_text("launcher")
             source.write_text("version one")
             distribution = SimpleNamespace(
-                metadata={"Name": "synthetic-backend"}, version="1",
-                files=[Path("engine.py")], read_text=lambda name: None,
+                metadata={"Name": "synthetic-backend"},
+                version="1",
+                files=[Path("engine.py")],
+                read_text=lambda name: None,
                 locate_file=lambda name: root / name,
             )
             with patch("importlib.metadata.distributions", return_value=[distribution]):
@@ -30,8 +32,10 @@ class BackendFingerprintTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             launcher = Path(directory) / "launcher"
             launcher.write_text("launcher")
-            for direct, message in ((None, "no file inventory"),
-                                    ('{"dir_info":{"editable":true}}', "editable")):
+            for direct, message in (
+                (None, "no file inventory"),
+                ('{"dir_info":{"editable":true}}', "editable"),
+            ):
                 distribution = SimpleNamespace(files=None, read_text=lambda name: direct)
                 with patch("importlib.metadata.distributions", return_value=[distribution]):
                     with self.assertRaisesRegex(ValueError, message):
@@ -55,12 +59,15 @@ class BackendFingerprintTests(unittest.TestCase):
             launcher = root / "server"
             launcher.write_text("fixture")
             distribution = SimpleNamespace(
-                metadata={"Name": "synthetic-brew"}, version="1", files=None,
+                metadata={"Name": "synthetic-brew"},
+                version="1",
+                files=None,
                 read_text=lambda name: "brew\n" if name == "INSTALLER" else None,
                 locate_file=lambda name: root / name,
             )
-            with patch("importlib.metadata.distributions", return_value=[distribution]), patch(
-                "vllm_apple.backend_fingerprint.sys.prefix", str(root)
+            with (
+                patch("importlib.metadata.distributions", return_value=[distribution]),
+                patch("vllm_apple.backend_fingerprint.sys.prefix", str(root)),
             ):
                 first = installed_fingerprint(launcher)
                 source = root / "unlisted.py"
@@ -108,75 +115,109 @@ class BackendFingerprintTests(unittest.TestCase):
             launcher = root / "server"
             launcher.write_text("fixture")
             distribution = SimpleNamespace(
-                metadata={"Name": "synthetic-brew"}, version="1", files=None,
+                metadata={"Name": "synthetic-brew"},
+                version="1",
+                files=None,
                 read_text=lambda name: "brew\n" if name == "INSTALLER" else None,
                 locate_file=lambda name: root / name,
             )
-            with patch("importlib.metadata.distributions", return_value=[distribution]), patch(
-                "vllm_apple.backend_fingerprint.sys.prefix", str(root)
+            with (
+                patch("importlib.metadata.distributions", return_value=[distribution]),
+                patch("vllm_apple.backend_fingerprint.sys.prefix", str(root)),
             ):
                 with self.assertRaisesRegex(ValueError, "external backend search paths"):
                     installed_fingerprint(launcher)
 
+
 class NativeResolutionTests(unittest.TestCase):
     def test_full_resolution_fallback_missing_loop_and_retarget(self):
         import vllm_apple.backend_fingerprint as module
+
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
-            (root / '日本語 é').mkdir()
-            first = root / '日本語 é' / 'first'; first.write_text('one')
-            second = root / 'second'; second.write_text('two')
-            link = root / 'link'; link.symlink_to(first)
-            for path in [root, first, link, root / '日本語 é' / '..' / 'second']:
+            (root / "日本語 é").mkdir()
+            first = root / "日本語 é" / "first"
+            first.write_text("one")
+            second = root / "second"
+            second.write_text("two")
+            link = root / "link"
+            link.symlink_to(first)
+            for path in [root, first, link, root / "日本語 é" / ".." / "second"]:
                 self.assertEqual(module._resolve(path), path.resolve(strict=True))
-                with patch.object(module, '_native_libc', None):
+                with patch.object(module, "_native_libc", None):
                     self.assertEqual(module._resolve(path), path.resolve(strict=True))
             self.assertEqual(module._resolve(link), first.resolve())
-            link.unlink(); link.symlink_to(second)
+            link.unlink()
+            link.symlink_to(second)
             self.assertEqual(module._resolve(link), second.resolve())
-            with self.assertRaises(OSError): module._resolve(root / 'missing')
-            link.unlink(); link.symlink_to(root / 'link')
-            with self.assertRaises((OSError, RuntimeError)): module._resolve(link)
-            with self.assertRaises(ValueError): module._resolve(Path('bad\0path'))
+            with self.assertRaises(OSError):
+                module._resolve(root / "missing")
+            link.unlink()
+            link.symlink_to(root / "link")
+            with self.assertRaises((OSError, RuntimeError)):
+                module._resolve(link)
+            with self.assertRaises(ValueError):
+                module._resolve(Path("bad\0path"))
 
     def test_sibling_prefix_is_not_containment_and_directory_symlinks_reject(self):
         import vllm_apple.backend_fingerprint as module
+
         with tempfile.TemporaryDirectory() as directory:
-            root = Path(directory) / 'env'; root.mkdir()
-            outside = Path(directory) / 'env-other'; outside.mkdir()
-            (root / 'pyvenv.cfg').write_text('include-system-site-packages = false\n')
-            (outside / 'source.py').write_text('outside')
-            link = root / 'source.py'; link.symlink_to(outside / 'source.py')
-            with self.assertRaisesRegex(ValueError, 'external symlink'):
+            root = Path(directory) / "env"
+            root.mkdir()
+            outside = Path(directory) / "env-other"
+            outside.mkdir()
+            (root / "pyvenv.cfg").write_text("include-system-site-packages = false\n")
+            (outside / "source.py").write_text("outside")
+            link = root / "source.py"
+            link.symlink_to(outside / "source.py")
+            with self.assertRaisesRegex(ValueError, "external symlink"):
                 module._environment_inventory(root)
-            link.unlink(); (root / 'dir').symlink_to(outside, target_is_directory=True)
-            with self.assertRaisesRegex(ValueError, 'directory symlinks'):
+            link.unlink()
+            (root / "dir").symlink_to(outside, target_is_directory=True)
+            with self.assertRaisesRegex(ValueError, "directory symlinks"):
                 module._environment_inventory(root)
 
     def test_mutation_with_restored_mtime_and_inventory_addition_reject(self):
         import os
+
         import vllm_apple.backend_fingerprint as module
+
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
-            (root / 'pyvenv.cfg').write_text('include-system-site-packages = false\n')
-            launcher = root / 'server'; launcher.write_text('launcher')
-            source = root / 'source.py'; source.write_bytes(b'one')
-            distribution = SimpleNamespace(metadata={'Name':'fixture'},version='1',files=None,
-                read_text=lambda name:'brew\n' if name=='INSTALLER' else None,
-                locate_file=lambda name:root / name)
+            (root / "pyvenv.cfg").write_text("include-system-site-packages = false\n")
+            launcher = root / "server"
+            launcher.write_text("launcher")
+            source = root / "source.py"
+            source.write_bytes(b"one")
+            distribution = SimpleNamespace(
+                metadata={"Name": "fixture"},
+                version="1",
+                files=None,
+                read_text=lambda name: "brew\n" if name == "INSTALLER" else None,
+                locate_file=lambda name: root / name,
+            )
             original_read = os.read
-            for mode in ['content', 'inventory']:
+            for mode in ["content", "inventory"]:
                 changed = [False]
+
                 def read(fd, amount):
                     data = original_read(fd, amount)
                     if not changed[0] and os.fstat(fd).st_ino == source.stat().st_ino:
                         changed[0] = True
-                        if mode == 'content':
-                            stamp = source.stat(); source.write_bytes(b'two')
+                        if mode == "content":
+                            stamp = source.stat()
+                            source.write_bytes(b"two")
                             os.utime(source, ns=(stamp.st_atime_ns, stamp.st_mtime_ns))
-                        else: (root / 'new.py').write_text('new')
+                        else:
+                            (root / "new.py").write_text("new")
                     return data
-                with patch('importlib.metadata.distributions',return_value=[distribution]), patch.object(module.sys,'prefix',str(root)), patch.object(module.os,'read',side_effect=read):
-                    with self.assertRaisesRegex(ValueError, 'changed'):
+
+                with (
+                    patch("importlib.metadata.distributions", return_value=[distribution]),
+                    patch.object(module.sys, "prefix", str(root)),
+                    patch.object(module.os, "read", side_effect=read),
+                ):
+                    with self.assertRaisesRegex(ValueError, "changed"):
                         module.installed_fingerprint(launcher)
                 self.assertTrue(changed[0])
