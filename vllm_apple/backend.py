@@ -13,7 +13,7 @@ import urllib.error
 import urllib.request
 from collections import deque
 from contextlib import AbstractContextManager
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, BinaryIO, Callable, Iterable
 
@@ -82,6 +82,8 @@ class BackendConfig:
     enable_kernel_tuning_middleware: bool = False
     backend_kind: str = "vllm_metal"
     python_module: str | None = None
+    kv_cache_bytes: int | None = field(init=False, default=None)
+    allocator_cache_bytes: int | None = field(init=False, default=None)
 
     def __post_init__(self) -> None:
         if not self.model.strip():
@@ -101,6 +103,24 @@ class BackendConfig:
                 raise BackendConfigurationError("python module launch is limited to MLX-LM")
             if self.python_module != "vllm_apple.mlx_gemma2_compat":
                 raise BackendConfigurationError("unreviewed MLX-LM Python module")
+        raw_budget = os.environ.get("VLLM_APPLE_KV_CACHE_MIB")
+        if raw_budget is not None:
+            if (self.backend_kind != "mlx_lm" or not 1 <= len(raw_budget) <= 4 or not raw_budget.isascii()
+                    or not raw_budget.isdecimal() or not 64 <= int(raw_budget) <= 4096):
+                raise BackendConfigurationError("KV cache MiB requires MLX-LM and an integer between 64 and 4096")
+            if any(arg == "--prompt-cache-bytes" or arg.startswith("--prompt-cache-bytes=")
+                   for arg in self.extra_arguments):
+                raise BackendConfigurationError("KV cache policy cannot be overridden by extra arguments")
+            if self.python_module is not None or not (self.executable.parent / "python").is_file():
+                raise BackendConfigurationError("KV budget requires the backend-adjacent Python without another wrapper")
+            object.__setattr__(self, "kv_cache_bytes", int(raw_budget) * 1024**2)
+        raw_allocator = os.environ.get("VLLM_APPLE_ALLOCATOR_CACHE_MIB")
+        if raw_allocator is not None:
+            if (self.kv_cache_bytes is None or not 1 <= len(raw_allocator) <= 4
+                    or not raw_allocator.isascii() or not raw_allocator.isdecimal()
+                    or not 64 <= int(raw_allocator) <= 4096):
+                raise BackendConfigurationError("allocator cache MiB requires qualified KV launcher and an integer between 64 and 4096")
+            object.__setattr__(self, "allocator_cache_bytes", int(raw_allocator) * 1024**2)
         reserved = {
             "--host",
             "--port",
@@ -114,6 +134,10 @@ class BackendConfig:
     def command(self) -> list[str]:
         if self.backend_kind == "mlx_lm":
             command = [str(self.executable)]
+            if self.kv_cache_bytes is not None:
+                command = [str(self.executable.parent / "python"), "-I", "-u", "-c",
+                    "import runpy,sys;runpy.run_path(sys.argv.pop(1),run_name='__main__')",
+                    str(Path(__file__).with_name("mlx_kv_budget.py"))]
             if self.python_module is not None:
                 command.extend(("-m", self.python_module))
             command.extend([
@@ -127,6 +151,8 @@ class BackendConfig:
                 "WARNING",
                 *self.extra_arguments,
             ])
+            if self.kv_cache_bytes is not None:
+                command.extend(("--prompt-cache-bytes", str(self.kv_cache_bytes)))
             return command
         command = [
             str(self.executable),

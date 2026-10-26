@@ -80,6 +80,16 @@ English: Upstream Metal research completed; process-wide budgets and launch vali
 简体中文：上游Metal调查完成，下一步优先全process预算与launch验证。
 
 
+### 依存更新 · 2026-10-26
+
+- 🟢 [Done] setuptools84.2.1／Ruff0.17.2へ更新。移動先Soliton/vLLM-appleを確認し定期実行も追従。[記録](dependency-update-2026-10-26.md)：wheel作成・install・CLI・Python3.10/3.12 compile・pip check・Swift38 tests・Mac sample成功。既存backend予算変更は保持。
+- 🟠 [Next] 全Python回帰1588 testsは起動timeout2 errors・46 skip。旧環境の関連9 testsでも同種timeout4件（個別失敗名は異なる）。lintは新旧Ruffとも同じ33件、追加違反0。これらと既存doctor失敗は未解決で全合格とは扱わない。
+- ⭕️ [Pending] 生成／変換modelを必要とするbackend qualificationとremote CI Actions最新版の実runner検証。Homebrew Metal/core0.32.0は既に導入済みで今回変更・再認定していない。
+
+English: Updated build tools; wheel and Swift checks pass. Existing lint diagnostics and startup instability remain unresolved. The recurring task follows the relocated project.
+
+简体中文：已更新构建工具，wheel及Swift验证成功。既有lint问题和启动不稳定尚未解决；定期任务已跟随项目新路径。
+
 ### 依存更新 · 2026-10-19
 
 - 🟢 [Done] Ruff0.17.1へ更新。既存Strata追加内容を保持してimport整形のみ。lint・Python3.10/3.12 compile・native Strata4・backend関連50・Swift38 tests・Mac sample成功。全回帰再実行1573 tests成功（46 skip）。初回APIログ取得1 errorも[更新記録](dependency-update-2026-10-19.md)に保持。

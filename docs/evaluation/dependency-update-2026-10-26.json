@@ -1,0 +1,48 @@
+{
+  "date": "2026-10-26",
+  "project_path": "/Users/Shared/Program/Tauri/Soliton/vLLM-apple",
+  "applied": {
+    "setuptools": [
+      "84.0.0",
+      "84.2.1"
+    ],
+    "ruff": [
+      "0.17.1",
+      "0.17.2"
+    ]
+  },
+  "pip_check": "passed",
+  "wheel_build_install_cli": "passed",
+  "compile_python": [
+    "3.10",
+    "3.12"
+  ],
+  "lint": {
+    "baseline_version": "0.17.1",
+    "candidate_version": "0.17.2",
+    "baseline_count": 33,
+    "candidate_count": 33,
+    "introduced": 0,
+    "resolved": 0
+  },
+  "python_tests": {
+    "count": 1588,
+    "seconds": 184.112,
+    "errors": 2,
+    "skipped": 46,
+    "passed": false
+  },
+  "baseline_process_tests": {
+    "count": 9,
+    "errors": 4,
+    "same_category": "subprocess startup timeout",
+    "same_individual_failures": false
+  },
+  "swift_tests": {
+    "count": 38,
+    "passed": true
+  },
+  "mac_sample_build": "passed",
+  "doctor": "backend_environment_inspection_failed",
+  "backend_modified": false
+}
