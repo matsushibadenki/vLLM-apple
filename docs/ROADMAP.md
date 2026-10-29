@@ -41,6 +41,18 @@
 
 ## 直近の更新 / Recent updates / 最近更新
 
+### P1 · 満杯の応答キューからのキャンセル · 2026-10-28
+
+- 🟢 [Done] Gemma 2互換経路で、満杯の応答キューへ終了通知を追加する際の待機を解消。キャンセル時に未配信応答を破棄してconsumerとproducerを解放し、キャンセル後のtoken追加を拒否する。通常時のFIFO、既存1,024件上限、model-ownerの停止契約を維持。
+- 🟢 [Done] 満杯キュー・producer待機・キャンセルの競合、別要求のregistry操作、二重キャンセル、FIFOをCPU回帰で検証。性能向上や実OOMの認定には使わない。
+- 🟢 [Done] 全体回帰再実行1,591件成功（46 skip）、Ruff 0.17.2／compile成功。固定MLX 0.32.1の実HTTPは品質45/45、cancel／timeout／回復／shutdown成功。
+- 🟠 [Next] 実HTTPはwarmupと長文各1件のSLO超過で総合不合格。固定identityで遅延を切り分け、09:00 JST開始の30分→8時間認定へ進む。初回全体回帰の既存キュー試験1失敗も保持。範囲・再現手順は[P1キャンセル修正](P1-CANCEL-QUEUE.md)を参照。
+- 🟢 [Done] 2026-10-27のCI修正はmainへ反映済み。Python 3.10／3.12／3.13とSwift／Mac sampleが[全ジョブ成功](https://github.com/matsushibadenki/vLLM-apple/actions/runs/40403927948)。以下の10月26日付lint未解決の記述は修正前の履歴。
+
+English: Cancellation now releases a saturated response queue and blocked producer without waiting for the consumer. CPU regressions cover saturation, registry progress, repeated cancellation and FIFO; long-run qualification remains open.
+
+简体中文：取消操作现在可释放已满的响应队列及等待中的producer，无需等待consumer。CPU回归覆盖队列饱和、registry继续运行、重复取消及FIFO；长期认证仍未完成。
+
 ### Strata · この筐体での機能検証完了 · 2026-10-17
 
 - 🟢 [Done] 現行opt-in実装の仕上げ。source model読込前のprocess budget不足拒否と、bank変更前の設定検証を追加。関連87 tests成功・skip 0、compile／diff確認済み。[最終回帰](evaluation/strata-startup-admission-regression-2026-10-17.json)。起動中ピークのhard capは含まない。

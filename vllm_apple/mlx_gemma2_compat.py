@@ -15,6 +15,7 @@ import threading
 import time
 from functools import wraps
 from pathlib import Path
+from queue import Empty, Full
 from typing import Any
 
 from .bounded_http import BoundedHTTPServer, HeaderDeadlineMixin
@@ -80,11 +81,39 @@ class _RequestQueue:
         self.trace = (_REQUEST_TIMINGS.start()
                       if os.environ.get('VLLM_APPLE_P1_PROFILE') == '1' else None)
         self._response_type = response_type
+        self._write_lock = threading.Lock()
+        self._closed = threading.Event()
 
     def put(self, value: Any) -> None:
         if self.trace is not None and isinstance(value, self._response_type):
             self.trace.mark('first_response_ready')
-        self._queue.put(value)
+        # Never block while holding the writer lock: cancellation must be able
+        # to discard buffered responses even when the HTTP consumer has left.
+        while True:
+            with self._write_lock:
+                if self._closed.is_set():
+                    return
+                try:
+                    self._queue.put_nowait(value)
+                    return
+                except Full:
+                    pass
+            if self._closed.wait(0.05):
+                return
+
+    def cancel_stream(self) -> None:
+        """Wake the consumer and blocked producer without waiting for either."""
+        with self._write_lock:
+            if self._closed.is_set():
+                return
+            self.cancelled = True
+            self._closed.set()
+            while True:
+                try:
+                    self._queue.get_nowait()
+                except Empty:
+                    break
+            self._queue.put_nowait(None)
 
     def get(self, *args: Any, **kwargs: Any) -> Any:
         return self._queue.get(*args, **kwargs)
@@ -176,7 +205,10 @@ def cancel_request_state(request_id: str) -> str | None:
                 return 'active'
             response_queue.cancelled = True
             context.stop()
-            response_queue.put(None)
+            if isinstance(response_queue, _RequestQueue):
+                response_queue.cancel_stream()
+            else:
+                response_queue.put(None)
             return "active"
         pending = _PENDING.get(request_id)
         if pending is not None:

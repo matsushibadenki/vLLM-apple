@@ -1,5 +1,7 @@
 import hashlib
 import os
+import queue
+import threading
 import types
 import unittest
 from types import SimpleNamespace
@@ -48,6 +50,74 @@ class Gemma2CompatTests(unittest.TestCase):
         from vllm_apple.mlx_gemma2_compat import _ACTIVE, _PENDING
         _ACTIVE.clear()
         _PENDING.clear()
+
+    def test_full_response_queue_cancellation_releases_producer_and_registry(self):
+        full = threading.Event()
+
+        class ObservedQueue(queue.Queue):
+            def put_nowait(self, value):
+                try:
+                    return super().put_nowait(value)
+                except queue.Full:
+                    full.set()
+                    raise
+
+        with patch.dict(os.environ, {'VLLM_APPLE_P1_PROFILE': '1'}):
+            responses = _RequestQueue(ObservedQueue)
+        context = Mock()
+        _register_context('full-stream', context, responses)
+        for index in range(1024):
+            responses.put(index)
+        producer = threading.Thread(target=responses.put, args=('late-token',), daemon=True)
+        producer.start()
+        self.assertTrue(full.wait(1), 'producer did not reach the full queue')
+        cancelled = threading.Event()
+
+        def cancel():
+            cancel_request('full-stream')
+            cancelled.set()
+
+        canceller = threading.Thread(target=cancel, daemon=True)
+        canceller.start()
+        try:
+            self.assertTrue(cancelled.wait(1), 'cancel blocked on the full queue')
+            producer.join(1)
+            self.assertFalse(producer.is_alive())
+            self.assertIsNone(responses.get(timeout=1))
+            responses.put('post-cancel-token')
+            with self.assertRaises(queue.Empty):
+                responses.get(block=False)
+            other = Mock()
+            _register_context('other-stream', other, Mock())
+            self.assertTrue(cancel_request('other-stream'))
+            self.assertTrue(cancel_request('full-stream'))
+            context.stop.assert_called_once()
+        finally:
+            # Also let a regressed blocking implementation terminate cleanly.
+            while True:
+                try:
+                    responses.get(block=False)
+                except queue.Empty:
+                    break
+            producer.join(1)
+            canceller.join(1)
+
+    def test_cancel_stream_is_idempotent_and_releases_buffered_responses(self):
+        responses = _RequestQueue(queue.Queue)
+        responses.put(object())
+        responses.cancel_stream()
+        responses.cancel_stream()
+        self.assertTrue(responses.cancelled)
+        self.assertIsNone(responses.get(block=False))
+        responses.put(None)
+        with self.assertRaises(queue.Empty):
+            responses.get(block=False)
+
+    def test_response_queue_preserves_fifo_before_cancellation(self):
+        responses = _RequestQueue(queue.Queue)
+        for value in ('context', 'token', None):
+            responses.put(value)
+        self.assertEqual([responses.get(block=False) for _ in range(3)], ['context', 'token', None])
 
     def test_only_grouped_batch_shared_head_masks_are_changed(self):
         mask = Mask((3, 1, 4, 7))
