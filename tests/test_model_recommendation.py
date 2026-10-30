@@ -83,6 +83,19 @@ class ModelRecommendationTests(unittest.TestCase):
         self.assertTrue(payload["fits_memory"])
 
 
+    def test_gemma3_recognition_does_not_bypass_execution_evidence(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = model(directory)
+            (root / "config.json").write_text(Path("tests/fixtures/architectures/gemma3_text.json").read_text())
+            inspected = inspect_model(root)
+            features = frozenset(describe_architecture(inspected.config)["required_features"])
+            report = build_model_recommendation(inspected, hardware(), backend="mlx_lm", available_features=features, context_tokens=512).to_dict()
+            self.assertEqual(report["recognition"], "recognized")
+            self.assertEqual(report["structure_status"], "described")
+            self.assertTrue(report["eligible_for_validation"])
+            self.assertFalse(report["runnable"])
+            self.assertEqual(report["qualification"], "unverified")
+
     def test_all_declared_features_only_enable_validation_not_execution(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             inspected = inspect_model(model(directory))

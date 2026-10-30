@@ -34,6 +34,7 @@ class ArchitectureRecipe:
     source: str
     moe: bool = False
     alternating_window: bool = False
+    periodic_window: bool = False
 
 
 # Exact model_type matches only. These are structural recipes, not backend support.
@@ -53,6 +54,12 @@ ARCHITECTURE_RECIPES = MappingProxyType({
     "mixtral": ArchitectureRecipe(
         "moe_transformer", ("rope", "rms_norm", "swiglu", "routed_experts"),
         "https://huggingface.co/docs/transformers/model_doc/mixtral", moe=True,
+    ),
+    "gemma3_text": ArchitectureRecipe(
+        "windowed_transformer", ("rope", "rms_norm", "geglu", "sandwich_norm",
+                                 "embedding_scale", "qk_norm", "dual_rope_base", "query_pre_attn_scale"),
+        "https://huggingface.co/docs/transformers/model_doc/gemma3",
+        periodic_window=True,
     ),
     "gemma2": ArchitectureRecipe(
         "windowed_transformer", ("rope", "rms_norm", "geglu", "sandwich_norm",
@@ -86,6 +93,16 @@ def _layer_types(config: dict[str, Any], recipe: ArchitectureRecipe, count: int)
     enabled = config.get("use_sliding_window", False)
     if type(enabled) is not bool:
         raise ModelInspectionError("architecture_invalid_field:use_sliding_window")
+    if recipe.periodic_window:
+        period = _positive(config, "sliding_window_pattern", count)
+        _positive(config, "rope_local_base_freq")
+        _positive(config, "rope_theta")
+        _positive(config, "query_pre_attn_scalar")
+        _positive(config, "sliding_window")
+        result = ["full_attention" if (i + 1) % period == 0 else "sliding_attention" for i in range(count)]
+        if explicit is not None and explicit != result:
+            raise ModelInspectionError("architecture_inconsistent_gemma3_layer_types")
+        return result
     if explicit is not None:
         if (
             not isinstance(explicit, list) or len(explicit) != count

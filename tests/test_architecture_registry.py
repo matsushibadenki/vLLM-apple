@@ -69,6 +69,22 @@ class ArchitectureRegistryTests(unittest.TestCase):
         self.assertIsNone(report["state_layout"][1]["window_tokens"])
         self.assertFalse(report["state_layout"][0]["retention_verified"])
 
+    def test_gemma3_periodic_windows_and_validation(self):
+        config = self.config("gemma3_text")
+        report = self.inspect(config)
+        self.assertEqual(report["structure_status"], "described")
+        self.assertEqual([s["owner_layer"] for s in report["state_layout"] if s["kind"] == "append_kv"], [5, 11, 17, 23])
+        for key in ("sliding_window_pattern", "rope_local_base_freq", "rope_theta", "query_pre_attn_scalar"):
+            for value in (0, True, -1):
+                invalid = dict(config, **{key: value})
+                self.assertEqual(self.inspect(invalid)["structure_status"], "unverified")
+        invalid = dict(config, sliding_window_pattern=config["num_hidden_layers"] + 1)
+        self.assertEqual(self.inspect(invalid)["structure_status"], "unverified")
+        wrapper = {"model_type": "gemma3", "text_config": config, "vision_config": {}}
+        self.assertEqual(self.inspect(wrapper)["recognition"], "unknown")
+        config["layer_types"] = ["full_attention"] * config["num_hidden_layers"]
+        self.assertEqual(self.inspect(config)["issues"], ["architecture_inconsistent_gemma3_layer_types"])
+
     def test_explicit_patterns_override_alternating_recipe(self):
         config = self.config("gemma2")
         config["layer_types"] = ["full_attention"] * 4
