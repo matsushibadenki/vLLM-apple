@@ -5,6 +5,7 @@ import math
 import queue
 import threading
 from collections.abc import Callable
+from concurrent.futures import Future
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -24,6 +25,47 @@ class _Command:
     cancelled: threading.Event = field(default_factory=threading.Event)
     result: dict[str, Any] | None = None
     error: BaseException | None = None
+    completion: Future[None] = field(default_factory=Future)
+
+    def finish(self) -> None:
+        self.done.set()
+        self.completion.set_result(None)
+
+
+class _CommandQueue(queue.Queue):
+    """Reclaim cancelled waiting commands, preserving FIFO and active ownership."""
+
+    def discard_cancelled(self) -> None:
+        with self.mutex:
+            removed = []
+            for _ in range(len(self.queue)):
+                command = self.queue.popleft()
+                if command is None:
+                    self.queue.append(command)
+                    continue
+                error = None
+                if command.cancelled.is_set():
+                    error = InferenceRequestCancelled("inference request cancelled while queued")
+                else:
+                    try:
+                        command.request_context.raise_if_cancelled()
+                    except InferenceRequestCancelled as cancelled:
+                        # Do not retain this queue frame through the exception
+                        # traceback after removing the abandoned request.
+                        error = InferenceRequestCancelled(str(cancelled))
+                if error is None:
+                    self.queue.append(command)
+                    continue
+                command.cancelled.set()
+                command.error = error
+                removed.append(command)
+            if removed:
+                self.unfinished_tasks -= len(removed)
+                self.not_full.notify_all()
+                if not self.unfinished_tasks:
+                    self.all_tasks_done.notify_all()
+        for command in removed:
+            command.finish()
 
 
 class ThreadAffineInferenceEngine:
@@ -44,7 +86,7 @@ class ThreadAffineInferenceEngine:
         ):
             raise ValueError("invalid thread-affine engine configuration")
         self._factory = factory
-        self._commands: queue.Queue[_Command | None] = queue.Queue(
+        self._commands: _CommandQueue = _CommandQueue(
             maximum_pending_requests
         )
         self._startup = threading.Event()
@@ -84,6 +126,7 @@ class ThreadAffineInferenceEngine:
     ) -> dict[str, Any]:
         request_context.raise_if_cancelled()
         command = _Command(request, kernel_context, request_context)
+        self._commands.discard_cancelled()
         with self._state_lock:
             if self._closed.is_set():
                 raise RuntimeError("thread-affine engine is closed")
@@ -94,9 +137,12 @@ class ThreadAffineInferenceEngine:
         while not command.done.wait(min(0.05, request_context.remaining_seconds)):
             try:
                 request_context.raise_if_cancelled()
-            except InferenceRequestCancelled:
+            except InferenceRequestCancelled as error:
                 command.cancelled.set()
-                raise
+                self._commands.discard_cancelled()
+                raise InferenceRequestCancelled(
+                    str(error), completion=command.completion
+                ) from error
         if command.error is not None:
             raise command.error
         assert command.result is not None
@@ -109,6 +155,7 @@ class ThreadAffineInferenceEngine:
         raise RuntimeError("thread-affine streaming is not enabled")
 
     def _request_close(self) -> None:
+        pending = []
         with self._state_lock:
             if self._closed.is_set():
                 return
@@ -122,8 +169,10 @@ class ThreadAffineInferenceEngine:
                     break
                 if command is not None:
                     command.error = InferenceRequestCancelled("inference engine is closing")
-                    command.done.set()
+                    pending.append(command)
             self._commands.put_nowait(None)
+        for command in pending:
+            command.finish()
 
     def close(self, *, timeout_seconds: float = 10.0) -> bool:
         """Request shutdown once; report success only after the owner exits.
@@ -163,7 +212,7 @@ class ThreadAffineInferenceEngine:
                     command.error = InferenceRequestCancelled(
                         "inference request cancelled while queued"
                     )
-                    command.done.set()
+                    command.finish()
                     continue
                 try:
                     command.request_context.raise_if_cancelled()
@@ -178,7 +227,7 @@ class ThreadAffineInferenceEngine:
                 except BaseException as error:
                     command.error = error
                 finally:
-                    command.done.set()
+                    command.finish()
         finally:
             self._ready = False
             close = getattr(self._delegate, "close", None)

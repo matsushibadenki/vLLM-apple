@@ -1,5 +1,35 @@
 # P1 cancellation under response backpressure — 2026-10-28
 
+## Native completion and resource reservations 2026 11 02
+
+🟢 [Done] thread-affine native engineのactive要求がtimeout／切断した場合、HTTP handlerは終了してもスケジューラ予約と入力byte予算は実処理の終了まで保持する。従来はcallerがcancel例外で戻るとHTTP側のfinallyが即時解放し、delegateがまだ実行中なのに資源の空きを過大に公開していた。
+
+commandはownerが確定する`Future`の完了通知を持ち、cancel例外がその通知をAPIへ渡す。APIは完了callbackで予約を一度だけ返す。専用の待機threadは追加せず、callbackの登録前に処理が終わっていた場合も即時・一度だけ解放する。待機要求の回収・shutdownも完了通知を発行し、callbackはqueue／state lockの外で実行する。通常応答と、完了通知を持たない既存engineの例外は従来の終了時解放を維持する。
+
+実HTTPのCPU模擬delegateで、timeout 408／client切断後に4,096 bytesのスケジューラ予約と入力bodyのbyte予算が残ること、ownerの処理終了後だけ解放されること、その後の正常HTTP要求が成功することを確認する。これはnative thread所有経路の契約であり、GPU／KVの実メモリ量や、process engineのcancel acknowledgmentを認定するものではない。戻らないnative callの予約は保持し、強制thread終了で回収しない。
+
+English: 🟢 [Done] An abandoned thread-owned native request retains scheduler and input-byte reservations until actual delegate completion, even after its HTTP handler returns. A completion callback releases once without adding a waiting thread and handles completion-before-registration races. CPU HTTP tests cover timeout, disconnect, retained reservations and successful recovery. Process-owned cancellation acknowledgments and real GPU memory qualification remain unfinished.
+
+简体中文：🟢 [Done] thread所有的native请求在timeout或断开后，即使HTTP handler已返回，仍保留scheduler及输入byte预算，直到delegate实际结束。通过completion callback一次性释放，不增加等待thread，并处理注册前已完成的情况。CPU HTTP测试覆盖timeout、断开、预算保持及后续恢复。process所有的取消确认及真实GPU内存认证仍未完成。
+
+検証：全回帰1,617件成功（46 skip、45.722秒）、Ruff 0.17.2／compileall／diff check成功。`test_inference_request.py`の6 testsには実HTTPの2終了経路と後続回復、完了済み／未完了通知の登録順序を含む。今回のGPUモデル実行はない。
+
+## Model owner waiting queue recovery 2026 11 02
+
+🟢 [Done] `ThreadAffineInferenceEngine`で、キャンセル済み・切断済み・期限切れの待機要求をキューから回収する。以前はcallerがcancelを検出して戻ってもcommandがキューに残り、実行中のdelegateが終了するまで後続要求を満杯として拒否していた。
+
+新規受付時とcallerのcancel検出時に、最大64件の待機キューをmutex内で検査する。不要なcommandだけを取り除いて完了通知を出し、正常要求のFIFOと既存capacityを維持する。新規受付側でも検査するため、cancelされたcallerのpolling threadが先に動く必要はない。ownerが既に取り出したcommandはこの回収対象に含めず、その実行・終了処理はownerへ残す。終了sentinelも保持する。
+
+CPU回帰では、active処理を止めたままcapacity 1の待機要求をcancel→replacement受付→上限超過拒否→active処理の完了後にreplacement実行を確認する。期限切れ・切断・caller cancelの3経路、正常FIFO、終了sentinel、100回／400件の回収も検証する。回収用の例外にqueue frameのtracebackを保持しない。これはnative model-owner経路の受付回復であり、過去のMLX-LM実測SLO超過の原因解決や推論速度改善を認定するものではない。
+
+English: 🟢 [Done] Cancelled, disconnected and expired waiting commands now release bounded model-owner queue capacity before the active delegate returns. Admission also purges stale waiters, so recovery does not depend on the cancelled caller polling first. Valid FIFO order, shutdown sentinels and active ownership remain intact. CPU tests cover capacity-one recovery and 400 cancelled waiters across 100 cycles; real-model SLO and throughput qualification remain open.
+
+简体中文：🟢 [Done] 已取消、断开或过期的等待command可在active delegate返回前释放有界队列容量。新请求入队时也清理无效等待项，无需等待旧caller先完成polling。正常FIFO、结束sentinel及active所有权保持不变。CPU测试覆盖capacity 1的恢复及100轮／400项取消；真实模型SLO与吞吐认证仍未完成。
+
+Reproduction: `.venv/bin/python -m unittest discover -s tests -p test_managed_engine.py`。
+
+検証：model-owner関連13 tests成功。最終全回帰1,612件成功（46 skip、39.388秒）。Ruff 0.17.2、compileall、diff check成功。全回帰の模擬HTTP統合を含むが、今回新しい実モデル測定は行っていない。
+
 ## 日本語
 
 🟢 [Done] Gemma 2互換経路の満杯応答キューに対するキャンセルを修正した。

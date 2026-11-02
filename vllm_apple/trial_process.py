@@ -4,9 +4,10 @@ import signal
 import subprocess
 
 
-def run_trial(command, *, cwd=None, env=None, stdout=None, timeout=180, grace=45):
+def run_trial(command, *, cwd=None, env=None, stdout=None, timeout=180, grace=45,
+              pass_fds=()):
     process = subprocess.Popen(command, cwd=cwd, env=env, stdout=stdout, stderr=stdout,
-                               start_new_session=True)
+                               start_new_session=True, pass_fds=pass_fds)
     try:
         return process.wait(timeout=timeout)
     finally:

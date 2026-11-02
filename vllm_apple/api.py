@@ -10,6 +10,8 @@ import stat
 import threading
 import time
 import uuid
+from collections.abc import Callable
+from concurrent.futures import Future
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from typing import Any, Protocol
@@ -87,6 +89,22 @@ class RequestByteBudget:
                 "max_inflight_request_bytes": self.maximum_bytes,
                 "rejected_input_byte_reservations": self._rejections,
             }
+
+
+def _after_inference_completion(
+    completion: Future[None] | None, release: Callable[[], object]
+) -> None:
+    """Release once after native completion, without retaining a handler/thread."""
+    if completion is None:
+        release()
+        return
+    actions = [release]
+
+    def finished(_future: Future[None]) -> None:
+        action = actions.pop()
+        action()
+
+    completion.add_done_callback(finished)
 
 
 def _bounded_error_message(message: str) -> str:
@@ -540,13 +558,17 @@ class RuntimeRequestHandler(BaseHTTPRequestHandler):
             self._error(HTTPStatus.NOT_FOUND, "not_found", "endpoint not found")
 
     def do_POST(self) -> None:
+        self._inference_completion = None
         try:
             with request_scope(self._request_id()):
                 self._handle_post()
         finally:
             reserved = getattr(self, "_reserved_request_bytes", 0)
             if reserved:
-                self.server.release_request_bytes(reserved)
+                server = self.server
+                _after_inference_completion(
+                    self._inference_completion, lambda: server.release_request_bytes(reserved)
+                )
                 self._reserved_request_bytes = 0
 
     def _handle_post(self) -> None:
@@ -609,6 +631,7 @@ class RuntimeRequestHandler(BaseHTTPRequestHandler):
                 request_context,
             )
         except InferenceRequestCancelled as error:
+            self._inference_completion = error.completion
             if request_context.cancellation.is_set():
                 self._record_request(499, error_code="client_disconnected")
                 return
@@ -627,7 +650,10 @@ class RuntimeRequestHandler(BaseHTTPRequestHandler):
             self._backend_error(error)
             return
         finally:
-            self.server.service.complete_schedule(reservation)
+            service = self.server.service
+            _after_inference_completion(
+                self._inference_completion, lambda: service.complete_schedule(reservation)
+            )
         response.setdefault("id", f"chatcmpl-{uuid.uuid4().hex}")
         response.setdefault("object", "chat.completion")
         response.setdefault("created", int(time.time()))

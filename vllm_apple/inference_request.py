@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import math
 import time
+from concurrent.futures import Future
 from dataclasses import dataclass
 from typing import Protocol
 
@@ -13,6 +14,10 @@ class CancellationSignal(Protocol):
 
 class InferenceRequestCancelled(RuntimeError):
     """Raised at a safe point after timeout or client disconnection."""
+
+    def __init__(self, message: str, *, completion: Future[None] | None = None) -> None:
+        super().__init__(message)
+        self.completion = completion
 
 
 class InferenceEngineBusy(RuntimeError):

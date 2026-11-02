@@ -32,11 +32,23 @@
 
 ## GPU benchmark exclusion
 
-🟢 [Done] `BenchmarkGpuLock`を次の3入口へ接続した。CLI引数の検証後、model読込・出力directory作成前に取得し、処理とcleanupが終わるまで保持する。
+🟢 [Done] `BenchmarkGpuLock`を次の入口へ接続した。CLI引数の検証後、model読込・出力directory作成前に取得し、処理とcleanupが終わるまで保持する。
 
 - `scripts/run_p1_stability.py`：30分と8時間の間も保持し、qualification子processへ`pass_fds`と環境でdescriptorを渡す。
 - `scripts/qualify_gemma2_batch_mask.py`：単独実行でも取得。親から受け取ったdescriptorは同じinodeであることを検証して使用する。
 - `experiments/p3_mlx/profile.py`：trace記録からexportまで保持。記録processは既存`run_trial`の所有process groupでtimeout／中断時も回収する。
+- 2026-11-02追加：`compare_p1_prefill.py`、`compare_p1_cache_entries.py`、`compare_p1_efficiency.py`は全比較・全反復を同じlockで囲む。試行間の割り込みも拒否し、子qualificationには`run_trial`経由でfdを継承する。`campaign.json`へlock identityと実行順序、自動昇格なしを記録する。timeoutでは失敗receiptを残して以降の試行を止める。
+- 2026-11-02追加：`probe_p1_efficiency_resources.py`も3候補の資源観測全体を囲み、観測reportへlock identityを記録する。
+
+2026-11-02の全回帰は1,615件成功（46 skip、42.364秒）。3campaignの21試行をCPU fixtureで動かし、実child processでfd継承と同一inodeを確認した。候補順序固定、試行間の別lock拒否、timeout後の後続停止・失敗receipt・解放も確認。7入口の起動前拒否と`run_trial`の所有process group回収を回帰し、Ruff 0.17.2／compileall／diff check成功。fixtureのpassed値は推論結果ではない。
+
+[固定版Gemma 2の実HTTP report](evaluation/p1-campaign-lock-smoke-2026-11-02-r1.json)は45/45品質・SLO合格（warmup3、長文12、短文30、短文は英語・日本語・简体中文各10）。active／queued cancel、100 ms timeout、slow consumer、half-close、profile拒否、HTTP接続上限、切断後の正常応答を確認し、runtime／model identity不変・正常shutdownも合格。active cancelはHTTP 202後0.750 ms、timeout応答完了は102.246 ms。共通lockのpath／inodeをreportに記録した。[試験前観測](evaluation/p1-campaign-host-2026-11-02-r1.json)はBattery／automatic、nominal thermal、メモリ圧迫normal。前後の独立反復比較ではなく、過去AC測定への速度差帰属、以前のSLO超過の根因確定、長時間認定には使わない。
+
+実機再現コマンド（新しいoutput名を使う）：
+
+```sh
+VLLM_APPLE_P1_EFFICIENCY=compact PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=. .venv/bin/python scripts/qualify_gemma2_batch_mask.py --python .venv-vllm-metal-031/bin/python --model models/gemma-2-2b-it-4bit --output /tmp/p1-campaign-lock-smoke-2026-11-02-r1.json --port 19221 --sustained-requests 30 --long-requests 12 --duration-seconds 0 --decode-concurrency 2 --prompt-concurrency 2 --prefill-step-size 512 --long-concurrency 1 --p1-profile
+```
 
 既定はKapitsaと同じ`/tmp/kapitsa-gpu.lock`で、`BENCH_GPU_LOCK`の明示指定と`~/`展開にも対応する。同じファイルに対するPOSIX flockを使うprocess間で協調する。占有時は待たず`BenchmarkGpuBusy`で拒否し、実GPU処理や結果ファイル作成に進まない。親子継承は`VLLM_APPLE_BENCH_GPU_LOCK_FD`と実fdの両方が必要で、boolean markerだけの迂回は認めない。失効fdや別inodeは拒否する。
 
@@ -44,9 +56,9 @@
 
 🟢 [Done] ロック追加後の全回帰1,608件成功（46 skip、39.366秒）。ロック単独8件、P1 runner2件、qualification12件、process cleanup3件成功。Ruff 0.17.2は既定CI範囲と変更した3runnerを検査し成功、compileall／diff check成功。モデルをloadせず、process間排他とCPU／模擬HTTP回帰を検証した。
 
-English: Three measurement entrypoints share Kapitsa's default flock file and fail before starting work when occupied. Nested runners explicitly inherit and validate a real descriptor; closing one participant does not unlock the others. Reports record lock provenance. This is cooperative runner exclusion, not reservation of the GPU device. Other entrypoints remain unfinished.
+English: Seven measurement entrypoints share Kapitsa's default flock file and fail before starting work when occupied. Three comparison campaigns retain it across every candidate and repetition; timeout aborts later trials after owned-process-group cleanup. Nested runners explicitly inherit and validate a real descriptor; closing one participant does not unlock the others. Reports record lock provenance. This is cooperative runner exclusion, not reservation of the GPU device. Other entrypoints remain unfinished.
 
-简体中文：3个计测入口共用Kapitsa默认flock文件，占用时在工作开始前拒绝。父子runner显式传递并验证真实descriptor，一个参与者退出不会解除其他参与者的锁。报告记录锁来源。这是runner协作排他，不是GPU设备预约；其他入口尚未接入。
+简体中文：7个计测入口共用Kapitsa默认flock文件，占用时在工作开始前拒绝。3个比较campaign在全部候选及重复之间持续持锁；timeout回收所属process group并终止后续试验。父子runner显式传递并验证真实descriptor，一个参与者退出不会解除其他参与者的锁。报告记录锁来源。这是runner协作排他，不是GPU设备预约；其他入口尚未接入。
 
 ## Reproduction
 

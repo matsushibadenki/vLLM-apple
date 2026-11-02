@@ -10,6 +10,7 @@ import subprocess
 import sys
 from pathlib import Path
 
+from vllm_apple.benchmark_gpu_lock import BenchmarkGpuLock
 from vllm_apple.trial_process import run_trial
 
 ORDERS = ((512, 256), (256, 512), (512, 256))
@@ -65,8 +66,16 @@ def main():
     parser.add_argument('--output-directory', required=True, type=Path)
     parser.add_argument('--port', type=int, default=19167)
     args = parser.parse_args()
+    with BenchmarkGpuLock() as gpu_lock:
+        return _compare(args, gpu_lock)
+
+
+def _compare(args, gpu_lock):
     root = Path(__file__).resolve().parents[1]
     args.output_directory.mkdir(exist_ok=False)
+    (args.output_directory/'campaign.json').write_text(json.dumps(
+        {'gpu_lock': gpu_lock.snapshot(), 'orders': ORDERS, 'standard_promotion': False},
+        indent=2) + '\n')
     for repeat, order in enumerate(ORDERS, 1):
         for step in order:
             path = args.output_directory.resolve() / f'prefill-{step}-{repeat}.json'
@@ -78,7 +87,7 @@ def main():
             with path.with_suffix('.runner.log').open('w') as log:
                 try:
                     code = run_trial(command, cwd=root, stdout=log,
-                        env=dict(os.environ, VLLM_APPLE_P1_EFFICIENCY='compact'))
+                        **gpu_lock.child_options(dict(os.environ, VLLM_APPLE_P1_EFFICIENCY='compact')))
                 except subprocess.TimeoutExpired:
                     with path.with_suffix('.timeout.json').open('x') as receipt:
                         json.dump(dict(status='timeout', passed=False, qualification=False,
@@ -88,6 +97,7 @@ def main():
             data = json.loads(path.read_text())
             print(f'repeat={repeat} prefill={step} exit={code} passed={data.get("passed")}', flush=True)
     summary = summarize(args.output_directory)
+    summary['gpu_lock'] = gpu_lock.snapshot()
     with (args.output_directory / 'summary.json').open('x') as output:
         json.dump(summary, output, indent=2)
         output.write('\n')

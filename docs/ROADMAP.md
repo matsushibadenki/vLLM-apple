@@ -41,6 +41,40 @@
 
 ## 直近の更新 / Recent updates / 最近更新
 
+### P1 · native実処理終了まで資源予約を保持 · 2026-11-02
+
+- 🟢 [Done] native model-ownerのactive要求がtimeout／切断しても、実処理が戻るまでスケジューラ予約と入力byte予算を保持。HTTP handlerの終了だけでは空きへ戻さず、owner完了callbackで一度だけ解放する。
+- 🟢 [Done] 待機キャンセルの即時回収を維持し、完了通知はqueue／state lockの外で実行。実HTTPのCPU模擬試験で408／切断→予約維持→owner終了後の解放→後続正常応答を検証。[契約と範囲](P1-CANCEL-QUEUE.md#native-completion-and-resource-reservations-2026-11-02)。
+- 🟢 [Done] 全回帰1,617件成功（46 skip）、Ruff 0.17.2／compileall／diff check成功。GPUの実メモリ量・長時間安定性の認定は含まない。
+- 🟠 [Next] process-owned engineのcancel acknowledgmentと予約回収を確認し、実backendの持続負荷・長時間認定へ接続する。
+
+English: Thread-owned native requests retain scheduler and input-byte reservations after HTTP timeout/disconnect until the delegate finishes. CPU HTTP tests verify deferred release and recovery; process-owned cancellation and long-run qualification remain next.
+
+简体中文：thread所有的native请求在HTTP timeout／断开后，保留scheduler及输入byte预算直到delegate结束。CPU HTTP测试验证延迟释放及恢复；下一步检查process所有的取消及长期认证。
+
+### P1／P3 · A/B比較全体の排他とtimeout回収 · 2026-11-02
+
+- 🟢 [Done] prefill／cache entries／efficiencyの3比較campaignを全反復にわたって排他。子qualificationへ実fdを継承し、試行間にも他の協調runnerを入れない。実行順とlock identityを`campaign.json`へ記録する。
+- 🟢 [Done] `run_trial`へfd継承を追加。efficiency比較も所有process groupのtimeout回収へ統一し、timeout時は失敗receiptを残して後続を止める。資源観測probeにも接続し、共通排他は合計7入口。[設計と範囲](kapitsa-review-2026-11-01.md#gpu-benchmark-exclusion)。
+- 🟢 [Done] 全回帰1,615件成功（46 skip）。3campaignの21模擬試行で実child processへのfd継承・試行間排他・候補順序固定を確認。7入口の占有拒否、timeout後の停止・解放、Ruff 0.17.2／compileall／diff check成功。
+- 🟢 [Done] [固定版Gemma 2の短時間実HTTP](evaluation/p1-campaign-lock-smoke-2026-11-02-r1.json)はwarmup3・長文12・短文30の45/45品質・SLO、cancel／timeout／切断回復・identity不変・正常shutdownが合格。共通lock情報も記録。[開始前観測](evaluation/p1-campaign-host-2026-11-02-r1.json)はBattery／automatic・nominal thermal。単一短時間runであり、過去AC測定との速度比較や30分／8時間認定は行わない。
+- 🟠 [Next] 固定identityで実backendのSLO超過を切り分け、認定条件を維持して30分→8時間へ進む。共通lockは非協調processの負荷を排除しない。
+
+English: Comparison campaigns retain cooperative exclusion across all candidates and repeats, inherit real descriptors through bounded trial processes, and abort later trials on timeout. Full regression passes 1,615 tests (46 skips); pinned Gemma 2 HTTP passes all 45 arithmetic quality/SLO checks and recovery checks. Performance improvement and long-run qualification remain open.
+
+简体中文：比较campaign跨全部候选及重复持续持有协作锁，通过有界试验process继承真实fd，并在timeout时终止后续试验。完整回归1,615项通过（46项skip）；固定Gemma 2 HTTP的45项算术质量／SLO及恢复检查全部通过。性能提升及长期认证仍未完成。
+
+### P1 · キャンセル済み待機要求の受付枠回復 · 2026-11-02
+
+- 🟢 [Done] model-ownerキューからcancel／切断／期限切れの待機commandを回収し、active処理の終了前に後続の受付枠を戻す。新規受付時にも回収し、caller側pollingの順序に依存しない。
+- 🟢 [Done] 正常FIFO、既存capacity、shutdown sentinel、active commandの所有権を維持。capacity 1の回復、余剰要求拒否、100回／400件の回収をCPU回帰で検証。[範囲と再現](P1-CANCEL-QUEUE.md#model-owner-waiting-queue-recovery-2026-11-02)。
+- 🟢 [Done] 最終全回帰1,612件成功（46 skip）。Ruff 0.17.2、compileall、diff check成功。今回の実モデル性能・長時間SLO認定は含まない。
+- 🟠 [Next] 実backendでの継続cancel負荷とSLO認定。既存のMLX-LM長文・warmup遅延の原因は引き続き切り分ける。
+
+English: Cancelled, disconnected and expired queued commands now free model-owner admission capacity while active execution remains owned. CPU regressions verify recovery and bounds; real-backend sustained qualification remains next.
+
+简体中文：已取消、断开或过期的等待command现在释放model-owner受付容量，同时保留active执行所有权。CPU回归验证恢复与上限；下一步是真实backend持续认证。
+
 ### P1／P3 · GPU計測runnerの共通排他 · 2026-11-01
 
 - 🟢 [Done] P1 campaign、Gemma 2単独qualification、Metal trace収集に共通flockを接続。Kapitsaと既定pathを共有し、占有時はmodel読込・結果作成前に拒否。親子runnerは実fdを継承し自己待機を防ぐ。

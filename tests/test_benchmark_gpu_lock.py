@@ -128,7 +128,14 @@ class BenchmarkGpuLockTests(unittest.TestCase):
 
     def test_busy_runners_do_not_start_work_or_create_evidence(self):
         from experiments.p3_mlx import profile
-        from scripts import qualify_gemma2_batch_mask, run_p1_stability
+        from scripts import (
+            compare_p1_cache_entries,
+            compare_p1_efficiency,
+            compare_p1_prefill,
+            probe_p1_efficiency_resources,
+            qualify_gemma2_batch_mask,
+            run_p1_stability,
+        )
 
         output = Path(self.directory.name) / 'evidence'
         base_args = ['runner', '--python', sys.executable, '--model', self.directory.name]
@@ -136,6 +143,10 @@ class BenchmarkGpuLockTests(unittest.TestCase):
             (qualify_gemma2_batch_mask, '--output', '_run_qualification'),
             (run_p1_stability, '--output-directory', '_run_stability'),
             (profile, '--output-directory', '_run_profile'),
+            (compare_p1_prefill, '--output-directory', '_compare'),
+            (compare_p1_cache_entries, '--output-directory', '_compare'),
+            (compare_p1_efficiency, '--output-directory', '_compare'),
+            (probe_p1_efficiency_resources, '--output', '_probe'),
         )
         with BenchmarkGpuLock():
             for module, option, worker in runners:

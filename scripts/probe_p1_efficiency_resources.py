@@ -11,6 +11,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from scripts.qualify_gemma2_batch_mask import _idle_resources, _long_prefix_cases
 from vllm_apple.backend import BackendConfig, BackendProcess
+from vllm_apple.benchmark_gpu_lock import BenchmarkGpuLock
 from vllm_apple.phase_probe import PhaseProbeConfig, measure_stream
 
 
@@ -22,6 +23,11 @@ def main():
     args = parser.parse_args()
     if args.output.exists():
         parser.error('output must be new')
+    with BenchmarkGpuLock() as gpu_lock:
+        return _probe(args, gpu_lock)
+
+
+def _probe(args, gpu_lock):
     root = Path(__file__).resolve().parents[1]
     observations = []
     for name in ('baseline', 'responsive', 'compact'):
@@ -54,7 +60,8 @@ def main():
             backend.stop()
             row['process_stopped'] = not backend.running
             args.output.write_text(json.dumps(dict(scope='short fixed requests; no long-run or energy qualification',
-                watts_measured=False, observations=observations), indent=2)+'\n')
+                watts_measured=False, observations=observations,
+                gpu_lock=gpu_lock.snapshot()), indent=2)+'\n')
     return 0
 
 

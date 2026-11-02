@@ -3,11 +3,34 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
+from vllm_apple.benchmark_gpu_lock import BenchmarkGpuBusy, BenchmarkGpuLock
 from vllm_apple.trial_process import run_trial
 
 
 class TrialProcessTests(unittest.TestCase):
+    def test_trial_explicitly_inherits_benchmark_lock(self):
+        import os
+
+        with tempfile.TemporaryDirectory() as tmp, patch.dict(
+            os.environ, {'BENCH_GPU_LOCK': str(Path(tmp)/'gpu.lock')}
+        ):
+            marker = Path(tmp)/'inherited'
+            code = ('import sys; from pathlib import Path; '
+                    'from vllm_apple.benchmark_gpu_lock import BenchmarkGpuLock; '
+                    '\nwith BenchmarkGpuLock() as lock: '
+                    'Path(sys.argv[1]).write_text(str(lock.snapshot()["inherited"]))')
+            with BenchmarkGpuLock() as lock:
+                self.assertEqual(run_trial([sys.executable, '-c', code, str(marker)],
+                                           **lock.child_options(), timeout=10), 0)
+                self.assertEqual(marker.read_text(), 'True')
+                with self.assertRaises(BenchmarkGpuBusy):
+                    with BenchmarkGpuLock():
+                        pass
+            with BenchmarkGpuLock():
+                pass
+
     def test_success_and_exit_code(self):
         self.assertEqual(run_trial([sys.executable, '-c', 'raise SystemExit(3)']), 3)
 

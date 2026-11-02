@@ -8,7 +8,7 @@ from vllm_apple.inference_request import (
     InferenceRequestCancelled,
     InferenceRequestContext,
 )
-from vllm_apple.managed_engine import ThreadAffineInferenceEngine
+from vllm_apple.managed_engine import ThreadAffineInferenceEngine, _Command, _CommandQueue
 from vllm_apple.service import RuntimeService
 
 
@@ -43,6 +43,64 @@ def context(name, seconds=2):
 
 
 class ThreadAffineInferenceEngineTests(unittest.TestCase):
+    def test_cancelled_waiter_releases_capacity_before_active_call_returns(self):
+        calls, outcomes = [], {}
+        entered, release, cancelled_queued, replacement_queued = (
+            threading.Event() for _ in range(4)
+        )
+        engine = ThreadAffineInferenceEngine(
+            lambda: Delegate(calls, entered, release), maximum_pending_requests=1
+        )
+        cancelled_context = context('cancelled-waiter')
+        original_put = engine._commands.put_nowait
+
+        def observed_put(command):
+            original_put(command)
+            if command is not None:
+                if command.request['name'] == 'cancelled-waiter':
+                    cancelled_queued.set()
+                if command.request['name'] == 'replacement':
+                    replacement_queued.set()
+
+        def invoke(name, request_context, block=False):
+            try:
+                outcomes[name] = engine.chat_completions_with_request_context(
+                    {'name': name, 'block': block}, None, request_context
+                )
+            except BaseException as error:
+                outcomes[name] = error
+
+        active = threading.Thread(target=invoke, args=('active', context('active'), True))
+        cancelled = threading.Thread(target=invoke, args=('cancelled-waiter', cancelled_context))
+        replacement = threading.Thread(target=invoke, args=('replacement', context('replacement')))
+        try:
+            active.start()
+            self.assertTrue(entered.wait(1))
+            with patch.object(engine._commands, 'put_nowait', side_effect=observed_put):
+                cancelled.start()
+                self.assertTrue(cancelled_queued.wait(1))
+                cancelled_context.cancellation.set()
+                # Admission itself must reclaim the slot, without requiring
+                # the cancelled caller's polling thread to have run first.
+                replacement.start()
+                self.assertTrue(replacement_queued.wait(1))
+            cancelled.join(1)
+            self.assertFalse(cancelled.is_alive())
+            self.assertIsInstance(outcomes['cancelled-waiter'], InferenceRequestCancelled)
+            self.assertTrue(active.is_alive())
+            self.assertNotIn('close', [name for name, _ in calls])
+            with self.assertRaises(InferenceEngineBusy):
+                engine.chat_completions_with_request_context({}, None, context('excess'))
+        finally:
+            release.set()
+            for worker in (active, cancelled, replacement):
+                if worker.ident is not None:
+                    worker.join(1)
+            self.assertTrue(engine.close())
+        self.assertEqual(outcomes['replacement'], {'name': 'replacement'})
+        self.assertNotIn('cancelled-waiter', [name for name, _ in calls])
+        self.assertEqual({owner for _, owner in calls}, {engine.owner_thread_ident})
+
     def test_create_infer_models_and_close_stay_on_owner_thread(self):
         calls = []
         engine = ThreadAffineInferenceEngine(lambda: Delegate(calls))
@@ -275,6 +333,60 @@ class ThreadAffineInferenceEngineTests(unittest.TestCase):
         self.assertEqual(results, [True])
         self.assertTrue(service.close())
         engine.close.assert_called_once()
+
+
+class CommandQueueCancellationTests(unittest.TestCase):
+    def test_expired_or_disconnected_commands_free_capacity_and_keep_fifo(self):
+        for reason in ('deadline', 'disconnect', 'caller_cancel'):
+            with self.subTest(reason=reason):
+                commands = _CommandQueue(3)
+                first = _Command({}, None, context('first'))
+                abandoned = _Command({}, None, context('abandoned'))
+                last = _Command({}, None, context('last'))
+                for command in (first, abandoned, last):
+                    commands.put_nowait(command)
+                if reason == 'deadline':
+                    abandoned.request_context = InferenceRequestContext(
+                        'expired', time.monotonic() - 1, threading.Event()
+                    )
+                elif reason == 'disconnect':
+                    abandoned.request_context.cancellation.set()
+                else:
+                    abandoned.cancelled.set()
+                commands.discard_cancelled()
+                replacement = _Command({}, None, context('replacement'))
+                commands.put_nowait(replacement)
+                self.assertIs(commands.get_nowait(), first)
+                self.assertIs(commands.get_nowait(), last)
+                self.assertIs(commands.get_nowait(), replacement)
+                self.assertTrue(abandoned.done.is_set())
+                self.assertIsInstance(abandoned.error, InferenceRequestCancelled)
+                self.assertFalse(first.done.is_set())
+                commands.discard_cancelled()
+
+    def test_active_command_and_shutdown_sentinel_are_not_reclaimed(self):
+        commands = _CommandQueue(2)
+        active = _Command({}, None, context('active'))
+        commands.put_nowait(active)
+        self.assertIs(commands.get_nowait(), active)
+        active.cancelled.set()
+        commands.put_nowait(None)
+        commands.discard_cancelled()
+        self.assertFalse(active.done.is_set())
+        self.assertIsNone(commands.get_nowait())
+
+    def test_repeated_cancellation_reclaims_all_waiters_without_growing_queue(self):
+        commands = _CommandQueue(4)
+        for _ in range(100):
+            batch = [_Command({}, None, context(str(index))) for index in range(4)]
+            for command in batch:
+                commands.put_nowait(command)
+                command.request_context.cancellation.set()
+            commands.discard_cancelled()
+            commands.discard_cancelled()
+            self.assertEqual(commands.qsize(), 0)
+            self.assertEqual(commands.unfinished_tasks, 0)
+            self.assertTrue(all(command.done.is_set() for command in batch))
 
 
 if __name__ == "__main__":
