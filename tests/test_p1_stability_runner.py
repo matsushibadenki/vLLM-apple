@@ -1,4 +1,5 @@
 import json
+import os
 import sys
 import tempfile
 import unittest
@@ -6,6 +7,7 @@ from pathlib import Path
 from unittest.mock import Mock, patch
 
 from scripts import run_p1_stability
+from vllm_apple.benchmark_gpu_lock import LOCK_FD_ENV
 
 
 class P1RunnerTests(unittest.TestCase):
@@ -19,6 +21,9 @@ class P1RunnerTests(unittest.TestCase):
                 child.wait.return_value = 0
                 child.poll.return_value = 0
                 if '--output' in command:
+                    self.assertEqual(kwargs['pass_fds'],
+                                     (int(kwargs['env'][LOCK_FD_ENV]),))
+                    self.assertEqual(kwargs['env']['BENCH_GPU_LOCK'], str(root/'gpu.lock'))
                     commands.append(command)
                     policies.append(kwargs['env']['VLLM_APPLE_P1_EFFICIENCY'])
                     Path(command[command.index('--output') + 1]).write_text(json.dumps(
@@ -26,7 +31,8 @@ class P1RunnerTests(unittest.TestCase):
                 return child
             argv = ['runner', '--python', sys.executable, '--model', str(root),
                     '--output-directory', str(root/'result'), '--prefill-step-size', '256', '--efficiency', 'compact']
-            with patch.object(sys, 'argv', argv), patch.object(run_p1_stability.subprocess, 'Popen',
+            with patch.dict(os.environ, {'BENCH_GPU_LOCK': str(root/'gpu.lock')}), \
+                 patch.object(sys, 'argv', argv), patch.object(run_p1_stability.subprocess, 'Popen',
                                                              side_effect=spawn), \
                  patch.object(run_p1_stability.signal, 'signal'):
                 self.assertEqual(run_p1_stability.main(), 0)
@@ -56,7 +62,8 @@ class P1RunnerTests(unittest.TestCase):
 
             argv = ['runner', '--python', sys.executable, '--model', str(root),
                     '--output-directory', str(root/'result')]
-            with patch.object(sys, 'argv', argv), patch.object(run_p1_stability.subprocess, 'Popen',
+            with patch.dict(os.environ, {'BENCH_GPU_LOCK': str(root/'gpu.lock')}), \
+                 patch.object(sys, 'argv', argv), patch.object(run_p1_stability.subprocess, 'Popen',
                                                              side_effect=spawn), \
                  patch.object(run_p1_stability.signal, 'signal'):
                 with self.assertRaisesRegex(RuntimeError, 'later stages will not start'):

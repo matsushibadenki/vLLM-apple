@@ -1,6 +1,7 @@
 """Single-owner-thread lifecycle for thread-affine native inference engines."""
 from __future__ import annotations
 
+import math
 import queue
 import threading
 from collections.abc import Callable
@@ -48,6 +49,7 @@ class ThreadAffineInferenceEngine:
         )
         self._startup = threading.Event()
         self._closed = threading.Event()
+        self._state_lock = threading.Lock()
         self._startup_error: BaseException | None = None
         self._delegate: object | None = None
         self._ready = False
@@ -58,6 +60,7 @@ class ThreadAffineInferenceEngine:
         )
         self._thread.start()
         if not self._startup.wait(startup_timeout_seconds):
+            self._request_close()
             raise TimeoutError("thread-affine engine startup timed out")
         if self._startup_error is not None:
             raise RuntimeError("thread-affine engine startup failed") from self._startup_error
@@ -80,13 +83,14 @@ class ThreadAffineInferenceEngine:
         request_context: InferenceRequestContext,
     ) -> dict[str, Any]:
         request_context.raise_if_cancelled()
-        if self._closed.is_set():
-            raise RuntimeError("thread-affine engine is closed")
         command = _Command(request, kernel_context, request_context)
-        try:
-            self._commands.put_nowait(command)
-        except queue.Full as error:
-            raise InferenceEngineBusy("inference engine queue is full") from error
+        with self._state_lock:
+            if self._closed.is_set():
+                raise RuntimeError("thread-affine engine is closed")
+            try:
+                self._commands.put_nowait(command)
+            except queue.Full as error:
+                raise InferenceEngineBusy("inference engine queue is full") from error
         while not command.done.wait(min(0.05, request_context.remaining_seconds)):
             try:
                 request_context.raise_if_cancelled()
@@ -104,38 +108,65 @@ class ThreadAffineInferenceEngine:
     def open_chat_stream(self, request: dict[str, Any]):
         raise RuntimeError("thread-affine streaming is not enabled")
 
-    def close(self) -> bool:
-        if self._closed.is_set():
-            return True
-        self._closed.set()
-        self._commands.put(None)
-        self._thread.join(timeout=10)
+    def _request_close(self) -> None:
+        with self._state_lock:
+            if self._closed.is_set():
+                return
+            self._closed.set()
+            # Reject queued work before signalling the owner. Never wait for a
+            # free queue slot while the delegate may still be executing.
+            while True:
+                try:
+                    command = self._commands.get_nowait()
+                except queue.Empty:
+                    break
+                if command is not None:
+                    command.error = InferenceRequestCancelled("inference engine is closing")
+                    command.done.set()
+            self._commands.put_nowait(None)
+
+    def close(self, *, timeout_seconds: float = 10.0) -> bool:
+        """Request shutdown once; report success only after the owner exits.
+
+        An active delegate retains ownership until its call returns. A timed-out
+        close can be retried, and an owner callback can request close without
+        attempting to join itself.
+        """
+        if not math.isfinite(timeout_seconds) or not 0 <= timeout_seconds <= 1800:
+            raise ValueError("close timeout must be finite and between 0 and 1800 seconds")
+        self._request_close()
+        if threading.get_ident() == self._owner_ident:
+            return False
+        self._thread.join(timeout=timeout_seconds)
         return not self._thread.is_alive()
 
     def _run(self) -> None:
         self._owner_ident = threading.get_ident()
         try:
-            self._delegate = self._factory()
-            self._ready = bool(getattr(self._delegate, "ready", True))
-            models = getattr(self._delegate, "models", None)
-            self._models = list(models()) if callable(models) else []
-        except BaseException as error:
-            self._startup_error = error
-            self._startup.set()
-            return
-        self._startup.set()
-        try:
+            try:
+                self._delegate = self._factory()
+                if self._closed.is_set():
+                    return
+                self._ready = bool(getattr(self._delegate, "ready", True))
+                models = getattr(self._delegate, "models", None)
+                self._models = list(models()) if callable(models) else []
+            except BaseException as error:
+                self._startup_error = error
+                return
+            finally:
+                self._startup.set()
             while True:
                 command = self._commands.get()
                 if command is None:
                     return
-                if command.cancelled.is_set():
+                if command.cancelled.is_set() or self._closed.is_set():
                     command.error = InferenceRequestCancelled(
                         "inference request cancelled while queued"
                     )
                     command.done.set()
                     continue
                 try:
+                    command.request_context.raise_if_cancelled()
                     method = getattr(
                         self._delegate, "chat_completions_with_request_context"
                     )
@@ -149,6 +180,7 @@ class ThreadAffineInferenceEngine:
                 finally:
                     command.done.set()
         finally:
+            self._ready = False
             close = getattr(self._delegate, "close", None)
             if callable(close):
                 close()

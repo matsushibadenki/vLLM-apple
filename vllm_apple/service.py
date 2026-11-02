@@ -253,6 +253,7 @@ class RuntimeService:
         }
         self.engine = engine or UnavailableInferenceEngine()
         self._engine_closed = False
+        self._engine_close_lock = threading.Lock()
         self.semantic_state = semantic_state
         self.elastic_memory = (
             ElasticMemoryController(semantic_state) if semantic_state is not None else None
@@ -269,16 +270,17 @@ class RuntimeService:
         )
 
     def close(self) -> bool:
-        """Close an owned inference engine exactly once during daemon shutdown."""
-        with self._lock:
+        """Cache completed shutdown, allowing an incomplete close to be retried."""
+        if not self._engine_close_lock.acquire(blocking=False):
+            return False
+        try:
             if self._engine_closed:
                 return True
-            self._engine_closed = True
-        close = getattr(self.engine, "close", None)
-        if not callable(close):
-            return True
-        result = close()
-        return result is not False
+            close = getattr(self.engine, "close", None)
+            self._engine_closed = not callable(close) or close() is not False
+            return self._engine_closed
+        finally:
+            self._engine_close_lock.release()
 
     @property
     def state(self) -> RuntimeState:

@@ -26,6 +26,7 @@ from vllm_apple.backend import (
     OpenAIProxyEngine,
 )
 from vllm_apple.benchmark_context import observe_benchmark_context
+from vllm_apple.benchmark_gpu_lock import BenchmarkGpuLock
 from vllm_apple.hardware import detect_thermal_state
 from vllm_apple.phase_probe import PhaseProbeConfig, _resident_bytes, measure_stream
 from vllm_apple.process_activity_delta import memory_activity_delta
@@ -942,6 +943,11 @@ def main() -> int:
     if not 128 <= args.prefill_step_size <= 4096:
         parser.error("--prefill-step-size must be between 128 and 4096")
 
+    with BenchmarkGpuLock() as gpu_lock:
+        return _run_qualification(args, gpu_lock)
+
+
+def _run_qualification(args: argparse.Namespace, gpu_lock: BenchmarkGpuLock) -> int:
     repository = Path(__file__).resolve().parents[1]
     model = args.model.resolve()
     base_url = f"http://127.0.0.1:{args.port}"
@@ -968,6 +974,7 @@ def main() -> int:
     started_at = time.time()
     report: dict[str, object] = {
         "schema_version": 1, "report_kind": "gemma2_batch_mask_qualification",
+        "gpu_lock": gpu_lock.snapshot(),
         "started_at_unix": started_at, "hardware": "Apple M4 / 32 GiB",
         "command": command, "model_config_sha256": hashlib.sha256(
             (model / "config.json").read_bytes()).hexdigest(),

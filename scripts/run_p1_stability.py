@@ -10,6 +10,7 @@ import sys
 from pathlib import Path
 
 from scripts.qualify_gemma2_batch_mask import _atomic_json
+from vllm_apple.benchmark_gpu_lock import BenchmarkGpuLock
 
 
 def main() -> int:
@@ -21,6 +22,11 @@ def main() -> int:
     parser.add_argument('--prefill-step-size', type=int, choices=(128, 256, 512), default=512)
     parser.add_argument('--efficiency', choices=('baseline', 'responsive', 'compact'), default='baseline')
     args = parser.parse_args()
+    with BenchmarkGpuLock() as gpu_lock:
+        return _run_stability(args, gpu_lock)
+
+
+def _run_stability(args: argparse.Namespace, gpu_lock: BenchmarkGpuLock) -> int:
     def terminate(signum: int, frame: object) -> None:
         raise KeyboardInterrupt(f'test orchestration received signal {signum}')
     signal.signal(signal.SIGTERM, terminate)
@@ -28,6 +34,7 @@ def main() -> int:
     output = args.output_directory.resolve()
     output.mkdir(parents=True, exist_ok=False)
     state = dict(status='running', passed=False, pid=os.getpid(), stages=[],
+                 gpu_lock=gpu_lock.snapshot(),
                  scope='P1 awake mixed-load candidate; sleep/wake remains unqualified',
                  automatic_promotion=False, efficiency_candidate=args.efficiency)
     _atomic_json(output/'state.json', state)
@@ -49,7 +56,8 @@ def main() -> int:
             state['stages'].append(stage)
             _atomic_json(output/'state.json', state)
             with (output/f'{name}.log').open('w') as log:
-                child = subprocess.Popen(command, cwd=root, env=dict(os.environ, PYTHONPATH=str(root), VLLM_APPLE_P1_EFFICIENCY=args.efficiency),
+                child = subprocess.Popen(command, cwd=root,
+                                         **gpu_lock.child_options(dict(os.environ, PYTHONPATH=str(root), VLLM_APPLE_P1_EFFICIENCY=args.efficiency)),
                                          stdout=log, stderr=log)
                 try:
                     returncode = child.wait(timeout=duration+600)

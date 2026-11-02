@@ -7,6 +7,9 @@ import subprocess
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
+from vllm_apple.benchmark_gpu_lock import BenchmarkGpuLock
+from vllm_apple.trial_process import run_trial
+
 from .trace import add_shader_breakdown, sha, summarize_trace
 
 
@@ -16,6 +19,11 @@ def main():
     parser.add_argument('--model',type=Path,required=True)
     parser.add_argument('--output-directory',type=Path,required=True)
     args = parser.parse_args()
+    with BenchmarkGpuLock() as gpu_lock:
+        return _run_profile(args, gpu_lock)
+
+
+def _run_profile(args: argparse.Namespace, gpu_lock: BenchmarkGpuLock):
     output = args.output_directory.resolve()
     output.mkdir(parents=True,exist_ok=False)
     root = Path(__file__).resolve().parents[2]
@@ -27,7 +35,9 @@ def main():
         '--target-stdout',str(output/'worker.log'),'--launch','--',str(args.python.absolute()),
         '-m','experiments.p3_mlx.workload','--model',str(args.model.resolve()),'--output',str(workload)]
     with (output/'record.log').open('w') as log:
-        subprocess.run(command,cwd=root,stdout=log,stderr=log,check=True,timeout=120)
+        returncode = run_trial(command, cwd=root, stdout=log, timeout=120, grace=5)
+        if returncode:
+            raise subprocess.CalledProcessError(returncode, command)
     toc = output/'toc.xml'
     subprocess.run(['xcrun','xctrace','export','--input',str(trace),'--toc','--output',str(toc)],check=True,timeout=45)
     launch = ET.parse(toc).find('.//target/process')
@@ -46,6 +56,7 @@ def main():
     report = summarize_trace(output/'metal-gpu-intervals.xml',output/'time-info.xml',workload,pid)
     add_shader_breakdown(report,output/'metal-shader-profiler-intervals.xml',output/'time-info.xml',workload,pid)
     report.update(identity=metadata['identity'],identity_unchanged=True,
+        gpu_lock=gpu_lock.snapshot(),
         operating_conditions=metadata['operating_conditions'],
         command=command,collector_source_sha256=sha(Path(__file__)),
         trace_path=str(trace),trace_files={str(p.relative_to(trace)):sha(p) for p in sorted(trace.rglob('*')) if p.is_file()},

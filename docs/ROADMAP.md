@@ -41,6 +41,29 @@
 
 ## 直近の更新 / Recent updates / 最近更新
 
+### P1／P3 · GPU計測runnerの共通排他 · 2026-11-01
+
+- 🟢 [Done] P1 campaign、Gemma 2単独qualification、Metal trace収集に共通flockを接続。Kapitsaと既定pathを共有し、占有時はmodel読込・結果作成前に拒否。親子runnerは実fdを継承し自己待機を防ぐ。
+- 🟢 [Done] report／stateへlockのpath・inode・継承有無を記録。親終了後も子の保持を維持し、trace記録のtimeout時は所有process groupを回収する。[設計と範囲](kapitsa-review-2026-11-01.md#gpu-benchmark-exclusion)。
+- 🟢 [Done] 全回帰1,608件成功（46 skip）、Ruff 0.17.2／compileall／diff check成功。モデル読込を伴わないprocess間排他の検証であり、GPU性能認定ではない。
+- 🟠 [Next] 他のbenchmark入口への接続と、固定identityでのSLO原因切り分け。共通lockを使わないprocessのGPU負荷は引き続き環境観測で判定する。
+
+English: Three measurement entrypoints now share cooperative GPU exclusion with explicit fd inheritance. Other runners and real-model performance qualification remain unfinished.
+
+简体中文：3个计测入口已接入共用GPU协作锁及显式fd继承；其他runner及真实模型性能认证仍未完成。
+
+### P1 · Kapitsaの終了ライフサイクル設計を導入 · 2026-11-01
+
+- 🟢 [Done] model-ownerの停止要求とthread終了を分離。満杯キューでcloseが待機せず、待機要求はcancel、実行中のdelegateはowner上で解放。起動timeout後の遅いfactoryとmetadata失敗もcleanupする。serviceは未完了closeを成功と扱わず再確認できる。
+- 🟢 [Done] キュー試験の固定sleepをenqueue Eventに置換。終了・起動失敗・owner callback・同時service closeをCPU回帰で検証。[調査・再現手順](kapitsa-review-2026-11-01.md)。Kapitsaのコード転載・依存追加はない。
+- 🟢 [Done] 最終全回帰1,600件成功（46 skip）。Ruff 0.17.2、compileall、diff check成功。GPU／実モデル性能の認定とは分離。
+- 🟠 [Next] 共通GPU排他を他の計測入口へ展開し、既存SLO超過を固定identityで切り分ける。
+- 🔴 [Later] 永続cacheのstate format／namespace、SSD待機と再prefill費用の比較、Strataの需要read優先を検討。GPU性能・8時間認定は未完了。
+
+English: Applied one-shot stop and repeatable owner-thread completion checks; full queues and late startup now clean up safely. Benchmark GPU exclusion is next; persistent-cache and expert-read policies remain later work.
+
+简体中文：已应用一次停止请求及可重复的owner-thread结束确认，修复满队列及迟到起动的回收。下一步统一GPU计测排他；持久cache及expert读取策略后续评估。
+
 ### P1 · 満杯の応答キューからのキャンセル · 2026-10-28
 
 - 🟢 [Done] Gemma 2互換経路で、満杯の応答キューへ終了通知を追加する際の待機を解消。キャンセル時に未配信応答を破棄してconsumerとproducerを解放し、キャンセル後のtoken追加を拒否する。通常時のFIFO、既存1,024件上限、model-ownerの停止契約を維持。
@@ -91,6 +114,16 @@ English: Upstream Metal research completed; process-wide budgets and launch vali
 
 简体中文：上游Metal调查完成，下一步优先全process预算与launch验证。
 
+
+### 依存更新 · 2026-11-02
+
+- 🟢 [Done] Ruff0.17.3へ更新。[記録](dependency-update-2026-11-02.md)：新旧Ruffともlint0、全Python回帰1608 tests OK（46 skip）、Python3.10/3.12 compile・pip check・wheel作成／install／CLI・Swift38 tests・Mac sample成功。既存managed engine／P1／GPU lock等の作業を保持。
+- 🟠 [Next] 前回のlint／起動timeoutは今回再現しなかったが、Ruff更新で根因を修正したとは扱わない。現在のHomebrew doctor／起動検査は別工程で再検証する。推論環境・固定依存は今回変更していない。
+- ⭕️ [Pending] modelを必要とする生成／変換qualification、実remote CIとActions最新版のrunner検証。
+
+English: Ruff0.17.3 is applied; lint, Python and Swift checks pass. User edits and exact backend dependency constraints are preserved.
+
+简体中文：已应用Ruff0.17.3，lint及Python／Swift验证成功；保留用户修改及后端精确依赖约束。
 
 ### 依存更新 · 2026-10-26
 
