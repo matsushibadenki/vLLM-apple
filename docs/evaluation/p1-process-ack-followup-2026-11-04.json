@@ -1,0 +1,51 @@
+{
+  "date": "2026-11-04",
+  "scope": "Process inference queued cancellation and terminal acknowledgment validation",
+  "platform": "macOS-27.2-arm64-arm-64bit",
+  "source_sha256": {
+    "vllm_apple/process_inference_engine.py": "7f4ddf01e1d12c299dcbb1dcef38da5a0cf785e631843910d1fbce3179bc65cd",
+    "vllm_apple/main_thread_process_worker.py": "c9a9a5f70ba2171119a8ed9c8492514ba87037391c3c8171dffffbf963497d37",
+    "tests/process_engine_fixture.py": "aa2cf049ce47c5da11b81095c5c9416a189c6a7375d9656db96ba33e4b4c7538",
+    "tests/test_process_inference_engine.py": "365c1ac55a5875e9beed5389c41e3a60a2ecf0cbf71223cad45c267efe2e783c"
+  },
+  "full_regression": {
+    "tests": 1626,
+    "seconds": 181.681,
+    "skipped": 46,
+    "passed": true,
+    "command": "PATH=/opt/homebrew/opt/openssl@3/bin:$PATH .venv/bin/python -m unittest discover -s tests",
+    "log": "docs/evaluation/p1-process-ack-followup-full-2026-11-04.log",
+    "log_sha256": "1f2afdb6f57e6cb4260f4a25af299c44ac1934af1404546adec5d89bef30ee76"
+  },
+  "targeted_edge_cases": {
+    "tests": 3,
+    "seconds": 16.042,
+    "passed": true,
+    "resource_warnings_as_errors": true,
+    "cases": [
+      "HTTP abandonment with invalid terminal reply",
+      "invalid terminal or EOF requires confirmed exit",
+      "reader completion callback can close engine"
+    ]
+  },
+  "lint": {
+    "version": "0.17.3",
+    "passed": true,
+    "scope": "vllm_apple tests"
+  },
+  "compileall": true,
+  "diff_check": true,
+  "verified": [
+    "queued cancellation acknowledged before blocked active request finishes",
+    "replacement admitted with active ownership and capacity bound preserved",
+    "queued time consumes timeout; expired command does not invoke delegate",
+    "non-terminal reply, malformed result, unknown error and EOF cannot release leases",
+    "owned child confirmed exited before failure completion",
+    "HTTP scheduler and input-byte reservations released once after actual exit",
+    "reader callback shutdown avoids self-join and closes stdout"
+  ],
+  "previous_evidence_preserved": "docs/evaluation/p1-process-completion-2026-11-04.json",
+  "gpu_qualification": false,
+  "performance_qualified": false,
+  "long_run_qualified": false
+}

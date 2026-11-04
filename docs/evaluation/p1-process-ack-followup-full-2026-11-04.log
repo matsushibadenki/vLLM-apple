@@ -1,0 +1,45 @@
+..........................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................ssss.s..s..s..........sssssssssss..........s................................................................................................................................/Users/littlebuddha/.local/share/uv/python/cpython-3.12-macos-aarch64-none/lib/python3.12/shutil.py:1445: ResourceWarning: unclosed <socket.socket fd=6, family=2, type=1, proto=0, laddr=('127.0.0.1', 51602), raddr=('127.0.0.1', 51603)>
+  columns = 0
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+.......................................sssssssss............................s...........................................................................................{
+  "action": "install",
+  "label": "test.daemon",
+  "passed": true,
+  "plist_path": "/tmp/test.daemon.plist",
+  "running": false
+}
+{
+  "action": "status",
+  "label": "test.daemon",
+  "passed": true,
+  "plist_path": "/tmp/test.daemon.plist",
+  "running": false
+}
+repeat=1 prefill=512 exit=0 passed=True
+repeat=1 prefill=256 exit=0 passed=True
+repeat=2 prefill=256 exit=0 passed=True
+repeat=2 prefill=512 exit=0 passed=True
+repeat=3 prefill=512 exit=0 passed=True
+repeat=3 prefill=256 exit=0 passed=True
+repeat=1 entries=4 exit=0
+repeat=1 entries=3 exit=0
+repeat=2 entries=3 exit=0
+repeat=2 entries=4 exit=0
+repeat=3 entries=4 exit=0
+repeat=3 entries=3 exit=0
+baseline 1 0 True
+responsive 1 0 True
+compact 1 0 True
+compact 2 0 True
+baseline 2 0 True
+responsive 2 0 True
+responsive 3 0 True
+compact 3 0 True
+baseline 3 0 True
+.repeat=1 prefill=512 timeout; no promotion
+..........................................................................................................................s.......s..s.ssss.....s...........s.........ss.........................................................................................................{"vllm_apple_error_code": "qwen_image_21_encoder_failed", "vllm_apple_error_detail": "ValueError: Qwen-Image phase handoff root must be in workspace"}
+.............................................................................................................................................................ssss.............................................................................................................s.......................................................s.....................
+----------------------------------------------------------------------
+Ran 1626 tests in 181.681s
+
+OK (skipped=46)

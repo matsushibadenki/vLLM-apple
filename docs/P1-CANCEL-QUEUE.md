@@ -1,5 +1,33 @@
 # P1 cancellation under response backpressure — 2026-10-28
 
+## Process completion and resource reservations 2026 11 04
+
+🟢 [Done] 追補：childの待機推論commandをcancelした場合、queue mutex内で未取得であることを確認して除去し、delegateを呼ばず終端`request_cancelled`を返す。active要求はここで解放しない。受付からのdeadlineをchildで保持し、実行開始時に期限切れを確認するため、キュー待ち後にtimeout予算をリセットしない。
+
+親が完了確認として受け付けるのは、対応idのobject型resultか、既知の終端error codeだけとする。単なるcancel受領通知、不正result、未知error、stdout EOFでは予約を保持し、所属childの停止・実終了確認後に回収する。完了callbackからengineをcloseする場合はreaderの自己joinを避け、reader自身がstdoutを閉じる。遅延diagnosticsは従来どおり終端応答まで上限に含める。
+
+CPU子process試験はactive delegateをfile barrierで停止したまま、queued cancel→終端確認→後続受付→既存上限で余剰拒否→active終了後のFIFO実行を検証する。HTTP試験では408後に不正応答を注入し、scheduler／入力byte予約がchildの実終了後に一度だけ回収されることを確認する。期限切れdelegateの未呼出、unknown terminal／不正result／未知error／EOFと、完了callbackからのcloseも検証する。初期証拠とlogは保持し、追補結果を別記録へ保存する。
+
+English: Queued inference cancellation now returns a terminal acknowledgment before the active native call finishes; the queue removal and owner claim are mutually exclusive. Queue time consumes the original deadline. Only valid terminal responses release reservations; protocol failure or EOF triggers owned-child termination and confirmed exit first. Completion callbacks may close the engine without joining the reader itself. CPU subprocess/HTTP tests cover these contracts; real GPU and sustained-load qualification remain open.
+
+简体中文：等待中的推理请求现在可在active native调用结束前返回取消终态，队列移除与owner取得command互斥。等待时间消耗原deadline。仅合法终态释放预算；protocol失败或EOF先停止所属child并确认退出，再回收。completion callback可关闭engine，避免reader自身join。CPU子进程／HTTP测试验证这些契约；真实GPU及持续负载认证仍未完成。
+
+追補の最終検証：全回帰1,626 tests成功（46 skip、181.681秒、OpenSSL 3明示）。不正応答／HTTP回収／callback closeの3 edge testsもResourceWarningをerrorとして成功。指定Ruff 0.17.3、compileall、diff検査成功。[source hash・実行記録](evaluation/p1-process-ack-followup-2026-11-04.json)。以下の32 tests／Ruff 0.16.5の記載は、追補前の初期検証を保持したもの。
+
+🟢 [Done] 子プロセス所有の推論でも、HTTP timeout／切断だけでは受付枠・スケジューラ予約・入力byte予算を返さない。親はcancel通知を送ってcallerへ即時に戻り、childがdelegateから戻って送るresult／errorを完了確認として扱う。応答前のstdout EOF／protocol失敗ではprocess終了を待ち、cancel送信やpipe切断だけを実処理終了と扱わない。異常終了は実際のprocess終了確認後に全待機通知を完了する。
+
+pending登録の回収をcallerのfinallyからresponse readerへ移し、完了Futureを既存APIの解放callbackへ渡す。callbackはpending lockの外で実行する。期限切れdiagnosticsも応答まで受付上限に含め、送信前のJSON／サイズ拒否は直ちに枠を返す。所有childのclose後はstdin／stdoutも閉じる。
+
+CPU子プロセスfixtureをfile barrierで停止し、cancel後もcapacity 1が満杯であること、child応答／異常終了後の一度だけの完了、後続要求、HTTP timeout 408／切断後の4,096 bytes予約とbody byte保持・回収を検証する。実GPU／KVメモリ量、推論速度、長時間SLOの認定ではない。応答しないchildの予約は終了確認まで保持し、既存closeの強制回収対象はそのengineが生成したchildだけとする。
+
+English: 🟢 [Done] Process-owned inference retains admission, scheduler and input-byte reservations after HTTP timeout/disconnect until the child returns a terminal response or actually exits. Sending cancel or losing stdout alone does not certify completion. Pending completion callbacks run outside the registry lock; late diagnostics stay bounded, unsent oversized requests release immediately, and owned pipes close at shutdown. CPU subprocess and HTTP tests verify retained reservations, exactly-once release, child-exit recovery and subsequent requests. Real GPU memory, performance and long-run SLO qualification remain open.
+
+简体中文：🟢 [Done] process所有的推论在HTTP timeout／断开后保留受付、scheduler及输入byte预算，直到child返回终态响应或实际退出。发送cancel或stdout断开不等于实际完成。completion callback在registry锁外执行；超时diagnostics继续计入上限，发送前拒绝的过大请求立即回收，停止后关闭所属pipe。CPU子进程及HTTP测试验证预算保持、仅一次释放、child异常退出恢复及后续请求。真实GPU内存、性能及长期SLO认证仍未完成。
+
+再現：`PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -W error::ResourceWarning -m unittest tests.test_process_inference_engine tests.test_inference_request tests.test_managed_engine`。32 tests成功。全回帰1,621 tests成功（46 skip、156.771秒、試験のみOpenSSL 3を明示）。初回はmacOS LibreSSLの`pkey -check`非対応により既存署名試験1件失敗し、単独再現・OpenSSL 3での成功を確認。実資格情報・システム設定は変更していない。Ruff 0.16.5、変更3ファイルの構文、diff検査成功。指定Ruff 0.17.3はoffline cacheに存在せず、その版の成功とは扱わない。全体回帰とlintの最終結果は[検証記録](evaluation/p1-process-completion-2026-11-04.json)を参照。
+
+🟠 [Next] 実backendの継続cancel負荷と固定identityの30分→8時間認定。戻らないnative callの運用上の回収時間は既存shutdown timeoutと分けて評価する。
+
 ## Native completion and resource reservations 2026 11 02
 
 🟢 [Done] thread-affine native engineのactive要求がtimeout／切断した場合、HTTP handlerは終了してもスケジューラ予約と入力byte予算は実処理の終了まで保持する。従来はcallerがcancel例外で戻るとHTTP側のfinallyが即時解放し、delegateがまだ実行中なのに資源の空きを過大に公開していた。

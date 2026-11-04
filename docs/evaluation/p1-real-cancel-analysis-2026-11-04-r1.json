@@ -1,0 +1,105 @@
+{
+  "date": "2026-11-04",
+  "report": "docs/evaluation/p1-real-cancel-2026-11-04-r1.json",
+  "report_sha256": "44698619bef1ac48578e23d90d24646ae41661ea81f7a166d43f32b6b9bdd999",
+  "passed": false,
+  "long_started": false,
+  "runtime_identity_unchanged": true,
+  "model_identity_unchanged": true,
+  "shutdown_clean": true,
+  "initial": {
+    "warmup": {
+      "requests": 3,
+      "quality_passed": 3,
+      "slo_quality_passed": 2,
+      "failure_diagnostics": {
+        "observed": 1,
+        "samples": [
+          {
+            "request_index": 0,
+            "language": "en",
+            "reasons": [
+              "ttft_slo_exceeded",
+              "e2e_slo_exceeded"
+            ],
+            "elapsed_seconds": 0.009832291,
+            "ttft_ms": 14028.722,
+            "e2e_ms": 14205.761375,
+            "prompt_tokens": 22,
+            "output_tokens": 4,
+            "cached_prompt_tokens": 0
+          }
+        ],
+        "sample_limit": 64
+      }
+    },
+    "long_prefix_edit": {
+      "requests": 12,
+      "quality_passed": 12,
+      "slo_quality_passed": 12,
+      "failure_diagnostics": {
+        "observed": 0,
+        "samples": [],
+        "sample_limit": 64
+      }
+    },
+    "sustained": {
+      "requests": 30,
+      "quality_passed": 30,
+      "slo_quality_passed": 30,
+      "failure_diagnostics": {
+        "observed": 0,
+        "samples": [],
+        "sample_limit": 64
+      }
+    }
+  },
+  "sustained": {
+    "requested_duration_seconds": 90.0,
+    "elapsed_seconds": 123.86844791600015,
+    "requests": 51,
+    "completed": 51,
+    "quality_passed": 51,
+    "slo_quality_passed": 50,
+    "failed": 0,
+    "cancel_attempts": 5,
+    "cancel_passed": 5,
+    "cancel_completion_max_ms": 5.219,
+    "queued_cancel_attempts": 5,
+    "queued_cancel_passed": 5,
+    "timeout_attempts": 5,
+    "timeout_passed": 5,
+    "slow_consumer_attempts": 5,
+    "slow_consumer_passed": 5,
+    "all_epoch_resources_passed": true,
+    "rss_trend": {
+      "sample_count": 6,
+      "current_pid": 71289,
+      "current_pid_sample_count": 6,
+      "recent_sample_count": 3,
+      "slope_bytes_per_hour": 4281524.066,
+      "recent_growth_bytes": -49152,
+      "plateau_observed": true
+    },
+    "awake_conditions_verified": true
+  },
+  "failed_requests": [
+    {
+      "ttft_ms": 13681.078,
+      "e2e_ms": 14394.479042,
+      "observed_slow_step_intersection_ms": 13233.498459,
+      "step_history_complete": false,
+      "request_phase_attribution_available": false
+    }
+  ],
+  "root_cause_confirmed": false,
+  "limitations": [
+    "High host load coincides with failure; no causal attribution.",
+    "Retained shared scheduler step overlap is not per-request GPU time.",
+    "90-second request window is not 30-minute or eight-hour qualification.",
+    "Real standard Gemma compatibility backend run does not qualify every process-engine implementation."
+  ],
+  "continuation_plan": "docs/evaluation/p1-real-cancel-continuation-2026-11-04.json",
+  "automation_id": "p1-backend",
+  "authorization": "User waived 09:00 JST for this campaign, conditional on a passing short test."
+}

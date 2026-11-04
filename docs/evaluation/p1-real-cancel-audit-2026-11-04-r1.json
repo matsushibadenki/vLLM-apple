@@ -1,0 +1,140 @@
+{
+  "scope": "Time overlap only; retained bounded snapshots; shared backend; wall clocks",
+  "qualification": false,
+  "root_cause_confirmed": false,
+  "failed_requests_reported": 1,
+  "retained_failure_samples": 1,
+  "requests": [
+    {
+      "window_started_at": "2026-11-04T01:41:13.752159+00:00",
+      "request_index": 0,
+      "language": "prefix-edit-a",
+      "ttft_ms": 13681.078,
+      "e2e_ms": 14394.479042,
+      "reasons": [
+        "ttft_slo_exceeded"
+      ],
+      "prompt_tokens": 2073,
+      "cached_prompt_tokens": 4,
+      "request_started_unix_ns": 1793756473752933773,
+      "first_token_unix_ns": 1793756487434011773,
+      "overlapping_retained_steps": [
+        {
+          "started_at_unix_ns": 1793756473809267000,
+          "elapsed_ms": 2607.379208,
+          "thread_cpu_ms": 168.657,
+          "failed": false,
+          "intersection_ms": 2607.379208
+        },
+        {
+          "started_at_unix_ns": 1793756476417696000,
+          "elapsed_ms": 3957.665292,
+          "thread_cpu_ms": 129.288417,
+          "failed": false,
+          "intersection_ms": 3957.665292
+        },
+        {
+          "started_at_unix_ns": 1793756480375481000,
+          "elapsed_ms": 3294.752167,
+          "thread_cpu_ms": 149.229542,
+          "failed": false,
+          "intersection_ms": 3294.752167
+        },
+        {
+          "started_at_unix_ns": 1793756483670313000,
+          "elapsed_ms": 2541.792042,
+          "thread_cpu_ms": 184.416542,
+          "failed": false,
+          "intersection_ms": 2541.792042
+        },
+        {
+          "started_at_unix_ns": 1793756486212290000,
+          "elapsed_ms": 831.90975,
+          "thread_cpu_ms": 86.589459,
+          "failed": false,
+          "intersection_ms": 831.90975
+        }
+      ],
+      "observed_slow_step_intersection_ms": 13233.498459,
+      "queue_snapshot_before": {
+        "sample_count": 120,
+        "statistics": {
+          "mean_ms": 172.461,
+          "p50_upper_bound_ms": 100.0,
+          "p95_upper_bound_ms": 500.0,
+          "max_ms": 9762.885
+        },
+        "scope": "ingress_to_first_scheduler_dequeue_including_cancelled"
+      },
+      "queue_snapshot_after": {
+        "sample_count": 123,
+        "statistics": {
+          "mean_ms": 168.606,
+          "p50_upper_bound_ms": 100.0,
+          "p95_upper_bound_ms": 500.0,
+          "max_ms": 9762.885
+        },
+        "scope": "ingress_to_first_scheduler_dequeue_including_cancelled"
+      },
+      "environment_before": {
+        "observed_at": "2026-11-04T01:41:13.714802+00:00",
+        "thermal_state": "fair",
+        "power_source": "AC Power",
+        "power_mode": "automatic",
+        "target_process_age_seconds": 165,
+        "system": {
+          "load_average_1_5_15_minutes": [
+            81.41259765625,
+            70.7763671875,
+            66.94384765625
+          ],
+          "logical_cpu_count": 10,
+          "memory": {
+            "total_bytes": 34359738368,
+            "available_bytes": 8052834304,
+            "source": "sysctl",
+            "available_is_estimate": true,
+            "available_is_fallback": false,
+            "pressure_estimate": "normal",
+            "pressure_method": "available_ratio_thresholds_0.08_0.18"
+          }
+        }
+      },
+      "environment_after": {
+        "observed_at": "2026-11-04T01:41:31.401310+00:00",
+        "thermal_state": "fair",
+        "power_source": "AC Power",
+        "power_mode": "automatic",
+        "target_process_age_seconds": 183,
+        "system": {
+          "load_average_1_5_15_minutes": [
+            113.30908203125,
+            78.21728515625,
+            69.6572265625
+          ],
+          "logical_cpu_count": 10,
+          "memory": {
+            "total_bytes": 34359738368,
+            "available_bytes": 7816216576,
+            "source": "sysctl",
+            "available_is_estimate": true,
+            "available_is_fallback": false,
+            "pressure_estimate": "normal",
+            "pressure_method": "available_ratio_thresholds_0.08_0.18"
+          }
+        }
+      },
+      "step_history_complete": false,
+      "request_phase_attribution_available": false
+    }
+  ],
+  "limitations": [
+    "A shared scheduler step can overlap multiple requests; overlap is not attribution.",
+    "Only slow steps retained in snapshots are available; missing time is not idle time.",
+    "Thread CPU excludes other threads and GPU; wall minus CPU is not GPU time.",
+    "Queue statistics are cumulative, not per-request queue latency.",
+    "Requires stable wall clocks; snapshots do not certify clock synchronization."
+  ],
+  "report_sha256": "44698619bef1ac48578e23d90d24646ae41661ea81f7a166d43f32b6b9bdd999",
+  "audit_source_sha256": "7e2a9cf023aa222ec7d929c0efe3628fce0d2ebd56369beb8ccdd913663c6fae"
+}

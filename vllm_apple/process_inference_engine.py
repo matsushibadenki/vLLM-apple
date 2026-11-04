@@ -9,6 +9,7 @@ import subprocess
 import sys
 import threading
 import uuid
+from concurrent.futures import Future
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -22,6 +23,10 @@ from .inference_request import (
 MAX_PROCESS_MESSAGE_BYTES = 4 * 1024 * 1024
 MAX_PROCESS_RESPONSE_BYTES = 16 * 1024 * 1024
 _FACTORY = re.compile(r"[A-Za-z_][A-Za-z0-9_.]*:[A-Za-z_][A-Za-z0-9_]*\Z")
+_TERMINAL_ERRORS = frozenset({
+    "engine_busy", "invalid_request", "request_cancelled", "request_timed_out",
+    "delegate_failed", "diagnostics_failed",
+})
 
 
 @dataclass(slots=True)
@@ -29,6 +34,11 @@ class _Pending:
     done: threading.Event = field(default_factory=threading.Event)
     result: dict[str, Any] | None = None
     error_code: str | None = None
+    completion: Future[None] = field(default_factory=Future)
+
+    def finish(self) -> None:
+        self.done.set()
+        self.completion.set_result(None)
 
 
 class MainThreadSubprocessInferenceEngine:
@@ -122,9 +132,10 @@ class MainThreadSubprocessInferenceEngine:
             while not pending.done.wait(min(0.05, request_context.remaining_seconds)):
                 try:
                     request_context.raise_if_cancelled()
-                except InferenceRequestCancelled:
-                    self._cancel(identifier)
-                    raise
+                except InferenceRequestCancelled as error:
+                    raise InferenceRequestCancelled(
+                        str(error), completion=pending.completion
+                    ) from error
             if pending.error_code is not None:
                 if pending.error_code == "engine_busy":
                     raise InferenceEngineBusy("inference process queue is full")
@@ -135,11 +146,16 @@ class MainThreadSubprocessInferenceEngine:
                 raise RuntimeError("subprocess inference returned no result")
             return pending.result
         except InferenceRequestCancelled:
+            # Sending cancel is not an acknowledgment of native completion.
             self._cancel(identifier)
             raise
-        finally:
+        except (ValueError, TypeError):
+            # Serialization/size rejection happens before anything is written.
             with self._pending_lock:
-                self._pending.pop(identifier, None)
+                removed = self._pending.pop(identifier, None)
+            if removed is not None:
+                removed.finish()
+            raise
 
     def chat_completions(self, request: dict[str, Any]) -> dict[str, Any]:
         raise RuntimeError("subprocess requests require an inference request context")
@@ -156,17 +172,14 @@ class MainThreadSubprocessInferenceEngine:
             if len(self._pending) >= self._maximum_pending:
                 raise InferenceEngineBusy("inference process queue is full")
             self._pending[identifier] = pending
-        try:
-            self._write({"type": "diagnostics", "id": identifier})
-            if not pending.done.wait(timeout_seconds):
-                self._cancel(identifier)
-                raise TimeoutError("subprocess diagnostics timed out")
-            if pending.error_code is not None or pending.result is None:
-                raise RuntimeError("subprocess diagnostics failed")
-            return pending.result
-        finally:
-            with self._pending_lock:
-                self._pending.pop(identifier, None)
+        # Keep timed-out diagnostics bounded until the child replies.
+        self._write({"type": "diagnostics", "id": identifier})
+        if not pending.done.wait(timeout_seconds):
+            self._cancel(identifier)
+            raise TimeoutError("subprocess diagnostics timed out")
+        if pending.error_code is not None or pending.result is None:
+            raise RuntimeError("subprocess diagnostics failed")
+        return pending.result
 
     def close(self) -> bool:
         if self._closed.is_set():
@@ -187,7 +200,12 @@ class MainThreadSubprocessInferenceEngine:
                 self._process.kill()
                 self._process.wait(timeout=2)
         self._fail_pending("engine_closed")
-        self._reader.join(timeout=2)
+        if threading.current_thread() is not self._reader:
+            self._reader.join(timeout=2)
+        if self._process.stdin is not None:
+            self._process.stdin.close()
+        if not self._reader.is_alive() and self._process.stdout is not None:
+            self._process.stdout.close()
         return self._process.poll() is not None
 
     def _cancel(self, identifier: str) -> None:
@@ -240,32 +258,59 @@ class MainThreadSubprocessInferenceEngine:
                     continue
                 identifier = payload.get("id")
                 if not isinstance(identifier, str):
-                    continue
+                    self._startup_error = "invalid_response"
+                    break
+                terminal_result = payload.get("type") == "result" and isinstance(payload.get("result"), dict)
+                code = payload.get("code")
+                terminal_error = (payload.get("type") == "error"
+                                  and isinstance(code, str) and code in _TERMINAL_ERRORS)
+                if not (terminal_result or terminal_error):
+                    self._startup_error = "invalid_response"
+                    break
                 with self._pending_lock:
-                    pending = self._pending.get(identifier)
+                    pending = self._pending.pop(identifier, None)
                 if pending is None:
                     continue
-                if payload.get("type") == "result" and isinstance(
-                    payload.get("result"), dict
-                ):
+                if terminal_result:
                     pending.result = payload["result"]
                 else:
                     code = payload.get("code")
                     pending.error_code = code if isinstance(code, str) else "invalid_response"
-                pending.done.set()
+                pending.finish()
+                if self._closed.is_set():
+                    break
         finally:
             if not self._startup.is_set():
                 self._startup_error = self._startup_error or "worker_exited"
                 self._startup.set()
             self._ready = False
+            # A broken protocol/EOF cannot acknowledge native completion. Stop
+            # and reap only this engine's owned process before releasing leases.
+            try:
+                self._process.wait(timeout=1)
+            except subprocess.TimeoutExpired:
+                try:
+                    self._process.terminate()
+                except ProcessLookupError:
+                    pass
+                try:
+                    self._process.wait(timeout=2)
+                except subprocess.TimeoutExpired:
+                    try:
+                        self._process.kill()
+                    except ProcessLookupError:
+                        pass
+                    self._process.wait()
             self._fail_pending("worker_exited")
+            stream.close()
 
     def _fail_pending(self, code: str) -> None:
         with self._pending_lock:
             pending = tuple(self._pending.values())
+            self._pending.clear()
         for item in pending:
             item.error_code = code
-            item.done.set()
+            item.finish()
 
 
 def _validated_python_executable(path: Path) -> Path:

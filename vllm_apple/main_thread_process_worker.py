@@ -12,7 +12,6 @@ import sys
 import threading
 import time
 from pathlib import Path
-from typing import Any
 
 from .inference_request import InferenceRequestCancelled, InferenceRequestContext
 from .process_inference_engine import MAX_PROCESS_MESSAGE_BYTES
@@ -20,6 +19,19 @@ from .process_inference_engine import MAX_PROCESS_MESSAGE_BYTES
 _FACTORY = re.compile(r"[A-Za-z_][A-Za-z0-9_.]*:[A-Za-z_][A-Za-z0-9_]*\Z")
 _IDENTIFIER = re.compile(r"[0-9a-f]{32}\Z")
 _WRITE_LOCK = threading.Lock()
+
+
+class _CommandQueue(queue.Queue):
+    def cancel_waiting(self, identifier: str) -> bool:
+        """Remove only a command which the model owner has not claimed."""
+        with self.mutex:
+            for command in self.queue:
+                if command is not None and command.get("id") == identifier:
+                    self.queue.remove(command)
+                    self.unfinished_tasks -= 1
+                    self.not_full.notify_all()
+                    return True
+        return False
 
 
 def _write(payload: dict[str, object]) -> None:
@@ -68,7 +80,7 @@ def _factory(reference: str, config_path: Path | None) -> object:
 
 
 def _reader(
-    commands: queue.Queue[dict[str, Any] | None],
+    commands: _CommandQueue,
     cancellations: dict[str, threading.Event],
     cancellation_lock: threading.Lock,
 ) -> None:
@@ -102,6 +114,10 @@ def _reader(
                 cancellation = cancellations.get(identifier)
             if cancellation is not None:
                 cancellation.set()
+            if cancellation is not None and commands.cancel_waiting(identifier):
+                with cancellation_lock:
+                    cancellations.pop(identifier, None)
+                _write({"type": "error", "id": identifier, "code": "request_cancelled"})
             continue
         if kind == "diagnostics":
             try:
@@ -115,6 +131,9 @@ def _reader(
             _write({"type": "error", "id": identifier, "code": "invalid_request"})
             continue
         cancellation = threading.Event()
+        # Queue time consumes the original budget; do not restart the timeout
+        # after the main thread finishes the preceding native call.
+        payload["_deadline_monotonic"] = time.monotonic() + float(payload["timeout_seconds"])
         with cancellation_lock:
             if identifier in cancellations:
                 _write({"type": "error", "id": identifier, "code": "duplicate_request"})
@@ -133,7 +152,7 @@ def run(factory: str, config: Path | None, maximum_pending_requests: int) -> int
     models = getattr(delegate, "models", None)
     model_values = list(models()) if callable(models) else []
     _write({"type": "ready", "models": model_values})
-    commands: queue.Queue[dict[str, Any] | None] = queue.Queue(maximum_pending_requests)
+    commands = _CommandQueue(maximum_pending_requests)
     cancellations: dict[str, threading.Event] = {}
     cancellation_lock = threading.Lock()
     reader = threading.Thread(
@@ -166,10 +185,11 @@ def run(factory: str, config: Path | None, maximum_pending_requests: int) -> int
                 cancellation = cancellations[identifier]
             context = InferenceRequestContext(
                 identifier,
-                time.monotonic() + float(command["timeout_seconds"]),
+                command["_deadline_monotonic"],
                 cancellation,
             )
             try:
+                context.raise_if_cancelled()
                 method = getattr(delegate, "chat_completions_with_request_context")
                 result = method(command["request"], None, context)
                 if not isinstance(result, dict):

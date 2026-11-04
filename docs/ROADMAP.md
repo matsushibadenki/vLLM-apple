@@ -41,12 +41,35 @@
 
 ## 直近の更新 / Recent updates / 最近更新
 
+### P1 · 実backendの継続cancel負荷と長時間試験の入口 · 2026-11-04
+
+- 🟢 [Done] 固定Gemma 2の実backendで90秒要求窓（実測123.868秒）を実行。品質51/51、cancel／queued cancel／timeout／slow consumerは各5/5、短期資源・awake・identity・shutdown合格。[解析とraw report](evaluation/p1-real-cancel-analysis-2026-11-04-r1.json)。
+- 🟠 [Next] 長文1件TTFT13.681秒で継続SLO50/51、初期warmup2/3のため総合不合格。10 CPUに対しhost load78〜113と同時観測したが根因未確定。30分／8時間は未開始。
+- 🟠 [Next] 今回に限り09:00制約解除を受領。15分ごとの一時継続確認を設定し、低負荷2観測後の短時間再試験1回が合格した時だけ単発30分→全gate合格時8時間へ進む。[継続plan](evaluation/p1-real-cancel-continuation-2026-11-04.json)／[現在の試験状態](P1-STABILITY.md#current-status-2026-11-04)。identity不一致・再試験失敗・開始前24時間超過時は停止。
+
+English: Real-backend repeated cancellation/resource recovery passes; one long-request SLO miss prevents long-stage launch. A temporary continuation will retry once under quiet conditions and start the authorized one-off long campaign only after a full short pass. No long-run certification yet.
+
+简体中文：真实backend的重复取消与资源恢复通过；1个长请求SLO超限，因此未启动长期阶段。一时后续任务将在低负载时仅重试1次，短期全部通过后才启动已授权的单次长期试验；尚无长期认证。
+
+### P1 · 子プロセスの完了確認まで資源予約を保持 · 2026-11-04
+
+- 🟢 [Done] process-owned推論でもtimeout／切断後の受付枠・scheduler／入力byte予約をchildの終端応答または実際のprocess終了まで保持。cancel送信・stdout EOFだけでは解放せず、完了callbackはlock外で一度だけ実行する。
+- 🟢 [Done] 遅延diagnosticsも受付上限を維持し、送信前サイズ拒否の回復と所有pipeのcloseを追加。CPU子プロセス・HTTPで遅い停止、異常終了、408／切断、予約保持と後続回復を検証。[契約・再現](P1-CANCEL-QUEUE.md#process-completion-and-resource-reservations-2026-11-04)／[検証記録](evaluation/p1-process-completion-2026-11-04.json)。
+- 🟢 [Done] 関連32 tests成功。全回帰1,621 tests成功（46 skip、OpenSSL 3明示）。初回のLibreSSL非対応による署名試験1失敗も保存。利用可能なRuff 0.16.5・構文・diff検査成功（指定0.17.3はcache未配置）。
+- 🟢 [Done] 追補：childの未実行キューから推論cancelを原子的に取り除き、active処理を待たず終端確認・受付枠回復。キュー待ち時間をdeadlineへ算入し、期限切れdelegateを呼ばない。
+- 🟢 [Done] 不正終端・未知error・stdout EOFは完了扱いせず、所有childの実終了後に予約を回収。完了callbackからのcloseでreaderを自己joinしない。HTTP 408後の不正応答注入も含む最終全回帰1,626 tests成功（46 skip、OpenSSL 3明示）、指定Ruff 0.17.3・compileall・diff成功。[追補証拠](evaluation/p1-process-ack-followup-2026-11-04.json)。初期証拠は保持。
+- 🟠 [Next] 固定identityで実backendの継続cancel負荷・SLO原因切り分け・30分→8時間認定。今回のCPU試験はGPUメモリ・性能・長時間認定に転用しない。
+
+English: Process-owned requests retain reservations until a valid child terminal response or confirmed exit. Queued inference cancellation acknowledges before active work finishes; queue time consumes the deadline. Invalid replies and EOF require confirmed owned-child exit. Full regression: 1,626 tests, 46 skips; Ruff 0.17.3 passes. Real-backend sustained cancellation and long-run SLO qualification remain next.
+
+简体中文：process所有的请求保留预算，直到合法child终态响应或确认退出。等待推理的取消可在active结束前确认，队列等待消耗deadline。不合法响应及EOF必须先确认所属child退出。完整回归1,626项（46 skip）、Ruff 0.17.3通过；下一步为真实backend持续取消及长期SLO认证。
+
 ### P1 · native実処理終了まで資源予約を保持 · 2026-11-02
 
 - 🟢 [Done] native model-ownerのactive要求がtimeout／切断しても、実処理が戻るまでスケジューラ予約と入力byte予算を保持。HTTP handlerの終了だけでは空きへ戻さず、owner完了callbackで一度だけ解放する。
 - 🟢 [Done] 待機キャンセルの即時回収を維持し、完了通知はqueue／state lockの外で実行。実HTTPのCPU模擬試験で408／切断→予約維持→owner終了後の解放→後続正常応答を検証。[契約と範囲](P1-CANCEL-QUEUE.md#native-completion-and-resource-reservations-2026-11-02)。
 - 🟢 [Done] 全回帰1,617件成功（46 skip）、Ruff 0.17.2／compileall／diff check成功。GPUの実メモリ量・長時間安定性の認定は含まない。
-- 🟠 [Next] process-owned engineのcancel acknowledgmentと予約回収を確認し、実backendの持続負荷・長時間認定へ接続する。
+- 🟢 [Done] process-owned engineのcancel acknowledgmentと予約回収は2026-11-04の後続工程で検証。🟠 [Next] 実backendの持続負荷・長時間認定。
 
 English: Thread-owned native requests retain scheduler and input-byte reservations after HTTP timeout/disconnect until the delegate finishes. CPU HTTP tests verify deferred release and recovery; process-owned cancellation and long-run qualification remain next.
 

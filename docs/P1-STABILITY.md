@@ -1,5 +1,17 @@
 # P1 standard text candidate — 2026-10-04
 
+## Current status 2026 11 04
+
+🟢 [Done] [固定MLX 0.32.1／MLX-LM 0.32.0、Gemma 2の継続試験](evaluation/p1-real-cancel-2026-11-04-r1.json)をcompact／prefill512、短文c2・長文c1で実行した。要求90秒窓はcycle完了まで123.868秒、正常負荷は品質51/51、SLO50/51。active cancel／queued cancel／timeout／slow consumerは各5/5成功。短期の全epoch資源gate、awake、runtime/model identity不変、正常shutdownが合格した。
+
+🟠 [Next] 総合判定は不合格。継続長文1件のTTFT13.681秒が10秒SLO超過。初期warmupも3/3品質、2/3 SLO（初回TTFT14.029秒）、初期長文12/12・短文30/30は品質・SLO合格。[開始前観測](evaluation/p1-real-cancel-host-2026-11-04-r1.json)は10 CPUに対しload78、失敗窓前後は81→113、thermal fair。保持scheduler stepとTTFTの重なりは13.233秒だが、GPU/hostの原因帰属は未確定。[解析](evaluation/p1-real-cancel-analysis-2026-11-04-r1.json)。
+
+ユーザーは今回に限り09:00開始制約を解除し、短時間試験合格後の開始を指定した。条件未達のため30分／8時間は未開始。[固定identityの継続plan](evaluation/p1-real-cancel-continuation-2026-11-04.json)と一時heartbeat `p1-backend`を作成。15分ごとの低負荷確認が2回成立した時だけ短時間試験をあと1回行い、全gate合格時だけ既存runnerで30分→合格時8時間を単発起動する。source/modelが変わった場合や再試験失敗時は停止して通知し、結果が変わらない間は通知しない。長時間起動前の待機は24時間を上限とし、開始後は終了監査まで継続する。既存の週次automationは変更しない。以下の旧時刻・予約は履歴として保持する。
+
+English: Real Gemma cancellation stress passes all five repetitions of active/queued cancellation, timeout and slow-consumer recovery, plus short-window resources and clean shutdown. Quality is51/51; SLO is50/51, so long stages have not started. A temporary continuation checks for quiet conditions and permits one short retry, then a single30-minute-to-eight-hour campaign only after all gates pass. The user waived09:00 for this campaign only. Identity drift, retry failure or a24-hour pre-start timeout stops continuation.
+
+简体中文：真实Gemma持续测试中，active／queued取消、timeout及慢consumer各5/5通过，短期资源与正常停止通过。质量51/51、SLO50/51，故未启动长期阶段。一时后续任务等待低负载，仅再试短期测试1次，全部gate通过后才单次启动30分钟→8小时。用户仅为本次解除09:00限制。identity变化、重试失败或启动前等待超过24小时即停止。
+
 ## Current status / 現在 / 当前 — 2026-10-10
 
 🟢 [Done] [SPM表再利用とHTTP参照解放](P1-SPM-REUSE.md)を実装。修正後[90秒report](evaluation/p1-spm-final-m4-2026-10-10.json)は正常負荷420/420品質・SLO、RSS slope −19.84 MB/hour、allocator/thread/FD、awake、identity、正常停止が合格。warmup 3/3、初期長文12/12・短文30/30も合格。90秒は30分/8時間の認定ではない。

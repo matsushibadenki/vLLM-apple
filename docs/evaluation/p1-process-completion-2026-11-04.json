@@ -1,0 +1,72 @@
+{
+  "date": "2026-11-04",
+  "scope": "P1 process-owned native completion and HTTP resource reservations",
+  "platform": "macOS-27.2-arm64-arm-64bit",
+  "python": "3.12.15 (main, Sep 30 2026, 22:04:19) [Clang 21.0.0 (clang-2100.3.34.2)]",
+  "source_sha256": {
+    "vllm_apple/process_inference_engine.py": "c43ed0cd05436635469fa6ad1ff8ab16ea72f9a82489ab65cc5ac1774bdd63c0",
+    "tests/process_engine_fixture.py": "a096a60a7199b637194c3821e5aa6485955af12f38b588730a5a2e811aeee3b0",
+    "tests/test_process_inference_engine.py": "a3ca99ef30f10ac68a6bc2a8146f7e77662eeb31485f4f74a7323cdd6c781242"
+  },
+  "targeted": {
+    "tests": 32,
+    "seconds": 33.552,
+    "passed": true,
+    "command": "PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -W error::ResourceWarning -m unittest tests.test_process_inference_engine tests.test_inference_request tests.test_managed_engine"
+  },
+  "full_regression": {
+    "initial": {
+      "path": "docs/evaluation/p1-process-completion-initial-2026-11-04.log",
+      "tests": 1621,
+      "seconds": 182.28,
+      "summary": "FAILED (failures=1, skipped=46)"
+    },
+    "openssl3": {
+      "path": "docs/evaluation/p1-process-completion-openssl3-2026-11-04.log",
+      "tests": 1621,
+      "seconds": 156.771,
+      "summary": "OK (skipped=46)"
+    }
+  },
+  "environment_diagnosis": {
+    "initial_failure": "test_release_credential_preflight_parses_real_private_material: macOS /usr/bin/openssl LibreSSL 3.3.6 lacks pkey -check",
+    "isolated_default_openssl": "reproduced failure",
+    "isolated_openssl3": "passed",
+    "retry_command_prefix": "PATH=/opt/homebrew/opt/openssl@3/bin:/usr/bin:/bin:/usr/sbin:/sbin",
+    "retry_openssl": "OpenSSL 3.5.9",
+    "system_environment_changed": false
+  },
+  "lint": {
+    "passed": true,
+    "version": "0.16.5",
+    "scope": "vllm_apple tests",
+    "note": "Configured 0.17.3 unavailable in offline cache; no claim of validation with 0.17.3",
+    "command": "ruff check --no-cache vllm_apple tests"
+  },
+  "compile": {
+    "passed": true,
+    "files": [
+      "vllm_apple/process_inference_engine.py",
+      "tests/process_engine_fixture.py",
+      "tests/test_process_inference_engine.py"
+    ],
+    "method": "compile(source, filename, exec); no bytecode written"
+  },
+  "diff_check": true,
+  "verified": [
+    "cancel returns while child remains blocked",
+    "capacity one remains occupied until terminal response",
+    "child exit completes abandoned pending once",
+    "completion callback outside pending lock",
+    "HTTP timeout and disconnect retain 4096-byte scheduler reservation and input body budget",
+    "subsequent request succeeds after acknowledgment",
+    "timed-out diagnostics remain bounded until child reply",
+    "oversized unsent request releases admission",
+    "owned subprocess pipes close without ResourceWarning in targeted run"
+  ],
+  "limitations": [
+    "CPU fixtures only; no GPU/KV footprint or performance claim",
+    "no sustained real-backend or 30-minute/8-hour SLO qualification",
+    "an unresponsive child retains reservations until terminal response or confirmed exit"
+  ]
+}
