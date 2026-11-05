@@ -43,6 +43,14 @@
 
 ### P1 · 実backendの継続cancel負荷と長時間試験の入口 · 2026-11-04
 
+🟢 [Done] [低負荷時の短時間再試験r2](evaluation/p1-real-cancel-audit-2026-11-04-r2.json)を監査。継続91.884秒、品質・SLO204/204、active／queued cancel・timeout・slow consumer各20/20、最大cancel完了1.497 ms。初期warmup3/3・長文12/12・短文30/30、固定identity・awake・正常shutdownは合格し、runner／worker終了を確認。
+
+🟠 [Next] reportの総合passed=trueでも、必須のall_epoch_resources_passed=falseのためcampaignは不合格。単一workerのRSS後半傾斜29,914,340 bytes/hour、plateau=false。allocator／thread／FD trendは合格、最終registry active=queued=0。90秒の観測から長期漏れの有無は断定しない。30分／8時間は未開始、追加再試行なし。一時heartbeatを終了し、r1の失敗証拠も保持。次は資源収束の原因調査。worker crash／sleep-wakeは今回未検証。
+
+English: The short retry passes 204/204 quality/SLO and 20/20 of each cancellation/timeout/slow-consumer fault, with clean shutdown and unchanged identity. The required all-epoch resource gate fails (RSS slope 29.9 MB/hour; no plateau), despite report passed=true. No long stage or replay; temporary monitoring ends. Investigate resource convergence; this short observation cannot establish a long-term leak.
+
+简体中文：短期重试质量/SLO 204/204，取消、超时及慢consumer各20/20，identity不变并正常停止。但必需的全部epoch资源gate未通过（RSS斜率29.9 MB/小时，未收敛），即使report passed=true也不启动长期阶段或再次重试。结束临时监控，保留r1证据；下一步调查资源收敛，短期观察不能判定长期泄漏。
+
 - 🟢 [Done] 固定Gemma 2の実backendで90秒要求窓（実測123.868秒）を実行。品質51/51、cancel／queued cancel／timeout／slow consumerは各5/5、短期資源・awake・identity・shutdown合格。[解析とraw report](evaluation/p1-real-cancel-analysis-2026-11-04-r1.json)。
 - 🟠 [Next] 長文1件TTFT13.681秒で継続SLO50/51、初期warmup2/3のため総合不合格。10 CPUに対しhost load78〜113と同時観測したが根因未確定。30分／8時間は未開始。
 - 🟠 [Next] 今回に限り09:00制約解除を受領。15分ごとの一時継続確認を設定し、低負荷2観測後の短時間再試験1回が合格した時だけ単発30分→全gate合格時8時間へ進む。[継続plan](evaluation/p1-real-cancel-continuation-2026-11-04.json)／[現在の試験状態](P1-STABILITY.md#current-status-2026-11-04)。identity不一致・再試験失敗・開始前24時間超過時は停止。

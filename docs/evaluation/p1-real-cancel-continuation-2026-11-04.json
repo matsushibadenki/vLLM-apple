@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "created_at": "2026-11-04T01:45:57.996874+00:00",
-  "status": "waiting_for_quiet_host",
+  "status": "short_retry_failed",
   "qualification": false,
   "start_authorization": "User explicitly waived the 09:00 JST start restriction for this campaign only; start long stages only after the short test passes.",
   "start_deadline_utc": "2026-11-05T01:45:57.997127+00:00",
@@ -336,8 +336,145 @@
     "memory_pressure": "normal",
     "gpu_lock": "/tmp/kapitsa-gpu.lock"
   },
-  "preflight_history": [],
-  "short_retry_count": 0,
+  "preflight_history": [
+    {
+      "observed_at": "2026-11-04T02:02:50.027804+00:00",
+      "context": {
+        "observed_at": "2026-11-04T02:02:49.745695+00:00",
+        "thermal_state": "fair",
+        "power_source": "AC Power",
+        "power_mode": "automatic",
+        "target_process_age_seconds": null,
+        "system": {
+          "load_average_1_5_15_minutes": [
+            81.61376953125,
+            46.51708984375,
+            47.55615234375
+          ],
+          "logical_cpu_count": 10,
+          "memory": {
+            "total_bytes": 34359738368,
+            "available_bytes": 11702894592,
+            "source": "sysctl",
+            "available_is_estimate": true,
+            "available_is_fallback": false,
+            "pressure_estimate": "normal",
+            "pressure_method": "available_ratio_thresholds_0.08_0.18"
+          }
+        }
+      },
+      "gpu_lock_available": true,
+      "conflicting_pids": [],
+      "eligible": false,
+      "reasons": [
+        "nominal_thermal_required",
+        "load1_above_cpu_count",
+        "load5_above_limit"
+      ]
+    },
+    {
+      "observed_at": "2026-11-04T02:17:25.934083+00:00",
+      "context": {
+        "observed_at": "2026-11-04T02:17:25.969415+00:00",
+        "thermal_state": "fair",
+        "power_source": "AC Power",
+        "power_mode": "automatic",
+        "target_process_age_seconds": null,
+        "system": {
+          "load_average_1_5_15_minutes": [
+            7.6025390625,
+            17.94921875,
+            30.89208984375
+          ],
+          "logical_cpu_count": 10,
+          "memory": {
+            "total_bytes": 34359738368,
+            "available_bytes": 13580042240,
+            "source": "sysctl",
+            "available_is_estimate": true,
+            "available_is_fallback": false,
+            "pressure_estimate": "normal",
+            "pressure_method": "available_ratio_thresholds_0.08_0.18"
+          }
+        }
+      },
+      "gpu_lock_available": true,
+      "conflicting_pids": [],
+      "eligible": false,
+      "reasons": [
+        "nominal_thermal_required",
+        "load5_above_limit"
+      ]
+    },
+    {
+      "observed_at": "2026-11-04T02:32:17.716535+00:00",
+      "context": {
+        "observed_at": "2026-11-04T02:32:17.730763+00:00",
+        "thermal_state": "nominal",
+        "power_source": "AC Power",
+        "power_mode": "automatic",
+        "target_process_age_seconds": null,
+        "system": {
+          "load_average_1_5_15_minutes": [
+            4.1357421875,
+            5.62451171875,
+            14.3349609375
+          ],
+          "logical_cpu_count": 10,
+          "memory": {
+            "total_bytes": 34359738368,
+            "available_bytes": 16842915840,
+            "source": "sysctl",
+            "available_is_estimate": true,
+            "available_is_fallback": false,
+            "pressure_estimate": "normal",
+            "pressure_method": "available_ratio_thresholds_0.08_0.18"
+          }
+        }
+      },
+      "gpu_lock_available": true,
+      "conflicting_pids": [],
+      "eligible": true,
+      "reasons": []
+    },
+    {
+      "observed_at": "2026-11-04T04:33:18.383562+00:00",
+      "context": {
+        "observed_at": "2026-11-04T04:33:18.341798+00:00",
+        "thermal_state": "nominal",
+        "power_source": "AC Power",
+        "power_mode": "automatic",
+        "target_process_age_seconds": null,
+        "system": {
+          "load_average_1_5_15_minutes": [
+            6.27587890625,
+            4.84228515625,
+            4.486328125
+          ],
+          "logical_cpu_count": 10,
+          "memory": {
+            "total_bytes": 34359738368,
+            "available_bytes": 12370608128,
+            "source": "sysctl",
+            "available_is_estimate": true,
+            "available_is_fallback": false,
+            "pressure_estimate": "normal",
+            "pressure_method": "available_ratio_thresholds_0.08_0.18"
+          }
+        }
+      },
+      "gpu_lock_available": true,
+      "conflicting_pids": [],
+      "eligible": true,
+      "reasons": [],
+      "idle_update_daemons": {
+        "590": "0.0% CPU, cumulative 0.01s",
+        "90371": "0.0% CPU, cumulative 0.60s",
+        "90732": "0.0% CPU, cumulative 0.18s"
+      }
+    }
+  ],
+  "short_retry_count": 1,
   "maximum_short_retries": 1,
   "environment": {
     "VLLM_APPLE_P1_EFFICIENCY": "compact",
@@ -411,6 +548,24 @@
   ],
   "stage_policy": "30-minute all gates passed, then 8-hour; preserve all failures and thresholds; do not replay failed stages.",
   "automation_id": "p1-backend",
-  "automation_status": "ACTIVE",
-  "check_interval_minutes": 15
+  "automation_status": "DELETED",
+  "check_interval_minutes": 15,
+  "source_precheck": {
+    "changed_sources": []
+  },
+  "short_retry_started_at": "2026-11-04T04:34:08.705602+00:00",
+  "short_retry_supervisor_pid": 19045,
+  "short_retry_log": "/tmp/p1-real-cancel-2026-11-04-r2.log",
+  "identity_preflight_passed": true,
+  "short_retry_returncode": 0,
+  "short_retry_finished_at": "2026-11-04T04:36:05.110577+00:00",
+  "short_retry_audit": "/Users/Shared/Program/Tauri/Soliton/vLLM-apple/docs/evaluation/p1-real-cancel-audit-2026-11-04-r2.json",
+  "short_retry_evidence": "/Users/Shared/Program/Tauri/Soliton/vLLM-apple/docs/evaluation/p1-real-cancel-2026-11-04-r2.json",
+  "failed_requirements": [
+    "stability_window.all_epoch_resources_passed"
+  ],
+  "completed_at": "2026-11-04T04:47:53.506081+00:00",
+  "result_ja": "短時間再試験の品質・SLO204/204、障害各20/20。全epoch資源gate不合格のため長時間未開始。再試行なし。",
+  "result_en": "Short retry: quality/SLO 204/204 and each fault 20/20; all-epoch resource gate failed. Long stages not started; no replay.",
+  "result_zh": "短期重试质量/SLO 204/204，各故障20/20；全部epoch资源gate未通过，未启动长期阶段，不再重试。"
 }

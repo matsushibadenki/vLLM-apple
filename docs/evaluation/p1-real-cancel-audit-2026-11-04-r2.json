@@ -1,0 +1,84 @@
+{
+  "audited_at": "2026-11-04T04:47:53.506081+00:00",
+  "campaign_passed": false,
+  "report_passed": true,
+  "checks": {
+    "passed": true,
+    "shutdown_clean": true,
+    "runtime_identity_unchanged": true,
+    "model_identity_unchanged": true,
+    "stability_window.passed": true,
+    "stability_window.all_epoch_resources_passed": false,
+    "stability_window.awake_conditions_verified": true,
+    "duration_at_least_90_seconds": true,
+    "exact_runtime_sources": true,
+    "exact_runner_source_sha256": true,
+    "exact_model_files": true,
+    "exact_model_config_sha256": true,
+    "quality_slo_all_completed": true,
+    "cancel_all_passed": true,
+    "slow_consumer_all_passed": true,
+    "queued_cancel_all_passed": true,
+    "timeout_all_passed": true,
+    "worker_crash_not_requested": true,
+    "initial_quality_slo": true,
+    "clean_supervisor_exit": true,
+    "returncode_zero": true
+  },
+  "report_sha256": "c0b5424cd7034150e1bf85d0cbfff27c8c2d250483c3c7309b653e82526f5eeb",
+  "stability_summary": {
+    "elapsed_seconds": 91.8843243329975,
+    "requests": 204,
+    "quality_passed": 204,
+    "slo_quality_passed": 204,
+    "cancel_attempts": 20,
+    "cancel_passed": 20,
+    "cancel_completion_max_ms": 1.497,
+    "queued_cancel_attempts": 20,
+    "queued_cancel_passed": 20,
+    "timeout_attempts": 20,
+    "timeout_passed": 20,
+    "slow_consumer_attempts": 20,
+    "slow_consumer_passed": 20,
+    "rss_trend": {
+      "sample_count": 21,
+      "current_pid": 19058,
+      "current_pid_sample_count": 21,
+      "recent_sample_count": 11,
+      "slope_bytes_per_hour": 29914340.167,
+      "recent_growth_bytes": 294912,
+      "plateau_observed": false
+    },
+    "resource_trend": {
+      "sample_count": 20,
+      "current_pid": 19058,
+      "deltas": {
+        "threads": 0,
+        "open_fds": 0,
+        "allocator_active_bytes": -88038516,
+        "allocator_cache_bytes": -132492
+      },
+      "plateau_observed": true,
+      "snapshot_consistency": "non_atomic"
+    },
+    "all_epoch_resources_passed": false,
+    "awake_conditions_verified": true,
+    "operating_conditions": {
+      "observations": 40,
+      "initial": {
+        "power_source": "AC Power",
+        "power_mode": "automatic"
+      },
+      "changed": false,
+      "unknown": false
+    }
+  },
+  "termination_verified_pids": [
+    19045,
+    19056,
+    19058
+  ],
+  "long_submitted": false,
+  "automatic_replay": false,
+  "scope": "Short retry only; required all-epoch resources gate failed. No 30-minute/eight-hour qualification. No worker crash or sleep/wake verification."
+}
