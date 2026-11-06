@@ -1,0 +1,50 @@
+{
+  "scope": "Read-only live CPU-counter smoke check; no inference/performance qualification",
+  "observation": {
+    "total_percent": 233.0348787712914,
+    "maximum_process_percent": 102.58605504906485,
+    "top_processes": [
+      {
+        "pid": 12623,
+        "name": "Adobe Illustrator",
+        "cpu_percent": 102.58605504906485
+      },
+      {
+        "pid": 1064,
+        "name": "Brave Browser Helper (Aperitif Renderer)",
+        "cpu_percent": 2.398208544392843
+      },
+      {
+        "pid": 23957,
+        "name": "com.apple.Virtualization.VirtualMachine",
+        "cpu_percent": 2.058164049302869
+      },
+      {
+        "pid": 1398,
+        "name": "codex",
+        "cpu_percent": 2.028335584835817
+      },
+      {
+        "pid": 27605,
+        "name": "Electron",
+        "cpu_percent": 1.7695736554366694
+      }
+    ],
+    "new_or_exited_processes": 0,
+    "observer_cpu_percent": 23.52863452527542,
+    "worker_tree_cpu_percent": 0,
+    "collection_seconds": 0.03230137499849661,
+    "attribution_scope": "matched_accessible_pids_only; diagnostic_not_subtracted"
+  },
+  "tests": {
+    "passed": 15,
+    "ruff": "0.16.5 passed",
+    "diff_check": "passed"
+  },
+  "source_sha256": {
+    "scripts/strata_measurement.py": "c88c59381bcc6b16d05506c639a55ece23208323d6f0e601bd0418643f296dc9",
+    "scripts/analyze_strata_host_load.py": "bb754bbbc7283fb2ca098300580738d2f126502b21e0b113129e8af99d315f87",
+    "tests/test_strata_measurement.py": "344d57f179cca65df29022c0b9d65f089bda520d6feeb6dcf64f829aa9145dbf",
+    "tests/test_strata_host_load_analysis.py": "cddebcdc19e98f761043a2d07381f75fefc65e9293568b26b8e80737482bcf2a"
+  }
+}

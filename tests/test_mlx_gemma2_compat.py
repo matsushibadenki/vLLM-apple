@@ -113,6 +113,53 @@ class Gemma2CompatTests(unittest.TestCase):
         with self.assertRaises(queue.Empty):
             responses.get(block=False)
 
+    def test_drain_notifies_full_producer_without_a_retry_timer(self):
+        with patch.dict(os.environ, {'VLLM_APPLE_P1_PROFILE': '1'}):
+            responses = _RequestQueue(queue.Queue)
+        for token in range(1024):
+            responses.put(token)
+        waiting = threading.Event()
+        wait = responses._space.wait
+
+        def wait_for_notification():
+            waiting.set()
+            return wait()
+
+        with patch.object(responses._space, 'wait', wait_for_notification):
+            producer = threading.Thread(target=responses.put, args=(1024,), daemon=True)
+            producer.start()
+            try:
+                self.assertTrue(waiting.wait(1))
+                self.assertEqual(responses.get(timeout=1), 0)
+                producer.join(1)
+                self.assertFalse(producer.is_alive())
+                self.assertEqual([responses.get(block=False) for _ in range(1024)],
+                                 list(range(1, 1025)))
+            finally:
+                responses.cancel_stream()
+                producer.join(1)
+
+    def test_cancelled_activation_discards_full_buffer_before_returning(self):
+        with patch.dict(os.environ, {'VLLM_APPLE_P1_PROFILE': '1'}):
+            responses = _RequestQueue(queue.Queue)
+        _register_pending('cancel-at-activation', responses)
+        self.assertTrue(cancel_request('cancel-at-activation'))
+        for token in range(1024):
+            responses.put(token)
+        context = Mock()
+        activate = threading.Thread(target=_activate_pending,
+            args=('cancel-at-activation', context, responses), daemon=True)
+        activate.start()
+        try:
+            activate.join(1)
+            self.assertFalse(activate.is_alive())
+            context.stop.assert_called_once()
+            self.assertIsNone(responses.get(block=False))
+            self.assertFalse(cancel_request('cancel-at-activation'))
+        finally:
+            responses.cancel_stream()
+            activate.join(1)
+
     def test_response_queue_preserves_fifo_before_cancellation(self):
         responses = _RequestQueue(queue.Queue)
         for value in ('context', 'token', None):

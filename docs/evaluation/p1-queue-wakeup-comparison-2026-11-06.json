@@ -1,0 +1,154 @@
+{
+  "method": "P1 request queue, 1024 integer tokens + one blocked producer; observe full via put_nowait. In one Python process run ABBA three times. Sleep 815 ms after first Full; sample process counters just before and after sleep. Measure resume from first get through producer join; verify remaining outputs in order each time.",
+  "energy_source": "Darwin proc_pid_rusage(getpid(), RUSAGE_INFO_V6), delta of ri_energy_nj (process accounting). No model in queue experiment. No device power or inference joules/token measured.",
+  "benchmark_python": "3.12.9",
+  "baseline_commit": "5798b251824a52b3b2b4d6971af71c11ec651e2f",
+  "candidate_source_sha256": "c20d058fc77ea0ac6f8f751eb8955143542be9011e1aa0cde67d93ea74857094",
+  "medians": {
+    "baseline": {
+      "full_attempts": 16.0,
+      "resume_ms": 45.219563,
+      "process_cpu_ms": 1.6635,
+      "process_energy_nj": 219579.5,
+      "interrupt_wakeups": 16.0,
+      "package_idle_wakeups": 0.0
+    },
+    "candidate": {
+      "full_attempts": 1.0,
+      "resume_ms": 0.1334585,
+      "process_cpu_ms": 0.027,
+      "process_energy_nj": 10521.5,
+      "interrupt_wakeups": 1.0,
+      "package_idle_wakeups": 0.0
+    }
+  },
+  "observations": [
+    {
+      "mode": "baseline",
+      "full_attempts": 16,
+      "resume_ms": 43.461708,
+      "process_cpu_ms": 1.685,
+      "process_energy_nj": 259123,
+      "interrupt_wakeups": 16,
+      "package_idle_wakeups": 0
+    },
+    {
+      "mode": "candidate",
+      "full_attempts": 1,
+      "resume_ms": 0.231417,
+      "process_cpu_ms": 0.043,
+      "process_energy_nj": 6614,
+      "interrupt_wakeups": 1,
+      "package_idle_wakeups": 0
+    },
+    {
+      "mode": "candidate",
+      "full_attempts": 1,
+      "resume_ms": 0.184208,
+      "process_cpu_ms": 0.034,
+      "process_energy_nj": 12453,
+      "interrupt_wakeups": 1,
+      "package_idle_wakeups": 0
+    },
+    {
+      "mode": "baseline",
+      "full_attempts": 16,
+      "resume_ms": 44.755792,
+      "process_cpu_ms": 1.936,
+      "process_energy_nj": 153678,
+      "interrupt_wakeups": 16,
+      "package_idle_wakeups": 1
+    },
+    {
+      "mode": "baseline",
+      "full_attempts": 16,
+      "resume_ms": 45.683334,
+      "process_cpu_ms": 1.878,
+      "process_energy_nj": 180036,
+      "interrupt_wakeups": 16,
+      "package_idle_wakeups": 0
+    },
+    {
+      "mode": "candidate",
+      "full_attempts": 1,
+      "resume_ms": 0.144042,
+      "process_cpu_ms": 0.022,
+      "process_energy_nj": 24859,
+      "interrupt_wakeups": 1,
+      "package_idle_wakeups": 0
+    },
+    {
+      "mode": "candidate",
+      "full_attempts": 1,
+      "resume_ms": 0.122875,
+      "process_cpu_ms": 0.027,
+      "process_energy_nj": 5641,
+      "interrupt_wakeups": 1,
+      "package_idle_wakeups": 0
+    },
+    {
+      "mode": "baseline",
+      "full_attempts": 16,
+      "resume_ms": 54.307417,
+      "process_cpu_ms": 1.642,
+      "process_energy_nj": 158743,
+      "interrupt_wakeups": 16,
+      "package_idle_wakeups": 0
+    },
+    {
+      "mode": "baseline",
+      "full_attempts": 16,
+      "resume_ms": 48.649167,
+      "process_cpu_ms": 0.657,
+      "process_energy_nj": 762807,
+      "interrupt_wakeups": 16,
+      "package_idle_wakeups": 0
+    },
+    {
+      "mode": "candidate",
+      "full_attempts": 1,
+      "resume_ms": 0.090042,
+      "process_cpu_ms": 0.027,
+      "process_energy_nj": 8590,
+      "interrupt_wakeups": 1,
+      "package_idle_wakeups": 0
+    },
+    {
+      "mode": "candidate",
+      "full_attempts": 1,
+      "resume_ms": 0.105083,
+      "process_cpu_ms": 0.013,
+      "process_energy_nj": 49494,
+      "interrupt_wakeups": 1,
+      "package_idle_wakeups": 0
+    },
+    {
+      "mode": "baseline",
+      "full_attempts": 16,
+      "resume_ms": 43.218333,
+      "process_cpu_ms": 0.543,
+      "process_energy_nj": 1020559,
+      "interrupt_wakeups": 16,
+      "package_idle_wakeups": 0
+    }
+  ],
+  "historical_r2_replay": {
+    "source": "p1-real-cancel-2026-11-04-r2.json",
+    "historical_window_passed": true,
+    "all_epoch_resources_passed": false,
+    "updated_p1_window_passed": false,
+    "rss_by_workload": {
+      "e65b47a8ac85138265385491ea6cca8afc557f3c7405591c1984c557d307ad9c": {
+        "cycles": 16,
+        "normal_window_median_delta_bytes": -98304.0,
+        "whole_cycle_median_delta_bytes": 8192.0
+      },
+      "139acd823d068e39bf07fd7e080f4395e0005c33514704481215ec665f3ce0e7": {
+        "cycles": 4,
+        "normal_window_median_delta_bytes": -679936.0,
+        "whole_cycle_median_delta_bytes": 598016.0
+      }
+    },
+    "rss_scope": "Same worker, existing 20 cycles. Normal window spans benchmark activity snapshots. Whole cycle spans consecutive RSS observations after faults (first begins at initial RSS). Includes probes and fault handling. No causal attribution."
+  }
+}

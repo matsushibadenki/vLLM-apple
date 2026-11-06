@@ -1,5 +1,21 @@
 # Strata integration — 2026-10-10
 
+
+### 要求負荷の調査 / Request-load diagnosis / 请求负载调查 · 2026-11-06
+
+🟢 [Done] 日本語：11月4〜6日の保存済み21 campaignを全件解析。要求307区間・1,318サンプルのうち553件が不合格。総CPU 200%超過524件、外部の単一PID 75%超過63件、PID変動39件（重複あり）。ブラウザ・duetexpertd・Adobe関連等の活動を確認。総CPUはworker・監視自身・参照不可PIDも含むため、旧記録から総CPU超過の全量を外部プロセスへ帰属できない。監視の収集時間と、照合可能な監視／worker CPUを診断専用に追加。合否から差し引かず、200%／75%／PID変動0、READY/GO/DONE/ACKと区間分離を維持。オフライン解析器は入力ハッシュと重複原因を保存し、元記録を変更しない。
+
+🟢 [Done] English: All 21 saved campaigns from November 4–6 were analyzed: 307 request windows, 1,318 samples, 553 failures. Aggregate CPU exceeded 200% in 524 samples, one external PID exceeded 75% in 63, and PID churn occurred in 39 (overlapping causes). Browser, duetexpertd and Adobe activity was observed. Aggregate CPU includes workers, the observer and inaccessible PIDs, so legacy records cannot fully attribute excess to external processes. Added diagnostic collection time and matched observer/worker CPU counters without subtracting them from qualification. Thresholds, handshake and phase separation remain unchanged; offline analysis preserves source hashes and overlapping reasons.
+
+🟢 [Done] 简体中文：完整分析11月4日至6日保存的21个campaign：307个请求区间、1,318个采样，其中553个不合格。总CPU超过200%共524次，外部单个PID超过75%共63次，PID变化39次（原因有重叠）。记录包含浏览器、duetexpertd及Adobe相关活动。总CPU还包含worker、监控及不可访问的PID，因此旧记录无法将全部超额归因于外部进程。新增采集耗时及可匹配的监控／worker CPU诊断值，不从合格判定中扣除；阈值、握手及阶段分离保持不变，离线分析保留输入哈希和重叠原因。
+
+一度の走査へ統合する案は固定順序AB/BA各16回で中央値26.56→28.67msとなり取り下げた。全試行を保存し、速度で選別しない。 / A single-walk proposal was withdrawn after fixed-order AB/BA probes (16 per implementation): median collection wall time 26.56→28.67ms. All probes are retained; no speed selection. / 单次遍历方案在固定顺序AB/BA测试（各16次）中采集中位耗时26.56→28.67ms，已撤回；保留全部试验，不按速度筛选。
+
+[原因集計 / Diagnosis / 原因统计](evaluation/strata-host-diagnosis-2026-11-06.json) · [不採用案の全測定 / Withdrawn proposal probes / 已撤回方案全部测量](evaluation/strata-monitor-overhead-2026-11-06.json)
+
+🟠 [Next] 新しい診断値で低負荷campaignを再検証。性能改善・両campaign完了は未認定。 / Recheck quiet-host campaigns with diagnostic attribution; performance improvement and completion of both campaigns remain unqualified. / 使用新增诊断值复核低负载campaign；性能改善及两个campaign完成仍未认证。合成CPU結果を実モデル／GPU／E2E認定や既定採用にしない。 / Synthetic CPU results do not qualify real models, GPU, E2E or default adoption. / 合成CPU结果不作为真实模型、GPU、E2E认证或默认启用依据。
+
+
 ## 日本語
 
 ### 現在の完了範囲 · 2026-10-17

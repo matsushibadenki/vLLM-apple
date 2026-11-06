@@ -6,6 +6,10 @@
 
 > 実装の完了と、実モデル・性能・長時間安定性の認定は別に管理します。
 
+🟢 [Done] Strata要求負荷の原因集計とCPU帰属診断を追加（閾値維持）。 / Added request-load diagnosis and CPU attribution without changing thresholds. / 新增请求负载原因分析与CPU归属诊断，保持阈值。 [記録 / Evidence / 记录](STRATA-INTEGRATION.md)
+
+🟠 [Next] 両campaignの全方式で低負荷・変動5%以下を再検証。 / Revalidate quiet-host conditions and ≤5% spread across both campaigns. / 重新验证两个campaign全部方式的低负载与≤5%波动。
+
 <a id="overview"></a>
 
 ## 状況一覧 / Overview / 状态概览
@@ -40,6 +44,39 @@
 <a id="updates"></a>
 
 ## 直近の更新 / Recent updates / 最近更新
+
+### P1 · 同一生成要求の正常終了とtimeout対照 · 2026-11-06
+
+- 🟢 [Done] 同じworker・プロンプト・seed=11・上限512 tokenで正常終了／100 ms timeoutを交互に各6回比較。各試行前の長文入力算術品質12/12、全ストリーム終端と正常shutdownが合格。20 ms間隔RSS観測と終端後1秒観測を追加。[全記録](evaluation/p1-completion-control-2026-11-06.json)。再現はpost-long probeの `--compare-completion`。
+- 🟢 [Done] 応答終端までのRSS増加中央値は正常960 KiB／timeout352 KiB、終端後1秒の追加差分中央値は正常0 KiB／timeout8 KiB。timeoutの追加差分最大112 KiB。最初の正常生成は6,992 KiB増加し、後続正常生成は832〜992 KiB。増加の大部分は応答終端までに観測した。最初の大きな増加は初回生成準備の影響と整合するが、原因の確定には追加対照が必要。
+- 🟠 [Next] 正常出力512 tokenに対しtimeoutは中央値1 token。停止方式ごとのRSS増加を生成量で補正し、同じ停止地点の明示cancelを対照に加える。現在の短期結果から一律のcache flushや強制GCを採用する根拠は得られていない。
+- ⭕️ [Pending] workerの途中区間でmacOSのエネルギー計上約30.05 Jを取得。長文品質チェックを含み、開始時点も試験途中のため方式別J/tokenは未認定。長時間収束も引き続き検証待ち。
+
+English · Identical generation parameters were tested with normal completion and a 100 ms timeout, six times each. Most RSS growth occurred before stream completion. Median additional growth after one second was 0 KiB and 8 KiB respectively. Arithmetic checks passed 12/12. Output lengths differ, so per-token energy and a causal attribution to stopping remain open.
+
+简体中文 · 同一生成参数下正常结束与100 ms超时各比较6次。RSS主要在流结束前增长，结束后1秒的额外变化中位数分别为0 KiB和8 KiB。算术检查12/12通过。两种方式输出长度不同，每token能耗与停止处理的因果归属仍待验证。
+
+### P1 · 長文直後の区間別RSS観測 · 2026-11-06
+
+- 🟢 [Done] 同一Gemma 2 workerで長文要求後にcancel／timeout／資源API 10回を各6回計測。通常要求の算術品質18/18、cancel／timeout終端、正常shutdownが合格。[記録](evaluation/p1-post-long-2026-11-06.json)。再現入口は `scripts/probe_p1_post_long.py`。
+- 🟠 [Next] 各区間のRSS差分は記録のsummaryを参照。cancel／timeout区間には追加の文章生成が含まれるため、次に同じ生成要求の正常終了を対照として停止処理への帰属を調べる。今回の18件は長い入力に対する短い算術回答。
+- ⭕️ [Pending] 今回は電気エネルギー取得を接続できておらずJ/tokenは欠測。エネルギー効率の認定と長期資源収束は保留。
+
+English · Eighteen long-input arithmetic checks passed. Six observations per post-request operation isolate resource polling from cancellation and timeout workloads. Normal completion controls and inference energy measurement remain open.
+
+简体中文 · 18项长输入算术检查通过。取消、超时和资源API各测量6次。下一步加入相同生成请求的正常结束对照；推理能耗与长期收敛尚待验证。
+
+### P1 · 応答キューの待機とメモリ安定性の判定 · 2026-11-06
+
+- 🟢 [Done] Gemma 2の応答キューが満杯のとき、読み出しまたはキャンセルの通知で生成側を再開する。キャンセル済みの要求が実行開始と重なった場合も、終端通知が空き枠を待って他の要求を止める問題を修正した。
+- 🟢 [Done] 1,024件で満杯のキューを815 ms維持したCPU試験（各方式6回、中央値）で、割り込み起床は16回→1回、読み出しから生成側終了までは45.22 ms→0.13 ms。待機中にOSがこのプロセスに計上したエネルギーは220 µJ→11 µJ。[比較条件と全観測値](evaluation/p1-queue-wakeup-comparison-2026-11-06.json)
+- 🟢 [Done] M4・Gemma 2 2B 4bitで算術品質と応答時間は45/45件合格。active cancel後1.085 msでストリーム終端を受信し、queued cancel・timeout・切断後の回復も確認。Metalのバッチattentionは8条件で個別実行と一致（絶対・相対許容差ともに1e-5）。旧Python 3.12.15の実行ファイルが失われていたため、既存MLXパッケージをPython 3.12.16の一時環境から使用した。[実HTTP記録](evaluation/p1-queue-wakeup-http-2026-11-06.json)
+- 🟢 [Done] P1の短時間継続試験と30分試験でも、全worker区間の資源判定を総合結果に反映。11月4日の保存記録を再評価し、品質204/204でもRSS未収束なら不合格となることを確認した。
+- 🟠 [Next] 11月4日の同じworkerでは、長文4サイクルすべてで通常要求中にRSSが減少した一方、障害試験を含むサイクル全体では増加した（中央値 −664 KiB／+584 KiB）。次は長文直後のcancel・timeout・資源観測を個別に計測する。推論全体のJ/tokenと30分・8時間の安定性は未認定。
+
+English · A full response queue now resumes on drain or cancellation. The isolated stall test reduced median interrupt wakeups from 16 to 1. All 45 Gemma 2 arithmetic and latency checks passed. P1 timed runs now require resource convergence across all worker epochs. Inference energy per token and long-run stability remain open.
+
+简体中文 · 响应队列已满时，读取或取消会唤醒生成线程。独立等待测试中，中断唤醒次数中位数从16次降至1次。Gemma 2的45项算术与延迟检查全部通过。P1定时测试现在要求每个worker运行阶段的资源均收敛。下一步排查RSS增长，并验证整次推理的每token能耗及长期稳定性。
 
 ### P1 · 実backendの継続cancel負荷と長時間試験の入口 · 2026-11-04
 

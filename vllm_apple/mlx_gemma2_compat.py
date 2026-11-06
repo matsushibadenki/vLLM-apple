@@ -75,48 +75,50 @@ class _RequestQueue:
     """Queue marker used only by the reviewed compatibility launcher."""
 
     def __init__(self, queue_type: type[Any], response_type: Any = ()) -> None:
-        self._queue = queue_type(maxsize=1024) if os.environ.get('VLLM_APPLE_P1_PROFILE') == '1' else queue_type()
+        self._bounded = os.environ.get('VLLM_APPLE_P1_PROFILE') == '1'
+        self._queue = queue_type(maxsize=1024) if self._bounded else queue_type()
         self.cancelled = False
         self.enqueued_ns = time.monotonic_ns()
         self.trace = (_REQUEST_TIMINGS.start()
                       if os.environ.get('VLLM_APPLE_P1_PROFILE') == '1' else None)
         self._response_type = response_type
-        self._write_lock = threading.Lock()
-        self._closed = threading.Event()
+        self._space = threading.Condition(threading.Lock())
+        self._closed = False
 
     def put(self, value: Any) -> None:
         if self.trace is not None and isinstance(value, self._response_type):
             self.trace.mark('first_response_ready')
         # Never block while holding the writer lock: cancellation must be able
         # to discard buffered responses even when the HTTP consumer has left.
-        while True:
-            with self._write_lock:
-                if self._closed.is_set():
-                    return
+        with self._space:
+            while not self._closed:
                 try:
                     self._queue.put_nowait(value)
                     return
                 except Full:
-                    pass
-            if self._closed.wait(0.05):
-                return
+                    self._space.wait()
 
     def cancel_stream(self) -> None:
         """Wake the consumer and blocked producer without waiting for either."""
-        with self._write_lock:
-            if self._closed.is_set():
+        with self._space:
+            if self._closed:
                 return
             self.cancelled = True
-            self._closed.set()
+            self._closed = True
             while True:
                 try:
                     self._queue.get_nowait()
                 except Empty:
                     break
             self._queue.put_nowait(None)
+            self._space.notify_all()
 
     def get(self, *args: Any, **kwargs: Any) -> Any:
-        return self._queue.get(*args, **kwargs)
+        value = self._queue.get(*args, **kwargs)
+        if self._bounded:
+            with self._space:
+                self._space.notify()
+        return value
 
 
 def grouped_query_mask(mask: Any, repeats: int) -> Any:
@@ -149,11 +151,18 @@ def install_gemma2_batch_mask_fix() -> bool:
     return True
 
 
+def _stop_context(context: Any, response_queue: Any) -> None:
+    context.stop()
+    if isinstance(response_queue, _RequestQueue):
+        response_queue.cancel_stream()
+    else:
+        response_queue.put(None)
+
+
 def _register_context(request_id: str, context: Any, response_queue: Any) -> None:
     with _ACTIVE_LOCK:
         if request_id in _ACTIVE:
-            context.stop()
-            response_queue.put(None)
+            _stop_context(context, response_queue)
             raise ValueError("request ID is already active")
         _ACTIVE[request_id] = (context, response_queue)
 
@@ -169,13 +178,11 @@ def _activate_pending(request_id: str, context: Any, response_queue: Any) -> boo
     with _ACTIVE_LOCK:
         pending = _PENDING.get(request_id)
         if pending is not response_queue:
-            context.stop()
-            response_queue.put(None)
+            _stop_context(context, response_queue)
             return False
         _PENDING.pop(request_id, None)
         if response_queue.cancelled:
-            context.stop()
-            response_queue.put(None)
+            _stop_context(context, response_queue)
             return False
         _ACTIVE[request_id] = (context, response_queue)
         return True
@@ -204,11 +211,7 @@ def cancel_request_state(request_id: str) -> str | None:
             if getattr(response_queue, 'cancelled', False) is True:
                 return 'active'
             response_queue.cancelled = True
-            context.stop()
-            if isinstance(response_queue, _RequestQueue):
-                response_queue.cancel_stream()
-            else:
-                response_queue.put(None)
+            _stop_context(context, response_queue)
             return "active"
         pending = _PENDING.get(request_id)
         if pending is not None:

@@ -584,6 +584,7 @@ def _awake_condition_rejections(summary: dict) -> list[str]:
 def _stability_passed(
     summary: dict[str, object], *, require_fault_checks: bool,
     require_long_window_checks: bool = False,
+    require_epoch_resources: bool = False,
     require_awake_conditions: bool = False,
 ) -> bool:
     requests = int(summary["requests"])
@@ -613,8 +614,9 @@ def _stability_passed(
             and rss_trend.get("plateau_observed") is True
             and int(summary.get("worker_crash_attempts", 0)) > 0
             and summary["worker_crash_attempts"] == summary["worker_crash_passed"]
-            and summary.get('all_epoch_resources_passed') is True
         )
+    if require_epoch_resources or require_long_window_checks:
+        passed = passed and summary.get('all_epoch_resources_passed') is True
     if require_awake_conditions:
         passed = passed and not _awake_condition_rejections(summary)
     return bool(passed)
@@ -625,6 +627,7 @@ def _run_stability_window(config: PhaseProbeConfig, *, port: int, model: str,
                           duration_seconds: float,
                           long_concurrency: int = 2,
                           require_long_window_checks: bool = False,
+                          require_epoch_resources: bool = False,
                           fault_check_interval_cycles: int = 10,
                           checkpoint: Callable[[dict[str, object]], None] | None = None,
                           require_sleep_wake: bool = False,
@@ -868,6 +871,7 @@ def _run_stability_window(config: PhaseProbeConfig, *, port: int, model: str,
     summary["passed"] = _stability_passed(
         summary, require_fault_checks=True,
         require_long_window_checks=require_long_window_checks,
+        require_epoch_resources=require_epoch_resources,
         require_awake_conditions=require_awake_conditions,
     ) and bool(summary["sleep_wake_passed"])
     return summary
@@ -1063,6 +1067,7 @@ def _run_qualification(args: argparse.Namespace, gpu_lock: BenchmarkGpuLock) -> 
                 duration_seconds=args.duration_seconds,
                 long_concurrency=args.long_concurrency,
                 require_long_window_checks=args.require_8_hour_window,
+                require_epoch_resources=args.p1_profile or args.require_30_minute_window,
                 fault_check_interval_cycles=args.fault_check_interval_cycles,
                 checkpoint=checkpoint,
                 require_sleep_wake=args.require_sleep_wake,

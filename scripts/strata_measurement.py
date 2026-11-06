@@ -5,30 +5,38 @@ import threading
 import time
 
 
+class CPUSnapshot(dict):
+    """Counters plus diagnostic metadata; no observer/worker CPU subtraction."""
+
+
 def cpu_sample(exclude_pid):
     import psutil
 
+    started = time.monotonic()
     excluded = {exclude_pid}
     try:
         excluded.update(p.pid for p in psutil.Process(exclude_pid).children(recursive=True))
     except psutil.Error:
         pass
-    result = {}
+    result = CPUSnapshot()
+    result.excluded = {}
     system = psutil.cpu_times()
     # Aggregate CPU counters also cover processes whose counters are inaccessible.
     # This includes our workers, making the during-run gate deliberately stricter.
     result[(-1, 0)] = (system.user + system.system, "__system__")
     for p in psutil.process_iter(["pid", "name", "create_time", "cpu_times"]):
         try:
-            if p.pid not in excluded:
-                times = p.info["cpu_times"]
-                if times is None:
-                    continue
-                result[(p.pid, p.info["create_time"])] = (
-                    times.user + times.system, p.info["name"],
-                )
+            times = p.info["cpu_times"]
+            if times is None:
+                continue
+            target = result.excluded if p.pid in excluded else result
+            target[(p.pid, p.info["create_time"])] = (
+                times.user + times.system, p.info["name"],
+            )
         except (psutil.Error, TypeError):
             continue
+    result.observer_pid = exclude_pid
+    result.collection_seconds = time.monotonic() - started
     return result
 
 
@@ -40,10 +48,24 @@ def cpu_delta(before, after, seconds):
     aggregate = (max(0, after[(-1, 0)][0] - before[(-1, 0)][0]) * 100 / seconds
                  if (-1, 0) in before and (-1, 0) in after else
                  sum(p["cpu_percent"] for p in processes))
-    return dict(total_percent=aggregate,
-                maximum_process_percent=processes[0]["cpu_percent"] if processes else 0,
-                top_processes=processes[:5],
-                new_or_exited_processes=len(before.keys() ^ after.keys()))
+    observation = dict(total_percent=aggregate,
+                       maximum_process_percent=processes[0]["cpu_percent"] if processes else 0,
+                       top_processes=processes[:5],
+                       new_or_exited_processes=len(before.keys() ^ after.keys()))
+    if isinstance(before, CPUSnapshot) and isinstance(after, CPUSnapshot):
+        excluded = [
+            (key[0], max(0, total - before.excluded[key][0]) * 100 / seconds)
+            for key, (total, _name) in after.excluded.items() if key in before.excluded
+        ]
+        observation.update(
+            observer_cpu_percent=sum(cpu for pid, cpu in excluded
+                                     if pid == after.observer_pid),
+            worker_tree_cpu_percent=sum(cpu for pid, cpu in excluded
+                                        if pid != after.observer_pid),
+            collection_seconds=after.collection_seconds,
+            attribution_scope="matched_accessible_pids_only; diagnostic_not_subtracted",
+        )
+    return observation
 
 
 def quiet(observation):

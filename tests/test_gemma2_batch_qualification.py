@@ -40,6 +40,17 @@ class Gemma2QualificationTests(unittest.TestCase):
             summary, require_fault_checks=False, require_awake_conditions=True))
         self.assertTrue(summary['operating_conditions']['changed'])
 
+    def test_short_p1_window_requires_explicit_all_epoch_resource_pass(self):
+        summary = dict(requests=204, completed=204, quality_passed=204, slo_quality_passed=204,
+                       failed=0, cancel_attempts=20, cancel_passed=20,
+                       slow_consumer_attempts=20, slow_consumer_passed=20)
+        for resource_gate in (None, False, True):
+            if resource_gate is not None:
+                summary['all_epoch_resources_passed'] = resource_gate
+            self.assertEqual(qualification._stability_passed(
+                summary, require_fault_checks=True, require_epoch_resources=True),
+                resource_gate is True)
+
     def test_unknown_observation_does_not_become_known_later(self):
         summary = {}
         qualification._record_operating_conditions(summary, dict(power_source='unknown'))

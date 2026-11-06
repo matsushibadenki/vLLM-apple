@@ -1,0 +1,184 @@
+{
+  "scope": "CPU counter collection overhead only; no inference or speed qualification",
+  "order": "alternating AB/BA, 16 samples per implementation, none discarded",
+  "samples": {
+    "before": [
+      {
+        "wall_seconds": 0.06193320799866342,
+        "observer_cpu_seconds": 0.051320000000000005,
+        "visible_pids": 692
+      },
+      {
+        "wall_seconds": 0.03069491700080107,
+        "observer_cpu_seconds": 0.030088000000000004,
+        "visible_pids": 689
+      },
+      {
+        "wall_seconds": 0.034785666000971105,
+        "observer_cpu_seconds": 0.03361600000000001,
+        "visible_pids": 690
+      },
+      {
+        "wall_seconds": 0.02656462499726331,
+        "observer_cpu_seconds": 0.026476,
+        "visible_pids": 686
+      },
+      {
+        "wall_seconds": 0.026318750002246816,
+        "observer_cpu_seconds": 0.02547100000000002,
+        "visible_pids": 686
+      },
+      {
+        "wall_seconds": 0.027916500002902467,
+        "observer_cpu_seconds": 0.027652999999999983,
+        "visible_pids": 686
+      },
+      {
+        "wall_seconds": 0.02819995799654862,
+        "observer_cpu_seconds": 0.027759000000000034,
+        "visible_pids": 689
+      },
+      {
+        "wall_seconds": 0.02705904199683573,
+        "observer_cpu_seconds": 0.026955000000000062,
+        "visible_pids": 686
+      },
+      {
+        "wall_seconds": 0.0276616670016665,
+        "observer_cpu_seconds": 0.027569999999999983,
+        "visible_pids": 686
+      },
+      {
+        "wall_seconds": 0.02610195799934445,
+        "observer_cpu_seconds": 0.02601500000000001,
+        "visible_pids": 686
+      },
+      {
+        "wall_seconds": 0.025278707998950267,
+        "observer_cpu_seconds": 0.025152000000000063,
+        "visible_pids": 687
+      },
+      {
+        "wall_seconds": 0.026527207999606617,
+        "observer_cpu_seconds": 0.026527999999999996,
+        "visible_pids": 684
+      },
+      {
+        "wall_seconds": 0.026546249999228166,
+        "observer_cpu_seconds": 0.026268999999999987,
+        "visible_pids": 684
+      },
+      {
+        "wall_seconds": 0.024656458001118153,
+        "observer_cpu_seconds": 0.02465700000000004,
+        "visible_pids": 683
+      },
+      {
+        "wall_seconds": 0.024579707998782396,
+        "observer_cpu_seconds": 0.024579000000000018,
+        "visible_pids": 683
+      },
+      {
+        "wall_seconds": 0.024197292001190362,
+        "observer_cpu_seconds": 0.02419899999999997,
+        "visible_pids": 683
+      }
+    ],
+    "after": [
+      {
+        "wall_seconds": 0.044658458999037975,
+        "observer_cpu_seconds": 0.03976900000000001,
+        "visible_pids": 689
+      },
+      {
+        "wall_seconds": 0.029203582998889033,
+        "observer_cpu_seconds": 0.028906000000000015,
+        "visible_pids": 689
+      },
+      {
+        "wall_seconds": 0.03123079099896131,
+        "observer_cpu_seconds": 0.030248000000000025,
+        "visible_pids": 689
+      },
+      {
+        "wall_seconds": 0.029887959000916453,
+        "observer_cpu_seconds": 0.02931100000000003,
+        "visible_pids": 686
+      },
+      {
+        "wall_seconds": 0.029250791998492787,
+        "observer_cpu_seconds": 0.028505999999999976,
+        "visible_pids": 686
+      },
+      {
+        "wall_seconds": 0.027100250001240056,
+        "observer_cpu_seconds": 0.027059999999999973,
+        "visible_pids": 686
+      },
+      {
+        "wall_seconds": 0.028770082997652935,
+        "observer_cpu_seconds": 0.02877099999999999,
+        "visible_pids": 689
+      },
+      {
+        "wall_seconds": 0.029836541001714068,
+        "observer_cpu_seconds": 0.029733000000000065,
+        "visible_pids": 686
+      },
+      {
+        "wall_seconds": 0.028567500001372537,
+        "observer_cpu_seconds": 0.028411999999999993,
+        "visible_pids": 686
+      },
+      {
+        "wall_seconds": 0.02822704100253759,
+        "observer_cpu_seconds": 0.02812200000000009,
+        "visible_pids": 686
+      },
+      {
+        "wall_seconds": 0.025858166998659726,
+        "observer_cpu_seconds": 0.025858000000000048,
+        "visible_pids": 687
+      },
+      {
+        "wall_seconds": 0.029717040997638833,
+        "observer_cpu_seconds": 0.028495999999999966,
+        "visible_pids": 682
+      },
+      {
+        "wall_seconds": 0.028028916000039317,
+        "observer_cpu_seconds": 0.02797700000000003,
+        "visible_pids": 683
+      },
+      {
+        "wall_seconds": 0.026272292001522146,
+        "observer_cpu_seconds": 0.02618700000000007,
+        "visible_pids": 683
+      },
+      {
+        "wall_seconds": 0.025954417000320973,
+        "observer_cpu_seconds": 0.02595500000000006,
+        "visible_pids": 683
+      },
+      {
+        "wall_seconds": 0.02591329200004111,
+        "observer_cpu_seconds": 0.025865000000000027,
+        "visible_pids": 683
+      }
+    ]
+  },
+  "median": {
+    "before": {
+      "wall_seconds": 0.026555437498245738,
+      "observer_cpu_seconds": 0.026501999999999998
+    },
+    "after": {
+      "wall_seconds": 0.028668791499512736,
+      "observer_cpu_seconds": 0.02845399999999998
+    }
+  },
+  "source_sha256": {
+    "scripts/strata_measurement.py": "9063197bd59a14b55a3a1162f8bd262e4de863fbfd6ff14c1b15365b5a87f094",
+    "scripts/analyze_strata_host_load.py": "bb754bbbc7283fb2ca098300580738d2f126502b21e0b113129e8af99d315f87"
+  }
+}
