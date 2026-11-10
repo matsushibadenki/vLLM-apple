@@ -1,0 +1,43 @@
+{
+  "date": "2026-11-09",
+  "applied": {
+    "ruff": [
+      "0.17.3",
+      "0.17.4"
+    ]
+  },
+  "lint": {
+    "old": 0,
+    "new": 0,
+    "introduced": 0,
+    "removed": 0
+  },
+  "python_tests": {
+    "count": 1632,
+    "seconds": 75.584,
+    "passed": true,
+    "skipped": 46
+  },
+  "compile_python": [
+    "3.10",
+    "3.12"
+  ],
+  "swift_tests": {
+    "count": 38,
+    "passed": true
+  },
+  "mac_sample_build": {
+    "passed": true,
+    "seconds": 6.06
+  },
+  "wheel_build_install_cli": "passed",
+  "candidate_pip_check": "passed",
+  "homebrew_pip_check": {
+    "passed": false,
+    "requirement": "torch==2.14.0",
+    "installed": "2.16.0.dev20261013",
+    "introduced_by_this_update": false
+  },
+  "backend_environment_modified": false,
+  "backend_newly_qualified": false
+}

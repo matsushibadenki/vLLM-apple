@@ -14,6 +14,17 @@ from pathlib import Path
 
 SERVER_SHA256 = '8514178d18ee7e5edd1db8b8077ab97079ec72d1db666b85c110fb33cdc55147'
 CACHE_SHA256 = '440709018cc528ee1e4e42e61ff8713ed2e0079566d9e8fa58eed3a92d334404'
+# PyPI0.32.0: same LRU insert/trim/fetch contract, new cache-type accounting.
+# Qualified separately; do not mix server/cache revisions.
+REVIEWED_SOURCE_PAIRS = {
+    (SERVER_SHA256, CACHE_SHA256),
+    ('57392576de114af80ede723976b9dd156dc234f856b9943b8b44b8b78bc27f79',
+     'c96cb169fd5e0ec4584a162dd61dc62ab08ccdca03a9850f8a491ce6809145e6'),
+}
+
+
+def reviewed_sources(server, cache):
+    return (server, cache) in REVIEWED_SOURCE_PAIRS
 
 
 def install_budget(cache_class, budget):
@@ -73,8 +84,8 @@ def main():
         raise ValueError('retained KV wrapper requires reviewed MLX-LM 0.32.0')
     from mlx_lm import server
     from mlx_lm.models import cache
-    if (hashlib.sha256(Path(server.__file__).read_bytes()).hexdigest() != SERVER_SHA256
-            or hashlib.sha256(Path(cache.__file__).read_bytes()).hexdigest() != CACHE_SHA256):
+    if not reviewed_sources(hashlib.sha256(Path(server.__file__).read_bytes()).hexdigest(),
+                            hashlib.sha256(Path(cache.__file__).read_bytes()).hexdigest()):
         raise ValueError('review retained KV wrapper after server/cache source changes')
     import mlx.core as mx
     allocator_policy = configure_allocator(mx, os.environ.get('VLLM_APPLE_ALLOCATOR_CACHE_MIB'))

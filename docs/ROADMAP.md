@@ -217,6 +217,16 @@ English: Upstream Metal research completed; process-wide budgets and launch vali
 简体中文：上游Metal调查完成，下一步优先全process预算与launch验证。
 
 
+### 依存更新 · 2026-11-09
+
+- 🟢 [Done] Ruff0.17.4へ更新。[記録](dependency-update-2026-11-09.md)：新旧lint0、Python回帰1632 tests OK（46 skip）、Python3.10/3.12 compile・候補pip check・wheel作成／install／CLI・Swift38 tests・Mac sample成功。既存MLX KV予算のsource pair変更は保持。
+- 🟠 [Next] 既存Homebrew Metal/core0.33.0にTorch2.16.0.dev20261013とMLX-LM dev版を確認。pip checkはcoreのTorch2.14.0要件と不一致。公式installerのnightly固定も確認したため、単独downgradeせずstable-only互換stackを隔離検証する。今回の更新で導入した依存ではなく、推論失敗や新stack認定は未確認。
+- ⭕️ [Pending] 対応modelを必要とする生成／変換qualification、remote CIとActions最新版の実runner検証。Homebrew／既存backend venvは変更していない。
+
+English: Ruff0.17.4 and all project checks pass. A pre-existing Homebrew Torch nightly/metadata mismatch is recorded without changing that environment.
+
+简体中文：Ruff0.17.4及项目验证成功。记录了已有Homebrew Torch nightly与metadata不一致，未修改该环境。
+
 ### 依存更新 · 2026-11-02
 
 - 🟢 [Done] Ruff0.17.3へ更新。[記録](dependency-update-2026-11-02.md)：新旧Ruffともlint0、全Python回帰1608 tests OK（46 skip）、Python3.10/3.12 compile・pip check・wheel作成／install／CLI・Swift38 tests・Mac sample成功。既存managed engine／P1／GPU lock等の作業を保持。
