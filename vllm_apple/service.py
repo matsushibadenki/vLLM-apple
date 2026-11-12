@@ -38,7 +38,7 @@ from .profile import build_profile
 from .runtime_errors import RuntimeFailure, classify_runtime_failure
 from .scheduler import BasicScheduler, PlanApplicationDecision, Reservation, ScheduleRequest
 from .scheduling_preference import load_scheduling_preference, save_scheduling_preference
-from .semantic_cache import SemanticAnchor, SemanticAnchorKind
+from .semantic_cache import SemanticAnchor, SemanticAnchorKind, semantic_prefix_boundaries
 from .semantic_state import (
     SemanticRestoreResult,
     SemanticStateCoordinator,
@@ -1084,6 +1084,19 @@ class RuntimeService:
         if self.semantic_state is None:
             return SemanticRestoreResult(False)
         return self.semantic_state.restore_deepest(session_fingerprint, boundaries)
+
+    def restore_semantic_state_from_tokens(
+        self,
+        session_fingerprint: str,
+        token_ids: tuple[int, ...],
+        positions: tuple[int, ...],
+    ) -> SemanticRestoreResult:
+        """Restore the deepest unchanged state for the backend's token sequence."""
+        if self.semantic_state is None:
+            return SemanticRestoreResult(False)
+        return self.restore_semantic_state(
+            session_fingerprint, semantic_prefix_boundaries(token_ids, positions)
+        )
 
     def resize_semantic_cache(self, capacity_entries: int, capacity_bytes: int) -> int:
         if self.semantic_state is None:

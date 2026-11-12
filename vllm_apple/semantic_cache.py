@@ -168,21 +168,35 @@ class SemanticAnchorCache:
 
 
 def semantic_prefix_fingerprint(token_ids: tuple[int, ...]) -> str:
-    if (
-        not token_ids
-        or len(token_ids) > MAX_PREFIX_TOKENS
-        or any(
-            not isinstance(token_id, int)
-            or isinstance(token_id, bool)
-            or not 0 <= token_id < 1 << 64
-            for token_id in token_ids
-        )
-    ):
+    return semantic_prefix_boundaries(token_ids, (len(token_ids),))[0][1]
+
+
+def semantic_prefix_boundaries(
+    token_ids: tuple[int, ...], positions: tuple[int, ...],
+) -> tuple[tuple[int, str], ...]:
+    """Build exact anchor lookup keys in one pass through the requested prefixes."""
+    if not 1 <= len(token_ids) <= MAX_PREFIX_TOKENS:
         raise ValueError("semantic prefix tokens are invalid or unbounded")
+    previous = 0
+    for position in positions:
+        if type(position) is not int or not previous < position <= len(token_ids):
+            raise ValueError("semantic prefix boundaries must be strictly increasing")
+        previous = position
+
     digest = hashlib.sha256(b"vllm-apple-semantic-prefix-v1\0")
-    for token_id in token_ids:
-        digest.update(token_id.to_bytes(8, "big", signed=False))
-    return digest.hexdigest()
+    tokens = iter(token_ids)
+    boundaries = []
+    previous = 0
+    for position in positions:
+        for _ in range(position - previous):
+            token_id = next(tokens)
+            if (not isinstance(token_id, int) or isinstance(token_id, bool)
+                    or not 0 <= token_id < 1 << 64):
+                raise ValueError("semantic prefix tokens are invalid or unbounded")
+            digest.update(token_id.to_bytes(8, "big", signed=False))
+        boundaries.append((position, digest.hexdigest()))
+        previous = position
+    return tuple(boundaries)
 
 
 def _validate_sha256(name: str, value: str) -> None:

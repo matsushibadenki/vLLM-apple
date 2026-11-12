@@ -565,6 +565,7 @@ from .semantic_cache import (
     SemanticAnchorCache,
     SemanticAnchorKind,
     SemanticCacheSnapshot,
+    semantic_prefix_boundaries,
     semantic_prefix_fingerprint,
 )
 from .semantic_state import (
@@ -1297,6 +1298,7 @@ __all__ = [
     "sample_temporal_frames",
     "save_native_v2_preference",
     "save_scheduling_preference",
+    "semantic_prefix_boundaries",
     "semantic_prefix_fingerprint",
     "select_measured_device_backend",
     "tune_metal_shape_profile",

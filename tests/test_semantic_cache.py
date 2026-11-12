@@ -10,6 +10,7 @@ from vllm_apple.semantic_cache import (
     SemanticAnchor,
     SemanticAnchorCache,
     SemanticAnchorKind,
+    semantic_prefix_boundaries,
     semantic_prefix_fingerprint,
 )
 from vllm_apple.semantic_state import BackendStateReference, SemanticStateCoordinator
@@ -17,6 +18,20 @@ from vllm_apple.service import RuntimeService
 from vllm_apple.types import MemoryPressure
 
 SESSION = "a" * 64
+
+
+class SemanticPrefixBoundaryTests(unittest.TestCase):
+    def test_edit_preserves_only_matching_prefixes(self):
+        original = (1, 2, 3, 4)
+        edited = (1, 2, 9, 4)
+        boundaries = semantic_prefix_boundaries(original, (2, 4))
+        self.assertEqual(boundaries, (
+            (2, semantic_prefix_fingerprint((1, 2))),
+            (4, semantic_prefix_fingerprint(original)),
+        ))
+        changed = semantic_prefix_boundaries(edited, (2, 4))
+        self.assertEqual(changed[0], boundaries[0])
+        self.assertNotEqual(changed[1], boundaries[1])
 
 
 def anchor(
@@ -161,6 +176,11 @@ class SemanticStateCoordinatorTests(unittest.TestCase):
             4,
             SemanticAnchorKind.TOOL_RESULT,
         )
+        edited = service.restore_semantic_state_from_tokens(SESSION, (1, 2, 9, 4), (2, 4))
+        self.assertTrue(edited.reused)
+        self.assertEqual(edited.token_position, 2)
+        miss = service.restore_semantic_state_from_tokens("b" * 64, (1, 2, 9, 4), (2, 4))
+        self.assertFalse(miss.reused)
         restored = service.restore_semantic_state(
             SESSION,
             ((2, first_prefix), (4, second_prefix)),
@@ -172,8 +192,9 @@ class SemanticStateCoordinatorTests(unittest.TestCase):
         metrics = service.snapshot().semantic_cache
         self.assertTrue(metrics["enabled"])
         self.assertEqual(metrics["captures"], 2)
-        self.assertEqual(metrics["hits"], 1)
+        self.assertEqual(metrics["hits"], 2)
         self.assertEqual(events[-1][0], "semantic_cache.hit")
+
 
     def test_failed_restore_discards_stale_state_and_release_retries(self) -> None:
         backend = RecordingSemanticBackend()

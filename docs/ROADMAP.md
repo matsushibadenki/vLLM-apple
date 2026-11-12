@@ -45,6 +45,25 @@
 
 ## 直近の更新 / Recent updates / 最近更新
 
+### 状態再利用 · 境界の計算を共有 · 2026-11-12
+
+- 🟢 [Done] 複数の完全一致prefixの照合キーをSHA-256の途中状態から一度の走査で生成する。既存のキー形式を維持し、編集より前の境界だけ一致することを確認した。
+- 🟠 [Next] backendの状態復元に接続し、同一入力で品質、prefill時間、保持メモリとJ/tokenを比較する。
+- 🔴 [Later] 意味の変化による層の省略、推論と文章化のモデル分離、部分学習は個別に研究する。
+
+English · Exact prefix lookup keys now share one hash pass. Backend integration and inference measurements remain next.
+
+简体中文 · 多个精确前缀的查找键共享一次哈希扫描。下一步接入后端并测量推理。
+
+### 状態再利用 · トークン列からの復元 · 2026-11-12
+
+- 🟢 [Done] RuntimeServiceにトークン列から状態を復元する入口を追加。複数の境界を一度の走査で計算し、同一セッション内で編集前の最深一致状態を選ぶ。
+- 🟠 [Next] 実モデルでprefill時間・応答品質・保持メモリ・J/tokenを比較する。モデル振り分けと投機生成は候補ごとの品質と費用を測って判断する。
+
+English · RuntimeService accepts token sequences for exact prefix state restoration. Real-model inference benchmarks remain next.
+
+简体中文 · RuntimeService 可从 token 序列恢复精确匹配的前缀状态。下一步进行真实模型推理评估。
+
 ### P1 · 同一生成要求の正常終了とtimeout対照 · 2026-11-06
 
 - 🟢 [Done] 同じworker・プロンプト・seed=11・上限512 tokenで正常終了／100 ms timeoutを交互に各6回比較。各試行前の長文入力算術品質12/12、全ストリーム終端と正常shutdownが合格。20 ms間隔RSS観測と終端後1秒観測を追加。[全記録](evaluation/p1-completion-control-2026-11-06.json)。再現はpost-long probeの `--compare-completion`。
