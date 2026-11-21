@@ -1,6 +1,7 @@
 import io
 import json
 import threading
+import time
 import unittest
 import urllib.error
 import urllib.request
@@ -77,11 +78,19 @@ class APITests(unittest.TestCase):
         with urllib.request.urlopen(request, timeout=2) as response:
             json.load(response)
             self.assertEqual(response.headers["X-Request-ID"], "client-12345678")
-        record = next(
-            record
-            for record in reversed(self.server.request_log.records())
-            if record.request_id == "client-12345678"
-        )
+        # The handler records completion after writing the response body.
+        deadline = time.monotonic() + 2
+        while True:
+            record = next(
+                (entry for entry in self.server.request_log.records()
+                 if entry.request_id == "client-12345678"),
+                None,
+            )
+            if record is not None:
+                break
+            if time.monotonic() >= deadline:
+                self.fail("Request completion was not recorded for client-12345678")
+            time.sleep(0.01)
         self.assertEqual(record.request_id, "client-12345678")
         self.assertEqual(record.route, "/health")
         self.assertNotIn("secret", json.dumps(record.to_dict()))
