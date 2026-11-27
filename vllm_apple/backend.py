@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+import http.client
 import json
 import os
 import re
@@ -12,7 +13,7 @@ import time
 import urllib.error
 import urllib.request
 from collections import deque
-from contextlib import AbstractContextManager
+from contextlib import AbstractContextManager, contextmanager
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, BinaryIO, Callable, Iterable
@@ -712,6 +713,58 @@ class OpenAIProxyEngine:
 
     def open_chat_stream(self, request: dict[str, Any]) -> AbstractContextManager[BinaryIO]:
         return self.open_chat_stream_with_context(request, None)
+
+    @contextmanager
+    def open_cancellable_chat_stream(self, request, context, cancelled):
+        if self.process is None or self.process.config.backend_kind != "mlx_lm":
+            with self.open_chat_stream_with_context(request, context) as response:
+                yield response
+            return
+        self._ensure_managed_ready()
+        config = self.process.config
+        path = "/v1/chat/completions"
+        body = json.dumps(dict(request, stream=True), ensure_ascii=False).encode()
+        upstream = self._request(path, body, context.to_http_headers() if context else None)
+        connection = http.client.HTTPConnection(config.host, config.port, timeout=300)
+        finished = threading.Event()
+
+        def watch(peer):
+            while not finished.wait(0.025):
+                if cancelled():
+                    try:
+                        peer.shutdown(socket.SHUT_RDWR)
+                    except OSError:
+                        pass
+                    return
+
+        watcher = None
+        peer = None
+        response = None
+        try:
+            try:
+                connection.connect()
+                peer = connection.sock.dup()
+                watcher = threading.Thread(target=watch, args=(peer,), daemon=True)
+                watcher.start()
+                connection.request("POST", path, body, dict(upstream.header_items()))
+                response = connection.getresponse()
+            except (OSError, http.client.HTTPException) as error:
+                raise BackendHTTPError(503, "backend_unavailable", str(error)) from error
+            if response.status >= 400:
+                raise self._translate_http_error(urllib.error.HTTPError(
+                    upstream.full_url, response.status, response.reason, response.headers, response
+                ))
+            self._record_tuning_ack(context, response)
+            yield response
+        finally:
+            finished.set()
+            if watcher is not None:
+                watcher.join()
+            if peer is not None:
+                peer.close()
+            if response is not None:
+                response.close()
+            connection.close()
 
     def open_chat_stream_with_context(
         self,

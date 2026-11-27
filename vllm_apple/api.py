@@ -847,44 +847,43 @@ class RuntimeRequestHandler(BaseHTTPRequestHandler):
                 "native v2 tuning is applying at an idle scheduler safe point",
             )
             return
+        signal = _SocketCancellationSignal(self.connection)
+        status = HTTPStatus.OK.value
+        error_code = None
+        streaming = False
         try:
-            upstream_context = self.server.service.open_chat_stream(request, reservation)
-        except InferenceUnavailableError as error:
-            self.server.service.complete_schedule(reservation)
-            self._error(HTTPStatus.SERVICE_UNAVAILABLE, "backend_unavailable", str(error))
-            return
-        except BackendHTTPError as error:
-            self.server.service.complete_schedule(reservation)
-            self._backend_error(error)
-            return
-        except BaseException:
-            self.server.service.complete_schedule(reservation)
-            raise
-
-        self.send_response(HTTPStatus.OK.value)
-        self.send_header("Content-Type", "text/event-stream; charset=utf-8")
-        self.send_header("Cache-Control", "no-cache")
-        self.send_header("X-Accel-Buffering", "no")
-        self.send_header("Connection", "close")
-        self.send_header(REQUEST_ID_HEADER, self._request_id())
-        self.end_headers()
-        self.close_connection = True
-        try:
-            with upstream_context as upstream:
+            with self.server.service.open_chat_stream(
+                request, reservation, cancelled=signal.is_set
+            ) as upstream:
+                self.send_response(status)
+                self.send_header("Content-Type", "text/event-stream; charset=utf-8")
+                self.send_header("Cache-Control", "no-cache")
+                self.send_header("X-Accel-Buffering", "no")
+                self.send_header("Connection", "close")
+                self.send_header(REQUEST_ID_HEADER, self._request_id())
+                self.end_headers()
+                self.close_connection = True
+                streaming = True
                 read = getattr(upstream, "read1", upstream.read)
-                while True:
+                while not signal.is_set():
                     chunk = read(4096)
                     if not chunk:
                         break
                     self.wfile.write(chunk)
                     self.wfile.flush()
+        except InferenceUnavailableError as error:
+            self._error(HTTPStatus.SERVICE_UNAVAILABLE, "backend_unavailable", str(error))
+        except BackendHTTPError as error:
+            if not signal.is_set():
+                self._backend_error(error)
         except (BrokenPipeError, ConnectionResetError, TimeoutError):
-            # Client cancellation must promptly close the upstream response and
-            # release the bounded request slot without turning into a daemon error.
-            return
+            pass
         finally:
             self.server.service.complete_schedule(reservation)
-            self._record_request(HTTPStatus.OK.value, streamed=True)
+            if signal.is_set():
+                status, error_code = 499, "client_disconnected"
+            if streaming or error_code is not None:
+                self._record_request(status, streamed=streaming, error_code=error_code)
 
     def _write_event(self, event: RuntimeEvent | None) -> None:
         if event is None:

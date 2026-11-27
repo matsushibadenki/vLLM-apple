@@ -1053,8 +1053,11 @@ class RuntimeService:
         return self.engine.chat_completions(request)
 
     def open_chat_stream(
-        self, request: dict[str, Any], reservation: Reservation
+        self, request: dict[str, Any], reservation: Reservation, *, cancelled=None
     ) -> AbstractContextManager[BinaryIO]:
+        cancellable = getattr(self.engine, "open_cancellable_chat_stream", None)
+        if cancelled is not None and callable(cancellable):
+            return cancellable(request, self.inference_kernel_context(reservation), cancelled)
         context_method = getattr(self.engine, "open_chat_stream_with_context", None)
         if callable(context_method):
             return context_method(request, self.inference_kernel_context(reservation))

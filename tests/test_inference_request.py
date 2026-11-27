@@ -8,9 +8,12 @@ import urllib.error
 import urllib.request
 from concurrent.futures import Future
 from contextlib import nullcontext
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from types import SimpleNamespace
 from unittest.mock import Mock, patch
 
 from vllm_apple.api import _after_inference_completion, create_server
+from vllm_apple.backend import OpenAIProxyEngine
 from vllm_apple.inference_request import (
     InferenceRequestCancelled,
     InferenceRequestContext,
@@ -58,6 +61,60 @@ class ExpiringEngine(ManagedEngine):
 
 
 class InferenceRequestTests(unittest.TestCase):
+    def test_stream_disconnect_reaches_silent_mlx_backend(self):
+        for send_headers in (False, True):
+            with self.subTest(send_headers=send_headers):
+                entered, disconnected, released = (threading.Event() for _ in range(3))
+
+                class SilentBackend(BaseHTTPRequestHandler):
+                    def do_POST(self):
+                        self.rfile.read(int(self.headers["Content-Length"]))
+                        if send_headers:
+                            self.send_response(200)
+                            self.end_headers()
+                        entered.set()
+                        self.connection.settimeout(2)
+                        if self.rfile.read(1) == b"":
+                            disconnected.set()
+
+                backend = ThreadingHTTPServer(("127.0.0.1", 0), SilentBackend)
+                config = SimpleNamespace(host="127.0.0.1", port=backend.server_port,
+                                         backend_kind="mlx_lm")
+                engine = OpenAIProxyEngine(f"http://127.0.0.1:{config.port}",
+                                           SimpleNamespace(config=config, ready=True))
+                service = RuntimeService(engine=engine)
+                token = "local-test-session-token-1234567890"
+                relay = create_server("127.0.0.1", 0, service, session_token=token)
+                complete = service.complete_schedule
+
+                def complete_and_notify(reservation):
+                    complete(reservation)
+                    released.set()
+
+                for server in (backend, relay):
+                    threading.Thread(target=server.serve_forever, daemon=True).start()
+                client = http.client.HTTPConnection("127.0.0.1", relay.server_port, timeout=2)
+                try:
+                    with patch.object(service, "chat_schedule_request",
+                                      return_value=ScheduleRequest("paged_attention", 4096)), \
+                         patch.object(service, "complete_schedule", side_effect=complete_and_notify):
+                        client.request("POST", "/v1/chat/completions",
+                                       json.dumps({"model": "fixture", "messages": [], "stream": True}),
+                                       {"Authorization": f"Bearer {token}", "Content-Type": "application/json"})
+                        self.assertTrue(entered.wait(1))
+                        if send_headers:
+                            response = client.getresponse()
+                            self.assertEqual(response.status, 200)
+                            response.close()
+                        client.close()
+                        self.assertTrue(disconnected.wait(1))
+                        self.assertTrue(released.wait(1))
+                finally:
+                    client.close()
+                    for server in (relay, backend):
+                        server.shutdown()
+                        server.server_close()
+
     def test_release_handles_pending_and_already_finished_completion(self):
         for finished in (False, True):
             with self.subTest(finished=finished):
